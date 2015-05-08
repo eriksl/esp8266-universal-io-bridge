@@ -186,14 +186,21 @@ ICACHE_FLASH_ATTR void user_init(void)
 	static struct espconn esp_server_config;
 	static esp_tcp esp_tcp_config;
 
+	struct station_config station_config = { "xxx", "xxx", 0, { 0, 0, 0, 0, 0, 0 } };
+
 	wifi_set_sleep_type(NONE_SLEEP_T);
+	wifi_station_set_auto_connect(1);
+	wifi_set_opmode_current(STATION_MODE);
+	wifi_station_disconnect();
+	wifi_station_set_config_current(&station_config);
+	wifi_station_connect();
 
 	espconn_tcp_set_max_con(1);
 
 	esp_connection = 0;
 
 	memset(&esp_tcp_config, 0, sizeof(esp_tcp_config));
-	esp_tcp_config.local_port	= 23;
+	esp_tcp_config.local_port = 23;
 
 	memset(&esp_server_config, 0, sizeof(esp_server_config));
 	esp_server_config.type		= ESPCONN_TCP;
