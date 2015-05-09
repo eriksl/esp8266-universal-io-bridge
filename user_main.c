@@ -12,12 +12,12 @@
 
 enum
 {
-	receive_task_id				= 0,
-	receive_task_queue_length	= 64,
+	periodic_task_id			= 0,
+	periodic_task_queue_length	= 64,
 };
 
 static struct espconn	*esp_connection;
-static os_event_t		receive_task_queue[receive_task_queue_length];
+static os_event_t		receive_task_queue[periodic_task_queue_length];
 
 ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_error(void)
 {
@@ -73,7 +73,7 @@ ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 	if(uart_rxfifo_full() || uart_rxfifo_available())
 	{
 		ETS_UART_INTR_DISABLE();
-		system_os_post(receive_task_id, 0, 0);
+		system_os_post(periodic_task_id, 0, 0);
 	}
 }
 
@@ -105,7 +105,7 @@ ICACHE_FLASH_ATTR static void uart_init(unsigned int baud_rate, unsigned int bit
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR static uint16_t uart_rx(uint16_t size, uint8 *buffer)
+ICACHE_FLASH_ATTR static uint16_t uart_receive(uint16_t size, uint8 *buffer)
 {
 	uint16_t current;
 
@@ -115,7 +115,7 @@ ICACHE_FLASH_ATTR static uint16_t uart_rx(uint16_t size, uint8 *buffer)
 	return(current);
 }
 
-ICACHE_FLASH_ATTR static void uart_tx(uint16_t length, uint8 *buffer)
+ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
 {
 	uint16_t current;
 
@@ -128,18 +128,16 @@ ICACHE_FLASH_ATTR static void uart_tx(uint16_t length, uint8 *buffer)
 	}
 }
 
-ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
+ICACHE_FLASH_ATTR static void uart_periodic(os_event_t *events)
 {
 	char		buffer[256];
 	uint16_t	length;
 
 	while(uart_rxfifo_length() > 0)
 	{
-		length = 0;
-
 		//WRITE_PERI_REG(0x60000914, 0x73); // watchdog timer
 
-		length = uart_rx(sizeof(buffer), buffer);
+		length = uart_receive(sizeof(buffer), buffer);
 
 		if((length > 0) && esp_connection)
 			espconn_sent(esp_connection, buffer, length);
@@ -158,7 +156,7 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
 {
 	if(esp_connection)
-		uart_tx(length, data);
+		uart_transmit(length, data);
 }
 
 ICACHE_FLASH_ATTR static void server_disconnect_callback(void *arg)
@@ -213,5 +211,5 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	uart_init(460800, EIGHT_BITS, PARITY_DISABLE, ONE_STOP_BIT);
 
-	system_os_task(uart_receive_task, receive_task_id, receive_task_queue, receive_task_queue_length);
+	system_os_task(uart_periodic, periodic_task_id, receive_task_queue, periodic_task_queue_length);
 }
