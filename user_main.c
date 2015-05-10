@@ -30,30 +30,6 @@ static bool				tcp_send_buffer_sending = false;
 static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
 
-ICACHE_FLASH_ATTR static char uart_rxfifo_error(void)
-{
-	if((READ_PERI_REG(UART_INT_ST(0)) & UART_FRM_ERR_INT_ST) == UART_FRM_ERR_INT_ST)
-		return(1);
-
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static char uart_rxfifo_full(void)
-{
-	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_FULL_INT_ST) == UART_RXFIFO_FULL_INT_ST)
-		return(1);
-	
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static char uart_rxfifo_available(void)
-{
-	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) == UART_RXFIFO_TOUT_INT_ST)
-		return(1);
-
-	return(0);
-}
-
 ICACHE_FLASH_ATTR static char uart_rxfifo_length(void)
 {
 	uint32_t fifo_length;
@@ -78,14 +54,18 @@ ICACHE_FLASH_ATTR static char uart_txfifo_length(void)
 
 ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 {
-	if(uart_rxfifo_error())
+	ETS_UART_INTR_DISABLE();
+
+	if((READ_PERI_REG(UART_INT_ST(0)) & UART_FRM_ERR_INT_ST) == UART_FRM_ERR_INT_ST)
 		WRITE_PERI_REG(UART_INT_CLR(0), UART_FRM_ERR_INT_CLR);
 
-	if(uart_rxfifo_full() || uart_rxfifo_available())
-	{
-		ETS_UART_INTR_DISABLE();
-		system_os_post(background_task_id, 0, 0);
-	}
+	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_FULL_INT_ST) == UART_RXFIFO_FULL_INT_ST)
+		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_FULL_INT_CLR);
+
+	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) == UART_RXFIFO_TOUT_INT_ST)
+		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_TOUT_INT_CLR);
+
+	system_os_post(background_task_id, 0, 0);
 }
 
 ICACHE_FLASH_ATTR static void uart_init(void)
@@ -169,14 +149,6 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 	uart_receive_buffer_length += length;
 
-	if(uart_rxfifo_full())
-		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_FULL_INT_CLR);
-
-	if(uart_rxfifo_available())
-		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_TOUT_INT_CLR);
-
-	ETS_UART_INTR_ENABLE();
-
 	tcp_send_buffer_data_pending = false;
 
 	if(esp_tcp_connection && (uart_receive_buffer_length > 0))
@@ -219,6 +191,8 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 
 	if(tcp_send_buffer_data_pending || uart_send_buffer_data_pending || (uart_rxfifo_length() > 0))
 		system_os_post(background_task_id, 0, 0);
+
+	ETS_UART_INTR_ENABLE();
 }
 
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
