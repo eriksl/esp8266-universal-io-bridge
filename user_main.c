@@ -17,15 +17,15 @@ enum
 	background_task_queue_length	= 64,
 };
 
-static char				uart_send_buffer[1024];
-static int16_t			uart_send_buffer_length = 0;
+static char		uart_send_buffer[1024];
+static int16_t	uart_send_buffer_length = 0;
 
-static char				uart_receive_buffer[1024];
-static int16_t			uart_receive_buffer_length = 0;
+static char		uart_receive_buffer[1024];
+static int16_t	uart_receive_buffer_length = 0;
 
-static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
-static int16_t			tcp_send_buffer_length = 0;
-static bool				tcp_send_buffer_sending = false;
+static char		tcp_send_buffer[sizeof(uart_receive_buffer)];
+static int16_t	tcp_send_buffer_length = 0;
+static bool		tcp_send_buffer_sending = false;
 
 static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
