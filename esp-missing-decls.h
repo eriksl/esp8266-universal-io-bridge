@@ -23,6 +23,7 @@ int ets_str2macaddr(void *, void *);
 int ets_strcmp(const char *s1, const char *s2);
 char *ets_strcpy(char *dest, const char *src);
 size_t ets_strlen(const char *s);
+size_t strlen(const char *s);
 int ets_strncmp(const char *s1, const char *s2, int len);
 char *ets_strncpy(char *dest, const char *src, size_t n);
 char *ets_strstr(const char *haystack, const char *needle);
