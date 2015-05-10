@@ -21,7 +21,7 @@ static char				receive_buffer[1024];
 static uint16_t			receive_buffer_length = 0;
 
 static char				send_buffer[sizeof(receive_buffer)];
-static uint8_t			send_buffer_sending = 0;
+static bool				send_buffer_sending = false;
 
 static struct espconn	*esp_connection;
 static os_event_t		receive_task_queue[receive_task_queue_length];
@@ -156,7 +156,7 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 	{
 		if(!send_buffer_sending)
 		{
-			send_buffer_sending = 1;
+			send_buffer_sending = true;
 			memcpy(send_buffer, receive_buffer, receive_buffer_length);
 			espconn_sent(esp_connection, send_buffer, receive_buffer_length);
 			receive_buffer_length = 0;
@@ -177,7 +177,7 @@ ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uin
 
 ICACHE_FLASH_ATTR static void server_data_sent_callback(void *arg)
 {
-    send_buffer_sending = 0;
+    send_buffer_sending = false;
 }
 
 ICACHE_FLASH_ATTR static void server_disconnect_callback(void *arg)
