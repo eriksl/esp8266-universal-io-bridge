@@ -18,7 +18,7 @@ enum
 };
 
 static char				uart_receive_buffer[1024];
-static uint16_t			uart_receive_buffer_length = 0;
+static int16_t			uart_receive_buffer_length = 0;
 
 static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
 static bool				tcp_send_buffer_sending = false;
@@ -26,7 +26,7 @@ static bool				tcp_send_buffer_sending = false;
 static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
 
-ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_error(void)
+ICACHE_FLASH_ATTR static char uart_rxfifo_error(void)
 {
 	if((READ_PERI_REG(UART_INT_ST(0)) & UART_FRM_ERR_INT_ST) == UART_FRM_ERR_INT_ST)
 		return(1);
@@ -34,7 +34,7 @@ ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_error(void)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_full(void)
+ICACHE_FLASH_ATTR static char uart_rxfifo_full(void)
 {
 	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_FULL_INT_ST) == UART_RXFIFO_FULL_INT_ST)
 		return(1);
@@ -42,7 +42,7 @@ ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_full(void)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_available(void)
+ICACHE_FLASH_ATTR static char uart_rxfifo_available(void)
 {
 	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) == UART_RXFIFO_TOUT_INT_ST)
 		return(1);
@@ -50,7 +50,7 @@ ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_available(void)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_length(void)
+ICACHE_FLASH_ATTR static char uart_rxfifo_length(void)
 {
 	uint32_t fifo_length;
 
@@ -61,7 +61,7 @@ ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_length(void)
 	return(fifo_length);
 }
 
-ICACHE_FLASH_ATTR static uint8_t uart_txfifo_length(void)
+ICACHE_FLASH_ATTR static char uart_txfifo_length(void)
 {
 	uint32_t fifo_length;
 
@@ -113,9 +113,9 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR static uint16_t uart_receive(uint16_t size, uint8 *buffer)
+ICACHE_FLASH_ATTR static int16_t uart_receive(int16_t size, char *buffer)
 {
-	uint16_t current;
+	int16_t current;
 
 	for(current = 0; (current < size) && (uart_rxfifo_length() > 0); current++)
 		buffer[current] = READ_PERI_REG(UART_FIFO(0)) & 0xff;
@@ -123,14 +123,14 @@ ICACHE_FLASH_ATTR static uint16_t uart_receive(uint16_t size, uint8 *buffer)
 	return(current);
 }
 
-ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
+ICACHE_FLASH_ATTR static void uart_transmit(int16_t length, char *buffer)
 {
-	uint16_t current;
 
 	for (current = 0; current < length; current++)
 	{
 		while(uart_txfifo_length() > 126)
 			(void)0;
+	int16_t current;
 
 		WRITE_PERI_REG(UART_FIFO(0), buffer[current]);
 	}
@@ -138,8 +138,8 @@ ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
 
 ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 {
-	uint16_t length;
 	bool tcp_send_buffer_data_pending = false;
+	int16_t	length;
 
 	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 	uart_receive_buffer_length += length;
