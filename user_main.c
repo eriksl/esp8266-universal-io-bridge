@@ -17,10 +17,14 @@ enum
 	background_task_queue_length	= 64,
 };
 
+static char				uart_send_buffer[1024];
+static int16_t			uart_send_buffer_length = 0;
+
 static char				uart_receive_buffer[1024];
 static int16_t			uart_receive_buffer_length = 0;
 
 static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
+static int16_t			tcp_send_buffer_length = 0;
 static bool				tcp_send_buffer_sending = false;
 
 static struct espconn	*esp_tcp_connection;
@@ -125,21 +129,42 @@ ICACHE_FLASH_ATTR static int16_t uart_receive(int16_t size, char *buffer)
 
 ICACHE_FLASH_ATTR static void uart_transmit(int16_t length, char *buffer)
 {
-
-	for (current = 0; current < length; current++)
-	{
-		while(uart_txfifo_length() > 126)
-			(void)0;
 	int16_t current;
 
+	for(current = 0; current < length; current++)
 		WRITE_PERI_REG(UART_FIFO(0), buffer[current]);
-	}
+}
+
+ICACHE_FLASH_ATTR static int16_t uart_buffer_receive(int16_t size, char *buffer)
+{
+	if(uart_receive_buffer_length < size)
+		size = uart_receive_buffer_length;
+
+	memcpy(buffer, uart_receive_buffer, size);
+
+	uart_receive_buffer_length = 0;
+
+	return(size);
+}
+
+ICACHE_FLASH_ATTR static void uart_buffer_transmit(int16_t length, char *buffer)
+{
+	if((length + uart_send_buffer_length) > sizeof(uart_send_buffer))
+		length = sizeof(uart_send_buffer) - uart_send_buffer_length;
+
+	memcpy(uart_send_buffer + uart_send_buffer_length, buffer, length);
+
+	uart_send_buffer_length += length;
 }
 
 ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 {
-	bool tcp_send_buffer_data_pending = false;
-	int16_t	length;
+	// currently 100 according to uart.h, let's hope it's correct, divide by 2 just to be sure...
+	static const int uart_tx_fifo_size = TX_BUFF_SIZE / 2;
+
+	int16_t	length, tx_fifo_left, current;
+	bool	tcp_send_buffer_data_pending;
+	bool	uart_send_buffer_data_pending;
 
 	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 	uart_receive_buffer_length += length;
@@ -152,27 +177,57 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 
 	ETS_UART_INTR_ENABLE();
 
+	tcp_send_buffer_data_pending = false;
+
 	if(esp_tcp_connection && (uart_receive_buffer_length > 0))
 	{
 		if(!tcp_send_buffer_sending)
 		{
 			tcp_send_buffer_sending = true;
-			memcpy(tcp_send_buffer, uart_receive_buffer, uart_receive_buffer_length);
-			espconn_sent(esp_tcp_connection, tcp_send_buffer, uart_receive_buffer_length);
-			uart_receive_buffer_length = 0;
+			tcp_send_buffer_length = uart_buffer_receive(sizeof(tcp_send_buffer), tcp_send_buffer);
+			espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
 		}
 		else
 			tcp_send_buffer_data_pending = true;
 	}
 
-	if(tcp_send_buffer_data_pending || (uart_rxfifo_length() > 0))
+	uart_send_buffer_data_pending = false;
+
+	if(uart_send_buffer_length > 0)
+	{
+		tx_fifo_left = uart_tx_fifo_size - uart_txfifo_length();
+
+		if(tx_fifo_left < 0) // actually shouldn't happen
+			tx_fifo_left = 0;
+
+		if(uart_send_buffer_length < tx_fifo_left)
+			length = uart_send_buffer_length;
+		else
+			length = tx_fifo_left;
+
+		uart_transmit(length, uart_send_buffer);
+
+		// move all bytes left unsent to the front of the buffer
+		for(current = length; current < uart_send_buffer_length; current++)
+			uart_send_buffer[current - length] = uart_send_buffer[current];
+
+		uart_send_buffer_length = uart_send_buffer_length - length;
+
+		if(uart_send_buffer_length > 0)
+			uart_send_buffer_data_pending = true;
+	}
+
+	if(tcp_send_buffer_data_pending || uart_send_buffer_data_pending || (uart_rxfifo_length() > 0))
 		system_os_post(background_task_id, 0, 0);
 }
 
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
 {
 	if(esp_tcp_connection)
-		uart_transmit(length, data);
+	{
+		uart_buffer_transmit(length, data);
+		system_os_post(background_task_id, 0, 0);
+	}
 }
 
 ICACHE_FLASH_ATTR static void server_data_sent_callback(void *arg)
