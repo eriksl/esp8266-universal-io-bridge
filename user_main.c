@@ -9,6 +9,7 @@
 #include "uart.h"
 #include "uart_register.h"
 #include "esp-missing-decls.h"
+#include "ap_auth.h"
 
 extern UartDevice UartDev;
 
@@ -220,7 +221,8 @@ ICACHE_FLASH_ATTR void user_init(void)
 	static struct espconn esp_server_config;
 	static esp_tcp esp_tcp_config;
 
-	struct station_config station_config = { "xxx", "xxx", 0, { 0, 0, 0, 0, 0, 0 } };
+	// create ap_auth.h and #define ap_ssid / ap_password accordingly
+	struct station_config station_config = { ap_ssid, ap_password, 0, { 0, 0, 0, 0, 0, 0 } };
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 	wifi_station_set_auto_connect(1);

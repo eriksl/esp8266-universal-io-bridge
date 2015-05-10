@@ -2,3 +2,4 @@
 *.bin
 *.elf
 /doc
+/ap_auth.h
