@@ -86,14 +86,14 @@ ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 	}
 }
 
-ICACHE_FLASH_ATTR static void uart_init(unsigned int baud_rate, unsigned int bits, unsigned int parity, unsigned int stop_bits)
+ICACHE_FLASH_ATTR static void uart_init(void)
 {
-	UartDev.baut_rate = 460800;			// FIXME
-	UartDev.data_bits = EIGHT_BITS;		// FIXME
-	UartDev.exist_parity = 0;			// FIXME
-	UartDev.parity	= NONE_BITS;		// FIXME
-	UartDev.stop_bits = ONE_STOP_BIT;	// FIXME
-	UartDev.buff_uart_no = UART0;		// FIXME
+	UartDev.baut_rate		= 460800;
+	UartDev.data_bits		= EIGHT_BITS;
+	UartDev.exist_parity	= 0;
+	UartDev.parity			= NONE_BITS;
+	UartDev.stop_bits		= ONE_STOP_BIT;
+	UartDev.buff_uart_no	= UART0;
 
 	//ETS_UART_INTR_ATTACH(uart_rx_callback,  0);
 	ETS_UART_INTR_ATTACH(uart_rx_callback,  &(UartDev.rcv_buff)); // FIXME
@@ -102,11 +102,9 @@ ICACHE_FLASH_ATTR static void uart_init(unsigned int baud_rate, unsigned int bit
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDO_U, FUNC_U0RTS);
 
-	//uart_div_modify(UART0, UART_CLK_FREQ / baud_rate);
-	uart_div_modify(UART0, UART_CLK_FREQ / UartDev.baut_rate); // FIXME
+	uart_div_modify(UART0, UART_CLK_FREQ / UartDev.baut_rate);
 
-	//WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(bits, parity, stop_bits));
-	WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(UartDev.data_bits, UartDev.parity, UartDev.stop_bits)); // FIXME
+	WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(UartDev.data_bits, UartDev.parity, UartDev.stop_bits));
 
 	SET_PERI_REG_MASK(UART_CONF0(UART0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	CLEAR_PERI_REG_MASK(UART_CONF0(UART0), UART_RXFIFO_RST | UART_TXFIFO_RST);
@@ -247,7 +245,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 	espconn_accept(&esp_server_config);
 	espconn_regist_time(&esp_server_config, 30, 0);
 
-	uart_init(460800, EIGHT_BITS, PARITY_DISABLE, ONE_STOP_BIT);
+	uart_init();
 
 	system_os_task(uart_receive_task, receive_task_id, receive_task_queue, receive_task_queue_length);
 }
