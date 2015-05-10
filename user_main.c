@@ -142,8 +142,6 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 
 	while(uart_rxfifo_length() > 0)
 	{
-		//WRITE_PERI_REG(0x60000914, 0x73); // watchdog timer
-
 		length = uart_receive(sizeof(receive_buffer) - receive_buffer_length, receive_buffer + receive_buffer_length);
 		receive_buffer_length += length;
 	}
