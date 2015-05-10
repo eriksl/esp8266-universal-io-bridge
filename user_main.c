@@ -10,6 +10,8 @@
 #include "uart_register.h"
 #include "esp-missing-decls.h"
 
+extern UartDevice UartDev;
+
 enum
 {
 	receive_task_id				= 0,
@@ -79,14 +81,25 @@ ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 
 ICACHE_FLASH_ATTR static void uart_init(unsigned int baud_rate, unsigned int bits, unsigned int parity, unsigned int stop_bits)
 {
-	ETS_UART_INTR_ATTACH(uart_rx_callback,  0);
+	UartDev.baut_rate = 460800;			// FIXME
+	UartDev.data_bits = EIGHT_BITS;		// FIXME
+	UartDev.exist_parity = 0;			// FIXME
+	UartDev.parity	= NONE_BITS;		// FIXME
+	UartDev.stop_bits = ONE_STOP_BIT;	// FIXME
+	UartDev.buff_uart_no = UART0;		// FIXME
+
+	//ETS_UART_INTR_ATTACH(uart_rx_callback,  0);
+	ETS_UART_INTR_ATTACH(uart_rx_callback,  &(UartDev.rcv_buff)); // FIXME
+
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDO_U, FUNC_U0RTS);
 
-	uart_div_modify(UART0, UART_CLK_FREQ / baud_rate);
+	//uart_div_modify(UART0, UART_CLK_FREQ / baud_rate);
+	uart_div_modify(UART0, UART_CLK_FREQ / UartDev.baut_rate); // FIXME
 
-	WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(bits, parity, stop_bits));
+	//WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(bits, parity, stop_bits));
+	WRITE_PERI_REG(UART_CONF0(UART0), CALC_UARTMODE(UartDev.data_bits, UartDev.parity, UartDev.stop_bits)); // FIXME
 
 	SET_PERI_REG_MASK(UART_CONF0(UART0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	CLEAR_PERI_REG_MASK(UART_CONF0(UART0), UART_RXFIFO_RST | UART_TXFIFO_RST);
