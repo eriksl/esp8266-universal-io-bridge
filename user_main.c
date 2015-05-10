@@ -139,12 +139,10 @@ ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
 ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 {
 	uint16_t length;
+	bool send_buffer_data_pending = false;
 
-	while(uart_rxfifo_length() > 0)
-	{
-		length = uart_receive(sizeof(receive_buffer) - receive_buffer_length, receive_buffer + receive_buffer_length);
-		receive_buffer_length += length;
-	}
+	length = uart_receive(sizeof(receive_buffer) - receive_buffer_length, receive_buffer + receive_buffer_length);
+	receive_buffer_length += length;
 
 	if(uart_rxfifo_full())
 		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_FULL_INT_CLR);
@@ -164,10 +162,11 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 			receive_buffer_length = 0;
 		}
 		else
-		{
-			system_os_post(receive_task_id, 0, 0);
-		}
+			send_buffer_data_pending = true;
 	}
+
+	if(send_buffer_data_pending || (uart_rxfifo_length() > 0))
+		system_os_post(receive_task_id, 0, 0);
 }
 
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
