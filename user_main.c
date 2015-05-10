@@ -13,8 +13,8 @@
 
 enum
 {
-	receive_task_id				= 0,
-	receive_task_queue_length	= 64,
+	background_task_id				= 0,
+	background_task_queue_length	= 64,
 };
 
 static char				uart_receive_buffer[1024];
@@ -24,7 +24,7 @@ static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
 static bool				tcp_send_buffer_sending = false;
 
 static struct espconn	*esp_connection;
-static os_event_t		receive_task_queue[receive_task_queue_length];
+static os_event_t		background_task_queue[background_task_queue_length];
 
 ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_error(void)
 {
@@ -80,7 +80,7 @@ ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 	if(uart_rxfifo_full() || uart_rxfifo_available())
 	{
 		ETS_UART_INTR_DISABLE();
-		system_os_post(receive_task_id, 0, 0);
+		system_os_post(background_task_id, 0, 0);
 	}
 }
 
@@ -136,7 +136,7 @@ ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
 	}
 }
 
-ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
+ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 {
 	uint16_t length;
 	bool tcp_send_buffer_data_pending = false;
@@ -166,7 +166,7 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 	}
 
 	if(tcp_send_buffer_data_pending || (uart_rxfifo_length() > 0))
-		system_os_post(receive_task_id, 0, 0);
+		system_os_post(background_task_id, 0, 0);
 }
 
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
@@ -234,5 +234,5 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	uart_init();
 
-	system_os_task(uart_receive_task, receive_task_id, receive_task_queue, receive_task_queue_length);
+	system_os_task(uart_background_task, background_task_id, background_task_queue, background_task_queue_length);
 }
