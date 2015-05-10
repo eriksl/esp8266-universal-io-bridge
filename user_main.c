@@ -17,11 +17,11 @@ enum
 	receive_task_queue_length	= 64,
 };
 
-static char				receive_buffer[1024];
-static uint16_t			receive_buffer_length = 0;
+static char				uart_receive_buffer[1024];
+static uint16_t			uart_receive_buffer_length = 0;
 
-static char				send_buffer[sizeof(receive_buffer)];
-static bool				send_buffer_sending = false;
+static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
+static bool				tcp_send_buffer_sending = false;
 
 static struct espconn	*esp_connection;
 static os_event_t		receive_task_queue[receive_task_queue_length];
@@ -139,10 +139,10 @@ ICACHE_FLASH_ATTR static void uart_transmit(uint16_t length, uint8 *buffer)
 ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 {
 	uint16_t length;
-	bool send_buffer_data_pending = false;
+	bool tcp_send_buffer_data_pending = false;
 
-	length = uart_receive(sizeof(receive_buffer) - receive_buffer_length, receive_buffer + receive_buffer_length);
-	receive_buffer_length += length;
+	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
+	uart_receive_buffer_length += length;
 
 	if(uart_rxfifo_full())
 		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_FULL_INT_CLR);
@@ -152,20 +152,20 @@ ICACHE_FLASH_ATTR static void uart_receive_task(os_event_t *events)
 
 	ETS_UART_INTR_ENABLE();
 
-	if(esp_connection && (receive_buffer_length > 0))
+	if(esp_connection && (uart_receive_buffer_length > 0))
 	{
-		if(!send_buffer_sending)
+		if(!tcp_send_buffer_sending)
 		{
-			send_buffer_sending = true;
-			memcpy(send_buffer, receive_buffer, receive_buffer_length);
-			espconn_sent(esp_connection, send_buffer, receive_buffer_length);
-			receive_buffer_length = 0;
+			tcp_send_buffer_sending = true;
+			memcpy(tcp_send_buffer, uart_receive_buffer, uart_receive_buffer_length);
+			espconn_sent(esp_connection, tcp_send_buffer, uart_receive_buffer_length);
+			uart_receive_buffer_length = 0;
 		}
 		else
-			send_buffer_data_pending = true;
+			tcp_send_buffer_data_pending = true;
 	}
 
-	if(send_buffer_data_pending || (uart_rxfifo_length() > 0))
+	if(tcp_send_buffer_data_pending || (uart_rxfifo_length() > 0))
 		system_os_post(receive_task_id, 0, 0);
 }
 
@@ -177,7 +177,7 @@ ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uin
 
 ICACHE_FLASH_ATTR static void server_data_sent_callback(void *arg)
 {
-    send_buffer_sending = false;
+    tcp_send_buffer_sending = false;
 }
 
 ICACHE_FLASH_ATTR static void server_disconnect_callback(void *arg)
