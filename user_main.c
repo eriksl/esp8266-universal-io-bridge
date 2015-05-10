@@ -23,7 +23,7 @@ static uint16_t			uart_receive_buffer_length = 0;
 static char				tcp_send_buffer[sizeof(uart_receive_buffer)];
 static bool				tcp_send_buffer_sending = false;
 
-static struct espconn	*esp_connection;
+static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
 
 ICACHE_FLASH_ATTR static uint8_t uart_rxfifo_error(void)
@@ -152,13 +152,13 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 
 	ETS_UART_INTR_ENABLE();
 
-	if(esp_connection && (uart_receive_buffer_length > 0))
+	if(esp_tcp_connection && (uart_receive_buffer_length > 0))
 	{
 		if(!tcp_send_buffer_sending)
 		{
 			tcp_send_buffer_sending = true;
 			memcpy(tcp_send_buffer, uart_receive_buffer, uart_receive_buffer_length);
-			espconn_sent(esp_connection, tcp_send_buffer, uart_receive_buffer_length);
+			espconn_sent(esp_tcp_connection, tcp_send_buffer, uart_receive_buffer_length);
 			uart_receive_buffer_length = 0;
 		}
 		else
@@ -171,7 +171,7 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 
 ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
 {
-	if(esp_connection)
+	if(esp_tcp_connection)
 		uart_transmit(length, data);
 }
 
@@ -182,18 +182,18 @@ ICACHE_FLASH_ATTR static void server_data_sent_callback(void *arg)
 
 ICACHE_FLASH_ATTR static void server_disconnect_callback(void *arg)
 {
-	esp_connection = 0;
+	esp_tcp_connection = 0;
 }
 
 ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 {
 	struct espconn *new_connection = (struct espconn *)arg;
 
-	if(esp_connection)
+	if(esp_tcp_connection)
 		espconn_disconnect(new_connection);
 	else
 	{
-		esp_connection	= new_connection;
+		esp_tcp_connection	= new_connection;
 
 		espconn_regist_recvcb(new_connection, server_receive_callback);
 		espconn_regist_sentcb(new_connection, server_data_sent_callback);
@@ -218,7 +218,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	espconn_tcp_set_max_con(1);
 
-	esp_connection = 0;
+	esp_tcp_connection = 0;
 
 	memset(&esp_tcp_config, 0, sizeof(esp_tcp_config));
 	esp_tcp_config.local_port = 23;
