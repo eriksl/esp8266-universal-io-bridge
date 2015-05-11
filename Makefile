@@ -10,7 +10,7 @@ LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
 
 OBJS			= user_main.o
-HEADERS			= esp-missing-decls.h uart.h uart_register.h user_config.h
+HEADERS			= ap_auth.h esp-missing-decls.h uart.h uart_register.h user_config.h
 FW				= fw.elf
 FW1				= fw-0x00000.bin
 FW2				= fw-0x40000.bin
