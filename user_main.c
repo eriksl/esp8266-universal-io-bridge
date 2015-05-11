@@ -17,18 +17,22 @@ enum
 	background_task_queue_length	= 64,
 };
 
+static bool		user_init2_done;
+
 static char		uart_send_buffer[1024];
-static int16_t	uart_send_buffer_length = 0;
+static int16_t	uart_send_buffer_length;
 
 static char		uart_receive_buffer[1024];
-static int16_t	uart_receive_buffer_length = 0;
+static int16_t	uart_receive_buffer_length;
 
 static char		tcp_send_buffer[sizeof(uart_receive_buffer)];
-static int16_t	tcp_send_buffer_length = 0;
-static bool		tcp_send_buffer_sending = false;
+static int16_t	tcp_send_buffer_length;
+static bool		tcp_send_buffer_sending;
 
 static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
+
+ICACHE_FLASH_ATTR static void user_init2(void);
 
 ICACHE_FLASH_ATTR static char uart_rxfifo_length(void)
 {
@@ -70,6 +74,8 @@ ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
 
 ICACHE_FLASH_ATTR static void uart_init(void)
 {
+	ETS_UART_INTR_DISABLE();
+
 	ETS_UART_INTR_ATTACH(uart_rx_callback,  0);
 
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
@@ -137,19 +143,21 @@ ICACHE_FLASH_ATTR static void uart_buffer_transmit(int16_t length, char *buffer)
 	uart_send_buffer_length += length;
 }
 
-ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
+ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
 {
 	// currently 100 according to uart.h, let's hope it's correct, divide by 2 just to be sure...
 	static const int uart_tx_fifo_size = TX_BUFF_SIZE / 2;
 
 	int16_t	length, tx_fifo_left, current;
-	bool	tcp_send_buffer_data_pending;
-	bool	uart_send_buffer_data_pending;
+	bool	request_post;
+
+	request_post = false;
+
+	if(!user_init2_done)
+		return(user_init2());
 
 	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 	uart_receive_buffer_length += length;
-
-	tcp_send_buffer_data_pending = false;
 
 	if(esp_tcp_connection && (uart_receive_buffer_length > 0))
 	{
@@ -160,10 +168,11 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 			espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
 		}
 		else
-			tcp_send_buffer_data_pending = true;
+			request_post = true;
 	}
 
-	uart_send_buffer_data_pending = false;
+	if(uart_rxfifo_length() > 0)
+		request_post = true;
 
 	if(uart_send_buffer_length > 0)
 	{
@@ -186,10 +195,10 @@ ICACHE_FLASH_ATTR static void uart_background_task(os_event_t *events)
 		uart_send_buffer_length = uart_send_buffer_length - length;
 
 		if(uart_send_buffer_length > 0)
-			uart_send_buffer_data_pending = true;
+			request_post = true;
 	}
 
-	if(tcp_send_buffer_data_pending || uart_send_buffer_data_pending || (uart_rxfifo_length() > 0))
+	if(request_post)
 		system_os_post(background_task_id, 0, 0);
 
 	ETS_UART_INTR_ENABLE();
@@ -232,15 +241,29 @@ ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
+	user_init2_done				= false;
+	uart_send_buffer_length		= 0;
+	uart_receive_buffer_length	= 0;
+	tcp_send_buffer_length		= 0;
+	tcp_send_buffer_sending		= false;
+
+	uart_init();
+
+	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+
+	system_os_post(background_task_id, 0, 0);
+}
+
+ICACHE_FLASH_ATTR static void user_init2(void)
+{
+	// create ap_auth.h and #define ap_ssid / ap_password accordingly
+	static struct station_config station_config = { ap_ssid, ap_password, 0, { 0, 0, 0, 0, 0, 0 } };
 	static struct espconn esp_server_config;
 	static esp_tcp esp_tcp_config;
 
-	// create ap_auth.h and #define ap_ssid / ap_password accordingly
-	struct station_config station_config = { ap_ssid, ap_password, 0, { 0, 0, 0, 0, 0, 0 } };
-
 	wifi_set_sleep_type(NONE_SLEEP_T);
-	wifi_station_set_auto_connect(1);
 	wifi_set_opmode_current(STATION_MODE);
+	wifi_station_set_auto_connect(0);
 	wifi_station_disconnect();
 	wifi_station_set_config_current(&station_config);
 	wifi_station_connect();
@@ -261,7 +284,6 @@ ICACHE_FLASH_ATTR void user_init(void)
 	espconn_accept(&esp_server_config);
 	espconn_regist_time(&esp_server_config, 30, 0);
 
-	uart_init();
-
-	system_os_task(uart_background_task, background_task_id, background_task_queue, background_task_queue_length);
+	user_init2_done = true;
 }
+
