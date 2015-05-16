@@ -17,8 +17,6 @@ enum
 	background_task_queue_length	= 64,
 };
 
-static bool		user_init2_done;
-
 static char		uart_send_buffer[1024];
 static int16_t	uart_send_buffer_length;
 
@@ -153,9 +151,6 @@ ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
 
 	request_post = false;
 
-	if(!user_init2_done)
-		return(user_init2());
-
 	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 	uart_receive_buffer_length += length;
 
@@ -241,17 +236,12 @@ ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	user_init2_done				= false;
 	uart_send_buffer_length		= 0;
 	uart_receive_buffer_length	= 0;
 	tcp_send_buffer_length		= 0;
 	tcp_send_buffer_sending		= false;
 
-	uart_init();
-
-	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
-
-	system_os_post(background_task_id, 0, 0);
+	system_init_done_cb(user_init2);
 }
 
 ICACHE_FLASH_ATTR static void user_init2(void)
@@ -284,6 +274,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	espconn_accept(&esp_server_config);
 	espconn_regist_time(&esp_server_config, 30, 0);
 
-	user_init2_done = true;
-}
+	uart_init();
 
+	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+	system_os_post(background_task_id, 0, 0);
+}
