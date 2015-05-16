@@ -54,7 +54,7 @@ ICACHE_FLASH_ATTR static char uart_txfifo_length(void)
 	return(fifo_length);
 }
 
-ICACHE_FLASH_ATTR static void uart_rx_callback(void *p)
+ICACHE_FLASH_ATTR static void uart_callback(void *p)
 {
 	ETS_UART_INTR_DISABLE();
 
@@ -74,7 +74,7 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 {
 	ETS_UART_INTR_DISABLE();
 
-	ETS_UART_INTR_ATTACH(uart_rx_callback,  0);
+	ETS_UART_INTR_ATTACH(uart_callback,  0);
 
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
