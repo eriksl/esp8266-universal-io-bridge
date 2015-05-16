@@ -97,6 +97,9 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 	WRITE_PERI_REG(UART_INT_CLR(0), 0xff);
 	SET_PERI_REG_MASK(UART_INT_ENA(0), UART_FRM_ERR_INT_ENA | UART_RXFIFO_FULL_INT_ENA | UART_RXFIFO_TOUT_INT_ENA);
 
+	uart_send_buffer_length		= 0;
+	uart_receive_buffer_length	= 0;
+
 	ETS_UART_INTR_ENABLE();
 }
 
@@ -226,6 +229,8 @@ ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 	else
 	{
 		esp_tcp_connection	= new_connection;
+		tcp_send_buffer_length = 0;
+		tcp_send_buffer_sending = false;
 
 		espconn_regist_recvcb(new_connection, server_receive_callback);
 		espconn_regist_sentcb(new_connection, server_data_sent_callback);
@@ -235,11 +240,6 @@ ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	uart_send_buffer_length		= 0;
-	uart_receive_buffer_length	= 0;
-	tcp_send_buffer_length		= 0;
-	tcp_send_buffer_sending		= false;
-
 	system_init_done_cb(user_init2);
 }
 
