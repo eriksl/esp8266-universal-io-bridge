@@ -103,6 +103,14 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 	ETS_UART_INTR_ENABLE();
 }
 
+ICACHE_FLASH_ATTR static void uart_flush(void)
+{
+	while(uart_rxfifo_length() > 0)
+		READ_PERI_REG(UART_FIFO(0));
+
+	uart_receive_buffer_length = 0;
+}
+
 ICACHE_FLASH_ATTR static int16_t uart_receive(int16_t size, char *buffer)
 {
 	int16_t current;
@@ -153,10 +161,15 @@ ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
 
 	request_post = false;
 
-	length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
-	uart_receive_buffer_length += length;
+	if(esp_tcp_connection)
+	{
+		length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
+		uart_receive_buffer_length += length;
+	}
+	else
+		uart_flush();
 
-	if(esp_tcp_connection && (uart_receive_buffer_length > 0))
+	if(uart_receive_buffer_length > 0)
 	{
 		if(!tcp_send_buffer_sending)
 		{
@@ -235,6 +248,8 @@ ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
 		espconn_regist_recvcb(new_connection, server_receive_callback);
 		espconn_regist_sentcb(new_connection, server_data_sent_callback);
 		espconn_regist_disconcb(new_connection, server_disconnect_callback);
+
+		uart_flush();
 	}
 }
 
