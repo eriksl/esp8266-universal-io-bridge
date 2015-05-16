@@ -97,8 +97,8 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 	WRITE_PERI_REG(UART_INT_CLR(0), 0xff);
 	SET_PERI_REG_MASK(UART_INT_ENA(0), UART_FRM_ERR_INT_ENA | UART_RXFIFO_FULL_INT_ENA | UART_RXFIFO_TOUT_INT_ENA);
 
-	uart_send_buffer_length		= 0;
-	uart_receive_buffer_length	= 0;
+	uart_send_buffer_length = 0;
+	uart_receive_buffer_length = 0;
 
 	ETS_UART_INTR_ENABLE();
 }
