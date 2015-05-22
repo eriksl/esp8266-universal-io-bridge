@@ -58,9 +58,6 @@ static void uart_callback(void *p)
 {
 	ETS_UART_INTR_DISABLE();
 
-	if((READ_PERI_REG(UART_INT_ST(0)) & UART_FRM_ERR_INT_ST) == UART_FRM_ERR_INT_ST)
-		WRITE_PERI_REG(UART_INT_CLR(0), UART_FRM_ERR_INT_CLR);
-
 	if((READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) == UART_RXFIFO_TOUT_INT_ST)
 		WRITE_PERI_REG(UART_INT_CLR(0), UART_RXFIFO_TOUT_INT_CLR);
 
@@ -88,7 +85,7 @@ static void uart_init(void)
 			UART_RX_TOUT_EN);
 
 	WRITE_PERI_REG(UART_INT_CLR(0), 0xff);
-	SET_PERI_REG_MASK(UART_INT_ENA(0), UART_FRM_ERR_INT_ENA | UART_RXFIFO_TOUT_INT_ENA);
+	SET_PERI_REG_MASK(UART_INT_ENA(0), UART_RXFIFO_TOUT_INT_ENA);
 
 	uart_send_buffer_length = 0;
 	uart_receive_buffer_length = 0;
@@ -202,6 +199,11 @@ static void background_task(os_event_t *events)
 
 	if(request_post)
 		system_os_post(background_task_id, 0, 0);
+
+	// IMPORTANT: uart interrupts can only be (re-)enabled after ALL bytes
+	// from the RX-fifo are fetched, otherwise another interrupt will be
+	// sent immediately. That's why they're not re-enabled in the interrupt
+	// handler.
 
 	ETS_UART_INTR_ENABLE();
 }
