@@ -150,8 +150,7 @@ ICACHE_FLASH_ATTR static void uart_buffer_transmit(int16_t length, char *buffer)
 
 ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
 {
-	// currently 100 according to uart.h, let's hope it's correct, divide by 2 just to be sure...
-	static const int uart_tx_fifo_size = TX_BUFF_SIZE / 2;
+	static const int uart_tx_fifo_size = 128;
 
 	int16_t	length, tx_fifo_left, current;
 	bool	request_post;
