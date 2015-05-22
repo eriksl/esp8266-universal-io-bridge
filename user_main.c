@@ -32,7 +32,7 @@ static os_event_t		background_task_queue[background_task_queue_length];
 
 ICACHE_FLASH_ATTR static void user_init2(void);
 
-ICACHE_FLASH_ATTR static char uart_rxfifo_length(void)
+static char uart_rxfifo_length(void)
 {
 	uint32_t fifo_length;
 
@@ -43,7 +43,7 @@ ICACHE_FLASH_ATTR static char uart_rxfifo_length(void)
 	return(fifo_length);
 }
 
-ICACHE_FLASH_ATTR static char uart_txfifo_length(void)
+static char uart_txfifo_length(void)
 {
 	uint32_t fifo_length;
 
@@ -54,7 +54,7 @@ ICACHE_FLASH_ATTR static char uart_txfifo_length(void)
 	return(fifo_length);
 }
 
-ICACHE_FLASH_ATTR static void uart_callback(void *p)
+static void uart_callback(void *p)
 {
 	ETS_UART_INTR_DISABLE();
 
@@ -70,7 +70,7 @@ ICACHE_FLASH_ATTR static void uart_callback(void *p)
 	system_os_post(background_task_id, 0, 0);
 }
 
-ICACHE_FLASH_ATTR static void uart_init(void)
+static void uart_init(void)
 {
 	ETS_UART_INTR_DISABLE();
 
@@ -100,7 +100,7 @@ ICACHE_FLASH_ATTR static void uart_init(void)
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR static void uart_flush(void)
+static void uart_flush(void)
 {
 	while(uart_rxfifo_length() > 0)
 		READ_PERI_REG(UART_FIFO(0));
@@ -108,7 +108,7 @@ ICACHE_FLASH_ATTR static void uart_flush(void)
 	uart_receive_buffer_length = 0;
 }
 
-ICACHE_FLASH_ATTR static int16_t uart_receive(int16_t size, char *buffer)
+static int16_t uart_receive(int16_t size, char *buffer)
 {
 	int16_t current;
 
@@ -118,7 +118,7 @@ ICACHE_FLASH_ATTR static int16_t uart_receive(int16_t size, char *buffer)
 	return(current);
 }
 
-ICACHE_FLASH_ATTR static void uart_transmit(int16_t length, char *buffer)
+static void uart_transmit(int16_t length, char *buffer)
 {
 	int16_t current;
 
@@ -126,7 +126,7 @@ ICACHE_FLASH_ATTR static void uart_transmit(int16_t length, char *buffer)
 		WRITE_PERI_REG(UART_FIFO(0), buffer[current]);
 }
 
-ICACHE_FLASH_ATTR static int16_t uart_buffer_receive(int16_t size, char *buffer)
+static int16_t uart_buffer_receive(int16_t size, char *buffer)
 {
 	if(uart_receive_buffer_length < size)
 		size = uart_receive_buffer_length;
@@ -138,7 +138,7 @@ ICACHE_FLASH_ATTR static int16_t uart_buffer_receive(int16_t size, char *buffer)
 	return(size);
 }
 
-ICACHE_FLASH_ATTR static void uart_buffer_transmit(int16_t length, char *buffer)
+static void uart_buffer_transmit(int16_t length, char *buffer)
 {
 	if((length + uart_send_buffer_length) > sizeof(uart_send_buffer))
 		length = sizeof(uart_send_buffer) - uart_send_buffer_length;
@@ -148,7 +148,7 @@ ICACHE_FLASH_ATTR static void uart_buffer_transmit(int16_t length, char *buffer)
 	uart_send_buffer_length += length;
 }
 
-ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
+static void background_task(os_event_t *events)
 {
 	static const int uart_tx_fifo_size = 128;
 
@@ -210,7 +210,7 @@ ICACHE_FLASH_ATTR static void background_task(os_event_t *events)
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uint16_t length)
+static void server_receive_callback(void *arg, char *data, uint16_t length)
 {
 	if(esp_tcp_connection)
 	{
@@ -219,17 +219,17 @@ ICACHE_FLASH_ATTR static void server_receive_callback(void *arg, char *data, uin
 	}
 }
 
-ICACHE_FLASH_ATTR static void server_data_sent_callback(void *arg)
+static void server_data_sent_callback(void *arg)
 {
     tcp_send_buffer_sending = false;
 }
 
-ICACHE_FLASH_ATTR static void server_disconnect_callback(void *arg)
+static void server_disconnect_callback(void *arg)
 {
 	esp_tcp_connection = 0;
 }
 
-ICACHE_FLASH_ATTR static void server_connnect_callback(void *arg)
+static void server_connnect_callback(void *arg)
 {
 	struct espconn *new_connection = (struct espconn *)arg;
 
