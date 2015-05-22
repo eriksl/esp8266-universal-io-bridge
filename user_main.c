@@ -15,15 +15,18 @@ enum
 {
 	background_task_id				= 0,
 	background_task_queue_length	= 64,
+	uart_send_buffer_size			= 1024,
+	uart_receive_buffer_size		= 1024,
+	tcp_send_buffer_size			= 1024,
 };
 
-static char		uart_send_buffer[1024];
+static char		*uart_send_buffer;
 static int16_t	uart_send_buffer_length;
 
-static char		uart_receive_buffer[1024];
+static char		*uart_receive_buffer;
 static int16_t	uart_receive_buffer_length;
 
-static char		tcp_send_buffer[sizeof(uart_receive_buffer)];
+static char		*tcp_send_buffer;
 static int16_t	tcp_send_buffer_length;
 static bool		tcp_send_buffer_sending;
 
@@ -31,6 +34,12 @@ static struct espconn	*esp_tcp_connection;
 static os_event_t		background_task_queue[background_task_queue_length];
 
 ICACHE_FLASH_ATTR static void user_init2(void);
+
+ICACHE_FLASH_ATTR static void crash(void)
+{
+	for(;;)
+		(void)0;
+}
 
 static char uart_rxfifo_length(void)
 {
@@ -133,8 +142,8 @@ static int16_t uart_buffer_receive(int16_t size, char *buffer)
 
 static void uart_buffer_transmit(int16_t length, char *buffer)
 {
-	if((length + uart_send_buffer_length) > sizeof(uart_send_buffer))
-		length = sizeof(uart_send_buffer) - uart_send_buffer_length;
+	if((length + uart_send_buffer_length) > uart_send_buffer_size)
+		length = uart_send_buffer_size - uart_send_buffer_length;
 
 	memcpy(uart_send_buffer + uart_send_buffer_length, buffer, length);
 
@@ -152,7 +161,7 @@ static void background_task(os_event_t *events)
 
 	if(esp_tcp_connection)
 	{
-		length = uart_receive(sizeof(uart_receive_buffer) - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
+		length = uart_receive(uart_receive_buffer_size - uart_receive_buffer_length, uart_receive_buffer + uart_receive_buffer_length);
 		uart_receive_buffer_length += length;
 	}
 	else
@@ -163,7 +172,7 @@ static void background_task(os_event_t *events)
 		if(!tcp_send_buffer_sending)
 		{
 			tcp_send_buffer_sending = true;
-			tcp_send_buffer_length = uart_buffer_receive(sizeof(tcp_send_buffer), tcp_send_buffer);
+			tcp_send_buffer_length = uart_buffer_receive(tcp_send_buffer_size, tcp_send_buffer);
 			espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
 		}
 		else
@@ -251,6 +260,15 @@ static void server_connnect_callback(void *arg)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
+	if(!(uart_send_buffer = os_malloc(uart_send_buffer_size)))
+		crash();
+
+	if(!(uart_receive_buffer = os_malloc(uart_receive_buffer_size)))
+		crash();
+
+	if(!(tcp_send_buffer = os_malloc(tcp_send_buffer_size)))
+		crash();
+
 	system_init_done_cb(user_init2);
 }
 
