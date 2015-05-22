@@ -243,6 +243,8 @@ static void server_connnect_callback(void *arg)
 		espconn_regist_sentcb(new_connection, server_data_sent_callback);
 		espconn_regist_disconcb(new_connection, server_disconnect_callback);
 
+		espconn_set_opt(new_connection, ESPCONN_REUSEADDR);
+
 		uart_flush();
 	}
 }
