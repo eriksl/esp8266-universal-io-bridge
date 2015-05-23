@@ -11,6 +11,8 @@
 #include "esp-missing-decls.h"
 #include "ap_auth.h"
 
+#define TCP_CORK // line_buffer tcp output
+
 enum
 {
 	background_task_id				= 0,
@@ -113,9 +115,18 @@ static void uart_flush(void)
 static int16_t uart_receive(int16_t size, char *buffer)
 {
 	int16_t current;
+	char data;
 
 	for(current = 0; (current < size) && (uart_rxfifo_length() > 0); current++)
-		buffer[current] = READ_PERI_REG(UART_FIFO(0)) & 0xff;
+	{
+		data = READ_PERI_REG(UART_FIFO(0)) & 0xff;
+		buffer[current] = data;
+
+#ifdef TCP_CORK
+		if(data == '\n')
+			return(current + 1);
+#endif
+	}
 
 	return(current);
 }
@@ -167,7 +178,11 @@ static void background_task(os_event_t *events)
 	else
 		uart_flush();
 
+#ifdef TCP_CORK
+	if((uart_receive_buffer_length > 0) && (uart_receive_buffer[uart_receive_buffer_length - 1] == '\n'))
+#else
 	if(uart_receive_buffer_length > 0)
+#endif
 	{
 		if(!tcp_send_buffer_sending)
 		{
