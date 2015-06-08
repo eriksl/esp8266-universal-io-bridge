@@ -15,25 +15,6 @@ void debug(char c)
 	WRITE_PERI_REG(UART_FIFO(0), c);
 }
 
-void debug_int(int a)
-{
-	int b;
-
-	debug('+');
-
-	b = a / 100;
-	debug('0' + b);
-	a = a - (b * 100);
-
-	b = a / 10;
-	debug('0' + b);
-	a = a - (b * 10);
-
-	debug('0' + b);
-
-	debug('.');
-}
-
 static uint16_t uart_rx_queue_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
@@ -61,7 +42,8 @@ static void uart_callback(void *p)
 		// make sure to fetch all data from the queue, or we'll get a new
 		// interrupt immediately after we enable it
 
-		debug_int(uart_rx_queue_length());
+		// make sure to fetch all data from the queue, or we'll get a another
+		// interrupt immediately after we enable it
 
 		while(uart_rx_queue_length() > 0)
 		{
@@ -72,8 +54,6 @@ static void uart_callback(void *p)
 		}
 
 		debug('D');
-
-		debug_int(uart_rx_queue_length());
 
 		system_os_post(background_task_id, 0, 0);
 	}
