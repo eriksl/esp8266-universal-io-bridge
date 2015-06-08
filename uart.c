@@ -35,12 +35,13 @@ static void uart_callback(void *p)
 
 	// receive-queue "timeout", data available
 
-	if(READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST)
+	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
-		debug('B');
+		if(READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) // FIXME
+			debug('B');
 
-		// make sure to fetch all data from the queue, or we'll get a new
-		// interrupt immediately after we enable it
+		if(READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_FULL_INT_ST) // FIXME
+			debug('C');
 
 		// make sure to fetch all data from the queue, or we'll get a another
 		// interrupt immediately after we enable it
@@ -102,14 +103,12 @@ void uart_init(void)
 	// here and enable it when our own queue has something in it
 
 	WRITE_PERI_REG(UART_CONF1(0),
-			UART_RX_TOUT_EN) |
-			((32 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
-			((32 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S);
+			(( 2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) | UART_RX_TOUT_EN |
+			((16 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
+			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	WRITE_PERI_REG(UART_INT_CLR(0), 0xffff);
-	CLEAR_PERI_REG_MASK(UART_INT_ENA(0), UART_RXFIFO_FULL_INT_ENA);
-	CLEAR_PERI_REG_MASK(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);
-	SET_PERI_REG_MASK(UART_INT_ENA(0), UART_RXFIFO_TOUT_INT_ENA);
+	WRITE_PERI_REG(UART_INT_ENA(0), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
 
 	ETS_UART_INTR_ENABLE();
 }
