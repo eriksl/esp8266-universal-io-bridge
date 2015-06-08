@@ -75,7 +75,7 @@ static void uart_callback(void *p)
 
 	// acknowledge all uart interrupts
 
-	WRITE_PERI_REG(UART_INT_CLR(0), 0xffff);
+	WRITE_PERI_REG(UART_INT_CLR(0), 0xfff);
 	ETS_UART_INTR_ENABLE();
 }
 
