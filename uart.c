@@ -34,26 +34,14 @@ void debug_int(int a)
 	debug('.');
 }
 
-static char uart_rx_queue_length(void)
+static uint16_t uart_rx_queue_length(void)
 {
-	uint32_t length;
-
-	length = READ_PERI_REG(UART_STATUS(0));
-	length = length & (UART_RXFIFO_CNT << UART_RXFIFO_CNT_S);
-	length = (length >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT;
-
-	return(length);
+	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-static char uart_tx_queue_length(void)
+static uint16_t uart_tx_queue_length(void)
 {
-	uint32_t length;
-
-	length = READ_PERI_REG(UART_STATUS(0));
-	length = length & (UART_TXFIFO_CNT << UART_TXFIFO_CNT_S);
-	length = (length >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT;
-
-	return(length);
+	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
 static void uart_callback(void *p)
