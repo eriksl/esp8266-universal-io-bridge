@@ -57,8 +57,7 @@ static void background_task(os_event_t *events)
 
 			tcp_send_buffer_length = 0;
 
-			while((tcp_send_buffer_length < buffer_size) &&
-					!fifo_empty(uart_receive_fifo))
+			while((tcp_send_buffer_length < buffer_size) && !fifo_empty(uart_receive_fifo))
 				tcp_send_buffer[tcp_send_buffer_length++] = fifo_pop(uart_receive_fifo);
 
 			if(tcp_send_buffer_length > 0)
