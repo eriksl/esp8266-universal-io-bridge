@@ -37,7 +37,7 @@ static void background_task(os_event_t *events)
 
 	if(fifo_empty(uart_receive_fifo))
 	{
-		// no data to be send, finish
+		// no data to be sent to tcp, finish
 
 		//debug('b');
 	}

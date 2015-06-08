@@ -33,7 +33,7 @@ static void uart_callback(void *p)
 
 	debug('A');
 
-	// receive-queue "timeout", data available
+	// receive queue "timeout" or "full" -> data available
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
@@ -95,12 +95,19 @@ void uart_init(void)
 	SET_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	CLEAR_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 
-	// set receive queue "timeout" threshold, if the queue isn't empty for at least
-	// this number of byte "times", raise an interrupt
-	
-	// set transmit queue "empty" threshold, if the queue contains less than
-	// this numbers of bytes, raise an interrupt, disable the interrupt
-	// here and enable it when our own queue has something in it
+	// Set receive queue "timeout" threshold.
+	// when no data comes in for this amount of bytes' times and the queue
+	// isn't empty, raise an interrupt.
+
+	// Set receive queue "full" threshold.
+	// When the queue grows beyond this threshold, raise an interrupt.
+
+	// Set transmit queue "empty" threshold.
+	// If the queue contains less than this numbers of bytes, raise an
+	// interrupt.
+	// Don't enable the interrupt here but enable it when our fifo has
+	// something in it that should be written to the uart's queue, see
+	// uart_start_transmit().
 
 	WRITE_PERI_REG(UART_CONF1(0),
 			(( 2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) | UART_RX_TOUT_EN |
