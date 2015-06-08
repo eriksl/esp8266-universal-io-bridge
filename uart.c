@@ -48,7 +48,7 @@ static void uart_callback(void *p)
 
 		while(uart_rx_queue_length() > 0)
 		{
-			data = READ_PERI_REG(UART_FIFO(0)) & 0xff;
+			data = READ_PERI_REG(UART_FIFO(0));
 
 			if(!fifo_full(uart_receive_fifo))
 				fifo_push(uart_receive_fifo, data);
