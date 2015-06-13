@@ -24,12 +24,26 @@ else
 	vecho := @echo
 endif
 
-.PHONY:	all
+elv_i2c = $(Q)(\
+		stty 115200; \
+		echo ":s 40 $(1) p"; \
+		usleep 100000; \
+	   ) > /dev/elv
+
+.PHONY:	all reset flash
 
 all:			$(FW1) $(FW2)
 
+reset:
+				$(call elv_i2c,02)
+				$(call elv_i2c,00)
+
 flash:			$(FW1) $(FW2)
-				esptool.py --port /dev/ttyUSB1 --baud 460800 write_flash 0x00000 $(FW1) 0x40000 $(FW2)
+				$(call elv_i2c,03)
+				$(call elv_i2c,01)
+				esptool.py --port /dev/pl2303 --baud 460800 write_flash 0x00000 $(FW1) 0x40000 $(FW2)
+				$(call elv_i2c,02)
+				$(call elv_i2c,00)
 
 clean:
 				$(vecho) "CLEAN"
