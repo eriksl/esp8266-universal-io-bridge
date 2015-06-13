@@ -31,18 +31,10 @@ static void uart_callback(void *p)
 
 	ETS_UART_INTR_DISABLE();
 
-	debug('A');
-
 	// receive queue "timeout" or "full" -> data available
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
-		if(READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_TOUT_INT_ST) // FIXME
-			debug('B');
-
-		if(READ_PERI_REG(UART_INT_ST(0)) & UART_RXFIFO_FULL_INT_ST) // FIXME
-			debug('C');
-
 		// make sure to fetch all data from the queue, or we'll get a another
 		// interrupt immediately after we enable it
 
@@ -54,8 +46,6 @@ static void uart_callback(void *p)
 				fifo_push(uart_receive_fifo, data);
 		}
 
-		debug('D');
-
 		system_os_post(background_task_id, 0, 0);
 	}
 
@@ -63,15 +53,11 @@ static void uart_callback(void *p)
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & UART_TXFIFO_EMPTY_INT_ST)
 	{
-		debug('E');
-
 		while(!fifo_empty(uart_send_fifo) && (uart_tx_queue_length() < 64))
 			WRITE_PERI_REG(UART_FIFO(0), fifo_pop(uart_send_fifo));
 
 		uart_start_transmit(!fifo_empty(uart_send_fifo));
 	}
-
-	debug('F');
 
 	// acknowledge all uart interrupts
 

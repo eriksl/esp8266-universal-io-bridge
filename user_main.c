@@ -33,27 +33,21 @@ static void background_task(os_event_t *events)
 {
 	uint16_t tcp_send_buffer_length;
 
-	//debug('a');
-
 	if(fifo_empty(uart_receive_fifo))
 	{
 		// no data to be sent to tcp, finish
 
-		//debug('b');
+		(void)0;
 	}
 	else
 	{
 		if(tcp_send_buffer_busy)
 		{
 			// data available but cannot be sent yet, try again later
-
-			//debug('c');
 		}
 		else
 		{
 			// data available and can be sent now
-
-			//debug('d');
 
 			tcp_send_buffer_length = 0;
 
@@ -62,7 +56,6 @@ static void background_task(os_event_t *events)
 
 			if(tcp_send_buffer_length > 0)
 			{
-				//debug('e');
 				tcp_send_buffer_busy = 1;
 				espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
 			}
@@ -71,10 +64,6 @@ static void background_task(os_event_t *events)
 
 	// if there is still data that cannot be sent yet, we will get posted
 	// by tcp_sent_callback when it can be sent
-
-	//debug('f');
-	//debug('\r');
-	//debug('\n');
 }
 
 static void server_receive_callback(void *arg, char *data, uint16_t length)
@@ -92,10 +81,6 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 
 static void server_data_sent_callback(void *arg)
 {
-	//debug('x');
-	//debug('\r');
-	//debug('\n');
-
     tcp_send_buffer_busy = 0;
 
 	// (re-)try to send data still in the fifo
