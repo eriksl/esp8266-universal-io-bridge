@@ -13,6 +13,12 @@ enum
 	buffer_size						= 1024,
 };
 
+typedef struct
+{
+	unsigned int strip_telnet:1;
+} flags_t;
+
+extern flags_t flags;
 extern fifo_t *uart_send_fifo;
 extern fifo_t *uart_receive_fifo;
 extern os_event_t background_task_queue[background_task_queue_length];

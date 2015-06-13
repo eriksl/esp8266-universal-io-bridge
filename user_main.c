@@ -12,6 +12,15 @@
 
 #include "esp-missing-decls.h"
 
+typedef enum
+{
+    ts_raw,
+    ts_dodont,
+    ts_data,
+} telnet_strip_state_t;
+
+flags_t flags = { 0 };
+
 fifo_t *uart_send_fifo;
 fifo_t *uart_receive_fifo;
 
@@ -67,12 +76,43 @@ static void server_data_sent_callback(void *arg)
 static void server_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
+	uint8_t byte;
+	uint8_t telnet_strip_state;
 
 	if(!esp_tcp_connection)
 		return;
 
+	telnet_strip_state = ts_raw;
+
 	for(current = 0; (current < length) && !fifo_full(uart_send_fifo); current++)
-		fifo_push(uart_send_fifo, data[current]);
+	{
+		byte = (uint8_t)data[current];
+
+		switch(telnet_strip_state)
+		{
+			case(ts_raw):
+			{
+				if(flags.strip_telnet && (byte == 0xff))
+					telnet_strip_state = ts_dodont;
+				else
+					fifo_push(uart_send_fifo, (char)byte);
+
+				break;
+			}
+
+			case(ts_dodont):
+			{
+				telnet_strip_state = ts_data;
+				break;
+			}
+
+			case(ts_data):
+			{
+				telnet_strip_state = ts_raw;
+				break;
+			}
+		}
+	}
 
 	uart_start_transmit(!fifo_empty(uart_send_fifo));
 }
@@ -106,6 +146,8 @@ static void server_connnect_callback(void *arg)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
+	flags.strip_telnet = 1; // FIXME
+
 	if(!(uart_send_fifo = fifo_new(buffer_size)))
 		watchdog_crash();
 
