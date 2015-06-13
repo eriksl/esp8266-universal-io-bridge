@@ -33,37 +33,35 @@ static void background_task(os_event_t *events)
 {
 	uint16_t tcp_send_buffer_length;
 
-	if(fifo_empty(uart_receive_fifo))
+	// send data in the uart receive fifo to tcp
+
+	if(!fifo_empty(uart_receive_fifo) && !tcp_send_buffer_busy)
 	{
-		// no data to be sent to tcp, finish
+		// data available and can be sent now
 
-		(void)0;
-	}
-	else
-	{
-		if(tcp_send_buffer_busy)
+		tcp_send_buffer_length = 0;
+
+		while((tcp_send_buffer_length < buffer_size) && !fifo_empty(uart_receive_fifo))
+			tcp_send_buffer[tcp_send_buffer_length++] = fifo_pop(uart_receive_fifo);
+
+		if(tcp_send_buffer_length > 0)
 		{
-			// data available but cannot be sent yet, try again later
-		}
-		else
-		{
-			// data available and can be sent now
-
-			tcp_send_buffer_length = 0;
-
-			while((tcp_send_buffer_length < buffer_size) && !fifo_empty(uart_receive_fifo))
-				tcp_send_buffer[tcp_send_buffer_length++] = fifo_pop(uart_receive_fifo);
-
-			if(tcp_send_buffer_length > 0)
-			{
-				tcp_send_buffer_busy = 1;
-				espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
-			}
+			tcp_send_buffer_busy = 1;
+			espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
 		}
 	}
 
-	// if there is still data that cannot be sent yet, we will get posted
-	// by tcp_sent_callback when it can be sent
+	// if there is still data in uart receive fifo that can't be
+	// sent to tcp yet, tcp_sent_callback will call us when it can
+}
+
+static void server_data_sent_callback(void *arg)
+{
+    tcp_send_buffer_busy = 0;
+
+	// retry to send data still in the fifo
+
+	system_os_post(background_task_id, 0, 0);
 }
 
 static void server_receive_callback(void *arg, char *data, uint16_t length)
@@ -77,15 +75,6 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 		fifo_push(uart_send_fifo, data[current]);
 
 	uart_start_transmit(!fifo_empty(uart_send_fifo));
-}
-
-static void server_data_sent_callback(void *arg)
-{
-    tcp_send_buffer_busy = 0;
-
-	// (re-)try to send data still in the fifo
-
-	system_os_post(background_task_id, 0, 0);
 }
 
 static void server_disconnect_callback(void *arg)
