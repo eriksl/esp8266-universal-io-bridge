@@ -1,5 +1,5 @@
 #include "uart.h"
-#include "fifo.h"
+#include "queue.h"
 #include "user_main.h"
 
 #include <os_type.h>
@@ -15,12 +15,12 @@ void debug(char c)
 	WRITE_PERI_REG(UART_FIFO(0), c);
 }
 
-static uint16_t uart_rx_queue_length(void)
+static uint16_t uart_rx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-static uint16_t uart_tx_queue_length(void)
+static uint16_t uart_tx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
@@ -31,32 +31,32 @@ static void uart_callback(void *p)
 
 	ETS_UART_INTR_DISABLE();
 
-	// receive queue "timeout" or "full" -> data available
+	// receive fifo "timeout" or "full" -> data available
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
-		// make sure to fetch all data from the queue, or we'll get a another
+		// make sure to fetch all data from the fifo, or we'll get a another
 		// interrupt immediately after we enable it
 
-		while(uart_rx_queue_length() > 0)
+		while(uart_rx_fifo_length() > 0)
 		{
 			data = READ_PERI_REG(UART_FIFO(0));
 
-			if(!fifo_full(uart_receive_fifo))
-				fifo_push(uart_receive_fifo, data);
+			if(!queue_full(uart_receive_queue))
+				queue_push(uart_receive_queue, data);
 		}
 
 		system_os_post(background_task_id, 0, 0);
 	}
 
-	// receive transmit queue "empty", room for new data in the queue
+	// receive transmit fifo "empty", room for new data in the fifo
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & UART_TXFIFO_EMPTY_INT_ST)
 	{
-		while(!fifo_empty(uart_send_fifo) && (uart_tx_queue_length() < 64))
-			WRITE_PERI_REG(UART_FIFO(0), fifo_pop(uart_send_fifo));
+		while(!queue_empty(uart_send_queue) && (uart_tx_fifo_length() < 64))
+			WRITE_PERI_REG(UART_FIFO(0), queue_pop(uart_send_queue));
 
-		uart_start_transmit(!fifo_empty(uart_send_fifo));
+		uart_start_transmit(!queue_empty(uart_send_queue));
 	}
 
 	// acknowledge all uart interrupts
@@ -81,18 +81,18 @@ void uart_init(void)
 	SET_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	CLEAR_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 
-	// Set receive queue "timeout" threshold.
-	// when no data comes in for this amount of bytes' times and the queue
+	// Set receive fifo "timeout" threshold.
+	// when no data comes in for this amount of bytes' times and the fifo
 	// isn't empty, raise an interrupt.
 
-	// Set receive queue "full" threshold.
-	// When the queue grows beyond this threshold, raise an interrupt.
+	// Set receive fifo "full" threshold.
+	// When the fifo grows beyond this threshold, raise an interrupt.
 
-	// Set transmit queue "empty" threshold.
-	// If the queue contains less than this numbers of bytes, raise an
+	// Set transmit fifo "empty" threshold.
+	// If the fifo contains less than this numbers of bytes, raise an
 	// interrupt.
-	// Don't enable the interrupt here but enable it when our fifo has
-	// something in it that should be written to the uart's queue, see
+	// Don't enable the interrupt here but enable it when the fifo has
+	// something in it that should be written to the uart's fifo, see
 	// uart_start_transmit().
 
 	WRITE_PERI_REG(UART_CONF1(0),

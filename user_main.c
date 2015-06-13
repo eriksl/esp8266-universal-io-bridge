@@ -21,8 +21,8 @@ typedef enum
 
 flags_t flags = { 0 };
 
-fifo_t *uart_send_fifo;
-fifo_t *uart_receive_fifo;
+queue_t *uart_send_queue;
+queue_t *uart_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
@@ -44,14 +44,14 @@ static void background_task(os_event_t *events)
 
 	// send data in the uart receive fifo to tcp
 
-	if(!fifo_empty(uart_receive_fifo) && !tcp_send_buffer_busy)
+	if(!queue_empty(uart_receive_queue) && !tcp_send_buffer_busy)
 	{
 		// data available and can be sent now
 
 		tcp_send_buffer_length = 0;
 
-		while((tcp_send_buffer_length < buffer_size) && !fifo_empty(uart_receive_fifo))
-			tcp_send_buffer[tcp_send_buffer_length++] = fifo_pop(uart_receive_fifo);
+		while((tcp_send_buffer_length < buffer_size) && !queue_empty(uart_receive_queue))
+			tcp_send_buffer[tcp_send_buffer_length++] = queue_pop(uart_receive_queue);
 
 		if(tcp_send_buffer_length > 0)
 		{
@@ -84,7 +84,7 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 
 	telnet_strip_state = ts_raw;
 
-	for(current = 0; (current < length) && !fifo_full(uart_send_fifo); current++)
+	for(current = 0; (current < length) && !queue_full(uart_send_queue); current++)
 	{
 		byte = (uint8_t)data[current];
 
@@ -95,7 +95,7 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 				if(flags.strip_telnet && (byte == 0xff))
 					telnet_strip_state = ts_dodont;
 				else
-					fifo_push(uart_send_fifo, (char)byte);
+					queue_push(uart_send_queue, (char)byte);
 
 				break;
 			}
@@ -114,7 +114,7 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 		}
 	}
 
-	uart_start_transmit(!fifo_empty(uart_send_fifo));
+	uart_start_transmit(!queue_empty(uart_send_queue));
 }
 
 static void server_disconnect_callback(void *arg)
@@ -139,8 +139,8 @@ static void server_connnect_callback(void *arg)
 
 		espconn_set_opt(new_connection, ESPCONN_REUSEADDR);
 
-		fifo_flush(uart_send_fifo);
-		fifo_flush(uart_receive_fifo);
+		queue_flush(uart_send_queue);
+		queue_flush(uart_receive_queue);
 	}
 }
 
@@ -148,10 +148,10 @@ ICACHE_FLASH_ATTR void user_init(void)
 {
 	flags.strip_telnet = 1; // FIXME
 
-	if(!(uart_send_fifo = fifo_new(buffer_size)))
+	if(!(uart_send_queue = queue_new(buffer_size)))
 		watchdog_crash();
 
-	if(!(uart_receive_fifo = fifo_new(buffer_size)))
+	if(!(uart_receive_queue = queue_new(buffer_size)))
 		watchdog_crash();
 
 	if(!(tcp_send_buffer = os_malloc(buffer_size)))

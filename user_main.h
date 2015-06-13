@@ -1,7 +1,7 @@
 #ifndef user_main_h
 #define user_main_h
 
-#include "fifo.h"
+#include "queue.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
@@ -19,8 +19,8 @@ typedef struct
 } flags_t;
 
 extern flags_t flags;
-extern fifo_t *uart_send_fifo;
-extern fifo_t *uart_receive_fifo;
+extern queue_t *uart_send_queue;
+extern queue_t *uart_receive_queue;
 extern os_event_t background_task_queue[background_task_queue_length];
 
 #endif
