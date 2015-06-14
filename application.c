@@ -148,8 +148,8 @@ uint8_t application_content(const char *src, uint16_t size, char *dst)
 
 static uint8_t application_function_help(application_parameters_t ap)
 {
-	static const char *list_header		= "> %S[%d]\n";
-	static const char *detail_header	= "> %S[%d]: ";
+	static const char *list_header		= "> %s[%d]\n";
+	static const char *detail_header	= "> %s[%d]: ";
 	static const char *detail_footer	= "\n";
 	static const char *detail_error		= "> no help for \"%s\"\n";
 

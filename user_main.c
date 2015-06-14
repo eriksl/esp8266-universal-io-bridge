@@ -20,6 +20,7 @@ flags_t flags = { 0 };
 
 queue_t *uart_send_queue;
 queue_t *uart_receive_queue;
+queue_t *tcp_cmd_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
@@ -53,6 +54,7 @@ ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *es
 static void background_task(os_event_t *events)
 {
 	uint16_t tcp_data_send_buffer_length;
+	uint16_t tcp_cmd_receive_buffer_length;
 
 	// send data in the uart receive fifo to tcp
 
@@ -74,6 +76,64 @@ static void background_task(os_event_t *events)
 
 	// if there is still data in uart receive fifo that can't be
 	// sent to tcp yet, tcp_sent_callback will call us when it can
+
+	// process data in the command receive queue, but only if a complete
+	// line is present (queue_lf > 0) and the output of the previous command
+	// is already flushed out
+
+	uint8_t byte;
+	uint8_t telnet_strip_state;
+	uint8_t eol;
+
+	if(!tcp_cmd_send_buffer_busy)
+	{
+		eol = 0;
+		telnet_strip_state = ts_raw;
+		tcp_cmd_receive_buffer_length = 0;
+
+		while(!eol &&
+				!queue_empty(tcp_cmd_receive_queue) &&
+				(queue_lf(tcp_cmd_receive_queue) > 0) &&
+				((tcp_cmd_receive_buffer_length + 1) < buffer_size))
+		{
+			byte = (uint8_t)queue_pop(tcp_cmd_receive_queue);
+
+			switch(telnet_strip_state)
+			{
+				case(ts_raw):
+				{
+					if(byte == 0xff)
+						telnet_strip_state = ts_dodont;
+					else if(byte == '\n')
+						eol = 1;
+					else if((byte >= ' ') && (byte <= '~'))
+						tcp_cmd_receive_buffer[tcp_cmd_receive_buffer_length++] = (char)byte;
+
+					break;
+				}
+
+				case(ts_dodont):
+				{
+					telnet_strip_state = ts_data;
+					break;
+				}
+
+				case(ts_data):
+				{
+					telnet_strip_state = ts_raw;
+					break;
+				}
+			}
+		}
+
+		if(eol)
+		{
+			tcp_cmd_receive_buffer[tcp_cmd_receive_buffer_length] = '\0';
+			application_content(tcp_cmd_receive_buffer, buffer_size, tcp_cmd_send_buffer);
+			tcp_cmd_send_buffer_busy = 1;
+			espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+		}
+	}
 
 	application_periodic();
 }
@@ -164,66 +224,12 @@ static void tcp_cmd_sent_callback(void *arg)
 static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
-	uint16_t tcp_cmd_receive_buffer_length;
-	uint16_t tcp_cmd_send_buffer_length;
-	uint8_t byte;
-	uint8_t telnet_strip_state;
 
-	if(!esp_cmd_tcp_connection)
-		return;
+	for(current = 0; !queue_full(tcp_cmd_receive_queue) && (current < length); current++)
+		queue_push(tcp_cmd_receive_queue, data[current]);
 
-	tcp_cmd_receive_buffer_length = 0;
-
-	telnet_strip_state = ts_raw;
-
-	for(current = 0; (current < length) && (tcp_cmd_receive_buffer_length < buffer_size); current++)
-	{
-		byte = (uint8_t)data[current];
-
-		switch(telnet_strip_state)
-		{
-			case(ts_raw):
-			{
-				if(flags.strip_telnet && (byte == 0xff))
-					telnet_strip_state = ts_dodont;
-				else
-					if((byte >= ' ') && (byte <= '~'))
-						tcp_cmd_receive_buffer[tcp_cmd_receive_buffer_length++] = (char)byte;
-
-				break;
-			}
-
-			case(ts_dodont):
-			{
-				telnet_strip_state = ts_data;
-				break;
-			}
-
-			case(ts_data):
-			{
-				telnet_strip_state = ts_raw;
-				break;
-			}
-		}
-	}
-
-	memcpy(tcp_cmd_send_buffer, tcp_cmd_receive_buffer, tcp_cmd_receive_buffer_length);
-
-	if((tcp_cmd_receive_buffer_length + 2) > buffer_size)
-		tcp_cmd_send_buffer_length = tcp_cmd_receive_buffer_length - 2;
-	else
-		tcp_cmd_send_buffer_length = tcp_cmd_receive_buffer_length;
-
-	tcp_cmd_send_buffer[tcp_cmd_send_buffer_length + 0] = '\r';
-	tcp_cmd_send_buffer[tcp_cmd_send_buffer_length + 1] = '\n';
-
-	tcp_cmd_send_buffer_length += 2;
-
-	if(!tcp_cmd_send_buffer_busy)
-	{
-		tcp_cmd_send_buffer_busy = 1;
-		espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, tcp_cmd_send_buffer_length);
-	}
+	if(current > 0)
+		system_os_post(background_task_id, 0, 0);
 }
 
 static void tcp_cmd_disconnect_callback(void *arg)
@@ -245,6 +251,8 @@ static void tcp_cmd_connect_callback(struct espconn *new_connection)
 		espconn_regist_disconcb(esp_cmd_tcp_connection, tcp_cmd_disconnect_callback);
 
 		espconn_set_opt(esp_cmd_tcp_connection, ESPCONN_REUSEADDR);
+
+		queue_flush(tcp_cmd_receive_queue);
 	}
 }
 
@@ -256,6 +264,9 @@ ICACHE_FLASH_ATTR void user_init(void)
 		reset();
 
 	if(!(uart_receive_queue = queue_new(buffer_size)))
+		reset();
+
+	if(!(tcp_cmd_receive_queue = queue_new(buffer_size)))
 		reset();
 
 	if(!(tcp_cmd_receive_buffer = malloc(buffer_size)))
