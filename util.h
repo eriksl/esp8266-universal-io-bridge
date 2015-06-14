@@ -10,7 +10,7 @@ int strcmp(const char *, const char *);
 void *memset(void *, int, size_t);
 void *memcpy(void *, const void *, size_t);
 
-int snprintf(char *, size_t, const char *, ...);
+int snprintf(char *, size_t, const char *, ...) __attribute__ ((format (printf, 3, 4)));
 
 void *malloc(size_t);
 
