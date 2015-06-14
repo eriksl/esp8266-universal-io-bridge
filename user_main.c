@@ -285,13 +285,13 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	wifi_station_set_config_current(&station_config);
 	wifi_station_connect();
 
-	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, tcp_cmd_connect_callback);
-	espconn_regist_time(&esp_cmd_config, 0, 0);
-	esp_cmd_tcp_connection = 0;
-
-	tcp_accept(&esp_data_config, &esp_data_tcp_config, 25, tcp_data_connect_callback);
-	espconn_regist_time(&esp_data_config, 30, 0);
+	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
+	espconn_regist_time(&esp_data_config, 0, 0);
 	esp_data_tcp_connection = 0;
+
+	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, tcp_cmd_connect_callback);
+	espconn_regist_time(&esp_cmd_config, 30, 0);
+	esp_cmd_tcp_connection = 0;
 
 	uart_init();
 
