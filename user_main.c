@@ -157,9 +157,6 @@ static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 	uint8_t byte;
 	uint8_t telnet_strip_state;
 
-	if(!esp_data_tcp_connection)
-		return;
-
 	telnet_strip_state = ts_raw;
 
 	for(current = 0; (current < length) && !queue_full(uart_send_queue); current++)
