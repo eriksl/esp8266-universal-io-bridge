@@ -26,9 +26,9 @@ queue_t *uart_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
-static char *tcp_send_buffer;
-static char tcp_send_buffer_busy;
-static struct espconn *esp_tcp_connection;
+static char *tcp_data_send_buffer;
+static char tcp_data_send_buffer_busy;
+static struct espconn *esp_data_tcp_connection;
 
 ICACHE_FLASH_ATTR static void user_init2(void);
 
@@ -40,23 +40,23 @@ ICACHE_FLASH_ATTR static void watchdog_crash(void)
 
 static void background_task(os_event_t *events)
 {
-	uint16_t tcp_send_buffer_length;
+	uint16_t tcp_data_send_buffer_length;
 
 	// send data in the uart receive fifo to tcp
 
-	if(!queue_empty(uart_receive_queue) && !tcp_send_buffer_busy)
+	if(!queue_empty(uart_receive_queue) && !tcp_data_send_buffer_busy)
 	{
 		// data available and can be sent now
 
-		tcp_send_buffer_length = 0;
+		tcp_data_send_buffer_length = 0;
 
-		while((tcp_send_buffer_length < buffer_size) && !queue_empty(uart_receive_queue))
-			tcp_send_buffer[tcp_send_buffer_length++] = queue_pop(uart_receive_queue);
+		while((tcp_data_send_buffer_length < buffer_size) && !queue_empty(uart_receive_queue))
+			tcp_data_send_buffer[tcp_data_send_buffer_length++] = queue_pop(uart_receive_queue);
 
-		if(tcp_send_buffer_length > 0)
+		if(tcp_data_send_buffer_length > 0)
 		{
-			tcp_send_buffer_busy = 1;
-			espconn_sent(esp_tcp_connection, tcp_send_buffer, tcp_send_buffer_length);
+			tcp_data_send_buffer_busy = 1;
+			espconn_sent(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
 		}
 	}
 
@@ -64,22 +64,22 @@ static void background_task(os_event_t *events)
 	// sent to tcp yet, tcp_sent_callback will call us when it can
 }
 
-static void server_data_sent_callback(void *arg)
+static void tcp_data_sent_callback(void *arg)
 {
-    tcp_send_buffer_busy = 0;
+    tcp_data_send_buffer_busy = 0;
 
 	// retry to send data still in the fifo
 
 	system_os_post(background_task_id, 0, 0);
 }
 
-static void server_receive_callback(void *arg, char *data, uint16_t length)
+static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
 	uint8_t byte;
 	uint8_t telnet_strip_state;
 
-	if(!esp_tcp_connection)
+	if(!esp_data_tcp_connection)
 		return;
 
 	telnet_strip_state = ts_raw;
@@ -117,25 +117,25 @@ static void server_receive_callback(void *arg, char *data, uint16_t length)
 	uart_start_transmit(!queue_empty(uart_send_queue));
 }
 
-static void server_disconnect_callback(void *arg)
+static void tcp_data_disconnect_callback(void *arg)
 {
-	esp_tcp_connection = 0;
+	esp_data_tcp_connection = 0;
 }
 
-static void server_connnect_callback(void *arg)
+static void tcp_data_connect_callback(void *arg)
 {
 	struct espconn *new_connection = (struct espconn *)arg;
 
-	if(esp_tcp_connection)
+	if(esp_data_tcp_connection)
 		espconn_disconnect(new_connection);
 	else
 	{
-		esp_tcp_connection	= new_connection;
-		tcp_send_buffer_busy = 0;
+		esp_data_tcp_connection	= new_connection;
+		tcp_data_send_buffer_busy = 0;
 
-		espconn_regist_recvcb(new_connection, server_receive_callback);
-		espconn_regist_sentcb(new_connection, server_data_sent_callback);
-		espconn_regist_disconcb(new_connection, server_disconnect_callback);
+		espconn_regist_recvcb(new_connection, tcp_data_receive_callback);
+		espconn_regist_sentcb(new_connection, tcp_data_sent_callback);
+		espconn_regist_disconcb(new_connection, tcp_data_disconnect_callback);
 
 		espconn_set_opt(new_connection, ESPCONN_REUSEADDR);
 
@@ -154,7 +154,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 	if(!(uart_receive_queue = queue_new(buffer_size)))
 		watchdog_crash();
 
-	if(!(tcp_send_buffer = os_malloc(buffer_size)))
+	if(!(tcp_data_send_buffer = os_malloc(buffer_size)))
 		watchdog_crash();
 
 	system_init_done_cb(user_init2);
@@ -165,8 +165,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	// create ap_auth.h and #define ap_ssid / ap_password accordingly
 
 	static struct station_config station_config = { ap_ssid, ap_password, 0, { 0, 0, 0, 0, 0, 0 } };
-	static struct espconn esp_server_config;
-	static esp_tcp esp_tcp_config;
+	static struct espconn esp_data_config;
+	static esp_tcp esp_data_tcp_config;
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 	wifi_set_opmode_current(STATION_MODE);
@@ -177,19 +177,19 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 
 	espconn_tcp_set_max_con(1);
 
-	esp_tcp_connection = 0;
+	esp_data_tcp_connection = 0;
 
-	memset(&esp_tcp_config, 0, sizeof(esp_tcp_config));
-	esp_tcp_config.local_port = 23;
+	memset(&esp_data_tcp_config, 0, sizeof(esp_data_tcp_config));
+	esp_data_tcp_config.local_port = 23;
 
-	memset(&esp_server_config, 0, sizeof(esp_server_config));
-	esp_server_config.type		= ESPCONN_TCP;
-	esp_server_config.state		= ESPCONN_NONE;
-	esp_server_config.proto.tcp	= &esp_tcp_config;
+	memset(&esp_data_config, 0, sizeof(esp_data_config));
+	esp_data_config.type		= ESPCONN_TCP;
+	esp_data_config.state		= ESPCONN_NONE;
+	esp_data_config.proto.tcp	= &esp_data_tcp_config;
 
-	espconn_regist_connectcb(&esp_server_config, server_connnect_callback);
-	espconn_accept(&esp_server_config);
-	espconn_regist_time(&esp_server_config, 30, 0);
+	espconn_regist_connectcb(&esp_data_config, tcp_data_connect_callback);
+	espconn_accept(&esp_data_config);
+	espconn_regist_time(&esp_data_config, 30, 0);
 
 	uart_init();
 
