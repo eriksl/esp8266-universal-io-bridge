@@ -14,6 +14,8 @@ int snprintf(char *, size_t, const char *, ...) __attribute__ ((format (printf, 
 
 void *malloc(size_t);
 
+int atoi(const char *);
+
 void reset(void);
 
 #endif
