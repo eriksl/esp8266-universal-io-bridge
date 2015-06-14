@@ -259,7 +259,7 @@ static void tcp_cmd_connect_callback(struct espconn *new_connection)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	flags.strip_telnet = 1; // FIXME
+	flags.strip_telnet = 1; // FIXME -> default in flash
 
 	if(!(uart_send_queue = queue_new(buffer_size)))
 		reset();

@@ -2,6 +2,7 @@
 
 #include "stats.h"
 #include "util.h"
+#include "user_main.h"
 
 typedef struct
 {
@@ -15,6 +16,7 @@ static uint8_t application_function_help(application_parameters_t ap);
 static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
 static uint8_t application_function_stats(application_parameters_t ap);
+static uint8_t application_function_strip_telnet(application_parameters_t ap);
 
 static const application_function_table_t application_function_table[] =
 {
@@ -59,6 +61,18 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_stats,
 		"statistics",
+	},
+	{
+		"st",
+		0,
+		application_function_strip_telnet,
+		"strip telnet do/dont (0/1)",
+	},
+	{
+		"strip-telnet",
+		0,
+		application_function_strip_telnet,
+		"strip telnet do/dont (0/1)",
 	},
 	{
 		"",
@@ -212,6 +226,16 @@ static uint8_t application_function_reset(application_parameters_t ap)
 static uint8_t application_function_stats(application_parameters_t ap)
 {
 	stats_generate(ap.size, ap.dst);
+
+	return(1);
+}
+
+static uint8_t application_function_strip_telnet(application_parameters_t ap)
+{
+	if(ap.nargs > 1)
+		flags.strip_telnet = !!atoi((*ap.args)[1]);
+
+	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", flags.strip_telnet);
 
 	return(1);
 }
