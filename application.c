@@ -12,6 +12,7 @@ typedef struct
 } application_function_table_t;
 
 static uint8_t application_function_help(application_parameters_t ap);
+static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
 static uint8_t application_function_stats(application_parameters_t ap);
 
@@ -28,6 +29,18 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_help,
 		"help (command)",
+	},
+	{
+		"q",
+		0,
+		application_function_quit,
+		"quit",
+	},
+	{
+		"quit",
+		0,
+		application_function_quit,
+		"quit",
 	},
 	{
 		"reset",
@@ -184,11 +197,16 @@ static uint8_t application_function_help(application_parameters_t ap)
 	return(1);
 }
 
+static uint8_t application_function_quit(application_parameters_t ap)
+{
+	return(0);
+}
+
 static uint8_t application_function_reset(application_parameters_t ap)
 {
 	reset();
 
-	return(0);
+	return(1);
 }
 
 static uint8_t application_function_stats(application_parameters_t ap)

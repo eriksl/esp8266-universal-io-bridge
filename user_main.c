@@ -129,9 +129,13 @@ static void background_task(os_event_t *events)
 		if(eol)
 		{
 			tcp_cmd_receive_buffer[tcp_cmd_receive_buffer_length] = '\0';
-			application_content(tcp_cmd_receive_buffer, buffer_size, tcp_cmd_send_buffer);
-			tcp_cmd_send_buffer_busy = 1;
-			espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+			if(application_content(tcp_cmd_receive_buffer, buffer_size, tcp_cmd_send_buffer))
+			{
+				tcp_cmd_send_buffer_busy = 1;
+				espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+			}
+			else
+				espconn_disconnect(esp_cmd_tcp_connection);
 		}
 	}
 
