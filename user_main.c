@@ -2,15 +2,12 @@
 
 #include "uart.h"
 #include "ap_auth.h"
+#include "util.h"
+#include "application.h"
 
-#include <os_type.h>
-#include <ets_sys.h>
 #include <ip_addr.h>
 #include <espconn.h>
-#include <mem.h>
 #include <user_interface.h>
-
-#include "esp-missing-decls.h"
 
 typedef enum
 {
@@ -36,12 +33,6 @@ static char tcp_data_send_buffer_busy;
 static struct espconn *esp_data_tcp_connection;
 
 ICACHE_FLASH_ATTR static void user_init2(void);
-
-ICACHE_FLASH_ATTR static void watchdog_crash(void)
-{
-	for(;;)
-		(void)0;
-}
 
 ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 		uint16_t port, void (*connect_callback)(struct espconn *))
@@ -83,6 +74,8 @@ static void background_task(os_event_t *events)
 
 	// if there is still data in uart receive fifo that can't be
 	// sent to tcp yet, tcp_sent_callback will call us when it can
+
+	application_periodic();
 }
 
 static void tcp_data_sent_callback(void *arg)
@@ -260,19 +253,19 @@ ICACHE_FLASH_ATTR void user_init(void)
 	flags.strip_telnet = 1; // FIXME
 
 	if(!(uart_send_queue = queue_new(buffer_size)))
-		watchdog_crash();
+		reset();
 
 	if(!(uart_receive_queue = queue_new(buffer_size)))
-		watchdog_crash();
+		reset();
 
-	if(!(tcp_cmd_receive_buffer = os_malloc(buffer_size)))
-		watchdog_crash();
+	if(!(tcp_cmd_receive_buffer = malloc(buffer_size)))
+		reset();
 
-	if(!(tcp_cmd_send_buffer = os_malloc(buffer_size)))
-		watchdog_crash();
+	if(!(tcp_cmd_send_buffer = malloc(buffer_size)))
+		reset();
 
-	if(!(tcp_data_send_buffer = os_malloc(buffer_size)))
-		watchdog_crash();
+	if(!(tcp_data_send_buffer = malloc(buffer_size)))
+		reset();
 
 	system_init_done_cb(user_init2);
 }
@@ -301,6 +294,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	esp_data_tcp_connection = 0;
 
 	uart_init();
+
+	application_init();
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 	system_os_post(background_task_id, 0, 0);

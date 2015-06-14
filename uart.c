@@ -1,6 +1,8 @@
 #include "uart.h"
+
 #include "queue.h"
 #include "user_main.h"
+#include "stats.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
@@ -35,6 +37,8 @@ static void uart_callback(void *p)
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
+		stat_uart_rx_interrupts++;
+
 		// make sure to fetch all data from the fifo, or we'll get a another
 		// interrupt immediately after we enable it
 
@@ -53,6 +57,8 @@ static void uart_callback(void *p)
 
 	if(READ_PERI_REG(UART_INT_ST(0)) & UART_TXFIFO_EMPTY_INT_ST)
 	{
+		stat_uart_tx_interrupts++;
+
 		while(!queue_empty(uart_send_queue) && (uart_tx_fifo_length() < 64))
 			WRITE_PERI_REG(UART_FIFO(0), queue_pop(uart_send_queue));
 

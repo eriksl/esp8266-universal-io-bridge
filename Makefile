@@ -9,8 +9,8 @@ LDSCRIPT		= -T$(SDKLD)/eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lssc
 
-OBJS			= queue.o uart.o user_main.o
-HEADERS			= ap_auth.h esp-missing-decls.h esp-uart.h esp-uart-register.h queue.h uart.h user_main.h user_config.h
+OBJS			= queue.o uart.o user_main.o util.o stats.o application.o
+HEADERS			= ap_auth.h esp-missing-decls.h esp-uart.h esp-uart-register.h application.h stats.h queue.h uart.h user_main.h user_config.h
 FW				= fw.elf
 FW1				= fw-0x00000.bin
 FW2				= fw-0x40000.bin

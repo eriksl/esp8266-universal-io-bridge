@@ -1,15 +1,14 @@
 #include "queue.h"
 
-#include <mem.h>
-#include <esp-missing-decls.h>
+#include "util.h"
 
 queue_t * queue_new(uint16_t size)
 {
 	queue_t *queue;
 
-	if((queue = os_malloc(sizeof(queue_t))))
+	if((queue = malloc(sizeof(queue_t))))
 	{
-		if((queue->data = os_malloc(size)))
+		if((queue->data = malloc(size)))
 		{
 			queue->size = size;
 			queue->in = 0;
