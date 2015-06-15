@@ -4,6 +4,8 @@
 #include "ap_auth.h"
 #include "util.h"
 #include "application.h"
+#include "eeprom.h"
+#include "config.h"
 
 #include <ip_addr.h>
 #include <espconn.h>
@@ -15,8 +17,6 @@ typedef enum
     ts_dodont,
     ts_data,
 } telnet_strip_state_t;
-
-flags_t flags = { 0 };
 
 queue_t *uart_send_queue;
 queue_t *uart_receive_queue;
@@ -167,7 +167,7 @@ static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 		{
 			case(ts_raw):
 			{
-				if(flags.strip_telnet && (byte == 0xff))
+				if(config.strip_telnet && (byte == 0xff))
 					telnet_strip_state = ts_dodont;
 				else
 					queue_push(uart_send_queue, (char)byte);
@@ -259,7 +259,8 @@ static void tcp_cmd_connect_callback(struct espconn *new_connection)
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	flags.strip_telnet = 1; // FIXME -> default in flash
+	if(!eeprom_read(&config))
+		config.strip_telnet = 0;
 
 	if(!(uart_send_queue = queue_new(buffer_size)))
 		reset();

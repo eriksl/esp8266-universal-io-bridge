@@ -3,6 +3,7 @@
 #include "stats.h"
 #include "util.h"
 #include "user_main.h"
+#include "eeprom.h"
 
 typedef struct
 {
@@ -12,6 +13,8 @@ typedef struct
 	const char	*description;
 } application_function_table_t;
 
+static uint8_t application_function_eeprom_dump(application_parameters_t ap);
+static uint8_t application_function_eeprom_write(application_parameters_t ap);
 static uint8_t application_function_help(application_parameters_t ap);
 static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
@@ -20,6 +23,30 @@ static uint8_t application_function_strip_telnet(application_parameters_t ap);
 
 static const application_function_table_t application_function_table[] =
 {
+	{
+		"ed",
+		0,
+		application_function_eeprom_dump,
+		"dump eeprom contents",
+	},
+	{
+		"eeprom-dump",
+		0,
+		application_function_eeprom_dump,
+		"dump eeprom contents",
+	},
+	{
+		"ew",
+		0,
+		application_function_eeprom_write,
+		"write config to eeprom",
+	},
+	{
+		"eeprom-write",
+		0,
+		application_function_eeprom_write,
+		"write config to eeprom",
+	},
 	{
 		"help",
 		0,
@@ -173,6 +200,21 @@ uint8_t application_content(const char *src, uint16_t size, char *dst)
 	return(1);
 }
 
+static uint8_t application_function_eeprom_dump(application_parameters_t ap)
+{
+	eeprom_dump(ap.size, ap.dst);
+
+	return(1);
+}
+
+static uint8_t application_function_eeprom_write(application_parameters_t ap)
+{
+	eeprom_write(&config);
+	strlcpy(ap.dst, "eeprom write OK\n", ap.size);
+
+	return(1);
+}
+
 static uint8_t application_function_help(application_parameters_t ap)
 {
 	static const char *list_header		= "> %s[%d]\n";
@@ -233,9 +275,9 @@ static uint8_t application_function_stats(application_parameters_t ap)
 static uint8_t application_function_strip_telnet(application_parameters_t ap)
 {
 	if(ap.nargs > 1)
-		flags.strip_telnet = !!atoi((*ap.args)[1]);
+		config.strip_telnet = !!atoi((*ap.args)[1]);
 
-	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", flags.strip_telnet);
+	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", config.strip_telnet);
 
 	return(1);
 }
