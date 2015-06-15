@@ -109,16 +109,16 @@ static const application_function_table_t application_function_table[] =
 	},
 };
 
-void application_init(void)
+ICACHE_FLASH_ATTR void application_init(void)
 {
 }
 
-void application_periodic(void)
+ICACHE_FLASH_ATTR void application_periodic(void)
 {
 	stat_application_periodic++;
 }
 
-uint8_t application_content(const char *src, uint16_t size, char *dst)
+ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)
 {
 	static const char *error_fmt_unknown = "Command \"%s\" unknown\n";
 	static const char *error_fmt_args = "Insufficient arguments: %d (%d required)\n";
@@ -200,14 +200,14 @@ uint8_t application_content(const char *src, uint16_t size, char *dst)
 	return(1);
 }
 
-static uint8_t application_function_eeprom_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_eeprom_dump(application_parameters_t ap)
 {
 	eeprom_dump(ap.size, ap.dst);
 
 	return(1);
 }
 
-static uint8_t application_function_eeprom_write(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_eeprom_write(application_parameters_t ap)
 {
 	eeprom_write(&config);
 	strlcpy(ap.dst, "eeprom write OK\n", ap.size);
@@ -215,7 +215,7 @@ static uint8_t application_function_eeprom_write(application_parameters_t ap)
 	return(1);
 }
 
-static uint8_t application_function_help(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_help(application_parameters_t ap)
 {
 	static const char *list_header		= "> %s[%d]\n";
 	static const char *detail_header	= "> %s[%d]: ";
@@ -253,26 +253,26 @@ static uint8_t application_function_help(application_parameters_t ap)
 	return(1);
 }
 
-static uint8_t application_function_quit(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_quit(application_parameters_t ap)
 {
 	return(0);
 }
 
-static uint8_t application_function_reset(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_reset(application_parameters_t ap)
 {
 	reset();
 
 	return(1);
 }
 
-static uint8_t application_function_stats(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_stats(application_parameters_t ap)
 {
 	stats_generate(ap.size, ap.dst);
 
 	return(1);
 }
 
-static uint8_t application_function_strip_telnet(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_parameters_t ap)
 {
 	if(ap.nargs > 1)
 		config.strip_telnet = !!atoi((*ap.args)[1]);

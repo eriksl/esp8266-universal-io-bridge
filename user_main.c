@@ -142,7 +142,7 @@ static void background_task(os_event_t *events)
 	application_periodic();
 }
 
-static void tcp_data_sent_callback(void *arg)
+ICACHE_FLASH_ATTR static void tcp_data_sent_callback(void *arg)
 {
     tcp_data_send_buffer_busy = 0;
 
@@ -151,7 +151,7 @@ static void tcp_data_sent_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
+ICACHE_FLASH_ATTR static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
 	uint8_t byte;
@@ -192,12 +192,12 @@ static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 	uart_start_transmit(!queue_empty(uart_send_queue));
 }
 
-static void tcp_data_disconnect_callback(void *arg)
+ICACHE_FLASH_ATTR static void tcp_data_disconnect_callback(void *arg)
 {
 	esp_data_tcp_connection = 0;
 }
 
-static void tcp_data_connect_callback(struct espconn *new_connection)
+ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_connection)
 {
 	if(esp_data_tcp_connection)
 		espconn_disconnect(new_connection);
@@ -217,12 +217,12 @@ static void tcp_data_connect_callback(struct espconn *new_connection)
 	}
 }
 
-static void tcp_cmd_sent_callback(void *arg)
+ICACHE_FLASH_ATTR static void tcp_cmd_sent_callback(void *arg)
 {
     tcp_cmd_send_buffer_busy = 0;
 }
 
-static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
+ICACHE_FLASH_ATTR static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
 
@@ -233,12 +233,12 @@ static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
 		system_os_post(background_task_id, 0, 0);
 }
 
-static void tcp_cmd_disconnect_callback(void *arg)
+ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 {
 	esp_cmd_tcp_connection = 0;
 }
 
-static void tcp_cmd_connect_callback(struct espconn *new_connection)
+ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_connection)
 {
 	if(esp_cmd_tcp_connection)
 		espconn_disconnect(new_connection);
