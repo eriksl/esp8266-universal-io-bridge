@@ -1,4 +1,5 @@
 #include "application.h"
+#include "application-wlan.h"
 
 #include "stats.h"
 #include "util.h"
@@ -100,6 +101,18 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_strip_telnet,
 		"strip telnet do/dont (0/1)",
+	},
+	{
+		"wd",
+		0,
+		application_function_wlan_dump,
+		"dump wlan data",
+	},
+	{
+		"wlan-dump",
+		0,
+		application_function_wlan_dump,
+		"dump wlan data",
 	},
 	{
 		"",
