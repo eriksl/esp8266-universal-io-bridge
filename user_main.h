@@ -5,10 +5,11 @@
 
 #include <os_type.h>
 #include <ets_sys.h>
+#include <user_interface.h>
 
 enum
 {
-	background_task_id				= 0,
+	background_task_id				= USER_TASK_PRIO_0,
 	background_task_queue_length	= 64,
 	buffer_size						= 1024,
 };
