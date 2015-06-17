@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include <mem.h>
+#include <user_interface.h>
 
 ICACHE_FLASH_ATTR int snprintf(char *buffer, size_t size, const char *fmt, ...)
 {
@@ -26,6 +27,5 @@ ICACHE_FLASH_ATTR void *malloc(size_t size)
 
 ICACHE_FLASH_ATTR void reset(void)
 {
-	for(;;)
-		(void)0;
+	system_restart();
 }
