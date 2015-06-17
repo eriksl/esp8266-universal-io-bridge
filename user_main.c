@@ -1,7 +1,6 @@
 #include "user_main.h"
 
 #include "uart.h"
-#include "ap_auth.h"
 #include "util.h"
 #include "application.h"
 #include "eeprom.h"
@@ -285,18 +284,10 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 ICACHE_FLASH_ATTR static void user_init2(void)
 {
-	// create ap_auth.h and #define ap_ssid / ap_password accordingly
-
-	static struct station_config station_config = { ap_ssid, ap_password, 0, { 0, 0, 0, 0, 0, 0 } };
 	static struct espconn esp_cmd_config, esp_data_config;
 	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
-	wifi_set_opmode_current(STATION_MODE);
-	wifi_station_set_auto_connect(0);
-	wifi_station_disconnect();
-	wifi_station_set_config_current(&station_config);
-	wifi_station_connect();
 
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
