@@ -3,7 +3,6 @@
 #include "uart.h"
 #include "util.h"
 #include "application.h"
-#include "eeprom.h"
 #include "config.h"
 
 #include <ip_addr.h>
@@ -258,8 +257,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_conne
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	if(!eeprom_read(&config))
-		config.strip_telnet = 0;
+	config_read();
 
 	if(!(uart_send_queue = queue_new(buffer_size)))
 		reset();

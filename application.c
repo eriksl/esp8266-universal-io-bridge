@@ -4,7 +4,7 @@
 #include "stats.h"
 #include "util.h"
 #include "user_main.h"
-#include "eeprom.h"
+#include "config.h"
 
 typedef struct
 {
@@ -14,8 +14,8 @@ typedef struct
 	const char	*description;
 } application_function_table_t;
 
-static uint8_t application_function_eeprom_dump(application_parameters_t ap);
-static uint8_t application_function_eeprom_write(application_parameters_t ap);
+static uint8_t application_function_config_dump(application_parameters_t ap);
+static uint8_t application_function_config_write(application_parameters_t ap);
 static uint8_t application_function_help(application_parameters_t ap);
 static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
@@ -25,28 +25,28 @@ static uint8_t application_function_strip_telnet(application_parameters_t ap);
 static const application_function_table_t application_function_table[] =
 {
 	{
-		"ed",
+		"cd",
 		0,
-		application_function_eeprom_dump,
-		"dump eeprom contents",
+		application_function_config_dump,
+		"dump config contents",
 	},
 	{
-		"eeprom-dump",
+		"config-dump",
 		0,
-		application_function_eeprom_dump,
-		"dump eeprom contents",
+		application_function_config_dump,
+		"dump config contents",
 	},
 	{
-		"ew",
+		"cw",
 		0,
-		application_function_eeprom_write,
-		"write config to eeprom",
+		application_function_config_write,
+		"write config to config",
 	},
 	{
-		"eeprom-write",
+		"config-write",
 		0,
-		application_function_eeprom_write,
-		"write config to eeprom",
+		application_function_config_write,
+		"write config to config",
 	},
 	{
 		"help",
@@ -213,17 +213,17 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 	return(1);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_eeprom_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_config_dump(application_parameters_t ap)
 {
-	eeprom_dump(ap.size, ap.dst);
+	config_dump(ap.size, ap.dst);
 
 	return(1);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_eeprom_write(application_parameters_t ap)
+ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_parameters_t ap)
 {
-	eeprom_write(&config);
-	strlcpy(ap.dst, "eeprom write OK\n", ap.size);
+	config_write();
+	strlcpy(ap.dst, "config write OK\n", ap.size);
 
 	return(1);
 }
