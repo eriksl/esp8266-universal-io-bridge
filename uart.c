@@ -138,7 +138,7 @@ void uart_init(const uart_parameters_t *params)
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 
-	uart_div_modify(0, UART_CLK_FREQ / params->baud_rate);
+	WRITE_PERI_REG(UART_CLKDIV(0), UART_CLK_FREQ / params->baud_rate);
 
 	data_bits = params->data_bits - 5;
 
