@@ -9,7 +9,8 @@
 
 typedef struct
 {
-	const char	*command;
+	const char	*command1;
+	const char	*command2;
 	uint8_t		required_args;
 	uint8_t		(*function)(application_parameters_t);
 	const char	*description;
@@ -30,145 +31,79 @@ static uint8_t application_function_uart_parity(application_parameters_t ap);
 static const application_function_table_t application_function_table[] =
 {
 	{
-		"cd",
+		"cd", "config-dump",
 		0,
 		application_function_config_dump,
 		"dump config contents",
 	},
 	{
-		"config-dump",
-		0,
-		application_function_config_dump,
-		"dump config contents",
-	},
-	{
-		"cw",
+		"cw", "config-write",
 		0,
 		application_function_config_write,
-		"write config to config",
+		"write config to non-volatile storage",
 	},
 	{
-		"config-write",
-		0,
-		application_function_config_write,
-		"write config to config",
-	},
-	{
-		"help",
+		"?", "help",
 		0,
 		application_function_help,
-		"help (command)",
+		"help [command]",
 	},
 	{
-		"?",
-		0,
-		application_function_help,
-		"help (command)",
-	},
-	{
-		"q",
+		"q", "quit",
 		0,
 		application_function_quit,
 		"quit",
 	},
 	{
-		"quit",
-		0,
-		application_function_quit,
-		"quit",
-	},
-	{
-		"reset",
+		"r", "reset",
 		0,
 		application_function_reset,
-		"reset using watchdog timeout",
+		"reset",
 	},
 	{
-		"s",
+		"s", "stats",
 		0,
 		application_function_stats,
 		"statistics",
 	},
 	{
-		"stats",
-		0,
-		application_function_stats,
-		"statistics",
-	},
-	{
-		"st",
+		"st", "strip-telnet",
 		0,
 		application_function_strip_telnet,
-		"strip telnet do/dont (0/1)",
+		"strip telnet do/dont [0/1]",
 	},
 	{
-		"strip-telnet",
-		0,
-		application_function_strip_telnet,
-		"strip telnet do/dont (0/1)",
-	},
-	{
-		"ub",
+		"ub", "uart-baud",
 		1,
 		application_function_uart_baud_rate,
-		"set uart baud rate [1 - 1000000]",
+		"set uart baud rate [1-1000000]",
 	},
 	{
-		"uart-baud",
-		1,
-		application_function_uart_baud_rate,
-		"set uart baud rate [1 - 1000000]",
-	},
-	{
-		"ud",
+		"ud", "uart-data",
 		1,
 		application_function_uart_data_bits,
 		"set uart data bits [5/6/7/8]",
 	},
 	{
-		"uart-data",
-		1,
-		application_function_uart_data_bits,
-		"set uart data bits [5/6/7/8]",
-	},
-	{
-		"us",
+		"us", "uart-stop",
 		1,
 		application_function_uart_stop_bits,
 		"set uart stop bits [1/2]",
 	},
 	{
-		"uart-stop",
-		1,
-		application_function_uart_stop_bits,
-		"set uart stop bits [1/2]",
-	},
-	{
-		"up",
+		"up", "uart-parity",
 		1,
 		application_function_uart_parity,
-		"set uart parity [none/even/odd/space/mark]",
+		"set uart parity [none/even/odd]",
 	},
 	{
-		"uart-parity",
-		1,
-		application_function_uart_parity,
-		"set uart parity [none/even/odd/space/mark]",
-	},
-	{
-		"wd",
+		"wd", "wlan-dump",
 		0,
 		application_function_wlan_dump,
-		"dump wlan data",
+		"dump wlan info",
 	},
 	{
-		"wlan-dump",
-		0,
-		application_function_wlan_dump,
-		"dump wlan data",
-	},
-	{
-		"",
+		"", "",
 		0,
 		(void *)0,
 		"",
@@ -240,7 +175,8 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 		return(1);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		if(!strcmp(args[0], tableptr->command))
+		if(!strcmp(args[0], tableptr->command1) ||
+			!strcmp(args[0], tableptr->command2))
 			break;
 
 	if(tableptr->function)
@@ -283,37 +219,16 @@ ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_p
 
 ICACHE_FLASH_ATTR static uint8_t application_function_help(application_parameters_t ap)
 {
-	static const char *list_header		= "> %s[%d]\n";
-	static const char *detail_header	= "> %s[%d]: ";
-	static const char *detail_footer	= "\n";
-	static const char *detail_error		= "> no help for \"%s\"\n";
-
 	const application_function_table_t *tableptr;
 	uint8_t offset;
 
-	if(ap.nargs > 1)
+	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
-		for(tableptr = application_function_table; tableptr->function; tableptr++)
-			if(!strcmp((*ap.args)[1], tableptr->command))
-				break;
-
-		if(tableptr->function)
-		{
-			snprintf(ap.dst, ap.size, detail_header, tableptr->command, tableptr->required_args);
-			strlcat(ap.dst, tableptr->description, ap.size);
-			strlcat(ap.dst, detail_footer, ap.size);
-		}
-		else
-			snprintf(ap.dst, ap.size, detail_error, (*ap.args)[1]);
-	}
-	else
-	{
-		for(tableptr = application_function_table; tableptr->function; tableptr++)
-		{
-			offset = snprintf(ap.dst, ap.size, list_header, tableptr->command, tableptr->required_args);
-			ap.dst	+= offset;
-			ap.size	-= offset;
-		}
+		offset = snprintf(ap.dst, ap.size, "> %s/%s[%d]: %s\n",
+				tableptr->command1, tableptr->command2,
+				tableptr->required_args, tableptr->description);
+		ap.dst	+= offset;
+		ap.size	-= offset;
 	}
 
 	return(1);
