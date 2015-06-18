@@ -24,6 +24,10 @@ static void config_init(config_t *cfg)
 {
 	cfg->config_valid = 0;
 	cfg->strip_telnet = 0;
+	cfg->uart.baud_rate = 9600;
+	cfg->uart.data_bits = 8;
+	cfg->uart.parity = parity_none;
+	cfg->uart.stop_bits = 1;
 }
 
 void config_read_alt(config_t *cfg)
@@ -69,8 +73,10 @@ void config_dump(uint16_t size, char *string)
 	config_read_alt(&cfg);
 
 	snprintf(string, size,
-			"> config valid: %d\n"
-			"> strip_telnet: %d\n",
+			"> config valid: %u\n"
+			"> strip_telnet: %u\n"
+			"> uart: %s\n",
 			cfg.config_valid,
-			cfg.strip_telnet);
+			cfg.strip_telnet,
+			uart_parameters_to_string(&cfg.uart));
 }

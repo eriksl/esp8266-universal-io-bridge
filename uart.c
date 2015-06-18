@@ -3,18 +3,72 @@
 #include "queue.h"
 #include "user_main.h"
 #include "stats.h"
+#include "util.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
 #include <user_interface.h>
 
-#include "esp-uart.h"
 #include "esp-uart-register.h"
 #include "esp-missing-decls.h"
 
 void debug(char c)
 {
 	WRITE_PERI_REG(UART_FIFO(0), c);
+}
+
+ICACHE_FLASH_ATTR uint8_t uart_string_to_parity(const char *str)
+{
+	uint8_t rv;
+
+	if(!strcmp(str, "none"))
+		rv = parity_none;
+	else if(!strcmp(str, "even"))
+		rv = parity_even;
+	else if(!strcmp(str, "odd"))
+		rv = parity_odd;
+	else
+		rv = parity_error;
+
+	return(rv);
+}
+
+ICACHE_FLASH_ATTR const char *uart_parity_to_string(uint8_t ix)
+{
+	static const char *parity[] =
+	{
+		"none",
+		"even",
+		"odd",
+	};
+
+	if(ix > parity_odd)
+		return("error");
+
+	return(parity[ix]);
+}
+
+ICACHE_FLASH_ATTR char uart_parity_to_char(uint8_t ix)
+{
+	static const char *parity = "NEO";
+
+	if(ix > parity_odd)
+		return('-');
+
+	return(parity[ix]);
+}
+
+ICACHE_FLASH_ATTR const char *uart_parameters_to_string(const uart_parameters_t *params)
+{
+	static char buffer[16];
+
+	snprintf(buffer, sizeof(buffer), "%u %u%c%u",
+			params->baud_rate,
+			params->data_bits,
+			uart_parity_to_char(params->parity),
+			params->stop_bits);
+
+	return(buffer);
 }
 
 static uint16_t uart_rx_fifo_length(void)
@@ -71,8 +125,12 @@ static void uart_callback(void *p)
 	ETS_UART_INTR_ENABLE();
 }
 
-void uart_init(void)
+void uart_init(const uart_parameters_t *params)
 {
+	uint8_t data_bits;
+	uint8_t stop_bits;
+	uint8_t parity;
+
 	ETS_UART_INTR_DISABLE();
 
 	ETS_UART_INTR_ATTACH(uart_callback,  0);
@@ -80,9 +138,26 @@ void uart_init(void)
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 
-	uart_div_modify(0, UART_CLK_FREQ / 460800);
+	uart_div_modify(0, UART_CLK_FREQ / params->baud_rate);
 
-	WRITE_PERI_REG(UART_CONF0(0), CALC_UARTMODE(EIGHT_BITS, NONE_BITS, ONE_STOP_BIT));
+	data_bits = params->data_bits - 5;
+
+	if(params->stop_bits == 2)
+		stop_bits = 0x03;
+	else
+		stop_bits = 0x01;
+
+	if(params->parity == parity_odd)
+		parity = UART_PARITY_EN | UART_PARITY;
+	else if(params->parity == parity_even)
+		parity = UART_PARITY_EN;
+	else
+		parity = 0;
+
+	WRITE_PERI_REG(UART_CONF0(0),
+			((data_bits & UART_BIT_NUM) << UART_BIT_NUM_S) |
+			((stop_bits & UART_STOP_BIT_NUM) << UART_STOP_BIT_NUM_S) |
+			parity);
 
 	SET_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	CLEAR_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);

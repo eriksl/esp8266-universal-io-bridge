@@ -3,10 +3,13 @@
 
 #include <stdint.h>
 
+#include "uart.h"
+
 typedef struct
 {
 	unsigned int config_valid:1;
 	unsigned int strip_telnet:1;
+	uart_parameters_t uart;
 } config_t;
 
 extern config_t config;

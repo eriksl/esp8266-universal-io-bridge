@@ -5,6 +5,7 @@
 #include "util.h"
 #include "user_main.h"
 #include "config.h"
+#include "uart.h"
 
 typedef struct
 {
@@ -21,6 +22,10 @@ static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
 static uint8_t application_function_stats(application_parameters_t ap);
 static uint8_t application_function_strip_telnet(application_parameters_t ap);
+static uint8_t application_function_uart_baud_rate(application_parameters_t ap);
+static uint8_t application_function_uart_data_bits(application_parameters_t ap);
+static uint8_t application_function_uart_stop_bits(application_parameters_t ap);
+static uint8_t application_function_uart_parity(application_parameters_t ap);
 
 static const application_function_table_t application_function_table[] =
 {
@@ -101,6 +106,54 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_strip_telnet,
 		"strip telnet do/dont (0/1)",
+	},
+	{
+		"ub",
+		1,
+		application_function_uart_baud_rate,
+		"set uart baud rate [1 - 1000000]",
+	},
+	{
+		"uart-baud",
+		1,
+		application_function_uart_baud_rate,
+		"set uart baud rate [1 - 1000000]",
+	},
+	{
+		"ud",
+		1,
+		application_function_uart_data_bits,
+		"set uart data bits [5/6/7/8]",
+	},
+	{
+		"uart-data",
+		1,
+		application_function_uart_data_bits,
+		"set uart data bits [5/6/7/8]",
+	},
+	{
+		"us",
+		1,
+		application_function_uart_stop_bits,
+		"set uart stop bits [1/2]",
+	},
+	{
+		"uart-stop",
+		1,
+		application_function_uart_stop_bits,
+		"set uart stop bits [1/2]",
+	},
+	{
+		"up",
+		1,
+		application_function_uart_parity,
+		"set uart parity [none/even/odd/space/mark]",
+	},
+	{
+		"uart-parity",
+		1,
+		application_function_uart_parity,
+		"set uart parity [none/even/odd/space/mark]",
 	},
 	{
 		"wd",
@@ -291,6 +344,74 @@ ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_p
 		config.strip_telnet = !!atoi((*ap.args)[1]);
 
 	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", config.strip_telnet);
+
+	return(1);
+}
+
+ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application_parameters_t ap)
+{
+	int baud_rate = atoi((*ap.args)[1]);
+
+	if((baud_rate < 0) || (baud_rate > 1000000))
+	{
+		snprintf(ap.dst, ap.size, "uart-baud: out of range: %u\n", baud_rate);
+		return(1);
+	}
+
+	config.uart.baud_rate = baud_rate;
+
+	snprintf(ap.dst, ap.size, "uart-baud: %u (%s)\n", config.uart.baud_rate, uart_parameters_to_string(&config.uart));
+
+	return(1);
+}
+
+ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application_parameters_t ap)
+{
+	int data_bits = atoi((*ap.args)[1]);
+
+	if((data_bits < 5) || (data_bits > 8))
+	{
+		snprintf(ap.dst, ap.size, "uart-data: out of range: %u\n", data_bits);
+		return(1);
+	}
+
+	config.uart.data_bits = data_bits;
+
+	snprintf(ap.dst, ap.size, "uart-data: %u (%s)\n", config.uart.data_bits, uart_parameters_to_string(&config.uart));
+
+	return(1);
+}
+
+ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application_parameters_t ap)
+{
+	int stop_bits = atoi((*ap.args)[1]);
+
+	if((stop_bits < 1) || (stop_bits > 2))
+	{
+		snprintf(ap.dst, ap.size, "uart-stop: out of range: %u\n", stop_bits);
+		return(1);
+	}
+
+	config.uart.stop_bits = stop_bits;
+
+	snprintf(ap.dst, ap.size, "uart-stop: %u (%s)\n", config.uart.stop_bits, uart_parameters_to_string(&config.uart));
+
+	return(1);
+}
+
+ICACHE_FLASH_ATTR static uint8_t application_function_uart_parity(application_parameters_t ap)
+{
+	uint8_t parity = uart_string_to_parity((*ap.args)[1]);
+
+	if(parity == parity_error)
+	{
+		snprintf(ap.dst, ap.size, "uart-parity: out of range: %s\n", (*ap.args)[1]);
+		return(1);
+	}
+
+	config.uart.parity = parity;
+
+	snprintf(ap.dst, ap.size, "uart-parity: %s (%s)\n", uart_parity_to_string(config.uart.parity), uart_parameters_to_string(&config.uart));
 
 	return(1);
 }

@@ -257,8 +257,6 @@ ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_conne
 
 ICACHE_FLASH_ATTR void user_init(void)
 {
-	config_read();
-
 	if(!(uart_send_queue = queue_new(buffer_size)))
 		reset();
 
@@ -277,6 +275,8 @@ ICACHE_FLASH_ATTR void user_init(void)
 	if(!(tcp_data_send_buffer = malloc(buffer_size)))
 		reset();
 
+	config_read();
+	uart_init(&config.uart);
 	system_init_done_cb(user_init2);
 }
 
@@ -294,8 +294,6 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, tcp_cmd_connect_callback);
 	espconn_regist_time(&esp_cmd_config, 30, 0);
 	esp_cmd_tcp_connection = 0;
-
-	uart_init();
 
 	application_init();
 
