@@ -5,30 +5,44 @@
 #include <user_interface.h>
 #include <c_types.h>
 
+static const char *phy[] = {
+	"unknown",
+	"802.11b",
+	"802.11g",
+	"802.11n",
+	"unknown"
+};
+
+static const char *slp[] =
+{
+	"none",
+	"light",
+	"modem",
+	"unknown"
+};
+
 ICACHE_FLASH_ATTR uint8_t application_function_wlan_dump(application_parameters_t ap)
 {
-	static const char *phy[] = { "", "802.11b", "802.11g", "802.11n", "" };
-	static const char *slp[] = { "none", "light", "modem", "" };
+	struct station_config sc_default, sc_current;
 
-	struct station_config sc;
-	char tmp[128];
+	wifi_station_get_config_default(&sc_default);
+	wifi_station_get_config(&sc_current);
 
-	wifi_station_get_config_default(&sc);
-	snprintf(tmp, sizeof(tmp), "> default: ssid: %s, passwd: %s\n", sc.ssid, sc.password);
-	strlcpy(ap.dst, tmp, ap.size);
-
-	wifi_station_get_config(&sc);
-	snprintf(tmp, sizeof(tmp), "> current: ssid: %s, passwd: %s\n", sc.ssid, sc.password);
-	strlcat(ap.dst, tmp, ap.size);
-
-	snprintf(tmp, sizeof(tmp), "> channel: %d\n", wifi_get_channel());
-	strlcat(ap.dst, tmp, ap.size);
-
-	snprintf(tmp, sizeof(tmp), "> phy mode: %s\n", phy[wifi_get_phy_mode()]);
-	strlcat(ap.dst, tmp, ap.size);
-
-	snprintf(tmp, sizeof(tmp), "> sleep mode: %s\n", slp[wifi_get_sleep_type()]);
-	strlcat(ap.dst, tmp, ap.size);
+	snprintf(ap.dst, ap.size,
+			"> default ssid: %s, passwd: %s\n"
+			"> current ssid: %s, passwd: %s\n"
+			">\n"
+			"> phy mode: %s\n"
+			"> sleep mode: %s\n"
+			">\n"
+			"> channel: %u\n"
+			"> signal strength: %d dB\n",
+			sc_default.ssid, sc_default.password,
+			sc_current.ssid, sc_current.password,
+			phy[wifi_get_phy_mode()],
+			slp[wifi_get_sleep_type()],
+			wifi_get_channel(),
+			wifi_station_get_rssi());
 
 	return(1);
 }
