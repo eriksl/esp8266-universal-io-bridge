@@ -1,7 +1,5 @@
 #include "util.h"
 
-#include "esp-missing-decls.h"
-
 #include <stdarg.h>
 #include <stdint.h>
 

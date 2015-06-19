@@ -1,7 +1,6 @@
 #include "config.h"
 
 #include "util.h"
-#include "esp-missing-decls.h"
 
 #include <ets_sys.h>
 #include <c_types.h>

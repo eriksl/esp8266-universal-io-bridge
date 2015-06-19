@@ -10,7 +10,6 @@
 #include <user_interface.h>
 
 #include "esp-uart-register.h"
-#include "esp-missing-decls.h"
 
 void debug(char c)
 {
