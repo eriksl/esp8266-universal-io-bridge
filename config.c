@@ -73,9 +73,11 @@ void config_dump(uint16_t size, char *string)
 
 	snprintf(string, size,
 			"> config valid: %u\n"
-			"> strip_telnet: %u\n"
+			"> strip telnet: %u\n"
+			"> print debug: %u\n"
 			"> uart: %s\n",
 			cfg.config_valid,
 			cfg.strip_telnet,
+			cfg.print_debug,
 			uart_parameters_to_string(&cfg.uart));
 }

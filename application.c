@@ -19,6 +19,7 @@ typedef struct
 static uint8_t application_function_config_dump(application_parameters_t ap);
 static uint8_t application_function_config_write(application_parameters_t ap);
 static uint8_t application_function_help(application_parameters_t ap);
+static uint8_t application_function_print_debug(application_parameters_t ap);
 static uint8_t application_function_quit(application_parameters_t ap);
 static uint8_t application_function_reset(application_parameters_t ap);
 static uint8_t application_function_stats(application_parameters_t ap);
@@ -53,6 +54,12 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_quit,
 		"quit",
+	},
+	{
+		"pd", "print-debug",
+		0,
+		application_function_print_debug,
+		"set system (wlan) output on uart at startup, on/off [0/1]",
 	},
 	{
 		"r", "reset",
@@ -259,6 +266,16 @@ ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_p
 		config.strip_telnet = !!atoi((*ap.args)[1]);
 
 	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", config.strip_telnet);
+
+	return(1);
+}
+
+ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_parameters_t ap)
+{
+	if(ap.nargs > 1)
+		config.print_debug = !!atoi((*ap.args)[1]);
+
+	snprintf(ap.dst, ap.size, "print-debug: %u\n", config.print_debug);
 
 	return(1);
 }

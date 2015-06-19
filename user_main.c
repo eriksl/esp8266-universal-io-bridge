@@ -276,6 +276,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 		reset();
 
 	config_read();
+	system_set_os_print(config.print_debug);
 	uart_init(&config.uart);
 	system_init_done_cb(user_init2);
 }
