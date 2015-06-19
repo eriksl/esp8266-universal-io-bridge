@@ -1,7 +1,7 @@
 SDKROOT			= /nfs/src/esp/opensdk
 SDKLD			= $(SDKROOT)/sdk/ld
 
-CFLAGS			= -O3 -Wall -Wno-pointer-sign -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+CFLAGS			= -Os -Wall -Wno-pointer-sign -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
 CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -I$(SDKROOT)/sdk/include -I.
 LDFLAGS			= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
