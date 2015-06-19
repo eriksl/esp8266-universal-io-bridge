@@ -1,4 +1,4 @@
-SDKROOT			= /nfs/src/esp-open-sdk
+SDKROOT			= /nfs/src/esp/opensdk
 SDKLD			= $(SDKROOT)/sdk/ld
 
 CFLAGS			= -O3 -Wall -Wno-pointer-sign -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
@@ -7,7 +7,7 @@ CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx1
 LDFLAGS			= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 LDSCRIPT		= -T$(SDKLD)/eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
-LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lssc
+LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
 
 OBJS			= application.o application-wlan.o config.o queue.o stats.o uart.o user_main.o util.o
 HEADERS			= esp-missing-decls.h esp-uart-register.h \
