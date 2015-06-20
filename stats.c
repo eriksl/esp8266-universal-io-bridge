@@ -39,6 +39,7 @@ ICACHE_FLASH_ATTR void stats_generate(size_t size, char *dst)
 	rst_info = system_get_rst_info();
 
 	snprintf(dst, size,
+			"> firmware version date: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
 			"> cpu frequency: %u\n"
@@ -51,6 +52,7 @@ ICACHE_FLASH_ATTR void stats_generate(size_t size, char *dst)
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
 			"> application periodic: %u\n",
+			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),
 			system_get_cpu_freq(),
