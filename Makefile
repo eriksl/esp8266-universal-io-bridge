@@ -26,29 +26,15 @@ else
 	vecho := @echo
 endif
 
-elv_i2c = $(Q)(\
-		stty 115200; \
-		echo ":s 40 $(1) p"; \
-		usleep 100000; \
-	   ) > /dev/elv
-
 .PHONY:	all reset flash zip
 
 all:			$(FW1) $(FW2)
 
 zip:			all
-				$(Q)zip -9 $(ZIP) $(FW1) $(FW2) LICENSE README.md
-
-reset:
-				$(call elv_i2c,02)
-				$(call elv_i2c,00)
+				$(Q) zip -9 $(ZIP) $(FW1) $(FW2) LICENSE README.md
 
 flash:			all
-				$(call elv_i2c,03)
-				$(call elv_i2c,01)
-				esptool.py --port /dev/pl2303 --baud 460800 write_flash 0x00000 $(FW1) 0x40000 $(FW2)
-				$(call elv_i2c,02)
-				$(call elv_i2c,00)
+				$(Q) espflash $(FW1) $(FW2)
 
 clean:
 				$(vecho) "CLEAN"
