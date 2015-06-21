@@ -41,6 +41,7 @@ clean:
 				$(Q) rm -f $(OBJS) $(FW) $(FW1) $(FW2) $(ZIP)
 
 user_main.o:	$(HEADERS)
+config.o:		$(HEADERS)
 
 $(FW1):			$(FW)
 				$(vecho) "FW1 $@"
