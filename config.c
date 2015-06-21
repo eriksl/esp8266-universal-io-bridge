@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "util.h"
+#include "gpios.h"
 
 #include <ets_sys.h>
 #include <c_types.h>
@@ -27,6 +28,8 @@ ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 	cfg->uart.data_bits = 8;
 	cfg->uart.parity = parity_none;
 	cfg->uart.stop_bits = 1;
+
+	gpios_config_init(&cfg->gpios);
 }
 
 ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
@@ -88,4 +91,9 @@ ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 	string += length;
 
 	strlcpy(string, "\n", size);
+	length = strlen(string);
+	size -= length;
+	string += length;
+
+	gpios_dump_string(size, string);
 }

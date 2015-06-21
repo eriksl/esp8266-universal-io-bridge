@@ -1,5 +1,7 @@
 #include "application.h"
+
 #include "wlan.h"
+#include "gpios.h"
 
 #include "stats.h"
 #include "util.h"
@@ -44,22 +46,46 @@ static const application_function_table_t application_function_table[] =
 		"write config to non-volatile storage",
 	},
 	{
+		"gd", "gpio-dump",
+		0,
+		application_function_gpio_dump,
+		"dump all gpio config"
+	},
+	{
+		"gg", "gpio-get",
+		1,
+		application_function_gpio_get,
+		"get gpio"
+	},
+	{
+		"gm", "gpio-mode",
+		0,
+		application_function_gpio_mode,
+		"get/set gpio mode (gpio, mode, parameters)",
+	},
+	{
+		"gs", "gpio-set",
+		2,
+		application_function_gpio_set,
+		"set gpio"
+	},
+	{
 		"?", "help",
 		0,
 		application_function_help,
 		"help [command]",
 	},
 	{
-		"q", "quit",
-		0,
-		application_function_quit,
-		"quit",
-	},
-	{
 		"pd", "print-debug",
 		0,
 		application_function_print_debug,
 		"set system (wlan) output on uart at startup, on/off [0/1]",
+	},
+	{
+		"q", "quit",
+		0,
+		application_function_quit,
+		"quit",
 	},
 	{
 		"r", "reset",

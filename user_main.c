@@ -4,6 +4,7 @@
 #include "util.h"
 #include "application.h"
 #include "config.h"
+#include "gpios.h"
 
 #include <ip_addr.h>
 #include <espconn.h>
@@ -277,6 +278,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	config_read();
 	system_set_os_print(config.print_debug);
+	gpios_init(&config.gpios);
 	uart_init(&config.uart);
 	system_init_done_cb(user_init2);
 }

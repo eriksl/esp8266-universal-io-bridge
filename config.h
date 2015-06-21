@@ -4,13 +4,15 @@
 #include <stdint.h>
 
 #include "uart.h"
+#include "gpios.h"
 
 typedef struct
 {
-	unsigned int config_valid:1;
-	unsigned int strip_telnet:1;
-	unsigned int print_debug:1;
-	uart_parameters_t uart;
+	unsigned int		config_valid:1;
+	unsigned int		strip_telnet:1;
+	unsigned int		print_debug:1;
+	uart_parameters_t	uart;
+	gpios_t				gpios;
 } config_t;
 
 extern config_t config;
