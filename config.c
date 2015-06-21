@@ -19,7 +19,7 @@ typedef struct
 
 config_t config;
 
-static void config_init(config_t *cfg)
+ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 {
 	cfg->config_valid = 0;
 	cfg->strip_telnet = 0;
@@ -29,7 +29,7 @@ static void config_init(config_t *cfg)
 	cfg->uart.stop_bits = 1;
 }
 
-void config_read_alt(config_t *cfg)
+ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
 {
 	eeprom_t eeprom;
 
@@ -41,12 +41,12 @@ void config_read_alt(config_t *cfg)
 		config_init(cfg);
 }
 
-void config_read(void)
+ICACHE_FLASH_ATTR void config_read(void)
 {
 	config_read_alt(&config);
 }
 
-void config_write_alt(const config_t *cfg)
+ICACHE_FLASH_ATTR void config_write_alt(const config_t *cfg)
 {
 	eeprom_t eeprom;
 
@@ -60,12 +60,12 @@ void config_write_alt(const config_t *cfg)
 	ETS_UART_INTR_ENABLE();
 }
 
-void config_write(void)
+ICACHE_FLASH_ATTR void config_write(void)
 {
 	config_write_alt(&config);
 }
 
-void config_dump(uint16_t size, char *string)
+ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 {
 	config_t cfg;
 
