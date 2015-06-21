@@ -67,17 +67,25 @@ ICACHE_FLASH_ATTR void config_write(void)
 
 ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 {
+	uint16_t length;
 	config_t cfg;
 
 	config_read_alt(&cfg);
 
-	snprintf(string, size,
-			"> config valid: %u\n"
-			"> strip telnet: %u\n"
-			"> print debug: %u\n"
-			"> uart: %s\n",
-			cfg.config_valid,
-			cfg.strip_telnet,
-			cfg.print_debug,
-			uart_parameters_to_string(&cfg.uart));
+	length = snprintf(string, size,
+			"> config valid: %s\n"
+			"> strip telnet: %s\n"
+			"> print debug: %s\n"
+			"> uart: ",
+			yesno(cfg.config_valid),
+			onoff(cfg.strip_telnet),
+			onoff(cfg.print_debug));
+	size -= length;
+	string += length;
+
+	length = uart_parameters_to_string(&cfg.uart, size, string);
+	size -= length;
+	string += length;
+
+	strlcpy(string, "\n", size);
 }

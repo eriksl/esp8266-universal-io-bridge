@@ -27,3 +27,19 @@ ICACHE_FLASH_ATTR void reset(void)
 {
 	system_restart();
 }
+
+ICACHE_FLASH_ATTR const char *yesno(uint8_t value)
+{
+	if(!value)
+		return("no");
+
+	return("yes");
+}
+
+ICACHE_FLASH_ATTR const char *onoff(uint8_t value)
+{
+	if(!value)
+		return("off");
+
+	return("on");
+}

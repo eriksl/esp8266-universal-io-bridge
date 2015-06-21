@@ -282,7 +282,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_pa
 
 ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application_parameters_t ap)
 {
-	int baud_rate = atoi((*ap.args)[1]);
+	uint32_t baud_rate = atoi((*ap.args)[1]);
 
 	if((baud_rate < 0) || (baud_rate > 1000000))
 	{
@@ -292,7 +292,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application
 
 	config.uart.baud_rate = baud_rate;
 
-	snprintf(ap.dst, ap.size, "uart-baud: %u (%s)\n", config.uart.baud_rate, uart_parameters_to_string(&config.uart));
+	snprintf(ap.dst, ap.size, "uart-baud: %u\n", config.uart.baud_rate);
 
 	return(1);
 }
@@ -309,7 +309,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application
 
 	config.uart.data_bits = data_bits;
 
-	snprintf(ap.dst, ap.size, "uart-data: %u (%s)\n", config.uart.data_bits, uart_parameters_to_string(&config.uart));
+	snprintf(ap.dst, ap.size, "uart-data: %u\n", config.uart.data_bits);
 
 	return(1);
 }
@@ -326,7 +326,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application
 
 	config.uart.stop_bits = stop_bits;
 
-	snprintf(ap.dst, ap.size, "uart-stop: %u (%s)\n", config.uart.stop_bits, uart_parameters_to_string(&config.uart));
+	snprintf(ap.dst, ap.size, "uart-stop: %u\n", config.uart.stop_bits);
 
 	return(1);
 }
@@ -343,7 +343,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_parity(application_pa
 
 	config.uart.parity = parity;
 
-	snprintf(ap.dst, ap.size, "uart-parity: %s (%s)\n", uart_parity_to_string(config.uart.parity), uart_parameters_to_string(&config.uart));
+	snprintf(ap.dst, ap.size, "uart-parity: %s\n", uart_parity_to_string(config.uart.parity));
 
 	return(1);
 }

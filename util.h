@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // prototypes missing
 
@@ -30,5 +31,7 @@ int atoi(const char *);
 // other handy functions
 
 void reset(void);
+const char *yesno(uint8_t value);
+const char *onoff(uint8_t value);
 
 #endif

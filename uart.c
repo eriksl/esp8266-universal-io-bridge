@@ -57,17 +57,15 @@ ICACHE_FLASH_ATTR char uart_parity_to_char(uint8_t ix)
 	return(parity[ix]);
 }
 
-ICACHE_FLASH_ATTR const char *uart_parameters_to_string(const uart_parameters_t *params)
+ICACHE_FLASH_ATTR uint16_t uart_parameters_to_string(const uart_parameters_t *params, uint16_t size, char *string)
 {
-	static char buffer[16];
-
-	snprintf(buffer, sizeof(buffer), "%u %u%c%u",
+	snprintf(string, size, "%u %u%c%u",
 			params->baud_rate,
 			params->data_bits,
 			uart_parity_to_char(params->parity),
 			params->stop_bits);
 
-	return(buffer);
+	return(strlen(string));
 }
 
 static uint16_t uart_rx_fifo_length(void)
