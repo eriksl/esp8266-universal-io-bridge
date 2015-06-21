@@ -1,5 +1,5 @@
 #include "application.h"
-#include "application-wlan.h"
+#include "wlan.h"
 
 #include "stats.h"
 #include "util.h"

@@ -1,4 +1,4 @@
-#include "application-wlan.h"
+#include "wlan.h"
 
 #include "util.h"
 
