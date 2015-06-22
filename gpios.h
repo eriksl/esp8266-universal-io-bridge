@@ -39,6 +39,8 @@ typedef struct
 	{
 		uint8_t direction;
 		uint32_t delay;
+		uint8_t repeat;
+		uint8_t autotrigger;
 	} bounce;
 
 	struct

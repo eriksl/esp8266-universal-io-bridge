@@ -5,36 +5,51 @@
 #include "config.h"
 
 #include <user_interface.h>
+#include <osapi.h>
 #include <gpio.h>
 
 typedef struct
 {
-	gpio_id_t	id;
-	const char	*name;
-	gpio_t		*config;
-	uint8_t		bitindex;
+	ETSTimer		timer;
+	uint8_t			armed;
+} gpio_timer_t;
+
+typedef struct
+{
+	gpio_id_t		id;
+	const char		*name;
+	uint8_t			bitindex;
+	gpio_t			*config;
+	gpio_timer_t	*timer;
 } gpio_trait_t;
+
+enum
+{
+	gpios_amount = 1
+};
 
 static void get_gpio_to_disable(const gpio_trait_t *gpio);
 static void set_gpio_to_input(const gpio_trait_t *gpio);
 static void set_gpio_to_output(const gpio_trait_t *gpio, uint8_t startup_value);
-static void set_gpio_to_bounce(const gpio_trait_t *gpio, uint8_t direction, uint32_t delay);
+static void set_gpio_to_bounce(const gpio_trait_t *gpio, uint8_t direction, uint32_t delay,
+								uint8_t repeat, uint8_t autotrigger);
 static void set_gpio_to_pwm(const gpio_trait_t *gpio, uint16_t duty);
 
-static const gpio_trait_t gpio_traits[] =
+static const gpio_trait_t *find_gpio(const char *name);
+
+static void clear_timer(const gpio_trait_t *);
+
+static gpio_timer_t timers[gpios_amount];
+
+static const gpio_trait_t gpio_traits[gpios_amount] =
 {
 	{
 		gpio_2,
 		"gpio2",
+		0x02,
 		&config.gpios.gpio_2,
-		0x02
+		&timers[0]
 	},
-	{
-		gpio_id_error,
-		"error",
-		0,
-		0xff
-	}
 };
 
 ICACHE_FLASH_ATTR void gpios_init(const gpios_t *gpios)
@@ -44,8 +59,11 @@ ICACHE_FLASH_ATTR void gpios_init(const gpios_t *gpios)
 
 	gpio_init();
 
-	for(ix = 0; (gpio = &gpio_traits[ix])->id != gpio_id_error; ix++)
+	for(ix = 0; ix < gpios_amount; ix++)
 	{
+		gpio = &gpio_traits[ix];
+		gpio->timer->armed = 0;
+
 		switch(gpio->config->mode)
 		{
 			case(gpio_disable):
@@ -68,7 +86,9 @@ ICACHE_FLASH_ATTR void gpios_init(const gpios_t *gpios)
 
 			case(gpio_bounce):
 			{
-				set_gpio_to_bounce(gpio, gpio->config->bounce.direction, gpio->config->bounce.delay);
+				set_gpio_to_bounce(gpio, gpio->config->bounce.direction,
+						gpio->config->bounce.delay, gpio->config->bounce.repeat,
+						gpio->config->bounce.autotrigger);
 				break;
 			}
 
@@ -91,6 +111,8 @@ ICACHE_FLASH_ATTR void gpios_config_init(gpios_t *gpios)
 	gpios->gpio_2.output.startup_value = 0;
 	gpios->gpio_2.bounce.direction = gpio_up;
 	gpios->gpio_2.bounce.delay = 0;
+	gpios->gpio_2.bounce.repeat = 0;
+	gpios->gpio_2.bounce.autotrigger = 0;
 	gpios->gpio_2.pwm.duty = 0;
 }
 
@@ -106,19 +128,54 @@ ICACHE_FLASH_ATTR static uint8_t get_input(const gpio_trait_t *gpio)
 	return(!!(gpio_input_get() & (1 << gpio->bitindex)));
 }
 
-ICACHE_FLASH_ATTR static const gpio_trait_t *find_gpio_by_name(const char *name)
+ICACHE_FLASH_ATTR static void clear_timer(const gpio_trait_t *gpio)
+{
+	if(gpio->timer->armed)
+	{
+		os_timer_disarm(&gpio->timer->timer);
+		gpio->timer->armed = 0;
+	}
+}
+
+ICACHE_FLASH_ATTR static void timer_callback(void *arg)
+{
+	const gpio_trait_t *gpio = (const gpio_trait_t *)arg;
+
+	set_output(gpio, !get_input(gpio));
+
+	if(!gpio->config->bounce.repeat)
+		clear_timer(gpio);
+}
+
+ICACHE_FLASH_ATTR static void trigger_bounce(const gpio_trait_t *gpio, uint8_t onoff)
+{
+	clear_timer(gpio);
+
+	if(onoff)
+	{
+		set_output(gpio, gpio->config->bounce.direction == gpio_up ? 1 : 0);
+		os_timer_setfn(&gpio->timer->timer, timer_callback, (void *)gpio);
+		os_timer_arm(&gpio->timer->timer, gpio->config->bounce.delay, gpio->config->bounce.repeat);
+		gpio->timer->armed = 1;
+	}
+	else
+		set_output(gpio, gpio->config->bounce.direction == gpio_up ? 0 : 1);
+}
+
+ICACHE_FLASH_ATTR static const gpio_trait_t *find_gpio(const char *name)
 {
 	uint8_t ix;
-	const gpio_trait_t *trait;
+	const gpio_trait_t *gpio;
 
-	for(ix = 0; (trait = &gpio_traits[ix])->id != gpio_id_error; ix++)
-		if(!strcmp(name, trait->name))
-			break;
+	for(ix = 0; ix < gpios_amount; ix++)
+	{
+		gpio = &gpio_traits[ix];
 
-	if(trait->id == gpio_id_error)
-		return(0);
+		if(!strcmp(name, gpio->name))
+			return(gpio);
+	}
 
-	return(trait);
+	return(0);
 }
 
 ICACHE_FLASH_ATTR static uint8_t gpio_mode_from_string(const char *mode)
@@ -139,6 +196,8 @@ ICACHE_FLASH_ATTR static uint8_t gpio_mode_from_string(const char *mode)
 
 ICACHE_FLASH_ATTR static void get_gpio_to_disable(const gpio_trait_t *gpio)
 {
+	clear_timer(gpio);
+
 	gpio->config->mode = gpio_disable;
 
 	gpio_output_set(0, 0, 0, 1 << gpio->bitindex);
@@ -146,6 +205,8 @@ ICACHE_FLASH_ATTR static void get_gpio_to_disable(const gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void set_gpio_to_input(const gpio_trait_t *gpio)
 {
+	clear_timer(gpio);
+
 	gpio->config->mode = gpio_input;
 
 	gpio_output_set(0, 0, 0, 1 << gpio->bitindex);
@@ -153,24 +214,45 @@ ICACHE_FLASH_ATTR static void set_gpio_to_input(const gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void set_gpio_to_output(const gpio_trait_t *gpio, uint8_t startup_value)
 {
+	clear_timer(gpio);
+
 	gpio->config->mode = gpio_output;
 	gpio->config->output.startup_value = startup_value;
 
 	gpio_output_set(0, 0, 1 << gpio->bitindex, 0);
-	set_output(gpio, startup_value);
+
+	if(startup_value)
+		gpio_output_set(1 << gpio->bitindex, 0, 0, 0);
+	else
+		gpio_output_set(0, 1 << gpio->bitindex, 0, 0);
 }
 
-ICACHE_FLASH_ATTR static void set_gpio_to_bounce(const gpio_trait_t *gpio, uint8_t direction, uint32_t delay)
+ICACHE_FLASH_ATTR static void set_gpio_to_bounce(const gpio_trait_t *gpio, uint8_t direction,
+		uint32_t delay, uint8_t repeat, uint8_t autotrigger)
 {
+	clear_timer(gpio);
+
 	gpio->config->mode = gpio_bounce;
 	gpio->config->bounce.direction = direction;
 	gpio->config->bounce.delay = delay;
+	gpio->config->bounce.repeat = repeat;
+	gpio->config->bounce.autotrigger = autotrigger;
 
 	gpio_output_set(0, 0, 1 << gpio->bitindex, 0);
+
+	if(gpio->config->bounce.direction == gpio_up)
+		gpio_output_set(0, 1 << gpio->bitindex, 0, 0);
+	else
+		gpio_output_set(1 << gpio->bitindex, 0, 0, 0);
+
+	if(autotrigger)
+		trigger_bounce(gpio, 1);
 }
 
 ICACHE_FLASH_ATTR static void set_gpio_to_pwm(const gpio_trait_t *gpio, uint16_t duty)
 {
+	clear_timer(gpio);
+
 	gpio->config->mode = gpio_pwm;
 	gpio->config->pwm.duty = duty;
 
@@ -183,8 +265,10 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 	uint16_t length;
 	const gpio_trait_t *gpio;
 
-	for(ix = 0; (gpio = &gpio_traits[ix])->id != gpio_id_error; ix++)
+	for(ix = 0; ix < gpios_amount; ix++)
 	{
+		gpio = &gpio_traits[ix];
+
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
 			length = snprintf(str, size, "> %s: ", gpio->name);
@@ -213,9 +297,10 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 
 				case(gpio_bounce):
 				{
-					length = snprintf(str, size, "bounce, direction: %s, delay: %u ms",
+					length = snprintf(str, size, "bounce, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s\n",
 							gpio->config->bounce.direction == gpio_up ? "up" : "down",
-							gpio->config->bounce.delay);
+							gpio->config->bounce.delay, onoff(gpio->config->bounce.repeat),
+							onoff(gpio->config->bounce.autotrigger), onoff(gpio->timer->armed));
 					break;
 				}
 
@@ -251,7 +336,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 		return(1);
 	}
 
-	if(!(gpio = find_gpio_by_name((*ap.args)[1])))
+	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
 		snprintf(ap.dst, ap.size, "gpio-mode: invalid gpio %s\n", (*ap.args)[1]);
 		return(1);
@@ -295,10 +380,12 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 		{
 			uint8_t direction;
 			uint32_t delay;
+			uint8_t repeat;
+			uint8_t autotrigger;
 
-			if(ap.nargs != 5)
+			if(ap.nargs != 7)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(bounce): direction or delay missing\n");
+				snprintf(ap.dst, ap.size, "gpio-mode: bounce direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
 				return(1);
 			}
 
@@ -314,7 +401,16 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 
 			delay = atoi((*ap.args)[4]);
 
-			set_gpio_to_bounce(gpio, direction, delay);
+			if(delay < 100)
+			{
+				snprintf(ap.dst, ap.size, "gpio-mode(bounce): delay too small: %d ms, >= 100 ms\n", delay);
+				return(1);
+			}
+
+			repeat = atoi((*ap.args)[5]);
+			autotrigger = atoi((*ap.args)[6]);
+
+			set_gpio_to_bounce(gpio, direction, delay, repeat, autotrigger);
 			break;
 		}
 
@@ -362,7 +458,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		return(1);
 	}
 
-	if(!(gpio = find_gpio_by_name((*ap.args)[1])))
+	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
 		snprintf(ap.dst, ap.size, "gpio-get: invalid gpio %s\n", (*ap.args)[1]);
 		return(1);
@@ -403,13 +499,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 {
 	const gpio_trait_t *gpio;
 
-	if(ap.nargs < 3)
-	{
-		snprintf(ap.dst, ap.size, "gpio-set: too little arguments: %u\n", ap.nargs - 1);
-		return(1);
-	}
-
-	if(!(gpio = find_gpio_by_name((*ap.args)[1])))
+	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
 		snprintf(ap.dst, ap.size, "gpio-set: invalid gpio %s\n", (*ap.args)[1]);
 		return(1);
@@ -431,14 +521,25 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 
 		case(gpio_output):
 		{
+			if(ap.nargs < 3)
+			{
+				snprintf(ap.dst, ap.size, "gpio-set: missing arguments\n");
+				return(1);
+			}
+
 			set_output(gpio, !!atoi((*ap.args)[2]));
+
 			break;
 		}
 
 		case(gpio_bounce):
 		{
-			snprintf(ap.dst, ap.size, "gpio-set: gpio %s is bounce not implemented\n", gpio->name);
-			return(1);
+			if(ap.nargs == 3)
+				trigger_bounce(gpio, !!atoi((*ap.args)[2]));
+			else
+				trigger_bounce(gpio, !gpio->timer->armed);
+
+			break;
 		}
 
 		case(gpio_pwm):
@@ -454,7 +555,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 		}
 	}
 
-	snprintf(ap.dst, ap.size, "gpio-set: gpio %s is set\n", gpio->name);
+	dump(gpio, ap.size, ap.dst);
 	return(1);
 }
 

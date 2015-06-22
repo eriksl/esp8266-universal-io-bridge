@@ -5,6 +5,10 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+#include <c_types.h>
+#include <osapi.h>
+#include <ets_sys.h>
+
 // prototypes missing
 
 size_t strlcpy(char *, const char *, size_t);
@@ -21,6 +25,10 @@ int ets_vsnprintf(char *, size_t, const char *, va_list);
 void ets_isr_attach(int, void *, void *);
 void ets_isr_mask(unsigned intr);
 void ets_isr_unmask(unsigned intr);
+void ets_timer_arm(ETSTimer *, uint32_t, bool);
+void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
+void ets_timer_disarm(ETSTimer *);
+void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 
 // local utility functions missing from libc
 

@@ -67,7 +67,7 @@ static const application_function_table_t application_function_table[] =
 	},
 	{
 		"gs", "gpio-set",
-		2,
+		1,
 		application_function_gpio_set,
 		"set gpio"
 	},
