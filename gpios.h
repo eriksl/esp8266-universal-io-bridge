@@ -1,7 +1,7 @@
 #ifndef gpios_h
 #define gpios_h
 
-#include "application.h"
+#include "application-parameters.h"
 
 #include <stdint.h>
 

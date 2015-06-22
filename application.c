@@ -1,4 +1,5 @@
 #include "application.h"
+#include "application-parameters.h"
 
 #include "wlan.h"
 #include "gpios.h"

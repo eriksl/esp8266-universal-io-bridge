@@ -11,7 +11,7 @@ LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
 
 OBJS			= application.o config.o gpios.o queue.o stats.o uart.o user_main.o util.o wlan.o
 HEADERS			= esp-uart-register.h \
-				  application.h config.h gpios.h stats.h queue.h uart.h user_main.h user_config.h wlan.h
+				  application.h application-parameters.h config.h gpios.h stats.h queue.h uart.h user_main.h user_config.h wlan.h
 FW				= fw.elf
 FW1				= fw-0x00000.bin
 FW2				= fw-0x40000.bin

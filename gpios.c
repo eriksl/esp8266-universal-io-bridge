@@ -1,6 +1,6 @@
 #include "gpios.h"
 
-#include "application.h"
+#include "application-parameters.h"
 #include "util.h"
 #include "config.h"
 
