@@ -8,7 +8,6 @@
 typedef enum
 {
 	gpio_2,
-	gpio_id_error
 } gpio_id_t;
 
 typedef enum

@@ -231,10 +231,6 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 					break;
 				}
 			}
-
-			size -= length;
-			str += length;
-			strlcpy(str, "\n", size);
 		}
 	}
 }

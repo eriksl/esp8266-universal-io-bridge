@@ -157,8 +157,8 @@ ICACHE_FLASH_ATTR void application_periodic(void)
 
 ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)
 {
-	static const char *error_fmt_unknown = "Command \"%s\" unknown\n";
-	static const char *error_fmt_args = "Insufficient arguments: %d (%d required)\n";
+	static const char *error_fmt_unknown = "command \"%s\" unknown\n";
+	static const char *error_fmt_args = "insufficient arguments: %d (%d required)\n";
 
 	args_t	args;
 	uint8_t args_count, arg_current;

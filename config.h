@@ -1,10 +1,10 @@
 #ifndef config_h
 #define config_h
 
-#include <stdint.h>
-
 #include "uart.h"
 #include "gpios.h"
+
+#include <stdint.h>
 
 typedef struct
 {
