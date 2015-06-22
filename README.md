@@ -60,6 +60,27 @@ These are the currently implemented commands on port 24:
 		cd	config-dump		none			shows the complete configuration as
 											stored in non volatile memory
 		cw	config-write	none			writes config to non volatile memory
+		gd	gpio-dump		none			dump gpio configuration and current status
+		gg	gpio-get		gpio			for example gpio2; reads the the gpio as input
+											(if set to mode input)
+		gm	gpio-mode		varies			none: dump all gpio's
+											<gpio> disable: disable the gpio
+											<gpio> input: set gpio to input
+											<gpio> output <startup>: set gpio to output,
+												set <startup> to 0 or 1 to define the startup
+												value (after boot)
+											<gpio> bounce <direction> <delay> <repeat> <autotrigger>
+												<direction> = up or down, specifying whether to bounce
+													from "off" or "on"
+												<delay> = value in milliseconds between triggered state
+													and resuming normal gpio state
+												<repeat> = 0 or 1, 0 means once, 1 means repeating
+													until stopped manually
+												<autotrigger> = 0 or 1, 0 means leave the gpio alone
+													after boot, need to trigger manually (using gpio-set),
+													1 means trigger automatically after boot
+		gs	gpio-set		<gpio> (value)	set the gpio if it's set as output, if set
+											as bounce, trigger a bounce
 		?	help			none			shows list of commands
 		pd	print-debug		0 or 1			0 = enable, 1 = enable
 											toggle printing of debug info during
@@ -87,7 +108,6 @@ These are the currently implemented commands on port 24:
 											wlan connection, like ssid, channel and
 											signal strength.
 
-More commands will follow, especially for driving the gpio2 pin, probably also pwm and maybe even
-i2c.
+More commands will follow.
 
 See here for latest news and join the discussion: http://www.esp8266.com/viewtopic.php?f=11&t=3212.
