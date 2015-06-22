@@ -278,7 +278,6 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	config_read();
 	system_set_os_print(config.print_debug);
-	gpios_init(&config.gpios);
 	uart_init(&config.uart);
 	system_init_done_cb(user_init2);
 }
@@ -298,7 +297,7 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	espconn_regist_time(&esp_cmd_config, 30, 0);
 	esp_cmd_tcp_connection = 0;
 
-	application_init();
+	application_init(&config);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 	system_os_post(background_task_id, 0, 0);

@@ -3,6 +3,7 @@
 
 #include "wlan.h"
 #include "gpios.h"
+#include "config.h"
 
 #include "stats.h"
 #include "util.h"
@@ -144,8 +145,9 @@ static const application_function_table_t application_function_table[] =
 	},
 };
 
-ICACHE_FLASH_ATTR void application_init(void)
+ICACHE_FLASH_ATTR void application_init(config_t *config)
 {
+	gpios_init(&config->gpios);
 }
 
 ICACHE_FLASH_ATTR void application_periodic(void)
