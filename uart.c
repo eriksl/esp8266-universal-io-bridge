@@ -11,11 +11,6 @@
 
 #include "esp-uart-register.h"
 
-void debug(char c)
-{
-	WRITE_PERI_REG(UART_FIFO(0), c);
-}
-
 ICACHE_FLASH_ATTR uint8_t uart_string_to_parity(const char *str)
 {
 	uint8_t rv;

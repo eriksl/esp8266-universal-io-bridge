@@ -19,9 +19,6 @@ typedef struct
 	uint8_t			stop_bits;
 } uart_parameters_t;
 
-void debug(char);
-void debug_int(int);
-
 const char	*uart_parity_to_string(uint8_t);
 char		uart_parity_to_char(uint8_t);
 uint8_t		uart_string_to_parity(const char *);
