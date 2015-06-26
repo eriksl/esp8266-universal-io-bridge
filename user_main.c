@@ -168,8 +168,6 @@ static void background_task(os_event_t *events)
 			espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 		}
 	}
-
-	application_periodic(); // FIXME
 }
 
 ICACHE_FLASH_ATTR static void tcp_data_sent_callback(void *arg)

@@ -11,6 +11,9 @@
 #include "config.h"
 #include "uart.h"
 
+#include <os_type.h>
+#include <ets_sys.h>
+
 typedef struct
 {
 	const char	*command1;
@@ -32,6 +35,8 @@ static uint8_t application_function_uart_baud_rate(application_parameters_t ap);
 static uint8_t application_function_uart_data_bits(application_parameters_t ap);
 static uint8_t application_function_uart_stop_bits(application_parameters_t ap);
 static uint8_t application_function_uart_parity(application_parameters_t ap);
+
+static ETSTimer application_periodic_timer;
 
 static const application_function_table_t application_function_table[] =
 {
@@ -145,14 +150,23 @@ static const application_function_table_t application_function_table[] =
 	},
 };
 
-ICACHE_FLASH_ATTR void application_init(config_t *config)
-{
-	gpios_init(&config->gpios);
-}
-
-ICACHE_FLASH_ATTR void application_periodic(void)
+void application_periodic(void)
 {
 	stat_application_periodic++;
+}
+
+static void application_periodic_timer_callback(void *arg)
+{
+	(void)arg;
+	application_periodic();
+}
+
+ICACHE_FLASH_ATTR void application_init(config_t *config)
+{
+	os_timer_setfn(&application_periodic_timer, application_periodic_timer_callback, (void *)0);
+	os_timer_arm(&application_periodic_timer, 100, 1);
+
+	gpios_init(&config->gpios);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)
