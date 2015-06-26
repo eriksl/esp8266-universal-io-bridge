@@ -5,6 +5,15 @@
 
 enum
 {
+	app_action_normal,
+	app_action_error,
+	app_action_empty,
+	app_action_disconnect,
+	app_action_reset
+};
+
+enum
+{
 	application_num_args = 8,
 	application_length_args = 16,
 };

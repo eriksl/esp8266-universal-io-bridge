@@ -23,6 +23,9 @@ queue_t *tcp_cmd_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
+static uint8_t go_do_disconnect;
+static uint8_t go_do_reset;
+
 static char *tcp_cmd_receive_buffer;
 static char *tcp_cmd_send_buffer;
 static char tcp_cmd_send_buffer_busy;
@@ -128,17 +131,45 @@ static void background_task(os_event_t *events)
 		if(eol)
 		{
 			tcp_cmd_receive_buffer[tcp_cmd_receive_buffer_length] = '\0';
-			if(application_content(tcp_cmd_receive_buffer, buffer_size, tcp_cmd_send_buffer))
+
+			switch(application_content(tcp_cmd_receive_buffer, buffer_size, tcp_cmd_send_buffer))
 			{
-				tcp_cmd_send_buffer_busy = 1;
-				espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+				case(app_action_normal):
+				case(app_action_error):
+				{
+					/* no special action for now */
+
+					break;
+				}
+				case(app_action_empty):
+				{
+					strlcpy(tcp_cmd_send_buffer, "> empty command\n", buffer_size);
+
+					break;
+				}
+				case(app_action_disconnect):
+				{
+					strlcpy(tcp_cmd_send_buffer, "> disconnect\n", buffer_size);
+					go_do_disconnect = 1;
+
+					break;
+				}
+				case(app_action_reset):
+				{
+					strlcpy(tcp_cmd_send_buffer, "> reset\n", buffer_size);
+					go_do_disconnect = 1;
+					go_do_reset = 1;
+
+					break;
+				}
 			}
-			else
-				espconn_disconnect(esp_cmd_tcp_connection);
+
+			tcp_cmd_send_buffer_busy = 1;
+			espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 		}
 	}
 
-	application_periodic();
+	application_periodic(); // FIXME
 }
 
 ICACHE_FLASH_ATTR static void tcp_data_sent_callback(void *arg)
@@ -218,6 +249,12 @@ ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_conn
 
 ICACHE_FLASH_ATTR static void tcp_cmd_sent_callback(void *arg)
 {
+	if(go_do_disconnect)
+	{
+		espconn_disconnect(esp_cmd_tcp_connection);
+		go_do_disconnect = 0;
+	}
+
     tcp_cmd_send_buffer_busy = 0;
 }
 
@@ -235,6 +272,9 @@ ICACHE_FLASH_ATTR static void tcp_cmd_receive_callback(void *arg, char *data, ui
 ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 {
 	esp_cmd_tcp_connection = 0;
+
+	if(go_do_reset)
+		reset();
 }
 
 ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_connection)
@@ -275,6 +315,9 @@ ICACHE_FLASH_ATTR void user_init(void)
 
 	if(!(tcp_data_send_buffer = malloc(buffer_size)))
 		reset();
+
+	go_do_reset = 0;
+	go_do_disconnect = 0;
 
 	config_read();
 	system_set_os_print(config.print_debug);

@@ -44,6 +44,6 @@ ICACHE_FLASH_ATTR uint8_t application_function_wlan_dump(application_parameters_
 			wifi_get_channel(),
 			wifi_station_get_rssi());
 
-	return(1);
+	return(app_action_normal);
 }
 

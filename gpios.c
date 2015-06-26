@@ -333,22 +333,26 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 	if(ap.nargs < 2)
 	{
 		dump(0, ap.size, ap.dst);
-		return(1);
+		return(app_action_normal);
 	}
 
 	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
-		snprintf(ap.dst, ap.size, "gpio-mode: invalid gpio %s\n", (*ap.args)[1]);
-		return(1);
+		snprintf(ap.dst, ap.size, "gpio-mode: invalid gpio %u\n", gpio_index);
+		return(app_action_error);
 	}
 
 	if(ap.nargs < 3)
 	{
 		dump(gpio, ap.size, ap.dst);
-		return(1);
+		return(app_action_normal);
 	}
 
-	mode = gpio_mode_from_string((*ap.args)[2]);
+	if((mode = gpio_mode_from_string((*ap.args)[2])) == gpio_mode_error)
+	{
+		snprintf(ap.dst, ap.size, "gpio-mode: invalid mode %s\n", (*ap.args)[2]);
+		return(app_action_error);
+	}
 
 	switch(mode)
 	{
@@ -368,8 +372,8 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 		{
 			if(ap.nargs != 4)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(output): startup value value\n");
-				return(1);
+				snprintf(ap.dst, ap.size, "gpio-mode(output): <startup value>\n");
+				return(app_action_error);
 			}
 
 			set_gpio_to_output(gpio, !!atoi((*ap.args)[3]));
@@ -386,7 +390,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 			if(ap.nargs != 7)
 			{
 				snprintf(ap.dst, ap.size, "gpio-mode: bounce direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
-				return(1);
+				return(app_action_error);
 			}
 
 			if(!strcmp((*ap.args)[3], "up"))
@@ -396,7 +400,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 			else
 			{
 				snprintf(ap.dst, ap.size, "gpio-mode(bounce): direction invalid: %s\n", (*ap.args)[3]);
-				return(1);
+				return(app_action_error);
 			}
 
 			delay = atoi((*ap.args)[4]);
@@ -404,7 +408,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 			if(delay < 100)
 			{
 				snprintf(ap.dst, ap.size, "gpio-mode(bounce): delay too small: %d ms, >= 100 ms\n", delay);
-				return(1);
+				return(app_action_error);
 			}
 
 			repeat = atoi((*ap.args)[5]);
@@ -420,16 +424,16 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 
 			if(ap.nargs != 4)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(pwm): invalid number of arguments %u, must be 3\n", ap.nargs - 1);
-				return(1);
+				snprintf(ap.dst, ap.size, "gpio-mode(pwm): usage: gm <gpio> pwm <duty:0-65535> <autotrigger:0|1>\n");
+				return(app_action_error);
 			}
 
 			duty = atoi((*ap.args)[3]);
 
 			if(duty > 1023)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(pwm): invalid duty: %u, duty must be < 1024\n", duty);
-				return(1);
+				snprintf(ap.dst, ap.size, "gpio-mode(pwm): invalid duty: %u, duty must be 0-65535\n", duty);
+				return(app_action_error);
 			}
 
 			set_gpio_to_pwm(gpio, duty);
@@ -445,7 +449,10 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 
 	dump(gpio, ap.size, ap.dst);
 
-	return(1);
+	if(prevmode != mode)
+		strlcat(ap.dst, "> write config and restart to activate new mode\n", ap.size);
+
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t ap)
@@ -455,13 +462,13 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 	if(ap.nargs < 2)
 	{
 		snprintf(ap.dst, ap.size, "gpio-get: too little arguments: %u\n", ap.nargs - 1);
-		return(1);
+		return(app_action_error);
 	}
 
 	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
-		snprintf(ap.dst, ap.size, "gpio-get: invalid gpio %s\n", (*ap.args)[1]);
-		return(1);
+		snprintf(ap.dst, ap.size, "gpio-get: invalid gpio %u\n", gpio_index);
+		return(app_action_error);
 	}
 
 	switch(gpio->config->mode)
@@ -469,13 +476,13 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		case(gpio_disable):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is disabled\n", gpio->name);
-			return(1);
+			return(app_action_error);
 		}
 
 		case(gpio_input):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is %s\n", gpio->name, onoff(get_input(gpio)));
-			return(1);
+			return(app_action_normal);
 		}
 
 		case(gpio_output):
@@ -483,7 +490,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		case(gpio_pwm):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is output\n", gpio->name);
-			return(1);
+			return(app_action_error);
 		}
 
 		default:
@@ -491,8 +498,8 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		}
 	}
 
-	snprintf(ap.dst, ap.size, "gpio-get: invalid mode %s\n", (*ap.args)[2]);
-	return(1);
+	snprintf(ap.dst, ap.size, "gpio-get: invalid mode %u\n", gpio->config->mode);
+	return(app_action_error);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t ap)
@@ -501,8 +508,8 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 
 	if(!(gpio = find_gpio((*ap.args)[1])))
 	{
-		snprintf(ap.dst, ap.size, "gpio-set: invalid gpio %s\n", (*ap.args)[1]);
-		return(1);
+		snprintf(ap.dst, ap.size, "gpio-set: invalid gpio %u\n", gpio_index);
+		return(app_action_error);
 	}
 
 	switch(gpio->config->mode)
@@ -510,13 +517,13 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 		case(gpio_disable):
 		{
 			snprintf(ap.dst, ap.size, "gpio-set: gpio %s is disabled\n", gpio->name);
-			return(1);
+			return(app_action_error);
 		}
 
 		case(gpio_input):
 		{
 			snprintf(ap.dst, ap.size, "gpio-set: gpio %s is input\n", gpio->name);
-			return(1);
+			return(app_action_error);
 		}
 
 		case(gpio_output):
@@ -524,7 +531,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 			if(ap.nargs < 3)
 			{
 				snprintf(ap.dst, ap.size, "gpio-set: missing arguments\n");
-				return(1);
+				return(app_action_error);
 			}
 
 			set_output(gpio, !!atoi((*ap.args)[2]));
@@ -550,18 +557,18 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 
 		default:
 		{
-			snprintf(ap.dst, ap.size, "gpio-set: invalid mode %s\n", (*ap.args)[2]);
-			return(1);
+			snprintf(ap.dst, ap.size, "gpio-set: invalid mode %u\n", gpio->config->mode);
+			return(app_action_error);
 		}
 	}
 
 	dump(gpio, ap.size, ap.dst);
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_function_gpio_dump(application_parameters_t ap)
 {
 	dump(0, ap.size, ap.dst);
 
-	return(1);
+	return(app_action_normal);
 }

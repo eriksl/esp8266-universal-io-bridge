@@ -157,9 +157,6 @@ ICACHE_FLASH_ATTR void application_periodic(void)
 
 ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)
 {
-	static const char *error_fmt_unknown = "command \"%s\" unknown\n";
-	static const char *error_fmt_args = "insufficient arguments: %d (%d required)\n";
-
 	args_t	args;
 	uint8_t args_count, arg_current;
 	uint8_t src_current = 0;
@@ -170,7 +167,7 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 	*dst = '\0';
 
 	if(src[0] == '\0')
-		return(1);
+		return(app_action_empty);
 
 	src_left = strlen(src);
 
@@ -208,7 +205,7 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 	}
 
 	if(args_count == 0)
-		return(1);
+		return(app_action_empty);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 		if(!strcmp(args[0], tableptr->command1) ||
@@ -219,8 +216,8 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 	{
 		if(args_count < (tableptr->required_args + 1))
 		{
-			snprintf(dst, size, error_fmt_args, args_count - 1, tableptr->required_args);
-			return(1);
+			snprintf(dst, size, "insufficient arguments: %d (%d required)\n", args_count - 1, tableptr->required_args);
+			return(app_action_error);
 		}
 
 		application_parameters_t ap;
@@ -234,15 +231,15 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 		return(tableptr->function(ap));
 	}
 
-	snprintf(dst, size, error_fmt_unknown, args[0]);
-	return(1);
+	snprintf(dst, size, "command \"%s\" unknown\n", args[0]);
+	return(app_action_error);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_config_dump(application_parameters_t ap)
 {
 	config_dump(ap.size, ap.dst);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_parameters_t ap)
@@ -250,7 +247,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_p
 	config_write();
 	strlcpy(ap.dst, "config write OK\n", ap.size);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_help(application_parameters_t ap)
@@ -267,26 +264,24 @@ ICACHE_FLASH_ATTR static uint8_t application_function_help(application_parameter
 		ap.size	-= offset;
 	}
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_quit(application_parameters_t ap)
 {
-	return(0);
+	return(app_action_disconnect);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_reset(application_parameters_t ap)
 {
-	reset();
-
-	return(1);
+	return(app_action_reset);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_stats(application_parameters_t ap)
 {
 	stats_generate(ap.size, ap.dst);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_parameters_t ap)
@@ -296,7 +291,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_p
 
 	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", config.strip_telnet);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_parameters_t ap)
@@ -306,7 +301,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_pa
 
 	snprintf(ap.dst, ap.size, "print-debug: %u\n", config.print_debug);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application_parameters_t ap)
@@ -323,7 +318,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application
 
 	snprintf(ap.dst, ap.size, "uart-baud: %u\n", config.uart.baud_rate);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application_parameters_t ap)
@@ -340,7 +335,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application
 
 	snprintf(ap.dst, ap.size, "uart-data: %u\n", config.uart.data_bits);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application_parameters_t ap)
@@ -357,7 +352,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application
 
 	snprintf(ap.dst, ap.size, "uart-stop: %u\n", config.uart.stop_bits);
 
-	return(1);
+	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR static uint8_t application_function_uart_parity(application_parameters_t ap)
@@ -374,5 +369,5 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_parity(application_pa
 
 	snprintf(ap.dst, ap.size, "uart-parity: %s\n", uart_parity_to_string(config.uart.parity));
 
-	return(1);
+	return(app_action_normal);
 }
