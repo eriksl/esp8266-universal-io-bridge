@@ -7,7 +7,7 @@ CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx1
 LDFLAGS			= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 LDSCRIPT		= -T$(SDKLD)/eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
-LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
+LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm
 
 OBJS			= application.o config.o gpios.o queue.o stats.o uart.o user_main.o util.o wlan.o
 HEADERS			= esp-uart-register.h \

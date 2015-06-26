@@ -63,12 +63,12 @@ These are the currently implemented commands on port 24:
 		gd	gpio-dump		none			dump gpio configuration and current status
 		gg	gpio-get		gpio			for example gpio2; reads the the gpio as input
 											(if set to mode input)
-		gm	gpio-mode		varies			none: dump all gpio's
+		gm	gpio-mode		VARIES			none: dump all gpio's
 											<gpio> disable: disable the gpio
 											<gpio> input: set gpio to input
-											<gpio> output <startup>: set gpio to output,
-												set <startup> to 0 or 1 to define the startup
-												value (after boot)
+											<gpio> output <startup state>: set gpio to output,
+												set <startup state> to 0 or 1 to configure the state
+												of the output directly after boot.
 											<gpio> bounce <direction> <delay> <repeat> <autotrigger>
 												<direction> = up or down, specifying whether to bounce
 													from "off" or "on"
@@ -76,11 +76,16 @@ These are the currently implemented commands on port 24:
 													and resuming normal gpio state
 												<repeat> = 0 or 1, 0 means once, 1 means repeating
 													until stopped manually
-												<autotrigger> = 0 or 1, 0 means leave the gpio alone
-													after boot, need to trigger manually (using gpio-set),
-													1 means trigger automatically after boot
+												<autotrigger> = 0 or 1,
+													0 means leave the gpio alone after boot, need to
+														trigger manually (using gpio-set),
+													1 means trigger automatically after boot.
+											<gpio> pwm [<startup duty cycle>]
+												<startup duty cycle> is the duty cycle after boot,
+												default 0 for off.
 		gs	gpio-set		<gpio> (value)	set the gpio if it's set as output, if set
-											as bounce, trigger a bounce
+											as bounce, trigger a bounce, if it's set as pwm, set
+											the duty cycle (startup value is taken if it's missing).
 		?	help			none			shows list of commands
 		pd	print-debug		0 or 1			0 = enable, 1 = enable
 											toggle printing of debug info during

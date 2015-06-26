@@ -18,12 +18,13 @@ typedef enum
 
 typedef enum
 {
-	gpio_disable,
+	gpio_disabled,
 	gpio_input,
 	gpio_output,
 	gpio_bounce,
 	gpio_pwm,
-	gpio_mode_error
+	gpio_mode_error,
+	gpio_mode_size = gpio_mode_error
 } gpio_mode_t;
 
 typedef struct
@@ -32,7 +33,7 @@ typedef struct
 
 	struct
 	{
-		uint8_t startup_value;
+		uint8_t startup_state;
 	} output;
 
 	struct
@@ -45,7 +46,7 @@ typedef struct
 
 	struct
 	{
-		uint16_t duty;
+		uint32_t startup_duty;
 	} pwm;
 } gpio_t;
 
