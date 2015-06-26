@@ -7,7 +7,9 @@
 
 typedef enum
 {
-	gpio_2,
+	gpio_2 = 0,
+	gpios_amount = 1,
+	gpios_pwm_amount = 1
 } gpio_id_t;
 
 typedef enum
@@ -50,14 +52,10 @@ typedef struct
 	} pwm;
 } gpio_t;
 
-typedef struct
-{
-	gpio_t gpio_2;
-} gpios_t;
-
-void gpios_init(const gpios_t *gpios);
-void gpios_config_init(gpios_t *gpios);
-void gpios_dump_string(uint16_t, char *);
+void gpios_init(void);
+void gpios_periodic(void);
+void gpios_config_init(gpio_t *);
+void gpios_dump_string(const gpio_t *, uint16_t, char *);
 
 uint8_t application_function_gpio_get(application_parameters_t);
 uint8_t application_function_gpio_set(application_parameters_t);

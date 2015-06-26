@@ -12,7 +12,7 @@ typedef struct
 	unsigned int		strip_telnet:1;
 	unsigned int		print_debug:1;
 	uart_parameters_t	uart;
-	gpios_t				gpios;
+	gpio_t				gpios[gpios_amount];
 } config_t;
 
 extern config_t config;

@@ -11,25 +11,21 @@
 
 typedef struct
 {
-	ETSTimer	timer;
-	uint8_t		armed;
-} gpio_timer_t;
-
-typedef struct
-{
-			uint8_t		channel;
-	const	uint32_t	io_mux;
-	const	uint32_t	io_func;
-} gpio_pwm_t;
-
-typedef struct
-{
 	const	gpio_id_t		id;
 	const	char			*name;
 	const	uint8_t			index;
-			gpio_t			*config;
-			gpio_timer_t	timer;
-			gpio_pwm_t		pwm;
+
+	struct
+	{
+		uint32_t delay;
+	} bounce;
+
+	struct
+	{
+				uint8_t		channel;
+		const	uint32_t	io_mux;
+		const	uint32_t	io_func;
+	} pwm;
 } gpio_trait_t;
 
 typedef struct
@@ -39,12 +35,6 @@ typedef struct
 	void			(*init_fn)(gpio_trait_t *);
 } gpio_mode_to_initfn_t;
 
-enum
-{
-	gpios_amount = 1,
-	gpios_pwm_amount = 1
-};
-
 static void gpio_init_disabled(gpio_trait_t *);
 static void gpio_init_input(gpio_trait_t *);
 static void gpio_init_output(gpio_trait_t *);
@@ -53,7 +43,7 @@ static void gpio_init_pwm(gpio_trait_t *);
 
 static gpio_trait_t *find_gpio(uint8_t);
 
-static void clear_timer(gpio_trait_t *);
+static uint8_t pwm_subsystem_active = 0;
 
 static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
 {
@@ -70,7 +60,6 @@ static gpio_trait_t gpio_traits[gpios_amount] =
 		.id = gpio_2,
 		.name = "gpio2",
 		.index = 2,
-		.config = &config.gpios.gpio_2,
 		.pwm =
 		{
 			.io_mux = PERIPHS_IO_MUX_GPIO2_U,
@@ -79,21 +68,26 @@ static gpio_trait_t gpio_traits[gpios_amount] =
 	},
 };
 
-ICACHE_FLASH_ATTR void gpios_init(const gpios_t *gpios)
+ICACHE_FLASH_ATTR static gpio_t *get_config(const gpio_trait_t *gpio)
 {
-	uint8_t ix, pwmchannel;
+	return(&config.gpios[gpio->id]);
+}
+
+ICACHE_FLASH_ATTR void gpios_init(void)
+{
+	uint8_t current, pwmchannel;
 	gpio_trait_t *gpio;
 	uint32_t pwm_io_info[gpios_pwm_amount][3];
 	uint32_t pwm_duty_init[gpios_pwm_amount];
 
 	gpio_init();
 
-	for(ix = 0, pwmchannel = 0; ix < gpios_amount; ix++)
+	for(current = 0, pwmchannel = 0; current < gpios_amount; current++)
 	{
-		gpio = &gpio_traits[ix];
-		gpio->timer.armed = 0;
+		gpio = &gpio_traits[current];
+		gpio->bounce.delay = 0;
 
-		if((gpio->config->mode == gpio_pwm) && (pwmchannel < gpios_pwm_amount))
+		if((get_config(gpio)->mode == gpio_pwm) && (pwmchannel < gpios_pwm_amount))
 		{
 			gpio->pwm.channel = pwmchannel;
 			pwm_io_info[pwmchannel][0] = gpio->pwm.io_mux;
@@ -105,21 +99,35 @@ ICACHE_FLASH_ATTR void gpios_init(const gpios_t *gpios)
 	}
 
 	if(pwmchannel > 0)
+	{
 		pwm_init(3000, pwm_duty_init, pwmchannel, pwm_io_info);
+		pwm_subsystem_active = 1;
+	}
 
-	for(ix = 0; ix < gpios_amount; ix++)
-		gpio_mode_to_initfn[gpio->config->mode].init_fn(&gpio_traits[ix]);
+	for(current = 0; current < gpios_amount; current++)
+		gpio_mode_to_initfn[config.gpios[current].mode].init_fn(&gpio_traits[current]);
 }
 
-ICACHE_FLASH_ATTR void gpios_config_init(gpios_t *gpios)
+ICACHE_FLASH_ATTR static void gpio_reset(gpio_trait_t *gpio)
 {
-	gpios->gpio_2.mode = gpio_disabled;
-	gpios->gpio_2.output.startup_state = 0;
-	gpios->gpio_2.bounce.direction = gpio_up;
-	gpios->gpio_2.bounce.delay = 0;
-	gpios->gpio_2.bounce.repeat = 0;
-	gpios->gpio_2.bounce.autotrigger = 0;
-	gpios->gpio_2.pwm.startup_duty = 0;
+	gpio->bounce.delay = 0;
+	gpio->pwm.channel = 0;
+}
+
+ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
+{
+	int current;
+
+	for(current = 0; current < gpios_amount; current++)
+	{
+		gpios[current].mode = gpio_disabled;
+		gpios[current].output.startup_state = 0;
+		gpios[current].bounce.direction = gpio_up;
+		gpios[current].bounce.delay = 0;
+		gpios[current].bounce.repeat = 0;
+		gpios[current].bounce.autotrigger = 0;
+		gpios[current].pwm.startup_duty = 0;
+	}
 }
 
 ICACHE_FLASH_ATTR static void set_output(const gpio_trait_t *gpio, uint8_t onoff)
@@ -134,38 +142,61 @@ ICACHE_FLASH_ATTR static uint8_t get_input(const gpio_trait_t *gpio)
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
-ICACHE_FLASH_ATTR static void clear_timer(gpio_trait_t *gpio)
+void gpios_periodic(void)
 {
-	if(gpio->timer.armed)
+	uint8_t current;
+	gpio_trait_t *gpio;
+	const gpio_t *cfg;
+
+	for(current = 0; current < gpios_amount; current++)
 	{
-		os_timer_disarm(&gpio->timer.timer);
-		gpio->timer.armed = 0;
+		gpio = &gpio_traits[current];
+		cfg = get_config(gpio);
+
+		switch(cfg->mode)
+		{
+			case(gpio_bounce):
+			{
+				if(gpio->bounce.delay > 0)
+				{
+					if(gpio->bounce.delay >= 100)
+						gpio->bounce.delay -= 100; // 100 ms per tick
+					else
+						gpio->bounce.delay = 0;
+
+					if(gpio->bounce.delay == 0)
+					{
+						set_output(gpio, !get_input(gpio));
+
+						if(cfg->bounce.repeat)
+							gpio->bounce.delay = cfg->bounce.delay;
+					}
+				}
+
+				break;
+			}
+
+			default:
+			{
+			}
+		}
 	}
-}
-
-ICACHE_FLASH_ATTR static void bounce_timer_callback(void *arg)
-{
-	gpio_trait_t *gpio = (gpio_trait_t *)arg;
-
-	set_output(gpio, !get_input(gpio));
-
-	if(!gpio->config->bounce.repeat)
-		clear_timer(gpio);
 }
 
 ICACHE_FLASH_ATTR static void trigger_bounce(gpio_trait_t *gpio, uint8_t onoff)
 {
-	clear_timer(gpio);
+	const gpio_t *cfg = get_config(gpio);
 
 	if(onoff)
 	{
-		set_output(gpio, gpio->config->bounce.direction == gpio_up ? 1 : 0);
-		os_timer_setfn(&gpio->timer.timer, bounce_timer_callback, (void *)gpio);
-		os_timer_arm(&gpio->timer.timer, gpio->config->bounce.delay, gpio->config->bounce.repeat);
-		gpio->timer.armed = 1;
+		set_output(gpio, cfg->bounce.direction == gpio_up ? 1 : 0);
+		gpio->bounce.delay = cfg->bounce.delay;
 	}
 	else
-		set_output(gpio, gpio->config->bounce.direction == gpio_up ? 0 : 1);
+	{
+		set_output(gpio, cfg->bounce.direction == gpio_up ? 0 : 1);
+		gpio->bounce.delay = 0;
+	}
 }
 
 ICACHE_FLASH_ATTR  static void trigger_pwm(const gpio_trait_t *gpio, uint32_t duty)
@@ -208,25 +239,24 @@ ICACHE_FLASH_ATTR static uint8_t gpio_mode_from_string(const char *mode)
 
 ICACHE_FLASH_ATTR static void gpio_init_disabled(gpio_trait_t *gpio)
 {
-	clear_timer(gpio);
-
+	gpio_reset(gpio);
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
 ICACHE_FLASH_ATTR static void gpio_init_input(gpio_trait_t *gpio)
 {
-	clear_timer(gpio);
-
+	gpio_reset(gpio);
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
 ICACHE_FLASH_ATTR static void gpio_init_output(gpio_trait_t *gpio)
 {
-	clear_timer(gpio);
+	const gpio_t *cfg = get_config(gpio);
 
+	gpio_reset(gpio);
 	gpio_output_set(0, 0, 1 << gpio->index, 0);
 
-	if(gpio->config->output.startup_state)
+	if(cfg->output.startup_state)
 		gpio_output_set(1 << gpio->index, 0, 0, 0);
 	else
 		gpio_output_set(0, 1 << gpio->index, 0, 0);
@@ -234,35 +264,39 @@ ICACHE_FLASH_ATTR static void gpio_init_output(gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
 {
-	clear_timer(gpio);
+	const gpio_t *cfg = get_config(gpio);
 
+	gpio_reset(gpio);
 	gpio_output_set(0, 0, 1 << gpio->index, 0);
 
-	if(gpio->config->bounce.direction == gpio_up)
+	if(cfg->bounce.direction == gpio_up)
 		gpio_output_set(0, 1 << gpio->index, 0, 0);
 	else
 		gpio_output_set(1 << gpio->index, 0, 0, 0);
 
-	if(gpio->config->bounce.autotrigger)
+	if(cfg->bounce.autotrigger)
 		trigger_bounce(gpio, 1);
 }
 
 ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
 {
-	clear_timer(gpio);
+	const gpio_t *cfg = get_config(gpio);
 
-	trigger_pwm(gpio, gpio->config->pwm.startup_duty);
+	gpio_reset(gpio);
+	trigger_pwm(gpio, cfg->pwm.startup_duty);
 }
 
-ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, char *str)
+ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
 {
 	uint8_t ix;
 	uint16_t length;
 	const gpio_trait_t *gpio;
+	const gpio_t *cfg;
 
 	for(ix = 0; ix < gpios_amount; ix++)
 	{
 		gpio = &gpio_traits[ix];
+		cfg = &cfgs[ix];
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
@@ -270,7 +304,7 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 			size -= length;
 			str += length;
 
-			switch(gpio->config->mode)
+			switch(cfg->mode)
 			{
 				case(gpio_disabled):
 				{
@@ -287,24 +321,27 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 				case(gpio_output):
 				{
 					length = snprintf(str, size, "output, state: %s, startup: %s",
-							onoff(get_input(gpio)), onoff(gpio->config->output.startup_state));
+							onoff(get_input(gpio)), onoff(cfg->output.startup_state));
 					break;
 				}
 
 				case(gpio_bounce):
 				{
 					length = snprintf(str, size, "bounce, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
-							gpio->config->bounce.direction == gpio_up ? "up" : "down",
-							gpio->config->bounce.delay, onoff(gpio->config->bounce.repeat),
-							onoff(gpio->config->bounce.autotrigger), onoff(gpio->timer.armed),
+							cfg->bounce.direction == gpio_up ? "up" : "down",
+							cfg->bounce.delay, onoff(cfg->bounce.repeat),
+							onoff(cfg->bounce.autotrigger), onoff(gpio->bounce.delay > 0),
 							onoff(get_input(gpio)));
 					break;
 				}
 
 				case(gpio_pwm):
 				{
-					length = snprintf(str, size, "pwm, frequency: %u Hz, startup duty: %u, current duty: %u",
-							1000000 / pwm_get_period(), gpio->config->pwm.startup_duty, pwm_get_duty(gpio->pwm.channel));
+					if(pwm_subsystem_active)
+						length = snprintf(str, size, "pwm, frequency: %u Hz, startup duty: %u, current duty: %u",
+								1000000 / pwm_get_period(), cfg->pwm.startup_duty, pwm_get_duty(gpio->pwm.channel));
+					else
+						length = snprintf(str, size, "pwm, startup duty: %u", cfg->pwm.startup_duty);
 
 					break;
 				}
@@ -321,20 +358,22 @@ ICACHE_FLASH_ATTR static void dump(const gpio_trait_t *gpio_in, uint16_t size, c
 	}
 }
 
-ICACHE_FLASH_ATTR void gpios_dump_string(uint16_t size, char *string)
+ICACHE_FLASH_ATTR void gpios_dump_string(const gpio_t *gpio_cfgs, uint16_t size, char *string)
 {
-	dump(0, size, string);
+	dump(gpio_cfgs, 0, size, string);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_t ap)
 {
-	uint8_t prevmode, mode;
+	uint8_t mode;
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
+	static config_t new_config;
+	gpio_t *new_gpio_config;
 
 	if(ap.nargs < 2)
 	{
-		dump(0, ap.size, ap.dst);
+		dump(&config.gpios[0], 0, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -348,7 +387,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 
 	if(ap.nargs < 3)
 	{
-		dump(gpio, ap.size, ap.dst);
+		dump(&config.gpios[0], gpio, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -357,6 +396,9 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 		snprintf(ap.dst, ap.size, "gpio-mode: invalid mode %s\n", (*ap.args)[2]);
 		return(app_action_error);
 	}
+
+	new_config = config;
+	new_gpio_config = &new_config.gpios[gpio->id];
 
 	switch(mode)
 	{
@@ -368,7 +410,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 				return(app_action_error);
 			}
 
-			gpio->config->output.startup_state = !!atoi((*ap.args)[3]);
+			new_gpio_config->output.startup_state = !!atoi((*ap.args)[3]);
 
 			break;
 		}
@@ -407,11 +449,10 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 			repeat = atoi((*ap.args)[5]);
 			autotrigger = !!atoi((*ap.args)[6]);
 
-			gpio->config->mode = gpio_bounce;
-			gpio->config->bounce.direction = direction;
-			gpio->config->bounce.delay = delay;
-			gpio->config->bounce.repeat = repeat;
-			gpio->config->bounce.autotrigger = autotrigger;
+			new_gpio_config->bounce.direction = direction;
+			new_gpio_config->bounce.delay = delay;
+			new_gpio_config->bounce.repeat = repeat;
+			new_gpio_config->bounce.autotrigger = autotrigger;
 
 			break;
 		}
@@ -431,7 +472,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 				return(app_action_error);
 			}
 
-			gpio->config->pwm.startup_duty = startup_duty;
+			new_gpio_config->pwm.startup_duty = startup_duty;
 
 			break;
 		}
@@ -441,14 +482,11 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 		}
 	}
 
-	prevmode = gpio->config->mode;
-	gpio->config->mode = mode;
-	gpio_mode_to_initfn[gpio->config->mode].init_fn(gpio);
+	new_gpio_config->mode = mode;
+	config_write_alt(&new_config);
 
-	dump(gpio, ap.size, ap.dst);
-
-	if(prevmode != mode)
-		strlcat(ap.dst, "> write config and restart to activate new mode\n", ap.size);
+	dump(&new_config.gpios[gpio->id], gpio, ap.size, ap.dst);
+	strlcat(ap.dst, "! gpio-mode: restart to activate new mode\n", ap.size);
 
 	return(app_action_normal);
 }
@@ -457,6 +495,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 {
 	uint8_t gpio_index;
 	const gpio_trait_t *gpio;
+	const gpio_t *cfg;
 
 	if(ap.nargs < 2)
 	{
@@ -472,7 +511,9 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		return(app_action_error);
 	}
 
-	switch(gpio->config->mode)
+	cfg = get_config(gpio);
+
+	switch(cfg->mode)
 	{
 		case(gpio_disabled):
 		{
@@ -499,7 +540,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 		}
 	}
 
-	snprintf(ap.dst, ap.size, "gpio-get: invalid mode %u\n", gpio->config->mode);
+	snprintf(ap.dst, ap.size, "gpio-get: invalid mode %u\n", cfg->mode);
 	return(app_action_error);
 }
 
@@ -507,6 +548,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 {
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
+	const gpio_t *cfg;
 
 	gpio_index = atoi((*ap.args)[1]);
 
@@ -516,7 +558,9 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 		return(app_action_error);
 	}
 
-	switch(gpio->config->mode)
+	cfg = get_config(gpio);
+
+	switch(cfg->mode)
 	{
 		case(gpio_disabled):
 		{
@@ -548,7 +592,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 			if(ap.nargs == 3)
 				trigger_bounce(gpio, !!atoi((*ap.args)[2]));
 			else
-				trigger_bounce(gpio, !gpio->timer.armed);
+				trigger_bounce(gpio, !gpio->bounce.delay);
 
 			break;
 		}
@@ -560,7 +604,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 			if(ap.nargs == 3)
 				duty = atoi((*ap.args)[2]);
 			else
-				duty = gpio->config->pwm.startup_duty;
+				duty = cfg->pwm.startup_duty;
 
 			trigger_pwm(gpio, duty);
 
@@ -569,18 +613,18 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 
 		default:
 		{
-			snprintf(ap.dst, ap.size, "gpio-set: invalid mode %u\n", gpio->config->mode);
+			snprintf(ap.dst, ap.size, "gpio-set: invalid mode %u\n", cfg->mode);
 			return(app_action_error);
 		}
 	}
 
-	dump(gpio, ap.size, ap.dst);
+	dump(&config.gpios[0], gpio, ap.size, ap.dst);
 	return(app_action_normal);
 }
 
 ICACHE_FLASH_ATTR uint8_t application_function_gpio_dump(application_parameters_t ap)
 {
-	dump(0, ap.size, ap.dst);
+	dump(&config.gpios[0], 0, ap.size, ap.dst);
 
 	return(app_action_normal);
 }

@@ -153,6 +153,8 @@ static const application_function_table_t application_function_table[] =
 void application_periodic(void)
 {
 	stat_application_periodic++;
+
+	gpios_periodic();
 }
 
 static void application_periodic_timer_callback(void *arg)
@@ -166,7 +168,7 @@ ICACHE_FLASH_ATTR void application_init(config_t *config)
 	os_timer_setfn(&application_periodic_timer, application_periodic_timer_callback, (void *)0);
 	os_timer_arm(&application_periodic_timer, 100, 1);
 
-	gpios_init(&config->gpios);
+	gpios_init();
 }
 
 ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)

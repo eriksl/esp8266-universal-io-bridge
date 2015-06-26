@@ -29,7 +29,7 @@ ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 	cfg->uart.parity = parity_none;
 	cfg->uart.stop_bits = 1;
 
-	gpios_config_init(&cfg->gpios);
+	gpios_config_init(cfg->gpios);
 }
 
 ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
@@ -51,7 +51,7 @@ ICACHE_FLASH_ATTR void config_read(void)
 
 ICACHE_FLASH_ATTR void config_write_alt(const config_t *cfg)
 {
-	eeprom_t eeprom;
+	static eeprom_t eeprom;
 
 	eeprom.magic = config_magic;
 	eeprom.config = *cfg;
@@ -71,7 +71,7 @@ ICACHE_FLASH_ATTR void config_write(void)
 ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 {
 	uint16_t length;
-	config_t cfg;
+	static config_t cfg;
 
 	config_read_alt(&cfg);
 
@@ -95,5 +95,5 @@ ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 	size -= length;
 	string += length;
 
-	gpios_dump_string(size, string);
+	gpios_dump_string(&cfg.gpios[0], size, string);
 }
