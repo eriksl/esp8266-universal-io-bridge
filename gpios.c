@@ -42,6 +42,7 @@ static void gpio_init_bounce(gpio_trait_t *);
 static void gpio_init_pwm(gpio_trait_t *);
 
 static gpio_trait_t *find_gpio(uint8_t);
+static void config_init(gpio_t *gpio);
 
 static uint8_t pwm_subsystem_active = 0;
 
@@ -108,26 +109,23 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 		gpio_mode_to_initfn[config.gpios[current].mode].init_fn(&gpio_traits[current]);
 }
 
-ICACHE_FLASH_ATTR static void gpio_reset(gpio_trait_t *gpio)
+ICACHE_FLASH_ATTR static void config_init(gpio_t *gpio)
 {
+	gpio->mode = gpio_disabled;
+	gpio->output.startup_state = 0;
+	gpio->bounce.direction = gpio_up;
 	gpio->bounce.delay = 0;
-	gpio->pwm.channel = 0;
+	gpio->bounce.repeat = 0;
+	gpio->bounce.autotrigger = 0;
+	gpio->pwm.startup_duty = 0;
 }
 
 ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
 {
 	int current;
 
-	for(current = 0; current < gpios_amount; current++)
-	{
-		gpios[current].mode = gpio_disabled;
-		gpios[current].output.startup_state = 0;
-		gpios[current].bounce.direction = gpio_up;
-		gpios[current].bounce.delay = 0;
-		gpios[current].bounce.repeat = 0;
-		gpios[current].bounce.autotrigger = 0;
-		gpios[current].pwm.startup_duty = 0;
-	}
+	for(current = 0; current < gpio_size; current++)
+		config_init(&gpios[current]);
 }
 
 ICACHE_FLASH_ATTR static void set_output(const gpio_trait_t *gpio, uint8_t onoff)
@@ -239,13 +237,11 @@ ICACHE_FLASH_ATTR static uint8_t gpio_mode_from_string(const char *mode)
 
 ICACHE_FLASH_ATTR static void gpio_init_disabled(gpio_trait_t *gpio)
 {
-	gpio_reset(gpio);
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
 ICACHE_FLASH_ATTR static void gpio_init_input(gpio_trait_t *gpio)
 {
-	gpio_reset(gpio);
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
@@ -253,7 +249,6 @@ ICACHE_FLASH_ATTR static void gpio_init_output(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio_reset(gpio);
 	gpio_output_set(0, 0, 1 << gpio->index, 0);
 
 	if(cfg->output.startup_state)
@@ -266,7 +261,6 @@ ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio_reset(gpio);
 	gpio_output_set(0, 0, 1 << gpio->index, 0);
 
 	if(cfg->bounce.direction == gpio_up)
@@ -282,7 +276,6 @@ ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio_reset(gpio);
 	trigger_pwm(gpio, cfg->pwm.startup_duty);
 }
 
