@@ -11,9 +11,11 @@
 
 typedef struct
 {
-	const	gpio_id_t		id;
-	const	char			*name;
-	const	uint8_t			index;
+	const	gpio_id_t	id;
+	const	char		*name;
+	const	uint8_t		index;
+	const	uint32_t	io_mux;
+	const	uint32_t	io_func;
 
 	struct
 	{
@@ -23,8 +25,6 @@ typedef struct
 	struct
 	{
 				uint8_t		channel;
-		const	uint32_t	io_mux;
-		const	uint32_t	io_func;
 	} pwm;
 } gpio_trait_t;
 
@@ -61,22 +61,30 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_0,
 		.name = "gpio0",
 		.index = 0,
-		.pwm =
-		{
-			.io_mux = PERIPHS_IO_MUX_GPIO0_U,
-			.io_func = FUNC_GPIO0,
-		},
+		.io_mux = PERIPHS_IO_MUX_GPIO0_U,
+		.io_func = FUNC_GPIO0,
 	},
 	{
 		.id = gpio_2,
 		.name = "gpio2",
 		.index = 2,
-		.pwm =
-		{
-			.io_mux = PERIPHS_IO_MUX_GPIO2_U,
-			.io_func = FUNC_GPIO2,
-		},
+		.io_mux = PERIPHS_IO_MUX_GPIO2_U,
+		.io_func = FUNC_GPIO2,
 	},
+	{
+		.id = gpio_12,
+		.name = "gpio12",
+		.index = 12,
+		.io_mux = PERIPHS_IO_MUX_MTDI_U,
+		.io_func = FUNC_GPIO12,
+	},
+	{
+		.id = gpio_13,
+		.name = "gpio13",
+		.index = 13,
+		.io_mux = PERIPHS_IO_MUX_MTCK_U,
+		.io_func = FUNC_GPIO13,
+	}
 };
 
 ICACHE_FLASH_ATTR static gpio_t *get_config(const gpio_trait_t *gpio)
@@ -101,11 +109,13 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 
 		gpio->bounce.delay = 0;
 
+		PIN_FUNC_SELECT(gpio->io_mux, gpio->io_func);
+
 		if((cfg->mode == gpio_pwm) && (pwmchannel < gpio_pwm_size))
 		{
 			gpio->pwm.channel = pwmchannel;
-			pwm_io_info[pwmchannel][0] = gpio->pwm.io_mux;
-			pwm_io_info[pwmchannel][1] = gpio->pwm.io_func;
+			pwm_io_info[pwmchannel][0] = gpio->io_mux;
+			pwm_io_info[pwmchannel][1] = gpio->io_func;
 			pwm_io_info[pwmchannel][2] = gpio->index;
 			pwm_duty_init[pwmchannel] = cfg->pwm.startup_duty;
 			pwmchannel++;
