@@ -296,6 +296,7 @@ ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_
 			length = snprintf(str, size, "> gpio: %u, name: %s, mode: ", gpio->index, gpio->name);
 			size -= length;
 			str += length;
+			length = 0;
 
 			switch(cfg->mode)
 			{
@@ -346,7 +347,12 @@ ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_
 				}
 			}
 
-			strlcpy(str + length, "\n", size - length);
+			str += length;
+			size =- length;
+
+			length = snprintf(str, size, "\n");
+			str += length;
+			size -= length;
 		}
 	}
 }
