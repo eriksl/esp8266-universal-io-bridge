@@ -58,6 +58,16 @@ static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
 static gpio_trait_t gpio_traits[gpio_size] =
 {
 	{
+		.id = gpio_0,
+		.name = "gpio0",
+		.index = 0,
+		.pwm =
+		{
+			.io_mux = PERIPHS_IO_MUX_GPIO0_U,
+			.io_func = FUNC_GPIO0,
+		},
+	},
+	{
 		.id = gpio_2,
 		.name = "gpio2",
 		.index = 2,

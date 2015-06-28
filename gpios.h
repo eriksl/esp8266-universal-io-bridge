@@ -7,9 +7,11 @@
 
 typedef enum
 {
-	gpio_2 = 0,
-	gpios_amount = 1,
-	gpios_pwm_amount = 1
+	gpio_0 = 0,
+	gpio_2,
+	gpio_error,
+	gpio_size = gpio_error,
+	gpio_pwm_size = gpio_size
 } gpio_id_t;
 
 typedef enum
