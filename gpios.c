@@ -88,6 +88,7 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
 	gpio_trait_t *gpio;
+	gpio_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
 
@@ -96,15 +97,17 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 	for(current = 0, pwmchannel = 0; current < gpio_size; current++)
 	{
 		gpio = &gpio_traits[current];
+		cfg = get_config(gpio);
+
 		gpio->bounce.delay = 0;
 
-		if((get_config(gpio)->mode == gpio_pwm) && (pwmchannel < gpios_pwm_size))
+		if((cfg->mode == gpio_pwm) && (pwmchannel < gpio_pwm_size))
 		{
 			gpio->pwm.channel = pwmchannel;
 			pwm_io_info[pwmchannel][0] = gpio->pwm.io_mux;
 			pwm_io_info[pwmchannel][1] = gpio->pwm.io_func;
 			pwm_io_info[pwmchannel][2] = gpio->index;
-			pwm_duty_init[pwmchannel] = 0;
+			pwm_duty_init[pwmchannel] = cfg->pwm.startup_duty;
 			pwmchannel++;
 		}
 	}
@@ -284,9 +287,6 @@ ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
 {
-	const gpio_t *cfg = get_config(gpio);
-
-	trigger_pwm(gpio, cfg->pwm.startup_duty);
 }
 
 ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
