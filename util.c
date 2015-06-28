@@ -10,7 +10,7 @@
 #include <mem.h>
 #include <user_interface.h>
 
-ICACHE_FLASH_ATTR int printf(const char *fmt, ...)
+ICACHE_FLASH_ATTR int dprintf(const char *fmt, ...)
 {
 	static char buffer[64];
 	va_list ap;

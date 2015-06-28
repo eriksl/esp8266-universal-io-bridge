@@ -45,6 +45,6 @@ int atoi(const char *);
 void reset(void);
 const char *yesno(uint8_t value);
 const char *onoff(uint8_t value);
-int printf(const char *fmt, ...);
+int dprintf(const char *fmt, ...);
 
 #endif
