@@ -55,7 +55,7 @@ static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
 	{ gpio_pwm,			"pwm",			gpio_init_pwm },
 };
 
-static gpio_trait_t gpio_traits[gpios_amount] =
+static gpio_trait_t gpio_traits[gpio_size] =
 {
 	{
 		.id = gpio_2,
@@ -78,17 +78,17 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
 	gpio_trait_t *gpio;
-	uint32_t pwm_io_info[gpios_pwm_amount][3];
-	uint32_t pwm_duty_init[gpios_pwm_amount];
+	uint32_t pwm_io_info[gpio_pwm_size][3];
+	uint32_t pwm_duty_init[gpio_pwm_size];
 
 	gpio_init();
 
-	for(current = 0, pwmchannel = 0; current < gpios_amount; current++)
+	for(current = 0, pwmchannel = 0; current < gpio_size; current++)
 	{
 		gpio = &gpio_traits[current];
 		gpio->bounce.delay = 0;
 
-		if((get_config(gpio)->mode == gpio_pwm) && (pwmchannel < gpios_pwm_amount))
+		if((get_config(gpio)->mode == gpio_pwm) && (pwmchannel < gpios_pwm_size))
 		{
 			gpio->pwm.channel = pwmchannel;
 			pwm_io_info[pwmchannel][0] = gpio->pwm.io_mux;
@@ -105,7 +105,7 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 		pwm_subsystem_active = 1;
 	}
 
-	for(current = 0; current < gpios_amount; current++)
+	for(current = 0; current < gpio_size; current++)
 		gpio_mode_to_initfn[config.gpios[current].mode].init_fn(&gpio_traits[current]);
 }
 
@@ -146,7 +146,7 @@ void gpios_periodic(void)
 	gpio_trait_t *gpio;
 	const gpio_t *cfg;
 
-	for(current = 0; current < gpios_amount; current++)
+	for(current = 0; current < gpio_size; current++)
 	{
 		gpio = &gpio_traits[current];
 		cfg = get_config(gpio);
@@ -208,7 +208,7 @@ ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(uint8_t index)
 	uint8_t current;
 	gpio_trait_t *gpio;
 
-	for(current = 0; current < gpios_amount; current++)
+	for(current = 0; current < gpio_size; current++)
 	{
 		gpio = &gpio_traits[current];
 
@@ -286,7 +286,7 @@ ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_
 	const gpio_trait_t *gpio;
 	const gpio_t *cfg;
 
-	for(ix = 0; ix < gpios_amount; ix++)
+	for(ix = 0; ix < gpio_size; ix++)
 	{
 		gpio = &gpio_traits[ix];
 		cfg = &cfgs[ix];
