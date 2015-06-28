@@ -9,12 +9,14 @@
 
 enum
 {
-	config_magic = 0x4afb4afb
+	config_magic = 0x4afb4afc,
+	config_version = 1
 };
 
 typedef struct
 {
 	uint32_t magic;
+	uint32_t version;
 	config_t config;
 } eeprom_t;
 
@@ -38,7 +40,7 @@ ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
 
 	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)&eeprom, sizeof(eeprom));
 
-	if(eeprom.magic == config_magic)
+	if((eeprom.magic == config_magic) && (eeprom.version == config_version))
 		*cfg = eeprom.config;
 	else
 		config_init(cfg);
@@ -51,9 +53,10 @@ ICACHE_FLASH_ATTR void config_read(void)
 
 ICACHE_FLASH_ATTR void config_write_alt(const config_t *cfg)
 {
-	static eeprom_t eeprom;
+	eeprom_t eeprom;
 
 	eeprom.magic = config_magic;
+	eeprom.version = config_version;
 	eeprom.config = *cfg;
 	eeprom.config.config_valid = 1;
 
@@ -71,7 +74,7 @@ ICACHE_FLASH_ATTR void config_write(void)
 ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 {
 	uint16_t length;
-	static config_t cfg;
+	config_t cfg;
 
 	config_read_alt(&cfg);
 
