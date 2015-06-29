@@ -21,7 +21,7 @@ static const char *slp[] =
 	"unknown"
 };
 
-ICACHE_FLASH_ATTR uint8_t application_function_wlan_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parameters_t ap)
 {
 	struct station_config sc_default, sc_current;
 

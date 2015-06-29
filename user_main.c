@@ -10,12 +10,14 @@
 #include <espconn.h>
 #include <user_interface.h>
 
-typedef enum
+typedef enum __attribute__ ((__packed__))
 {
     ts_raw,
     ts_dodont,
     ts_data,
 } telnet_strip_state_t;
+
+_Static_assert(sizeof(gpio_id_t) == 1, "sizeof(telnet_strip_state) != 1");
 
 queue_t *uart_send_queue;
 queue_t *uart_receive_queue;
@@ -23,8 +25,8 @@ queue_t *tcp_cmd_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
-static uint8_t go_do_disconnect;
-static uint8_t go_do_reset;
+static bool_t go_do_disconnect;
+static bool_t go_do_reset;
 
 static char *tcp_cmd_receive_buffer;
 static char *tcp_cmd_send_buffer;
@@ -84,8 +86,8 @@ static void background_task(os_event_t *events)
 	// is already flushed out
 
 	uint8_t byte;
-	uint8_t telnet_strip_state;
-	uint8_t eol;
+	telnet_strip_state_t telnet_strip_state;
+	bool_t eol;
 
 	if(!tcp_cmd_send_buffer_busy)
 	{
@@ -183,7 +185,7 @@ ICACHE_FLASH_ATTR static void tcp_data_receive_callback(void *arg, char *data, u
 {
 	uint16_t current;
 	uint8_t byte;
-	uint8_t telnet_strip_state;
+	telnet_strip_state_t telnet_strip_state;
 
 	telnet_strip_state = ts_raw;
 

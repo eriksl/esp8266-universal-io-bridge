@@ -3,6 +3,6 @@
 
 #include "application.h"
 
-uint8_t application_function_wlan_dump(application_parameters_t);
+app_action_t application_function_wlan_dump(application_parameters_t);
 
 #endif

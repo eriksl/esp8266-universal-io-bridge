@@ -7,6 +7,6 @@
 
 void application_init(config_t *);
 void application_periodic(void);
-uint8_t application_content(const char *src, uint16_t size, char *dst);
+app_action_t application_content(const char *src, uint16_t size, char *dst);
 
 #endif

@@ -16,25 +16,25 @@
 
 typedef struct
 {
-	const char	*command1;
-	const char	*command2;
-	uint8_t		required_args;
-	uint8_t		(*function)(application_parameters_t);
-	const char	*description;
+	const char		*command1;
+	const char		*command2;
+	uint8_t			required_args;
+	app_action_t	(*function)(application_parameters_t);
+	const char		*description;
 } application_function_table_t;
 
-static uint8_t application_function_config_dump(application_parameters_t ap);
-static uint8_t application_function_config_write(application_parameters_t ap);
-static uint8_t application_function_help(application_parameters_t ap);
-static uint8_t application_function_print_debug(application_parameters_t ap);
-static uint8_t application_function_quit(application_parameters_t ap);
-static uint8_t application_function_reset(application_parameters_t ap);
-static uint8_t application_function_stats(application_parameters_t ap);
-static uint8_t application_function_strip_telnet(application_parameters_t ap);
-static uint8_t application_function_uart_baud_rate(application_parameters_t ap);
-static uint8_t application_function_uart_data_bits(application_parameters_t ap);
-static uint8_t application_function_uart_stop_bits(application_parameters_t ap);
-static uint8_t application_function_uart_parity(application_parameters_t ap);
+static app_action_t application_function_config_dump(application_parameters_t ap);
+static app_action_t application_function_config_write(application_parameters_t ap);
+static app_action_t application_function_help(application_parameters_t ap);
+static app_action_t application_function_print_debug(application_parameters_t ap);
+static app_action_t application_function_quit(application_parameters_t ap);
+static app_action_t application_function_reset(application_parameters_t ap);
+static app_action_t application_function_stats(application_parameters_t ap);
+static app_action_t application_function_strip_telnet(application_parameters_t ap);
+static app_action_t application_function_uart_baud_rate(application_parameters_t ap);
+static app_action_t application_function_uart_data_bits(application_parameters_t ap);
+static app_action_t application_function_uart_stop_bits(application_parameters_t ap);
+static app_action_t application_function_uart_parity(application_parameters_t ap);
 
 static ETSTimer application_periodic_timer;
 
@@ -171,13 +171,12 @@ ICACHE_FLASH_ATTR void application_init(config_t *config)
 	gpios_init();
 }
 
-ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, char *dst)
+ICACHE_FLASH_ATTR app_action_t application_content(const char *src, uint16_t size, char *dst)
 {
 	args_t	args;
 	uint8_t args_count, arg_current;
-	uint8_t src_current = 0;
-	uint16_t src_left;
-	uint8_t ws_skipped;
+	uint16_t src_current = 0, src_left;
+	bool_t ws_skipped;
 	const application_function_table_t *tableptr;
 
 	*dst = '\0';
@@ -251,14 +250,14 @@ ICACHE_FLASH_ATTR uint8_t application_content(const char *src, uint16_t size, ch
 	return(app_action_error);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_config_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_config_dump(application_parameters_t ap)
 {
 	config_dump(ap.size, ap.dst);
 
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_config_write(application_parameters_t ap)
 {
 	config_write();
 	strlcpy(ap.dst, "config write OK\n", ap.size);
@@ -266,41 +265,41 @@ ICACHE_FLASH_ATTR static uint8_t application_function_config_write(application_p
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_help(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_help(application_parameters_t ap)
 {
 	const application_function_table_t *tableptr;
-	uint8_t offset;
+	uint16_t length;
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
-		offset = snprintf(ap.dst, ap.size, "> %s/%s[%d]: %s\n",
+		length = snprintf(ap.dst, ap.size, "> %s/%s[%d]: %s\n",
 				tableptr->command1, tableptr->command2,
 				tableptr->required_args, tableptr->description);
-		ap.dst	+= offset;
-		ap.size	-= offset;
+		ap.dst	+= length;
+		ap.size	-= length;
 	}
 
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_quit(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_quit(application_parameters_t ap)
 {
 	return(app_action_disconnect);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_reset(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_reset(application_parameters_t ap)
 {
 	return(app_action_reset);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_stats(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_stats(application_parameters_t ap)
 {
 	stats_generate(ap.size, ap.dst);
 
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_strip_telnet(application_parameters_t ap)
 {
 	if(ap.nargs > 1)
 		config.strip_telnet = !!atoi((*ap.args)[1]);
@@ -310,7 +309,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_strip_telnet(application_p
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_print_debug(application_parameters_t ap)
 {
 	if(ap.nargs > 1)
 		config.print_debug = !!atoi((*ap.args)[1]);
@@ -320,7 +319,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_print_debug(application_pa
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
 	uint32_t baud_rate = atoi((*ap.args)[1]);
 
@@ -337,7 +336,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_baud_rate(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_uart_data_bits(application_parameters_t ap)
 {
 	int data_bits = atoi((*ap.args)[1]);
 
@@ -354,7 +353,7 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_data_bits(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
 {
 	int stop_bits = atoi((*ap.args)[1]);
 
@@ -371,9 +370,9 @@ ICACHE_FLASH_ATTR static uint8_t application_function_uart_stop_bits(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static uint8_t application_function_uart_parity(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_uart_parity(application_parameters_t ap)
 {
-	uint8_t parity = uart_string_to_parity((*ap.args)[1]);
+	uart_parity_t parity = uart_string_to_parity((*ap.args)[1]);
 
 	if(parity == parity_error)
 	{

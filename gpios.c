@@ -24,13 +24,13 @@ typedef struct
 
 	struct
 	{
-				uint8_t		channel;
+		uint8_t	channel;
 	} pwm;
 } gpio_trait_t;
 
 typedef struct
 {
-	uint8_t			mode;
+	gpio_mode_t		mode;
 	const char		*name;
 	void			(*init_fn)(gpio_trait_t *);
 } gpio_mode_to_initfn_t;
@@ -41,10 +41,10 @@ static void gpio_init_output(gpio_trait_t *);
 static void gpio_init_bounce(gpio_trait_t *);
 static void gpio_init_pwm(gpio_trait_t *);
 
-static gpio_trait_t *find_gpio(uint8_t);
+static gpio_trait_t *find_gpio(gpio_id_t);
 static void config_init(gpio_t *gpio);
 
-static uint8_t pwm_subsystem_active = 0;
+static bool_t pwm_subsystem_active = 0;
 
 static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
 {
@@ -165,14 +165,14 @@ ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
 		config_init(&gpios[current]);
 }
 
-ICACHE_FLASH_ATTR static void set_output(const gpio_trait_t *gpio, uint8_t onoff)
+ICACHE_FLASH_ATTR static void set_output(const gpio_trait_t *gpio, bool_t onoff)
 {
 	gpio_output_set(onoff ? (1 << gpio->index) : 0x00,
 					!onoff ? (1 << gpio->index) : 0x00,
 					0x00, 0x00);
 }
 
-ICACHE_FLASH_ATTR static uint8_t get_input(const gpio_trait_t *gpio)
+ICACHE_FLASH_ATTR static bool_t get_input(const gpio_trait_t *gpio)
 {
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
@@ -218,7 +218,7 @@ void gpios_periodic(void)
 	}
 }
 
-ICACHE_FLASH_ATTR static void trigger_bounce(gpio_trait_t *gpio, uint8_t onoff)
+ICACHE_FLASH_ATTR static void trigger_bounce(gpio_trait_t *gpio, bool_t onoff)
 {
 	const gpio_t *cfg = get_config(gpio);
 
@@ -240,7 +240,7 @@ ICACHE_FLASH_ATTR  static void trigger_pwm(const gpio_trait_t *gpio, uint32_t du
 	pwm_start();
 }
 
-ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(uint8_t index)
+ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(gpio_id_t index)
 {
 	uint8_t current;
 	gpio_trait_t *gpio;
@@ -256,7 +256,7 @@ ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(uint8_t index)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static uint8_t gpio_mode_from_string(const char *mode)
+ICACHE_FLASH_ATTR static gpio_mode_t gpio_mode_from_string(const char *mode)
 {
 	if(!strcmp(mode, "disable"))
 		return(gpio_disabled);
@@ -315,15 +315,15 @@ ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
 {
-	uint8_t ix;
+	uint8_t current;
 	uint16_t length;
 	const gpio_trait_t *gpio;
 	const gpio_t *cfg;
 
-	for(ix = 0; ix < gpio_size; ix++)
+	for(current = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[ix];
-		cfg = &cfgs[ix];
+		gpio = &gpio_traits[current];
+		cfg = &cfgs[current];
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
@@ -396,9 +396,9 @@ ICACHE_FLASH_ATTR void gpios_dump_string(const gpio_t *gpio_cfgs, uint16_t size,
 	dump(gpio_cfgs, 0, size, string);
 }
 
-ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_t ap)
+ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parameters_t ap)
 {
-	uint8_t mode;
+	gpio_mode_t mode;
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
 	static config_t new_config;
@@ -450,10 +450,10 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 
 		case(gpio_bounce):
 		{
-			uint8_t direction;
+			gpio_direction_t direction;
 			uint32_t delay;
-			uint8_t repeat;
-			uint8_t autotrigger;
+			bool_t repeat;
+			bool_t autotrigger;
 
 			if(ap.nargs != 7)
 			{
@@ -524,7 +524,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_mode(application_parameters_
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t ap)
+ICACHE_FLASH_ATTR app_action_t application_function_gpio_get(application_parameters_t ap)
 {
 	uint8_t gpio_index;
 	const gpio_trait_t *gpio;
@@ -577,7 +577,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_get(application_parameters_t
 	return(app_action_error);
 }
 
-ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t ap)
+ICACHE_FLASH_ATTR app_action_t application_function_gpio_set(application_parameters_t ap)
 {
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
@@ -655,7 +655,7 @@ ICACHE_FLASH_ATTR uint8_t application_function_gpio_set(application_parameters_t
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR uint8_t application_function_gpio_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
 	dump(&config.gpios[0], 0, ap.size, ap.dst);
 

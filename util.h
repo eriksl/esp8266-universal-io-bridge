@@ -9,6 +9,16 @@
 #include <osapi.h>
 #include <ets_sys.h>
 
+typedef enum __attribute__ ((__packed__))
+{
+	off = 0,
+	no = 0,
+	on = 1,
+	yes = 1
+} bool_t;
+
+_Static_assert(sizeof(bool_t) == 1, "sizeof(bool_t) != 1");
+
 // prototypes missing
 
 size_t strlcpy(char *, const char *, size_t);
@@ -43,8 +53,8 @@ int atoi(const char *);
 // other handy functions
 
 void reset(void);
-const char *yesno(uint8_t value);
-const char *onoff(uint8_t value);
+const char *yesno(bool_t value);
+const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
 
 #endif

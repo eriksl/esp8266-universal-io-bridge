@@ -11,9 +11,9 @@
 
 #include "esp-uart-register.h"
 
-ICACHE_FLASH_ATTR uint8_t uart_string_to_parity(const char *str)
+ICACHE_FLASH_ATTR uart_parity_t uart_string_to_parity(const char *str)
 {
-	uint8_t rv;
+	uart_parity_t rv;
 
 	if(!strcmp(str, "none"))
 		rv = parity_none;
@@ -27,7 +27,7 @@ ICACHE_FLASH_ATTR uint8_t uart_string_to_parity(const char *str)
 	return(rv);
 }
 
-ICACHE_FLASH_ATTR const char *uart_parity_to_string(uint8_t ix)
+ICACHE_FLASH_ATTR const char *uart_parity_to_string(uart_parity_t ix)
 {
 	static const char *parity[] =
 	{
@@ -42,7 +42,7 @@ ICACHE_FLASH_ATTR const char *uart_parity_to_string(uint8_t ix)
 	return(parity[ix]);
 }
 
-ICACHE_FLASH_ATTR char uart_parity_to_char(uint8_t ix)
+ICACHE_FLASH_ATTR char uart_parity_to_char(uart_parity_t ix)
 {
 	static const char *parity = "NEO";
 
@@ -121,7 +121,7 @@ void uart_init(const uart_parameters_t *params)
 {
 	uint8_t data_bits;
 	uint8_t stop_bits;
-	uint8_t parity;
+	uart_parity_t parity;
 
 	ETS_UART_INTR_DISABLE();
 

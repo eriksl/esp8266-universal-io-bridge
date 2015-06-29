@@ -2,10 +2,12 @@
 #define gpios_h
 
 #include "application-parameters.h"
+#include "util.h"
 
 #include <stdint.h>
+#include <assert.h>
 
-typedef enum
+typedef enum __attribute__ ((__packed__))
 {
 	gpio_0 = 0,
 	gpio_2,
@@ -16,15 +18,19 @@ typedef enum
 	gpio_error,
 	gpio_size = gpio_error,
 	gpio_pwm_size = gpio_size
-} gpio_id_t;
+}  gpio_id_t;
 
-typedef enum
+_Static_assert(sizeof(gpio_id_t) == 1, "sizeof(gpio_id_t) != 1");
+
+typedef enum __attribute__ ((__packed__))
 {
 	gpio_up,
 	gpio_down,
 } gpio_direction_t;
 
-typedef enum
+_Static_assert(sizeof(gpio_direction_t) == 1, "sizeof(gpio_direction_t) != 1");
+
+typedef enum __attribute__ ((__packed__))
 {
 	gpio_disabled,
 	gpio_input,
@@ -35,21 +41,23 @@ typedef enum
 	gpio_mode_size = gpio_mode_error
 } gpio_mode_t;
 
+_Static_assert(sizeof(gpio_mode_t) == 1, "sizeof(gpio_mode_t) != 1");
+
 typedef struct
 {
 	gpio_mode_t mode;
 
 	struct
 	{
-		uint8_t startup_state;
+		bool_t startup_state;
 	} output;
 
 	struct
 	{
-		uint8_t direction;
+		gpio_direction_t direction;
 		uint32_t delay;
-		uint8_t repeat;
-		uint8_t autotrigger;
+		bool_t repeat;
+		bool_t autotrigger;
 	} bounce;
 
 	struct
@@ -63,9 +71,9 @@ void gpios_periodic(void);
 void gpios_config_init(gpio_t *);
 void gpios_dump_string(const gpio_t *, uint16_t, char *);
 
-uint8_t application_function_gpio_get(application_parameters_t);
-uint8_t application_function_gpio_set(application_parameters_t);
-uint8_t application_function_gpio_mode(application_parameters_t);
-uint8_t application_function_gpio_dump(application_parameters_t);
+app_action_t application_function_gpio_get(application_parameters_t);
+app_action_t application_function_gpio_set(application_parameters_t);
+app_action_t application_function_gpio_mode(application_parameters_t);
+app_action_t application_function_gpio_dump(application_parameters_t);
 
 #endif
