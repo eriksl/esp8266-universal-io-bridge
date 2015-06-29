@@ -72,6 +72,20 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.io_func = FUNC_GPIO2,
 	},
 	{
+		.id = gpio_4,
+		.name = "gpio4",
+		.index = 4,
+		.io_mux = PERIPHS_IO_MUX_GPIO4_U,
+		.io_func = FUNC_GPIO4,
+	},
+	{
+		.id = gpio_5,
+		.name = "gpio5",
+		.index = 5,
+		.io_mux = PERIPHS_IO_MUX_GPIO5_U,
+		.io_func = FUNC_GPIO5,
+	},
+	{
 		.id = gpio_12,
 		.name = "gpio12",
 		.index = 12,

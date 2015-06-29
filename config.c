@@ -10,7 +10,7 @@
 enum
 {
 	config_magic = 0x4afb4afc,
-	config_version = 2
+	config_version = 3
 };
 
 typedef struct
