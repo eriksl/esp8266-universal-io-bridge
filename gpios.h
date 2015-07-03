@@ -32,11 +32,22 @@ _Static_assert(sizeof(gpio_direction_t) == 1, "sizeof(gpio_direction_t) != 1");
 
 typedef enum __attribute__ ((__packed__))
 {
+	gpio_i2c_sda,
+	gpio_i2c_scl,
+	gpio_i2c_error,
+	gpio_i2c_size = gpio_i2c_error
+} gpio_i2c_t;
+
+_Static_assert(sizeof(gpio_i2c_t) == 1, "sizeof(gpio_i2c_t) != 1");
+
+typedef enum __attribute__ ((__packed__))
+{
 	gpio_disabled,
 	gpio_input,
 	gpio_output,
 	gpio_bounce,
 	gpio_pwm,
+	gpio_i2c,
 	gpio_mode_error,
 	gpio_mode_size = gpio_mode_error
 } gpio_mode_t;
@@ -64,6 +75,11 @@ typedef struct
 	{
 		uint32_t startup_duty;
 	} pwm;
+
+	struct
+	{
+		gpio_i2c_t pin;
+	} i2c;
 } gpio_t;
 
 void gpios_init(void);

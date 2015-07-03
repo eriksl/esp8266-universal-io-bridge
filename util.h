@@ -27,7 +27,6 @@ size_t strlen(const char *);
 int strcmp(const char *, const char *);
 
 unsigned long int strtoul(const char *, char **, int);
-unsigned long long int strtoull(const char *, char **, int);
 
 void *memset(void *, int, size_t);
 void *memcpy(void *, const void *, size_t);
@@ -43,6 +42,7 @@ void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
 void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 void ets_install_putc1(void(*)(char));
+void ets_delay_us(uint16_t);
 
 // local utility functions missing from libc
 

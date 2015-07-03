@@ -10,6 +10,7 @@
 #include "user_main.h"
 #include "config.h"
 #include "uart.h"
+#include "i2c.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
@@ -23,132 +24,8 @@ typedef struct
 	const char		*description;
 } application_function_table_t;
 
-static app_action_t application_function_config_dump(application_parameters_t ap);
-static app_action_t application_function_config_write(application_parameters_t ap);
-static app_action_t application_function_help(application_parameters_t ap);
-static app_action_t application_function_print_debug(application_parameters_t ap);
-static app_action_t application_function_quit(application_parameters_t ap);
-static app_action_t application_function_reset(application_parameters_t ap);
-static app_action_t application_function_stats(application_parameters_t ap);
-static app_action_t application_function_strip_telnet(application_parameters_t ap);
-static app_action_t application_function_uart_baud_rate(application_parameters_t ap);
-static app_action_t application_function_uart_data_bits(application_parameters_t ap);
-static app_action_t application_function_uart_stop_bits(application_parameters_t ap);
-static app_action_t application_function_uart_parity(application_parameters_t ap);
-
 static ETSTimer application_periodic_timer;
-
-static const application_function_table_t application_function_table[] =
-{
-	{
-		"cd", "config-dump",
-		0,
-		application_function_config_dump,
-		"dump config contents",
-	},
-	{
-		"cw", "config-write",
-		0,
-		application_function_config_write,
-		"write config to non-volatile storage",
-	},
-	{
-		"gd", "gpio-dump",
-		0,
-		application_function_gpio_dump,
-		"dump all gpio config"
-	},
-	{
-		"gg", "gpio-get",
-		1,
-		application_function_gpio_get,
-		"get gpio"
-	},
-	{
-		"gm", "gpio-mode",
-		0,
-		application_function_gpio_mode,
-		"get/set gpio mode (gpio, mode, parameters)",
-	},
-	{
-		"gs", "gpio-set",
-		1,
-		application_function_gpio_set,
-		"set gpio"
-	},
-	{
-		"?", "help",
-		0,
-		application_function_help,
-		"help [command]",
-	},
-	{
-		"pd", "print-debug",
-		0,
-		application_function_print_debug,
-		"set system (wlan) output on uart at startup, on/off [0/1]",
-	},
-	{
-		"q", "quit",
-		0,
-		application_function_quit,
-		"quit",
-	},
-	{
-		"r", "reset",
-		0,
-		application_function_reset,
-		"reset",
-	},
-	{
-		"s", "stats",
-		0,
-		application_function_stats,
-		"statistics",
-	},
-	{
-		"st", "strip-telnet",
-		0,
-		application_function_strip_telnet,
-		"strip telnet do/dont [0/1]",
-	},
-	{
-		"ub", "uart-baud",
-		1,
-		application_function_uart_baud_rate,
-		"set uart baud rate [1-1000000]",
-	},
-	{
-		"ud", "uart-data",
-		1,
-		application_function_uart_data_bits,
-		"set uart data bits [5/6/7/8]",
-	},
-	{
-		"us", "uart-stop",
-		1,
-		application_function_uart_stop_bits,
-		"set uart stop bits [1/2]",
-	},
-	{
-		"up", "uart-parity",
-		1,
-		application_function_uart_parity,
-		"set uart parity [none/even/odd]",
-	},
-	{
-		"wd", "wlan-dump",
-		0,
-		application_function_wlan_dump,
-		"dump wlan info",
-	},
-	{
-		"", "",
-		0,
-		(void *)0,
-		"",
-	},
-};
+static const application_function_table_t application_function_table[];
 
 void application_periodic(void)
 {
@@ -386,3 +263,225 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_parity(applicati
 
 	return(app_action_normal);
 }
+
+static uint8_t i2c_address = 0;
+
+ICACHE_FLASH_ATTR app_action_t application_function_i2c_address(application_parameters_t ap)
+{
+	i2c_address = (uint8_t)strtoul((*ap.args)[1], 0, 16);
+
+	snprintf(ap.dst, ap.size, "i2c-address: i2c slave address set to 0x%02x\n", i2c_address);
+
+	return(app_action_normal);
+}
+
+ICACHE_FLASH_ATTR app_action_t application_function_i2c_read(application_parameters_t ap)
+{
+	uint16_t length, current, size;
+	i2c_error_t error;
+	uint8_t bytes[32];
+
+	size = atoi((*ap.args)[1]);
+
+	if(size > sizeof(bytes))
+	{
+		snprintf(ap.dst, ap.size, "i2c-read: read max %u bytes\n", sizeof(bytes));
+		return(app_action_error);
+	}
+
+	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
+	{
+		i2c_error_format_string("i2c-read", error, ap.size, ap.dst);
+		return(app_action_error);
+	}
+
+	length = snprintf(ap.dst, ap.size, "i2c_read: read %u bytes from %02x:", size, i2c_address);
+	ap.dst += length;
+	ap.size -= length;
+
+	for(current = 0; current < size; current++)
+	{
+		length = snprintf(ap.dst, ap.size, " %02x", bytes[current]);
+		ap.dst += length;
+		ap.size -= length;
+	}
+
+	snprintf(ap.dst, ap.size, "\n");
+
+	return(app_action_normal);
+}
+
+ICACHE_FLASH_ATTR app_action_t application_function_i2c_write(application_parameters_t ap)
+{
+	uint16_t src_current, dst_current;
+	i2c_error_t error;
+	uint8_t bytes[32];
+
+	for(src_current = 1, dst_current = 0;
+			(src_current < ap.nargs) && (dst_current < sizeof(bytes));
+			src_current++, dst_current++)
+	{
+		bytes[dst_current] = (uint8_t)strtoul((*ap.args)[src_current], 0, 16);
+	}
+
+	if((error = i2c_send(i2c_address, dst_current, bytes)) != i2c_error_ok)
+	{
+		i2c_error_format_string("i2c-write", error, ap.size, ap.dst);
+		return(app_action_error);
+	}
+
+	snprintf(ap.dst, ap.size, "i2c_write: written %u bytes to %02x\n", dst_current, i2c_address);
+
+	return(app_action_normal);
+}
+
+ICACHE_FLASH_ATTR app_action_t application_function_i2c_reset(application_parameters_t ap)
+{
+	i2c_error_t error;
+
+	if((error = i2c_reset()) != i2c_error_ok)
+	{
+		i2c_error_format_string("i2c-reset", error, ap.size, ap.dst);
+		return(app_action_error);
+	}
+
+	snprintf(ap.dst, ap.size, "i2c_reset: ok\n");
+
+	return(app_action_normal);
+}
+
+static const application_function_table_t application_function_table[] =
+{
+	{
+		"cd", "config-dump",
+		0,
+		application_function_config_dump,
+		"dump config contents",
+	},
+	{
+		"cw", "config-write",
+		0,
+		application_function_config_write,
+		"write config to non-volatile storage",
+	},
+	{
+		"gd", "gpio-dump",
+		0,
+		application_function_gpio_dump,
+		"dump all gpio config"
+	},
+	{
+		"gg", "gpio-get",
+		1,
+		application_function_gpio_get,
+		"get gpio"
+	},
+	{
+		"gm", "gpio-mode",
+		0,
+		application_function_gpio_mode,
+		"get/set gpio mode (gpio, mode, parameters)",
+	},
+	{
+		"gs", "gpio-set",
+		1,
+		application_function_gpio_set,
+		"set gpio"
+	},
+    {
+        "ia", "i2c-address",
+        1,
+        application_function_i2c_address,
+        "set i2c slave address",
+    },
+    {
+        "ir", "i2c-read",
+        1,
+        application_function_i2c_read,
+        "read data from i2c slave",
+    },
+    {
+        "irst", "i2c-reset",
+        0,
+        application_function_i2c_reset,
+        "i2c interface reset",
+    },
+    {
+        "iw", "i2c-write",
+        1,
+        application_function_i2c_write,
+        "write data to i2c slave",
+    },
+	{
+		"?", "help",
+		0,
+		application_function_help,
+		"help [command]",
+	},
+	{
+		"pd", "print-debug",
+		0,
+		application_function_print_debug,
+		"set system (wlan) output on uart at startup, on/off [0/1]",
+	},
+	{
+		"q", "quit",
+		0,
+		application_function_quit,
+		"quit",
+	},
+	{
+		"r", "reset",
+		0,
+		application_function_reset,
+		"reset",
+	},
+	{
+		"s", "stats",
+		0,
+		application_function_stats,
+		"statistics",
+	},
+	{
+		"st", "strip-telnet",
+		0,
+		application_function_strip_telnet,
+		"strip telnet do/dont [0/1]",
+	},
+	{
+		"ub", "uart-baud",
+		1,
+		application_function_uart_baud_rate,
+		"set uart baud rate [1-1000000]",
+	},
+	{
+		"ud", "uart-data",
+		1,
+		application_function_uart_data_bits,
+		"set uart data bits [5/6/7/8]",
+	},
+	{
+		"us", "uart-stop",
+		1,
+		application_function_uart_stop_bits,
+		"set uart stop bits [1/2]",
+	},
+	{
+		"up", "uart-parity",
+		1,
+		application_function_uart_parity,
+		"set uart parity [none/even/odd]",
+	},
+	{
+		"wd", "wlan-dump",
+		0,
+		application_function_wlan_dump,
+		"dump wlan info",
+	},
+	{
+		"", "",
+		0,
+		(void *)0,
+		"",
+	},
+};

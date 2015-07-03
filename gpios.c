@@ -3,6 +3,7 @@
 #include "application-parameters.h"
 #include "util.h"
 #include "config.h"
+#include "i2c.h"
 
 #include <user_interface.h>
 #include <osapi.h>
@@ -40,6 +41,7 @@ static void gpio_init_input(gpio_trait_t *);
 static void gpio_init_output(gpio_trait_t *);
 static void gpio_init_bounce(gpio_trait_t *);
 static void gpio_init_pwm(gpio_trait_t *);
+static void gpio_init_i2c(gpio_trait_t *);
 
 static gpio_trait_t *find_gpio(gpio_id_t);
 static void config_init(gpio_t *gpio);
@@ -53,6 +55,7 @@ static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
 	{ gpio_output,		"output",		gpio_init_output },
 	{ gpio_bounce,		"bounce",		gpio_init_bounce },
 	{ gpio_pwm,			"pwm",			gpio_init_pwm },
+	{ gpio_i2c,			"i2c",			gpio_init_i2c },
 };
 
 static gpio_trait_t gpio_traits[gpio_size] =
@@ -113,6 +116,9 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 	gpio_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
+	int8_t sda, scl;
+
+	sda = scl = -1;
 
 	gpio_init();
 
@@ -134,16 +140,28 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 			pwm_duty_init[pwmchannel] = cfg->pwm.startup_duty;
 			pwmchannel++;
 		}
+
+		if(cfg->mode == gpio_i2c)
+		{
+			if(cfg->i2c.pin == gpio_i2c_sda)
+				sda = gpio->index;
+
+			if(cfg->i2c.pin == gpio_i2c_scl)
+				scl = gpio->index;
+		}
 	}
 
 	if(pwmchannel > 0)
 	{
 		pwm_init(3000, pwm_duty_init, pwmchannel, pwm_io_info);
-		pwm_subsystem_active = 1;
+		pwm_subsystem_active = true;
 	}
 
 	for(current = 0; current < gpio_size; current++)
 		gpio_mode_to_initfn[config.gpios[current].mode].init_fn(&gpio_traits[current]);
+
+	if((sda > 0) && (scl > 0))
+		i2c_init(sda, scl);
 }
 
 ICACHE_FLASH_ATTR static void config_init(gpio_t *gpio)
@@ -155,6 +173,7 @@ ICACHE_FLASH_ATTR static void config_init(gpio_t *gpio)
 	gpio->bounce.repeat = 0;
 	gpio->bounce.autotrigger = 0;
 	gpio->pwm.startup_duty = 0;
+	gpio->i2c.pin = gpio_i2c_sda;
 }
 
 ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
@@ -188,31 +207,19 @@ void gpios_periodic(void)
 		gpio = &gpio_traits[current];
 		cfg = get_config(gpio);
 
-		switch(cfg->mode)
+		if((cfg->mode == gpio_bounce) && (gpio->bounce.delay > 0))
 		{
-			case(gpio_bounce):
+			if(gpio->bounce.delay >= 100)
+				gpio->bounce.delay -= 100; // 100 ms per tick
+			else
+				gpio->bounce.delay = 0;
+
+			if(gpio->bounce.delay == 0)
 			{
-				if(gpio->bounce.delay > 0)
-				{
-					if(gpio->bounce.delay >= 100)
-						gpio->bounce.delay -= 100; // 100 ms per tick
-					else
-						gpio->bounce.delay = 0;
+				set_output(gpio, !get_input(gpio));
 
-					if(gpio->bounce.delay == 0)
-					{
-						set_output(gpio, !get_input(gpio));
-
-						if(cfg->bounce.repeat)
-							gpio->bounce.delay = cfg->bounce.delay;
-					}
-				}
-
-				break;
-			}
-
-			default:
-			{
+				if(cfg->bounce.repeat)
+					gpio->bounce.delay = cfg->bounce.delay;
 			}
 		}
 	}
@@ -268,8 +275,20 @@ ICACHE_FLASH_ATTR static gpio_mode_t gpio_mode_from_string(const char *mode)
 		return(gpio_bounce);
 	else if(!strcmp(mode, "pwm"))
 		return(gpio_pwm);
+	else if(!strcmp(mode, "i2c"))
+		return(gpio_i2c);
 	else
 		return(gpio_mode_error);
+}
+
+ICACHE_FLASH_ATTR static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
+{
+	if(!strcmp(mode, "sda"))
+		return(gpio_i2c_sda);
+	else if(!strcmp(mode, "scl"))
+		return(gpio_i2c_scl);
+	else
+		return(gpio_i2c_error);
 }
 
 ICACHE_FLASH_ATTR static void gpio_init_disabled(gpio_trait_t *gpio)
@@ -311,6 +330,16 @@ ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
 
 ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
 {
+}
+
+ICACHE_FLASH_ATTR static void gpio_init_i2c(gpio_trait_t *gpio)
+{
+	uint32_t pin = GPIO_PIN_ADDR(GPIO_ID_PIN(gpio->index));
+
+	/* set to open drain */
+	GPIO_REG_WRITE(pin, GPIO_REG_READ(pin) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE));
+
+	gpio_output_set(1 << gpio->index, 0, 1 << gpio->index, 0);
 }
 
 ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
@@ -373,6 +402,14 @@ ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_
 
 					break;
 				}
+
+				case(gpio_i2c):
+				{
+					length = snprintf(str, size, "i2c, pin: %s", cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
+
+					break;
+				}
+
 
 				default:
 				{
@@ -510,6 +547,27 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parame
 			break;
 		}
 
+		case(gpio_i2c):
+		{
+			gpio_i2c_t pin;
+
+			if(ap.nargs != 4)
+			{
+				snprintf(ap.dst, ap.size, "gpio-mode(i2c): usage: i2c sda|scl\n");
+				return(app_action_error);
+			}
+
+			if((pin = gpio_i2c_pin_from_string((*ap.args)[3])) == gpio_i2c_error)
+			{
+				snprintf(ap.dst, ap.size, "gpio-mode(i2c): usage: i2c sda|scl\n");
+				return(app_action_error);
+			}
+
+			new_gpio_config->i2c.pin = pin;
+
+			break;
+		}
+
 		default:
 		{
 		}
@@ -565,6 +623,12 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_get(application_paramet
 		case(gpio_pwm):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is output\n", gpio->name);
+			return(app_action_error);
+		}
+
+		case(gpio_i2c):
+		{
+			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is reserved for i2c\n", gpio->name);
 			return(app_action_error);
 		}
 
@@ -644,9 +708,15 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_set(application_paramet
 			break;
 		}
 
+		case(gpio_i2c):
+		{
+			snprintf(ap.dst, ap.size, "gpio-set: gpio %s is reserved for i2c\n", gpio->name);
+			return(app_action_error);
+		}
+
 		default:
 		{
-			snprintf(ap.dst, ap.size, "gpio-set: invalid mode %u\n", cfg->mode);
+			snprintf(ap.dst, ap.size, "gpio-set: cannot set gpio %u\n", cfg->mode);
 			return(app_action_error);
 		}
 	}

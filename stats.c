@@ -32,7 +32,7 @@ static const char *reset_map[] =
 	"unknown"
 };
 
-ICACHE_FLASH_ATTR void stats_generate(size_t size, char *dst)
+ICACHE_FLASH_ATTR void stats_generate(uint16_t size, char *dst)
 {
 	const struct rst_info *rst_info;
 
