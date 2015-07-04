@@ -12,9 +12,6 @@
 #include "uart.h"
 #include "i2c.h"
 
-#include <os_type.h>
-#include <ets_sys.h>
-
 typedef struct
 {
 	const char		*command1;
@@ -24,7 +21,6 @@ typedef struct
 	const char		*description;
 } application_function_table_t;
 
-static ETSTimer application_periodic_timer;
 static const application_function_table_t application_function_table[];
 
 void application_periodic(void)
@@ -34,17 +30,8 @@ void application_periodic(void)
 	gpios_periodic();
 }
 
-static void application_periodic_timer_callback(void *arg)
-{
-	(void)arg;
-	application_periodic();
-}
-
 ICACHE_FLASH_ATTR void application_init(config_t *config)
 {
-	os_timer_setfn(&application_periodic_timer, application_periodic_timer_callback, (void *)0);
-	os_timer_arm(&application_periodic_timer, 100, 1);
-
 	gpios_init();
 }
 

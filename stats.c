@@ -7,7 +7,10 @@
 
 stats_t stat_uart_rx_interrupts = 0;
 stats_t stat_uart_tx_interrupts = 0;
-stats_t	stat_application_periodic = 0;
+stats_t	stat_timer = 0;
+stats_t	stat_background_task = 0;
+stats_t stat_application_periodic = 0;
+stats_t stat_application_periodic_wrapped = 0;
 
 static const char *flash_map[] =
 {
@@ -51,7 +54,10 @@ ICACHE_FLASH_ATTR void stats_generate(uint16_t size, char *dst)
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
-			"> application periodic: %u\n",
+			"> timer fired: %u\n"
+			"> background task: %u\n"
+			"> application periodic task: %u\n"
+			"> application periodic task timer wrap: %u\n",
 			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),
@@ -62,5 +68,8 @@ ICACHE_FLASH_ATTR void stats_generate(uint16_t size, char *dst)
 			system_get_time() / 1000000,
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
-			stat_application_periodic);
+			stat_timer,
+			stat_background_task,
+			stat_application_periodic,
+			stat_application_periodic_wrapped);
 }

@@ -5,10 +5,13 @@
 #include "application.h"
 #include "config.h"
 #include "gpios.h"
+#include "stats.h"
 
 #include <ip_addr.h>
 #include <espconn.h>
 #include <user_interface.h>
+#include <os_type.h>
+#include <ets_sys.h>
 
 typedef enum __attribute__ ((__packed__))
 {
@@ -24,6 +27,8 @@ queue_t *uart_receive_queue;
 queue_t *tcp_cmd_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
+
+static ETSTimer periodic_timer;
 
 static bool_t go_do_disconnect;
 static bool_t go_do_reset;
@@ -57,8 +62,13 @@ ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *es
 
 static void background_task(os_event_t *events)
 {
+	static uint32_t prev_system_time_ms = 0;
 	uint16_t tcp_data_send_buffer_length;
 	uint16_t tcp_cmd_receive_buffer_length;
+	uint32_t current_system_time_ms;
+	uint16_t missed_ticks;
+
+	stat_background_task++;
 
 	// send data in the uart receive fifo to tcp
 
@@ -169,6 +179,27 @@ static void background_task(os_event_t *events)
 			tcp_cmd_send_buffer_busy = 1;
 			espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 		}
+	}
+
+	current_system_time_ms = system_get_time() / 1000;
+
+	if(prev_system_time_ms == 0)
+		prev_system_time_ms = current_system_time_ms;
+
+	missed_ticks = (current_system_time_ms - prev_system_time_ms) / 100; // 10 ms per tick
+
+	if(missed_ticks > 8) // wraparound occurred
+	{
+		stat_application_periodic_wrapped++;
+		missed_ticks = 1;
+	}
+
+	if(missed_ticks > 0)
+	{
+		while(missed_ticks-- > 0)
+			application_periodic();
+
+		prev_system_time_ms = current_system_time_ms;
 	}
 }
 
@@ -296,6 +327,15 @@ ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_conne
 	}
 }
 
+static void periodic_timer_callback(void *arg)
+{
+	(void)arg;
+
+	stat_timer++;
+
+	system_os_post(background_task_id, 0, 0);
+}
+
 ICACHE_FLASH_ATTR void user_init(void)
 {
 	if(!(uart_send_queue = queue_new(buffer_size)))
@@ -332,6 +372,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 
+	application_init(&config);
+
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
 	esp_data_tcp_connection = 0;
@@ -340,8 +382,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	espconn_regist_time(&esp_cmd_config, 30, 0);
 	esp_cmd_tcp_connection = 0;
 
-	application_init(&config);
-
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
-	system_os_post(background_task_id, 0, 0);
+
+	os_timer_setfn(&periodic_timer, periodic_timer_callback, (void *)0);
+	os_timer_arm(&periodic_timer, 100, 1);
 }
