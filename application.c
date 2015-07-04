@@ -281,6 +281,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_read(application_paramet
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
 		i2c_error_format_string("i2c-read", error, ap.size, ap.dst);
+		i2c_reset();
 		return(app_action_error);
 	}
 
@@ -316,6 +317,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_write(application_parame
 	if((error = i2c_send(i2c_address, dst_current, bytes)) != i2c_error_ok)
 	{
 		i2c_error_format_string("i2c-write", error, ap.size, ap.dst);
+		i2c_reset();
 		return(app_action_error);
 	}
 
