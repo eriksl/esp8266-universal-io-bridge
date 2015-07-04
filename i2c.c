@@ -58,7 +58,8 @@ static const char *error_strings[i2c_error_size] =
 	"bus locked",
 	"sda stuck",
 	"address NAK",
-	"data NAK"
+	"data NAK",
+	"receive error"
 };
 
 ICACHE_FLASH_ATTR static const char *i2c_state_string(void)
@@ -331,16 +332,18 @@ static i2c_error_t receive_bit(bool_t *bit)
 
 	// do oversampling of sda, to implement a software
 	// low-pass filter / spike filter
-	// fixme: the logic is too simple, "total" values between e.g.
-	// 20% and 80% "ones" should be "forbidden" and an error should be raised
 
 	for(total = 0, current = 0; current < i2c_config_sda_sampling_window; current++)
 		total += sda_is_set();
 
-	if(total > (i2c_config_sda_sampling_window / 2))
-		*bit = 1;
-	else
+	total *= 4; // turn into quarters, 0-1/4, 1/4-3/4, 3/4-1
+
+	if(total < (i2c_config_sda_sampling_window * 1))		// 0-1/4	=> 0
 		*bit = 0;
+	else if(total < (i2c_config_sda_sampling_window * 3))	// 1/4-3/4	=> error
+		return(i2c_error_receive_error);
+	else													// 3/4-1	=> 1
+		*bit = 1;
 
 	return(i2c_error_ok);
 }

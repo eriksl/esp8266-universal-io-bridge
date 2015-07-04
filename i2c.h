@@ -41,6 +41,7 @@ typedef enum __attribute__ ((__packed__))
 	i2c_error_sda_stuck,
 	i2c_error_address_nak,
 	i2c_error_data_nak,
+	i2c_error_receive_error,
 	i2c_error_error,
 	i2c_error_size = i2c_error_error
 } i2c_error_t;
