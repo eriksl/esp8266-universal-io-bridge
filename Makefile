@@ -9,9 +9,9 @@ LDSCRIPT		= -T$(SDKLD)/eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm
 
-OBJS			= application.o config.o gpios.o i2c.o queue.o stats.o uart.o user_main.o util.o wlan.o
+OBJS			= application.o config.o gpios.o i2c.o queue.o stats.o uart.o user_main.o util.o
 HEADERS			= esp-uart-register.h \
-				  application.h application-parameters.h config.h gpios.h i2c.h stats.h queue.h uart.h user_main.h user_config.h wlan.h
+				  application.h application-parameters.h config.h gpios.h i2c.h stats.h queue.h uart.h user_main.h user_config.h
 FW				= fw.elf
 FW1				= fw-0x00000.bin
 FW2				= fw-0x40000.bin

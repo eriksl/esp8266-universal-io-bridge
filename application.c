@@ -1,7 +1,6 @@
 #include "application.h"
 #include "application-parameters.h"
 
-#include "wlan.h"
 #include "gpios.h"
 #include "config.h"
 
@@ -11,6 +10,9 @@
 #include "config.h"
 #include "uart.h"
 #include "i2c.h"
+
+#include <user_interface.h>
+#include <c_types.h>
 
 typedef struct
 {
@@ -333,6 +335,48 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_reset(application_parame
 	}
 
 	snprintf(ap.dst, ap.size, "i2c_reset: ok\n");
+
+	return(app_action_normal);
+}
+
+static const char *phy[] = {
+	"unknown",
+	"802.11b",
+	"802.11g",
+	"802.11n",
+	"unknown"
+};
+
+static const char *slp[] =
+{
+	"none",
+	"light",
+	"modem",
+	"unknown"
+};
+
+ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parameters_t ap)
+{
+	struct station_config sc_default, sc_current;
+
+	wifi_station_get_config_default(&sc_default);
+	wifi_station_get_config(&sc_current);
+
+	snprintf(ap.dst, ap.size,
+			"> default ssid: %s, passwd: %s\n"
+			"> current ssid: %s, passwd: %s\n"
+			">\n"
+			"> phy mode: %s\n"
+			"> sleep mode: %s\n"
+			">\n"
+			"> channel: %u\n"
+			"> signal strength: %d dB\n",
+			sc_default.ssid, sc_default.password,
+			sc_current.ssid, sc_current.password,
+			phy[wifi_get_phy_mode()],
+			slp[wifi_get_sleep_type()],
+			wifi_get_channel(),
+			wifi_station_get_rssi());
 
 	return(app_action_normal);
 }
