@@ -467,7 +467,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parame
 		return(app_action_error);
 	}
 
-	new_config = config;
+	config_read_alt(&new_config);
 	new_gpio_config = &new_config.gpios[gpio->id];
 
 	switch(mode)
