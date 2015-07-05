@@ -117,7 +117,7 @@ static void uart_callback(void *p)
 	ETS_UART_INTR_ENABLE();
 }
 
-void uart_init(const uart_parameters_t *params)
+ICACHE_FLASH_ATTR void uart_init(const uart_parameters_t *params)
 {
 	uint8_t data_bits;
 	uint8_t stop_bits;

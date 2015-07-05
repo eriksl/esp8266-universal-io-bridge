@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-queue_t * queue_new(uint16_t size)
+ICACHE_FLASH_ATTR queue_t * queue_new(uint16_t size)
 {
 	queue_t *queue;
 

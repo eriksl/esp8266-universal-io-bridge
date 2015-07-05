@@ -274,7 +274,7 @@ static i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t send_byte(uint8_t byte)
+ICACHE_FLASH_ATTR static i2c_error_t send_byte(uint8_t byte)
 {
 	i2c_error_t error;
 	uint16_t current;
@@ -348,7 +348,7 @@ static i2c_error_t receive_bit(bool_t *bit)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t receive_byte(uint8_t *byte)
+ICACHE_FLASH_ATTR static i2c_error_t receive_byte(uint8_t *byte)
 {
 	uint16_t current;
 	bool_t bit;
@@ -368,7 +368,7 @@ static i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-static inline i2c_error_t send_ack(bool_t ack)
+ICACHE_FLASH_ATTR static inline i2c_error_t send_ack(bool_t ack)
 {
 	i2c_error_t error;
 
@@ -381,7 +381,7 @@ static inline i2c_error_t send_ack(bool_t ack)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t receive_ack(bool_t *ack)
+ICACHE_FLASH_ATTR static i2c_error_t receive_ack(bool_t *ack)
 {
 	i2c_error_t error;
 	bool_t bit;
@@ -431,7 +431,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_header(uint8_t address, i2c_direction_
 	return(i2c_error_ok);
 }
 
-i2c_error_t i2c_reset(void)
+ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
 {
 	uint16_t current;
 
