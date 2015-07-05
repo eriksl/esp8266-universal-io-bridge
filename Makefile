@@ -5,7 +5,7 @@ CFLAGS			= -Os -Wall -Wno-pointer-sign -nostdlib -mlongcalls -mtext-section-lite
 CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -I$(SDKROOT)/sdk/include -I.
 LDFLAGS			= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-LDSCRIPT		= -T$(SDKLD)/eagle.app.v6.ld
+LDSCRIPT		= -T./eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm
 
