@@ -6,6 +6,8 @@
 #include "config.h"
 #include "gpios.h"
 #include "stats.h"
+#include "i2c.h"
+#include "i2c_sensor.h"
 
 #include <ip_addr.h>
 #include <espconn.h>
@@ -372,7 +374,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 
-	application_init(&config);
+	gpios_init();
+	i2c_sensor_init();
 
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);

@@ -32,11 +32,6 @@ void application_periodic(void)
 	gpios_periodic();
 }
 
-ICACHE_FLASH_ATTR void application_init(config_t *config)
-{
-	gpios_init();
-}
-
 ICACHE_FLASH_ATTR app_action_t application_content(const char *src, uint16_t size, char *dst)
 {
 	args_t	args;
