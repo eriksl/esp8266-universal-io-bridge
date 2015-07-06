@@ -130,6 +130,7 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 		gpio->bounce.delay = 0;
 
 		PIN_FUNC_SELECT(gpio->io_mux, gpio->io_func);
+		PIN_PULLUP_DIS(gpio->io_mux);
 
 		if((cfg->mode == gpio_pwm) && (pwmchannel < gpio_pwm_size))
 		{
