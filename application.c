@@ -10,6 +10,7 @@
 #include "config.h"
 #include "uart.h"
 #include "i2c.h"
+#include "i2c_sensor.h"
 
 #include <user_interface.h>
 #include <c_types.h>
@@ -336,6 +337,40 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_reset(application
 	return(app_action_normal);
 }
 
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_read(application_parameters_t ap)
+{
+	i2c_sensor_t sensor;
+
+	sensor = (i2c_sensor_t)atoi((*ap.args)[1]);
+
+	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
+	{
+		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
+		return(app_action_error);
+	}
+
+	return(app_action_normal);
+}
+
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
+{
+	i2c_sensor_t sensor;
+	uint16_t offset;
+
+	sensor = i2c_sensor_digipicco_temperature;
+
+	while(sensor < i2c_sensor_size)
+	{
+		i2c_sensor_read(sensor, false, ap.size, ap.dst);
+		offset	= strlen(ap.dst);
+		ap.dst	+= offset;
+		ap.size	-= offset;
+		sensor++;
+	}
+
+	return(app_action_normal);
+}
+
 static const char *phy[] = {
 	"unknown",
 	"802.11b",
@@ -439,6 +474,18 @@ static const application_function_table_t application_function_table[] =
         1,
         application_function_i2c_write,
         "write data to i2c slave",
+    },
+    {
+        "isr", "i2c-sensor-read",
+        1,
+        application_function_i2c_sensor_read,
+        "read from i2c sensor",
+    },
+    {
+        "isd", "i2c-sensor-dump",
+        0,
+        application_function_i2c_sensor_dump,
+        "dump all i2c sensors",
     },
 	{
 		"?", "help",
