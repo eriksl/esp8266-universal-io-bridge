@@ -3,3 +3,5 @@
 *.elf
 /doc
 /ap_auth.h
+/linkmap
+/t
