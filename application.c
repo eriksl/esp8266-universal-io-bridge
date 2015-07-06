@@ -250,7 +250,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_parity(applicati
 
 static uint8_t i2c_address = 0;
 
-ICACHE_FLASH_ATTR app_action_t application_function_i2c_address(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_address(application_parameters_t ap)
 {
 	i2c_address = (uint8_t)strtoul((*ap.args)[1], 0, 16);
 
@@ -259,7 +259,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_address(application_para
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_i2c_read(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_read(application_parameters_t ap)
 {
 	uint16_t length, current, size;
 	i2c_error_t error;
@@ -296,7 +296,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_read(application_paramet
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_i2c_write(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_write(application_parameters_t ap)
 {
 	uint16_t src_current, dst_current;
 	i2c_error_t error;
@@ -321,7 +321,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_i2c_write(application_parame
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_i2c_reset(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_i2c_reset(application_parameters_t ap)
 {
 	i2c_error_t error;
 
