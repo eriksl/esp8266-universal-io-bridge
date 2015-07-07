@@ -178,8 +178,8 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 
-	i2cbuffer[0] = 0x01;	// select config register
-	i2cbuffer[1] = 0x60;	// write r0=r1=1, other bits zero
+	i2cbuffer[0] = 0x01;		// select config register
+	i2cbuffer[1] = 0b01100000;	// write r0=r1=1, max resolution, other bits zero
 
 	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
