@@ -155,7 +155,7 @@ ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, dou
 			}
 		}
 
-		if((compare < 1) && (precision > 0))
+		if((compare <= 1) && (precision > 0))
 			--precision;
 	}
 
