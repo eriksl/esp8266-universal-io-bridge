@@ -177,6 +177,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
+	uint32_t raw;
 
 	i2cbuffer[0] = 0x01;		// select config register
 	i2cbuffer[1] = 0b01100000;	// write r0=r1=1, max resolution, other bits zero
@@ -192,8 +193,15 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw		= (int16_t)(((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1]);
-	value->cooked	= value->raw / 256;
+	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+
+	if(raw & 0x8000)
+	{
+		raw &= ~0x8000;
+		value->cooked = (double)raw / -256;
+	}
+	else
+		value->cooked = (double)raw / 256;
 
 	return(i2c_error_ok);
 }
@@ -202,6 +210,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_ds1631(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
+	uint32_t raw;
 
 	i2cbuffer[0] = 0xac;		// select config register
 	i2cbuffer[1] = 0b00001100;	// r0=r1=1, max resolution, other bits zero
@@ -222,8 +231,15 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_ds1631(value_t *value)
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw		= (int16_t)(((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1]);
-	value->cooked	= value->raw / 256;
+	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+
+	if(raw & 0x8000)
+	{
+		raw &= ~0x8000;
+		value->cooked = (double)raw / -256;
+	}
+	else
+		value->cooked = (double)raw / 256;
 
 	return(i2c_error_ok);
 }
