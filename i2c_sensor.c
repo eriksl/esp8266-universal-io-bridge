@@ -714,7 +714,8 @@ static const fn_table_t fn_table[] =
 	}
 };
 
-ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size, char *dst)
+ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
+		uint16_t size, char *dst)
 {
 	const fn_table_t *fn_table_entry;
 	i2c_error_t error;
@@ -727,14 +728,14 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, 
 
 	fn_table_entry = &fn_table[sensor];
 
-	length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
-			fn_table_entry->name, fn_table_entry->type);
-	dst += length;
-	size -= length;
-
 	if((error = fn_table_entry->read_fn(&value)) == i2c_error_ok)
 	{
-		length = snprintf(dst, size, "[");
+		length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
+				fn_table_entry->name, fn_table_entry->type);
+		dst += length;
+		size -= length;
+
+		length = snprintf(dst, size, "%s", "[");
 		dst += length;
 		size -= length;
 
@@ -742,7 +743,7 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, 
 		dst += length;
 		size -= length;
 
-		length = snprintf(dst, size, "] (raw: ");
+		length = snprintf(dst, size, "%s", "] (raw: ");
 		dst += length;
 		size -= length;
 
@@ -750,16 +751,29 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, 
 		dst += length;
 		size -= length;
 
-		length = snprintf(dst, size, ")\n");
+		length = snprintf(dst, size, "%s", ")\n");
 		dst += length;
 		size -= length;
 	}
 	else
 	{
-		if(verbose)
-			i2c_error_format_string("error", error, size, dst);
-		else
-			snprintf(dst, size, "error\n");
+		if(list)
+		{
+			length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
+					fn_table_entry->name, fn_table_entry->type);
+			dst += length;
+			size -= length;
+
+			if(verbose)
+				length = i2c_error_format_string("error", error, size, dst);
+			else
+				length = snprintf(dst, size, "%s", "error");
+
+			dst += length;
+			size -= length;
+
+			snprintf(dst, size, "%s", "\n");
+		}
 
 		i2c_reset();
 	}

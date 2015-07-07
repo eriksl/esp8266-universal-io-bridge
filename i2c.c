@@ -81,7 +81,7 @@ ICACHE_FLASH_ATTR static const char *i2c_error_string(i2c_error_t error)
 ICACHE_FLASH_ATTR uint16_t i2c_error_format_string(const char *tag, i2c_error_t error,
 		uint16_t size, char *dst)
 {
-	return(snprintf(dst, size, "%s: bus error: %s (in bus state: %s)\n",
+	return(snprintf(dst, size, "%s: bus error: %s (in bus state: %s)",
 				tag, i2c_error_string(error), i2c_state_string()));
 }
 

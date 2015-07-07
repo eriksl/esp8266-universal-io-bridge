@@ -27,6 +27,6 @@ typedef enum __attribute__ ((__packed__))
 _Static_assert(sizeof(i2c_sensor_t) == 1, "sizeof(i2c_sensor_t) != 1");
 
 void i2c_sensor_init(void);
-uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size, char *dst);
+uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose, uint16_t size, char *dst);
 
 #endif

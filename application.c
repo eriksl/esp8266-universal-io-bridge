@@ -277,6 +277,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_read(application_
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
 		i2c_error_format_string("i2c-read", error, ap.size, ap.dst);
+		strlcat(ap.dst, "\n", ap.size);
 		i2c_reset();
 		return(app_action_error);
 	}
@@ -313,6 +314,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_write(application
 	if((error = i2c_send(i2c_address, dst_current, bytes)) != i2c_error_ok)
 	{
 		i2c_error_format_string("i2c-write", error, ap.size, ap.dst);
+		strlcat(ap.dst, "\n", ap.size);
 		i2c_reset();
 		return(app_action_error);
 	}
@@ -329,6 +331,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_reset(application
 	if((error = i2c_reset()) != i2c_error_ok)
 	{
 		i2c_error_format_string("i2c-reset", error, ap.size, ap.dst);
+		strlcat(ap.dst, "\n", ap.size);
 		return(app_action_error);
 	}
 
@@ -343,7 +346,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_read(appli
 
 	sensor = (i2c_sensor_t)atoi((*ap.args)[1]);
 
-	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
+	if(!i2c_sensor_read(sensor, true, true, ap.size, ap.dst))
 	{
 		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
 		return(app_action_error);
@@ -356,12 +359,18 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_dump(appli
 {
 	i2c_sensor_t sensor;
 	uint16_t offset;
+	uint8_t all;
 
-	sensor = i2c_sensor_digipicco_temperature;
+	if(ap.nargs > 1)
+		all = (uint8_t)atoi((*ap.args)[1]);
+	else
+		all = 0;
+
+	sensor = 0;
 
 	while(sensor < i2c_sensor_size)
 	{
-		i2c_sensor_read(sensor, false, ap.size, ap.dst);
+		i2c_sensor_read(sensor, !!all, false, ap.size, ap.dst);
 		offset	= strlen(ap.dst);
 		ap.dst	+= offset;
 		ap.size	-= offset;
