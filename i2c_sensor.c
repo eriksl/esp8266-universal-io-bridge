@@ -198,6 +198,36 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
 	return(i2c_error_ok);
 }
 
+ICACHE_FLASH_ATTR static i2c_error_t sensor_read_ds1631(value_t *value)
+{
+	uint8_t i2cbuffer[2];
+	i2c_error_t error;
+
+	i2cbuffer[0] = 0xac;		// select config register
+	i2cbuffer[1] = 0b00001100;	// r0=r1=1, max resolution, other bits zero
+
+	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	i2cbuffer[0] = 0x51;		// start conversion (if not started already)
+
+	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	i2cbuffer[0] = 0xaa;		// read temperature
+
+	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	value->raw		= (int16_t)(((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1]);
+	value->cooked	= value->raw / 256;
+
+	return(i2c_error_ok);
+}
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, double *pressure, double *pressure_raw)
 {
 	int16_t		ac1, ac2, ac3;
@@ -636,6 +666,11 @@ static const fn_table_t fn_table[] =
 		i2c_sensor_lm75,
 		"lm75", "temperature", "C", 1,
 		sensor_read_lm75
+	},
+	{
+		i2c_sensor_ds1631,
+		"ds1631", "temperature", "C", 2,
+		sensor_read_ds1631
 	},
 	{
 		i2c_sensor_bmp085_temperature,
