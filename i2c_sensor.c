@@ -772,11 +772,13 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 			dst += length;
 			size -= length;
 
-			snprintf(dst, size, "%s", "\n");
+			length = snprintf(dst, size, "%s", "\n");
+			dst += length;
+			size -= length;
 		}
 
 		i2c_reset();
 	}
 
-	return(strlen(orig_dst));
+	return(dst - orig_dst);
 }
