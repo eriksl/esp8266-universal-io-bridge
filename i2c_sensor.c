@@ -674,7 +674,7 @@ static const fn_table_t fn_table[] =
 	},
 	{
 		i2c_sensor_bmp085_temperature,
-		"bmp05", "temperature", "C", 1,
+		"bmp085", "temperature", "C", 1,
 		sensor_read_bmp085_temp
 	},
 	{
