@@ -57,55 +57,136 @@ Currently supported i2c sensors are:
 
 ### Commands concerning the UART bridge:
 
-short | long | parameters | description
--|-|-
-st|strip-telnet|`0` or `1`|`0` = disable, `1` = enable, toggle stripping of telnet garbage at the start of a connection when using the `telnet` command.
-ub|uart-baud|___baud rate___|Any ___baud rate___ you like, forget the 300-600-1200-2400-etc. list, the ESP8266 can freely use any baud rate you like. Don't forget to `config-write` and `reset`.
-ud|uart-data|`5`, `6`, `7`, or `8`	|The number of data bits, usually 8.
-us|uart-stop|`1` or `2`|The number of stop bits, usually 1.
-up|uart-parity|`none`/`even`/`odd`|The parity, usually none. Don't forget to set data bits to `7` if you want to use any parity.
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>st</td><td>strip-telnet</td><td><b>0</b> or <b>1</b></td><td><b>0</b> = disable, <b>1</b> = enable, toggle stripping of telnet garbage at the start of a connection when using the <b>telnet</b> command.
+</tr>
+<tr>
+<td>ub</td><td>uart-baud</td><td><i>baud rate</i></td><td>Any <i>baud rate</i> you like, forget the 300-600-1200-2400-etc. list, the ESP8266 can freely use any baud rate you like. Don't forget to <b>config-write</b> and <b>reset</b>.</td>
+</tr>
+<tr>
+<td>ud</td><td>uart-data</td><td><b>5</b>, <b>6</b>, <b>7</b>, or <b>8</b></td><td>The number of data bits, usually 8.</td>
+</tr>
+<tr>
+<td>us</td><td>uart-stop</td><td><b>1</b> or <b>2</b></td><td>The number of stop bits, usually 1.</td>
+</tr>
+<tr>
+<td>up</td><td>uart-parity</td><td><b>none</b>, <b>even</b> or <b>odd</b></td><td>The parity, usually <b>none</b>. Don't forget to set data bits to <b>7</b> if you want to use any parity.</td>
+</tr>
+</table>
 
 ### Commands concerning configuration:
-
-short | long | parameters | description
--|-|-
-cd|config-dump|___none___|Shows the complete configuration as stored in non volatile memory.
-cw|config-write|___none___|Writes config to non volatile memory.
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>cd</td><td>config-dump</td><td><i>none</i></td><td>Shows the complete configuration as stored in non volatile memory.</td>
+</tr>
+<tr>
+<td>cw</td><td>config-write</td><td><i>none</i></td><td>Writes config to non volatile memory.</td>
+</tr>
+</table>
 
 ### Commands concerning GPIO:
 
-short | long | parameters | description
--|-|-
-gd|gpio-dump|___none___|Dump GPIO configuration and current status.
-gg|gpio-get|___gpio___|Read GPIO. For example `gg 2` reads the GPIO `2` as input.
-gs|gpio-set|___gpio___ [___value___]|Set the GPIO if it's set as output, if set as bounce, trigger a bounce, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).
-gm|gpio-mode|___mode___|Without parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, `reset` to enable the changes.
-
-mode | parameters | description
--|-|-
-disable|___none___|Disable the GPIO (leave completely untouched).
-input|___none___|Set GPIO to input.
-output|___startup-state___|Set GPIO to output, set ___startup-state___ to `0` or `1` to configure the state of the output directly after boot.
-bounce|___direction___ ___delay___ ___repeat___ ___autotrigger___|___direction___ is `up` or `down`, specifying whether to bounce from "off" or "on", ___delay___ is value in milliseconds between triggered state and resuming normal GPIO state. ___repeat___ is `0` or `1`. `0` means once, `1` means repeating until stopped manually. ___autotrigger___ is `0` or `1`, `0` means leave the GPIO alone after boot, need to trigger manually (using gpio-set), `1` means trigger automatically after boot.
-pwm|[___startup-duty-cycle___]|___startup duty cycle___ is the duty cycle after boot, default `0`. The duty cycle can be 0 (off) to 65535 (continuously on).
-i2c|`sda` or `scl`|configure this GPIO for i2c operation. Specify a GPIO for both `sda` and `scl`. The GPIO's are set to _open drain_ mode without _pull-up resistors_, so you will have to connect them yourself. The proper value of the resistors should be calculated but 4.7 kOhm usually works just fine. It should be possible to use GPIO0 and GPIO2 for i2c (boot selection), just as GPIO1 and GPIO3 (normally connected to the UART) with a proper pull-up resistor, but I didn't try it myself.
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>gd</td><td>gpio-dump</td><td><i>none</i></td><td>Dump GPIO configuration and current status.</td>
+</tr>
+<tr>
+<td>gg</td><td>gpio-get</td><td><i>gpio</i></td><td>Read GPIO. For example <b>gg 2</b> reads the GPIO <b>2<b> as input.</td>
+</tr>
+<tr>
+<td>gs</td><td>gpio-set</td><td><i>gpio</i> [<i>value</i>]</td><td>Set the GPIO if it's set as output, if set as bounce, trigger a bounce, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).</td>
+</tr>
+<tr>
+<td>gm</td><td>gpio-mode</td><td><i>mode</i></td><td>Without parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, <b>reset</b> to enable the changes.</td>
+</tr>
+</table>
+<table>
+<tr>
+<th>mode</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>disable</td><td><i>none</i></td><td>Disable the GPIO (leave completely untouched).</td>
+</tr>
+<tr>
+<td>input</td><td><i>none</i></td><td>Set GPIO to input.</td>
+</tr>
+<tr>
+<td>output</td><td><i>startup-state</i></td><td>Set GPIO to output, set <i>startup-state</i> to <b>0</b> or <b>1</b> to configure the state of the output directly after boot.</td>
+</tr>
+<tr>
+<td>bounce</td><td><i>direction</i> <i>delay</i> <i>repeat</i> <i>autotrigger</i></td><td>
+<table>
+<tr><td><i>direction</i> is either <b>up</b> or <b>down</b>, specifying whether to bounce from "off" or "on".</td></tr>
+<tr><td><i>delay</i> is a value in milliseconds between triggered state and resuming normal GPIO state.</td></tr>
+<tr><td><i>repeat</i> is <b>0</b> or <b>1</b>. <b>0</b> means run once, <b>1</b> means repeating until stopped manually.</td></tr>
+<tr><td><i>autotrigger</i> is <b>0</b> or <b>1</b>. <b>0</b> means leave the GPIO alone after start, need to trigger manually (using gpio-set), <b>1</b> means trigger automatically after start.</td></tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>pwm</td><td>[<i>startup-duty-cycle</i>]</td><td><i>startup duty cycle</i> is the duty cycle after boot, default <b>0</b>. The duty cycle can be 0 (off) to 65535 (continuously on).</td>
+</tr>
+<tr>
+<td>i2c</td><td><b>sda</b> or <b>scl</b></td><td>configure this GPIO for i2c operation. Specify two GPIOs to assign to <b>sda</b> and <b>scl</b>. </td>
+</tr>
+</table>
 ### I2C related commands
-short | long | parameters | description
--|-|-
-ia|i2c-address|___address___|set i2c slave's client address for subsequent read and write commands.
-ir|i2c-read|___bytes___|Read (raw) this amount of bytes from the i2c slave. The bytes returned are in hex.
-iw|i2c_write|___byte___ [___byte ...___]|Write (raw) bytes to i2c slave. Format is hex bytes separated by spaces, e.g. `01 02 03`.
-irst|i2c-reset|___none___|Reset the i2c bus. Required whenever a read or write failed.
-isd|i2c-sensor-dump|[`1`]|Dump all detected (known) sensors on the i2c bus. Add `1` to list all known sensors, including those that are not detected.
-isr|i2c-sensor-read|___sensor id___|Get the value of the sensor with id ___sensor id___. Obtain sensor id's with i2c-sensor-dump.
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>ia</td><td>i2c-address</td><td><i>address</i></td><td>set i2c slave's client address for subsequent read and write commands.</td>
+</tr>
+<tr>
+<td>ir</td><td>i2c-read</td><td><i>bytes</i></td><td>Read (raw) this amount of bytes from the i2c slave. The bytes returned are in hex.</td>
+</tr>
+<tr>
+<td>iw</td><td>i2c_write</td><td><i>byte</i> [<i>byte ...</i>]</td><td>Write (raw) bytes to i2c slave. Format is hex bytes separated by spaces, e.g. <b>01 02 03</b>.</td>
+</tr>
+<tr>
+<td>irst</td><td>i2c-reset</td><td><i>none</i></td><td>Reset the i2c bus. Required whenever a read or write failed.</td>
+</tr>
+<tr>
+<td>isd</td><td>i2c-sensor-dump</td><td>[<b>1</b>]</td><td>Dump all detected (known) sensors on the i2c bus. Add <b>1</b> to list all known sensors, including those that are not detected.</td>
+</tr>
+<tr>
+<td>isr</td><td>i2c-sensor-read</td><td><i>sensor id</i></td><td>Get the value of the sensor with id <i>sensor id</i>. Obtain sensor id's with i2c-sensor-dump.</td>
+</tr>
+</table>
 ### Other commands:
-short | long | parameters | description
--|-|-
-?|help|___none___|Shows list of commands.
-pd|print-debug|`0` or `1`|`0` = enable, `1` = enable. Toggle printing of debug info during startup (dhcp, wlan assocation).
-q|quit|___none___|Disconnect from the control channel.
-r|reset|___none___|Reset the ESP8266, required if you make changes to the UART parameters or to the GPIOs mode.
-s|stats|___none___|Shows some statistics, these may change over time.
-wd|wlan-dump|___none___|Show everything known about the current wlan connection, like SSID, channel number and signal strength.
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>?</td><td>help</td><td><i>none</i></td><td>Shows list of commands.</td>
+</tr>
+<tr>
+<td>pd</td><td>print-debug</td><td><b>0</b> or <b>1</b></td><td><b>0</b> = enable, <b>1</b> = enable. Toggle printing of debug info during startup (dhcp, wlan assocation).</td>
+</tr>
+<tr>
+<td>q</td><td>quit</td><td><i>none</i></td><td>Disconnect from the control channel </td>
+</tr>
+<tr>
+<td>r</td><td>reset</td><td><i>none</i></td><td>Reset the ESP8266, required if you make changes to the UART parameters or to the GPIOs mode.</td>
+</tr>
+<tr>
+<td>s</td><td>|stats</td><td><i>none</i></td><td>Shows some statistics, these may change over time.</td>
+</tr>
+<tr>
+<td>wd</td><td>wlan-dump</td><td><i>none</i></td><td>Show everything known about the current wlan connection, like SSID, channel number and signal strength.</td>
+</tr>
+</table>
 
 See here for latest news and join the discussion: http://www.esp8266.com/viewtopic.php?f=11&t=3212.
