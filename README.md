@@ -112,7 +112,7 @@ Currently supported i2c sensors are:
 </table>
 <table>
 <tr>
-<td><b>gm</b> <i>gpio</i> <b>mode</b></td><td><b>parameters</b></td><td>description</td>
+<td><b>gm</b> <i>gpio</i> <b><i>mode</i></b></td><td><b>parameters</b></td><td>description</td>
 </tr>
 <tr>
 <td>disable</td><td><i>none</i></td><td>Disable the GPIO (leave completely untouched).</td>
