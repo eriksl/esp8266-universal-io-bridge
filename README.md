@@ -107,12 +107,12 @@ Currently supported i2c sensors are:
 <td>gs</td><td>gpio-set</td><td><i>gpio</i> [<i>value</i>]</td><td>Set the GPIO if it's set as output, if set as bounce, trigger a bounce, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).</td>
 </tr>
 <tr>
-<td>gm</td><td>gpio-mode</td><td><i>mode</i></td><td>Without parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, <b>reset</b> to enable the changes.</td>
+<td>gm</td><td>gpio-mode</td><td><i>mode</i> [<i>mode parameters</i>]</td><td>Without mode/parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, <b>reset</b> to enable the changes.</td>
 </tr>
 </table>
 <table>
 <tr>
-<th>mode</th><th>parameters</th><th>description</th>
+<th>gm <i>gpio></i> <b>mode</b></th><th>parameters</th><th>description</th>
 </tr>
 <tr>
 <td>disable</td><td><i>none</i></td><td>Disable the GPIO (leave completely untouched).</td>
@@ -176,7 +176,7 @@ Currently supported i2c sensors are:
 <td>pd</td><td>print-debug</td><td><b>0</b> or <b>1</b></td><td><b>0</b> = enable, <b>1</b> = enable. Toggle printing of debug info during startup (dhcp, wlan assocation).</td>
 </tr>
 <tr>
-<td>q</td><td>quit</td><td><i>none</i></td><td>Disconnect from the control channel </td>
+<td>q</td><td>quit</td><td><i>none</i></td><td>Disconnect from the control channel.</td>
 </tr>
 <tr>
 <td>r</td><td>reset</td><td><i>none</i></td><td>Reset the ESP8266, required if you make changes to the UART parameters or to the GPIOs mode.</td>
