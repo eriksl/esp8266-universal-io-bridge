@@ -8,6 +8,8 @@
 
 typedef struct
 {
+	char				ssid[32];
+	char				passwd[32];
 	unsigned int		config_valid:1;
 	unsigned int		strip_telnet:1;
 	unsigned int		print_debug:1;

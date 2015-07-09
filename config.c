@@ -10,7 +10,7 @@
 enum
 {
 	config_magic = 0x4afb4afc,
-	config_version = 5
+	config_version = 6
 };
 
 typedef struct
@@ -24,6 +24,8 @@ config_t config;
 
 ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 {
+	cfg->ssid[0] = '\0';
+	cfg->passwd[0] = '\0';
 	cfg->config_valid = 0;
 	cfg->strip_telnet = 0;
 	cfg->print_debug = 1;
@@ -81,10 +83,14 @@ ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *string)
 
 	length = snprintf(string, size,
 			"> config valid: %s\n"
+			"> wlan ssid: %s\n"
+			"> wlan passwd: %s\n"
 			"> strip telnet: %s\n"
 			"> print debug: %s\n"
 			"> uart: ",
 			yesno(cfg.config_valid),
+			cfg.ssid,
+			cfg.passwd,
 			onoff(cfg.strip_telnet),
 			onoff(cfg.print_debug));
 	size -= length;
