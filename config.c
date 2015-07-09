@@ -26,7 +26,7 @@ ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 {
 	cfg->config_valid = 0;
 	cfg->strip_telnet = 0;
-	cfg->uart.baud_rate = 9600;
+	cfg->uart.baud_rate = 115200;
 	cfg->uart.data_bits = 8;
 	cfg->uart.parity = parity_none;
 	cfg->uart.stop_bits = 1;
