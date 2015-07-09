@@ -409,10 +409,8 @@ ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parame
 	snprintf(ap.dst, ap.size,
 			"> default ssid: %s, passwd: %s\n"
 			"> current ssid: %s, passwd: %s\n"
-			">\n"
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
-			">\n"
 			"> channel: %u\n"
 			"> signal strength: %d dB\n",
 			sc_default.ssid, sc_default.password,
