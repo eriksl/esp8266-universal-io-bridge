@@ -32,8 +32,11 @@ os_event_t background_task_queue[background_task_queue_length];
 
 static ETSTimer periodic_timer;
 
-static bool_t go_do_disconnect;
-static bool_t go_do_reset;
+static struct
+{
+	unsigned int disconnect:1;
+	unsigned int reset:1;
+} action;
 
 static char *tcp_cmd_receive_buffer;
 static char *tcp_cmd_send_buffer;
@@ -164,15 +167,15 @@ static void background_task(os_event_t *events)
 				case(app_action_disconnect):
 				{
 					strlcpy(tcp_cmd_send_buffer, "> disconnect\n", buffer_size);
-					go_do_disconnect = 1;
+					action.disconnect = 1;
 
 					break;
 				}
 				case(app_action_reset):
 				{
 					strlcpy(tcp_cmd_send_buffer, "> reset\n", buffer_size);
-					go_do_disconnect = 1;
-					go_do_reset = 1;
+					action.disconnect = 1;
+					action.reset = 1;
 
 					break;
 				}
@@ -282,10 +285,10 @@ ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_conn
 
 ICACHE_FLASH_ATTR static void tcp_cmd_sent_callback(void *arg)
 {
-	if(go_do_disconnect)
+	if(action.disconnect)
 	{
 		espconn_disconnect(esp_cmd_tcp_connection);
-		go_do_disconnect = 0;
+		action.disconnect = 0;
 	}
 
     tcp_cmd_send_buffer_busy = 0;
@@ -306,7 +309,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 {
 	esp_cmd_tcp_connection = 0;
 
-	if(go_do_reset)
+	if(action.reset)
 		reset();
 }
 
@@ -358,8 +361,8 @@ ICACHE_FLASH_ATTR void user_init(void)
 	if(!(tcp_data_send_buffer = malloc(buffer_size)))
 		reset();
 
-	go_do_reset = 0;
-	go_do_disconnect = 0;
+	action.reset = 0;
+	action.disconnect = 0;
 
 	config_read();
 	system_set_os_print(config.print_debug);
