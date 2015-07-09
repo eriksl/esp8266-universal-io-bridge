@@ -19,6 +19,8 @@ typedef enum __attribute__ ((__packed__))
 
 _Static_assert(sizeof(bool_t) == 1, "sizeof(bool_t) != 1");
 
+#define noinline __attribute__ ((noinline))
+
 // prototypes missing
 
 size_t strlcpy(char *, const char *, size_t);
