@@ -17,7 +17,7 @@ HEADERS			= esp-uart-register.h \
 FW				= fw.elf
 FW1				= fw-0x00000.bin
 FW2				= fw-0x40000.bin
-ZIP				= espbasicbridge.zip 
+ZIP				= espiobridge.zip 
 
 V ?= $(VERBOSE)
 ifeq ("$(V)","1")
