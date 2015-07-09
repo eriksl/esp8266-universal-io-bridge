@@ -12,7 +12,7 @@
 
 ICACHE_FLASH_ATTR int dprintf(const char *fmt, ...)
 {
-	static char buffer[64];
+	static char buffer[128];
 	va_list ap;
 	int current, n;
 
