@@ -96,6 +96,12 @@ static void background_task(os_event_t *events)
 	// if there is still data in uart receive fifo that can't be
 	// sent to tcp yet, tcp_sent_callback will call us when it can
 
+	if(action.disconnect)
+	{
+		espconn_disconnect(esp_cmd_tcp_connection);
+		action.disconnect = 0;
+	}
+
 	// process data in the command receive queue, but only if a complete
 	// line is present (queue_lf > 0) and the output of the previous command
 	// is already flushed out
@@ -285,12 +291,6 @@ ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_conn
 
 ICACHE_FLASH_ATTR static void tcp_cmd_sent_callback(void *arg)
 {
-	if(action.disconnect)
-	{
-		espconn_disconnect(esp_cmd_tcp_connection);
-		action.disconnect = 0;
-	}
-
     tcp_cmd_send_buffer_busy = 0;
 }
 
@@ -307,10 +307,13 @@ ICACHE_FLASH_ATTR static void tcp_cmd_receive_callback(void *arg, char *data, ui
 
 ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 {
-	esp_cmd_tcp_connection = 0;
-
 	if(action.reset)
+	{
+		msleep(10);
 		reset();
+	}
+
+	esp_cmd_tcp_connection = 0;
 }
 
 ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_connection)
