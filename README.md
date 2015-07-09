@@ -182,7 +182,7 @@ Currently supported i2c sensors are:
 <td>r</td><td>reset</td><td><i>none</i></td><td>Reset the ESP8266, required if you make changes to the UART parameters or to the GPIOs mode.</td>
 </tr>
 <tr>
-<td>s</td><td>|stats</td><td><i>none</i></td><td>Shows some statistics, these may change over time.</td>
+<td>s</td><td>stats</td><td><i>none</i></td><td>Shows some statistics, these may change over time.</td>
 </tr>
 <tr>
 <td>wd</td><td>wlan-dump</td><td><i>none</i></td><td>Show everything known about the current wlan connection, like SSID, channel number and signal strength.</td>
