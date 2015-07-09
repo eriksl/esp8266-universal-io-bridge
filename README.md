@@ -189,4 +189,4 @@ Currently supported i2c sensors are:
 </tr>
 </table>
 
-See here for latest news and join the discussion: http://www.esp8266.com/viewtopic.php?f=11&t=3212.
+See here for latest news and join the discussion: http://www.esp8266.com/viewtopic.php?t=3959, old topic: http://www.esp8266.com/viewtopic.php?&t=3212.
