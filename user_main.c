@@ -17,6 +17,14 @@
 
 typedef enum __attribute__ ((__packed__))
 {
+	init_start,
+	init_done
+} init_state_t;
+
+_Static_assert(sizeof(gpio_id_t) == 1, "sizeof(telnet_strip_state) != 1");
+
+typedef enum __attribute__ ((__packed__))
+{
     ts_raw,
     ts_dodont,
     ts_data,
@@ -31,6 +39,8 @@ queue_t *tcp_cmd_receive_queue;
 os_event_t background_task_queue[background_task_queue_length];
 
 static ETSTimer periodic_timer;
+
+static init_state_t init_state = init_start;
 
 static struct
 {
@@ -65,6 +75,26 @@ ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *es
 	espconn_tcp_set_max_con_allow(esp_config, 1);
 }
 
+ICACHE_FLASH_ATTR noinline static void config_wlan(const char *ssid, const char *passwd)
+{
+	struct station_config station_config;
+
+	if(config.print_debug)
+		dprintf("Configure wlan, set ssid=\"%s\", passwd=\"%s\"\r\n", ssid, passwd);
+
+	wifi_station_set_auto_connect(0);
+	wifi_station_disconnect();
+	wifi_set_opmode(STATION_MODE);
+
+	memset(&station_config, 0, sizeof(station_config));
+	strlcpy(station_config.ssid, ssid, sizeof(station_config.ssid));
+	strlcpy(station_config.password, passwd, sizeof(station_config.password));
+	station_config.bssid_set = 0;
+
+	wifi_station_set_config(&station_config);
+	wifi_station_connect();
+}
+
 static void background_task(os_event_t *events)
 {
 	static uint32_t prev_system_time_ms = 0;
@@ -72,24 +102,81 @@ static void background_task(os_event_t *events)
 	uint16_t tcp_cmd_receive_buffer_length;
 	uint32_t current_system_time_ms;
 	uint16_t missed_ticks;
+	char ssid[32];
+	char passwd[32];
+	uint16_t current;
+	char data;
 
 	stat_background_task++;
 
-	// send data in the uart receive fifo to tcp
-
-	if(!queue_empty(uart_receive_queue) && !tcp_data_send_buffer_busy)
+	if((init_state != init_done) && (stat_timer > 300)) // ~30 seconds after start
 	{
-		// data available and can be sent now
+		if(config.print_debug)
+			dprintf("%s\r\n", "Returning to normal uart bridge mode\r\n");
+		init_state = init_done;
+	}
 
-		tcp_data_send_buffer_length = 0;
-
-		while((tcp_data_send_buffer_length < buffer_size) && !queue_empty(uart_receive_queue))
-			tcp_data_send_buffer[tcp_data_send_buffer_length++] = queue_pop(uart_receive_queue);
-
-		if(tcp_data_send_buffer_length > 0)
+	if(init_state == init_start) // wait for WLAN config over UART
+	{
+		if(queue_lf(uart_receive_queue))
 		{
-			tcp_data_send_buffer_busy = 1;
-			espconn_sent(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
+			for(current = 0; current < (sizeof(ssid) - 1); current++)
+			{
+				if(queue_empty(uart_receive_queue))
+					break;
+
+				data = queue_pop(uart_receive_queue);
+
+				if(data == ' ')
+					break;
+
+				ssid[current] = data;
+			}
+
+			ssid[current] = '\0';
+
+			for(current = 0; current < (sizeof(passwd) - 1); current++)
+			{
+				if(queue_empty(uart_receive_queue))
+					break;
+
+				data = queue_pop(uart_receive_queue);
+
+				if(data == '\n')
+					break;
+
+				passwd[current] = data;
+			}
+
+			passwd[current] = '\0';
+
+			config_wlan(ssid, passwd);
+
+			strlcpy(config.ssid, ssid, sizeof(config.ssid));
+			strlcpy(config.passwd, passwd, sizeof(config.passwd));
+			config_write();
+
+			init_state = init_done;
+		}
+	}
+	else
+	{
+		// send data in the uart receive fifo to tcp
+
+		if(!queue_empty(uart_receive_queue) && !tcp_data_send_buffer_busy)
+		{
+			// data available and can be sent now
+
+			tcp_data_send_buffer_length = 0;
+
+			while((tcp_data_send_buffer_length < buffer_size) && !queue_empty(uart_receive_queue))
+				tcp_data_send_buffer[tcp_data_send_buffer_length++] = queue_pop(uart_receive_queue);
+
+			if(tcp_data_send_buffer_length > 0)
+			{
+				tcp_data_send_buffer_busy = 1;
+				espconn_sent(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
+			}
 		}
 	}
 
@@ -383,6 +470,8 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	gpios_init();
 	i2c_sensor_init();
 
+	config_wlan(config.ssid, config.passwd);
+
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
 	esp_data_tcp_connection = 0;
@@ -392,6 +481,12 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 	esp_cmd_tcp_connection = 0;
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+
+	if(config.print_debug)
+	{
+		dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 30 seconds.");
+		dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
+	}
 
 	os_timer_setfn(&periodic_timer, periodic_timer_callback, (void *)0);
 	os_timer_arm(&periodic_timer, 100, 1);
