@@ -266,7 +266,7 @@ ICACHE_FLASH_ATTR static void tcp_data_disconnect_callback(void *arg)
 ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_connection)
 {
 	if(esp_data_tcp_connection)
-		espconn_disconnect(new_connection);
+		espconn_disconnect(new_connection); // not allowed but won't occur anyway
 	else
 	{
 		esp_data_tcp_connection	= new_connection;
@@ -316,7 +316,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_connection)
 {
 	if(esp_cmd_tcp_connection)
-		espconn_disconnect(new_connection);
+		espconn_disconnect(new_connection); // not allowed but won't occur anyway
 	else
 	{
 		esp_cmd_tcp_connection = new_connection;
