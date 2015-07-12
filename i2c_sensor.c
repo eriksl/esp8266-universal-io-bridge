@@ -23,51 +23,6 @@ typedef struct
 
 {
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer[2];
-
-	i2cbuffer[0]= 0b11000000 | reg; // write byte
-	i2cbuffer[1] = value;
-
-	if((error = i2c_send(0x39, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uint8_t *byte)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer;
-
-	i2cbuffer = 0b11000000 | reg; // read byte
-
-	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t size, uint8_t *values)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer;
-
-	i2cbuffer = 0b10010000 | reg; // read block
-
-	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
 ICACHE_FLASH_ATTR static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
 {
 	i2c_error_t outer, inner, testbit, crc;
@@ -402,6 +357,52 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
 
 	value->raw = pressure_raw;
 	value->cooked = pressure;
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[2];
+
+	i2cbuffer[0]= 0b11000000 | reg; // write byte
+	i2cbuffer[1] = value;
+
+	if((error = i2c_send(0x39, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	return(0);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uint8_t *byte)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer;
+
+	i2cbuffer = 0b11000000 | reg; // read byte
+
+	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t size, uint8_t *values)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer;
+
+	i2cbuffer = 0b10010000 | reg; // read block
+
+	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
+		return(error);
 
 	return(i2c_error_ok);
 }
