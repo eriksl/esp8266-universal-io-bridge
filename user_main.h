@@ -11,7 +11,7 @@ enum
 {
 	background_task_id				= USER_TASK_PRIO_0,
 	background_task_queue_length	= 64,
-	buffer_size						= 1024,
+	buffer_size						= 2048,
 };
 
 extern queue_t *uart_send_queue;

@@ -359,19 +359,30 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_dump(appli
 {
 	i2c_sensor_t sensor;
 	uint16_t offset;
-	uint8_t all;
+	bool_t all, verbose;
 	char *orig_dst = ap.dst;
 
+	all = false;
+	verbose = false;
+
 	if(ap.nargs > 1)
-		all = (uint8_t)atoi((*ap.args)[1]);
-	else
-		all = 0;
+	{
+		switch((uint8_t)atoi((*ap.args)[1]))
+		{
+			case(2):
+				verbose = true;
+			case(1):
+				all = true;
+			default:
+				(void)0;
+		}
+	}
 
 	sensor = 0;
 
 	while(sensor < i2c_sensor_size)
 	{
-		offset = i2c_sensor_read(sensor, !!all, false, ap.size, ap.dst);
+		offset = i2c_sensor_read(sensor, all, verbose, ap.size, ap.dst);
 		ap.dst	+= offset;
 		ap.size	-= offset;
 		sensor++;
