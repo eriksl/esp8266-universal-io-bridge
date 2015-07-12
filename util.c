@@ -110,6 +110,16 @@ ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, dou
 		value = 0 - value;
 	}
 
+	if((value > 0) && (value < 1))
+	{
+		if(length < size)
+		{
+			*dst = '0';
+			dst++;
+			length++;
+		}
+	}
+
 	leading_space = true;
 
 	if(value > (10 * top_decimal))
