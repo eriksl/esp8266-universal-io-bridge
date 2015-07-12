@@ -521,12 +521,34 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
 	return(i2c_error_ok);
 }
 
+typedef struct
+{
+	const double ratio_top;
+	const double ch0_factor;
+	const double ch1_factor;
+} tsl2560_lookup_t;
+
+static const tsl2560_lookup_t tsl2560_lookup[] =
+{
+	{ 0.125, 0.03040, 0.02720 },
+	{ 0.250, 0.03250, 0.04400 },
+	{ 0.375, 0.03510, 0.05440 },
+	{ 0.500, 0.03810, 0.06240 },
+	{ 0.610, 0.02240, 0.03100 },
+	{ 0.800, 0.01280, 0.01530 },
+	{ 1.300, 0.00146, 0.00112 },
+	{ 0.000, 0.00000, 0.00000 }
+};
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
-	uint32_t ch0, ch1;
-	double raw;
+	uint32_t ch0r, ch1r;
+	double ratio, ch0, ch1;
+	bool_t high_sensitivity = 0;
+	const tsl2560_lookup_t *entry;
+	uint8_t current;
 
 	if((error = sensor_tsl2560_init()) != i2c_error_ok)
 		return(error);
@@ -534,36 +556,45 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	if((error = tsl2560_read_block(0x0c, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	ch0 = i2cbuffer[0] | (i2cbuffer[1] << 8);
-	ch1 = i2cbuffer[2] | (i2cbuffer[3] << 8);
+	ch0r = i2cbuffer[0] | (i2cbuffer[1] << 8);
+	ch1r = i2cbuffer[2] | (i2cbuffer[3] << 8);
 
-	if((ch0 < 37170) && (ch1 < 37170))
+	value->raw = (double)ch0r + ((double)ch1r * 10000);
+
+	// high sensitivity = 100 ms integration time, 16X amplification
+	// low  sensitivity =  13 ms integration time,  1X amplification
+
+	if(high_sensitivity)
 	{
-		if(ch0 != 0)
-		{
-			raw = (double)ch1 / (double)ch0;
-
-			if(raw <= 0.50)
-				//value->cooked = (0.0304 * (double)ch0) - (0.062 * ch0 * powf(raw, 1.4)); // FIXME
-				value->cooked = (0.0224 * (double)ch0) - (0.031 * (double)ch1); // duplicated from next line
-			else if(raw <= 0.61)
-				value->cooked = (0.0224 * (double)ch0) - (0.031 * (double)ch1);
-			else if(raw <= 0.80)
-				value->cooked = (0.0128 * (double)ch0) - (0.0153 * (double)ch1);
-			else if(raw <= 1.30)
-				value->cooked = (0.00146 * (double)ch0) - (0.00112 * (double)ch1);
-			else
-				value->cooked = 0;
-
-			value->cooked /= 0.252; // integration time = 100 ms, scale = 0.252
-		}
-		else
-			value->cooked = 0;
+		ch0 = ch0r * 322 / 81 * 1;
+		ch1 = ch1r * 322 / 81 * 1;
 	}
 	else
-		value->cooked = -1;
+	{
+		ch0 = ch0r * 322 / 11 * 16;
+		ch1 = ch1r * 322 / 11 * 16;
+	}
 
-	value->raw = ((double)ch0 * 100000.0) + (double)ch1;
+	if(ch0 != 0)
+		ratio = ch1 / ch0;
+	else
+		ratio = 0;
+
+	for(current = 0;; current++)
+	{
+		entry = &tsl2560_lookup[current];
+
+		if((entry->ratio_top == 0) || (entry->ch0_factor == 0) || (entry->ch1_factor == 0))
+			break;
+
+		if(ratio <= entry->ratio_top)
+			break;
+	}
+
+	value->cooked = (ch0 * entry->ch0_factor) - (ch1 * entry->ch1_factor);
+
+	if(value->cooked < 0)
+		value->cooked = 0;
 
 	return(i2c_error_ok);
 }
