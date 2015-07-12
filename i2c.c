@@ -456,14 +456,9 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
 {
 	uint16_t current;
 
-	// set bus to idle, sda and scl high (open)
+	state = i2c_state_stop_send;
 
-	clear_scl();
-	delay();
-	set_sda();
-	delay();
-	set_scl();
-	delay();
+	send_stop();
 
 	// if someone is holding the sda line, simulate clock cycles
 	// to make them release it
