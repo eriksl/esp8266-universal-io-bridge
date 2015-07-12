@@ -145,7 +145,7 @@ ICACHE_FLASH_ATTR static uint16_t am2321_crc(uint8_t length, const uint8_t *data
 	return(crc);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_digipicco_temp(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -159,7 +159,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_digipicco_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_digipicco_hum(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -173,7 +173,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_digipicco_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_read(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -206,7 +206,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_lm75(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_ds1631(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -360,7 +360,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085(double *temp, double *te
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085_temp(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_temp(value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -374,7 +374,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085_pressure(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -388,7 +388,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085_pressure(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_init_tsl2560(void)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
 {
 	i2c_error_t error;
 
@@ -404,7 +404,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_init_tsl2560(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR i2c_error_t sensor_read_tsl2560(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
@@ -447,7 +447,7 @@ ICACHE_FLASH_ATTR i2c_error_t sensor_read_tsl2560(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_init_bh1750(void)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_init(void)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
@@ -479,7 +479,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_init_bh1750(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bh1750(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_read(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
@@ -493,7 +493,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bh1750(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_htu21_temp(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_temp(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -523,7 +523,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_htu21_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_htu21_hum(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -553,7 +553,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_htu21_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_am2321_temp(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_temp(value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[8];
@@ -605,7 +605,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_am2321_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_am2321_hum(value_t *value)
+ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_hum(value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[8];
@@ -671,62 +671,64 @@ static const fn_table_t fn_table[] =
 	{
 		i2c_sensor_digipicco_temperature,
 		"digipicco", "temperature", "C", 1,
-		sensor_read_digipicco_temp
+		0,
+		sensor_digipicco_read_temp
 	},
 	{
 		i2c_sensor_digipicco_humidity,
 		"digipicco", "humidity", "%", 0,
-		sensor_read_digipicco_hum
+		0,
+		sensor_digipicco_read_hum
 	},
 	{
 		i2c_sensor_lm75,
 		"lm75", "temperature", "C", 1,
-		sensor_read_lm75
+		sensor_lm75_read
 	},
 	{
 		i2c_sensor_ds1631,
 		"ds1631", "temperature", "C", 2,
-		sensor_read_ds1631
+		sensor_ds1631_read
 	},
 	{
 		i2c_sensor_bmp085_temperature,
 		"bmp085", "temperature", "C", 1,
-		sensor_read_bmp085_temp
+		sensor_bmp085_read_temp
 	},
 	{
 		i2c_sensor_bmp085_airpressure,
 		"bmp085", "pressure", "hPa", 0,
-		sensor_read_bmp085_pressure
+		sensor_bmp085_read_pressure
 	},
 	{
 		i2c_sensor_tsl2560,
 		"tsl2560", "light", "Lux", 0,
-		sensor_read_tsl2560
+		sensor_tsl2560_read,
 	},
 	{
 		i2c_sensor_bh1750,
 		"bh1750", "light", "Lux", 0,
-		sensor_read_bh1750
+		sensor_bh1750_read
 	},
 	{
 		i2c_sensor_htu21_temperature,
 		"htu21", "temperature", "C", 1,
-		sensor_read_htu21_temp
+		sensor_htu21_read_temp
 	},
 	{
 		i2c_sensor_htu21_humidity,
 		"htu21", "humidity", "%", 0,
-		sensor_read_htu21_hum
+		sensor_htu21_read_hum
 	},
 	{
 		i2c_sensor_am2321_temperature,
 		"am2321", "temperature", "C", 1,
-		sensor_read_am2321_temp
+		sensor_am2321_read_temp
 	},
 	{
 		i2c_sensor_am2321_humidity,
 		"am2321", "humidity", "%", 0,
-		sensor_read_am2321_hum
+		sensor_am2321_read_hum
 	}
 };
 
