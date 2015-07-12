@@ -23,29 +23,6 @@ typedef struct
 
 {
 
-ICACHE_FLASH_ATTR static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
-{
-	uint8_t		outer, inner, testbit;
-	uint16_t	crc;
-
-	crc = 0xffff;
-
-	for(outer = 0; outer < length; outer++)
-	{
-		crc ^= data[outer];
-
-		for(inner = 0; inner < 8; inner++)
-		{
-			testbit = !!(crc & 0x01);
-			crc >>= 1;
-			if(testbit)
-				crc ^= 0xa001;
-		}
-	}
-
-	return(crc);
-}
-
 ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 {
 	i2c_error_t error;
@@ -574,6 +551,29 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
 	value->cooked = ((value->raw * 125) / 65536) - 6;
 
 	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
+{
+	uint8_t		outer, inner, testbit;
+	uint16_t	crc;
+
+	crc = 0xffff;
+
+	for(outer = 0; outer < length; outer++)
+	{
+		crc ^= data[outer];
+
+		for(inner = 0; inner < 8; inner++)
+		{
+			testbit = !!(crc & 0x01);
+			crc >>= 1;
+			if(testbit)
+				crc ^= 0xa001;
+		}
+	}
+
+	return(crc);
 }
 
 ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_temp(value_t *value)
