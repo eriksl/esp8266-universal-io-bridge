@@ -852,13 +852,13 @@ static const device_table_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2550,
-		"tsl2550", "light", "Lux", 0,
+		"tsl2550", "light", "Lux", 1,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
 	{
 		i2c_sensor_tsl2560,
-		"tsl2560", "light", "Lux", 0,
+		"tsl2560", "light", "Lux", 1,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
