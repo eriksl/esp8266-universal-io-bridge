@@ -166,13 +166,29 @@ static i2c_error_t send_start(void)
 	if(state != i2c_state_start_send)
 		return(i2c_error_invalid_state_not_send_start);
 
-	// both sda and scl should be high at this point (bus is idle)
 	// wait for scl and sda to be released by all masters and slaves
 	
 	state = i2c_state_bus_wait_1;
 
 	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
+
+	// set sda to high
+
+	clear_scl();
+	delay();
+
+	if(scl_is_set())
+		return(i2c_error_bus_lock);
+
+	set_sda();
+	delay();
+
+	if(!sda_is_set())
+		return(i2c_error_sda_stuck);
+
+	set_scl();
+	delay();
 
 	state = i2c_state_bus_wait_2;
 
