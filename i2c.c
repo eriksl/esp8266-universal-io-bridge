@@ -59,7 +59,12 @@ static const char *error_strings[i2c_error_size] =
 	"sda stuck",
 	"address NAK",
 	"data NAK",
-	"receive error"
+	"receive error",
+	"device specific error 1",
+	"device specific error 2",
+	"device specific error 3",
+	"device specific error 4",
+	"device specific error 5",
 };
 
 ICACHE_FLASH_ATTR static const char *i2c_state_string(void)
