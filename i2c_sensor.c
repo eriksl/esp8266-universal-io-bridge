@@ -21,55 +21,7 @@ typedef struct
 	i2c_error_t (* const read_fn)(value_t *);
 } device_table_t;
 
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
 {
-	i2c_error_t error;
-	uint8_t i2cbuffer[2];
-
-	i2cbuffer[0] = reg;
-	i2cbuffer[1] = value;
-
-	if((error = i2c_send(0x77, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer[2];
-
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x77, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	*value = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
-
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *value)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer[4];
-
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x77, 3, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	*value = ((uint32_t)i2cbuffer[0] << 16) | ((uint32_t)i2cbuffer[1] << 8) | (uint32_t)i2cbuffer[2];
-
-	return(0);
-}
 
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 {
@@ -258,6 +210,56 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 		value->cooked = (double)raw / 256;
 
 	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[2];
+
+	i2cbuffer[0] = reg;
+	i2cbuffer[1] = value;
+
+	if((error = i2c_send(0x77, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	return(0);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[2];
+
+	i2cbuffer[0] = reg;
+
+	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x77, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	*value = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
+
+	return(0);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *value)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[4];
+
+	i2cbuffer[0] = reg;
+
+	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x77, 3, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	*value = ((uint32_t)i2cbuffer[0] << 16) | ((uint32_t)i2cbuffer[1] << 8) | (uint32_t)i2cbuffer[2];
+
+	return(0);
 }
 
 ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, double *pressure, double *pressure_raw)
