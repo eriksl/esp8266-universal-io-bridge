@@ -140,13 +140,13 @@ static inline bool_t scl_is_set(void)
 	return(!!(get_io() & scl_mask));
 }
 
-static i2c_error_t wait_idle(bool_t include_sda)
+static i2c_error_t wait_idle(void)
 {
 	uint16_t current;
 
 	for(current = i2c_config_idle_timeout; current > 0; current--)
 	{
-		if(scl_is_set() && (!include_sda || sda_is_set()))
+		if(scl_is_set())
 			break;
 
 		delay();
@@ -171,7 +171,7 @@ static i2c_error_t send_start(void)
 	
 	state = i2c_state_bus_wait_1;
 
-	if((error = wait_idle(true)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 
 	state = i2c_state_bus_wait_2;
@@ -206,7 +206,7 @@ static i2c_error_t send_stop(void)
 	// at this point scl should be high and sda is unknown
 	// wait for scl to be released by all masters and slaves
 	
-	if((error = wait_idle(false)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 
 	delay();
@@ -241,7 +241,7 @@ static i2c_error_t send_bit(bool_t bit)
 	// at this point scl should be high and sda will be unknown
 	// wait for scl to be released by slave (clock stretching)
 	
-	if((error = wait_idle(false)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 	
 	clear_scl();
@@ -271,7 +271,7 @@ static i2c_error_t send_bit(bool_t bit)
 
 	// take care of clock stretching
 
-	if((error = wait_idle(false)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 	
 	delay();
@@ -311,7 +311,7 @@ static i2c_error_t receive_bit(bool_t *bit)
 
 	// wait for scl to be released by slave (clock stretching)
 	
-	if((error = wait_idle(false)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 	
 	// make sure sda is high (open) so slave can pull it
@@ -330,7 +330,7 @@ static i2c_error_t receive_bit(bool_t *bit)
 
 	// take care of clock stretching
 
-	if((error = wait_idle(false)) != i2c_error_ok)
+	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
 
 	delay();
