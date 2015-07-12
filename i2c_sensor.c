@@ -73,9 +73,9 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *val
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
-	i2c_error_t i2cbuffer[2];
+	uint8_t i2cbuffer[2];
 
-	i2cbuffer[0] = 0xc0 | reg; // write byte
+	i2cbuffer[0]= 0b11000000 | reg; // write byte
 	i2cbuffer[1] = value;
 
 	if((error = i2c_send(0x39, 2, i2cbuffer)) != i2c_error_ok)
@@ -84,22 +84,37 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t *values)
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uint8_t *byte)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer[1];
+	uint8_t i2cbuffer;
 
-	i2cbuffer[0] = 0xd0 | reg; // read block
+	i2cbuffer = 0b11000000 | reg; // read byte
 
-	if((error = i2c_send(0x39, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t size, uint8_t *values)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer;
+
+	i2cbuffer = 0b10010000 | reg; // read block
+
+	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
 		return(error);
 
-	return(0);
+	return(i2c_error_ok);
 }
-
 ICACHE_FLASH_ATTR static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
 {
 	i2c_error_t outer, inner, testbit, crc;
@@ -408,29 +423,33 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
-	double ch0, ch1;
+	uint32_t ch0, ch1;
+	double raw;
 
-	if((error = tsl2560_read(0x0c, i2cbuffer)) != i2c_error_ok)
+	if((error = sensor_tsl2560_init()) != i2c_error_ok)
 		return(error);
 
-	ch0 = (uint16_t)(i2cbuffer[0] | (i2cbuffer[1] << 8));
-	ch1 = (uint16_t)(i2cbuffer[2] | (i2cbuffer[3] << 8));
+	if((error = tsl2560_read_block(0x0c, 4, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	ch0 = i2cbuffer[0] | (i2cbuffer[1] << 8);
+	ch1 = i2cbuffer[2] | (i2cbuffer[3] << 8);
 
 	if((ch0 < 37170) && (ch1 < 37170))
 	{
 		if(ch0 != 0)
 		{
-			value->raw = ch1 / ch0;
+			raw = (double)ch1 / (double)ch0;
 
-			if(value->raw <= 0.50)
-				//value->cooked = (0.0304 * ch0) - (0.062 * ch0 * powf(value->raw, 1.4)); // FIXME
-				value->cooked = (0.0224 * ch0) - (0.031 * ch1); // duplicated from next line
-			else if(value->raw <= 0.61)
-				value->cooked = (0.0224 * ch0) - (0.031 * ch1);
-			else if(value->raw <= 0.80)
-				value->cooked = (0.0128 * ch0) - (0.0153 * ch1);
-			else if(value->raw <= 1.30)
-				value->cooked = (0.00146 * ch0) - (0.00112 * ch1);
+			if(raw <= 0.50)
+				//value->cooked = (0.0304 * (double)ch0) - (0.062 * ch0 * powf(raw, 1.4)); // FIXME
+				value->cooked = (0.0224 * (double)ch0) - (0.031 * (double)ch1); // duplicated from next line
+			else if(raw <= 0.61)
+				value->cooked = (0.0224 * (double)ch0) - (0.031 * (double)ch1);
+			else if(raw <= 0.80)
+				value->cooked = (0.0128 * (double)ch0) - (0.0153 * (double)ch1);
+			else if(raw <= 1.30)
+				value->cooked = (0.00146 * (double)ch0) - (0.00112 * (double)ch1);
 			else
 				value->cooked = 0;
 
@@ -442,7 +461,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	else
 		value->cooked = -1;
 
-	value->raw = ch0 * 10000 + ch1;
+	value->raw = ((double)ch0 * 100000.0) + (double)ch1;
 
 	return(i2c_error_ok);
 }
