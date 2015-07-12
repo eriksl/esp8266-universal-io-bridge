@@ -85,6 +85,19 @@ ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, dou
 
 	length = 0;
 
+	if(value == 0)
+	{
+		if(length < size)
+		{
+			*dst = '0';
+			dst++;
+			length++;
+		}
+
+		*dst = '\0';
+		return(length);
+	}
+
 	if(value < 0)
 	{
 		if(length < size)
