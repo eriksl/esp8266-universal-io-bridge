@@ -17,8 +17,9 @@ typedef struct
 	const char *type;
 	const char *unity;
 	uint8_t precision;
+	i2c_error_t (* const init_fn)(void);
 	i2c_error_t (* const read_fn)(value_t *);
-} fn_table_t;
+} device_table_t;
 
 ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
 {
@@ -676,16 +677,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR void i2c_sensor_init(void)
-{
-	if(sensor_init_tsl2560() != i2c_error_ok)
-		i2c_reset();
-
-	if(sensor_init_bh1750() != i2c_error_ok)
-		i2c_reset();
-}
-
-static const fn_table_t fn_table[] =
+static const device_table_t device_table[] =
 {
 	{
 		i2c_sensor_digipicco_temperature,
@@ -702,59 +694,83 @@ static const fn_table_t fn_table[] =
 	{
 		i2c_sensor_lm75,
 		"lm75", "temperature", "C", 1,
+		0,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_ds1631,
 		"ds1631", "temperature", "C", 2,
+		0,
 		sensor_ds1631_read
 	},
 	{
 		i2c_sensor_bmp085_temperature,
 		"bmp085", "temperature", "C", 1,
+		0,
 		sensor_bmp085_read_temp
 	},
 	{
 		i2c_sensor_bmp085_airpressure,
 		"bmp085", "pressure", "hPa", 0,
+		0,
 		sensor_bmp085_read_pressure
 	},
 	{
 		i2c_sensor_tsl2560,
 		"tsl2560", "light", "Lux", 0,
+		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
 	{
 		i2c_sensor_bh1750,
 		"bh1750", "light", "Lux", 0,
+		sensor_bh1750_init,
 		sensor_bh1750_read
 	},
 	{
 		i2c_sensor_htu21_temperature,
 		"htu21", "temperature", "C", 1,
+		0,
 		sensor_htu21_read_temp
 	},
 	{
 		i2c_sensor_htu21_humidity,
 		"htu21", "humidity", "%", 0,
+		0,
 		sensor_htu21_read_hum
 	},
 	{
 		i2c_sensor_am2321_temperature,
 		"am2321", "temperature", "C", 1,
+		0,
 		sensor_am2321_read_temp
 	},
 	{
 		i2c_sensor_am2321_humidity,
 		"am2321", "humidity", "%", 0,
+		0,
 		sensor_am2321_read_hum
 	}
 };
 
+ICACHE_FLASH_ATTR void i2c_sensor_init(void)
+{
+	const device_table_t *entry;
+	uint8_t current;
+
+	for(current = 0; current < i2c_sensor_size; current++)
+	{
+		entry = &device_table[current];
+
+		if(entry->init_fn && (entry->init_fn() != i2c_error_ok))
+			i2c_reset();
+	}
+}
+
 ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
 		uint16_t size, char *dst)
 {
-	const fn_table_t *fn_table_entry;
+	const device_table_t *entry;
 	i2c_error_t error;
 	value_t value;
 	uint16_t length;
@@ -763,12 +779,12 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 	if(sensor >= i2c_sensor_size)
 		return(snprintf(dst, size, "i2c sensor read: sensor %d out of range\n", sensor));
 
-	fn_table_entry = &fn_table[sensor];
+	entry = &device_table[sensor];
 
-	if((error = fn_table_entry->read_fn(&value)) == i2c_error_ok)
+	if((error = entry->read_fn(&value)) == i2c_error_ok)
 	{
 		length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
-				fn_table_entry->name, fn_table_entry->type);
+				entry->name, entry->type);
 		dst += length;
 		size -= length;
 
@@ -776,7 +792,7 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 		dst += length;
 		size -= length;
 
-		length = double_to_string(value.cooked, fn_table_entry->precision, 1e10, size, dst);
+		length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
 		dst += length;
 		size -= length;
 
@@ -796,8 +812,7 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 	{
 		if(list)
 		{
-			length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
-					fn_table_entry->name, fn_table_entry->type);
+			length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor, entry->name, entry->type);
 			dst += length;
 			size -= length;
 
