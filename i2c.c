@@ -203,11 +203,11 @@ ICACHE_FLASH_ATTR static i2c_error_t send_start(void)
 
 	// generate start condition by leaving scl high and pulling sda low
 
-	delay();
-	
 	clear_sda();
-
 	delay();
+
+	if(sda_is_set())
+		return(i2c_error_sda_stuck);
 
 	return(i2c_error_ok);
 }
@@ -227,25 +227,42 @@ ICACHE_FLASH_ATTR static i2c_error_t send_stop(void)
 
 	delay();
 
-	// force sda to low if high (dummy start condition)
+	// set sda to low
 
 	clear_scl();
+	delay();
+
+	if(scl_is_set())
+		return(i2c_error_bus_lock);
+
 	clear_sda();
+	delay();
+
 	if(sda_is_set())
 		return(i2c_error_sda_stuck);
 
-	delay();
 	set_scl();
+	delay();
+
 	if(!scl_is_set())
 		return(i2c_error_bus_lock);
-	delay();
 
-	// generate the stop condition by leaving scl high and setting sda high
+	if(sda_is_set())
+		return(i2c_error_sda_stuck);
+
+	if(!scl_is_set())
+		return(i2c_error_bus_lock);
+
+	// now generate the stop condition by leaving scl high and setting sda high
 
 	set_sda();
+	delay();
+
+	if(!scl_is_set())
+		return(i2c_error_bus_lock);
+
 	if(!sda_is_set())
 		return(i2c_error_sda_stuck);
-	delay();
 
 	return(i2c_error_ok);
 }
@@ -261,15 +278,15 @@ ICACHE_FLASH_ATTR static i2c_error_t send_bit(bool_t bit)
 		return(error);
 	
 	clear_scl();
+	delay();
 
 	if(scl_is_set())
 		return(i2c_error_bus_lock);
 
-	delay();
-
 	if(bit)
 	{
 		set_sda();
+		delay();
 
 		if(!sda_is_set())
 			return(i2c_error_sda_stuck);
@@ -277,20 +294,19 @@ ICACHE_FLASH_ATTR static i2c_error_t send_bit(bool_t bit)
 	else
 	{
 		clear_sda();
+		delay();
 
 		if(sda_is_set())
 			return(i2c_error_sda_stuck);
 	}
 
-	delay();
 	set_scl();
+	delay();
 
 	// take care of clock stretching
 
 	if((error = wait_idle()) != i2c_error_ok)
 		return(error);
-	
-	delay();
 
 	return(i2c_error_ok);
 }
@@ -298,7 +314,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_bit(bool_t bit)
 ICACHE_FLASH_ATTR static i2c_error_t send_byte(uint8_t byte)
 {
 	i2c_error_t error;
-	uint16_t current;
+	uint8_t current;
 
 	if((state != i2c_state_address_send) && (state != i2c_state_data_send_data))
 		return(i2c_error_invalid_state_not_send_address_or_data);
@@ -320,7 +336,7 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_bit(bool_t *bit)
 	i2c_error_t error;
 
 	// at this point scl should be high and sda is unknown,
-	// but should be high (open) before reading
+	// but should be high before reading
 	
 	if(state == i2c_state_idle)
 		return(i2c_error_invalid_state_idle);
@@ -355,9 +371,14 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_bit(bool_t *bit)
 	// low-pass filter / spike filter
 
 	for(total = 0, current = 0; current < i2c_config_sda_sampling_window; current++)
-		total += sda_is_set();
+	{
+		uint8_t set;
+		set = sda_is_set();
 
-	total *= 4; // turn into quarters, 0-1/4, 1/4-3/4, 3/4-1
+		total += set ? 4 : 0;
+
+		short_delay();
+	}
 
 	if(total < (i2c_config_sda_sampling_window * 1))		// 0-1/4	=> 0
 		*bit = 0;
@@ -371,7 +392,7 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_bit(bool_t *bit)
 
 ICACHE_FLASH_ATTR static i2c_error_t receive_byte(uint8_t *byte)
 {
-	uint16_t current;
+	uint8_t current;
 	bool_t bit;
 	i2c_error_t error;
 
@@ -476,6 +497,9 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
 
 	if(!sda_is_set())
 		return(i2c_error_sda_stuck);
+
+	if(!scl_is_set())
+		return(i2c_error_bus_lock);
 
 	state = i2c_state_idle;
 
