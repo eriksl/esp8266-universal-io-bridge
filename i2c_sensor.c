@@ -23,28 +23,6 @@ typedef struct
 
 {
 
-ICACHE_FLASH_ATTR static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
-{
-	i2c_error_t outer, inner, testbit, crc;
-
-	crc = 0;
-
-	for(outer = 0; outer < length; outer++)
-	{
-		crc ^= data[outer];
-
-		for(inner = 0; inner < 8; inner++)
-		{
-			testbit = !!(crc & 0x80);
-			crc <<= 1;
-			if(testbit)
-				crc ^= 0x31;
-		}
-	}
-
-	return(crc);
-}
-
 ICACHE_FLASH_ATTR static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
 {
 	uint8_t		outer, inner, testbit;
@@ -514,6 +492,28 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_read(value_t *value)
 	value->cooked	= value->raw * 0.42;
 
 	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
+{
+	i2c_error_t outer, inner, testbit, crc;
+
+	crc = 0;
+
+	for(outer = 0; outer < length; outer++)
+	{
+		crc ^= data[outer];
+
+		for(inner = 0; inner < 8; inner++)
+		{
+			testbit = !!(crc & 0x80);
+			crc <<= 1;
+			if(testbit)
+				crc ^= 0x31;
+		}
+	}
+
+	return(crc);
 }
 
 ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_temp(value_t *value)
