@@ -13,6 +13,11 @@ typedef struct
 
 typedef struct
 {
+	unsigned int detected:1;
+} device_data_t;
+
+typedef struct
+{
 	i2c_sensor_t id;
 	const char *name;
 	const char *type;
@@ -21,6 +26,8 @@ typedef struct
 	i2c_error_t (* const init_fn)(void);
 	i2c_error_t (* const read_fn)(value_t *);
 } device_table_t;
+
+device_data_t device_data[i2c_sensor_size];
 
 static struct
 {
@@ -55,22 +62,63 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
+ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
+{
+	uint8_t i2cbuffer[4];
+	i2c_error_t error;
+
+	i2cbuffer[0] = 0x01;	// select config register
+	i2cbuffer[1] = 0x60;	// set all defaults, operation is not shutdown
+							// specific for tmp275 variant select, high-res operation
+
+	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x48, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2cbuffer[0] != 0x60)
+		return(i2c_error_device_error_1);
+
+	i2cbuffer[0] = 0x03;		// select overtemperature register
+	i2cbuffer[1] = 0xff;		// dummy value
+	i2cbuffer[2] = 0xff;
+
+	if((error = i2c_send(0x48, 3, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
+		return(i2c_error_device_error_2);
+
+	i2cbuffer[0] = 0x03;		// select overtemperature register
+	i2cbuffer[1] = 0x00;
+	i2cbuffer[2] = 0x00;
+
+	if((error = i2c_send(0x48, 3, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2cbuffer[0] != 0x00) || (i2cbuffer[1] != 0x00))
+		return(i2c_error_device_error_3);
+
+	i2cbuffer[0] = 0x00; 		// select temperature register
+
+	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_read(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	uint32_t raw;
-
-	i2cbuffer[0] = 0x01;		// select config register
-	i2cbuffer[1] = 0b01100000;	// write r0=r1=1, max resolution, other bits zero
-
-	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	i2cbuffer[0] = 0x00; // select temperature register
-
-	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
-		return(error);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
@@ -954,8 +1002,13 @@ ICACHE_FLASH_ATTR void i2c_sensor_init(void)
 	{
 		entry = &device_table[current];
 
-		if(entry->init_fn && (entry->init_fn() != i2c_error_ok))
+		if(entry->init_fn && (entry->init_fn() == i2c_error_ok))
+			device_data[entry->id].detected = true;
+		else
+		{
+			device_data[entry->id].detected = false;
 			i2c_reset();
+		}
 	}
 }
 
@@ -967,16 +1020,24 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 	value_t value;
 	uint16_t length;
 	char *orig_dst = dst;
+	uint16_t current;
 
-	if(sensor >= i2c_sensor_size)
-		return(snprintf(dst, size, "i2c sensor read: sensor %d out of range\n", sensor));
-
-	entry = &device_table[sensor];
-
-	if((error = entry->read_fn(&value)) == i2c_error_ok)
+	for(current = 0; current < i2c_sensor_size; current++)
 	{
-		length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor,
-				entry->name, entry->type);
+		entry = &device_table[current];
+
+		if(sensor == entry->id)
+			break;
+	}
+
+	if(current >= i2c_sensor_size)
+		return(snprintf(dst, size, "i2c sensor read: sensor #%d unknown\n", sensor));
+
+	error = i2c_error_ok;
+
+	if((device_data[sensor].detected || verbose) && ((error = entry->read_fn(&value)) == i2c_error_ok))
+	{
+		length = snprintf(dst, size, "sensor %d:%s: %s: ", sensor, entry->name, entry->type);
 		dst += length;
 		size -= length;
 
@@ -1004,14 +1065,14 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 	{
 		if(list)
 		{
-			length = snprintf(dst, size, "sensor %d/%s: %s: ", sensor, entry->name, entry->type);
+			length = snprintf(dst, size, "sensor %d:%s: %s: ", sensor, entry->name, entry->type);
 			dst += length;
 			size -= length;
 
 			if(verbose)
 				length = i2c_error_format_string("error", error, size, dst);
 			else
-				length = snprintf(dst, size, "%s", "error");
+				length = snprintf(dst, size, "%s", "not found");
 
 			dst += length;
 			size -= length;
@@ -1021,7 +1082,8 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 			size -= length;
 		}
 
-		i2c_reset();
+		if(error != i2c_error_ok)
+			i2c_reset();
 	}
 
 	return(dst - orig_dst);
