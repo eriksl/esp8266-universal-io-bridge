@@ -29,6 +29,7 @@ _Static_assert(sizeof(i2c_state_t) == 1, "sizeof(i2c_state_t) != 1");
 typedef enum __attribute__ ((__packed__))
 {
 	i2c_error_ok = 0,
+	i2c_error_no_init,
 	i2c_error_invalid_state_not_idle,
 	i2c_error_invalid_state_idle,
 	i2c_error_invalid_state_not_send_header,

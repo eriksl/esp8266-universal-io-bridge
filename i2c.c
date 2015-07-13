@@ -23,11 +23,16 @@ typedef enum
 	i2c_config_sda_sampling_window = 32,	// * short delay 1 us =  ~ 32 ms
 } i2c_config_t;
 
+struct
+{
+	unsigned int init_done:1;
+} i2c_flags;
+
 static i2c_error_t send_bit(bool_t bit);
 
 static const char *state_strings[i2c_state_size] =
 {
-	"uninitialised",
+	"invalid",
 	"idle",
 	"send header",
 	"send start",
@@ -47,6 +52,7 @@ static const char *state_strings[i2c_state_size] =
 static const char *error_strings[i2c_error_size] =
 {
 	"ok",
+	"uninitialised",
 	"state not idle",
 	"state idle",
 	"state not send header",
@@ -105,6 +111,11 @@ static inline void set_io(uint32_t clear, uint32_t set)
 	gpio_output_set(set, clear, 0, 0);
 }
 
+static inline uint32_t get_io(void)
+{
+	return(gpio_input_get() & (sda_mask | scl_mask));
+}
+
 static inline void clear_sda(void)
 {
 	set_io(sda_mask, 0);
@@ -123,11 +134,6 @@ static inline void clear_scl(void)
 static inline void set_scl(void)
 {
 	set_io(0, scl_mask);
-}
-
-static inline uint32_t get_io(void)
-{
-	return(gpio_input_get() & (sda_mask | scl_mask));
 }
 
 static inline bool_t sda_is_set(void)
@@ -243,9 +249,6 @@ ICACHE_FLASH_ATTR static i2c_error_t send_stop(void)
 
 	set_scl();
 	delay();
-
-	if(!scl_is_set())
-		return(i2c_error_bus_lock);
 
 	if(sda_is_set())
 		return(i2c_error_sda_stuck);
@@ -477,6 +480,9 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
 {
 	uint16_t current;
 
+	if(!i2c_flags.init_done)
+		return(i2c_error_no_init);
+
 	state = i2c_state_stop_send;
 
 	send_stop();
@@ -511,6 +517,8 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
 	sda_mask = 1 << sda_index;
 	scl_mask = 1 << scl_index;
 
+	i2c_flags.init_done = true;
+
 	return(i2c_reset());
 }
 
@@ -519,6 +527,9 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_send(uint8_t address, uint16_t length, const u
 	uint16_t current;
 	i2c_error_t error;
 	bool_t ack;
+
+	if(!i2c_flags.init_done)
+		return(i2c_error_no_init);
 
 	if(state != i2c_state_idle)
 		return(i2c_error_invalid_state_not_idle);
@@ -560,6 +571,9 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint
 {
 	uint16_t current;
 	i2c_error_t error;
+
+	if(!i2c_flags.init_done)
+		return(i2c_error_no_init);
 
 	if(state != i2c_state_idle)
 		return(i2c_error_invalid_state_not_idle);
