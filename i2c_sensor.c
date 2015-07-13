@@ -1,6 +1,7 @@
 #include "i2c_sensor.h"
 
 #include "util.h"
+#include "config.h"
 
 #include <math.h>
 
@@ -371,6 +372,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer;
+	uint8_t sens_command;
 
 	// tsl2550 power up
 
@@ -380,9 +382,14 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 	if(i2cbuffer != 0x03)
 		return(i2c_error_device_error_1);
 
-	// standard range
+	// standard range / extended range
 
-	if((error = sensor_tsl2550_rw(0x18, &i2cbuffer)) != i2c_error_ok)
+	if(config_get_flag(config_flag_tsl_high_sens))
+		sens_command = 0x18;
+	else
+		sens_command = 0x1d;
+
+	if((error = sensor_tsl2550_rw(sens_command, &i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if(i2cbuffer != 0x1b)
@@ -445,6 +452,9 @@ error:
 
 	if(value->cooked < 0)
 		value->cooked = 0;
+
+	if(!config_get_flag(config_flag_tsl_high_sens))
+		value->cooked *= 5;
 
 	return(i2c_error_ok);
 }
@@ -546,7 +556,6 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	i2c_error_t	error;
 	uint32_t ch0r, ch1r;
 	double ratio, ch0, ch1;
-	bool_t high_sensitivity = 0;
 	const tsl2560_lookup_t *entry;
 	uint8_t current;
 
@@ -564,7 +573,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	// high sensitivity = 100 ms integration time, 16X amplification
 	// low  sensitivity =  13 ms integration time,  1X amplification
 
-	if(high_sensitivity)
+	if(config_get_flag(config_flag_tsl_high_sens))
 	{
 		ch0 = ch0r * 322 / 81 * 1;
 		ch1 = ch1r * 322 / 81 * 1;
@@ -894,19 +903,19 @@ static const device_table_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2550,
-		"tsl2550", "light", "Lux", 1,
+		"tsl2550", "light", "Lux", 2,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
 	{
 		i2c_sensor_tsl2560,
-		"tsl2560", "light", "Lux", 1,
+		"tsl2560", "light", "Lux", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
 	{
 		i2c_sensor_bh1750,
-		"bh1750", "light", "Lux", 0,
+		"bh1750", "light", "Lux", 2,
 		sensor_bh1750_init,
 		sensor_bh1750_read
 	},
