@@ -21,6 +21,10 @@ _Static_assert(sizeof(bool_t) == 1, "sizeof(bool_t) != 1");
 
 #define noinline __attribute__ ((noinline))
 
+// replacement for nasty #defines that give warnings
+
+void pin_func_select(uint32_t pin_name, uint32_t pin_func);
+
 // prototypes missing
 
 size_t strlcpy(char *, const char *, size_t);

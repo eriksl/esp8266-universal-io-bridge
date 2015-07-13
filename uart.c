@@ -128,7 +128,7 @@ ICACHE_FLASH_ATTR void uart_init(const uart_parameters_t *params)
 	ETS_UART_INTR_ATTACH(uart_callback,  0);
 
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
+	pin_func_select(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 
 	WRITE_PERI_REG(UART_CLKDIV(0), UART_CLK_FREQ / params->baud_rate);
 
