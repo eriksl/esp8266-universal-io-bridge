@@ -878,17 +878,17 @@ static const device_table_t device_table[] =
 		sensor_digipicco_read_hum
 	},
 	{
-		i2c_sensor_lm75,
-		"lm75", "temperature", "C", 1,
-		0,
-		sensor_lm75_read
-	},
-	{
 		i2c_sensor_ds1631,
 		"ds1631", "temperature", "C", 2,
 		0,
 		sensor_ds1631_read
 	},
+ 	{
+		i2c_sensor_lm75,
+		"lm75", "temperature", "C", 1,
+		sensor_lm75_init,
+		sensor_lm75_read
+ 	},
 	{
 		i2c_sensor_bmp085_temperature,
 		"bmp085", "temperature", "C", 1,

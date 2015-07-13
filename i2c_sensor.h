@@ -10,8 +10,8 @@ typedef enum __attribute__ ((__packed__))
 {
 	i2c_sensor_digipicco_temperature,
 	i2c_sensor_digipicco_humidity,
-	i2c_sensor_lm75,
 	i2c_sensor_ds1631,
+	i2c_sensor_lm75,
 	i2c_sensor_bmp085_temperature,
 	i2c_sensor_bmp085_airpressure,
 	i2c_sensor_tsl2550,
