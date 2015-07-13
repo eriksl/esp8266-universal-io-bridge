@@ -161,26 +161,6 @@ ICACHE_FLASH_ATTR static app_action_t application_function_stats(application_par
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_strip_telnet(application_parameters_t ap)
-{
-	if(ap.nargs > 1)
-		config.strip_telnet = !!atoi((*ap.args)[1]);
-
-	snprintf(ap.dst, ap.size, "strip-telnet: %u\n", config.strip_telnet);
-
-	return(app_action_normal);
-}
-
-ICACHE_FLASH_ATTR static app_action_t application_function_print_debug(application_parameters_t ap)
-{
-	if(ap.nargs > 1)
-		config.print_debug = !!atoi((*ap.args)[1]);
-
-	snprintf(ap.dst, ap.size, "print-debug: %u\n", config.print_debug);
-
-	return(app_action_normal);
-}
-
 ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
 	uint32_t baud_rate = atoi((*ap.args)[1]);
@@ -434,6 +414,46 @@ ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parame
 	return(app_action_normal);
 }
 
+ICACHE_FLASH_ATTR app_action_t static set_unset_flag(application_parameters_t ap, bool_t value)
+{
+	uint16_t length;
+
+	if(ap.nargs < 2)
+	{
+		length = snprintf(ap.dst, ap.size, "%s", "flags: ");
+		ap.dst += length;
+		ap.size -= length;
+
+		length = config_flags_to_string(ap.size, ap.dst, config.flags);
+		ap.dst += length;
+		ap.size -= length;
+
+		strlcpy(ap.dst, "\n", ap.size);
+
+		return(app_action_normal);
+	}
+
+	if(!config_set_flag_by_name((*ap.args)[1], value))
+	{
+		snprintf(ap.dst, ap.size, "> unknown flag %s\n", (*ap.args)[1]);
+		return(app_action_error);
+	}
+
+	snprintf(ap.dst, ap.size, "> flag %s %s\n", (*ap.args)[1], onoff(value));
+
+	return(app_action_normal);
+}
+
+ICACHE_FLASH_ATTR app_action_t static application_function_set(application_parameters_t ap)
+{
+	return(set_unset_flag(ap, true));
+}
+
+ICACHE_FLASH_ATTR app_action_t static application_function_unset(application_parameters_t ap)
+{
+	return(set_unset_flag(ap, false));
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -515,12 +535,6 @@ static const application_function_table_t application_function_table[] =
 		"help [command]",
 	},
 	{
-		"pd", "print-debug",
-		0,
-		application_function_print_debug,
-		"set system (wlan) output on uart at startup, on/off [0/1]",
-	},
-	{
 		"q", "quit",
 		0,
 		application_function_quit,
@@ -533,16 +547,22 @@ static const application_function_table_t application_function_table[] =
 		"reset",
 	},
 	{
-		"s", "stats",
+		"s", "set",
+		0,
+		application_function_set,
+		"set an option",
+	},
+	{
+		"u", "unset",
+		0,
+		application_function_unset,
+		"unset an option",
+	},
+	{
+		"S", "stats",
 		0,
 		application_function_stats,
 		"statistics",
-	},
-	{
-		"st", "strip-telnet",
-		0,
-		application_function_strip_telnet,
-		"strip telnet do/dont [0/1]",
 	},
 	{
 		"ub", "uart-baud",

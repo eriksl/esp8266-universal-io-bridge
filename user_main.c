@@ -79,7 +79,7 @@ ICACHE_FLASH_ATTR noinline static void config_wlan(const char *ssid, const char 
 {
 	struct station_config station_config;
 
-	if(config.print_debug)
+	if(config_get_flag(config_flag_print_debug))
 		dprintf("Configure wlan, set ssid=\"%s\", passwd=\"%s\"\r\n", ssid, passwd);
 
 	wifi_station_set_auto_connect(0);
@@ -111,7 +111,7 @@ static void background_task(os_event_t *events)
 
 	if((init_state != init_done) && (stat_timer > 300)) // ~30 seconds after start
 	{
-		if(config.print_debug)
+		if(config_get_flag(config_flag_print_debug))
 			dprintf("%s\r\n", "Returning to normal uart bridge mode\r\n");
 		init_state = init_done;
 	}
@@ -326,7 +326,7 @@ ICACHE_FLASH_ATTR static void tcp_data_receive_callback(void *arg, char *data, u
 		{
 			case(ts_raw):
 			{
-				if(config.strip_telnet && (byte == 0xff))
+				if(config_get_flag(config_flag_strip_telnet) && (byte == 0xff))
 					telnet_strip_state = ts_dodont;
 				else
 					queue_push(uart_send_queue, (char)byte);
@@ -455,7 +455,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 	action.disconnect = 0;
 
 	config_read();
-	system_set_os_print(config.print_debug);
+	system_set_os_print(config_get_flag(config_flag_print_debug));
 	uart_init(&config.uart);
 	system_init_done_cb(user_init2);
 }
@@ -482,7 +482,7 @@ ICACHE_FLASH_ATTR static void user_init2(void)
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
-	if(config.print_debug)
+	if(config_get_flag(config_flag_print_debug))
 	{
 		dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 30 seconds.");
 		dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
