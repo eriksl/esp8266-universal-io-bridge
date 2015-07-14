@@ -356,145 +356,6 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
 	return(i2c_error_ok);
 }
 
-static const uint16_t tsl2550_count[128] =
-{
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26,
-	28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 49, 53, 57, 61, 65, 69, 73, 77, 81,
-	85, 89, 93, 97, 101, 105, 109, 115, 123, 131, 139, 147, 155, 163, 171, 179,
-	187, 195, 203, 211, 219, 227, 235, 247, 263, 279, 295, 311, 327, 343, 359,
-	375, 391, 407, 423, 439, 455, 471, 487, 511, 543, 575, 607, 639, 671, 703,
-	735, 767, 799, 831, 863, 895, 927, 959, 991,
-	1039,1103,1167,1231,1295,1359,1423,1487,
-	1551,1615,1679,1743,1807,1871,1935,1999,
-	2095,2223,2351,2479,2607,2735,2863,2991,
-	3119,3247,3375,3503,3631,3759,3887,4015
-};
-
-static const uint8_t tsl2550_ratio[129] =
-{
-	100,100,100,100,100,100,100,100,
-	100,100,100,100,100,100,99,99,
-	99,99,99,99,99,99,99,99,
-	99,99,99,98,98,98,98,98,
-	98,98,97,97,97,97,97,96,
-	96,96,96,95,95,95,94,94,
-	93,93,93,92,92,91,91,90,
-	89,89,88,87,87,86,85,84,
-	83,82,81,80,79,78,77,75,
-	74,73,71,69,68,66,64,62,
-	60,58,56,54,52,49,47,44,
-	42,41,40,40,39,39,38,38,
-	37,37,37,36,36,36,35,35,
-	35,35,34,34,34,34,33,33,
-	33,33,32,32,32,32,32,31,
-	31,31,31,31,30,30,30,30,
-	30
-};
-
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
-{
-	i2c_error_t error;
-
-	if((error = i2c_send_1(0x39, in)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x39, 1, out)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer;
-	uint8_t sens_command;
-
-	// tsl2550 power up
-
-	if((error = sensor_tsl2550_rw(0x03, &i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if(i2cbuffer != 0x03)
-		return(i2c_error_device_error_1);
-
-	// standard range / extended range
-
-	if(config_get_flag(config_flag_tsl_high_sens))
-		sens_command = 0x18;
-	else
-		sens_command = 0x1d;
-
-	if((error = sensor_tsl2550_rw(sens_command, &i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if(i2cbuffer != 0x1b)
-		return(i2c_error_device_error_2);
-
-	i2c_flags.device_0x39_is_tsl2550 = true;
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_read(value_t *value)
-{
-	i2c_error_t			error;
-	uint8_t				i2cbuffer;
-	uint8_t				ch0, ch1;
-	uint8_t				attempt, ratio;
-
-	if((error = sensor_tsl2550_init()) != i2c_error_ok)
-		return(error);
-
-	for(attempt = 16; attempt > 0; attempt--)
-	{
-		// read from channel 0
-
-		if(sensor_tsl2550_rw(0x43, &i2cbuffer) != i2c_error_ok)
-			goto error;
-
-		ch0 = i2cbuffer;
-
-		// read from channel 1
-
-		if(sensor_tsl2550_rw(0x83, &i2cbuffer) != i2c_error_ok)
-			goto error;
-
-		ch1 = i2cbuffer;
-
-		if((ch0 & 0x80) && (ch1 & 0x80))
-			break;
-error:
-		msleep(10);
-	}
-
-	if(attempt == 0)
-		return(i2c_error_device_error_1);
-
-	ch0 &= 0x7f;
-	ch1 &= 0x7f;
-
-	value->raw = (ch0 * 10000.0) + ch1;
-
-	if((tsl2550_count[ch1] <= tsl2550_count[ch0]) && (tsl2550_count[ch0] > 0))
-		ratio = (tsl2550_count[ch1] * 128) / tsl2550_count[ch0];
-	else
-		ratio = 128;
-
-	if(ratio > 128)
-		ratio = 128;
-
-	value->cooked = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
-
-	if(value->cooked < 0)
-		value->cooked = 0;
-
-	if(!config_get_flag(config_flag_tsl_high_sens))
-		value->cooked *= 5;
-
-	return(i2c_error_ok);
-}
-
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
@@ -632,6 +493,145 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 
 	if(value->cooked < 0)
 		value->cooked = 0;
+
+	return(i2c_error_ok);
+}
+
+static const uint16_t tsl2550_count[128] =
+{
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26,
+	28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 49, 53, 57, 61, 65, 69, 73, 77, 81,
+	85, 89, 93, 97, 101, 105, 109, 115, 123, 131, 139, 147, 155, 163, 171, 179,
+	187, 195, 203, 211, 219, 227, 235, 247, 263, 279, 295, 311, 327, 343, 359,
+	375, 391, 407, 423, 439, 455, 471, 487, 511, 543, 575, 607, 639, 671, 703,
+	735, 767, 799, 831, 863, 895, 927, 959, 991,
+	1039,1103,1167,1231,1295,1359,1423,1487,
+	1551,1615,1679,1743,1807,1871,1935,1999,
+	2095,2223,2351,2479,2607,2735,2863,2991,
+	3119,3247,3375,3503,3631,3759,3887,4015
+};
+
+static const uint8_t tsl2550_ratio[129] =
+{
+	100,100,100,100,100,100,100,100,
+	100,100,100,100,100,100,99,99,
+	99,99,99,99,99,99,99,99,
+	99,99,99,98,98,98,98,98,
+	98,98,97,97,97,97,97,96,
+	96,96,96,95,95,95,94,94,
+	93,93,93,92,92,91,91,90,
+	89,89,88,87,87,86,85,84,
+	83,82,81,80,79,78,77,75,
+	74,73,71,69,68,66,64,62,
+	60,58,56,54,52,49,47,44,
+	42,41,40,40,39,39,38,38,
+	37,37,37,36,36,36,35,35,
+	35,35,34,34,34,34,33,33,
+	33,33,32,32,32,32,32,31,
+	31,31,31,31,30,30,30,30,
+	30
+};
+
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send_1(0x39, in)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39, 1, out)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer;
+	uint8_t sens_command;
+
+	// tsl2550 power up
+
+	if((error = sensor_tsl2550_rw(0x03, &i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2cbuffer != 0x03)
+		return(i2c_error_device_error_1);
+
+	// standard range / extended range
+
+	if(config_get_flag(config_flag_tsl_high_sens))
+		sens_command = 0x18;
+	else
+		sens_command = 0x1d;
+
+	if((error = sensor_tsl2550_rw(sens_command, &i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2cbuffer != 0x1b)
+		return(i2c_error_device_error_2);
+
+	i2c_flags.device_0x39_is_tsl2550 = true;
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_read(value_t *value)
+{
+	i2c_error_t			error;
+	uint8_t				i2cbuffer;
+	uint8_t				ch0, ch1;
+	uint8_t				attempt, ratio;
+
+	if((error = sensor_tsl2550_init()) != i2c_error_ok)
+		return(error);
+
+	for(attempt = 16; attempt > 0; attempt--)
+	{
+		// read from channel 0
+
+		if(sensor_tsl2550_rw(0x43, &i2cbuffer) != i2c_error_ok)
+			goto error;
+
+		ch0 = i2cbuffer;
+
+		// read from channel 1
+
+		if(sensor_tsl2550_rw(0x83, &i2cbuffer) != i2c_error_ok)
+			goto error;
+
+		ch1 = i2cbuffer;
+
+		if((ch0 & 0x80) && (ch1 & 0x80))
+			break;
+error:
+		msleep(10);
+	}
+
+	if(attempt == 0)
+		return(i2c_error_device_error_1);
+
+	ch0 &= 0x7f;
+	ch1 &= 0x7f;
+
+	value->raw = (ch0 * 10000.0) + ch1;
+
+	if((tsl2550_count[ch1] <= tsl2550_count[ch0]) && (tsl2550_count[ch0] > 0))
+		ratio = (tsl2550_count[ch1] * 128) / tsl2550_count[ch0];
+	else
+		ratio = 128;
+
+	if(ratio > 128)
+		ratio = 128;
+
+	value->cooked = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
+
+	if(value->cooked < 0)
+		value->cooked = 0;
+
+	if(!config_get_flag(config_flag_tsl_high_sens))
+		value->cooked *= 5;
 
 	return(i2c_error_ok);
 }
@@ -929,16 +929,16 @@ static const device_table_t device_table[] =
 		sensor_bmp085_read_pressure
 	},
 	{
-		i2c_sensor_tsl2550,
-		"tsl2550", "light", "Lux", 2,
-		sensor_tsl2550_init,
-		sensor_tsl2550_read
-	},
-	{
 		i2c_sensor_tsl2560,
 		"tsl2560", "light", "Lux", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
+	},
+	{
+		i2c_sensor_tsl2550,
+		"tsl2550", "light", "Lux", 2,
+		sensor_tsl2550_init,
+		sensor_tsl2550_read
 	},
 	{
 		i2c_sensor_bh1750,
