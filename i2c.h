@@ -60,4 +60,8 @@ i2c_error_t		i2c_send(uint8_t address, uint16_t length, const uint8_t *bytes);
 i2c_error_t		i2c_receive(uint8_t address, uint16_t length, uint8_t *bytes);
 uint16_t		i2c_error_format_string(const char *tag, i2c_error_t error,
 					uint16_t size, char *dst);
+
+i2c_error_t		i2c_send_1(uint8_t address, uint8_t byte0);
+i2c_error_t		i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1);
+i2c_error_t		i2c_send_3(uint8_t address, uint8_t byte0, uint8_t byte1, uint8_t byte2);
 #endif

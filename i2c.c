@@ -605,3 +605,29 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint
 
 	return(i2c_error_ok);
 }
+
+ICACHE_FLASH_ATTR i2c_error_t i2c_send_1(uint8_t address, uint8_t byte0)
+{
+	return(i2c_send(address, 1, &byte0));
+}
+
+ICACHE_FLASH_ATTR i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1)
+{
+	uint8_t bytes[2];
+
+	bytes[0] = byte0;
+	bytes[1] = byte1;
+
+	return(i2c_send(address, 2, bytes));
+}
+
+ICACHE_FLASH_ATTR i2c_error_t i2c_send_3(uint8_t address, uint8_t byte0, uint8_t byte1, uint8_t byte2)
+{
+	uint8_t bytes[3];
+
+	bytes[0] = byte0;
+	bytes[1] = byte1;
+	bytes[2] = byte2;
+
+	return(i2c_send(address, 3, bytes));
+}

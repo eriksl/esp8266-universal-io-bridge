@@ -67,11 +67,11 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
 
-	i2cbuffer[0] = 0x01;	// select config register
-	i2cbuffer[1] = 0x60;	// set all defaults, operation is not shutdown
-							// specific for tmp275 variant select, high-res operation
+	// 0x01		select config register
+	// 0x60		set all defaults, operation is not shutdown
+	// 			specific for tmp275 variant select, high-res operation
 
-	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_2(0x48, 0x01, 0x60)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x48, 1, i2cbuffer)) != i2c_error_ok)
@@ -80,11 +80,9 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 	if(i2cbuffer[0] != 0x60)
 		return(i2c_error_device_error_1);
 
-	i2cbuffer[0] = 0x03;		// select overtemperature register
-	i2cbuffer[1] = 0xff;		// dummy value
-	i2cbuffer[2] = 0xff;
+	// 0x03	select overtemperature register
 
-	if((error = i2c_send(0x48, 3, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_3(0x48, 0x03, 0xff, 0xff)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
@@ -93,11 +91,9 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
 		return(i2c_error_device_error_2);
 
-	i2cbuffer[0] = 0x03;		// select overtemperature register
-	i2cbuffer[1] = 0x00;
-	i2cbuffer[2] = 0x00;
+	// 0x03	select overtemperature register
 
-	if((error = i2c_send(0x48, 3, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_3(0x48, 0x03, 0x00, 0x00)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
@@ -106,9 +102,9 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 	if((i2cbuffer[0] != 0x00) || (i2cbuffer[1] != 0x00))
 		return(i2c_error_device_error_3);
 
-	i2cbuffer[0] = 0x00; 		// select temperature register
+	// select temperature register
 
-	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x48, 0x00)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -142,20 +138,20 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 	i2c_error_t error;
 	uint32_t raw;
 
-	i2cbuffer[0] = 0xac;		// select config register
-	i2cbuffer[1] = 0b00001100;	// r0=r1=1, max resolution, other bits zero
+	//	0xac	select config register
+	//	0x0c	r0=r1=1, max resolution, other bits zero
 
-	if((error = i2c_send(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_2(0x48, 0xac, 0x0c)) != i2c_error_ok)
 		return(error);
 
-	i2cbuffer[0] = 0x51;		// start conversion (if not started already)
+	// start conversion (if not started already)
 
-	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x48, 0x51)) != i2c_error_ok)
 		return(error);
 
-	i2cbuffer[0] = 0xaa;		// read temperature
+	// read temperature
 
-	if((error = i2c_send(0x48, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x48, 0xaa)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
@@ -177,12 +173,8 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer[2];
 
-	i2cbuffer[0] = reg;
-	i2cbuffer[1] = value;
-
-	if((error = i2c_send(0x77, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_2(0x77, reg, value)) != i2c_error_ok)
 		return(error);
 
 	return(0);
@@ -193,9 +185,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
 
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x77, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x77, 2, i2cbuffer)) != i2c_error_ok)
@@ -211,9 +201,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *val
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
 
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(0x77, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x77, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x77, 3, i2cbuffer)) != i2c_error_ok)
@@ -407,7 +395,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send(0x39, 1, &in)) != i2c_error_ok)
+	if((error = i2c_send_1(0x39, in)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x39, 1, out)) != i2c_error_ok)
@@ -510,12 +498,10 @@ error:
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer[2];
 
-	i2cbuffer[0]= 0b11000000 | reg; // write byte
-	i2cbuffer[1] = value;
+	// 0xc0	write byte
 
-	if((error = i2c_send(0x39, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_2(0x39, 0xc0 | reg, value)) != i2c_error_ok)
 		return(error);
 
 	return(0);
@@ -524,11 +510,8 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uint8_t *byte)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer;
 
-	i2cbuffer = 0b11000000 | reg; // read byte
-
-	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x39, 0xc0 | reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
@@ -540,11 +523,8 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uin
 ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t size, uint8_t *values)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer;
 
-	i2cbuffer = 0b10010000 | reg; // read block
-
-	if((error = i2c_send(0x39, 1, &i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x39, 0xd0 | reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
@@ -658,28 +638,27 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 
 ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_init(void)
 {
-	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	i2cbuffer[0] = 0x01;	// bh1750; power on
+	// power on
 
-	if((error = i2c_send(0x23, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x23, 0x01)) != i2c_error_ok)
 	{
 		i2c_reset();
 		return(error);
 	}
 
-	i2cbuffer[0] = 0x07;	// reset
+	// reset
 
-	if((error = i2c_send(0x23, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x23, 0x07)) != i2c_error_ok)
 	{
 		i2c_reset();
 		return(error);
 	}
 
-	i2cbuffer[0] = 0x11;	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
+	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
 
-	if((error = i2c_send(0x23, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x23, 0x11)) != i2c_error_ok)
 	{
 		i2c_reset();
 		return(error);
@@ -730,9 +709,9 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_temp(value_t *value)
 	uint8_t	i2cbuffer[4];
 	uint8_t	crc1, crc2;
 
-	i2cbuffer[0] = 0xe3; // temperature measurement "hold master" mode
+	// temperature measurement "hold master" mode
 
-	if((error = i2c_send(0x40, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x40, 0xe3)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x40, 4, i2cbuffer)) != i2c_error_ok)
@@ -760,9 +739,9 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
 	uint8_t	i2cbuffer[4];
 	uint8_t	crc1, crc2;
 
-	i2cbuffer[0] = 0xe5; // humidity measurement "hold master" mode
+	// humidity measurement "hold master" mode
 
-	if((error = i2c_send(0x40, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(0x40, 0xe5)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(0x40, 4, i2cbuffer)) != i2c_error_ok)
@@ -820,16 +799,16 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_temp(value_t *value)
 	twi_master_send_address(0x5c, 1);	// wakeup the device
 	twi_master_send_stop_no_wait();		// by issueing an empty write
 #else
-	i2c_send(0x5c, 0, 0);
+	i2c_send_1(0x5c, 0);
 #endif
 
 	msleep(1);
 
-	i2cbuffer[0] = 0x03;	// read registers
-	i2cbuffer[1] = 0x02;	// start address
-	i2cbuffer[2] = 0x02;	// length;
+	//	0x03	read registers
+	//	0x02	start address
+	//	0x02	length;
 
-	if((error = i2c_send(0x5c, 3, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_3(0x5c, 0x03, 0x02, 0x02)) != i2c_error_ok)
 		return(error);
 
 	msleep(1);
@@ -872,16 +851,16 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_hum(value_t *value)
 	twi_master_send_address(0x5c, 1);	// wakeup the device
 	twi_master_send_stop_no_wait();		// by issueing an empty write
 #else
-	i2c_send(0x5c, 0, 0);
+	i2c_send_1(0x5c, 0);
 #endif
 
 	msleep(1);
 
-	i2cbuffer[0] = 0x03;	// read registers
-	i2cbuffer[1] = 0x00;	// start address
-	i2cbuffer[2] = 0x02;	// length;
+	//	0x03	read registers
+	//	0x00	start address
+	//	0x02	length;
 
-	if((error = i2c_send(0x5c, 3, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_3(0x5c, 0x03, 0x00, 0x02)) != i2c_error_ok)
 		return(error);
 
 	msleep(1);
