@@ -62,6 +62,44 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
+ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
+{
+	uint8_t i2cbuffer[2];
+	i2c_error_t error;
+	uint32_t raw;
+
+	//	0xac	select config register
+	//	0x0c	r0=r1=1, max resolution, other bits zero
+
+	if((error = i2c_send_2(0x48, 0xac, 0x0c)) != i2c_error_ok)
+		return(error);
+
+	// start conversion (if not started already)
+
+	if((error = i2c_send_1(0x48, 0x51)) != i2c_error_ok)
+		return(error);
+
+	// read temperature
+
+	if((error = i2c_send_1(0x48, 0xaa)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+
+	if(raw & 0x8000)
+	{
+		raw &= ~0x8000;
+		value->cooked = (double)raw / -256;
+	}
+	else
+		value->cooked = (double)raw / 256;
+
+	return(i2c_error_ok);
+}
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 {
 	uint8_t i2cbuffer[4];
@@ -115,44 +153,6 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_read(value_t *value)
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	uint32_t raw;
-
-	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
-
-	if(raw & 0x8000)
-	{
-		raw &= ~0x8000;
-		value->cooked = (double)raw / -256;
-	}
-	else
-		value->cooked = (double)raw / 256;
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
-{
-	uint8_t i2cbuffer[2];
-	i2c_error_t error;
-	uint32_t raw;
-
-	//	0xac	select config register
-	//	0x0c	r0=r1=1, max resolution, other bits zero
-
-	if((error = i2c_send_2(0x48, 0xac, 0x0c)) != i2c_error_ok)
-		return(error);
-
-	// start conversion (if not started already)
-
-	if((error = i2c_send_1(0x48, 0x51)) != i2c_error_ok)
-		return(error);
-
-	// read temperature
-
-	if((error = i2c_send_1(0x48, 0xaa)) != i2c_error_ok)
-		return(error);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
