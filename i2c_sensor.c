@@ -548,19 +548,29 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
 	return(i2c_error_ok);
 }
 
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_write_check(uint8_t in, uint8_t compare)
+{
+	i2c_error_t error;
+	uint8_t out;
+
+	if((error = sensor_tsl2550_rw(in, &out)) != i2c_error_ok)
+		return(error);
+
+	if(out != compare)
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer;
 	uint8_t sens_command;
 
 	// tsl2550 power up
 
-	if((error = sensor_tsl2550_rw(0x03, &i2cbuffer)) != i2c_error_ok)
+	if((error = sensor_tsl2550_write_check(0x03, 0x03)) != i2c_error_ok)
 		return(error);
-
-	if(i2cbuffer != 0x03)
-		return(i2c_error_device_error_1);
 
 	// standard range / extended range
 
@@ -569,40 +579,31 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 	else
 		sens_command = 0x1d;
 
-	if((error = sensor_tsl2550_rw(sens_command, &i2cbuffer)) != i2c_error_ok)
+	if((error = sensor_tsl2550_write_check(sens_command, 0x1b)) != i2c_error_ok)
 		return(error);
-
-	if(i2cbuffer != 0x1b)
-		return(i2c_error_device_error_2);
 
 	return(i2c_error_ok);
 }
 
 ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_read(value_t *value)
 {
-	i2c_error_t			error;
-	uint8_t				i2cbuffer;
-	uint8_t				ch0, ch1;
-	uint8_t				attempt, ratio;
+	i2c_error_t	error;
+	uint8_t		ch0, ch1;
+	uint8_t		attempt, ratio;
 
-	if((error = sensor_tsl2550_init()) != i2c_error_ok)
-		return(error);
+	error = i2c_error_ok;
 
 	for(attempt = 16; attempt > 0; attempt--)
 	{
 		// read from channel 0
 
-		if(sensor_tsl2550_rw(0x43, &i2cbuffer) != i2c_error_ok)
+		if((error = sensor_tsl2550_rw(0x43, &ch0)) != i2c_error_ok)
 			goto error;
-
-		ch0 = i2cbuffer;
 
 		// read from channel 1
 
-		if(sensor_tsl2550_rw(0x83, &i2cbuffer) != i2c_error_ok)
+		if((error = sensor_tsl2550_rw(0x83, &ch1)) != i2c_error_ok)
 			goto error;
-
-		ch1 = i2cbuffer;
 
 		if((ch0 & 0x80) && (ch1 & 0x80))
 			break;
@@ -610,8 +611,8 @@ error:
 		msleep(10);
 	}
 
-	if(attempt == 0)
-		return(i2c_error_device_error_1);
+	if(error != i2c_error_ok);
+		return(error);
 
 	ch0 &= 0x7f;
 	ch1 &= 0x7f;
