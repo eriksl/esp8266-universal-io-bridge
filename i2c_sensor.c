@@ -29,11 +29,6 @@ typedef struct
 
 device_data_t device_data[i2c_sensor_size];
 
-static struct
-{
-	unsigned int device_0x39_is_tsl2550;
-} i2c_flags;
-
 ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 {
 	i2c_error_t error;
@@ -356,70 +351,6 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
-{
-	i2c_error_t error;
-
-	// 0xc0	write byte
-
-	if((error = i2c_send_2(0x39, 0xc0 | reg, value)) != i2c_error_ok)
-		return(error);
-
-	return(0);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t size, uint8_t *byte)
-{
-	i2c_error_t error;
-
-	if((error = i2c_send_1(0x39, 0xc0 | reg)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t size, uint8_t *values)
-{
-	i2c_error_t error;
-
-	if((error = i2c_send_1(0x39, 0xd0 | reg)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
-{
-	i2c_error_t error;
-	uint8_t byte;
-
-	if(i2c_flags.device_0x39_is_tsl2550)
-		return(i2c_error_address_nak);
-
-	if((error = tsl2560_write(0x00, 0x03)) != i2c_error_ok)	// tsl2560; power up
-		return(error);
-
-	if((error = tsl2560_read(0x00, 1, &byte)) != i2c_error_ok) // check read
-		return(error);
-
-	if(byte != 0x03)
-		return(i2c_error_device_error_1);
-
-	if((error = tsl2560_write(0x06, 0x00)) != i2c_error_ok)	// disable interrupts
-		return(error);
-
-	if((error = tsl2560_write(0x01, 0x11)) != i2c_error_ok)	// start continuous sampling every 100 ms, high gain = 16x
-		return(error);
-
-	return(i2c_error_ok);
-}
-
 typedef struct
 {
 	const double ratio_top;
@@ -439,6 +370,81 @@ static const tsl2560_lookup_t tsl2560_lookup[] =
 	{ 0.000, 0.00000, 0.00000 }
 };
 
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
+{
+	i2c_error_t error;
+
+	// 0xc0	write byte
+
+	if((error = i2c_send_2(0x39, 0xc0 | reg, value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t *byte)
+{
+	i2c_error_t error;
+
+	// 0xc0	read byte
+
+	if((error = i2c_send_1(0x39, 0xc0 | reg)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write_check(uint8_t reg, uint8_t value)
+{
+	i2c_error_t error;
+	uint8_t rv;
+
+	if((error = tsl2560_write(reg, value)) != i2c_error_ok)
+		return(error);
+
+	if((error = tsl2560_read(reg, &rv)) != i2c_error_ok)
+		return(error);
+
+	if(value != rv)
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t *values)
+{
+	i2c_error_t error;
+
+	// 0xd0	read block
+
+	if((error = i2c_send_1(0x39, 0xd0 | reg)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
+{
+	i2c_error_t error;
+
+	if((error = tsl2560_write_check(0x00, 0x03)) != i2c_error_ok)	// power up
+		return(error);
+
+	if((error = tsl2560_write_check(0x06, 0x00)) != i2c_error_ok)	// disable interrupts
+		return(error);
+
+	if((error = tsl2560_write_check(0x01, 0x11)) != i2c_error_ok)	// start continuous sampling every 100 ms, high gain = 16x
+		return(error);
+
+	return(i2c_error_ok);
+}
+
 ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 {
 	uint8_t	i2cbuffer[4];
@@ -448,10 +454,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	const tsl2560_lookup_t *entry;
 	uint8_t current;
 
-	if((error = sensor_tsl2560_init()) != i2c_error_ok)
-		return(error);
-
-	if((error = tsl2560_read_block(0x0c, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = tsl2560_read_block(0x0c, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	ch0r = i2cbuffer[0] | (i2cbuffer[1] << 8);
@@ -571,8 +574,6 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 
 	if(i2cbuffer != 0x1b)
 		return(i2c_error_device_error_2);
-
-	i2c_flags.device_0x39_is_tsl2550 = true;
 
 	return(i2c_error_ok);
 }
