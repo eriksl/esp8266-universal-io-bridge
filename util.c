@@ -90,26 +90,13 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 {
 	double compare;
 	uint8_t decimal;
-	bool_t leading_space;
+	bool_t skip_leading_zeroes;
 	uint16_t length;
 
 	if(--size < 1)
 		return(0);
 
 	length = 0;
-
-	if((uint32_t)value == 0)
-	{
-		if(length < size)
-		{
-			*dst = '0';
-			dst++;
-			length++;
-		}
-
-		*dst = '\0';
-		return(length);
-	}
 
 	if(value < 0)
 	{
@@ -123,17 +110,7 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 		value = 0 - value;
 	}
 
-	if((value > 0) && (value < 1))
-	{
-		if(length < size)
-		{
-			*dst = '0';
-			dst++;
-			length++;
-		}
-	}
-
-	leading_space = true;
+	skip_leading_zeroes = true;
 
 	if(value > (10 * top_decimal))
 	{
@@ -151,9 +128,9 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 
 	for(compare = top_decimal; compare > 0; compare /= 10)
 	{
-		if(compare <= value)
+		if(value >= compare)
 		{
-			leading_space = false;
+			skip_leading_zeroes = false;
 
 			decimal = (uint8_t)(value / compare);
 			value -= decimal * compare;
@@ -167,7 +144,7 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 		}
 		else
 		{
-			if(!leading_space)
+			if(!skip_leading_zeroes)
 			{
 				if(length < size)
 				{
@@ -183,6 +160,18 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 
 		if((uint32_t)compare == 1)
 		{
+			if(skip_leading_zeroes)
+			{
+				if(length < size)
+				{
+					*dst = '0';
+					dst++;
+					length++;
+				}
+
+				skip_leading_zeroes = false;
+			}
+
 			if(length < size)
 			{
 				*dst = '.';
@@ -193,6 +182,16 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 
 		if((compare <= 1) && (precision > 0))
 			--precision;
+	}
+
+	if(length == 0)
+	{
+		if(length < size)
+		{
+			*dst = '0';
+			dst++;
+			length++;
+		}
 	}
 
 	*dst = '\0';
