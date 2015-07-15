@@ -15,6 +15,8 @@
 #include <user_interface.h>
 #include <c_types.h>
 
+#include <stdlib.h>
+
 typedef struct
 {
 	const char		*command1;
@@ -165,7 +167,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(applic
 {
 	uint32_t baud_rate = atoi((*ap.args)[1]);
 
-	if((baud_rate < 0) || (baud_rate > 1000000))
+	if(baud_rate > 1000000)
 	{
 		snprintf(ap.dst, ap.size, "uart-baud: out of range: %u\n", baud_rate);
 		return(1);
@@ -180,7 +182,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(applic
 
 ICACHE_FLASH_ATTR static app_action_t application_function_uart_data_bits(application_parameters_t ap)
 {
-	int data_bits = atoi((*ap.args)[1]);
+	uint8_t data_bits = atoi((*ap.args)[1]);
 
 	if((data_bits < 5) || (data_bits > 8))
 	{
@@ -197,7 +199,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_data_bits(applic
 
 ICACHE_FLASH_ATTR static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
 {
-	int stop_bits = atoi((*ap.args)[1]);
+	uint8_t stop_bits = atoi((*ap.args)[1]);
 
 	if((stop_bits < 1) || (stop_bits > 2))
 	{
@@ -324,7 +326,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_read(appli
 {
 	i2c_sensor_t sensor;
 
-	sensor = (i2c_sensor_t)atoi((*ap.args)[1]);
+	sensor = atoi((*ap.args)[1]);
 
 	if(!i2c_sensor_read(sensor, true, true, ap.size, ap.dst))
 	{
@@ -390,7 +392,7 @@ static const char *slp[] =
 	"unknown"
 };
 
-ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_wlan_dump(application_parameters_t ap)
 {
 	struct station_config sc_default, sc_current;
 
@@ -414,7 +416,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_wlan_dump(application_parame
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t static set_unset_flag(application_parameters_t ap, bool_t value)
+ICACHE_FLASH_ATTR static app_action_t set_unset_flag(application_parameters_t ap, bool_t value)
 {
 	uint16_t length;
 
@@ -444,12 +446,12 @@ ICACHE_FLASH_ATTR app_action_t static set_unset_flag(application_parameters_t ap
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t static application_function_set(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_set(application_parameters_t ap)
 {
 	return(set_unset_flag(ap, true));
 }
 
-ICACHE_FLASH_ATTR app_action_t static application_function_unset(application_parameters_t ap)
+ICACHE_FLASH_ATTR static app_action_t application_function_unset(application_parameters_t ap)
 {
 	return(set_unset_flag(ap, false));
 }

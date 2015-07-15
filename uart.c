@@ -11,7 +11,7 @@
 
 #include "esp-uart-register.h"
 
-ICACHE_FLASH_ATTR uart_parity_t uart_string_to_parity(const char *str)
+ICACHE_FLASH_ATTR attr_pure uart_parity_t uart_string_to_parity(const char *str)
 {
 	uart_parity_t rv;
 
@@ -27,7 +27,7 @@ ICACHE_FLASH_ATTR uart_parity_t uart_string_to_parity(const char *str)
 	return(rv);
 }
 
-ICACHE_FLASH_ATTR const char *uart_parity_to_string(uart_parity_t ix)
+ICACHE_FLASH_ATTR attr_pure attr_const const char *uart_parity_to_string(uart_parity_t ix)
 {
 	static const char *parity[] =
 	{
@@ -42,7 +42,7 @@ ICACHE_FLASH_ATTR const char *uart_parity_to_string(uart_parity_t ix)
 	return(parity[ix]);
 }
 
-ICACHE_FLASH_ATTR char uart_parity_to_char(uart_parity_t ix)
+ICACHE_FLASH_ATTR attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 {
 	static const char *parity = "NEO";
 

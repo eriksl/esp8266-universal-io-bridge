@@ -38,15 +38,15 @@ static config_flag_t config_flag[config_flag_size] =
 
 config_t config;
 
-const char *config_flag_to_string(config_flag_enum_t id)
+attr_pure const char *config_flag_to_string(config_flag_enum_t id)
 {
-	if((id < 0) || (id > config_flag_size))
+	if(id > config_flag_size)
 		return("unknown");
 
 	return(config_flag[id].long_name);
 }
 
-ICACHE_FLASH_ATTR config_flag_enum_t config_flag_to_id(const char *flag_name)
+attr_pure ICACHE_FLASH_ATTR config_flag_enum_t config_flag_to_id(const char *flag_name)
 {
 	const config_flag_t *entry;
 	config_flag_enum_t current;
@@ -62,7 +62,7 @@ ICACHE_FLASH_ATTR config_flag_enum_t config_flag_to_id(const char *flag_name)
 	return(current);
 }
 
-ICACHE_FLASH_ATTR bool_t config_get_flag(config_flag_enum_t flag)
+ICACHE_FLASH_ATTR attr_pure bool_t config_get_flag(config_flag_enum_t flag)
 {
 	if(flag < config_flag_size)
 		return(config.flags & (1 << flag));
@@ -85,7 +85,7 @@ ICACHE_FLASH_ATTR bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 	return(false);
 }
 
-ICACHE_FLASH_ATTR bool_t config_get_flag_by_name(const char *flag_name)
+ICACHE_FLASH_ATTR bool_t attr_pure config_get_flag_by_name(const char *flag_name)
 {
 	return(config_get_flag(config_flag_to_id(flag_name)));
 }

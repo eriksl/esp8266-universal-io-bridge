@@ -23,17 +23,17 @@ ICACHE_FLASH_ATTR queue_t * queue_new(uint16_t size)
 }
 
 
-char queue_empty(const queue_t *queue)
+attr_pure char queue_empty(const queue_t *queue)
 {
 	return(queue->in == queue->out);
 }
 
-char queue_full(const queue_t *queue)
+attr_pure char queue_full(const queue_t *queue)
 {
 	return(((queue->in + 1) % queue->size) == queue->out);
 }
 
-uint16_t queue_lf(const queue_t *queue)
+attr_pure uint16_t queue_lf(const queue_t *queue)
 {
 	return(queue->lf);
 }

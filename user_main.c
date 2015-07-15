@@ -431,6 +431,8 @@ static void periodic_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
+void user_init(void);
+
 ICACHE_FLASH_ATTR void user_init(void)
 {
 	if(!(uart_send_queue = queue_new(buffer_size)))

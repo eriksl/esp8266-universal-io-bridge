@@ -10,6 +10,8 @@
 #include <gpio.h>
 #include <pwm.h>
 
+#include <stdlib.h>
+
 typedef struct
 {
 	const	gpio_id_t	id;
@@ -536,12 +538,6 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parame
 				startup_duty = 0;
 			else
 				startup_duty = atoi((*ap.args)[3]);
-
-			if(startup_duty > 65535)
-			{
-				snprintf(ap.dst, ap.size, "gpio-mode(pwm): invalid startup duty: %u, duty must be 0-65535\n", startup_duty);
-				return(app_action_error);
-			}
 
 			new_gpio_config->pwm.startup_duty = startup_duty;
 

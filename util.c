@@ -64,7 +64,7 @@ ICACHE_FLASH_ATTR void reset(void)
 	system_restart();
 }
 
-ICACHE_FLASH_ATTR const char *yesno(bool_t value)
+ICACHE_FLASH_ATTR attr_const const char *yesno(bool_t value)
 {
 	if(!value)
 		return("no");
@@ -72,7 +72,7 @@ ICACHE_FLASH_ATTR const char *yesno(bool_t value)
 	return("yes");
 }
 
-ICACHE_FLASH_ATTR const char *onoff(bool_t value)
+ICACHE_FLASH_ATTR attr_const const char *onoff(bool_t value)
 {
 	if(!value)
 		return("off");
@@ -98,7 +98,7 @@ ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, dou
 
 	length = 0;
 
-	if(value == 0)
+	if((uint32_t)value == 0)
 	{
 		if(length < size)
 		{
@@ -181,7 +181,7 @@ ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, dou
 		if((compare <= 1) && (precision == 0))
 			break;
 
-		if(compare == 1)
+		if((uint32_t)compare == 1)
 		{
 			if(length < size)
 			{

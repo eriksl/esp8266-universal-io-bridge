@@ -38,7 +38,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 		return(error);
 
 	value->raw = ((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3];
-	value->cooked = ((value->raw * 165.0) / 32767) - 40.5;
+	value->cooked = ((value->raw * 165.0) / 32767.0) - 40.5;
 
 	return(i2c_error_ok);
 }
@@ -82,11 +82,11 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+	value->raw = raw = ((uint32_t)(i2cbuffer[0] << 8)) | i2cbuffer[1];
 
 	if(raw & 0x8000)
 	{
-		raw &= ~0x8000;
+		raw &= ~(uint32_t)0x8000;
 		value->cooked = (double)raw / -256;
 	}
 	else
@@ -186,7 +186,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
 	if((error = i2c_receive(0x77, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	*value = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
+	*value = ((uint16_t)(i2cbuffer[0] << 8)) | (uint16_t)i2cbuffer[1];
 
 	return(0);
 }
@@ -476,7 +476,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 		ch1 = ch1r * 322 / 11 * 16;
 	}
 
-	if(ch0 != 0)
+	if((uint32_t)ch0 != 0)
 		ratio = ch1 / ch0;
 	else
 		ratio = 0;
@@ -485,7 +485,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
 	{
 		entry = &tsl2560_lookup[current];
 
-		if((entry->ratio_top == 0) || (entry->ch0_factor == 0) || (entry->ch1_factor == 0))
+		if(((uint32_t)entry->ratio_top == 0) || ((uint32_t)entry->ch0_factor == 0) || ((uint32_t)entry->ch1_factor == 0))
 			break;
 
 		if(ratio <= entry->ratio_top)
@@ -611,7 +611,7 @@ error:
 		msleep(10);
 	}
 
-	if(error != i2c_error_ok);
+	if(error != i2c_error_ok)
 		return(error);
 
 	ch0 &= 0x7f;
@@ -683,7 +683,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
+ICACHE_FLASH_ATTR attr_pure static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
 {
 	i2c_error_t outer, inner, testbit, crc;
 
@@ -765,7 +765,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
+ICACHE_FLASH_ATTR attr_pure static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
 {
 	uint8_t		outer, inner, testbit;
 	uint16_t	crc;

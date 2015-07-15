@@ -96,12 +96,12 @@ ICACHE_FLASH_ATTR uint16_t i2c_error_format_string(const char *tag, i2c_error_t 
 				tag, i2c_error_string(error), i2c_state_string()));
 }
 
-static void inline short_delay(void)
+static inline void short_delay(void)
 {
 	os_delay_us(1);
 }
 
-static void inline delay(void)
+static inline void delay(void)
 {
 	os_delay_us(5);
 }
