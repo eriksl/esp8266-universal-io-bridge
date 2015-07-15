@@ -1016,44 +1016,46 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 
 	error = i2c_error_ok;
 
-	if((device_data[sensor].detected || verbose) && ((error = entry->read_fn(&value)) == i2c_error_ok))
+	if(list || device_data[sensor].detected)
 	{
-		length = snprintf(dst, size, "sensor %d:%s: %s: ", sensor, entry->name, entry->type);
-		dst += length;
-		size -= length;
-
-		length = snprintf(dst, size, "%s", "[");
-		dst += length;
-		size -= length;
-
-		length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
-		dst += length;
-		size -= length;
-
-		length = snprintf(dst, size, "%s", "] (raw: ");
-		dst += length;
-		size -= length;
-
-		length = double_to_string(value.raw, 0, 1e10, size, dst);
-		dst += length;
-		size -= length;
-
-		length = snprintf(dst, size, "%s", ")\n");
+		length = snprintf(dst, size, "%s sensor %d:%s: %s: ",
+				device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
 		dst += length;
 		size -= length;
 	}
-	else
+
+	if(verbose || device_data[sensor].detected)
 	{
-		if(list)
+		error = entry->read_fn(&value);
+
+		if(error == i2c_error_ok)
 		{
-			length = snprintf(dst, size, "sensor %d:%s: %s: ", sensor, entry->name, entry->type);
+			length = snprintf(dst, size, "%s", "[");
 			dst += length;
 			size -= length;
 
+			length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
+			dst += length;
+			size -= length;
+
+			length = snprintf(dst, size, "%s", "] (raw: ");
+			dst += length;
+			size -= length;
+
+			length = double_to_string(value.raw, 0, 1e10, size, dst);
+			dst += length;
+			size -= length;
+
+			length = snprintf(dst, size, "%s", ")\n");
+			dst += length;
+			size -= length;
+		}
+		else
+		{
 			if(verbose)
 				length = i2c_error_format_string("error", error, size, dst);
 			else
-				length = snprintf(dst, size, "%s", "not found");
+				length = snprintf(dst, size, "%s", "error");
 
 			dst += length;
 			size -= length;
@@ -1065,6 +1067,15 @@ ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, boo
 
 		if(error != i2c_error_ok)
 			i2c_reset();
+	}
+	else
+	{
+		if(list)
+		{
+			length = snprintf(dst, size, "%s", "not found");
+			dst += length;
+			size -= length;
+		}
 	}
 
 	return(dst - orig_dst);
