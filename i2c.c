@@ -73,7 +73,7 @@ static const char *error_strings[i2c_error_size] =
 	"device specific error 5",
 };
 
-ICACHE_FLASH_ATTR static const char *i2c_state_string(void)
+irom static const char *i2c_state_string(void)
 {
 	if(state < i2c_state_size)
 		return(state_strings[state]);
@@ -81,7 +81,7 @@ ICACHE_FLASH_ATTR static const char *i2c_state_string(void)
 		return("<unknown state>");
 }
 
-ICACHE_FLASH_ATTR static const char *i2c_error_string(i2c_error_t error)
+irom static const char *i2c_error_string(i2c_error_t error)
 {
 	if(error < i2c_error_size)
 		return(error_strings[error]);
@@ -89,64 +89,64 @@ ICACHE_FLASH_ATTR static const char *i2c_error_string(i2c_error_t error)
 		return("<unknown error>");
 }
 
-ICACHE_FLASH_ATTR uint16_t i2c_error_format_string(const char *tag, i2c_error_t error,
+irom uint16_t i2c_error_format_string(const char *tag, i2c_error_t error,
 		uint16_t size, char *dst)
 {
 	return(snprintf(dst, size, "%s: bus error: %s (in bus state: %s)",
 				tag, i2c_error_string(error), i2c_state_string()));
 }
 
-static inline void short_delay(void)
+irom static inline void short_delay(void)
 {
 	os_delay_us(1);
 }
 
-static inline void delay(void)
+irom static inline void delay(void)
 {
 	os_delay_us(5);
 }
 
-static inline void set_io(uint32_t clear, uint32_t set)
+irom static inline void set_io(uint32_t clear, uint32_t set)
 {
 	gpio_output_set(set, clear, 0, 0);
 }
 
-static inline uint32_t get_io(void)
+irom static inline uint32_t get_io(void)
 {
 	return(gpio_input_get() & (sda_mask | scl_mask));
 }
 
-static inline void clear_sda(void)
+irom static inline void clear_sda(void)
 {
 	set_io(sda_mask, 0);
 }
 
-static inline void set_sda(void)
+irom static inline void set_sda(void)
 {
 	set_io(0, sda_mask);
 }
 
-static inline void clear_scl(void)
+irom static inline void clear_scl(void)
 {
 	set_io(scl_mask, 0);
 }
 
-static inline void set_scl(void)
+irom static inline void set_scl(void)
 {
 	set_io(0, scl_mask);
 }
 
-static inline bool_t sda_is_set(void)
+irom static inline bool_t sda_is_set(void)
 {
 	return(!!(get_io() & sda_mask));
 }
 
-static inline bool_t scl_is_set(void)
+irom static inline bool_t scl_is_set(void)
 {
 	return(!!(get_io() & scl_mask));
 }
 
-static i2c_error_t wait_idle(void)
+irom static i2c_error_t wait_idle(void)
 {
 	uint16_t current;
 
@@ -164,7 +164,7 @@ static i2c_error_t wait_idle(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t send_start(void)
+irom static i2c_error_t send_start(void)
 {
 	i2c_error_t error;
 	uint32_t current;
@@ -218,7 +218,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_start(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t send_stop(void)
+irom static i2c_error_t send_stop(void)
 {
 	i2c_error_t error;
 
@@ -270,7 +270,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t send_bit(bool_t bit)
+iram static i2c_error_t send_bit(bool_t bit)
 {
 	i2c_error_t error;
 
@@ -314,7 +314,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t send_byte(uint8_t byte)
+iram static i2c_error_t send_byte(uint8_t byte)
 {
 	i2c_error_t error;
 	uint8_t current;
@@ -332,7 +332,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_byte(uint8_t byte)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t receive_bit(bool_t *bit)
+iram static i2c_error_t receive_bit(bool_t *bit)
 {
 	uint16_t current;
 	uint16_t total;
@@ -393,7 +393,7 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_bit(bool_t *bit)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t receive_byte(uint8_t *byte)
+iram static i2c_error_t receive_byte(uint8_t *byte)
 {
 	uint8_t current;
 	bool_t bit;
@@ -413,7 +413,7 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static inline i2c_error_t send_ack(bool_t ack)
+irom static inline i2c_error_t send_ack(bool_t ack)
 {
 	i2c_error_t error;
 
@@ -426,7 +426,7 @@ ICACHE_FLASH_ATTR static inline i2c_error_t send_ack(bool_t ack)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t receive_ack(bool_t *ack)
+irom static i2c_error_t receive_ack(bool_t *ack)
 {
 	i2c_error_t error;
 	bool_t bit;
@@ -442,7 +442,7 @@ ICACHE_FLASH_ATTR static i2c_error_t receive_ack(bool_t *ack)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t send_header(uint8_t address, i2c_direction_t direction)
+irom static i2c_error_t send_header(uint8_t address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t ack;
@@ -476,7 +476,7 @@ ICACHE_FLASH_ATTR static i2c_error_t send_header(uint8_t address, i2c_direction_
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
+irom i2c_error_t i2c_reset(void)
 {
 	uint16_t current;
 
@@ -512,7 +512,7 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
+irom i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
 {
 	sda_mask = 1 << sda_index;
 	scl_mask = 1 << scl_index;
@@ -522,7 +522,7 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
 	return(i2c_reset());
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_send(uint8_t address, uint16_t length, const uint8_t *bytes)
+irom i2c_error_t i2c_send(uint8_t address, uint16_t length, const uint8_t *bytes)
 {
 	uint16_t current;
 	i2c_error_t error;
@@ -567,7 +567,7 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_send(uint8_t address, uint16_t length, const u
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint8_t *bytes)
+irom i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint8_t *bytes)
 {
 	uint16_t current;
 	i2c_error_t error;
@@ -606,12 +606,12 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_send_1(uint8_t address, uint8_t byte0)
+irom i2c_error_t i2c_send_1(uint8_t address, uint8_t byte0)
 {
 	return(i2c_send(address, 1, &byte0));
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1)
+irom i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1)
 {
 	uint8_t bytes[2];
 
@@ -621,7 +621,7 @@ ICACHE_FLASH_ATTR i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t
 	return(i2c_send(address, 2, bytes));
 }
 
-ICACHE_FLASH_ATTR i2c_error_t i2c_send_3(uint8_t address, uint8_t byte0, uint8_t byte1, uint8_t byte2)
+irom i2c_error_t i2c_send_3(uint8_t address, uint8_t byte0, uint8_t byte1, uint8_t byte2)
 {
 	uint8_t bytes[3];
 

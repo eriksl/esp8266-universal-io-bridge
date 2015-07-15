@@ -11,7 +11,7 @@
 
 #include "esp-uart-register.h"
 
-ICACHE_FLASH_ATTR attr_pure uart_parity_t uart_string_to_parity(const char *str)
+irom attr_pure uart_parity_t uart_string_to_parity(const char *str)
 {
 	uart_parity_t rv;
 
@@ -27,7 +27,7 @@ ICACHE_FLASH_ATTR attr_pure uart_parity_t uart_string_to_parity(const char *str)
 	return(rv);
 }
 
-ICACHE_FLASH_ATTR attr_pure attr_const const char *uart_parity_to_string(uart_parity_t ix)
+irom attr_pure attr_const const char *uart_parity_to_string(uart_parity_t ix)
 {
 	static const char *parity[] =
 	{
@@ -42,7 +42,7 @@ ICACHE_FLASH_ATTR attr_pure attr_const const char *uart_parity_to_string(uart_pa
 	return(parity[ix]);
 }
 
-ICACHE_FLASH_ATTR attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
+irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 {
 	static const char *parity = "NEO";
 
@@ -52,7 +52,7 @@ ICACHE_FLASH_ATTR attr_pure attr_const char uart_parity_to_char(uart_parity_t ix
 	return(parity[ix]);
 }
 
-ICACHE_FLASH_ATTR uint16_t uart_parameters_to_string(const uart_parameters_t *params, uint16_t size, char *string)
+irom uint16_t uart_parameters_to_string(const uart_parameters_t *params, uint16_t size, char *string)
 {
 	snprintf(string, size, "%u %u%c%u",
 			params->baud_rate,
@@ -63,17 +63,17 @@ ICACHE_FLASH_ATTR uint16_t uart_parameters_to_string(const uart_parameters_t *pa
 	return(strlen(string));
 }
 
-static uint16_t uart_rx_fifo_length(void)
+iram static uint16_t uart_rx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-static uint16_t uart_tx_fifo_length(void)
+iram static uint16_t uart_tx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
-static void uart_callback(void *p)
+iram static void uart_callback(void *p)
 {
 	char data;
 
@@ -117,7 +117,7 @@ static void uart_callback(void *p)
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR void uart_init(const uart_parameters_t *params)
+irom void uart_init(const uart_parameters_t *params)
 {
 	uint8_t data_bits;
 	uint8_t stop_bits;
@@ -179,7 +179,7 @@ ICACHE_FLASH_ATTR void uart_init(const uart_parameters_t *params)
 	ETS_UART_INTR_ENABLE();
 }
 
-void uart_start_transmit(char c)
+iram void uart_start_transmit(char c)
 {
 	if(c)
 		SET_PERI_REG_MASK(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);

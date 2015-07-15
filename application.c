@@ -28,14 +28,14 @@ typedef struct
 
 static const application_function_table_t application_function_table[];
 
-void application_periodic(void)
+iram void application_periodic(void)
 {
 	stat_application_periodic++;
 
 	gpios_periodic();
 }
 
-ICACHE_FLASH_ATTR app_action_t application_content(const char *src, uint16_t size, char *dst)
+irom app_action_t application_content(const char *src, uint16_t size, char *dst)
 {
 	args_t	args;
 	uint8_t args_count, arg_current;
@@ -114,14 +114,14 @@ ICACHE_FLASH_ATTR app_action_t application_content(const char *src, uint16_t siz
 	return(app_action_error);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_config_dump(application_parameters_t ap)
+irom static app_action_t application_function_config_dump(application_parameters_t ap)
 {
 	config_dump(ap.size, ap.dst);
 
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_config_write(application_parameters_t ap)
+irom static app_action_t application_function_config_write(application_parameters_t ap)
 {
 	config_write();
 	strlcpy(ap.dst, "config write OK\n", ap.size);
@@ -129,7 +129,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_config_write(applicat
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_help(application_parameters_t ap)
+irom static app_action_t application_function_help(application_parameters_t ap)
 {
 	const application_function_table_t *tableptr;
 	uint16_t length;
@@ -146,24 +146,24 @@ ICACHE_FLASH_ATTR static app_action_t application_function_help(application_para
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_quit(application_parameters_t ap)
+irom static app_action_t application_function_quit(application_parameters_t ap)
 {
 	return(app_action_disconnect);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_reset(application_parameters_t ap)
+irom static app_action_t application_function_reset(application_parameters_t ap)
 {
 	return(app_action_reset);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_stats(application_parameters_t ap)
+irom static app_action_t application_function_stats(application_parameters_t ap)
 {
 	stats_generate(ap.size, ap.dst);
 
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
+irom static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
 	uint32_t baud_rate = atoi((*ap.args)[1]);
 
@@ -180,7 +180,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_baud_rate(applic
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_uart_data_bits(application_parameters_t ap)
+irom static app_action_t application_function_uart_data_bits(application_parameters_t ap)
 {
 	uint8_t data_bits = atoi((*ap.args)[1]);
 
@@ -197,7 +197,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_data_bits(applic
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
+irom static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
 {
 	uint8_t stop_bits = atoi((*ap.args)[1]);
 
@@ -214,7 +214,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_stop_bits(applic
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_uart_parity(application_parameters_t ap)
+irom static app_action_t application_function_uart_parity(application_parameters_t ap)
 {
 	uart_parity_t parity = uart_string_to_parity((*ap.args)[1]);
 
@@ -233,7 +233,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_uart_parity(applicati
 
 static uint8_t i2c_address = 0;
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_address(application_parameters_t ap)
+irom static app_action_t application_function_i2c_address(application_parameters_t ap)
 {
 	i2c_address = (uint8_t)strtoul((*ap.args)[1], 0, 16);
 
@@ -242,7 +242,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_address(applicati
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_read(application_parameters_t ap)
+irom static app_action_t application_function_i2c_read(application_parameters_t ap)
 {
 	uint16_t length, current, size;
 	i2c_error_t error;
@@ -280,7 +280,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_read(application_
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_write(application_parameters_t ap)
+irom static app_action_t application_function_i2c_write(application_parameters_t ap)
 {
 	uint16_t src_current, dst_current;
 	i2c_error_t error;
@@ -306,7 +306,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_write(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_reset(application_parameters_t ap)
+irom static app_action_t application_function_i2c_reset(application_parameters_t ap)
 {
 	i2c_error_t error;
 
@@ -322,7 +322,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_reset(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_read(application_parameters_t ap)
+irom static app_action_t application_function_i2c_sensor_read(application_parameters_t ap)
 {
 	i2c_sensor_t sensor;
 
@@ -337,7 +337,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_read(appli
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
+irom static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
 {
 	i2c_sensor_t sensor;
 	uint16_t offset;
@@ -392,7 +392,7 @@ static const char *slp[] =
 	"unknown"
 };
 
-ICACHE_FLASH_ATTR static app_action_t application_function_wlan_dump(application_parameters_t ap)
+irom static app_action_t application_function_wlan_dump(application_parameters_t ap)
 {
 	struct station_config sc_default, sc_current;
 
@@ -416,7 +416,7 @@ ICACHE_FLASH_ATTR static app_action_t application_function_wlan_dump(application
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t set_unset_flag(application_parameters_t ap, bool_t value)
+irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t value)
 {
 	uint16_t length;
 
@@ -446,12 +446,12 @@ ICACHE_FLASH_ATTR static app_action_t set_unset_flag(application_parameters_t ap
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_set(application_parameters_t ap)
+irom static app_action_t application_function_set(application_parameters_t ap)
 {
 	return(set_unset_flag(ap, true));
 }
 
-ICACHE_FLASH_ATTR static app_action_t application_function_unset(application_parameters_t ap)
+irom static app_action_t application_function_unset(application_parameters_t ap)
 {
 	return(set_unset_flag(ap, false));
 }

@@ -106,12 +106,12 @@ static gpio_trait_t gpio_traits[gpio_size] =
 	}
 };
 
-ICACHE_FLASH_ATTR static gpio_t *get_config(const gpio_trait_t *gpio)
+irom static gpio_t *get_config(const gpio_trait_t *gpio)
 {
 	return(&config.gpios[gpio->id]);
 }
 
-ICACHE_FLASH_ATTR void gpios_init(void)
+irom void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
 	gpio_trait_t *gpio;
@@ -167,7 +167,7 @@ ICACHE_FLASH_ATTR void gpios_init(void)
 		i2c_init(sda, scl);
 }
 
-ICACHE_FLASH_ATTR static void config_init(gpio_t *gpio)
+irom static void config_init(gpio_t *gpio)
 {
 	gpio->mode = gpio_disabled;
 	gpio->output.startup_state = 0;
@@ -179,7 +179,7 @@ ICACHE_FLASH_ATTR static void config_init(gpio_t *gpio)
 	gpio->i2c.pin = gpio_i2c_sda;
 }
 
-ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
+irom void gpios_config_init(gpio_t *gpios)
 {
 	int current;
 
@@ -187,19 +187,19 @@ ICACHE_FLASH_ATTR void gpios_config_init(gpio_t *gpios)
 		config_init(&gpios[current]);
 }
 
-ICACHE_FLASH_ATTR static void set_output(const gpio_trait_t *gpio, bool_t onoff)
+irom static void set_output(const gpio_trait_t *gpio, bool_t onoff)
 {
 	gpio_output_set(onoff ? (1 << gpio->index) : 0x00,
 					!onoff ? (1 << gpio->index) : 0x00,
 					0x00, 0x00);
 }
 
-ICACHE_FLASH_ATTR static bool_t get_input(const gpio_trait_t *gpio)
+irom static bool_t get_input(const gpio_trait_t *gpio)
 {
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
-void gpios_periodic(void)
+iram void gpios_periodic(void)
 {
 	uint8_t current;
 	gpio_trait_t *gpio;
@@ -228,7 +228,7 @@ void gpios_periodic(void)
 	}
 }
 
-ICACHE_FLASH_ATTR static void trigger_bounce(gpio_trait_t *gpio, bool_t onoff)
+irom static void trigger_bounce(gpio_trait_t *gpio, bool_t onoff)
 {
 	const gpio_t *cfg = get_config(gpio);
 
@@ -244,13 +244,13 @@ ICACHE_FLASH_ATTR static void trigger_bounce(gpio_trait_t *gpio, bool_t onoff)
 	}
 }
 
-ICACHE_FLASH_ATTR  static void trigger_pwm(const gpio_trait_t *gpio, uint32_t duty)
+irom  static void trigger_pwm(const gpio_trait_t *gpio, uint32_t duty)
 {
 	pwm_set_duty(duty, gpio->pwm.channel);
 	pwm_start();
 }
 
-ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(gpio_id_t index)
+irom static gpio_trait_t *find_gpio(gpio_id_t index)
 {
 	uint8_t current;
 	gpio_trait_t *gpio;
@@ -266,7 +266,7 @@ ICACHE_FLASH_ATTR static gpio_trait_t *find_gpio(gpio_id_t index)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static gpio_mode_t gpio_mode_from_string(const char *mode)
+irom static gpio_mode_t gpio_mode_from_string(const char *mode)
 {
 	if(!strcmp(mode, "disable"))
 		return(gpio_disabled);
@@ -284,7 +284,7 @@ ICACHE_FLASH_ATTR static gpio_mode_t gpio_mode_from_string(const char *mode)
 		return(gpio_mode_error);
 }
 
-ICACHE_FLASH_ATTR static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
+irom static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
 {
 	if(!strcmp(mode, "sda"))
 		return(gpio_i2c_sda);
@@ -294,17 +294,17 @@ ICACHE_FLASH_ATTR static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
 		return(gpio_i2c_error);
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_disabled(gpio_trait_t *gpio)
+irom static void gpio_init_disabled(gpio_trait_t *gpio)
 {
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_input(gpio_trait_t *gpio)
+irom static void gpio_init_input(gpio_trait_t *gpio)
 {
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_output(gpio_trait_t *gpio)
+irom static void gpio_init_output(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
@@ -316,7 +316,7 @@ ICACHE_FLASH_ATTR static void gpio_init_output(gpio_trait_t *gpio)
 		gpio_output_set(0, 1 << gpio->index, 0, 0);
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
+irom static void gpio_init_bounce(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
@@ -331,11 +331,11 @@ ICACHE_FLASH_ATTR static void gpio_init_bounce(gpio_trait_t *gpio)
 		trigger_bounce(gpio, 1);
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_pwm(gpio_trait_t *gpio)
+irom static void gpio_init_pwm(gpio_trait_t *gpio)
 {
 }
 
-ICACHE_FLASH_ATTR static void gpio_init_i2c(gpio_trait_t *gpio)
+irom static void gpio_init_i2c(gpio_trait_t *gpio)
 {
 	uint32_t pin = GPIO_PIN_ADDR(GPIO_ID_PIN(gpio->index));
 
@@ -345,7 +345,7 @@ ICACHE_FLASH_ATTR static void gpio_init_i2c(gpio_trait_t *gpio)
 	gpio_output_set(1 << gpio->index, 0, 1 << gpio->index, 0);
 }
 
-ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
+irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
 {
 	uint8_t current;
 	uint16_t length;
@@ -431,12 +431,12 @@ ICACHE_FLASH_ATTR static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_
 	}
 }
 
-ICACHE_FLASH_ATTR void gpios_dump_string(const gpio_t *gpio_cfgs, uint16_t size, char *string)
+irom void gpios_dump_string(const gpio_t *gpio_cfgs, uint16_t size, char *string)
 {
 	dump(gpio_cfgs, 0, size, string);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parameters_t ap)
+irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 {
 	gpio_mode_t mode;
 	uint8_t gpio_index;
@@ -579,7 +579,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_mode(application_parame
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_gpio_get(application_parameters_t ap)
+irom app_action_t application_function_gpio_get(application_parameters_t ap)
 {
 	uint8_t gpio_index;
 	const gpio_trait_t *gpio;
@@ -638,7 +638,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_get(application_paramet
 	return(app_action_error);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_gpio_set(application_parameters_t ap)
+irom app_action_t application_function_gpio_set(application_parameters_t ap)
 {
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
@@ -722,7 +722,7 @@ ICACHE_FLASH_ATTR app_action_t application_function_gpio_set(application_paramet
 	return(app_action_normal);
 }
 
-ICACHE_FLASH_ATTR app_action_t application_function_gpio_dump(application_parameters_t ap)
+irom app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
 	dump(&config.gpios[0], 0, ap.size, ap.dst);
 

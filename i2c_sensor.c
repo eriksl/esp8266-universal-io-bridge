@@ -29,7 +29,7 @@ typedef struct
 
 device_data_t device_data[i2c_sensor_size];
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
+irom static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -43,7 +43,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_hum(value_t *value)
+irom static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -57,7 +57,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
+irom static i2c_error_t sensor_ds1631_read(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -95,7 +95,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_ds1631_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
+irom static i2c_error_t sensor_lm75_init(void)
 {
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
@@ -143,7 +143,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_init(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_read(value_t *value)
+irom static i2c_error_t sensor_lm75_read(value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -165,7 +165,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_lm75_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
+irom static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
 
@@ -175,7 +175,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_write(uint8_t reg, uint8_t value)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
+irom static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
@@ -191,7 +191,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read(uint8_t reg, uint16_t *value)
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *value)
+irom static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
@@ -207,7 +207,7 @@ ICACHE_FLASH_ATTR static i2c_error_t bmp085_read_long(uint8_t reg, uint32_t *val
 	return(0);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, double *pressure, double *pressure_raw)
+irom static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, double *pressure, double *pressure_raw)
 {
 	int16_t		ac1, ac2, ac3;
 	uint16_t	ac4, ac5, ac6;
@@ -323,7 +323,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_read_bmp085(double *temp, double *te
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_temp(value_t *value)
+irom static i2c_error_t sensor_bmp085_read_temp(value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -337,7 +337,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
+irom static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -370,7 +370,7 @@ static const tsl2560_lookup_t tsl2560_lookup[] =
 	{ 0.000, 0.00000, 0.00000 }
 };
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
+irom static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
 
@@ -382,7 +382,7 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write(uint8_t reg, uint8_t value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t *byte)
+irom static i2c_error_t tsl2560_read(uint8_t reg, uint8_t *byte)
 {
 	i2c_error_t error;
 
@@ -397,7 +397,7 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read(uint8_t reg, uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write_check(uint8_t reg, uint8_t value)
+irom static i2c_error_t tsl2560_write_check(uint8_t reg, uint8_t value)
 {
 	i2c_error_t error;
 	uint8_t rv;
@@ -414,7 +414,7 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_write_check(uint8_t reg, uint8_t va
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t *values)
+irom static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t *values)
 {
 	i2c_error_t error;
 
@@ -429,7 +429,7 @@ ICACHE_FLASH_ATTR static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t *va
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
+irom static i2c_error_t sensor_tsl2560_init(void)
 {
 	i2c_error_t error;
 
@@ -445,7 +445,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_init(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2560_read(value_t *value)
+irom static i2c_error_t sensor_tsl2560_read(value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
@@ -535,7 +535,7 @@ static const uint8_t tsl2550_ratio[129] =
 	30
 };
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
+irom static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
 {
 	i2c_error_t error;
 
@@ -548,7 +548,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_rw(uint8_t in, uint8_t *out)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_write_check(uint8_t in, uint8_t compare)
+irom static i2c_error_t sensor_tsl2550_write_check(uint8_t in, uint8_t compare)
 {
 	i2c_error_t error;
 	uint8_t out;
@@ -562,7 +562,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_write_check(uint8_t in, uint
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
+irom static i2c_error_t sensor_tsl2550_init(void)
 {
 	i2c_error_t error;
 	uint8_t sens_command;
@@ -585,7 +585,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_init(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_tsl2550_read(value_t *value)
+irom static i2c_error_t sensor_tsl2550_read(value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		ch0, ch1;
@@ -638,7 +638,7 @@ error:
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_init(void)
+irom static i2c_error_t sensor_bh1750_init(void)
 {
 	i2c_error_t error;
 
@@ -669,7 +669,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_init(void)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_read(value_t *value)
+irom static i2c_error_t sensor_bh1750_read(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
@@ -683,7 +683,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_bh1750_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR attr_pure static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
+irom attr_pure static i2c_error_t htu21_crc(uint8_t length, const uint8_t *data)
 {
 	i2c_error_t outer, inner, testbit, crc;
 
@@ -705,7 +705,7 @@ ICACHE_FLASH_ATTR attr_pure static i2c_error_t htu21_crc(uint8_t length, const u
 	return(crc);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_temp(value_t *value)
+irom static i2c_error_t sensor_htu21_read_temp(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -735,7 +735,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
+irom static i2c_error_t sensor_htu21_read_hum(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -765,7 +765,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_htu21_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR attr_pure static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
+irom attr_pure static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
 {
 	uint8_t		outer, inner, testbit;
 	uint16_t	crc;
@@ -788,7 +788,7 @@ ICACHE_FLASH_ATTR attr_pure static uint16_t am2321_crc(uint8_t length, const uin
 	return(crc);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_temp(value_t *value)
+irom static i2c_error_t sensor_am2321_read_temp(value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[8];
@@ -840,7 +840,7 @@ ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-ICACHE_FLASH_ATTR static i2c_error_t sensor_am2321_read_hum(value_t *value)
+irom static i2c_error_t sensor_am2321_read_hum(value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[8];
@@ -974,7 +974,7 @@ static const device_table_t device_table[] =
 	}
 };
 
-ICACHE_FLASH_ATTR void i2c_sensor_init(void)
+irom void i2c_sensor_init(void)
 {
 	const device_table_t *entry;
 	uint8_t current;
@@ -993,7 +993,7 @@ ICACHE_FLASH_ATTR void i2c_sensor_init(void)
 	}
 }
 
-ICACHE_FLASH_ATTR uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
+irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
 		uint16_t size, char *dst)
 {
 	const device_table_t *entry;

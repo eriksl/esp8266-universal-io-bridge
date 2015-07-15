@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-ICACHE_FLASH_ATTR queue_t * queue_new(uint16_t size)
+irom queue_t * queue_new(uint16_t size)
 {
 	queue_t *queue;
 
@@ -23,29 +23,29 @@ ICACHE_FLASH_ATTR queue_t * queue_new(uint16_t size)
 }
 
 
-attr_pure char queue_empty(const queue_t *queue)
+iram attr_pure char queue_empty(const queue_t *queue)
 {
 	return(queue->in == queue->out);
 }
 
-attr_pure char queue_full(const queue_t *queue)
+iram attr_pure char queue_full(const queue_t *queue)
 {
 	return(((queue->in + 1) % queue->size) == queue->out);
 }
 
-attr_pure uint16_t queue_lf(const queue_t *queue)
+iram attr_pure uint16_t queue_lf(const queue_t *queue)
 {
 	return(queue->lf);
 }
 
-void queue_flush(queue_t *queue)
+iram void queue_flush(queue_t *queue)
 {
 	queue->in = 0;
 	queue->out = 0;
 	queue->lf = 0;
 }
 
-void queue_push(queue_t *queue, char data)
+iram void queue_push(queue_t *queue, char data)
 {
 	if(data == '\n')
 		queue->lf++;
@@ -54,7 +54,7 @@ void queue_push(queue_t *queue, char data)
 	queue->in = (queue->in + 1) % queue->size;
 }
 
-char queue_pop(queue_t *queue)
+iram char queue_pop(queue_t *queue)
 {
 	char data;
 

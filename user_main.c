@@ -57,9 +57,9 @@ static char *tcp_data_send_buffer;
 static char tcp_data_send_buffer_busy;
 static struct espconn *esp_data_tcp_connection;
 
-ICACHE_FLASH_ATTR static void user_init2(void);
+irom static void user_init2(void);
 
-ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
+irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 		uint16_t port, void (*connect_callback)(struct espconn *))
 {
 	memset(esp_tcp_config, 0, sizeof(*esp_tcp_config));
@@ -75,7 +75,7 @@ ICACHE_FLASH_ATTR static void tcp_accept(struct espconn *esp_config, esp_tcp *es
 	espconn_tcp_set_max_con_allow(esp_config, 1);
 }
 
-ICACHE_FLASH_ATTR noinline static void config_wlan(const char *ssid, const char *passwd)
+irom noinline static void config_wlan(const char *ssid, const char *passwd)
 {
 	struct station_config station_config;
 
@@ -95,7 +95,7 @@ ICACHE_FLASH_ATTR noinline static void config_wlan(const char *ssid, const char 
 	wifi_station_connect();
 }
 
-static void background_task(os_event_t *events)
+iram static void background_task(os_event_t *events)
 {
 	static uint32_t prev_system_time_ms = 0;
 	uint16_t tcp_data_send_buffer_length;
@@ -301,7 +301,7 @@ static void background_task(os_event_t *events)
 	}
 }
 
-ICACHE_FLASH_ATTR static void tcp_data_sent_callback(void *arg)
+irom static void tcp_data_sent_callback(void *arg)
 {
     tcp_data_send_buffer_busy = 0;
 
@@ -310,7 +310,7 @@ ICACHE_FLASH_ATTR static void tcp_data_sent_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-ICACHE_FLASH_ATTR static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
+irom static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
 	uint8_t byte;
@@ -351,12 +351,12 @@ ICACHE_FLASH_ATTR static void tcp_data_receive_callback(void *arg, char *data, u
 	uart_start_transmit(!queue_empty(uart_send_queue));
 }
 
-ICACHE_FLASH_ATTR static void tcp_data_disconnect_callback(void *arg)
+irom static void tcp_data_disconnect_callback(void *arg)
 {
 	esp_data_tcp_connection = 0;
 }
 
-ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_connection)
+irom static void tcp_data_connect_callback(struct espconn *new_connection)
 {
 	if(esp_data_tcp_connection)
 		espconn_disconnect(new_connection); // not allowed but won't occur anyway
@@ -376,12 +376,12 @@ ICACHE_FLASH_ATTR static void tcp_data_connect_callback(struct espconn *new_conn
 	}
 }
 
-ICACHE_FLASH_ATTR static void tcp_cmd_sent_callback(void *arg)
+irom static void tcp_cmd_sent_callback(void *arg)
 {
     tcp_cmd_send_buffer_busy = 0;
 }
 
-ICACHE_FLASH_ATTR static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
+irom static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
 {
 	uint16_t current;
 
@@ -392,7 +392,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_receive_callback(void *arg, char *data, ui
 		system_os_post(background_task_id, 0, 0);
 }
 
-ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
+irom static void tcp_cmd_disconnect_callback(void *arg)
 {
 	if(action.reset)
 	{
@@ -403,7 +403,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_disconnect_callback(void *arg)
 	esp_cmd_tcp_connection = 0;
 }
 
-ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_connection)
+irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 {
 	if(esp_cmd_tcp_connection)
 		espconn_disconnect(new_connection); // not allowed but won't occur anyway
@@ -422,7 +422,7 @@ ICACHE_FLASH_ATTR static void tcp_cmd_connect_callback(struct espconn *new_conne
 	}
 }
 
-static void periodic_timer_callback(void *arg)
+iram static void periodic_timer_callback(void *arg)
 {
 	(void)arg;
 
@@ -431,9 +431,9 @@ static void periodic_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-void user_init(void);
+irom void user_init(void);
 
-ICACHE_FLASH_ATTR void user_init(void)
+irom void user_init(void)
 {
 	if(!(uart_send_queue = queue_new(buffer_size)))
 		reset();
@@ -462,7 +462,7 @@ ICACHE_FLASH_ATTR void user_init(void)
 	system_init_done_cb(user_init2);
 }
 
-ICACHE_FLASH_ATTR static void user_init2(void)
+irom static void user_init2(void)
 {
 	static struct espconn esp_cmd_config, esp_data_config;
 	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;

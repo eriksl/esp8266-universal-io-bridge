@@ -38,7 +38,7 @@ static config_flag_t config_flag[config_flag_size] =
 
 config_t config;
 
-attr_pure const char *config_flag_to_string(config_flag_enum_t id)
+irom attr_pure const char *config_flag_to_string(config_flag_enum_t id)
 {
 	if(id > config_flag_size)
 		return("unknown");
@@ -46,7 +46,7 @@ attr_pure const char *config_flag_to_string(config_flag_enum_t id)
 	return(config_flag[id].long_name);
 }
 
-attr_pure ICACHE_FLASH_ATTR config_flag_enum_t config_flag_to_id(const char *flag_name)
+irom attr_pure config_flag_enum_t config_flag_to_id(const char *flag_name)
 {
 	const config_flag_t *entry;
 	config_flag_enum_t current;
@@ -62,7 +62,7 @@ attr_pure ICACHE_FLASH_ATTR config_flag_enum_t config_flag_to_id(const char *fla
 	return(current);
 }
 
-ICACHE_FLASH_ATTR attr_pure bool_t config_get_flag(config_flag_enum_t flag)
+irom attr_pure bool_t config_get_flag(config_flag_enum_t flag)
 {
 	if(flag < config_flag_size)
 		return(config.flags & (1 << flag));
@@ -70,7 +70,7 @@ ICACHE_FLASH_ATTR attr_pure bool_t config_get_flag(config_flag_enum_t flag)
 	return(false);
 }
 
-ICACHE_FLASH_ATTR bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
+irom bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 {
 	if(flag < config_flag_size)
 	{
@@ -85,17 +85,17 @@ ICACHE_FLASH_ATTR bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 	return(false);
 }
 
-ICACHE_FLASH_ATTR bool_t attr_pure config_get_flag_by_name(const char *flag_name)
+irom bool_t attr_pure config_get_flag_by_name(const char *flag_name)
 {
 	return(config_get_flag(config_flag_to_id(flag_name)));
 }
 
-ICACHE_FLASH_ATTR bool_t config_set_flag_by_name(const char *flag_name, bool_t value)
+irom bool_t config_set_flag_by_name(const char *flag_name, bool_t value)
 {
 	return(config_set_flag(config_flag_to_id(flag_name), value));
 }
 
-ICACHE_FLASH_ATTR uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
+irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
 {
 	config_flag_enum_t current;
 	uint16_t length, total;
@@ -125,7 +125,7 @@ ICACHE_FLASH_ATTR uint16_t config_flags_to_string(uint16_t size, char *dst, uint
 	return(total);
 }
 
-ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
+irom static void config_init(config_t *cfg)
 {
 	cfg->ssid[0] = '\0';
 	cfg->passwd[0] = '\0';
@@ -140,7 +140,7 @@ ICACHE_FLASH_ATTR static void config_init(config_t *cfg)
 	gpios_config_init(cfg->gpios);
 }
 
-ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
+irom void config_read_alt(config_t *cfg)
 {
 	eeprom_t eeprom;
 
@@ -152,12 +152,12 @@ ICACHE_FLASH_ATTR void config_read_alt(config_t *cfg)
 		config_init(cfg);
 }
 
-ICACHE_FLASH_ATTR void config_read(void)
+irom void config_read(void)
 {
 	config_read_alt(&config);
 }
 
-ICACHE_FLASH_ATTR void config_write_alt(const config_t *cfg)
+irom void config_write_alt(const config_t *cfg)
 {
 	eeprom_t eeprom;
 
@@ -171,12 +171,12 @@ ICACHE_FLASH_ATTR void config_write_alt(const config_t *cfg)
 	ETS_UART_INTR_ENABLE();
 }
 
-ICACHE_FLASH_ATTR void config_write(void)
+irom void config_write(void)
 {
 	config_write_alt(&config);
 }
 
-ICACHE_FLASH_ATTR void config_dump(uint16_t size, char *dst)
+irom void config_dump(uint16_t size, char *dst)
 {
 	uint16_t length;
 	config_t cfg;

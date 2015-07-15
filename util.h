@@ -19,6 +19,8 @@ typedef enum __attribute__ ((__packed__))
 
 _Static_assert(sizeof(bool_t) == 1, "sizeof(bool_t) != 1");
 
+#define irom __attribute__((section(".irom0.text")))
+#define iram __attribute__((section(".text")))
 #define noinline __attribute__ ((noinline))
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))

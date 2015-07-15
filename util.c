@@ -10,7 +10,7 @@
 #include <mem.h>
 #include <user_interface.h>
 
-ICACHE_FLASH_ATTR int dprintf(const char *fmt, ...)
+irom int dprintf(const char *fmt, ...)
 {
 	static char buffer[128];
 	va_list ap;
@@ -29,7 +29,7 @@ ICACHE_FLASH_ATTR int dprintf(const char *fmt, ...)
 	return(n);
 }
 
-ICACHE_FLASH_ATTR int snprintf(char *buffer, size_t size, const char *fmt, ...)
+irom int snprintf(char *buffer, size_t size, const char *fmt, ...)
 {
 	va_list ap;
 	int n;
@@ -41,7 +41,7 @@ ICACHE_FLASH_ATTR int snprintf(char *buffer, size_t size, const char *fmt, ...)
 	return(n);
 }
 
-ICACHE_FLASH_ATTR void pin_func_select(uint32_t pin_name, uint32_t pin_func)
+irom void pin_func_select(uint32_t pin_name, uint32_t pin_func)
 {
 	uint32_t pin_value;
 
@@ -54,17 +54,17 @@ ICACHE_FLASH_ATTR void pin_func_select(uint32_t pin_name, uint32_t pin_func)
 	WRITE_PERI_REG(pin_name, pin_value);
 }
 
-ICACHE_FLASH_ATTR void *malloc(size_t size)
+irom void *malloc(size_t size)
 {
 	return(os_malloc(size));
 }
 
-ICACHE_FLASH_ATTR void reset(void)
+irom void reset(void)
 {
 	system_restart();
 }
 
-ICACHE_FLASH_ATTR attr_const const char *yesno(bool_t value)
+irom attr_const const char *yesno(bool_t value)
 {
 	if(!value)
 		return("no");
@@ -72,7 +72,7 @@ ICACHE_FLASH_ATTR attr_const const char *yesno(bool_t value)
 	return("yes");
 }
 
-ICACHE_FLASH_ATTR attr_const const char *onoff(bool_t value)
+irom attr_const const char *onoff(bool_t value)
 {
 	if(!value)
 		return("off");
@@ -80,13 +80,13 @@ ICACHE_FLASH_ATTR attr_const const char *onoff(bool_t value)
 	return("on");
 }
 
-ICACHE_FLASH_ATTR void msleep(uint16_t msec)
+irom void msleep(uint16_t msec)
 {
 	while(msec-- > 0)
 		os_delay_us(1000);
 }
 
-ICACHE_FLASH_ATTR uint16_t double_to_string(double value, uint8_t precision, double top_decimal, uint16_t size, char *dst)
+irom uint16_t double_to_string(double value, uint8_t precision, double top_decimal, uint16_t size, char *dst)
 {
 	double compare;
 	uint8_t decimal;
