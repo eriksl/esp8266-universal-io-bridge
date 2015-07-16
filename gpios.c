@@ -271,20 +271,18 @@ irom static gpio_trait_t *find_gpio(gpio_id_t index)
 
 irom static gpio_mode_t gpio_mode_from_string(const char *mode)
 {
-	if(!strcmp(mode, "disable"))
-		return(gpio_disabled);
-	else if(!strcmp(mode, "input"))
-		return(gpio_input);
-	else if(!strcmp(mode, "output"))
-		return(gpio_output);
-	else if(!strcmp(mode, "bounce"))
-		return(gpio_bounce);
-	else if(!strcmp(mode, "pwm"))
-		return(gpio_pwm);
-	else if(!strcmp(mode, "i2c"))
-		return(gpio_i2c);
-	else
-		return(gpio_mode_error);
+	const  gpio_mode_trait_t *entry;
+	uint8_t current;
+
+	for(current = 0; current < gpio_mode_size; current++)
+	{
+		entry = &gpio_mode_trait[current];
+
+		if(!strcmp(mode, entry->name))
+			return(entry->mode);
+	}
+
+	return(gpio_mode_error);
 }
 
 irom static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
