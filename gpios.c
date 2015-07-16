@@ -36,7 +36,7 @@ typedef struct
 	gpio_mode_t		mode;
 	const char		*name;
 	void			(*init_fn)(gpio_trait_t *);
-} gpio_mode_to_initfn_t;
+} gpio_mode_trait_t;
 
 static void gpio_init_disabled(gpio_trait_t *);
 static void gpio_init_input(gpio_trait_t *);
@@ -50,7 +50,7 @@ static void config_init(gpio_t *gpio);
 
 static bool_t pwm_subsystem_active = 0;
 
-static gpio_mode_to_initfn_t gpio_mode_to_initfn[gpio_mode_size] =
+static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
 {
 	{ gpio_disabled,	"disabled",		gpio_init_disabled },
 	{ gpio_input,		"input",		gpio_init_input },
@@ -161,7 +161,7 @@ irom void gpios_init(void)
 	}
 
 	for(current = 0; current < gpio_size; current++)
-		gpio_mode_to_initfn[config.gpios[current].mode].init_fn(&gpio_traits[current]);
+		gpio_mode_trait[config.gpios[current].mode].init_fn(&gpio_traits[current]);
 
 	if((sda > 0) && (scl > 0))
 		i2c_init(sda, scl);
