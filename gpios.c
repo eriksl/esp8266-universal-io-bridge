@@ -48,7 +48,10 @@ static void gpio_init_i2c(gpio_trait_t *);
 static gpio_trait_t *find_gpio(gpio_id_t);
 static void config_init(gpio_t *gpio);
 
-static bool_t pwm_subsystem_active = 0;
+static struct
+{
+	unsigned int pwm_subsystem_active:1;
+} gpio_flags;
 
 static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
 {
@@ -157,7 +160,7 @@ irom void gpios_init(void)
 	if(pwmchannel > 0)
 	{
 		pwm_init(3000, pwm_duty_init, pwmchannel, pwm_io_info);
-		pwm_subsystem_active = true;
+		gpio_flags.pwm_subsystem_active = true;
 	}
 
 	for(current = 0; current < gpio_size; current++)
@@ -397,7 +400,7 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 
 				case(gpio_pwm):
 				{
-					if(pwm_subsystem_active)
+					if(gpio_flags.pwm_subsystem_active)
 						length = snprintf(str, size, "pwm, frequency: %u Hz, startup duty: %u, current duty: %u",
 								1000000 / pwm_get_period(), cfg->pwm.startup_duty, pwm_get_duty(gpio->pwm.channel));
 					else
