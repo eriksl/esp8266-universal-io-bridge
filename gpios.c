@@ -22,6 +22,11 @@ typedef struct
 
 	struct
 	{
+		uint32_t count;
+	} counter;
+
+	struct
+	{
 		uint32_t delay;
 	} bounce;
 
@@ -40,6 +45,7 @@ typedef struct
 
 static void gpio_init_disabled(gpio_trait_t *);
 static void gpio_init_input(gpio_trait_t *);
+static void gpio_init_counter(gpio_trait_t *);
 static void gpio_init_output(gpio_trait_t *);
 static void gpio_init_bounce(gpio_trait_t *);
 static void gpio_init_pwm(gpio_trait_t *);
@@ -57,6 +63,7 @@ static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
 {
 	{ gpio_disabled,	"disabled",		gpio_init_disabled },
 	{ gpio_input,		"input",		gpio_init_input },
+	{ gpio_counter,		"counter",		gpio_init_counter },
 	{ gpio_output,		"output",		gpio_init_output },
 	{ gpio_bounce,		"bounce",		gpio_init_bounce },
 	{ gpio_pwm,			"pwm",			gpio_init_pwm },
@@ -114,6 +121,24 @@ irom static gpio_t *get_config(const gpio_trait_t *gpio)
 	return(&config.gpios[gpio->id]);
 }
 
+iram static void pc_int_handler(uint32_t pc, void *arg)
+{
+	gpio_trait_t *gpio;
+	uint8_t current;
+
+	for(current = 0; current < gpio_size; current++)
+	{
+		gpio = &gpio_traits[current];
+
+		if(pc & (1 << gpio->index))
+		{
+			gpio->counter.count++;
+			gpio_intr_ack(1 << gpio->index);
+			gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
+		}
+	}
+}
+
 irom void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
@@ -121,11 +146,14 @@ irom void gpios_init(void)
 	gpio_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
+	uint32_t state_change_mask;
 	int8_t sda, scl;
 
 	sda = scl = -1;
 
 	gpio_init();
+
+	state_change_mask = 0;
 
 	for(current = 0, pwmchannel = 0; current < gpio_size; current++)
 	{
@@ -136,6 +164,9 @@ irom void gpios_init(void)
 
 		pin_func_select(gpio->io_mux, gpio->io_func);
 		PIN_PULLUP_DIS(gpio->io_mux);
+
+		if(cfg->mode == gpio_counter)
+			state_change_mask |= (1 << gpio->index);
 
 		if((cfg->mode == gpio_pwm) && (pwmchannel < gpio_pwm_size))
 		{
@@ -156,6 +187,9 @@ irom void gpios_init(void)
 				scl = gpio->index;
 		}
 	}
+
+	if(state_change_mask != 0)
+		gpio_intr_handler_register(pc_int_handler, 0);
 
 	if(pwmchannel > 0)
 	{
@@ -305,6 +339,12 @@ irom static void gpio_init_input(gpio_trait_t *gpio)
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
+irom static void gpio_init_counter(gpio_trait_t *gpio)
+{
+	gpio_output_set(0, 0, 0, 1 << gpio->index);
+	gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
+}
+
 irom static void gpio_init_output(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
@@ -376,6 +416,13 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 				case(gpio_input):
 				{
 					length = snprintf(str, size, "input, state: %s", onoff(get_input(gpio)));
+					break;
+				}
+
+				case(gpio_counter):
+				{
+					length = snprintf(str, size, "counter, state: %s, counter: %u",
+							onoff(get_input(gpio)), gpio->counter.count);
 					break;
 				}
 
@@ -616,6 +663,13 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 			return(app_action_normal);
 		}
 
+		case(gpio_counter):
+		{
+			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is %u (state: %s)\n",
+					gpio->name, gpio->counter.count, onoff(get_input(gpio)));
+			return(app_action_normal);
+		}
+
 		case(gpio_output):
 		case(gpio_bounce):
 		case(gpio_pwm):
@@ -667,6 +721,16 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		{
 			snprintf(ap.dst, ap.size, "gpio-set: gpio %s is input\n", gpio->name);
 			return(app_action_error);
+		}
+
+		case(gpio_counter):
+		{
+			if(ap.nargs < 3)
+				gpio->counter.count = 0;
+			else
+				gpio->counter.count = atoi((*ap.args)[2]);
+
+			break;
 		}
 
 		case(gpio_output):

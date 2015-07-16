@@ -44,6 +44,7 @@ typedef enum __attribute__ ((__packed__))
 {
 	gpio_disabled,
 	gpio_input,
+	gpio_counter,
 	gpio_output,
 	gpio_bounce,
 	gpio_pwm,
