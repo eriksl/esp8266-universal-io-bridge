@@ -7,7 +7,7 @@ CFLAGS			= -Wall -Wextra -Wformat=2 -Wuninitialized -Wno-pointer-sign -Wno-unuse
 				  -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=512 \
 				  -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wclobbered -Wlogical-op \
 				  -Waggregate-return -Wold-style-definition -Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \
-				  -Wlong-long -Wvla -Wdisabled-optimization \
+				  -Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code \
 				  -O3 -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -DICACHE_FLASH
 CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -isystem$(SDKROOT)/sdk/include -I.
