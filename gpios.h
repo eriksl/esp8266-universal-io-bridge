@@ -61,6 +61,12 @@ typedef struct
 
 	struct
 	{
+		uint32_t debounce;
+		bool_t reset_on_get;
+	} counter;
+
+	struct
+	{
 		bool_t startup_state;
 	} output;
 

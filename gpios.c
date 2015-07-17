@@ -23,6 +23,7 @@ typedef struct
 	struct
 	{
 		uint32_t count;
+		uint32_t debounce;
 	} counter;
 
 	struct
@@ -124,7 +125,10 @@ irom static gpio_t *get_config(const gpio_trait_t *gpio)
 iram static void pc_int_handler(uint32_t pc, void *arg)
 {
 	gpio_trait_t *gpio;
+	gpio_t *cfg;
 	uint8_t current;
+
+	gpio_intr_ack(pc);
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -132,9 +136,10 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 
 		if(pc & (1 << gpio->index))
 		{
+			cfg = get_config(gpio);
+
 			gpio->counter.count++;
-			gpio_intr_ack(1 << gpio->index);
-			gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
+			gpio->counter.debounce = cfg->counter.debounce;
 		}
 	}
 }
@@ -207,6 +212,8 @@ irom void gpios_init(void)
 irom static void config_init(gpio_t *gpio)
 {
 	gpio->mode = gpio_disabled;
+	gpio->counter.debounce = 100;
+	gpio->counter.reset_on_get = false;
 	gpio->output.startup_state = 0;
 	gpio->bounce.direction = gpio_up;
 	gpio->bounce.delay = 0;
@@ -236,6 +243,14 @@ irom static bool_t get_input(const gpio_trait_t *gpio)
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
+iram static inline void arm_counter(const gpio_trait_t *gpio)
+{
+	// no use in specifying POSEDGE or NEGEDGE here (bummer),
+	// they act exactly like ANYEDGE, I assume that's an SDK bug
+
+	gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
+}
+
 iram void gpios_periodic(void)
 {
 	uint8_t current;
@@ -246,6 +261,17 @@ iram void gpios_periodic(void)
 	{
 		gpio = &gpio_traits[current];
 		cfg = get_config(gpio);
+
+		if((cfg->mode == gpio_counter) && (gpio->counter.debounce > 0))
+		{
+			if(gpio->counter.debounce >= 10)
+				gpio->counter.debounce -= 10; // 10 ms per tick
+			else
+				gpio->counter.debounce = 0;
+
+			if(gpio->counter.debounce == 0)
+				arm_counter(gpio);
+		}
 
 		if((cfg->mode == gpio_bounce) && (gpio->bounce.delay > 0))
 		{
@@ -342,7 +368,7 @@ irom static void gpio_init_input(gpio_trait_t *gpio)
 irom static void gpio_init_counter(gpio_trait_t *gpio)
 {
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
-	gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
+	arm_counter(gpio);
 }
 
 irom static void gpio_init_output(gpio_trait_t *gpio)
@@ -421,8 +447,10 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 
 				case(gpio_counter):
 				{
-					length = snprintf(str, size, "counter, state: %s, counter: %u",
-							onoff(get_input(gpio)), gpio->counter.count);
+					length = snprintf(str, size, "counter, state: %s, counter: %u, debounce: %u/%u, reset on get: %s",
+							onoff(get_input(gpio)), gpio->counter.count,
+							cfg->counter.debounce, gpio->counter.debounce,
+							onoff(cfg->counter.reset_on_get));
 					break;
 				}
 
@@ -523,6 +551,19 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 	switch(mode)
 	{
+		case(gpio_counter):
+		{
+			if(ap.nargs > 3)
+			{
+				new_gpio_config->counter.reset_on_get = !!atoi((*ap.args)[3]);
+
+				if(ap.nargs > 4)
+					new_gpio_config->counter.debounce = atoi((*ap.args)[4]);
+			}
+
+			break;
+		}
+
 		case(gpio_output):
 		{
 			if(ap.nargs != 4)
@@ -630,7 +671,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 irom app_action_t application_function_gpio_get(application_parameters_t ap)
 {
 	uint8_t gpio_index;
-	const gpio_trait_t *gpio;
+	gpio_trait_t *gpio;
 	const gpio_t *cfg;
 
 	if(ap.nargs < 2)
@@ -667,6 +708,12 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is %u (state: %s)\n",
 					gpio->name, gpio->counter.count, onoff(get_input(gpio)));
+
+			if(cfg->counter.reset_on_get)
+				gpio->counter.count = 0;
+
+			gpio->counter.debounce = 0;
+
 			return(app_action_normal);
 		}
 
