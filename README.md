@@ -62,9 +62,6 @@ Currently supported i2c sensors are:
 <th>short</th><th>long</th><th>parameters</th><th>description</th>
 </tr>
 <tr>
-<td>st</td><td>strip-telnet</td><td><b>0</b> or <b>1</b></td><td><b>0</b> = disable, <b>1</b> = enable, toggle stripping of telnet garbage at the start of a connection when using the <b>telnet</b> command.
-</tr>
-<tr>
 <td>ub</td><td>uart-baud</td><td><i>baud rate</i></td><td>Any <i>baud rate</i> you like, forget the 300-600-1200-2400-etc. list, the ESP8266 can freely use any baud rate you like. Don't forget to <b>config-write</b> and <b>reset</b>.</td>
 </tr>
 <tr>
@@ -121,6 +118,9 @@ Currently supported i2c sensors are:
 <td>input</td><td><i>none</i></td><td>Set GPIO to input.</td>
 </tr>
 <tr>
+<td>counter</td><td>[<i>reset_on_get</i> [<i>debounce_time</i>]]</td><td>Set GPIO to counter. Add <i>reset_on_get</i>=1 to have the counter reset when read. Add <i>debounce</i> to set debounce time in milliseconds (default = 100 ms).</td>
+</tr>
+<tr>
 <td>output</td><td><i>startup-state</i></td><td>Set GPIO to output, set <i>startup-state</i> to <b>0</b> or <b>1</b> to configure the state of the output directly after boot.</td>
 </tr>
 <tr>
@@ -169,11 +169,12 @@ Currently supported i2c sensors are:
 <tr>
 <th>short</th><th>long</th><th>parameters</th><th>description</th>
 </tr>
+
 <tr>
 <td>?</td><td>help</td><td><i>none</i></td><td>Shows list of commands.</td>
 </tr>
 <tr>
-<td>pd</td><td>print-debug</td><td><b>0</b> or <b>1</b></td><td><b>0</b> = enable, <b>1</b> = enable. Toggle printing of debug info during startup (dhcp, wlan assocation).</td>
+<td>?</td><td>set/unset</td><td>[<i>option</i>]</td><td>Sets / unset options. Add option to set/unset option, leave out the option to list all options. Currently known options are: <i>print-debug</i> (shows debug info on the UART, (wlan, dhcp etc.), <i>strip-telnet</i> (strips initial "garbage" from telnet at the UART bridge) and <i>tsl-high-sens</i> (set tsl2550 and tsl2561 sensors in "high sensibility mode", recommended unless operated in full sunlight)</td>
 </tr>
 <tr>
 <td>q</td><td>quit</td><td><i>none</i></td><td>Disconnect from the control channel.</td>
