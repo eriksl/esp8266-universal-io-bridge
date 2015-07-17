@@ -57,11 +57,9 @@ irom static i2c_error_t sensor_digipicco_read_hum(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_read(value_t *value)
+irom static i2c_error_t sensor_ds1631_init(void)
 {
-	uint8_t i2cbuffer[2];
 	i2c_error_t error;
-	uint32_t raw;
 
 	//	0xac	select config register
 	//	0x0c	r0=r1=1, max resolution, other bits zero
@@ -69,10 +67,22 @@ irom static i2c_error_t sensor_ds1631_read(value_t *value)
 	if((error = i2c_send_2(0x48, 0xac, 0x0c)) != i2c_error_ok)
 		return(error);
 
-	// start conversion (if not started already)
+	// start conversions
 
 	if((error = i2c_send_1(0x48, 0x51)) != i2c_error_ok)
 		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_ds1631_read(value_t *value)
+{
+	uint8_t i2cbuffer[2];
+	i2c_error_t error;
+	uint32_t raw;
+
+	if(i2c_sensor_detected(i2c_sensor_lm75))
+		return(i2c_error_device_error_1);
 
 	// read temperature
 
@@ -100,9 +110,12 @@ irom static i2c_error_t sensor_lm75_init(void)
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
 
+	if(i2c_sensor_detected(i2c_sensor_ds1631))
+		return(i2c_error_device_error_1);
+
 	// 0x01		select config register
 	// 0x60		set all defaults, operation is not shutdown
-	// 			specific for tmp275 variant select, high-res operation
+	// 			specific for tmp275 variant, select high-res operation
 
 	if((error = i2c_send_2(0x48, 0x01, 0x60)) != i2c_error_ok)
 		return(error);
@@ -148,6 +161,9 @@ irom static i2c_error_t sensor_lm75_read(value_t *value)
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	uint32_t raw;
+
+	if(i2c_sensor_detected(i2c_sensor_ds1631))
+		return(i2c_error_device_error_1);
 
 	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
@@ -433,6 +449,9 @@ irom static i2c_error_t sensor_tsl2560_init(void)
 {
 	i2c_error_t error;
 
+	if(i2c_sensor_detected(i2c_sensor_tsl2550))
+		return(i2c_error_device_error_1);
+
 	if((error = tsl2560_write_check(0x00, 0x03)) != i2c_error_ok)	// power up
 		return(error);
 
@@ -453,6 +472,9 @@ irom static i2c_error_t sensor_tsl2560_read(value_t *value)
 	double ratio, ch0, ch1;
 	const tsl2560_lookup_t *entry;
 	uint8_t current;
+
+	if(i2c_sensor_detected(i2c_sensor_tsl2550))
+		return(i2c_error_device_error_1);
 
 	if((error = tsl2560_read_block(0x0c, i2cbuffer)) != i2c_error_ok)
 		return(error);
@@ -557,7 +579,7 @@ irom static i2c_error_t sensor_tsl2550_write_check(uint8_t in, uint8_t compare)
 		return(error);
 
 	if(out != compare)
-		return(i2c_error_device_error_1);
+		return(i2c_error_device_error_2);
 
 	return(i2c_error_ok);
 }
@@ -566,6 +588,9 @@ irom static i2c_error_t sensor_tsl2550_init(void)
 {
 	i2c_error_t error;
 	uint8_t sens_command;
+
+	if(i2c_sensor_detected(i2c_sensor_tsl2560))
+		return(i2c_error_device_error_1);
 
 	// tsl2550 power up
 
@@ -590,6 +615,9 @@ irom static i2c_error_t sensor_tsl2550_read(value_t *value)
 	i2c_error_t	error;
 	uint8_t		ch0, ch1;
 	uint8_t		attempt, ratio;
+
+	if(i2c_sensor_detected(i2c_sensor_tsl2560))
+		return(i2c_error_device_error_1);
 
 	error = i2c_error_ok;
 
@@ -909,7 +937,7 @@ static const device_table_t device_table[] =
 	{
 		i2c_sensor_ds1631,
 		"ds1621/ds1631/ds1731", "temperature", "C", 2,
-		0,
+		sensor_ds1631_init,
 		sensor_ds1631_read
 	},
 	{
@@ -932,7 +960,7 @@ static const device_table_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2560,
-		"tsl2560", "light", "Lux", 2,
+		"tsl2560/tsl2561", "light", "Lux", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
