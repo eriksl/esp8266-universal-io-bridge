@@ -5,12 +5,12 @@
 #include <c_types.h>
 #include <user_interface.h>
 
-stats_t stat_uart_rx_interrupts = 0;
-stats_t stat_uart_tx_interrupts = 0;
-stats_t	stat_timer = 0;
-stats_t	stat_background_task = 0;
-stats_t stat_application_periodic = 0;
-stats_t stat_application_periodic_wrapped = 0;
+uint32_t stat_uart_rx_interrupts;
+uint32_t stat_uart_tx_interrupts;
+uint32_t stat_timer;
+uint32_t stat_background_task;
+uint32_t stat_application_periodic;
+uint32_t stat_application_periodic_wrapped;
 
 static const char *flash_map[] =
 {
