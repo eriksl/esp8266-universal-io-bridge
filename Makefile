@@ -36,7 +36,7 @@ else
 	vecho := @echo
 endif
 
-segment_free	= $(Q) perl -e '\
+section_free	= $(Q) perl -e '\
 						open($$fd, "xtensa-lx106-elf-size -A $(1) |"); \
 						while(<$$fd>) \
 						{ \
@@ -77,14 +77,14 @@ link_debug		= $(Q) perl -e '\
 									hex($$size{$$size}{"size"}), \
 									$$size{$$size}{"id"}); \
 						} \
-						printf("size: %d, free: %d\n", $$top - hex('40100000'), ($(3) * 1024) - ($$top - hex('40100000'))); \
+						printf("size: %d, free: %d\n", $$top - hex('$(4)'), ($(3) * 1024) - ($$top - hex('$(4)'))); \
 						close($$fd);'
 
 .PHONY:	all reset flash zip linkdebug
 
 all:			$(FW1) $(FW2)
-				$(call segment_free,$(FW),.irom0.text,240)
-				$(call segment_free,$(FW),.text,32)
+				$(call section_free,$(FW),.irom0.text,224)
+				$(call section_free,$(FW),.text,32)
 
 zip:			all
 				$(Q) zip -9 $(ZIP) $(FW1) $(FW2) LICENSE README.md
@@ -97,8 +97,11 @@ clean:
 				$(Q) rm -f $(OBJS) $(FW) $(FW1) $(FW2) $(ZIP) $(LINKMAP)
 
 linkdebug:		$(OBJS)
-				-$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
-				$(call link_debug, $(LINKMAP),text,32)
+				$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
+				$(Q) echo "IROM:"
+				$(call link_debug, $(LINKMAP),irom0.text,224,40240000)
+				$(Q) echo "IRAM:"
+				$(call link_debug, $(LINKMAP),text,32,40100000)
 
 config.o:		$(HEADERS)
 gpio.o:			$(HEADERS)
