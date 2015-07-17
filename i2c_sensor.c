@@ -993,8 +993,7 @@ irom void i2c_sensor_init(void)
 	}
 }
 
-irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
-		uint16_t size, char *dst)
+irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size, char *dst)
 {
 	const device_table_t *entry;
 	i2c_error_t error;
@@ -1016,67 +1015,57 @@ irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t list, bool_t verbose,
 
 	error = i2c_error_ok;
 
-	if(list || device_data[sensor].detected)
+	length = snprintf(dst, size, "%s sensor %d:%s: %s: ",
+			device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
+	dst += length;
+	size -= length;
+
+	if((error = entry->read_fn(&value)) == i2c_error_ok)
 	{
-		length = snprintf(dst, size, "%s sensor %d:%s: %s: ",
-				device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
+		length = snprintf(dst, size, "%s", "[");
+		dst += length;
+		size -= length;
+
+		length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
+		dst += length;
+		size -= length;
+
+		length = snprintf(dst, size, "%s", "] (raw: ");
+		dst += length;
+		size -= length;
+
+		length = double_to_string(value.raw, 0, 1e10, size, dst);
+		dst += length;
+		size -= length;
+
+		length = snprintf(dst, size, "%s", ")\n");
 		dst += length;
 		size -= length;
 	}
-
-	if(verbose || device_data[sensor].detected)
-	{
-		error = entry->read_fn(&value);
-
-		if(error == i2c_error_ok)
-		{
-			length = snprintf(dst, size, "%s", "[");
-			dst += length;
-			size -= length;
-
-			length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
-			dst += length;
-			size -= length;
-
-			length = snprintf(dst, size, "%s", "] (raw: ");
-			dst += length;
-			size -= length;
-
-			length = double_to_string(value.raw, 0, 1e10, size, dst);
-			dst += length;
-			size -= length;
-
-			length = snprintf(dst, size, "%s", ")\n");
-			dst += length;
-			size -= length;
-		}
-		else
-		{
-			if(verbose)
-				length = i2c_error_format_string("error", error, size, dst);
-			else
-				length = snprintf(dst, size, "%s", "error");
-
-			dst += length;
-			size -= length;
-
-			length = snprintf(dst, size, "%s", "\n");
-			dst += length;
-			size -= length;
-		}
-
-		if(error != i2c_error_ok)
-			i2c_reset();
-	}
 	else
 	{
-		if(list)
-		{
-			length = snprintf(dst, size, "%s", "not found");
-			dst += length;
-			size -= length;
-		}
+		if(verbose)
+			length = i2c_error_format_string("error", error, size, dst);
+		else
+			length = snprintf(dst, size, "%s", "error");
+
+		dst += length;
+		size -= length;
+
+		length = snprintf(dst, size, "%s", "\n");
+		dst += length;
+		size -= length;
+
+		i2c_reset();
 	}
 
 	return(dst - orig_dst);
+}
+
+irom attr_pure bool_t i2c_sensor_detected(i2c_sensor_t sensor)
+{
+	if(sensor > i2c_sensor_size)
+		return(false);
+
+	return(device_data[sensor].detected);
 }

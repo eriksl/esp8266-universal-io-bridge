@@ -321,7 +321,7 @@ irom static app_action_t application_function_i2c_sensor_read(application_parame
 
 	sensor = atoi((*ap.args)[1]);
 
-	if(!i2c_sensor_read(sensor, true, true, ap.size, ap.dst))
+	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
 	{
 		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
 		return(app_action_error);
@@ -353,14 +353,14 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 		}
 	}
 
-	sensor = 0;
-
-	while(sensor < i2c_sensor_size)
+	for(sensor = 0; sensor < i2c_sensor_size; sensor++)
 	{
-		offset = i2c_sensor_read(sensor, all, verbose, ap.size, ap.dst);
-		ap.dst	+= offset;
-		ap.size	-= offset;
-		sensor++;
+		if(all || i2c_sensor_detected(sensor))
+		{
+			offset = i2c_sensor_read(sensor, verbose, ap.size, ap.dst);
+			ap.dst	+= offset;
+			ap.size	-= offset;
+		}
 	}
 
 	if(ap.dst == orig_dst)
