@@ -486,7 +486,7 @@ irom static void user_init2(void)
 
 	if(config_get_flag(config_flag_print_debug))
 	{
-		dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 30 seconds.");
+		dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 10 seconds.");
 		dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
 	}
 
