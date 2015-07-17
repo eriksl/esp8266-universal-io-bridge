@@ -94,7 +94,7 @@ flash:			all
 
 clean:
 				$(vecho) "CLEAN"
-				$(Q) rm -f $(OBJS) $(FW) $(FW1) $(FW2) $(ZIP)
+				$(Q) rm -f $(OBJS) $(FW) $(FW1) $(FW2) $(ZIP) $(LINKMAP)
 
 linkdebug:		$(OBJS)
 				-$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
