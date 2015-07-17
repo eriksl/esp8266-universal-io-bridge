@@ -9,8 +9,6 @@ extern uint32_t stat_uart_tx_interrupts;
 extern uint32_t stat_timer_fast;
 extern uint32_t stat_timer_slow;
 extern uint32_t stat_background_task;
-extern uint32_t stat_application_periodic;
-extern uint32_t stat_application_periodic_wrapped;
 
 void stats_generate(uint16_t size, char *dst);
 

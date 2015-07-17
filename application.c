@@ -28,13 +28,6 @@ typedef struct
 
 static const application_function_table_t application_function_table[];
 
-iram void application_periodic(void)
-{
-	stat_application_periodic++;
-
-	gpios_periodic();
-}
-
 irom app_action_t application_content(const char *src, uint16_t size, char *dst)
 {
 	args_t	args;

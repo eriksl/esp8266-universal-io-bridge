@@ -10,8 +10,6 @@ uint32_t stat_uart_tx_interrupts;
 uint32_t stat_timer_fast;
 uint32_t stat_timer_slow;
 uint32_t stat_background_task;
-uint32_t stat_application_periodic;
-uint32_t stat_application_periodic_wrapped;
 
 static const char *flash_map[] =
 {
@@ -57,9 +55,7 @@ irom void stats_generate(uint16_t size, char *dst)
 			"> int uart tx: %u\n"
 			"> timer_fast fired: %u\n"
 			"> timer_slow fired: %u\n"
-			"> background task: %u\n"
-			"> application periodic task: %u\n"
-			"> application periodic task timer wrap: %u\n",
+			"> background task: %u\n",
 			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),
@@ -72,7 +68,5 @@ irom void stats_generate(uint16_t size, char *dst)
 			stat_uart_tx_interrupts,
 			stat_timer_fast,
 			stat_timer_slow,
-			stat_background_task,
-			stat_application_periodic,
-			stat_application_periodic_wrapped);
+			stat_background_task);
 }

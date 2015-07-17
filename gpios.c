@@ -249,8 +249,8 @@ iram void gpios_periodic(void)
 
 		if((cfg->mode == gpio_bounce) && (gpio->bounce.delay > 0))
 		{
-			if(gpio->bounce.delay >= 100)
-				gpio->bounce.delay -= 100; // 100 ms per tick
+			if(gpio->bounce.delay >= 10)
+				gpio->bounce.delay -= 10; // 10 ms per tick
 			else
 				gpio->bounce.delay = 0;
 

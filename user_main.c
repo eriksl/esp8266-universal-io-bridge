@@ -261,34 +261,6 @@ irom noinline static void process_command(void)
 	espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 }
 
-irom noinline static void process_periodic(void)
-{
-	uint16_t missed_ticks;
-	uint32_t current_system_time_ms;
-	static uint32_t prev_system_time_ms = 0;
-
-	current_system_time_ms = system_get_time() / 1000;
-
-	if(prev_system_time_ms == 0)
-		prev_system_time_ms = current_system_time_ms;
-
-	missed_ticks = (current_system_time_ms - prev_system_time_ms) / 100; // 100 ms per slow system tick
-
-	if(missed_ticks > 8) // wraparound occurred
-	{
-		stat_application_periodic_wrapped++;
-		missed_ticks = 1;
-	}
-
-	if(missed_ticks > 0)
-	{
-		while(missed_ticks-- > 0)
-			application_periodic();
-
-		prev_system_time_ms = current_system_time_ms;
-	}
-}
-
 iram static void background_task(os_event_t *events)
 {
 	stat_background_task++;
@@ -318,8 +290,6 @@ iram static void background_task(os_event_t *events)
 		process_uart_fifo();
 		process_command();
 	}
-
-	process_periodic();
 }
 
 irom static void tcp_data_sent_callback(void *arg)
@@ -453,6 +423,9 @@ iram static void periodic_timer_callback(void *arg)
 	timer_slow_dropped++;
 
 	// timer runs on 100 Hz == 10 ms
+
+	gpios_periodic();
+
 	// run background task ever 10 Hz = 1 ms
 
 	if(timer_slow_dropped > 9)
