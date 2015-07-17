@@ -7,7 +7,8 @@
 
 uint32_t stat_uart_rx_interrupts;
 uint32_t stat_uart_tx_interrupts;
-uint32_t stat_timer;
+uint32_t stat_timer_fast;
+uint32_t stat_timer_slow;
 uint32_t stat_background_task;
 uint32_t stat_application_periodic;
 uint32_t stat_application_periodic_wrapped;
@@ -54,7 +55,8 @@ irom void stats_generate(uint16_t size, char *dst)
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
-			"> timer fired: %u\n"
+			"> timer_fast fired: %u\n"
+			"> timer_slow fired: %u\n"
 			"> background task: %u\n"
 			"> application periodic task: %u\n"
 			"> application periodic task timer wrap: %u\n",
@@ -68,7 +70,8 @@ irom void stats_generate(uint16_t size, char *dst)
 			system_get_time() / 1000000,
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
-			stat_timer,
+			stat_timer_fast,
+			stat_timer_slow,
 			stat_background_task,
 			stat_application_periodic,
 			stat_application_periodic_wrapped);
