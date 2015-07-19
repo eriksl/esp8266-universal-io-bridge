@@ -2,8 +2,6 @@
 #include "application-parameters.h"
 
 #include "gpios.h"
-#include "config.h"
-
 #include "stats.h"
 #include "util.h"
 #include "user_main.h"
@@ -166,9 +164,9 @@ irom static app_action_t application_function_uart_baud_rate(application_paramet
 		return(1);
 	}
 
-	config.uart.baud_rate = baud_rate;
+	config->uart.baud_rate = baud_rate;
 
-	snprintf(ap.dst, ap.size, "uart-baud: %u\n", config.uart.baud_rate);
+	snprintf(ap.dst, ap.size, "uart-baud: %u\n", config->uart.baud_rate);
 
 	return(app_action_normal);
 }
@@ -183,9 +181,9 @@ irom static app_action_t application_function_uart_data_bits(application_paramet
 		return(1);
 	}
 
-	config.uart.data_bits = data_bits;
+	config->uart.data_bits = data_bits;
 
-	snprintf(ap.dst, ap.size, "uart-data: %u\n", config.uart.data_bits);
+	snprintf(ap.dst, ap.size, "uart-data: %u\n", config->uart.data_bits);
 
 	return(app_action_normal);
 }
@@ -200,9 +198,9 @@ irom static app_action_t application_function_uart_stop_bits(application_paramet
 		return(1);
 	}
 
-	config.uart.stop_bits = stop_bits;
+	config->uart.stop_bits = stop_bits;
 
-	snprintf(ap.dst, ap.size, "uart-stop: %u\n", config.uart.stop_bits);
+	snprintf(ap.dst, ap.size, "uart-stop: %u\n", config->uart.stop_bits);
 
 	return(app_action_normal);
 }
@@ -217,9 +215,9 @@ irom static app_action_t application_function_uart_parity(application_parameters
 		return(1);
 	}
 
-	config.uart.parity = parity;
+	config->uart.parity = parity;
 
-	snprintf(ap.dst, ap.size, "uart-parity: %s\n", uart_parity_to_string(config.uart.parity));
+	snprintf(ap.dst, ap.size, "uart-parity: %s\n", uart_parity_to_string(config->uart.parity));
 
 	return(app_action_normal);
 }
@@ -419,7 +417,7 @@ irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t valu
 		ap.dst += length;
 		ap.size -= length;
 
-		length = config_flags_to_string(ap.size, ap.dst, config.flags);
+		length = config_flags_to_string(ap.size, ap.dst, config->flags);
 		ap.dst += length;
 		ap.size -= length;
 

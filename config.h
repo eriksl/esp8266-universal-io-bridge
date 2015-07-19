@@ -7,6 +7,12 @@
 
 #include <stdint.h>
 
+enum
+{
+	config_magic = 0x4afb4afc,
+	config_version = 12
+};
+
 typedef enum __attribute__ ((__packed__))
 {
 	config_flag_strip_telnet,
@@ -27,6 +33,8 @@ typedef struct
 
 typedef struct
 {
+	uint32_t			magic;
+	uint32_t			version;
 	char				ssid[32];
 	char				passwd[32];
 	uint32_t			flags;
@@ -34,7 +42,8 @@ typedef struct
 	gpio_t				gpios[gpio_size];
 } config_t;
 
-extern config_t config;
+extern config_t *config;
+extern config_t *tmpconfig;
 
 const char *		config_flag_to_string(config_flag_enum_t);
 config_flag_enum_t	config_flag_to_id(const char *);
@@ -47,10 +56,11 @@ bool_t		config_set_flag_by_name(const char *, bool_t);
 
 uint16_t	config_flags_to_string(uint16_t, char *, uint32_t);
 
-void config_read_alt(config_t *);
-void config_read(void);
-void config_write_alt(const config_t *);
-void config_write(void);
-void config_dump(uint16_t size, char *);
+bool_t	config_init(void);
+void	config_read_alt(config_t *);
+void	config_read(void);
+void	config_write_alt(config_t *);
+void	config_write(void);
+void	config_dump(uint16_t size, char *);
 
 #endif

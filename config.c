@@ -7,18 +7,8 @@
 #include <c_types.h>
 #include <spi_flash.h>
 
-enum
-{
-	config_magic = 0x4afb4afc,
-	config_version = 11
-};
-
-typedef struct
-{
-	uint32_t magic;
-	uint32_t version;
-	config_t config;
-} eeprom_t;
+config_t *config = 0;
+config_t *tmpconfig = 0;
 
 static config_flag_t config_flag[config_flag_size] =
 {
@@ -36,7 +26,16 @@ static config_flag_t config_flag[config_flag_size] =
 	},
 };
 
-config_t config;
+irom bool_t config_init(void)
+{
+	if(!(config = (config_t *)malloc(sizeof(config_t))))
+		return(false);
+
+	if(!(tmpconfig = (config_t *)malloc(sizeof(config_t))))
+		return(false);
+
+	return(true);
+}
 
 irom attr_pure const char *config_flag_to_string(config_flag_enum_t id)
 {
@@ -65,7 +64,7 @@ irom attr_pure config_flag_enum_t config_flag_to_id(const char *flag_name)
 irom attr_pure bool_t config_get_flag(config_flag_enum_t flag)
 {
 	if(flag < config_flag_size)
-		return(config.flags & (1 << flag));
+		return(config->flags & (1 << flag));
 
 	return(false);
 }
@@ -75,9 +74,9 @@ irom bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 	if(flag < config_flag_size)
 	{
 		if(onoff)
-			config.flags |= (1 << flag);
+			config->flags |= (1 << flag);
 		else
-			config.flags &= ~(1 << flag);
+			config->flags &= ~(1 << flag);
 
 		return(true);
 	}
@@ -125,8 +124,10 @@ irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
 	return(total);
 }
 
-irom static void config_init(config_t *cfg)
+irom static void config_data_init(config_t *cfg)
 {
+	cfg->magic = config_magic;
+	cfg->version = config_version;
 	cfg->ssid[0] = '\0';
 	cfg->passwd[0] = '\0';
 	cfg->flags = 0;
@@ -142,57 +143,46 @@ irom static void config_init(config_t *cfg)
 
 irom void config_read_alt(config_t *cfg)
 {
-	eeprom_t eeprom;
+	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 
-	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)&eeprom, sizeof(eeprom));
-
-	if((eeprom.magic == config_magic) && (eeprom.version == config_version))
-		*cfg = eeprom.config;
-	else
-		config_init(cfg);
+	if((cfg->magic != config_magic) || (cfg->version != config_version))
+		config_data_init(cfg);
 }
 
 irom void config_read(void)
 {
-	config_read_alt(&config);
+	config_read_alt(config);
 }
 
-irom void config_write_alt(const config_t *cfg)
+irom void config_write_alt(config_t *cfg)
 {
-	eeprom_t eeprom;
-
-	eeprom.magic = config_magic;
-	eeprom.version = config_version;
-	eeprom.config = *cfg;
-
 	ETS_UART_INTR_DISABLE();
 	spi_flash_erase_sector(0x3c);
-	spi_flash_write(0x3c * SPI_FLASH_SEC_SIZE, (void *)&eeprom, sizeof(eeprom));
+	spi_flash_write(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 	ETS_UART_INTR_ENABLE();
 }
 
 irom void config_write(void)
 {
-	config_write_alt(&config);
+	config_write_alt(config);
 }
 
 irom void config_dump(uint16_t size, char *dst)
 {
 	uint16_t length;
-	config_t cfg;
 
-	config_read_alt(&cfg);
+	config_read_alt(tmpconfig);
 
 	length = snprintf(dst, size,
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> flags: ",
-			cfg.ssid,
-			cfg.passwd);
+			tmpconfig->ssid,
+			tmpconfig->passwd);
 	size -= length;
 	dst += length;
 
-	length = config_flags_to_string(size, dst, config.flags);
+	length = config_flags_to_string(size, dst, config->flags);
 	size -= length;
 	dst += length;
 
@@ -200,7 +190,7 @@ irom void config_dump(uint16_t size, char *dst)
 	size -= length;
 	dst += length;
 
-	length = uart_parameters_to_string(&cfg.uart, size, dst);
+	length = uart_parameters_to_string(&tmpconfig->uart, size, dst);
 	size -= length;
 	dst += length;
 
@@ -208,5 +198,5 @@ irom void config_dump(uint16_t size, char *dst)
 	size -= length;
 	dst += length;
 
-	gpios_dump_string(&cfg.gpios[0], size, dst);
+	gpios_dump_string(&tmpconfig->gpios[0], size, dst);
 }

@@ -67,7 +67,7 @@ static void gpio_init_pwm(gpio_trait_t *);
 static void gpio_init_i2c(gpio_trait_t *);
 
 static gpio_trait_t *find_gpio(gpio_id_t);
-static void config_init(gpio_t *gpio);
+static void gpio_config_init(gpio_t *gpio);
 
 static struct
 {
@@ -159,7 +159,7 @@ static gpio_trait_t gpio_traits[gpio_size] =
 
 irom static gpio_t *get_config(const gpio_trait_t *gpio)
 {
-	return(&config.gpios[gpio->id]);
+	return(&config->gpios[gpio->id]);
 }
 
 iram static void pc_int_handler(uint32_t pc, void *arg)
@@ -249,13 +249,13 @@ irom void gpios_init(void)
 	}
 
 	for(current = 0; current < gpio_size; current++)
-		gpio_mode_trait[config.gpios[current].mode].init_fn(&gpio_traits[current]);
+		gpio_mode_trait[config->gpios[current].mode].init_fn(&gpio_traits[current]);
 
 	if((sda > 0) && (scl > 0))
 		i2c_init(sda, scl);
 }
 
-irom static void config_init(gpio_t *gpio)
+irom static void gpio_config_init(gpio_t *gpio)
 {
 	gpio->mode = gpio_disabled;
 	gpio->counter.debounce = 100;
@@ -274,7 +274,7 @@ irom void gpios_config_init(gpio_t *gpios)
 	int current;
 
 	for(current = 0; current < gpio_size; current++)
-		config_init(&gpios[current]);
+		gpio_config_init(&gpios[current]);
 }
 
 irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
@@ -600,12 +600,11 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	gpio_mode_t mode;
 	uint8_t gpio_index;
 	gpio_trait_t *gpio;
-	static config_t new_config;
 	gpio_t *new_gpio_config;
 
 	if(ap.nargs < 2)
 	{
-		dump(&config.gpios[0], 0, ap.size, ap.dst);
+		dump(&config->gpios[0], 0, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -619,7 +618,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 	if(ap.nargs < 3)
 	{
-		dump(&config.gpios[0], gpio, ap.size, ap.dst);
+		dump(&config->gpios[0], gpio, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -629,8 +628,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		return(app_action_error);
 	}
 
-	config_read_alt(&new_config);
-	new_gpio_config = &new_config.gpios[gpio->id];
+	config_read_alt(tmpconfig);
+	new_gpio_config = &tmpconfig->gpios[gpio->id];
 
 	switch(mode)
 	{
@@ -761,9 +760,9 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	}
 
 	new_gpio_config->mode = mode;
-	config_write_alt(&new_config);
+	config_write_alt(tmpconfig);
 
-	dump(&new_config.gpios[gpio->id], gpio, ap.size, ap.dst);
+	dump(&tmpconfig->gpios[gpio->id], gpio, ap.size, ap.dst);
 	strlcat(ap.dst, "! gpio-mode: restart to activate new mode\n", ap.size);
 
 	return(app_action_normal);
@@ -931,13 +930,13 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		}
 	}
 
-	dump(&config.gpios[0], gpio, ap.size, ap.dst);
+	dump(&config->gpios[0], gpio, ap.size, ap.dst);
 	return(app_action_normal);
 }
 
 irom app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
-	dump(&config.gpios[0], 0, ap.size, ap.dst);
+	dump(&config->gpios[0], 0, ap.size, ap.dst);
 
 	return(app_action_normal);
 }

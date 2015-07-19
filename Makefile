@@ -5,7 +5,7 @@ LINKMAP			= linkmap
 
 CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -Wno-unused-parameter \
 					-Wsuggest-attribute=const -Wsuggest-attribute=pure -Wno-div-by-zero -Wfloat-equal \
-					-Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=768 \
+					-Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=256 \
 					-Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wsequence-point \
 					-Wclobbered -Wlogical-op -Waggregate-return -Wold-style-definition -Wstrict-prototypes \
 					-Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \

@@ -134,8 +134,8 @@ irom noinline static void wlan_bootstrap(void)
 
 	config_wlan(ssid, passwd);
 
-	strlcpy(config.ssid, ssid, sizeof(config.ssid));
-	strlcpy(config.passwd, passwd, sizeof(config.passwd));
+	strlcpy(config->ssid, ssid, sizeof(config->ssid));
+	strlcpy(config->passwd, passwd, sizeof(config->passwd));
 	config_write();
 
 	init_state = init_done;
@@ -458,12 +458,15 @@ irom void user_init(void)
 	if(!(tcp_data_send_buffer = malloc(buffer_size)))
 		reset();
 
+	if(!config_init())
+		reset();
+
 	action.reset = 0;
 	action.disconnect = 0;
 
 	config_read();
 	system_set_os_print(config_get_flag(config_flag_print_debug));
-	uart_init(&config.uart);
+	uart_init(&config->uart);
 	system_init_done_cb(user_init2);
 }
 
@@ -477,7 +480,7 @@ irom static void user_init2(void)
 	gpios_init();
 	i2c_sensor_init();
 
-	config_wlan(config.ssid, config.passwd);
+	config_wlan(config->ssid, config->passwd);
 
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
