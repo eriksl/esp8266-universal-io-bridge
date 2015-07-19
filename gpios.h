@@ -15,6 +15,8 @@ typedef enum __attribute__ ((__packed__))
 	gpio_5,
 	gpio_12,
 	gpio_13,
+	gpio_14,
+	gpio_15,
 	gpio_16,
 	gpio_error,
 	gpio_size = gpio_error,
