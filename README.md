@@ -4,7 +4,7 @@
 
 This is a project that attempts to make all (or at least most) of the I/O on the ESP8266 available over the network. Currently this includes GPIO's (as GPIO or PWM), I2C and the UART.
 
-The GPIOs can be selected to work as "normal" input, "normal" output, "bounce" mode (this means trigger once, either manually or at startup, or "blink" continuously) or "pwm" mode (16 bits PWM mode, running at 330 Hz, suitable for driving lighting).
+The GPIOs can be selected to work as "normal" input, "normal" output, "timer" mode (this means trigger once, either manually or at startup, or "blink" continuously) or "pwm" mode (16 bits PWM mode, running at 330 Hz, suitable for driving lighting).
 
 The "normal" UART lines (TXD/RXD) are available and are bridged to the ESP8266's ip address at port 25. This is unless the UART lines are re-assigned as GPIOs, which is also possible.
 
@@ -101,7 +101,7 @@ Currently supported i2c sensors are:
 <td>gg</td><td>gpio-get</td><td><i>gpio</i></td><td>Read GPIO. For example <b>gg 2</b> reads the GPIO <b>2<b> as input.</td>
 </tr>
 <tr>
-<td>gs</td><td>gpio-set</td><td><i>gpio</i> [<i>value</i>]</td><td>Set the GPIO if it's set as output, if set as bounce, trigger a bounce, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).</td>
+<td>gs</td><td>gpio-set</td><td><i>gpio</i> [<i>value</i>]</td><td>Set the GPIO if it's set as output, if set as timer, trigger the timer, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).</td>
 </tr>
 <tr>
 <td>gm</td><td>gpio-mode</td><td><i>mode</i> [<i>mode parameters</i>]</td><td>Without mode/parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, <b>reset</b> to enable the changes.</td>
@@ -124,9 +124,9 @@ Currently supported i2c sensors are:
 <td>output</td><td><i>startup-state</i></td><td>Set GPIO to output, set <i>startup-state</i> to <b>0</b> or <b>1</b> to configure the state of the output directly after boot.</td>
 </tr>
 <tr>
-<td>bounce</td><td><i>direction</i> <i>delay</i> <i>repeat</i> <i>autotrigger</i></td><td>
+<td>timer</td><td><i>direction</i> <i>delay</i> <i>repeat</i> <i>autotrigger</i></td><td>
 <table>
-<tr><td><i>direction</i> is either <b>up</b> or <b>down</b>, specifying whether to bounce from "off" or "on".</td></tr>
+<tr><td><i>direction</i> is either <b>up</b> or <b>down</b>, specifying whether to start timer output from "off" or "on".</td></tr>
 <tr><td><i>delay</i> is a value in milliseconds between triggered state and resuming normal GPIO state.</td></tr>
 <tr><td><i>repeat</i> is <b>0</b> or <b>1</b>. <b>0</b> means run once, <b>1</b> means repeating until stopped manually.</td></tr>
 <tr><td><i>autotrigger</i> is <b>0</b> or <b>1</b>. <b>0</b> means leave the GPIO alone after start, need to trigger manually (using gpio-set), <b>1</b> means trigger automatically after start.</td></tr>

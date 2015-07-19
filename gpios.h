@@ -49,7 +49,7 @@ typedef enum __attribute__ ((__packed__))
 	gpio_input,
 	gpio_counter,
 	gpio_output,
-	gpio_bounce,
+	gpio_timer,
 	gpio_pwm,
 	gpio_i2c,
 	gpio_mode_error,
@@ -79,7 +79,7 @@ typedef struct
 		uint32_t delay;
 		bool_t repeat;
 		bool_t autotrigger;
-	} bounce;
+	} timer;
 
 	struct
 	{

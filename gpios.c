@@ -43,7 +43,7 @@ typedef struct
 	struct
 	{
 		uint32_t delay;
-	} bounce;
+	} timer;
 
 	struct
 	{
@@ -62,7 +62,7 @@ static void gpio_init_disabled(gpio_trait_t *);
 static void gpio_init_input(gpio_trait_t *);
 static void gpio_init_counter(gpio_trait_t *);
 static void gpio_init_output(gpio_trait_t *);
-static void gpio_init_bounce(gpio_trait_t *);
+static void gpio_init_timer(gpio_trait_t *);
 static void gpio_init_pwm(gpio_trait_t *);
 static void gpio_init_i2c(gpio_trait_t *);
 
@@ -80,7 +80,7 @@ static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
 	{ gpio_input,		"input",		gpio_init_input },
 	{ gpio_counter,		"counter",		gpio_init_counter },
 	{ gpio_output,		"output",		gpio_init_output },
-	{ gpio_bounce,		"bounce",		gpio_init_bounce },
+	{ gpio_timer,		"timer",		gpio_init_timer },
 	{ gpio_pwm,			"pwm",			gpio_init_pwm },
 	{ gpio_i2c,			"i2c",			gpio_init_i2c },
 };
@@ -281,10 +281,10 @@ irom static void gpio_config_init(gpio_t *gpio)
 	gpio->counter.debounce = 100;
 	gpio->counter.reset_on_get = false;
 	gpio->output.startup_state = 0;
-	gpio->bounce.direction = gpio_up;
-	gpio->bounce.delay = 0;
-	gpio->bounce.repeat = 0;
-	gpio->bounce.autotrigger = 0;
+	gpio->timer.direction = gpio_up;
+	gpio->timer.delay = 0;
+	gpio->timer.repeat = 0;
+	gpio->timer.autotrigger = 0;
 	gpio->pwm.startup_duty = 0;
 	gpio->i2c.pin = gpio_i2c_sda;
 }
@@ -372,37 +372,37 @@ iram void gpios_periodic(void)
 				arm_counter(gpio);
 		}
 
-		if((cfg->mode == gpio_bounce) && (gpio->bounce.delay > 0))
+		if((cfg->mode == gpio_timer) && (gpio->timer.delay > 0))
 		{
-			if(gpio->bounce.delay >= 10)
-				gpio->bounce.delay -= 10; // 10 ms per tick
+			if(gpio->timer.delay >= 10)
+				gpio->timer.delay -= 10; // 10 ms per tick
 			else
-				gpio->bounce.delay = 0;
+				gpio->timer.delay = 0;
 
-			if(gpio->bounce.delay == 0)
+			if(gpio->timer.delay == 0)
 			{
 				set_output(gpio, !get_input(gpio));
 
-				if(cfg->bounce.repeat)
-					gpio->bounce.delay = cfg->bounce.delay;
+				if(cfg->timer.repeat)
+					gpio->timer.delay = cfg->timer.delay;
 			}
 		}
 	}
 }
 
-irom static void trigger_bounce(gpio_trait_t *gpio, bool_t onoff)
+irom static void trigger_timer(gpio_trait_t *gpio, bool_t onoff)
 {
 	const gpio_t *cfg = get_config(gpio);
 
 	if(onoff)
 	{
-		set_output(gpio, cfg->bounce.direction == gpio_up ? 1 : 0);
-		gpio->bounce.delay = cfg->bounce.delay;
+		set_output(gpio, cfg->timer.direction == gpio_up ? 1 : 0);
+		gpio->timer.delay = cfg->timer.delay;
 	}
 	else
 	{
-		set_output(gpio, cfg->bounce.direction == gpio_up ? 0 : 1);
-		gpio->bounce.delay = 0;
+		set_output(gpio, cfg->timer.direction == gpio_up ? 0 : 1);
+		gpio->timer.delay = 0;
 	}
 }
 
@@ -484,21 +484,21 @@ irom static void gpio_init_output(gpio_trait_t *gpio)
 	set_output(gpio, cfg->output.startup_state);
 }
 
-irom static void gpio_init_bounce(gpio_trait_t *gpio)
+irom static void gpio_init_timer(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio->bounce.delay = 0;
+	gpio->timer.delay = 0;
 
 	gpio_init_output(gpio);
 
-	if(cfg->bounce.direction == gpio_up)
+	if(cfg->timer.direction == gpio_up)
 		gpio_output_set(0, 1 << gpio->index, 0, 0);
 	else
 		gpio_output_set(1 << gpio->index, 0, 0, 0);
 
-	if(cfg->bounce.autotrigger)
-		trigger_bounce(gpio, 1);
+	if(cfg->timer.autotrigger)
+		trigger_timer(gpio, 1);
 }
 
 irom static void gpio_init_pwm(gpio_trait_t *gpio)
@@ -564,12 +564,12 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 					break;
 				}
 
-				case(gpio_bounce):
+				case(gpio_timer):
 				{
-					length = snprintf(str, size, "bounce, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
-							cfg->bounce.direction == gpio_up ? "up" : "down",
-							cfg->bounce.delay, onoff(cfg->bounce.repeat),
-							onoff(cfg->bounce.autotrigger), onoff(gpio->bounce.delay > 0),
+					length = snprintf(str, size, "timer, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
+							cfg->timer.direction == gpio_up ? "up" : "down",
+							cfg->timer.delay, onoff(cfg->timer.repeat),
+							onoff(cfg->timer.autotrigger), onoff(gpio->timer.delay > 0),
 							onoff(get_input(gpio)));
 					break;
 				}
@@ -685,7 +685,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 			break;
 		}
 
-		case(gpio_bounce):
+		case(gpio_timer):
 		{
 			gpio_direction_t direction;
 			uint32_t delay;
@@ -694,7 +694,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(ap.nargs != 7)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode: bounce direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
+				snprintf(ap.dst, ap.size, "gpio-mode: timer direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
 				return(app_action_error);
 			}
 
@@ -704,7 +704,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				direction = gpio_down;
 			else
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(bounce): direction invalid: %s\n", (*ap.args)[3]);
+				snprintf(ap.dst, ap.size, "gpio-mode(timer): direction invalid: %s\n", (*ap.args)[3]);
 				return(app_action_error);
 			}
 
@@ -712,17 +712,17 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(delay < 100)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(bounce): delay too small: %d ms, >= 100 ms\n", delay);
+				snprintf(ap.dst, ap.size, "gpio-mode(timer): delay too small: %d ms, >= 100 ms\n", delay);
 				return(app_action_error);
 			}
 
 			repeat = atoi((*ap.args)[5]);
 			autotrigger = !!atoi((*ap.args)[6]);
 
-			new_gpio_config->bounce.direction = direction;
-			new_gpio_config->bounce.delay = delay;
-			new_gpio_config->bounce.repeat = repeat;
-			new_gpio_config->bounce.autotrigger = autotrigger;
+			new_gpio_config->timer.direction = direction;
+			new_gpio_config->timer.delay = delay;
+			new_gpio_config->timer.repeat = repeat;
+			new_gpio_config->timer.autotrigger = autotrigger;
 
 			break;
 		}
@@ -838,7 +838,7 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 		}
 
 		case(gpio_output):
-		case(gpio_bounce):
+		case(gpio_timer):
 		case(gpio_pwm):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is output\n", gpio->name);
@@ -913,12 +913,12 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 			break;
 		}
 
-		case(gpio_bounce):
+		case(gpio_timer):
 		{
 			if(ap.nargs == 3)
-				trigger_bounce(gpio, !!atoi((*ap.args)[2]));
+				trigger_timer(gpio, !!atoi((*ap.args)[2]));
 			else
-				trigger_bounce(gpio, !gpio->bounce.delay);
+				trigger_timer(gpio, !gpio->timer.delay);
 
 			break;
 		}
