@@ -9,14 +9,28 @@
 #include <osapi.h>
 #include <gpio.h>
 #include <pwm.h>
+#include <ets_sys.h>
 
 #include <stdlib.h>
+
+typedef enum __attribute__ ((__packed__))
+{
+	rtcgpio_input,
+	rtcgpio_output
+} rtcgpio_setup_t;
+
+_Static_assert(sizeof(rtcgpio_setup_t) == 1, "sizeof(rtcgpio_setup_t) != 1");
 
 typedef struct
 {
 	const	gpio_id_t	id;
 	const	char		*name;
 	const	uint8_t		index;
+	const struct
+	{
+		unsigned int rtc_gpio;
+	} flags;
+
 	const	uint32_t	io_mux;
 	const	uint32_t	io_func;
 
@@ -77,6 +91,9 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_0,
 		.name = "gpio0",
 		.index = 0,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_GPIO0_U,
 		.io_func = FUNC_GPIO0,
 	},
@@ -84,6 +101,9 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_2,
 		.name = "gpio2",
 		.index = 2,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_GPIO2_U,
 		.io_func = FUNC_GPIO2,
 	},
@@ -91,6 +111,9 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_4,
 		.name = "gpio4",
 		.index = 4,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_GPIO4_U,
 		.io_func = FUNC_GPIO4,
 	},
@@ -98,6 +121,9 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_5,
 		.name = "gpio5",
 		.index = 5,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_GPIO5_U,
 		.io_func = FUNC_GPIO5,
 	},
@@ -105,6 +131,9 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_12,
 		.name = "gpio12",
 		.index = 12,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_MTDI_U,
 		.io_func = FUNC_GPIO12,
 	},
@@ -112,8 +141,19 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.id = gpio_13,
 		.name = "gpio13",
 		.index = 13,
+		.flags = {
+			.rtc_gpio = 0,
+		},
 		.io_mux = PERIPHS_IO_MUX_MTCK_U,
 		.io_func = FUNC_GPIO13,
+	},
+	{
+		.id = gpio_16,
+		.name = "gpio16",
+		.index = 16,
+		.flags = {
+			.rtc_gpio = 1,
+		}
 	}
 };
 
@@ -144,6 +184,15 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	}
 }
 
+irom static void select_pin_function(const gpio_trait_t *gpio)
+{
+	if(gpio->flags.rtc_gpio)
+		return;
+
+	pin_func_select(gpio->io_mux, gpio->io_func);
+	PIN_PULLUP_DIS(gpio->io_mux);
+}
+
 irom void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
@@ -165,10 +214,7 @@ irom void gpios_init(void)
 		gpio = &gpio_traits[current];
 		cfg = get_config(gpio);
 
-		gpio->bounce.delay = 0;
-
-		pin_func_select(gpio->io_mux, gpio->io_func);
-		PIN_PULLUP_DIS(gpio->io_mux);
+		select_pin_function(gpio);
 
 		if(cfg->mode == gpio_counter)
 			state_change_mask |= (1 << gpio->index);
@@ -231,15 +277,48 @@ irom void gpios_config_init(gpio_t *gpios)
 		config_init(&gpios[current]);
 }
 
+irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
+{
+	uint32_t tmp;
+
+	tmp = READ_PERI_REG(reg);
+	tmp &= (uint32_t)~clear;
+	tmp |= set;
+    WRITE_PERI_REG(reg, tmp);
+}
+
+irom static void rtcgpio_config(rtcgpio_setup_t io)
+{
+	setclear_perireg(PAD_XPD_DCDC_CONF, 0x43, 0x01);
+	setclear_perireg(RTC_GPIO_CONF, 0x01, 0x00);
+	setclear_perireg(RTC_GPIO_ENABLE, 0x01, (io == rtcgpio_output) ? 0x01 : 0x00);
+}
+
+irom static void rtcgpio_output_set(bool_t value)
+{
+	setclear_perireg(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
+}
+
+irom static bool rtcgpio_input_get(void)
+{
+	return(!!(READ_PERI_REG(RTC_GPIO_IN_DATA) & 0x01));
+}
+
 irom static void set_output(const gpio_trait_t *gpio, bool_t onoff)
 {
-	gpio_output_set(onoff ? (1 << gpio->index) : 0x00,
-					!onoff ? (1 << gpio->index) : 0x00,
-					0x00, 0x00);
+	if(gpio->flags.rtc_gpio)
+		rtcgpio_output_set(onoff);
+	else
+		gpio_output_set(onoff ? (1 << gpio->index) : 0x00,
+						!onoff ? (1 << gpio->index) : 0x00,
+						0x00, 0x00);
 }
 
 irom static bool_t get_input(const gpio_trait_t *gpio)
 {
+	if(gpio->flags.rtc_gpio)
+		return(rtcgpio_input_get());
+
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
@@ -361,7 +440,10 @@ irom static void gpio_init_disabled(gpio_trait_t *gpio)
 
 irom static void gpio_init_input(gpio_trait_t *gpio)
 {
-	gpio_output_set(0, 0, 0, 1 << gpio->index);
+	if(gpio->flags.rtc_gpio)
+		rtcgpio_config(rtcgpio_input);
+	else
+		gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
 irom static void gpio_init_counter(gpio_trait_t *gpio)
@@ -374,19 +456,21 @@ irom static void gpio_init_output(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio_output_set(0, 0, 1 << gpio->index, 0);
-
-	if(cfg->output.startup_state)
-		gpio_output_set(1 << gpio->index, 0, 0, 0);
+	if(gpio->flags.rtc_gpio)
+		rtcgpio_config(rtcgpio_output);
 	else
-		gpio_output_set(0, 1 << gpio->index, 0, 0);
+		gpio_output_set(0, 0, 1 << gpio->index, 0);
+
+	set_output(gpio, cfg->output.startup_state);
 }
 
 irom static void gpio_init_bounce(gpio_trait_t *gpio)
 {
 	const gpio_t *cfg = get_config(gpio);
 
-	gpio_output_set(0, 0, 1 << gpio->index, 0);
+	gpio->bounce.delay = 0;
+
+	gpio_init_output(gpio);
 
 	if(cfg->bounce.direction == gpio_up)
 		gpio_output_set(0, 1 << gpio->index, 0, 0);
@@ -552,6 +636,12 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	{
 		case(gpio_counter):
 		{
+			if(gpio->flags.rtc_gpio)
+			{
+				snprintf(ap.dst, ap.size, "%s", "gpio-mode: counter mode invalid for gpio 16\n");
+				return(app_action_error);
+			}
+
 			if(ap.nargs > 3)
 			{
 				new_gpio_config->counter.reset_on_get = !!atoi((*ap.args)[3]);
@@ -622,6 +712,12 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		{
 			uint16_t startup_duty;
 
+			if(gpio->flags.rtc_gpio)
+			{
+				snprintf(ap.dst, ap.size, "%s", "gpio-mode: pwm mode invalid for gpio 16\n");
+				return(app_action_error);
+			}
+
 			if(ap.nargs == 3)
 				startup_duty = 0;
 			else
@@ -635,6 +731,12 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		case(gpio_i2c):
 		{
 			gpio_i2c_t pin;
+
+			if(gpio->flags.rtc_gpio)
+			{
+				snprintf(ap.dst, ap.size, "%s", "gpio-mode: i2c mode invalid for gpio 16\n");
+				return(app_action_error);
+			}
 
 			if(ap.nargs != 4)
 			{
