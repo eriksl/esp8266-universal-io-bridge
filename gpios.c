@@ -357,7 +357,6 @@ irom static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
 
 irom static void gpio_init_disabled(gpio_trait_t *gpio)
 {
-	gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
 irom static void gpio_init_input(gpio_trait_t *gpio)
