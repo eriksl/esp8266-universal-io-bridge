@@ -17,7 +17,7 @@ _Static_assert(sizeof(app_action_t) == 1, "sizeof(app_action_t) != 1");
 enum
 {
 	application_num_args = 8,
-	application_length_args = 16,
+	application_length_args = 24,
 };
 
 typedef char args_t[application_num_args][application_length_args];

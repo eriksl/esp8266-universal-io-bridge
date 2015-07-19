@@ -24,6 +24,10 @@ static config_flag_t config_flag[config_flag_size] =
 		config_flag_tsl_high_sens,
 		"th", "tsl-high-sens"
 	},
+	{
+		config_flag_disable_wlan_bootstrap,
+		"db", "disable-wlan-bootstrap"
+	},
 };
 
 irom bool_t config_init(void)

@@ -17,9 +17,10 @@
 
 typedef enum __attribute__ ((__packed__))
 {
-	init_start,
-	init_done
-} init_state_t;
+	wlan_bootstrap_state_skip,
+	wlan_bootstrap_state_start,
+	wlan_bootstrap_state_done
+} wlan_bootstrap_state_t;
 
 _Static_assert(sizeof(gpio_id_t) == 1, "sizeof(telnet_strip_state) != 1");
 
@@ -40,7 +41,7 @@ os_event_t background_task_queue[background_task_queue_length];
 
 static ETSTimer periodic_timer;
 
-static init_state_t init_state = init_start;
+static wlan_bootstrap_state_t wlan_bootstrap_state;
 
 static struct
 {
@@ -138,7 +139,7 @@ irom noinline static void wlan_bootstrap(void)
 	strlcpy(config->passwd, passwd, sizeof(config->passwd));
 	config_write();
 
-	init_state = init_done;
+	wlan_bootstrap_state = wlan_bootstrap_state_done;
 }
 
 irom noinline static void process_uart_fifo(void)
@@ -265,17 +266,20 @@ iram static void background_task(os_event_t *events)
 {
 	stat_background_task++;
 
-	if(init_state == init_start)
+	if(wlan_bootstrap_state == wlan_bootstrap_state_start)
 	{
 		if(queue_lf(uart_receive_queue))
+		{
 			wlan_bootstrap();
+			wlan_bootstrap_state = wlan_bootstrap_state_done;
+		}
 
 		if(stat_timer_slow > 100) // ~10 secs
 		{
 			if(config_get_flag(config_flag_print_debug))
 				dprintf("%s\r\n", "Returning to normal uart bridge mode\r\n");
 
-			init_state = init_done;
+			wlan_bootstrap_state = wlan_bootstrap_state_done;
 		}
 	}
 
@@ -285,7 +289,7 @@ iram static void background_task(os_event_t *events)
 		action.disconnect = 0;
 	}
 
-	if(init_state != init_start)
+	if(wlan_bootstrap_state != wlan_bootstrap_state_start)
 	{
 		process_uart_fifo();
 		process_command();
@@ -305,8 +309,10 @@ irom static void tcp_data_receive_callback(void *arg, char *data, uint16_t lengt
 {
 	uint16_t current;
 	uint8_t byte;
+	bool_t strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
 
+	strip_telnet = config_get_flag(config_flag_strip_telnet);
 	telnet_strip_state = ts_raw;
 
 	for(current = 0; (current < length) && !queue_full(uart_send_queue); current++)
@@ -317,7 +323,7 @@ irom static void tcp_data_receive_callback(void *arg, char *data, uint16_t lengt
 		{
 			case(ts_raw):
 			{
-				if(config_get_flag(config_flag_strip_telnet) && (byte == 0xff))
+				if(strip_telnet && (byte == 0xff))
 					telnet_strip_state = ts_dodont;
 				else
 					queue_push(uart_send_queue, (char)byte);
@@ -492,10 +498,16 @@ irom static void user_init2(void)
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
-	if(config_get_flag(config_flag_print_debug))
+	if(config_get_flag(config_flag_disable_wlan_bootstrap))
+		wlan_bootstrap_state = wlan_bootstrap_state_skip;
+	else
 	{
-		dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 10 seconds.");
-		dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
+		if(config_get_flag(config_flag_print_debug))
+		{
+			dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 10 seconds.");
+			dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
+		}
+		wlan_bootstrap_state = wlan_bootstrap_state_start;
 	}
 
 	os_timer_setfn(&periodic_timer, periodic_timer_callback, (void *)0);
