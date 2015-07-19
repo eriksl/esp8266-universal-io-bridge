@@ -10,9 +10,17 @@
 typedef enum __attribute__ ((__packed__))
 {
 	gpio_0 = 0,
+	gpio_1,		// UART TX use with care
 	gpio_2,
+	gpio_3,		// UART RX use with care
 	gpio_4,
 	gpio_5,
+//	gpio_6,		// cannot use, used by flash memory
+//	gpio_7,		// cannot use, used by flash memory
+//	gpio_8,		// cannot use, used by flash memory
+//	gpio_9,		// cannot use, used by flash memory
+//	gpio_10,	// cannot use, used by flash memory
+//	gpio_11,	// cannot use, used by flash memory
 	gpio_12,
 	gpio_13,
 	gpio_14,

@@ -98,6 +98,16 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		.io_func = FUNC_GPIO0,
 	},
 	{
+		.id = gpio_1,
+		.name = "gpio1",
+		.index = 1,
+		.flags = {
+			.rtc_gpio = 0,
+		},
+		.io_mux = PERIPHS_IO_MUX_U0TXD_U,
+		.io_func = FUNC_GPIO1
+	},
+	{
 		.id = gpio_2,
 		.name = "gpio2",
 		.index = 2,
@@ -106,6 +116,16 @@ static gpio_trait_t gpio_traits[gpio_size] =
 		},
 		.io_mux = PERIPHS_IO_MUX_GPIO2_U,
 		.io_func = FUNC_GPIO2,
+	},
+	{
+		.id = gpio_3,
+		.name = "gpio3",
+		.index = 3,
+		.flags = {
+			.rtc_gpio = 0,
+		},
+		.io_mux = PERIPHS_IO_MUX_U0RXD_U,
+		.io_func = FUNC_GPIO3,
 	},
 	{
 		.id = gpio_4,
@@ -234,7 +254,8 @@ irom void gpios_init(void)
 		gpio = &gpio_traits[current];
 		cfg = get_config(gpio);
 
-		select_pin_function(gpio);
+		if(cfg->mode != gpio_disabled)
+			select_pin_function(gpio);
 
 		if(cfg->mode == gpio_counter)
 			state_change_mask |= (1 << gpio->index);
