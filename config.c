@@ -124,10 +124,28 @@ irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
 	return(total);
 }
 
-irom static void config_data_init(config_t *cfg)
+irom void config_read_alt(config_t *cfg)
 {
+	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
+
+	if((cfg->magic == config_magic) && (cfg->major_version == config_major_version))
+	{
+		if(cfg->minor_version == config_minor_version)
+			return;
+
+		// config from other minor version, replace gpio config
+
+		gpios_config_init(cfg->gpios);
+		config->minor_version = config_minor_version;
+
+		return;
+	}
+
+	// unknown config, replace
+
 	cfg->magic = config_magic;
-	cfg->version = config_version;
+	cfg->major_version = config_major_version;
+	cfg->minor_version = config_minor_version;
 	cfg->ssid[0] = '\0';
 	cfg->passwd[0] = '\0';
 	cfg->flags = 0;
@@ -139,14 +157,6 @@ irom static void config_data_init(config_t *cfg)
 
 	config_set_flag(config_flag_print_debug, true);
 	gpios_config_init(cfg->gpios);
-}
-
-irom void config_read_alt(config_t *cfg)
-{
-	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
-
-	if((cfg->magic != config_magic) || (cfg->version != config_version))
-		config_data_init(cfg);
 }
 
 irom void config_read(void)
@@ -174,9 +184,15 @@ irom void config_dump(uint16_t size, char *dst)
 	config_read_alt(tmpconfig);
 
 	length = snprintf(dst, size,
+			"> config magic: %04x\n"
+			"> config major version: %d\n"
+			"> config minor version: %d\n"
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> flags: ",
+			tmpconfig->magic,
+			tmpconfig->major_version,
+			tmpconfig->minor_version,
 			tmpconfig->ssid,
 			tmpconfig->passwd);
 	size -= length;
