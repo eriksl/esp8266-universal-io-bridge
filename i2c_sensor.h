@@ -27,8 +27,23 @@ typedef enum __attribute__ ((__packed__))
 
 _Static_assert(sizeof(i2c_sensor_t) == 1, "sizeof(i2c_sensor_t) != 1");
 
-void i2c_sensor_init(void);
-uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size, char *dst);
-bool_t i2c_sensor_detected(i2c_sensor_t);
+typedef struct
+{
+	struct
+	{
+		struct
+		{
+			float factor;
+			float offset;
+		} calibration;
+	} sensor[i2c_sensor_size];
+} i2c_sensor_config_t;
+
+void		i2c_sensor_init(void);
+void		i2c_sensor_config_init(i2c_sensor_config_t *);
+uint16_t 	i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size, char *dst);
+bool_t		i2c_sensor_detected(i2c_sensor_t);
+bool_t		i2c_sensor_getcal(i2c_sensor_t sensor, float *factor, float *offset);
+bool_t		i2c_sensor_setcal(i2c_sensor_t sensor, float factor, float offset);
 
 #endif

@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "gpios.h"
 #include "util.h"
+#include "i2c_sensor.h"
 
 #include <stdint.h>
 
@@ -11,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 1,
-	config_minor_version = 2
+	config_minor_version = 3
 };
 
 typedef enum __attribute__ ((__packed__))
@@ -43,6 +44,7 @@ typedef struct
 	uint32_t			flags;
 	uart_parameters_t	uart;
 	gpio_t				gpios[gpio_size];
+	i2c_sensor_config_t	i2c_sensors;
 } config_t;
 
 extern config_t *config;

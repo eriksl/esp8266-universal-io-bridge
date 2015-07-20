@@ -29,6 +29,17 @@ typedef struct
 
 device_data_t device_data[i2c_sensor_size];
 
+irom void i2c_sensor_config_init(i2c_sensor_config_t *dst)
+{
+	uint8_t current;
+
+	for(current = 0; current < i2c_sensor_size; current++)
+	{
+		dst->sensor[current].calibration.factor = 1;
+		dst->sensor[current].calibration.offset = 0;
+	}
+}
+
 irom static i2c_error_t sensor_digipicco_read_temp(value_t *value)
 {
 	i2c_error_t error;
@@ -1029,6 +1040,8 @@ irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size
 	uint16_t length;
 	char *orig_dst = dst;
 	uint16_t current;
+	float factor, offset;
+	double extracooked;
 
 	for(current = 0; current < i2c_sensor_size; current++)
 	{
@@ -1043,32 +1056,52 @@ irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size
 
 	error = i2c_error_ok;
 
-	length = snprintf(dst, size, "%s sensor %d:%s: %s: ",
+	length = snprintf(dst, size, "%s sensor %d:%s, %s: ",
 			device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
 	dst += length;
 	size -= length;
 
 	if((error = entry->read_fn(&value)) == i2c_error_ok)
 	{
-		length = snprintf(dst, size, "%s", "[");
+		if(i2c_sensor_getcal(sensor, &factor, &offset))
+			extracooked = (value.cooked * factor) + offset;
+		else
+			extracooked = value.cooked;
+
+		length = snprintf(dst, size, "[");
 		dst += length;
 		size -= length;
 
-		length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
+		length = double_to_string(extracooked, entry->precision, 1e10, size, dst);
 		dst += length;
 		size -= length;
 
-		length = snprintf(dst, size, "%s", "] (raw: ");
+		length = snprintf(dst, size, "]");
 		dst += length;
 		size -= length;
 
-		length = double_to_string(value.raw, 0, 1e10, size, dst);
-		dst += length;
-		size -= length;
+		if(verbose)
+		{
+			length = snprintf(dst, size, " (uncalibrated: ");
+			dst += length;
+			size -= length;
 
-		length = snprintf(dst, size, "%s", ")\n");
-		dst += length;
-		size -= length;
+			length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
+			dst += length;
+			size -= length;
+
+			length = snprintf(dst, size, ", raw: ");
+			dst += length;
+			size -= length;
+
+			length = double_to_string(value.raw, 0, 1e10, size, dst);
+			dst += length;
+			size -= length;
+
+			length = snprintf(dst, size, ")");
+			dst += length;
+			size -= length;
+		}
 	}
 	else
 	{
@@ -1080,12 +1113,31 @@ irom uint16_t i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, uint16_t size
 		dst += length;
 		size -= length;
 
-		length = snprintf(dst, size, "%s", "\n");
+		i2c_reset();
+	}
+
+	if(verbose)
+	{
+		length = snprintf(dst, size, ", calibration: factor=");
 		dst += length;
 		size -= length;
 
-		i2c_reset();
+		length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10, size, dst);
+		dst += length;
+		size -= length;
+
+		length = snprintf(dst, size, ", offset=");
+		dst += length;
+		size -= length;
+
+		length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10, size, dst);
+		dst += length;
+		size -= length;
 	}
+
+	length = snprintf(dst, size, "\n");
+	dst += length;
+	size -= length;
 
 	return(dst - orig_dst);
 }
@@ -1096,4 +1148,28 @@ irom attr_pure bool_t i2c_sensor_detected(i2c_sensor_t sensor)
 		return(false);
 
 	return(device_data[sensor].detected);
+}
+
+irom bool_t i2c_sensor_getcal(i2c_sensor_t sensor, float *factor, float *offset)
+{
+	if(sensor < i2c_sensor_size)
+	{
+		*factor = config->i2c_sensors.sensor[sensor].calibration.factor;
+		*offset = config->i2c_sensors.sensor[sensor].calibration.offset;
+		return(true);
+	}
+
+	return(false);
+}
+
+irom bool_t i2c_sensor_setcal(i2c_sensor_t sensor, float factor, float offset)
+{
+	if(sensor < i2c_sensor_size)
+	{
+		config->i2c_sensors.sensor[sensor].calibration.factor = factor;
+		config->i2c_sensors.sensor[sensor].calibration.offset = offset;
+		return(true);
+	}
+
+	return(false);
 }

@@ -130,42 +130,61 @@ irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
 
 irom void config_read_alt(config_t *cfg)
 {
+	enum
+	{
+		init_none,
+		init_some,
+		init_all
+	} init;
+
 	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 
 	if((cfg->magic == config_magic) && (cfg->major_version == config_major_version))
 	{
 		if(cfg->minor_version == config_minor_version)
-			return;
-
-		// config from other minor version, replace gpio config
-
-		gpios_config_init(cfg->gpios);
-		config->minor_version = config_minor_version;
-
-		return;
+			init = init_none;
+		else
+			init = init_some;
 	}
+	else
+		init = init_all;
 
-	// unknown config, replace
+	switch(init)
+	{
+		case(init_all):
+		{
+			cfg->ssid[0] = '\0';
+			cfg->passwd[0] = '\0';
+			cfg->flags = 0;
+			cfg->uart.baud_rate = 115200;
+			cfg->uart.data_bits = 8;
+			cfg->uart.parity = parity_none;
+			cfg->uart.stop_bits = 1;
+			cfg->flags = 0;
+			config_set_flag(config_flag_print_debug, true);
+		}
 
-	cfg->magic = config_magic;
-	cfg->major_version = config_major_version;
-	cfg->minor_version = config_minor_version;
-	cfg->ssid[0] = '\0';
-	cfg->passwd[0] = '\0';
-	cfg->flags = 0;
-	cfg->uart.baud_rate = 115200;
-	cfg->uart.data_bits = 8;
-	cfg->uart.parity = parity_none;
-	cfg->uart.stop_bits = 1;
-	cfg->flags = 0;
+		case(init_some): // fall through
+		{
+			cfg->magic = config_magic;
+			cfg->major_version = config_major_version;
+			cfg->minor_version = config_minor_version;
+			gpios_config_init(cfg->gpios);
+			i2c_sensor_config_init(&cfg->i2c_sensors);
 
-	config_set_flag(config_flag_print_debug, true);
-	gpios_config_init(cfg->gpios);
+			break;
+		}
+
+		case(init_none):
+		{
+			break;
+		}
+	}
 }
 
 irom void config_read(void)
 {
-	config_read_alt(config);
+	return(config_read_alt(config));
 }
 
 irom void config_write_alt(config_t *cfg)

@@ -328,6 +328,46 @@ irom static app_action_t application_function_i2c_sensor_read(application_parame
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_i2c_sensor_calibrate(application_parameters_t ap)
+{
+	i2c_sensor_t sensor;
+	float factor;
+	float offset;
+	uint16_t length;
+
+	sensor = atoi((*ap.args)[1]);
+	factor = string_to_double((*ap.args)[2]);
+	offset = string_to_double((*ap.args)[3]);
+
+	if(!i2c_sensor_setcal(sensor, factor, offset))
+	{
+		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
+		return(app_action_error);
+	}
+
+	length = snprintf(ap.dst, ap.size, "> i2c sensor %d calibration set to factor ", (int)sensor);
+	ap.dst += length;
+	ap.size -= length;
+
+	length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10, ap.size, ap.dst);
+	ap.dst += length;
+	ap.size -= length;
+
+	length = snprintf(ap.dst, ap.size, ", offset: ");
+	ap.dst += length;
+	ap.size -= length;
+
+	length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10, ap.size, ap.dst);
+	ap.dst += length;
+	ap.size -= length;
+
+	length = snprintf(ap.dst, ap.size, "\n");
+	ap.dst += length;
+	ap.size -= length;
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
 {
 	i2c_sensor_t sensor;
@@ -514,6 +554,12 @@ static const application_function_table_t application_function_table[] =
         1,
         application_function_i2c_sensor_read,
         "read from i2c sensor",
+    },
+    {
+        "isc", "i2c-sensor-calibrate",
+        3,
+        application_function_i2c_sensor_calibrate,
+        "calibrate i2c sensor, use sensor factor offset",
     },
     {
         "isd", "i2c-sensor-dump",
