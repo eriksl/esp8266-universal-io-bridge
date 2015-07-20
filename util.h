@@ -55,5 +55,6 @@ const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
 void msleep(uint16_t);
 uint16_t double_to_string(double value, uint8_t precision, double top_decimal, uint16_t size, char *dst);
+double string_to_double(const char *);
 
 #endif

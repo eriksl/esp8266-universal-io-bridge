@@ -197,3 +197,42 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 	*dst = '\0';
 	return(length);
 }
+
+irom attr_pure double string_to_double(const char *src)
+{
+	double result;
+	uint32_t decimal;
+
+	for(result = 0, decimal = 0; *src; src++)
+	{
+		if((*src == '.') || (*src == ','))
+		{
+			if(decimal == 0)
+				decimal = 1;
+			else
+				break;
+		}
+		else
+		{
+			if((*src < '0') || (*src > '9'))
+			{
+				break;
+			}
+			else
+			{
+				if(decimal > 0)
+				{
+					decimal *= 10;
+					result += (double)(*src - '0') / (double)decimal;
+				}
+				else
+				{
+					result *= 10;
+					result += (double)(*src - '0');
+				}
+			}
+		}
+	}
+
+	return(result);
+}
