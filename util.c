@@ -202,6 +202,15 @@ irom attr_pure double string_to_double(const char *src)
 {
 	double result;
 	uint32_t decimal;
+	bool_t negative;
+
+	if(*src == '-')
+	{
+		negative = true;
+		src++;
+	}
+	else
+		negative = false;
 
 	for(result = 0, decimal = 0; *src; src++)
 	{
@@ -234,5 +243,5 @@ irom attr_pure double string_to_double(const char *src)
 		}
 	}
 
-	return(result);
+	return(negative ? 0 - result : result);
 }
