@@ -1,6 +1,7 @@
 #include "stats.h"
 
 #include "util.h"
+#include "config.h"
 
 #include <c_types.h>
 #include <user_interface.h>
@@ -50,6 +51,7 @@ irom void stats_generate(uint16_t size, char *dst)
 			">\n"
 			"> heap free: %u kb\n"
 			"> uptime: %u s\n"
+			"> size of config: %u\n"
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
@@ -64,6 +66,7 @@ irom void stats_generate(uint16_t size, char *dst)
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
 			system_get_time() / 1000000,
+			sizeof(config_t),
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
 			stat_timer_fast,
