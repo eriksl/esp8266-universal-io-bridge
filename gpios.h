@@ -28,7 +28,7 @@ typedef enum __attribute__ ((__packed__))
 	gpio_16,
 	gpio_error,
 	gpio_size = gpio_error,
-	gpio_pwm_size = gpio_size
+	gpio_pwm_size = 8,
 }  gpio_id_t;
 
 _Static_assert(sizeof(gpio_id_t) == 1, "sizeof(gpio_id_t) != 1");
