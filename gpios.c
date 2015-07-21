@@ -48,6 +48,10 @@ typedef struct
 	struct
 	{
 		uint8_t	channel;
+		uint8_t speed;
+		uint16_t min_duty;
+		uint16_t max_duty;
+		gpio_direction_t direction;
 	} pwm;
 } gpio_trait_t;
 
@@ -266,7 +270,7 @@ irom void gpios_init(void)
 			pwm_io_info[pwmchannel][0] = gpio->io_mux;
 			pwm_io_info[pwmchannel][1] = gpio->io_func;
 			pwm_io_info[pwmchannel][2] = gpio->index;
-			pwm_duty_init[pwmchannel] = cfg->pwm.startup_duty;
+			pwm_duty_init[pwmchannel] = cfg->pwm.min_duty;
 			pwmchannel++;
 		}
 
@@ -306,7 +310,9 @@ irom static void gpio_config_init(gpio_t *gpio)
 	gpio->timer.delay = 0;
 	gpio->timer.repeat = 0;
 	gpio->timer.autotrigger = 0;
-	gpio->pwm.startup_duty = 0;
+	gpio->pwm.min_duty = 0;
+	gpio->pwm.max_duty = 0;
+	gpio->pwm.speed = 0;
 	gpio->i2c.pin = gpio_i2c_sda;
 }
 
@@ -373,9 +379,14 @@ iram static inline void arm_counter(const gpio_trait_t *gpio)
 
 iram void gpios_periodic(void)
 {
+	static uint32_t pwm_divider = 0;
 	uint8_t current;
 	gpio_trait_t *gpio;
 	const gpio_t *cfg;
+	bool_t pwm_changed;
+
+	pwm_changed = false;
+	pwm_divider += 1;
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -408,7 +419,60 @@ iram void gpios_periodic(void)
 					gpio->timer.delay = cfg->timer.delay;
 			}
 		}
+
+		if((cfg->mode == gpio_pwm) && (gpio->pwm.speed > 0) && (pwm_divider >= gpio->pwm.speed))
+		{
+			uint32_t duty;
+
+			pwm_divider = 0;
+
+			duty = pwm_get_duty(gpio->pwm.channel);
+
+			if(gpio->pwm.direction == gpio_up)
+			{
+				if(duty < gpio->pwm.min_duty)
+					duty = gpio->pwm.min_duty;
+
+				if(duty < 16)
+					duty = 16;
+
+				duty *= 115;
+				duty /= 100;
+
+				if(duty >= gpio->pwm.max_duty)
+				{
+					duty = gpio->pwm.max_duty;
+					gpio->pwm.direction = gpio_down;
+				}
+			}
+			else
+			{
+				if(duty > gpio->pwm.max_duty)
+					duty = gpio->pwm.max_duty;
+
+				duty *= 100;
+				duty /= 115;
+
+				if(duty <= gpio->pwm.min_duty)
+				{
+					duty = gpio->pwm.min_duty;
+					gpio->pwm.direction = gpio_up;
+				}
+
+				if(duty < 16)
+				{
+					duty = 16;
+					gpio->pwm.direction = gpio_up;
+				}
+			}
+
+			pwm_changed = true;
+			pwm_set_duty(duty, gpio->pwm.channel);
+		}
 	}
+
+	if(pwm_changed)
+		pwm_start();
 }
 
 irom static void trigger_timer(gpio_trait_t *gpio, bool_t onoff)
@@ -425,12 +489,6 @@ irom static void trigger_timer(gpio_trait_t *gpio, bool_t onoff)
 		set_output(gpio, cfg->timer.direction == gpio_up ? 0 : 1);
 		gpio->timer.delay = 0;
 	}
-}
-
-irom  static void trigger_pwm(const gpio_trait_t *gpio, uint32_t duty)
-{
-	pwm_set_duty(duty, gpio->pwm.channel);
-	pwm_start();
 }
 
 irom static gpio_trait_t *find_gpio(gpio_id_t index)
@@ -524,6 +582,12 @@ irom static void gpio_init_timer(gpio_trait_t *gpio)
 
 irom static void gpio_init_pwm(gpio_trait_t *gpio)
 {
+	const gpio_t *cfg = get_config(gpio);
+
+	gpio->pwm.min_duty = cfg->pwm.min_duty;
+	gpio->pwm.max_duty = cfg->pwm.max_duty;
+	gpio->pwm.speed = cfg->pwm.speed;
+	gpio->pwm.direction	= gpio_up;
 }
 
 irom static void gpio_init_i2c(gpio_trait_t *gpio)
@@ -597,11 +661,18 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 
 				case(gpio_pwm):
 				{
+					length = snprintf(str, size, "pwm, default min duty: %u, default max duty: %u, default speed: %u, min duty: %u, max duty %u, speed: %u",
+							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.speed,
+							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.speed);
+
 					if(gpio_flags.pwm_subsystem_active)
-						length = snprintf(str, size, "pwm, frequency: %u Hz, startup duty: %u, current duty: %u",
-								1000000 / pwm_get_period(), cfg->pwm.startup_duty, pwm_get_duty(gpio->pwm.channel));
-					else
-						length = snprintf(str, size, "pwm, startup duty: %u", cfg->pwm.startup_duty);
+					{
+						str += length;
+						size -= length;
+
+						length = snprintf(str, size, ", current frequency: %u Hz, current duty: %u",
+								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
+					}
 
 					break;
 				}
@@ -750,7 +821,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			uint16_t startup_duty;
+			uint16_t speed;
 
 			if(gpio->flags.rtc_gpio)
 			{
@@ -758,12 +829,24 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			if(ap.nargs == 3)
-				startup_duty = 0;
-			else
-				startup_duty = atoi((*ap.args)[3]);
+			if(ap.nargs > 3)
+				new_gpio_config->pwm.min_duty = atoi((*ap.args)[3]);
 
-			new_gpio_config->pwm.startup_duty = startup_duty;
+			if(ap.nargs > 4)
+				new_gpio_config->pwm.max_duty = atoi((*ap.args)[4]);
+
+			if(ap.nargs > 5)
+			{
+				speed = atoi((*ap.args)[5]);
+
+				if(speed > 100)
+				{
+					snprintf(ap.dst, ap.size, "gpio-mode(pwm): speed too large4: %d%% > 100%%\n", speed);
+					return(app_action_error);
+				}
+
+				new_gpio_config->pwm.speed = (uint8_t)speed;
+			}
 
 			break;
 		}
@@ -860,10 +943,15 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 
 		case(gpio_output):
 		case(gpio_timer):
-		case(gpio_pwm):
 		{
 			snprintf(ap.dst, ap.size, "gpio-get: gpio %s is output\n", gpio->name);
 			return(app_action_error);
+		}
+
+		case(gpio_pwm):
+		{
+			dump(cfg, gpio, ap.size, ap.dst);
+			return(app_action_normal);
 		}
 
 		case(gpio_i2c):
@@ -946,14 +1034,38 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			uint32_t duty;
+			uint32_t min_duty;
+			uint32_t max_duty;
+			uint16_t speed;
 
-			if(ap.nargs == 3)
-				duty = atoi((*ap.args)[2]);
+			if(ap.nargs > 2)
+				min_duty = atoi((*ap.args)[2]);
 			else
-				duty = cfg->pwm.startup_duty;
+				min_duty = cfg->pwm.min_duty;
 
-			trigger_pwm(gpio, duty);
+			if(ap.nargs > 3)
+				max_duty = atoi((*ap.args)[3]);
+			else
+				max_duty = cfg->pwm.max_duty;
+
+			if(ap.nargs > 4)
+				speed = atoi((*ap.args)[4]);
+			else
+				speed = cfg->pwm.speed;
+
+			if(speed > 100)
+			{
+				snprintf(ap.dst, ap.size, "gpio-set: gpio %s, speed %u%% > 100%%\n", gpio->name, speed);
+				return(app_action_error);
+			}
+
+			gpio->pwm.min_duty = min_duty;
+			gpio->pwm.max_duty = max_duty;
+			gpio->pwm.speed = speed;
+			gpio->pwm.direction = gpio_up;
+
+			pwm_set_duty(min_duty, gpio->pwm.channel);
+			pwm_start();
 
 			break;
 		}

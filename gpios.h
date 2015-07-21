@@ -91,7 +91,9 @@ typedef struct
 
 	struct
 	{
-		uint32_t startup_duty;
+		uint16_t	min_duty;
+		uint16_t	max_duty;
+		uint8_t 	speed;
 	} pwm;
 
 	struct
