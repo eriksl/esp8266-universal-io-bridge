@@ -11,7 +11,7 @@ CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -W
 					-Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \
 					-Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code -Wtrigraphs -Wreturn-type \
 					-Wmissing-braces -Wparentheses -Wimplicit -Winit-self -Wformat-nonliteral -Wcomment \
-					-Os -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -DICACHE_FLASH
+					-O3 -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -DICACHE_FLASH
 CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -isystem$(SDKROOT)/sdk/include -I.
 LDFLAGS			= -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
@@ -22,9 +22,12 @@ LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm
 OBJS			= application.o config.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
 HEADERS			= esp-uart-register.h \
 				  application.h application-parameters.h config.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
+
+FW1A			= 0x00000
+FW2A			= 0x10000
 FW				= fw.elf
-FW1				= fw-0x00000.bin
-FW2				= fw-0x40000.bin
+FW1				= fw-$(FW1A).bin
+FW2				= fw-$(FW2A).bin
 ZIP				= espiobridge.zip
 
 V ?= $(VERBOSE)
@@ -104,15 +107,15 @@ all:			$(FW1) $(FW2)
 #				$(call section_free,$(FW),.bss,80)
 #				$(call section_free,$(FW),.data,80)
 #				$(call section_free,$(FW),.rodata,80)
-				$(call section_free,$(FW),.irom0.text,192)
+				$(call section_free,$(FW),.irom0.text,424)
 				$(call section_free,$(FW),.text,32)
-				$(Q) perl -e '$$fw1size = (-s "$(FW1)") / 1024 + 1; $$fw2size = (-s "$(FW2)") / 1024 + 1; printf("FW1: %u k, FW2: %u k, both: %u k, free: %u k\n", $$fw1size, $$fw2size, $$fw1size + $$fw2size, 236 - ($$fw1size + $$fw2size));'
+				$(Q) perl -e '$$fw1size = (-s "$(FW1)") / 1024 + 1; $$fw2size = (-s "$(FW2)") / 1024 + 1; printf("FW1: %u k, FW2: %u k, both: %u k, free: %u k\n", $$fw1size, $$fw2size, $$fw1size + $$fw2size, 424 - ($$fw1size + $$fw2size));'
 
 zip:			all
 				$(Q) zip -9 $(ZIP) $(FW1) $(FW2) LICENSE README.md
 
 flash:			all
-				$(Q) esptool write_flash 0x00000 $(FW1) 0x40000 $(FW2)
+				$(Q) esptool write_flash $(FW1A) $(FW1) $(FW2A) $(FW2)
 
 clean:
 				$(vecho) "CLEAN"
@@ -121,7 +124,7 @@ clean:
 free:			$(LINKMAP) $(FW1) $(FW2)
 				$(call section2_free,dram0,_bss_end,0x3ffe8000,0x14000)
 				$(call section2_free,iram1,_lit4_end,0x40100000,0x8000)
-				$(call section2_free,irom0,_irom0_text_end,0x40240000,0x3c000)
+				$(call section2_free,irom0,_irom0_text_end,0x40210000,0x6a000)
 
 linkdebug:		$(OBJS)
 				$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
@@ -138,14 +141,14 @@ user_main.o:	$(HEADERS)
 $(FW1):			$(FW)
 				$(vecho) "FW1 $@"
 				$(Q) esptool.py elf2image $(FW)
-				$(Q) mv $(FW)-0x00000.bin $(FW1)
-				$(Q) -mv $(FW)-0x40000.bin $(FW2)
+				$(Q) mv $(FW)-$(FW1A).bin $(FW1)
+				$(Q) -mv $(FW)-$(FW2A).bin $(FW2)
 
 $(FW2):			$(FW)
 				$(vecho) "FW2 $@"
 				$(Q) esptool.py elf2image $(FW)
-				$(Q) -mv $(FW)-0x00000.bin $(FW1)
-				$(Q) mv $(FW)-0x40000.bin $(FW2)
+				$(Q) -mv $(FW)-$(FW1A).bin $(FW1)
+				$(Q) mv $(FW)-$(FW2A).bin $(FW2)
 
 $(FW):			$(OBJS)
 				$(vecho) "LD $@"

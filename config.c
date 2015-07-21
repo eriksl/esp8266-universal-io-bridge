@@ -128,7 +128,7 @@ irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
 	return(total);
 }
 
-irom void config_read_alt(config_t *cfg)
+iram void config_read_alt(config_t *cfg)
 {
 	enum
 	{
@@ -137,7 +137,7 @@ irom void config_read_alt(config_t *cfg)
 		init_all
 	} init;
 
-	spi_flash_read(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
+	spi_flash_read(0x7a * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 
 	if((cfg->magic == config_magic) && (cfg->major_version == config_major_version))
 	{
@@ -187,11 +187,11 @@ irom void config_read(void)
 	return(config_read_alt(config));
 }
 
-irom void config_write_alt(config_t *cfg)
+iram void config_write_alt(config_t *cfg)
 {
 	ETS_UART_INTR_DISABLE();
-	spi_flash_erase_sector(0x3c);
-	spi_flash_write(0x3c * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
+	spi_flash_erase_sector(0x7a);
+	spi_flash_write(0x7a * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 	ETS_UART_INTR_ENABLE();
 }
 

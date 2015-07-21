@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 1,
-	config_minor_version = 3
+	config_minor_version = 4
 };
 
 typedef enum __attribute__ ((__packed__))
