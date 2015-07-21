@@ -432,7 +432,7 @@ iram static void periodic_timer_callback(void *arg)
 
 	gpios_periodic();
 
-	// run background task ever 10 Hz = 1 ms
+	// run background task every 10 Hz = 100 ms
 
 	if(timer_slow_dropped > 9)
 	{
@@ -471,8 +471,8 @@ irom void user_init(void)
 	action.disconnect = 0;
 
 	config_read();
-	system_set_os_print(config_get_flag(config_flag_print_debug));
 	uart_init(&config->uart);
+	system_set_os_print(config_get_flag(config_flag_print_debug));
 	system_init_done_cb(user_init2);
 }
 
