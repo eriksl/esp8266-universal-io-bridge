@@ -20,6 +20,7 @@ typedef enum __attribute__ ((__packed__))
 	config_flag_strip_telnet,
 	config_flag_print_debug,
 	config_flag_tsl_high_sens,
+	config_flag_bh_high_sens,
 	config_flag_disable_wlan_bootstrap,
 
 	config_flag_size

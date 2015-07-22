@@ -722,26 +722,44 @@ error:
 irom static i2c_error_t sensor_bh1750_init(void)
 {
 	i2c_error_t error;
+	uint8_t timing;
+	uint8_t regval[2];
+
+	// there is no "read register" command on this device, so assume
+	// a device at 0x23 is actually a bh1750, there is no way to be sure.
 
 	// power on
 
-	if((error = i2c_send_1(0x23, 0x01)) != i2c_error_ok)
-	{
-		i2c_reset();
+	if((error = i2c_send_1(0x23, 0b00000001)) != i2c_error_ok)
 		return(error);
-	}
 
 	// reset
 
-	if((error = i2c_send_1(0x23, 0x07)) != i2c_error_ok)
-	{
-		i2c_reset();
+	if((error = i2c_send_1(0x23, 0b00000111)) != i2c_error_ok)
 		return(error);
-	}
+
+	// set sensitivity
+	// "window" can be set between 31 and 254
+	// lux-per-count is 0.93 for low sensibility mode (window = 31)
+	// lux-per-count is 0.11 for high sensibility mode (window = 254)
+
+	if(config_get_flag(config_flag_bh_high_sens))
+		timing = 254;
+	else
+		timing = 31;
+
+	regval[0] = 0b01000000 | ((timing >> 5) & 0b00000111);
+	regval[1] = 0b01100000 | ((timing >> 0) & 0b00011111);
+
+	if((error = i2c_send_1(0x23, regval[0])) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send_1(0x23, regval[1])) != i2c_error_ok)
+		return(error);
 
 	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
 
-	if((error = i2c_send_1(0x23, 0x11)) != i2c_error_ok)
+	if((error = i2c_send_1(0x23, 0b00010001)) != i2c_error_ok)
 	{
 		i2c_reset();
 		return(error);
@@ -754,12 +772,18 @@ irom static i2c_error_t sensor_bh1750_read(value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
+	double luxpercount;
 
 	if((error = i2c_receive(0x23, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw		= ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
-	value->cooked	= value->raw * 0.42;
+	if(config_get_flag(config_flag_bh_high_sens))
+		luxpercount = 0.11;
+	else
+		luxpercount = 0.93;
+
+	value->raw		= (double)((i2cbuffer[0] << 8) | i2cbuffer[1]);
+	value->cooked	= value->raw * luxpercount;
 
 	return(i2c_error_ok);
 }

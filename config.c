@@ -25,6 +25,10 @@ static config_flag_t config_flag[config_flag_size] =
 		"th", "tsl-high-sens"
 	},
 	{
+		config_flag_bh_high_sens,
+		"th", "bh-high-sens"
+	},
+	{
 		config_flag_disable_wlan_bootstrap,
 		"db", "disable-wlan-bootstrap"
 	},
