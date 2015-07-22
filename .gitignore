@@ -5,3 +5,5 @@
 /ap_auth.h
 /linkmap
 /t
+/session
+/test*
