@@ -661,18 +661,27 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, uint16_t
 
 				case(gpio_pwm):
 				{
-					length = snprintf(str, size, "pwm, default min duty: %u, default max duty: %u, default speed: %u, min duty: %u, max duty %u, speed: %u",
-							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.speed,
-							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.speed);
+					length = snprintf(str, size, "pwm, ");
+					str += length;
+					size -= length;
 
 					if(gpio_flags.pwm_subsystem_active)
-					{
-						str += length;
-						size -= length;
-
-						length = snprintf(str, size, ", current frequency: %u Hz, current duty: %u",
+						length = snprintf(str, size, "active, current frequency: %u Hz, current duty: %u",
 								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
-					}
+					else
+						length = snprintf(str, size, "inactive");
+
+					str += length;
+					size -= length;
+
+					length = snprintf(str, size, "\ndefault min duty: %u, max duty: %u, speed: %u",
+							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.speed);
+
+					str += length;
+					size -= length;
+
+					length = snprintf(str, size, "\nactive min duty: %u, max duty %u, speed: %u",
+							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.speed);
 
 					break;
 				}
