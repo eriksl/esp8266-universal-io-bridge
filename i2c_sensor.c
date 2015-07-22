@@ -459,17 +459,50 @@ irom static i2c_error_t tsl2560_read_block(uint8_t reg, uint8_t *values)
 irom static i2c_error_t sensor_tsl2560_init(void)
 {
 	i2c_error_t error;
+	uint8_t regval;
 
 	if(i2c_sensor_detected(i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
-	if((error = tsl2560_write_check(0x00, 0x03)) != i2c_error_ok)	// power up
+	if((error = tsl2560_write_check(0x00, 0x00)) != i2c_error_ok) // power down
 		return(error);
+
+	if((error = tsl2560_write(0x00, 0x03)) != i2c_error_ok)	// power up
+		return(error);
+
+	if((error = tsl2560_read(0x00, &regval)) != i2c_error_ok)
+		return(error);
+
+	if((regval & 0x0f) != 0x03)
+		return(i2c_error_device_error_2);
 
 	if((error = tsl2560_write_check(0x06, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
 
-	if((error = tsl2560_write_check(0x01, 0x11)) != i2c_error_ok)	// start continuous sampling every 100 ms, high gain = 16x
+	if((error = tsl2560_write(0x0a, 0x00)) != i2c_error_ok)	// id register 1
+		return(error);
+
+	if((error = tsl2560_read(0x0a, &regval)) != i2c_error_ok) // read id register 1
+		return(error);
+
+	if(regval != 0x50)
+		return(i2c_error_device_error_3);
+
+	if((error = tsl2560_write(0x0b, 0x00)) != i2c_error_ok)	// id register 2
+		return(error);
+
+	if((error = tsl2560_read(0x0b, &regval)) != i2c_error_ok) // read id register 2
+		return(error);
+
+	if(regval != 0x04)
+		return(i2c_error_device_error_3);
+
+	if(config_get_flag(config_flag_tsl_high_sens))
+		regval = 0b00010010; // 400 ms sampling window, gain is high, 16x
+	else
+		regval = 0b00000010; // 400 ms sampling window, gain is high, 1x
+
+	if((error = tsl2560_write_check(0x01, regval)) != i2c_error_ok)	// start continuous sampling
 		return(error);
 
 	return(i2c_error_ok);
@@ -493,20 +526,29 @@ irom static i2c_error_t sensor_tsl2560_read(value_t *value)
 	ch0r = i2cbuffer[0] | (i2cbuffer[1] << 8);
 	ch1r = i2cbuffer[2] | (i2cbuffer[3] << 8);
 
-	value->raw = (double)ch0r + ((double)ch1r * 10000);
+	value->raw = ((double)ch1r * 1000000) + (double)ch0r;
 
-	// high sensitivity = 100 ms integration time, 16X amplification
-	// low  sensitivity =  13 ms integration time,  1X amplification
+	if((ch0r == 65535) || (ch1r == 65535))
+	{
+		value->cooked = -1;
+		return(i2c_error_ok);
+	}
 
 	if(config_get_flag(config_flag_tsl_high_sens))
 	{
-		ch0 = ch0r * 322 / 81 * 1;
-		ch1 = ch1r * 322 / 81 * 1;
+		// high sensitivity = 400 ms integration time, scaling factor = 1
+		// analogue amplification = 16x, scaling factor = 1
+
+		ch0 = (double)ch0r * 1.0;
+		ch1 = (double)ch1r * 1.0;
 	}
 	else
 	{
-		ch0 = ch0r * 322 / 11 * 16;
-		ch1 = ch1r * 322 / 11 * 16;
+		// low  sensitivity =  400 ms integration time, scaling factor = 1
+		// analogue amplification = 1x, scaling factor = 16
+
+		ch0 = (double)ch0r * 1.0 * 16.0;
+		ch1 = (double)ch1r * 1.0 * 16.0;
 	}
 
 	if((uint32_t)ch0 != 0)
