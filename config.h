@@ -43,7 +43,7 @@ typedef struct
 	char				passwd[32];
 	uint32_t			flags;
 	uart_parameters_t	uart;
-	gpio_t				gpios[gpio_size];
+	gpio_config_t		gpios;
 	i2c_sensor_config_t	i2c_sensors;
 } config_t;
 

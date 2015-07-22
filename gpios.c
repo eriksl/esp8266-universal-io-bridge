@@ -53,25 +53,25 @@ typedef struct
 		uint16_t max_duty;
 		gpio_direction_t direction;
 	} pwm;
-} gpio_trait_t;
+} gpio_t;
 
 typedef struct
 {
 	gpio_mode_t		mode;
 	const char		*name;
-	void			(*init_fn)(gpio_trait_t *);
+	void			(*init_fn)(gpio_t *);
 } gpio_mode_trait_t;
 
-static void gpio_init_disabled(gpio_trait_t *);
-static void gpio_init_input(gpio_trait_t *);
-static void gpio_init_counter(gpio_trait_t *);
-static void gpio_init_output(gpio_trait_t *);
-static void gpio_init_timer(gpio_trait_t *);
-static void gpio_init_pwm(gpio_trait_t *);
-static void gpio_init_i2c(gpio_trait_t *);
+static void gpio_init_disabled(gpio_t *);
+static void gpio_init_input(gpio_t *);
+static void gpio_init_counter(gpio_t *);
+static void gpio_init_output(gpio_t *);
+static void gpio_init_timer(gpio_t *);
+static void gpio_init_pwm(gpio_t *);
+static void gpio_init_i2c(gpio_t *);
 
-static gpio_trait_t *find_gpio(gpio_id_t);
-static void gpio_config_init(gpio_t *gpio);
+static gpio_t *find_gpio(gpio_id_t);
+static void gpio_config_init(gpio_config_entry_t *);
 
 static struct
 {
@@ -89,7 +89,7 @@ static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
 	{ gpio_i2c,			"i2c",			gpio_init_i2c },
 };
 
-static gpio_trait_t gpio_traits[gpio_size] =
+static gpio_t gpios[gpio_size] =
 {
 	{
 		.id = gpio_0,
@@ -201,22 +201,22 @@ static gpio_trait_t gpio_traits[gpio_size] =
 	}
 };
 
-irom static gpio_t *get_config(const gpio_trait_t *gpio)
+irom static gpio_config_entry_t *get_config(const gpio_t *gpio)
 {
-	return(&config->gpios[gpio->id]);
+	return(&config->gpios.entry[gpio->id]);
 }
 
 iram static void pc_int_handler(uint32_t pc, void *arg)
 {
-	gpio_trait_t *gpio;
-	gpio_t *cfg;
+	gpio_t *gpio;
+	gpio_config_entry_t *cfg;
 	uint8_t current;
 
 	gpio_intr_ack(pc);
 
 	for(current = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[current];
+		gpio = &gpios[current];
 
 		if(pc & (1 << gpio->index))
 		{
@@ -228,7 +228,7 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	}
 }
 
-irom static void select_pin_function(const gpio_trait_t *gpio)
+irom static void select_pin_function(const gpio_t *gpio)
 {
 	if(gpio->flags.rtc_gpio)
 		return;
@@ -240,8 +240,8 @@ irom static void select_pin_function(const gpio_trait_t *gpio)
 irom void gpios_init(void)
 {
 	uint8_t current, pwmchannel;
-	gpio_trait_t *gpio;
-	gpio_t *cfg;
+	gpio_t *gpio;
+	gpio_config_entry_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
 	uint32_t state_change_mask;
@@ -255,7 +255,7 @@ irom void gpios_init(void)
 
 	for(current = 0, pwmchannel = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[current];
+		gpio = &gpios[current];
 		cfg = get_config(gpio);
 
 		if(cfg->mode != gpio_disabled)
@@ -294,13 +294,13 @@ irom void gpios_init(void)
 	}
 
 	for(current = 0; current < gpio_size; current++)
-		gpio_mode_trait[config->gpios[current].mode].init_fn(&gpio_traits[current]);
+		gpio_mode_trait[config->gpios.entry[current].mode].init_fn(&gpios[current]);
 
 	if((sda > 0) && (scl > 0))
 		i2c_init(sda, scl);
 }
 
-irom static void gpio_config_init(gpio_t *gpio)
+irom static void gpio_config_init(gpio_config_entry_t *gpio)
 {
 	gpio->mode = gpio_disabled;
 	gpio->counter.debounce = 100;
@@ -316,12 +316,12 @@ irom static void gpio_config_init(gpio_t *gpio)
 	gpio->i2c.pin = gpio_i2c_sda;
 }
 
-irom void gpios_config_init(gpio_t *gpios)
+irom void gpios_config_init(gpio_config_t *cfg_gpios)
 {
 	int current;
 
 	for(current = 0; current < gpio_size; current++)
-		gpio_config_init(&gpios[current]);
+		gpio_config_init(&cfg_gpios->entry[current]);
 }
 
 irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
@@ -351,7 +351,7 @@ irom static bool rtcgpio_input_get(void)
 	return(!!(READ_PERI_REG(RTC_GPIO_IN_DATA) & 0x01));
 }
 
-irom static void set_output(const gpio_trait_t *gpio, bool_t onoff)
+irom static void set_output(const gpio_t *gpio, bool_t onoff)
 {
 	if(gpio->flags.rtc_gpio)
 		rtcgpio_output_set(onoff);
@@ -361,7 +361,7 @@ irom static void set_output(const gpio_trait_t *gpio, bool_t onoff)
 						0x00, 0x00);
 }
 
-irom static bool_t get_input(const gpio_trait_t *gpio)
+irom static bool_t get_input(const gpio_t *gpio)
 {
 	if(gpio->flags.rtc_gpio)
 		return(rtcgpio_input_get());
@@ -369,7 +369,7 @@ irom static bool_t get_input(const gpio_trait_t *gpio)
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
-iram static inline void arm_counter(const gpio_trait_t *gpio)
+iram static inline void arm_counter(const gpio_t *gpio)
 {
 	// no use in specifying POSEDGE or NEGEDGE here (bummer),
 	// they act exactly like ANYEDGE, I assume that's an SDK bug
@@ -381,8 +381,8 @@ iram void gpios_periodic(void)
 {
 	static uint32_t pwm_divider = 0;
 	uint8_t current;
-	gpio_trait_t *gpio;
-	const gpio_t *cfg;
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
 	bool_t pwm_changed;
 
 	pwm_changed = false;
@@ -390,7 +390,7 @@ iram void gpios_periodic(void)
 
 	for(current = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[current];
+		gpio = &gpios[current];
 		cfg = get_config(gpio);
 
 		if((cfg->mode == gpio_counter) && (gpio->counter.debounce > 0))
@@ -475,9 +475,9 @@ iram void gpios_periodic(void)
 		pwm_start();
 }
 
-irom static void trigger_timer(gpio_trait_t *gpio, bool_t onoff)
+irom static void trigger_timer(gpio_t *gpio, bool_t onoff)
 {
-	const gpio_t *cfg = get_config(gpio);
+	const gpio_config_entry_t *cfg = get_config(gpio);
 
 	if(onoff)
 	{
@@ -491,14 +491,14 @@ irom static void trigger_timer(gpio_trait_t *gpio, bool_t onoff)
 	}
 }
 
-irom static gpio_trait_t *find_gpio(gpio_id_t index)
+irom static gpio_t *find_gpio(gpio_id_t index)
 {
 	uint8_t current;
-	gpio_trait_t *gpio;
+	gpio_t *gpio;
 
 	for(current = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[current];
+		gpio = &gpios[current];
 
 		if(gpio->index == index)
 			return(gpio);
@@ -533,11 +533,11 @@ irom static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
 		return(gpio_i2c_error);
 }
 
-irom static void gpio_init_disabled(gpio_trait_t *gpio)
+irom static void gpio_init_disabled(gpio_t *gpio)
 {
 }
 
-irom static void gpio_init_input(gpio_trait_t *gpio)
+irom static void gpio_init_input(gpio_t *gpio)
 {
 	if(gpio->flags.rtc_gpio)
 		rtcgpio_config(rtcgpio_input);
@@ -545,15 +545,15 @@ irom static void gpio_init_input(gpio_trait_t *gpio)
 		gpio_output_set(0, 0, 0, 1 << gpio->index);
 }
 
-irom static void gpio_init_counter(gpio_trait_t *gpio)
+irom static void gpio_init_counter(gpio_t *gpio)
 {
 	gpio_output_set(0, 0, 0, 1 << gpio->index);
 	arm_counter(gpio);
 }
 
-irom static void gpio_init_output(gpio_trait_t *gpio)
+irom static void gpio_init_output(gpio_t *gpio)
 {
-	const gpio_t *cfg = get_config(gpio);
+	const gpio_config_entry_t *cfg = get_config(gpio);
 
 	if(gpio->flags.rtc_gpio)
 		rtcgpio_config(rtcgpio_output);
@@ -563,9 +563,9 @@ irom static void gpio_init_output(gpio_trait_t *gpio)
 	set_output(gpio, cfg->output.startup_state);
 }
 
-irom static void gpio_init_timer(gpio_trait_t *gpio)
+irom static void gpio_init_timer(gpio_t *gpio)
 {
-	const gpio_t *cfg = get_config(gpio);
+	const gpio_config_entry_t *cfg = get_config(gpio);
 
 	gpio->timer.delay = 0;
 
@@ -580,9 +580,9 @@ irom static void gpio_init_timer(gpio_trait_t *gpio)
 		trigger_timer(gpio, 1);
 }
 
-irom static void gpio_init_pwm(gpio_trait_t *gpio)
+irom static void gpio_init_pwm(gpio_t *gpio)
 {
-	const gpio_t *cfg = get_config(gpio);
+	const gpio_config_entry_t *cfg = get_config(gpio);
 
 	gpio->pwm.min_duty = cfg->pwm.min_duty;
 	gpio->pwm.max_duty = cfg->pwm.max_duty;
@@ -590,7 +590,7 @@ irom static void gpio_init_pwm(gpio_trait_t *gpio)
 	gpio->pwm.direction	= gpio_up;
 }
 
-irom static void gpio_init_i2c(gpio_trait_t *gpio)
+irom static void gpio_init_i2c(gpio_t *gpio)
 {
 	uint32_t pin = GPIO_PIN_ADDR(GPIO_ID_PIN(gpio->index));
 
@@ -600,17 +600,17 @@ irom static void gpio_init_i2c(gpio_trait_t *gpio)
 	gpio_output_set(1 << gpio->index, 0, 1 << gpio->index, 0);
 }
 
-irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t size, char *str)
+irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, uint16_t size, char *str)
 {
 	uint8_t current;
 	uint16_t length;
-	const gpio_trait_t *gpio;
-	const gpio_t *cfg;
+	const gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
 
 	for(current = 0; current < gpio_size; current++)
 	{
-		gpio = &gpio_traits[current];
-		cfg = &cfgs[current];
+		gpio = &gpios[current];
+		cfg = &cfgs->entry[current];
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
@@ -702,21 +702,21 @@ irom static void dump(const gpio_t *cfgs, const gpio_trait_t *gpio_in, uint16_t 
 	}
 }
 
-irom void gpios_dump_string(const gpio_t *gpio_cfgs, uint16_t size, char *string)
+irom void gpios_dump_string(const gpio_config_t *cfgs, uint16_t size, char *string)
 {
-	dump(gpio_cfgs, 0, size, string);
+	dump(cfgs, 0, size, string);
 }
 
 irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 {
 	gpio_mode_t mode;
 	uint8_t gpio_index;
-	gpio_trait_t *gpio;
-	gpio_t *new_gpio_config;
+	gpio_t *gpio;
+	gpio_config_entry_t *new_gpio_config;
 
 	if(ap.nargs < 2)
 	{
-		dump(&config->gpios[0], 0, ap.size, ap.dst);
+		dump(&config->gpios, 0, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -730,7 +730,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 	if(ap.nargs < 3)
 	{
-		dump(&config->gpios[0], gpio, ap.size, ap.dst);
+		dump(&config->gpios, gpio, ap.size, ap.dst);
 		return(app_action_normal);
 	}
 
@@ -741,7 +741,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	}
 
 	config_read_alt(tmpconfig);
-	new_gpio_config = &tmpconfig->gpios[gpio->id];
+	new_gpio_config = &tmpconfig->gpios.entry[gpio->id];
 
 	switch(mode)
 	{
@@ -886,7 +886,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	new_gpio_config->mode = mode;
 	config_write_alt(tmpconfig);
 
-	dump(&tmpconfig->gpios[gpio->id], gpio, ap.size, ap.dst);
+	dump(&tmpconfig->gpios, gpio, ap.size, ap.dst);
 	strlcat(ap.dst, "! gpio-mode: restart to activate new mode\n", ap.size);
 
 	return(app_action_normal);
@@ -895,8 +895,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 irom app_action_t application_function_gpio_get(application_parameters_t ap)
 {
 	uint8_t gpio_index;
-	gpio_trait_t *gpio;
-	const gpio_t *cfg;
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
 
 	if(ap.nargs < 2)
 	{
@@ -950,7 +950,7 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			dump(cfg, gpio, ap.size, ap.dst);
+			dump(&config->gpios, gpio, ap.size, ap.dst);
 			return(app_action_normal);
 		}
 
@@ -972,8 +972,8 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 irom app_action_t application_function_gpio_set(application_parameters_t ap)
 {
 	uint8_t gpio_index;
-	gpio_trait_t *gpio;
-	const gpio_t *cfg;
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
 
 	gpio_index = atoi((*ap.args)[1]);
 
@@ -1083,13 +1083,13 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		}
 	}
 
-	dump(&config->gpios[0], gpio, ap.size, ap.dst);
+	dump(&config->gpios, gpio, ap.size, ap.dst);
 	return(app_action_normal);
 }
 
 irom app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
-	dump(&config->gpios[0], 0, ap.size, ap.dst);
+	dump(&config->gpios, 0, ap.size, ap.dst);
 
 	return(app_action_normal);
 }

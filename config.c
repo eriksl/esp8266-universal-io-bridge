@@ -169,7 +169,7 @@ iram void config_read_alt(config_t *cfg)
 			cfg->magic = config_magic;
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
-			gpios_config_init(cfg->gpios);
+			gpios_config_init(&cfg->gpios);
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
 			break;
@@ -237,5 +237,5 @@ irom void config_dump(uint16_t size, char *dst)
 	size -= length;
 	dst += length;
 
-	gpios_dump_string(&tmpconfig->gpios[0], size, dst);
+	gpios_dump_string(&tmpconfig->gpios, size, dst);
 }
