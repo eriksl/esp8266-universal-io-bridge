@@ -915,108 +915,103 @@ irom attr_pure static uint16_t am2321_crc(uint8_t length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sensor_am2321_read_temp(value_t *value)
+irom static i2c_error_t sensor_am2321_read_registers(uint8_t offset, uint8_t length, uint8_t *values)
 {
 	i2c_error_t	error;
-	uint8_t		i2cbuffer[8];
+	uint8_t		i2cbuffer[32];
 	uint16_t	crc1, crc2;
 
-#if 0
-	if((error = twi_master_send_start()) != i2c_error_ok)
-		return(error);
+	// wake the device
 
-	twi_master_send_address(0x5c, 1);	// wakeup the device
-	twi_master_send_stop_no_wait();		// by issueing an empty write
-#else
 	i2c_send_1(0x5c, 0);
-#endif
-
+	i2c_reset();
 	msleep(1);
 
-	//	0x03	read registers
-	//	0x02	start address
-	//	0x02	length;
-
-	if((error = i2c_send_3(0x5c, 0x03, 0x02, 0x02)) != i2c_error_ok)
+	if((error = i2c_send_3(0x5c, 0x03, offset, length)) != i2c_error_ok)
 		return(error);
 
 	msleep(1);
 
-	if((error = i2c_receive(0x5c, 6, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(0x5c, length + 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw = (int16_t)(((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3]);
+	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
+		return(i2c_error_device_error_1);
 
-	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != 0x02))
-	{
-		value->cooked = -257;
-		return(i2c_error_ok);
-	}
-
-	crc1 = ((uint16_t)i2cbuffer[5] << 8) | (uint16_t)i2cbuffer[4];
-	crc2 = am2321_crc(4, &i2cbuffer[0]);
+	crc1 = i2cbuffer[length + 2] | (i2cbuffer[length + 3] << 8);
+	crc2 = am2321_crc(length + 2, i2cbuffer);
 
 	if(crc1 != crc2)
-	{
-		value->cooked = -256;
-		return(i2c_error_ok);
-	}
+		return(i2c_error_device_error_2);
 
-	value->cooked = value->raw / 10.0;
+	memcpy(values, &i2cbuffer[2], length);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_read_hum(value_t *value)
+static value_t sensor_am2321_cached_temperature;
+static value_t sensor_am2321_cached_humidity;
+
+irom static i2c_error_t sensor_am2321_read(value_t *value, bool_t request_humidity)
 {
 	i2c_error_t	error;
-	uint8_t		i2cbuffer[8];
-	uint16_t	crc1, crc2;
+	uint8_t		values[4];
 
-#if 0
-	if((error = twi_master_send_start()) != i2c_error_ok)
-		return(error);
+	//	0x00	start address: humidity (16 bits), temperature (16 bits)
+	//	0x04	length
 
-	twi_master_send_address(0x5c, 1);	// wakeup the device
-	twi_master_send_stop_no_wait();		// by issueing an empty write
-#else
-	i2c_send_1(0x5c, 0);
-#endif
-
-	msleep(1);
-
-	//	0x03	read registers
-	//	0x00	start address
-	//	0x02	length;
-
-	if((error = i2c_send_3(0x5c, 0x03, 0x00, 0x02)) != i2c_error_ok)
-		return(error);
-
-	msleep(1);
-
-	if((error = i2c_receive(0x5c, 6, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	value->raw = (int16_t)(((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3]);
-
-	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != 0x02))
+	if((error = sensor_am2321_read_registers(0x00, 0x04, values)) == i2c_error_ok)
 	{
-		value->cooked = -257;
-		return(i2c_error_ok);
+		sensor_am2321_cached_humidity.raw = (values[0] << 8) | values[1];
+		sensor_am2321_cached_humidity.cooked = sensor_am2321_cached_humidity.raw / 10.0;
+
+		sensor_am2321_cached_temperature.raw = (values[2] << 8) | values[3];
+		sensor_am2321_cached_temperature.cooked = sensor_am2321_cached_temperature.raw / 10.0;
 	}
+	else
+		i2c_reset();
 
-	crc1 = ((uint16_t)i2cbuffer[5] << 8) | (uint16_t)i2cbuffer[4];
-	crc2 = am2321_crc(4, &i2cbuffer[0]);
-
-	if(crc1 != crc2)
-	{
-		value->cooked = -256;
-		return(i2c_error_ok);
-	}
-
-	value->cooked = value->raw / 10.0;
+	if(request_humidity)
+		*value = sensor_am2321_cached_humidity;
+	else
+		*value = sensor_am2321_cached_temperature;
 
 	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_am2321_temp_init(void)
+{
+	i2c_error_t	error;
+	uint8_t		values[2];
+
+	//	0x08	start address: device id
+	//	0x02	length
+
+	if((error = sensor_am2321_read_registers(0x08, 0x02, values)) != i2c_error_ok)
+		return(i2c_error_address_nak);
+
+	if((values[0] != 0x32) || (values[1] != 0x31))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_am2321_temp_read(value_t *value)
+{
+	return(sensor_am2321_read(value, false));
+}
+
+irom static i2c_error_t sensor_am2321_hum_init(void)
+{
+	if(!i2c_sensor_detected(i2c_sensor_am2321_temperature))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_am2321_hum_read(value_t *value)
+{
+	return(sensor_am2321_read(value, true));
 }
 
 static const device_table_t device_table[] =
@@ -1090,14 +1085,14 @@ static const device_table_t device_table[] =
 	{
 		i2c_sensor_am2321_temperature,
 		"am2321", "temperature", "C", 1,
-		0,
-		sensor_am2321_read_temp
+		sensor_am2321_temp_init,
+		sensor_am2321_temp_read
 	},
 	{
 		i2c_sensor_am2321_humidity,
 		"am2321", "humidity", "%", 0,
-		0,
-		sensor_am2321_read_hum
+		sensor_am2321_hum_init,
+		sensor_am2321_hum_read
 	}
 };
 
