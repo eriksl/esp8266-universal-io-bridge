@@ -40,21 +40,16 @@ irom void i2c_sensor_config_init(i2c_sensor_config_t *dst)
 	}
 }
 
-irom static i2c_error_t sensor_digipicco_init(void)
+irom static i2c_error_t sensor_digipicco_temp_init(void)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
-	char id = 'a';
-
-	dprintf("%c\r\n", id++);
 
 	if((error = i2c_send(0x78, 1, i2cbuffer)) != i2c_error_ok)
 		return(error);
-	dprintf("%c\r\n", id++);
 
 	if((error = i2c_receive(0x78, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
-	dprintf("%c\r\n", id++);
 
 	return(i2c_error_ok);
 }
@@ -69,6 +64,14 @@ irom static i2c_error_t sensor_digipicco_temp_read(value_t *value)
 
 	value->raw = ((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3];
 	value->cooked = ((value->raw * 165.0) / 32767.0) - 40.5;
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_digipicco_hum_init(void)
+{
+	if(!i2c_sensor_detected(i2c_sensor_digipicco_temperature))
+		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
@@ -1021,13 +1024,13 @@ static const device_table_t device_table[] =
 	{
 		i2c_sensor_digipicco_temperature,
 		"digipicco", "temperature", "C", 1,
-		sensor_digipicco_init,
+		sensor_digipicco_temp_init,
 		sensor_digipicco_temp_read
 	},
 	{
 		i2c_sensor_digipicco_humidity,
 		"digipicco", "humidity", "%", 0,
-		sensor_digipicco_init,
+		sensor_digipicco_hum_init,
 		sensor_digipicco_hum_read
 	},
 	{
