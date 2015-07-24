@@ -49,8 +49,8 @@ Currently supported i2c sensors are:
 - _digipicco_ (temperature and humidity)
 - _lm75_ (and compatible sensors) (temperature)
 - _ds1621/ds1631/ds1731_ (temperature)
-- _bmp085_ (temperature and pressure)
-- _htu21_ (temperature and humdity)
+- _bmp085_ (temperature and pressure) (untested for now)
+- _htu21_ (temperature and humdity) (untested for now)
 - _am2321_ (temperature and humidity)
 - _tsl2560_ (light intensity)
 - _bh1750_ (light intensity).
@@ -104,32 +104,32 @@ Currently supported i2c sensors are:
 <td>gs</td><td>gpio-set</td><td><i>gpio</i> [<i>value</i>]</td><td>Set the GPIO if it's set as output, if set as timer, trigger the timer, if it's set as pwm, set the duty cycle (default startup value is taken if it's missing).</td>
 </tr>
 <tr>
-<td>gm</td><td>gpio-mode</td><td><i>mode</i> [<i>mode parameters</i>]</td><td>Without mode/parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, <b>reset</b> to enable the changes.</td>
+<td>gm</td><td>gpio-mode</td><td><i>mode</i> [<i>mode parameters</i>]</td><td>Without mode/parameters: dump all GPIOs and their mode. See the table below for available modes and their syntax when parameters are supplied. After making changes, use <b>reset</b> to enable the changes.</td>
 </tr>
 </table>
 <table>
 <tr>
-<td><b>gm</b> <i>gpio</i> <b><i>mode</i></b></td><td><b>parameters</b></td><td>description</td>
+<td>command: <b>gm</b> <i>gpio</i> <b><i>mode</i></b></td><td>parameters:</td><td>description:</td>
 </tr>
 <tr>
-<td>disable</td><td><i>none</i></td><td>Disable the GPIO (leave completely untouched).</td>
+<td>disable</td><td><i>none</i></td><td>Dont' use the GPIO (leave completely untouched).</td>
 </tr>
 <tr>
 <td>input</td><td><i>none</i></td><td>Set GPIO to input.</td>
 </tr>
 <tr>
-<td>counter</td><td>[<i>reset_on_get</i> [<i>debounce_time</i>]]</td><td>Set GPIO to counter. Add <i>reset_on_get</i>=1 to have the counter reset when read. Add <i>debounce</i> to set debounce time in milliseconds (default = 100 ms).</td>
+<td>counter</td><td>[<i>reset_on_get</i> [<i>debounce_time</i>]]</td><td>Set GPIO to counter. Set <i>reset_on_get</i> to 1 to have the counter reset when read. Set <i>debounce</i> to set debounce time in milliseconds (default is 100 ms).</td>
 </tr>
 <tr>
-<td>output</td><td><i>startup-state</i></td><td>Set GPIO to output, set <i>startup-state</i> to <b>0</b> or <b>1</b> to configure the state of the output directly after boot.</td>
+<td>output</td><td><i>startup-state</i></td><td>Set GPIO to output. Set <i>startup-state</i> to <b>0</b> or <b>1</b> to configure the state of the output directly after start.</td>
 </tr>
 <tr>
 <td>timer</td><td><i>direction</i> <i>delay</i> <i>repeat</i> <i>autotrigger</i></td><td>
 <table>
-<tr><td><i>direction</i> is either <b>up</b> or <b>down</b>, specifying whether to start timer output from "off" or "on".</td></tr>
-<tr><td><i>delay</i> is a value in milliseconds between triggered state and resuming normal GPIO state.</td></tr>
-<tr><td><i>repeat</i> is <b>0</b> or <b>1</b>. <b>0</b> means run once, <b>1</b> means repeating until stopped manually.</td></tr>
-<tr><td><i>autotrigger</i> is <b>0</b> or <b>1</b>. <b>0</b> means leave the GPIO alone after start, need to trigger manually (using gpio-set), <b>1</b> means trigger automatically after start.</td></tr>
+<tr><td>Set <i>direction</i> to either <b>up</b> or <b>down</b>, specifying whether to start the timer output from "off" or "on".</td></tr>
+<tr><td>Set <i>delay</i> to a value in milliseconds between triggered state and resuming normal output state.</td></tr>
+<tr><td>Set <i>repeat</i> to <b>0</b> or <b>1</b>. <b>0</b> means run once, <b>1</b> means repeat until stopped manually.</td></tr>
+<tr><td>Set <i>autotrigger</i> to <b>0</b> or <b>1</b>. <b>0</b> means leave the output alone after start, you need to trigger manually then (using gpio-set), <b>1</b> means trigger automatically after start.</td></tr>
 </table>
 </td>
 </tr>
@@ -152,16 +152,20 @@ Currently supported i2c sensors are:
 <td>ir</td><td>i2c-read</td><td><i>bytes</i></td><td>Read (raw) this amount of bytes from the i2c slave. The bytes returned are in hex.</td>
 </tr>
 <tr>
-<td>iw</td><td>i2c_write</td><td><i>byte</i> [<i>byte ...</i>]</td><td>Write (raw) bytes to i2c slave. Format is hex bytes separated by spaces, e.g. <b>01 02 03</b>.</td>
+<td>iw</td><td>i2c_write</td><td><i>byte</i> [<i>byte ...</i>]</td><td>Write (raw) bytes to i2c slave. Format is hex bytes separated by a space, e.g. <b>1 2 a b cc</b>.</td>
 </tr>
 <tr>
 <td>irst</td><td>i2c-reset</td><td><i>none</i></td><td>Reset the i2c bus. Required whenever a read or write failed.</td>
 </tr>
 <tr>
-<td>isd</td><td>i2c-sensor-dump</td><td>[<b>1</b>]</td><td>Dump all detected (known) sensors on the i2c bus. Add <b>1</b> to list all known sensors, including those that are not detected.</td>
+<td>isd</td><td>i2c-sensor-dump</td><td>[<i>verbose</i>]</td><td>Dump all detected sensors on the i2c bus. Set <i>verbose</i> to <b>1</b> to list all known sensors, including those that are not detected, set <i>verbose</i> to <b>2</b> to get even more verbose output, including i2c bus errors.</td>
 </tr>
 <tr>
-<td>isr</td><td>i2c-sensor-read</td><td><i>sensor id</i></td><td>Get the value of the sensor with id <i>sensor id</i>. Obtain sensor id's with i2c-sensor-dump.</td>
+<td>isr</td><td>i2c-sensor-read</td><td><i>sensor-id</i></td><td>Get the value of the sensor with id <i>sensor id</i>. Obtain sensor id's with i2c-sensor-dump.</td>
+</tr>
+<tr>
+<td>isc</td><td>i2c-sensor-calibrate</td><td><i>sensor-id</i> <i>scale</i> <i>offset</i></td><td>Set calibration of the sensor with id <i>sensor id</i>. The result from the sensor is multiplied by <i>scale</i> and then <i>offset</i> is added. Both values may be negative and are floating point types. Don't forget to write the config afterwards.</td>
+
 </tr>
 </table>
 ### Other commands:
@@ -169,12 +173,12 @@ Currently supported i2c sensors are:
 <tr>
 <th>short</th><th>long</th><th>parameters</th><th>description</th>
 </tr>
-
 <tr>
 <td>?</td><td>help</td><td><i>none</i></td><td>Shows list of commands.</td>
 </tr>
 <tr>
-<td>?</td><td>set/unset</td><td>[<i>option</i>]</td><td>Sets / unset options. Add option to set/unset option, leave out the option to list all options. Currently known options are: <i>print-debug</i> (shows debug info on the UART, (wlan, dhcp etc.), <i>strip-telnet</i> (strips initial "garbage" from telnet at the UART bridge) and <i>tsl-high-sens</i> (set tsl2550 and tsl2561 sensors in "high sensibility mode", recommended unless operated in full sunlight)</td>
+<td>s or u</td><td>set/unset</td><td>[<i>option</i>]</td><td><p>Sets / unset options. Add option to set/unset option, leave out the option to list all options.</p><p>Currently known options are: </p><p><i>print-debug</i>, shows debug info on the UART (wlan, dhcp etc).</p><p><i>strip-telnet,</i> disable / enable stripping initial "garbage" from telnet at the UART bridge.</p><p><i>tsl-high-sens</i>, set tsl2550 and tsl2561 sensors to "high sensitivity mode", recommended unless operated outdoors in sunlight. </p>
+<p><i>bh-high-sens</i>, set bh1750 sensor to "high sensitivity mode", recommended unless operated outdoors in sunlight.</p><p><b>To activate, write config and restart.</b></p></td>
 </tr>
 <tr>
 <td>q</td><td>quit</td><td><i>none</i></td><td>Disconnect from the control channel.</td>
@@ -183,10 +187,10 @@ Currently supported i2c sensors are:
 <td>r</td><td>reset</td><td><i>none</i></td><td>Reset the ESP8266, required if you make changes to the UART parameters or to the GPIOs mode.</td>
 </tr>
 <tr>
-<td>s</td><td>stats</td><td><i>none</i></td><td>Shows some statistics, these may change over time.</td>
+<td>S</td><td>stats</td><td><i>none</i></td><td>Shows some statistics (timers, wlan, memory). These may change over time.</td>
 </tr>
 <tr>
-<td>wd</td><td>wlan-dump</td><td><i>none</i></td><td>Show everything known about the current wlan connection, like SSID, channel number and signal strength.</td>
+<td>rs</td><td>rtc-set</td><td><i>hours</i> <i>minutes</i> <i>seconds</i></td><td>Set "real time clock". It's a real time clock in the sense that it counts hours, minutes, seconds. It may not be that precise. YMMV.
 </tr>
 </table>
 
