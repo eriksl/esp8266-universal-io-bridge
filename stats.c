@@ -47,13 +47,33 @@ static const char *reset_map[] =
 	"unknown"
 };
 
+static const char *phy[] = {
+	"unknown",
+	"802.11b",
+	"802.11g",
+	"802.11n",
+	"unknown"
+};
+
+static const char *slp[] =
+{
+	"none",
+	"light",
+	"modem",
+	"unknown"
+};
+
 irom void stats_generate(uint16_t size, char *dst)
 {
 	const struct rst_info *rst_info;
+	struct station_config sc_default, sc_current;
 	uint32_t system_time;
 
 	system_time = system_get_time();
 	rst_info = system_get_rst_info();
+
+	wifi_station_get_config_default(&sc_default);
+	wifi_station_get_config(&sc_current);
 
 	snprintf(dst, size,
 			"> firmware version date: %s\n"
@@ -73,7 +93,14 @@ irom void stats_generate(uint16_t size, char *dst)
 			"> int uart tx: %u\n"
 			"> timer_fast fired: %u\n"
 			"> timer_slow fired: %u\n"
-			"> background task: %u\n",
+			"> background task: %u\n"
+			">\n"
+			"> default ssid: %s, passwd: %s\n"
+			"> current ssid: %s, passwd: %s\n"
+			"> phy mode: %s\n"
+			"> sleep mode: %s\n"
+			"> channel: %u\n"
+			"> signal strength: %d dB\n",
 			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),
@@ -90,5 +117,11 @@ irom void stats_generate(uint16_t size, char *dst)
 			stat_uart_tx_interrupts,
 			stat_timer_fast,
 			stat_timer_slow,
-			stat_background_task);
+			stat_background_task,
+			sc_default.ssid, sc_default.password,
+			sc_current.ssid, sc_current.password,
+			phy[wifi_get_phy_mode()],
+			slp[wifi_get_sleep_type()],
+			wifi_get_channel(),
+			wifi_station_get_rssi());
 }
