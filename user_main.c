@@ -419,6 +419,55 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	}
 }
 
+irom noinline static void periodic_timer_slowpath(void)
+{
+	stat_timer_slow++;
+
+	if(++ut_tens > 9)
+	{
+		ut_tens = 0;
+
+		if(++ut_secs > 59)
+		{
+			ut_secs = 0;
+
+			if(++ut_mins > 59)
+			{
+				ut_mins = 0;
+
+				if(++ut_hours > 23)
+				{
+					ut_hours = 0;
+					ut_days++;
+				}
+			}
+		}
+	}
+
+	if(++rt_tens > 9)
+	{
+		rt_tens = 0;
+
+		if(++rt_secs > 59)
+		{
+			rt_secs = 0;
+
+			if(++rt_mins > 59)
+			{
+				rt_mins = 0;
+
+				if(++rt_hours > 23)
+				{
+					rt_hours = 0;
+					rt_days++;
+				}
+			}
+		}
+	}
+
+	system_os_post(background_task_id, 0, 0);
+}
+
 iram static void periodic_timer_callback(void *arg)
 {
 	static uint8_t timer_slow_dropped = 0;
@@ -436,9 +485,8 @@ iram static void periodic_timer_callback(void *arg)
 
 	if(timer_slow_dropped > 9)
 	{
-		stat_timer_slow++;
 		timer_slow_dropped = 0;
-		system_os_post(background_task_id, 0, 0);
+		periodic_timer_slowpath();
 	}
 }
 

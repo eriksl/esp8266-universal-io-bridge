@@ -12,6 +12,18 @@ uint32_t stat_timer_fast;
 uint32_t stat_timer_slow;
 uint32_t stat_background_task;
 
+uint8_t	ut_days;
+uint8_t	ut_hours;
+uint8_t	ut_mins;
+uint8_t	ut_secs;
+uint8_t	ut_tens;
+
+uint8_t	rt_days;
+uint8_t	rt_hours;
+uint8_t	rt_mins;
+uint8_t	rt_secs;
+uint8_t	rt_tens;
+
 static const char *flash_map[] =
 {
 	"4 Mb map 256/256",
@@ -38,7 +50,9 @@ static const char *reset_map[] =
 irom void stats_generate(uint16_t size, char *dst)
 {
 	const struct rst_info *rst_info;
+	uint32_t system_time;
 
+	system_time = system_get_time();
 	rst_info = system_get_rst_info();
 
 	snprintf(dst, size,
@@ -49,8 +63,10 @@ irom void stats_generate(uint16_t size, char *dst)
 			"> flash map: %s\n"
 			"> reset cause: %s\n"
 			">\n"
-			"> heap free: %u kb\n"
-			"> uptime: %u s\n"
+			"> heap free: %u bytes\n"
+			"> system clock: %u.%06u s\n"
+			"> uptime: %u %02d:%02d:%02d\n"
+			"> real time: %u %02d:%02d:%02d\n"
 			"> size of config: %u\n"
 			">\n"
 			"> int uart rx: %u\n"
@@ -65,7 +81,10 @@ irom void stats_generate(uint16_t size, char *dst)
 			flash_map[system_get_flash_size_map()],
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
-			system_get_time() / 1000000,
+			system_time / 1000000,
+			system_time % 1000000,
+			ut_days, ut_hours, ut_mins, ut_secs,
+			rt_days, rt_hours, rt_mins, rt_secs,
 			sizeof(config_t),
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,

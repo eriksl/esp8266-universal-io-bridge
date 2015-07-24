@@ -487,6 +487,17 @@ irom static app_action_t application_function_unset(application_parameters_t ap)
 	return(set_unset_flag(ap, false));
 }
 
+irom static app_action_t application_function_rtc_set(application_parameters_t ap)
+{
+	rt_hours = (uint8_t)atoi((*ap.args)[1]);
+	rt_mins = (uint8_t)atoi((*ap.args)[2]);
+	rt_secs = (uint8_t)atoi((*ap.args)[3]);
+
+	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u:%02u\n", rt_hours, rt_mins, rt_secs);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -584,6 +595,12 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_reset,
 		"reset",
+	},
+	{
+		"rs", "rtc-set",
+		3,
+		application_function_rtc_set,
+		"set rtc [h m s]",
 	},
 	{
 		"s", "set",
