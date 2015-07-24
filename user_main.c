@@ -47,6 +47,7 @@ static struct
 {
 	unsigned int disconnect:1;
 	unsigned int reset:1;
+	unsigned int init_i2c_sensors:1;
 } action;
 
 static char *tcp_cmd_receive_buffer;
@@ -262,7 +263,7 @@ irom noinline static void process_command(void)
 	espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 }
 
-iram static void background_task(os_event_t *events)
+irom static void background_task(os_event_t *events)
 {
 	stat_background_task++;
 
@@ -293,6 +294,12 @@ iram static void background_task(os_event_t *events)
 	{
 		process_uart_fifo();
 		process_command();
+	}
+
+	if(action.init_i2c_sensors)
+	{
+		i2c_sensor_init();
+		action.init_i2c_sensors = 0;
 	}
 }
 
@@ -532,7 +539,7 @@ irom static void user_init2(void)
 	wifi_set_sleep_type(NONE_SLEEP_T);
 
 	gpios_init();
-	i2c_sensor_init();
+	action.init_i2c_sensors = 1;
 
 	config_wlan(config->ssid, config->passwd);
 
