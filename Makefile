@@ -117,6 +117,7 @@ all:			$(FW)
 				$(call section_free,$(ELF),iram,.text,32)
 				$(call section_free,$(ELF),irom,.irom0.text,424)
 				$(call file_free, 456)
+				$(Q) rm -f $(FILE_IRAM) $(FILE_IRAM_PAD) $(FILE_IROM)
 
 flash:			all
 				$(Q) esptool write_flash 0 $(FW)
@@ -154,9 +155,8 @@ $(ELF):			$(OBJS)
 
 $(FW):			$(ELF)
 				$(Q) esptool.py elf2image --output region- $(ELF)
-				$(Q) dd if=$(FILE_IRAM) of=$(FILE_IRAM_PAD) ibs=64K conv=sync
+				$(Q) dd if=$(FILE_IRAM) of=$(FILE_IRAM_PAD) ibs=64K conv=sync > /dev/null 2>&1
 				$(Q) cat $(FILE_IRAM_PAD) $(FILE_IROM) > $(FW)
-				$(Q) rm -f $(FILE_IRAM) $(FILE_IRAM_PAD) $(FILE_IROM)
 
 $(LINKMAP):		$(ELF)
 
