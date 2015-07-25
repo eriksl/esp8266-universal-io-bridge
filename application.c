@@ -9,6 +9,7 @@
 #include "uart.h"
 #include "i2c.h"
 #include "i2c_sensor.h"
+#include "display.h"
 
 #include <user_interface.h>
 #include <c_types.h>
@@ -458,6 +459,78 @@ irom static app_action_t application_function_rtc_set(application_parameters_t a
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_display_brightness(application_parameters_t ap)
+{
+	int8_t id;
+	int8_t value;
+	static const char *usage = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
+
+	id = (uint8_t)atoi((*ap.args)[1]);
+
+	if(ap.nargs > 2)
+	{
+		value = (uint8_t)atoi((*ap.args)[2]);
+
+		if(!display_set_brightness(id, value))
+		{
+			snprintf(ap.dst, ap.size, "%s", usage);
+			return(app_action_error);
+		}
+	}
+
+	if(!display_get_brightness(id, &value))
+	{
+		snprintf(ap.dst, ap.size, "%s", usage);
+		return(app_action_error);
+	}
+
+	snprintf(ap.dst, ap.size, "display %u brightness: %u\n", id, value);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_display_dump(application_parameters_t ap)
+{
+	int8_t verbose;
+
+	if(ap.nargs > 1)
+		verbose = (uint8_t)atoi((*ap.args)[1]);
+	else
+		verbose = 0;
+
+	display_dump(ap.size, ap.dst, verbose);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_display_set(application_parameters_t ap)
+{
+	uint8_t id;
+	uint8_t slot;
+	const char *text;
+	uint8_t current;
+	uint16_t timeout;
+
+	id = (uint8_t)atoi((*ap.args)[1]);
+	slot = (uint8_t)atoi((*ap.args)[2]);
+	timeout = (uint8_t)atoi((*ap.args)[3]);
+
+	text = ap.cmdline;
+
+	for(current = 4; current > 0; text++)
+	{
+		if(*text == '\0')
+			break;
+
+		if(*text == ' ')
+			current--;
+	}
+
+	display_setslot(id, slot, timeout, text, ap.size, ap.dst);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -471,6 +544,24 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_config_write,
 		"write config to non-volatile storage",
+	},
+	{
+		"db", "display-brightness",
+		1,
+		application_function_display_brightness,
+		"set or show display brightness"
+	},
+	{
+		"dd", "display-dump",
+		0,
+		application_function_display_dump,
+		"shows all displays"
+	},
+	{
+		"ds", "display-set",
+		3,
+		application_function_display_set,
+		"put content on display <display id> <slot> <timeout> <text>"
 	},
 	{
 		"gd", "gpio-dump",

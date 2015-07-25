@@ -10,6 +10,7 @@ uint32_t stat_uart_rx_interrupts;
 uint32_t stat_uart_tx_interrupts;
 uint32_t stat_timer_fast;
 uint32_t stat_timer_slow;
+uint32_t stat_timer_second;
 uint32_t stat_background_task;
 
 uint8_t	ut_days;
@@ -93,6 +94,7 @@ irom void stats_generate(uint16_t size, char *dst)
 			"> int uart tx: %u\n"
 			"> timer_fast fired: %u\n"
 			"> timer_slow fired: %u\n"
+			"> timer_second fired: %u\n"
 			"> background task: %u\n"
 			">\n"
 			"> default ssid: %s, passwd: %s\n"
@@ -117,6 +119,7 @@ irom void stats_generate(uint16_t size, char *dst)
 			stat_uart_tx_interrupts,
 			stat_timer_fast,
 			stat_timer_slow,
+			stat_timer_second,
 			stat_background_task,
 			sc_default.ssid, sc_default.password,
 			sc_current.ssid, sc_current.password,

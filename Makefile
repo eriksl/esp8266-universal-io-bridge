@@ -19,9 +19,9 @@ LDSCRIPT		= -T./eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm
 
-OBJS			= application.o config.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
+OBJS			= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
 HEADERS			= esp-uart-register.h \
-				  application.h application-parameters.h config.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
+				  application.h application-parameters.h config.h display.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
 
 ELF				= fw.elf
 ADDR_IRAM		= 0x00000
@@ -142,6 +142,7 @@ i2c.o:			$(HEADERS)
 util.o:			$(HEADERS)
 gpios.o:		$(HEADERS)
 i2c_sensor.o:	$(HEADERS)
+display.o:		$(HEADERS)
 queue.o:		queue.h
 config.o:		$(HEADERS)
 application.o:	$(HEADERS)

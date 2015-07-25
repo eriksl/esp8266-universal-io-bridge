@@ -8,6 +8,7 @@
 #include "stats.h"
 #include "i2c.h"
 #include "i2c_sensor.h"
+#include "display.h"
 
 #include <ip_addr.h>
 #include <espconn.h>
@@ -48,6 +49,7 @@ static struct
 	unsigned int disconnect:1;
 	unsigned int reset:1;
 	unsigned int init_i2c_sensors:1;
+	unsigned int init_displays:1;
 } action;
 
 static char *tcp_cmd_receive_buffer;
@@ -301,6 +303,12 @@ irom static void background_task(os_event_t *events)
 		i2c_sensor_init();
 		action.init_i2c_sensors = 0;
 	}
+
+	if(action.init_displays)
+	{
+		display_init();
+		action.init_displays = 0;
+	}
 }
 
 irom static void tcp_data_sent_callback(void *arg)
@@ -478,11 +486,13 @@ irom noinline static void periodic_timer_slowpath(void)
 iram static void periodic_timer_callback(void *arg)
 {
 	static uint8_t timer_slow_dropped = 0;
+	static uint8_t timer_second_dropped = 0;
 
 	(void)arg;
 
 	stat_timer_fast++;
 	timer_slow_dropped++;
+	timer_second_dropped++;
 
 	// timer runs on 100 Hz == 10 ms
 
@@ -494,6 +504,15 @@ iram static void periodic_timer_callback(void *arg)
 	{
 		timer_slow_dropped = 0;
 		periodic_timer_slowpath();
+	}
+
+	// run display background task every 1 Hz  = 1000 ms
+
+	if(timer_second_dropped > 99)
+	{
+		stat_timer_second++;
+		timer_second_dropped = 0;
+		display_periodic();
 	}
 }
 
@@ -540,6 +559,7 @@ irom static void user_init2(void)
 
 	gpios_init();
 	action.init_i2c_sensors = 1;
+	action.init_displays = 1;
 
 	config_wlan(config->ssid, config->passwd);
 
