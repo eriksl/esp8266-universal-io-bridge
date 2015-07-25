@@ -451,9 +451,9 @@ irom static app_action_t application_function_rtc_set(application_parameters_t a
 {
 	rt_hours = (uint8_t)atoi((*ap.args)[1]);
 	rt_mins = (uint8_t)atoi((*ap.args)[2]);
-	rt_secs = (uint8_t)atoi((*ap.args)[3]);
+	rt_secs = 0;
 
-	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u:%02u\n", rt_hours, rt_mins, rt_secs);
+	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u\n", rt_hours, rt_mins);
 
 	return(app_action_normal);
 }
@@ -558,9 +558,9 @@ static const application_function_table_t application_function_table[] =
 	},
 	{
 		"rs", "rtc-set",
-		3,
+		2,
 		application_function_rtc_set,
-		"set rtc [h m s]",
+		"set rtc [h m]",
 	},
 	{
 		"s", "set",
