@@ -2,7 +2,7 @@
 
 ## General
 
-This is a project that attempts to make all (or at least most) of the I/O on the ESP8266 available over the network. Currently this includes GPIO's (as GPIO or PWM), I2C and the UART.
+This is a project that attempts to make all (or at least most) of the I/O on the ESP8266 available over the network. Currently this includes GPIO's (as GPIO or PWM), I2C, the UART and external displays (currently only SAA1064).
 
 The GPIOs can be selected to work as "normal" input, "normal" output, "timer" mode (this means trigger once, either manually or at startup, or "blink" continuously) or "pwm" mode (16 bits PWM mode, running at 330 Hz, suitable for driving lighting).
 
@@ -54,6 +54,20 @@ Currently supported i2c sensors are:
 - _am2321_ (temperature and humidity)
 - _tsl2560_ (light intensity)
 - _bh1750_ (light intensity).
+
+### About external displays
+
+Currently only the SAA1064 is supported, it's a 4x7 led display multiplexer, controlled over i2c.
+
+In the future I plan to add "bare" LCD text displays using the well-known Hitachi LCD controller and Orbital Matrix i2c-controlled VFD/LCD screens.
+
+The system consists of multiple "slots" of messages that will be shown one at a time. You can set a timeout on a message and it will be deleted automatically after that time. If no slots are left, it show the current time (rtc). Use 0 as timeout to not auto-expire slots.
+
+All displays have 8 slots for messages that can be set using the ds (display-set) command: ds <display_id> <slot> <timeout> <message>. Use dd (display-dump) to show all detected displays, add a verbosity value (0-2) to see more detail. Finally the db (display-bright) command controls the brightness of the display. Valid values are 0 (off), 1, 2, 3, 4 (max). Use: db <display_id> <brightness>
+
+Please note the saa1064 runs at 5V or higher. It cannot be connected to the esp8266 directly. It must have it's own 5V power supply and may or may not need i2c level shifters. I am using level shifters, but it may not be necessary in the end. YMMV.
+
+Needless to say it will only work if i2c is up and running.
 
 ### Commands concerning the UART bridge:
 
@@ -165,7 +179,21 @@ Currently supported i2c sensors are:
 </tr>
 <tr>
 <td>isc</td><td>i2c-sensor-calibrate</td><td><i>sensor-id</i> <i>scale</i> <i>offset</i></td><td>Set calibration of the sensor with id <i>sensor id</i>. The result from the sensor is multiplied by <i>scale</i> and then <i>offset</i> is added. Both values may be negative and are floating point types. Don't forget to write the config afterwards.</td>
-
+</tr>
+</table>
+### Display commands:
+<table>
+<tr>
+<th>short</th><th>long</th><th>parameters</th><th>description</th>
+</tr>
+<tr>
+<td>db</td><td>display-brightness</td><td><i>brightness</i></td><td>Sets display brightness. Use <i>brightness</i> = <b>0</b> (off), <b>1,2,3,4</b></td>
+</tr>
+<tr>
+<td>dd</td><td>display-dump</td><td><td>Dumps all detected displays.</td>
+</tr>
+<tr>
+<td>ds</td><td>display-set</td><i>display id</i> <i>slot</i> <i>timeout</i> <i>text</i><td><td>Displays text on display. Slots with text are shown in turn, after timeout (in seconds) the slot is discarded, <i>0</i> for permanent, need to replace manually.</td>
 </tr>
 </table>
 ### Other commands:
