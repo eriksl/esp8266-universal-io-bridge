@@ -173,6 +173,7 @@ iram void config_read_alt(config_t *cfg)
 			cfg->magic = config_magic;
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
+			cfg->bridge_tcp_port = 25;
 			gpios_config_init(&cfg->gpios);
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
@@ -216,12 +217,14 @@ irom void config_dump(uint16_t size, char *dst)
 			"> config minor version: %d\n"
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
+			"> bridge tcp port: %u\n"
 			"> flags: ",
 			tmpconfig->magic,
 			tmpconfig->major_version,
 			tmpconfig->minor_version,
 			tmpconfig->ssid,
-			tmpconfig->passwd);
+			tmpconfig->passwd,
+			tmpconfig->bridge_tcp_port);
 	size -= length;
 	dst += length;
 

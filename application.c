@@ -155,6 +155,29 @@ irom static app_action_t application_function_stats(application_parameters_t ap)
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_bridge_tcp_port(application_parameters_t ap)
+{
+	uint32_t tcp_port;
+
+	if(ap.nargs > 1)
+	{
+		tcp_port = atoi((*ap.args)[1]);
+
+		if(tcp_port > 65535)
+		{
+			snprintf(ap.dst, ap.size, "bridge-tcp-port: out of range: %u\n", tcp_port);
+			return(1);
+		}
+
+		config->bridge_tcp_port = tcp_port;
+		snprintf(ap.dst, ap.size, "bridge-tcp_port: %u, write config and restart to activate\n", config->bridge_tcp_port);
+	}
+	else
+		snprintf(ap.dst, ap.size, "bridge-tcp_port: %u\n", config->bridge_tcp_port);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
 	uint32_t baud_rate = atoi((*ap.args)[1]);
@@ -533,6 +556,12 @@ irom static app_action_t application_function_display_set(application_parameters
 
 static const application_function_table_t application_function_table[] =
 {
+	{
+		"btp", "bridge-tcp-port",
+		0,
+		application_function_bridge_tcp_port,
+		"set uart tcp bridge tcp port (default 25)"
+	},
 	{
 		"cd", "config-dump",
 		0,

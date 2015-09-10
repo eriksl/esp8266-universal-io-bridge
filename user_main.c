@@ -563,7 +563,7 @@ irom static void user_init2(void)
 
 	config_wlan(config->ssid, config->passwd);
 
-	tcp_accept(&esp_data_config, &esp_data_tcp_config, 23, tcp_data_connect_callback);
+	tcp_accept(&esp_data_config, &esp_data_tcp_config, config->bridge_tcp_port, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
 	esp_data_tcp_connection = 0;
 

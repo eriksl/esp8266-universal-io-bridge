@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 1,
-	config_minor_version = 4
+	config_minor_version = 5
 };
 
 typedef enum __attribute__ ((__packed__))
@@ -44,6 +44,7 @@ typedef struct
 	char				passwd[32];
 	uint32_t			flags;
 	uart_parameters_t	uart;
+	uint16_t			bridge_tcp_port;
 	gpio_config_t		gpios;
 	i2c_sensor_config_t	i2c_sensors;
 } config_t;
