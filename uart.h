@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	parity_none,
 	parity_even,
@@ -11,7 +11,7 @@ typedef enum __attribute__ ((__packed__))
 	parity_error
 } uart_parity_t;
 
-_Static_assert(sizeof(uart_parity_t) == 1, "sizeof(uart_parity_t) != 1");
+_Static_assert(sizeof(uart_parity_t) == 4, "sizeof(uart_parity_t) != 4");
 
 typedef struct
 {

@@ -13,13 +13,13 @@
 
 #include <stdlib.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	rtcgpio_input,
 	rtcgpio_output
 } rtcgpio_setup_t;
 
-_Static_assert(sizeof(rtcgpio_setup_t) == 1, "sizeof(rtcgpio_setup_t) != 1");
+_Static_assert(sizeof(rtcgpio_setup_t) == 4, "sizeof(rtcgpio_setup_t) != 4");
 
 typedef struct
 {
@@ -306,11 +306,11 @@ irom static void gpio_config_init(gpio_config_entry_t *gpio)
 	gpio->mode = gpio_disabled;
 	gpio->counter.debounce = 100;
 	gpio->counter.reset_on_get = false;
-	gpio->output.startup_state = 0;
+	gpio->output.startup_state = false;
 	gpio->timer.direction = gpio_up;
 	gpio->timer.delay = 0;
-	gpio->timer.repeat = 0;
-	gpio->timer.autotrigger = 0;
+	gpio->timer.repeat = false;
+	gpio->timer.autotrigger = false;
 	gpio->pwm.min_duty = 0;
 	gpio->pwm.max_duty = 0;
 	gpio->pwm.speed = 0;
@@ -765,7 +765,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(ap.nargs > 3)
 			{
-				new_gpio_config->counter.reset_on_get = !!atoi((*ap.args)[3]);
+				new_gpio_config->counter.reset_on_get = (uint8_t)!!atoi((*ap.args)[3]);
 
 				if(ap.nargs > 4)
 					new_gpio_config->counter.debounce = atoi((*ap.args)[4]);
@@ -782,7 +782,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			new_gpio_config->output.startup_state = !!atoi((*ap.args)[3]);
+			new_gpio_config->output.startup_state = (uint8_t)!!atoi((*ap.args)[3]);
 
 			break;
 		}
@@ -791,8 +791,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		{
 			gpio_direction_t direction;
 			unsigned int delay;
-			bool_t repeat;
-			bool_t autotrigger;
+			uint8_t repeat;
+			uint8_t autotrigger;
 
 			if(ap.nargs != 7)
 			{
@@ -818,8 +818,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			repeat = atoi((*ap.args)[5]);
-			autotrigger = !!atoi((*ap.args)[6]);
+			repeat = (uint8_t)!!atoi((*ap.args)[5]);
+			autotrigger = (uint8_t)!!atoi((*ap.args)[6]);
 
 			new_gpio_config->timer.direction = direction;
 			new_gpio_config->timer.delay = delay;

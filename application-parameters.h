@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	app_action_normal,
 	app_action_error,
@@ -12,7 +12,7 @@ typedef enum __attribute__ ((__packed__))
 	app_action_reset
 } app_action_t;
 
-_Static_assert(sizeof(app_action_t) == 1, "sizeof(app_action_t) != 1");
+_Static_assert(sizeof(app_action_t) == 4, "sizeof(app_action_t) != 4");
 
 enum
 {

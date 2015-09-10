@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum __attribute__ ((__packed__)) // don't remvove!
 {
 	gpio_0 = 0,
 	gpio_1,		// UART TX use with care
@@ -33,15 +33,15 @@ typedef enum __attribute__ ((__packed__))
 
 _Static_assert(sizeof(gpio_id_t) == 1, "sizeof(gpio_id_t) != 1");
 
-typedef enum __attribute__ ((__packed__))
+typedef enum __attribute__ ((__packed__)) // don't remove!
 {
 	gpio_up,
 	gpio_down,
 } gpio_direction_t;
 
-_Static_assert(sizeof(gpio_direction_t) == 1, "sizeof(gpio_direction_t) != 1");
+_Static_assert(sizeof(gpio_direction_t) == 1, "sizeof(gpio_direction_t) != 1"); // don't remove!
 
-typedef enum __attribute__ ((__packed__))
+typedef enum __attribute__ ((__packed__)) // don't remove!
 {
 	gpio_i2c_sda,
 	gpio_i2c_scl,
@@ -51,7 +51,7 @@ typedef enum __attribute__ ((__packed__))
 
 _Static_assert(sizeof(gpio_i2c_t) == 1, "sizeof(gpio_i2c_t) != 1");
 
-typedef enum __attribute__ ((__packed__))
+typedef enum __attribute__ ((__packed__)) // don't remove!
 {
 	gpio_disabled,
 	gpio_input,
@@ -73,20 +73,20 @@ typedef struct
 	struct
 	{
 		uint32_t debounce;
-		bool_t reset_on_get;
+		uint8_t reset_on_get;
 	} counter;
 
 	struct
 	{
-		bool_t startup_state;
+		uint8_t startup_state;
 	} output;
 
 	struct
 	{
 		gpio_direction_t direction;
 		uint32_t delay;
-		bool_t repeat;
-		bool_t autotrigger;
+		uint8_t repeat;
+		uint8_t autotrigger;
 	} timer;
 
 	struct

@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	i2c_sensor_digipicco_temperature,
 	i2c_sensor_digipicco_humidity,
@@ -25,7 +25,7 @@ typedef enum __attribute__ ((__packed__))
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
 
-_Static_assert(sizeof(i2c_sensor_t) == 1, "sizeof(i2c_sensor_t) != 1");
+_Static_assert(sizeof(i2c_sensor_t) == 4, "sizeof(i2c_sensor_t) != 4");
 
 typedef struct
 {

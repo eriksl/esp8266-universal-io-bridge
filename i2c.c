@@ -8,13 +8,13 @@ static uint32_t sda_mask;
 static uint32_t scl_mask;
 static i2c_state_t state = i2c_state_invalid;
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	i2c_direction_receive,
 	i2c_direction_send,
 } i2c_direction_t;
 
-_Static_assert(sizeof(i2c_direction_t) == 1, "sizeof(i2c_direction_t) != 1");
+_Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {

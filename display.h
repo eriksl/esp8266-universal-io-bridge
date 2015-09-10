@@ -5,22 +5,22 @@
 
 #include <stdint.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	display_saa1064,
 	display_error,
 	display_size = display_error
 } display_id_t;
 
-_Static_assert(sizeof(display_id_t) == 1, "sizeof(display_id_t) != 1");
+_Static_assert(sizeof(display_id_t) == 4, "sizeof(display_id_t) != 4");
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	display_slot_amount = 8,
 	display_slot_size = 80
 } display_slot_enum_t;
 
-_Static_assert(sizeof(display_slot_enum_t) == 1, "sizeof(display_slot_enum_t) != 1");
+_Static_assert(sizeof(display_slot_enum_t) == 4, "sizeof(display_slot_enum_t) != 4");
 
 typedef struct
 {

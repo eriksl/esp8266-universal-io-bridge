@@ -16,23 +16,23 @@
 #include <os_type.h>
 #include <ets_sys.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	wlan_bootstrap_state_skip,
 	wlan_bootstrap_state_start,
 	wlan_bootstrap_state_done
 } wlan_bootstrap_state_t;
 
-_Static_assert(sizeof(gpio_id_t) == 1, "sizeof(telnet_strip_state) != 1");
+_Static_assert(sizeof(wlan_bootstrap_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
     ts_raw,
     ts_dodont,
     ts_data,
 } telnet_strip_state_t;
 
-_Static_assert(sizeof(gpio_id_t) == 1, "sizeof(telnet_strip_state) != 1");
+_Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
 queue_t *uart_send_queue;
 queue_t *uart_receive_queue;

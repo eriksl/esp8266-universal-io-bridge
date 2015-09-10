@@ -9,7 +9,7 @@
 #include <osapi.h>
 #include <ets_sys.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	off = 0,
 	no = 0,
@@ -17,7 +17,7 @@ typedef enum __attribute__ ((__packed__))
 	yes = 1
 } bool_t;
 
-_Static_assert(sizeof(bool_t) == 1, "sizeof(bool_t) != 1");
+_Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 
 #define irom __attribute__((section(".irom0.text")))
 #define iram __attribute__((section(".text")))

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	i2c_state_invalid = 0,
 	i2c_state_idle,
@@ -24,9 +24,9 @@ typedef enum __attribute__ ((__packed__))
 	i2c_state_size = i2c_state_error
 } i2c_state_t;
 
-_Static_assert(sizeof(i2c_state_t) == 1, "sizeof(i2c_state_t) != 1");
+_Static_assert(sizeof(i2c_state_t) == 4, "sizeof(i2c_state_t) != 4");
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	i2c_error_ok = 0,
 	i2c_error_no_init,
@@ -52,7 +52,7 @@ typedef enum __attribute__ ((__packed__))
 	i2c_error_size = i2c_error_error
 } i2c_error_t;
 
-_Static_assert(sizeof(i2c_error_t) == 1, "sizeof(i2c_error_t) != 1");
+_Static_assert(sizeof(i2c_error_t) == 4, "sizeof(i2c_error_t) != 4");
 
 i2c_error_t		i2c_init(unsigned int sda_index, unsigned int scl_index);
 i2c_error_t		i2c_reset(void);

@@ -15,7 +15,7 @@ enum
 	config_minor_version = 5
 };
 
-typedef enum __attribute__ ((__packed__))
+typedef enum
 {
 	config_flag_strip_telnet,
 	config_flag_print_debug,
@@ -26,7 +26,7 @@ typedef enum __attribute__ ((__packed__))
 	config_flag_size
 } config_flag_enum_t;
 
-_Static_assert(sizeof(config_flag_enum_t) == 1, "sizeof(config_flag_enum_t) != 1");
+_Static_assert(sizeof(config_flag_enum_t) == 4, "sizeof(config_flag_enum_t) != 4");
 
 typedef struct
 {
