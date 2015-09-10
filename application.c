@@ -566,13 +566,13 @@ static const application_function_table_t application_function_table[] =
 		"cd", "config-dump",
 		0,
 		application_function_config_dump,
-		"dump config contents",
+		"dump config contents"
 	},
 	{
 		"cw", "config-write",
 		0,
 		application_function_config_write,
-		"write config to non-volatile storage",
+		"write config to non-volatile storage"
 	},
 	{
 		"db", "display-brightness",
