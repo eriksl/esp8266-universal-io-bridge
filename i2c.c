@@ -89,8 +89,8 @@ irom static const char *i2c_error_string(i2c_error_t error)
 		return("<unknown error>");
 }
 
-irom uint16_t i2c_error_format_string(const char *tag, i2c_error_t error,
-		uint16_t size, char *dst)
+irom unsigned int i2c_error_format_string(const char *tag, i2c_error_t error,
+		unsigned int size, char *dst)
 {
 	return(snprintf(dst, size, "%s: bus error: %s (in bus state: %s)",
 				tag, i2c_error_string(error), i2c_state_string()));
@@ -148,7 +148,7 @@ irom static inline bool_t scl_is_set(void)
 
 irom static i2c_error_t wait_idle(void)
 {
-	uint16_t current;
+	unsigned int current;
 
 	for(current = i2c_config_idle_timeout; current > 0; current--)
 	{
@@ -167,7 +167,7 @@ irom static i2c_error_t wait_idle(void)
 irom static i2c_error_t send_start(void)
 {
 	i2c_error_t error;
-	uint32_t current;
+	unsigned int current;
 
 	if(state != i2c_state_start_send)
 		return(i2c_error_invalid_state_not_send_start);
@@ -314,10 +314,10 @@ iram static i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_byte(uint8_t byte)
+iram static i2c_error_t send_byte(unsigned int byte)
 {
 	i2c_error_t error;
-	uint8_t current;
+	unsigned int current;
 
 	if((state != i2c_state_address_send) && (state != i2c_state_data_send_data))
 		return(i2c_error_invalid_state_not_send_address_or_data);
@@ -334,8 +334,8 @@ iram static i2c_error_t send_byte(uint8_t byte)
 
 iram static i2c_error_t receive_bit(bool_t *bit)
 {
-	uint16_t current;
-	uint16_t total;
+	unsigned int current;
+	unsigned int total;
 	i2c_error_t error;
 
 	// at this point scl should be high and sda is unknown,
@@ -375,7 +375,7 @@ iram static i2c_error_t receive_bit(bool_t *bit)
 
 	for(total = 0, current = 0; current < i2c_config_sda_sampling_window; current++)
 	{
-		uint8_t set;
+		unsigned int set;
 		set = sda_is_set();
 
 		total += set ? 4 : 0;
@@ -395,7 +395,7 @@ iram static i2c_error_t receive_bit(bool_t *bit)
 
 iram static i2c_error_t receive_byte(uint8_t *byte)
 {
-	uint8_t current;
+	unsigned int current;
 	bool_t bit;
 	i2c_error_t error;
 
@@ -442,7 +442,7 @@ irom static i2c_error_t receive_ack(bool_t *ack)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t send_header(uint8_t address, i2c_direction_t direction)
+irom static i2c_error_t send_header(unsigned int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t ack;
@@ -478,7 +478,7 @@ irom static i2c_error_t send_header(uint8_t address, i2c_direction_t direction)
 
 irom i2c_error_t i2c_reset(void)
 {
-	uint16_t current;
+	unsigned int current;
 
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
@@ -512,7 +512,7 @@ irom i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
+irom i2c_error_t i2c_init(unsigned int sda_index, unsigned int scl_index)
 {
 	sda_mask = 1 << sda_index;
 	scl_mask = 1 << scl_index;
@@ -522,9 +522,9 @@ irom i2c_error_t i2c_init(uint8_t sda_index, uint8_t scl_index)
 	return(i2c_reset());
 }
 
-irom i2c_error_t i2c_send(uint8_t address, uint16_t length, const uint8_t *bytes)
+irom i2c_error_t i2c_send(unsigned int address, unsigned int length, const uint8_t *bytes)
 {
-	uint16_t current;
+	unsigned int current;
 	i2c_error_t error;
 	bool_t ack;
 
@@ -567,9 +567,9 @@ irom i2c_error_t i2c_send(uint8_t address, uint16_t length, const uint8_t *bytes
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint8_t *bytes)
+irom i2c_error_t i2c_receive(unsigned int address, unsigned int length, uint8_t *bytes)
 {
-	uint16_t current;
+	unsigned int current;
 	i2c_error_t error;
 
 	if(!i2c_flags.init_done)
@@ -606,12 +606,16 @@ irom i2c_error_t i2c_receive(uint8_t address, uint16_t length, uint8_t *bytes)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_send_1(uint8_t address, uint8_t byte0)
+irom i2c_error_t i2c_send_1(unsigned int address, unsigned int byte0)
 {
-	return(i2c_send(address, 1, &byte0));
+	uint8_t bytes[1];
+
+	bytes[0] = byte0;
+
+	return(i2c_send(address, 1, bytes));
 }
 
-irom i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1)
+irom i2c_error_t i2c_send_2(unsigned int address, unsigned int byte0, unsigned int byte1)
 {
 	uint8_t bytes[2];
 
@@ -621,7 +625,7 @@ irom i2c_error_t i2c_send_2(uint8_t address, uint8_t byte0, uint8_t byte1)
 	return(i2c_send(address, 2, bytes));
 }
 
-irom i2c_error_t i2c_send_3(uint8_t address, uint8_t byte0, uint8_t byte1, uint8_t byte2)
+irom i2c_error_t i2c_send_3(unsigned int address, unsigned int byte0, unsigned int byte1, unsigned int byte2)
 {
 	uint8_t bytes[3];
 

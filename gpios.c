@@ -23,9 +23,9 @@ _Static_assert(sizeof(rtcgpio_setup_t) == 1, "sizeof(rtcgpio_setup_t) != 1");
 
 typedef struct
 {
-	const	gpio_id_t	id;
-	const	char		*name;
-	const	uint8_t		index;
+	const	gpio_id_t		id;
+	const	char			*name;
+	const	unsigned int	index;
 	const struct
 	{
 		unsigned int rtc_gpio;
@@ -36,22 +36,22 @@ typedef struct
 
 	struct
 	{
-		uint32_t count;
-		uint32_t debounce;
+		unsigned int count;
+		unsigned int debounce;
 	} counter;
 
 	struct
 	{
-		uint32_t delay;
+		unsigned int delay;
 	} timer;
 
 	struct
 	{
-		uint8_t	channel;
-		uint8_t speed;
-		uint16_t min_duty;
-		uint16_t max_duty;
-		gpio_direction_t direction;
+		unsigned int		channel;
+		unsigned int		speed;
+		unsigned int		min_duty;
+		unsigned int		max_duty;
+		gpio_direction_t	direction;
 	} pwm;
 } gpio_t;
 
@@ -210,7 +210,7 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 {
 	gpio_t *gpio;
 	gpio_config_entry_t *cfg;
-	uint8_t current;
+	unsigned int current;
 
 	gpio_intr_ack(pc);
 
@@ -239,13 +239,14 @@ irom static void select_pin_function(const gpio_t *gpio)
 
 irom void gpios_init(void)
 {
-	uint8_t current, pwmchannel;
+	unsigned int current;
+	unsigned int pwmchannel;
 	gpio_t *gpio;
 	gpio_config_entry_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
 	uint32_t state_change_mask;
-	int8_t sda, scl;
+	unsigned int sda, scl;
 
 	sda = scl = -1;
 
@@ -379,8 +380,8 @@ iram static inline void arm_counter(const gpio_t *gpio)
 
 iram void gpios_periodic(void)
 {
-	static uint32_t pwm_divider = 0;
-	uint8_t current;
+	static unsigned int pwm_divider = 0;
+	unsigned int current;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 	bool_t pwm_changed;
@@ -422,7 +423,7 @@ iram void gpios_periodic(void)
 
 		if((cfg->mode == gpio_pwm) && (gpio->pwm.speed > 0) && (pwm_divider >= gpio->pwm.speed))
 		{
-			uint32_t duty;
+			unsigned int duty;
 
 			pwm_divider = 0;
 
@@ -493,7 +494,7 @@ irom static void trigger_timer(gpio_t *gpio, bool_t onoff)
 
 irom static gpio_t *find_gpio(gpio_id_t index)
 {
-	uint8_t current;
+	unsigned int current;
 	gpio_t *gpio;
 
 	for(current = 0; current < gpio_size; current++)
@@ -510,7 +511,7 @@ irom static gpio_t *find_gpio(gpio_id_t index)
 irom static gpio_mode_t gpio_mode_from_string(const char *mode)
 {
 	const  gpio_mode_trait_t *entry;
-	uint8_t current;
+	unsigned int current;
 
 	for(current = 0; current < gpio_mode_size; current++)
 	{
@@ -600,10 +601,10 @@ irom static void gpio_init_i2c(gpio_t *gpio)
 	gpio_output_set(1 << gpio->index, 0, 1 << gpio->index, 0);
 }
 
-irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, uint16_t size, char *str)
+irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned int size, char *str)
 {
-	uint8_t current;
-	uint16_t length;
+	unsigned int current;
+	unsigned int length;
 	const gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
@@ -711,7 +712,7 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, uint16_t
 	}
 }
 
-irom void gpios_dump_string(const gpio_config_t *cfgs, uint16_t size, char *string)
+irom void gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *string)
 {
 	dump(cfgs, 0, size, string);
 }
@@ -719,7 +720,7 @@ irom void gpios_dump_string(const gpio_config_t *cfgs, uint16_t size, char *stri
 irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 {
 	gpio_mode_t mode;
-	uint8_t gpio_index;
+	unsigned int gpio_index;
 	gpio_t *gpio;
 	gpio_config_entry_t *new_gpio_config;
 
@@ -789,7 +790,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		case(gpio_timer):
 		{
 			gpio_direction_t direction;
-			uint32_t delay;
+			unsigned int delay;
 			bool_t repeat;
 			bool_t autotrigger;
 
@@ -830,7 +831,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			uint16_t speed;
+			unsigned int speed;
 
 			if(gpio->flags.rtc_gpio)
 			{
@@ -903,7 +904,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 irom app_action_t application_function_gpio_get(application_parameters_t ap)
 {
-	uint8_t gpio_index;
+	unsigned int gpio_index;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
@@ -980,7 +981,7 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 
 irom app_action_t application_function_gpio_set(application_parameters_t ap)
 {
-	uint8_t gpio_index;
+	unsigned int gpio_index;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
@@ -1043,9 +1044,9 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			uint32_t min_duty;
-			uint32_t max_duty;
-			uint16_t speed;
+			unsigned int min_duty;
+			unsigned int max_duty;
+			unsigned int speed;
 
 			if(ap.nargs > 2)
 				min_duty = atoi((*ap.args)[2]);
@@ -1068,10 +1069,10 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			gpio->pwm.min_duty = min_duty;
-			gpio->pwm.max_duty = max_duty;
-			gpio->pwm.speed = speed;
-			gpio->pwm.direction = gpio_up;
+			gpio->pwm.min_duty =	(uint32_t)min_duty;
+			gpio->pwm.max_duty =	(uint32_t)max_duty;
+			gpio->pwm.speed =		(uint16_t)speed;
+			gpio->pwm.direction =	(uint8_t)gpio_up;
 
 			pwm_set_duty(min_duty, gpio->pwm.channel);
 			pwm_start();

@@ -24,7 +24,7 @@ typedef struct
 const char		*uart_parity_to_string(uart_parity_t);
 char			uart_parity_to_char(uart_parity_t);
 uart_parity_t	uart_string_to_parity(const char *);
-uint16_t		uart_parameters_to_string(const uart_parameters_t *, uint16_t, char *);
+unsigned int	uart_parameters_to_string(const uart_parameters_t *, unsigned int, char *);
 void			uart_init(const uart_parameters_t *);
 void			uart_start_transmit(char);
 

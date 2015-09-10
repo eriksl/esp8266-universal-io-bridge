@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-irom queue_t * queue_new(uint16_t size)
+irom queue_t * queue_new(unsigned int size)
 {
 	queue_t *queue;
 
@@ -33,7 +33,7 @@ iram attr_pure char queue_full(const queue_t *queue)
 	return(((queue->in + 1) % queue->size) == queue->out);
 }
 
-iram attr_pure uint16_t queue_lf(const queue_t *queue)
+iram attr_pure unsigned int queue_lf(const queue_t *queue)
 {
 	return(queue->lf);
 }

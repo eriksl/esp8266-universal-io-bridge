@@ -64,7 +64,7 @@ static struct espconn *esp_data_tcp_connection;
 irom static void user_init2(void);
 
 irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
-		uint16_t port, void (*connect_callback)(struct espconn *))
+		unsigned int port, void (*connect_callback)(struct espconn *))
 {
 	memset(esp_tcp_config, 0, sizeof(*esp_tcp_config));
 	esp_tcp_config->local_port = port;
@@ -103,8 +103,8 @@ irom noinline static void wlan_bootstrap(void)
 {
 	char ssid[32];
 	char passwd[32];
-	uint8_t current;
-	uint8_t data;
+	unsigned int current;
+	unsigned int data;
 
 	for(current = 0; current < (sizeof(ssid) - 1); current++)
 	{
@@ -147,7 +147,7 @@ irom noinline static void wlan_bootstrap(void)
 
 irom noinline static void process_uart_fifo(void)
 {
-	uint16_t tcp_data_send_buffer_length;
+	unsigned int tcp_data_send_buffer_length;
 
 	// send data in the uart receive fifo to tcp
 
@@ -177,8 +177,8 @@ irom noinline static void process_command(void)
 	// line is present (queue_lf > 0) and the output of the previous command
 	// is already flushed out
 
-	uint16_t tcp_cmd_receive_buffer_length;
-	uint8_t byte;
+	unsigned int tcp_cmd_receive_buffer_length;
+	unsigned int byte;
 	telnet_strip_state_t telnet_strip_state;
 	bool_t eol;
 
@@ -194,7 +194,7 @@ irom noinline static void process_command(void)
 			(queue_lf(tcp_cmd_receive_queue) > 0) &&
 			((tcp_cmd_receive_buffer_length + 1) < buffer_size))
 	{
-		byte = (uint8_t)queue_pop(tcp_cmd_receive_queue);
+		byte = queue_pop(tcp_cmd_receive_queue);
 
 		switch(telnet_strip_state)
 		{
@@ -320,10 +320,10 @@ irom static void tcp_data_sent_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-irom static void tcp_data_receive_callback(void *arg, char *data, uint16_t length)
+irom static void tcp_data_receive_callback(void *arg, char *data, unsigned short length)
 {
-	uint16_t current;
-	uint8_t byte;
+	unsigned int current;
+	unsigned int byte;
 	bool_t strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
 
@@ -332,7 +332,7 @@ irom static void tcp_data_receive_callback(void *arg, char *data, uint16_t lengt
 
 	for(current = 0; (current < length) && !queue_full(uart_send_queue); current++)
 	{
-		byte = (uint8_t)data[current];
+		byte = data[current];
 
 		switch(telnet_strip_state)
 		{
@@ -393,9 +393,9 @@ irom static void tcp_cmd_sent_callback(void *arg)
     tcp_cmd_send_buffer_busy = 0;
 }
 
-irom static void tcp_cmd_receive_callback(void *arg, char *data, uint16_t length)
+irom static void tcp_cmd_receive_callback(void *arg, char *data, unsigned short length)
 {
-	uint16_t current;
+	unsigned int current;
 
 	for(current = 0; !queue_full(tcp_cmd_receive_queue) && (current < length); current++)
 		queue_push(tcp_cmd_receive_queue, data[current]);
@@ -485,8 +485,8 @@ irom noinline static void periodic_timer_slowpath(void)
 
 iram static void periodic_timer_callback(void *arg)
 {
-	static uint8_t timer_slow_dropped = 0;
-	static uint8_t timer_second_dropped = 0;
+	static unsigned int timer_slow_dropped = 0;
+	static unsigned int timer_second_dropped = 0;
 
 	(void)arg;
 

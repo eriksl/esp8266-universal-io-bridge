@@ -5,6 +5,6 @@
 
 #include <stdint.h>
 
-app_action_t application_content(const char *src, uint16_t size, char *dst);
+app_action_t application_content(const char *src, unsigned int size, char *dst);
 
 #endif

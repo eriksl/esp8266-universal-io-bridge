@@ -80,18 +80,18 @@ irom attr_const const char *onoff(bool_t value)
 	return("on");
 }
 
-irom void msleep(uint16_t msec)
+irom void msleep(unsigned int msec)
 {
 	while(msec-- > 0)
 		os_delay_us(1000);
 }
 
-irom uint16_t double_to_string(double value, uint8_t precision, double top_decimal, uint16_t size, char *dst)
+irom unsigned int double_to_string(double value, unsigned int precision, double top_decimal, unsigned int size, char *dst)
 {
 	double compare;
-	uint8_t decimal;
+	unsigned int decimal;
 	bool_t skip_leading_zeroes;
-	uint16_t length;
+	unsigned int length;
 
 	if(--size < 1)
 		return(0);
@@ -132,12 +132,12 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 		{
 			skip_leading_zeroes = false;
 
-			decimal = (uint8_t)(value / compare);
+			decimal = (unsigned int)(value / compare);
 			value -= decimal * compare;
 
 			if(length < size)
 			{
-				*dst = (uint8_t)(decimal + '0');
+				*dst = (char)(decimal + '0');
 				dst++;
 				length++;
 			}
@@ -158,7 +158,7 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 		if((compare <= 1) && (precision == 0))
 			break;
 
-		if((uint32_t)compare == 1)
+		if((unsigned int)compare == 1)
 		{
 			if(skip_leading_zeroes)
 			{
@@ -201,7 +201,7 @@ irom uint16_t double_to_string(double value, uint8_t precision, double top_decim
 irom attr_pure double string_to_double(const char *src)
 {
 	double result;
-	uint32_t decimal;
+	unsigned int decimal;
 	bool_t negative;
 
 	if(*src == '-')

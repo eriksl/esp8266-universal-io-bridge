@@ -113,9 +113,9 @@ static const uint8_t led_charrom[] =
 
 display_data_t device_data[display_size];
 
-static irom uint8_t led_render_char(uint8_t character)
+static irom unsigned int led_render_char(unsigned int character)
 {
-	uint8_t add_dot = 0;
+	unsigned int add_dot = 0;
 
 	if(character & 0x80)
 	{
@@ -165,7 +165,7 @@ static irom bool_t display_saa1064_set(display_data_t *display, const char *from
 
 	uint8_t text[4];
 	uint8_t i2cdata[6];
-	uint8_t current;
+	unsigned int current;
 
 	strcpy(text,  "    ");
 
@@ -208,8 +208,8 @@ static display_data_t display_data[display_size] =
 irom static void display_update(bool advance)
 {
 	char stub_text[16];
-	uint8_t display;
-	uint8_t slot;
+	unsigned int display;
+	unsigned int slot;
 	display_data_t *display_entry;
 
 	for(display = 0; display < display_size; display++)
@@ -247,9 +247,9 @@ irom static void display_update(bool advance)
 
 irom void display_periodic(void) // call once per second
 {
-	static uint16_t current_scroll = 0;
-	uint8_t display;
-	uint8_t slot;
+	static unsigned int current_scroll = 0;
+	unsigned int display;
+	unsigned int slot;
 	display_data_t *display_entry;
 
 	// expiration
@@ -279,8 +279,8 @@ irom void display_periodic(void) // call once per second
 irom void display_init(void)
 {
 	display_data_t *entry;
-	uint8_t current;
-	uint8_t slot;
+	unsigned int current;
+	unsigned int slot;
 
 	for(current = 0; current < display_size; current++)
 	{
@@ -303,8 +303,8 @@ irom void display_init(void)
 	display_update(false);
 }
 
-irom uint16_t display_setslot(display_id_t display, uint8_t slot, uint16_t timeout,
-		const char *text, uint16_t size, char *dst)
+irom unsigned int display_setslot(display_id_t display, unsigned int slot, unsigned int timeout,
+		const char *text, unsigned int size, char *dst)
 {
 	display_data_t *display_entry;
 
@@ -328,7 +328,7 @@ irom uint16_t display_setslot(display_id_t display, uint8_t slot, uint16_t timeo
 				slot, display_entry->name, display_entry->slot[slot].content));
 }
 
-irom bool_t display_set_brightness(display_id_t display, uint8_t brightness)
+irom bool_t display_set_brightness(display_id_t display, unsigned int brightness)
 {
 	display_data_t *display_entry;
 
@@ -349,7 +349,7 @@ irom bool_t display_set_brightness(display_id_t display, uint8_t brightness)
 	return(true);
 }
 
-irom bool_t display_get_brightness(display_id_t display, uint8_t *brightness)
+irom bool_t display_get_brightness(display_id_t display, unsigned int *brightness)
 {
 	display_data_t *display_entry;
 
@@ -374,11 +374,11 @@ irom attr_pure bool_t display_detected(display_id_t display)
 	return(device_data[display].detected);
 }
 
-irom uint16_t display_dump(uint16_t size, char *dst, uint8_t verbose_level)
+irom unsigned int display_dump(unsigned int size, char *dst, unsigned int verbose_level)
 {
-	uint8_t display;
-	uint8_t slot;
-	uint16_t length;
+	unsigned int display;
+	unsigned int slot;
+	unsigned int length;
 	display_data_t *entry;
 	display_slot_t *slot_entry;
 	char *orig_dst = dst;

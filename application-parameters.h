@@ -25,9 +25,9 @@ typedef char args_t[application_num_args][application_length_args];
 typedef struct
 {
 	const char *cmdline;
-	uint8_t nargs;
+	unsigned int nargs;
 	args_t *args;
-	uint16_t size;
+	unsigned int size;
 	char *dst;
 } application_parameters_t;
 

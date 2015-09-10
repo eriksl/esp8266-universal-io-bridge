@@ -102,10 +102,10 @@ irom bool_t config_set_flag_by_name(const char *flag_name, bool_t value)
 	return(config_set_flag(config_flag_to_id(flag_name), value));
 }
 
-irom uint16_t config_flags_to_string(uint16_t size, char *dst, uint32_t flags)
+irom unsigned int config_flags_to_string(unsigned int size, char *dst, unsigned int flags)
 {
 	config_flag_enum_t current;
-	uint16_t length, total;
+	unsigned int length, total;
 
 	if(size > 0)
 		*dst = '\0';
@@ -205,9 +205,9 @@ irom void config_write(void)
 	config_write_alt(config);
 }
 
-irom void config_dump(uint16_t size, char *dst)
+irom void config_dump(unsigned int size, char *dst)
 {
-	uint16_t length;
+	unsigned int length;
 
 	config_read_alt(tmpconfig);
 

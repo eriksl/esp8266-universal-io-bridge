@@ -55,19 +55,17 @@ extern config_t *tmpconfig;
 const char *		config_flag_to_string(config_flag_enum_t);
 config_flag_enum_t	config_flag_to_id(const char *);
 
-bool_t		config_get_flag(config_flag_enum_t);
-bool_t		config_set_flag(config_flag_enum_t, bool_t onoff);
-
-bool_t		config_get_flag_by_name(const char *);
-bool_t		config_set_flag_by_name(const char *, bool_t);
-
-uint16_t	config_flags_to_string(uint16_t, char *, uint32_t);
+bool_t			config_get_flag(config_flag_enum_t);
+bool_t			config_set_flag(config_flag_enum_t, bool_t onoff);
+bool_t			config_get_flag_by_name(const char *);
+bool_t			config_set_flag_by_name(const char *, bool_t);
+unsigned int	config_flags_to_string(unsigned int, char *, unsigned int);
 
 bool_t	config_init(void);
 void	config_read_alt(config_t *);
 void	config_read(void);
 void	config_write_alt(config_t *);
 void	config_write(void);
-void	config_dump(uint16_t size, char *);
+void	config_dump(unsigned int size, char *);
 
 #endif

@@ -23,6 +23,6 @@ extern uint8_t rt_mins;
 extern uint8_t rt_secs;
 extern uint8_t rt_tens;
 
-void stats_generate(uint16_t size, char *dst);
+void stats_generate(unsigned int size, char *dst);
 
 #endif

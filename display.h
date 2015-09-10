@@ -24,16 +24,16 @@ _Static_assert(sizeof(display_slot_enum_t) == 1, "sizeof(display_slot_enum_t) !=
 
 typedef struct
 {
-	uint32_t	timeout;
-	char		content[display_slot_size];
+	unsigned int	timeout;
+	char			content[display_slot_size];
 } display_slot_t;
 
-void		display_init(void);
-void		display_periodic(void);
-bool_t		display_detected(display_id_t);
-uint16_t	display_dump(uint16_t size, char *dst, uint8_t verbose_level);
-uint16_t	display_setslot(display_id_t display, uint8_t slot, uint16_t timeout,
-					const char *text, uint16_t size, char *dst);
-bool_t		display_set_brightness(display_id_t display, uint8_t brightness);
-bool_t		display_get_brightness(display_id_t display, uint8_t *brightness);
+void			display_init(void);
+void			display_periodic(void);
+bool_t			display_detected(display_id_t);
+unsigned int	display_dump(unsigned int size, char *dst, unsigned int verbose_level);
+unsigned int	display_setslot(display_id_t display, unsigned int slot, unsigned int timeout,
+					const char *text, unsigned int size, char *dst);
+bool_t			display_set_brightness(display_id_t display, unsigned int brightness);
+bool_t			display_get_brightness(display_id_t display, unsigned int *brightness);
 #endif

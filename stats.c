@@ -64,11 +64,11 @@ static const char *slp[] =
 	"unknown"
 };
 
-irom void stats_generate(uint16_t size, char *dst)
+irom void stats_generate(unsigned int size, char *dst)
 {
 	const struct rst_info *rst_info;
 	struct station_config sc_default, sc_current;
-	uint32_t system_time;
+	unsigned int system_time;
 
 	system_time = system_get_time();
 	rst_info = system_get_rst_info();

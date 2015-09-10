@@ -52,7 +52,7 @@ irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 	return(parity[ix]);
 }
 
-irom uint16_t uart_parameters_to_string(const uart_parameters_t *params, uint16_t size, char *string)
+irom unsigned int uart_parameters_to_string(const uart_parameters_t *params, unsigned int size, char *string)
 {
 	snprintf(string, size, "%u %u%c%u",
 			params->baud_rate,
@@ -63,12 +63,12 @@ irom uint16_t uart_parameters_to_string(const uart_parameters_t *params, uint16_
 	return(strlen(string));
 }
 
-iram static uint16_t uart_rx_fifo_length(void)
+iram static unsigned int uart_rx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-iram static uint16_t uart_tx_fifo_length(void)
+iram static unsigned int uart_tx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
@@ -119,8 +119,8 @@ iram static void uart_callback(void *p)
 
 irom void uart_init(const uart_parameters_t *params)
 {
-	uint8_t data_bits;
-	uint8_t stop_bits;
+	unsigned int data_bits;
+	unsigned int stop_bits;
 	uart_parity_t parity;
 
 	ETS_UART_INTR_DISABLE();

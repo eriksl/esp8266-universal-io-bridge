@@ -27,11 +27,11 @@ typedef struct
 
 static const application_function_table_t application_function_table[];
 
-irom app_action_t application_content(const char *src, uint16_t size, char *dst)
+irom app_action_t application_content(const char *src, unsigned int size, char *dst)
 {
 	args_t	args;
-	uint8_t args_count, arg_current;
-	uint16_t src_current = 0, src_left;
+	unsigned int args_count, arg_current;
+	unsigned int src_current = 0, src_left;
 	bool_t ws_skipped;
 	const application_function_table_t *tableptr;
 
@@ -85,7 +85,7 @@ irom app_action_t application_content(const char *src, uint16_t size, char *dst)
 
 	if(tableptr->function)
 	{
-		if(args_count < (tableptr->required_args + 1))
+		if(args_count < (unsigned int)(tableptr->required_args + 1))
 		{
 			snprintf(dst, size, "insufficient arguments: %d (%d required)\n", args_count - 1, tableptr->required_args);
 			return(app_action_error);
@@ -124,7 +124,7 @@ irom static app_action_t application_function_config_write(application_parameter
 irom static app_action_t application_function_help(application_parameters_t ap)
 {
 	const application_function_table_t *tableptr;
-	uint16_t length;
+	unsigned int length;
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
@@ -157,7 +157,7 @@ irom static app_action_t application_function_stats(application_parameters_t ap)
 
 irom static app_action_t application_function_bridge_tcp_port(application_parameters_t ap)
 {
-	uint32_t tcp_port;
+	unsigned int tcp_port;
 
 	if(ap.nargs > 1)
 	{
@@ -169,7 +169,7 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 			return(1);
 		}
 
-		config->bridge_tcp_port = tcp_port;
+		config->bridge_tcp_port = (uint16_t)tcp_port;
 		snprintf(ap.dst, ap.size, "bridge-tcp_port: %u, write config and restart to activate\n", config->bridge_tcp_port);
 	}
 	else
@@ -180,7 +180,7 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 
 irom static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
-	uint32_t baud_rate = atoi((*ap.args)[1]);
+	unsigned int baud_rate = atoi((*ap.args)[1]);
 
 	if(baud_rate > 1000000)
 	{
@@ -197,7 +197,7 @@ irom static app_action_t application_function_uart_baud_rate(application_paramet
 
 irom static app_action_t application_function_uart_data_bits(application_parameters_t ap)
 {
-	uint8_t data_bits = atoi((*ap.args)[1]);
+	unsigned int data_bits = atoi((*ap.args)[1]);
 
 	if((data_bits < 5) || (data_bits > 8))
 	{
@@ -214,7 +214,7 @@ irom static app_action_t application_function_uart_data_bits(application_paramet
 
 irom static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
 {
-	uint8_t stop_bits = atoi((*ap.args)[1]);
+	unsigned int stop_bits = atoi((*ap.args)[1]);
 
 	if((stop_bits < 1) || (stop_bits > 2))
 	{
@@ -246,11 +246,11 @@ irom static app_action_t application_function_uart_parity(application_parameters
 	return(app_action_normal);
 }
 
-static uint8_t i2c_address = 0;
+static unsigned int i2c_address = 0;
 
 irom static app_action_t application_function_i2c_address(application_parameters_t ap)
 {
-	i2c_address = (uint8_t)strtoul((*ap.args)[1], 0, 16);
+	i2c_address = strtoul((*ap.args)[1], 0, 16);
 
 	snprintf(ap.dst, ap.size, "i2c-address: i2c slave address set to 0x%02x\n", i2c_address);
 
@@ -259,7 +259,7 @@ irom static app_action_t application_function_i2c_address(application_parameters
 
 irom static app_action_t application_function_i2c_read(application_parameters_t ap)
 {
-	uint16_t length, current, size;
+	unsigned int length, current, size;
 	i2c_error_t error;
 	uint8_t bytes[32];
 
@@ -297,7 +297,7 @@ irom static app_action_t application_function_i2c_read(application_parameters_t 
 
 irom static app_action_t application_function_i2c_write(application_parameters_t ap)
 {
-	uint16_t src_current, dst_current;
+	unsigned int src_current, dst_current;
 	i2c_error_t error;
 	uint8_t bytes[32];
 
@@ -357,7 +357,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(application_p
 	i2c_sensor_t sensor;
 	float factor;
 	float offset;
-	uint16_t length;
+	unsigned int length;
 
 	sensor = atoi((*ap.args)[1]);
 	factor = string_to_double((*ap.args)[2]);
@@ -395,7 +395,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(application_p
 irom static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
 {
 	i2c_sensor_t sensor;
-	uint16_t offset;
+	unsigned int offset;
 	bool_t all, verbose;
 	char *orig_dst = ap.dst;
 
@@ -404,7 +404,7 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 
 	if(ap.nargs > 1)
 	{
-		switch((uint8_t)atoi((*ap.args)[1]))
+		switch(atoi((*ap.args)[1]))
 		{
 			case(2):
 				verbose = true;
@@ -433,7 +433,7 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 
 irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t value)
 {
-	uint16_t length;
+	unsigned int length;
 
 	if(ap.nargs < 2)
 	{
@@ -473,8 +473,8 @@ irom static app_action_t application_function_unset(application_parameters_t ap)
 
 irom static app_action_t application_function_rtc_set(application_parameters_t ap)
 {
-	rt_hours = (uint8_t)atoi((*ap.args)[1]);
-	rt_mins = (uint8_t)atoi((*ap.args)[2]);
+	rt_hours = atoi((*ap.args)[1]);
+	rt_mins = atoi((*ap.args)[2]);
 	rt_secs = 0;
 
 	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u\n", rt_hours, rt_mins);
@@ -484,15 +484,15 @@ irom static app_action_t application_function_rtc_set(application_parameters_t a
 
 irom static app_action_t application_function_display_brightness(application_parameters_t ap)
 {
-	int8_t id;
-	int8_t value;
+	unsigned int id;
+	unsigned int value;
 	static const char *usage = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
 
-	id = (uint8_t)atoi((*ap.args)[1]);
+	id = atoi((*ap.args)[1]);
 
 	if(ap.nargs > 2)
 	{
-		value = (uint8_t)atoi((*ap.args)[2]);
+		value = atoi((*ap.args)[2]);
 
 		if(!display_set_brightness(id, value))
 		{
@@ -514,10 +514,10 @@ irom static app_action_t application_function_display_brightness(application_par
 
 irom static app_action_t application_function_display_dump(application_parameters_t ap)
 {
-	int8_t verbose;
+	unsigned int verbose;
 
 	if(ap.nargs > 1)
-		verbose = (uint8_t)atoi((*ap.args)[1]);
+		verbose = atoi((*ap.args)[1]);
 	else
 		verbose = 0;
 
@@ -528,15 +528,15 @@ irom static app_action_t application_function_display_dump(application_parameter
 
 irom static app_action_t application_function_display_set(application_parameters_t ap)
 {
-	uint8_t id;
-	uint8_t slot;
+	unsigned int id;
+	unsigned int slot;
+	unsigned int current;
+	unsigned int timeout;
 	const char *text;
-	uint8_t current;
-	uint16_t timeout;
 
-	id = (uint8_t)atoi((*ap.args)[1]);
-	slot = (uint8_t)atoi((*ap.args)[2]);
-	timeout = (uint8_t)atoi((*ap.args)[3]);
+	id = atoi((*ap.args)[1]);
+	slot = atoi((*ap.args)[2]);
+	timeout = atoi((*ap.args)[3]);
 
 	text = ap.cmdline;
 
