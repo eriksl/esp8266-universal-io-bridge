@@ -782,10 +782,7 @@ irom static i2c_error_t sensor_bh1750_init(void)
 	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
 
 	if((error = i2c_send_1(0x23, 0b00010001)) != i2c_error_ok)
-	{
-		i2c_reset();
 		return(error);
-	}
 
 	return(i2c_error_ok);
 }
@@ -924,7 +921,10 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int offset, unsign
 	// wake the device
 
 	i2c_send_1(0x5c, 0);
-	i2c_reset();
+
+	if((error = i2c_reset()) != i2c_error_ok)
+		return(i2c_error_device_error_1);
+
 	msleep(1);
 
 	if((error = i2c_send_3(0x5c, 0x03, offset, length)) != i2c_error_ok)
@@ -936,13 +936,13 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int offset, unsign
 		return(error);
 
 	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
-		return(i2c_error_device_error_1);
+		return(i2c_error_device_error_2);
 
 	crc1 = i2cbuffer[length + 2] | (i2cbuffer[length + 3] << 8);
 	crc2 = am2321_crc(length + 2, i2cbuffer);
 
 	if(crc1 != crc2)
-		return(i2c_error_device_error_2);
+		return(i2c_error_device_error_3);
 
 	memcpy(values, &i2cbuffer[2], length);
 
@@ -1099,19 +1099,24 @@ static const device_table_t device_table[] =
 irom void i2c_sensor_init(void)
 {
 	const device_table_t *entry;
-	unsigned int current;
+	i2c_sensor_t current;
 
 	for(current = 0; current < i2c_sensor_size; current++)
 	{
 		entry = &device_table[current];
 
-		if(entry->init_fn && (entry->init_fn() == i2c_error_ok))
-			device_data[entry->id].detected = true;
-		else
+		if(entry->init_fn)
 		{
-			device_data[entry->id].detected = false;
-			i2c_reset();
+			if(entry->init_fn() == i2c_error_ok)
+				device_data[entry->id].detected = true;
+			else
+			{
+				device_data[entry->id].detected = false;
+				i2c_reset();
+			}
 		}
+		else
+			device_data[entry->id].detected = false;
 	}
 }
 
