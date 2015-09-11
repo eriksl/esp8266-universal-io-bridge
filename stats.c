@@ -12,6 +12,8 @@ uint32_t stat_timer_fast;
 uint32_t stat_timer_slow;
 uint32_t stat_timer_second;
 uint32_t stat_background_task;
+uint32_t stat_i2c_init_time_us;
+uint32_t stat_display_init_time_us;
 
 uint8_t	ut_days;
 uint8_t	ut_hours;
@@ -96,6 +98,8 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> timer_slow fired: %u\n"
 			"> timer_second fired: %u\n"
 			"> background task: %u\n"
+			"> i2c initialisation time: %u us\n"
+			"> display initialisation time: %u us\n"
 			">\n"
 			"> default ssid: %s, passwd: %s\n"
 			"> current ssid: %s, passwd: %s\n"
@@ -121,6 +125,8 @@ irom void stats_generate(unsigned int size, char *dst)
 			stat_timer_slow,
 			stat_timer_second,
 			stat_background_task,
+			stat_i2c_init_time_us,
+			stat_display_init_time_us,
 			sc_default.ssid, sc_default.password,
 			sc_current.ssid, sc_current.password,
 			phy[wifi_get_phy_mode()],

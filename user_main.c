@@ -300,14 +300,18 @@ irom static void background_task(os_event_t *events)
 
 	if(action.init_i2c_sensors)
 	{
+		uint32_t now = system_get_time();
 		i2c_sensor_init();
 		action.init_i2c_sensors = 0;
+		stat_i2c_init_time_us = system_get_time() - now;
 	}
 
 	if(action.init_displays)
 	{
+		uint32_t now = system_get_time();
 		display_init();
 		action.init_displays = 0;
+		stat_display_init_time_us = system_get_time() - now;
 	}
 }
 
