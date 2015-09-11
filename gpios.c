@@ -246,7 +246,7 @@ irom void gpios_init(void)
 	uint32_t pwm_io_info[gpio_pwm_size][3];
 	uint32_t pwm_duty_init[gpio_pwm_size];
 	uint32_t state_change_mask;
-	unsigned int sda, scl;
+	int sda, scl;
 
 	sda = scl = -1;
 
@@ -667,8 +667,8 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 					size -= length;
 
 					if(gpio_flags.pwm_subsystem_active)
-						length = snprintf(str, size, "active, current frequency: %u Hz, current duty: %u",
-								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
+						length = snprintf(str, size, "active, channel: %u, current frequency: %u Hz, current duty: %u",
+								gpio->pwm.channel, 1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
 					else
 						length = snprintf(str, size, "inactive");
 
@@ -791,8 +791,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		{
 			gpio_direction_t direction;
 			unsigned int delay;
-			uint8_t repeat;
-			uint8_t autotrigger;
+			unsigned int repeat;
+			unsigned int autotrigger;
 
 			if(ap.nargs != 7)
 			{
@@ -811,6 +811,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 			}
 
 			delay = atoi((*ap.args)[4]);
+			repeat = atoi((*ap.args)[5]);
+			autotrigger = atoi((*ap.args)[6]);
 
 			if(delay < 100)
 			{
@@ -818,13 +820,10 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			repeat = (uint8_t)!!atoi((*ap.args)[5]);
-			autotrigger = (uint8_t)!!atoi((*ap.args)[6]);
-
 			new_gpio_config->timer.direction = direction;
-			new_gpio_config->timer.delay = delay;
-			new_gpio_config->timer.repeat = repeat;
-			new_gpio_config->timer.autotrigger = autotrigger;
+			new_gpio_config->timer.delay = (uint32_t)delay;
+			new_gpio_config->timer.repeat = (uint8_t)!!repeat;
+			new_gpio_config->timer.autotrigger = (uint8_t)!!autotrigger;
 
 			break;
 		}
@@ -835,7 +834,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(gpio->flags.rtc_gpio)
 			{
-				snprintf(ap.dst, ap.size, "%s", "gpio-mode: pwm mode invalid for gpio 16\n");
+				snprintf(ap.dst, ap.size, "%s", "gpio-mode: pwm mode not supported for this gpio\n");
 				return(app_action_error);
 			}
 
