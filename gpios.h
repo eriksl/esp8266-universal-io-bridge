@@ -93,7 +93,7 @@ typedef struct
 	{
 		uint16_t	min_duty;
 		uint16_t	max_duty;
-		uint8_t 	speed;
+		uint8_t 	delay;
 	} pwm;
 
 	struct

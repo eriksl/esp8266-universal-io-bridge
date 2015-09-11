@@ -48,9 +48,10 @@ typedef struct
 	struct
 	{
 		unsigned int		channel;
-		unsigned int		speed;
 		unsigned int		min_duty;
 		unsigned int		max_duty;
+		unsigned int		delay_current;
+		unsigned int		delay_top;
 		gpio_direction_t	direction;
 	} pwm;
 } gpio_t;
@@ -313,7 +314,7 @@ irom static void gpio_config_init(gpio_config_entry_t *gpio)
 	gpio->timer.autotrigger = false;
 	gpio->pwm.min_duty = 0;
 	gpio->pwm.max_duty = 0;
-	gpio->pwm.speed = 0;
+	gpio->pwm.delay = 0;
 	gpio->i2c.pin = gpio_i2c_sda;
 }
 
@@ -380,14 +381,11 @@ iram static inline void arm_counter(const gpio_t *gpio)
 
 iram void gpios_periodic(void)
 {
-	static unsigned int pwm_divider = 0;
-	unsigned int current;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
-	bool_t pwm_changed;
-
-	pwm_changed = false;
-	pwm_divider += 1;
+	unsigned int current;
+	unsigned int duty;
+	bool_t pwm_changed = false;
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -421,54 +419,55 @@ iram void gpios_periodic(void)
 			}
 		}
 
-		if((cfg->mode == gpio_pwm) && (gpio->pwm.speed > 0) && (pwm_divider >= gpio->pwm.speed))
+		if((cfg->mode == gpio_pwm) && (gpio->pwm.delay_top > 0))
 		{
-			unsigned int duty;
-
-			pwm_divider = 0;
-
-			duty = pwm_get_duty(gpio->pwm.channel);
-
-			if(gpio->pwm.direction == gpio_up)
+			if(++gpio->pwm.delay_current > gpio->pwm.delay_top)
 			{
-				if(duty < gpio->pwm.min_duty)
-					duty = gpio->pwm.min_duty;
+				gpio->pwm.delay_current = 0;
 
-				if(duty < 16)
-					duty = 16;
+				duty = pwm_get_duty(gpio->pwm.channel);
 
-				duty *= 115;
-				duty /= 100;
-
-				if(duty >= gpio->pwm.max_duty)
+				if(gpio->pwm.direction == gpio_up)
 				{
-					duty = gpio->pwm.max_duty;
-					gpio->pwm.direction = gpio_down;
+					if(duty < gpio->pwm.min_duty)
+						duty = gpio->pwm.min_duty;
+
+					if(duty < 16)
+						duty = 16;
+
+					duty *= 115;
+					duty /= 100;
+
+					if(duty >= gpio->pwm.max_duty)
+					{
+						duty = gpio->pwm.max_duty;
+						gpio->pwm.direction = gpio_down;
+					}
 				}
+				else
+				{
+					if(duty > gpio->pwm.max_duty)
+						duty = gpio->pwm.max_duty;
+
+					duty *= 100;
+					duty /= 115;
+
+					if(duty <= gpio->pwm.min_duty)
+					{
+						duty = gpio->pwm.min_duty;
+						gpio->pwm.direction = gpio_up;
+					}
+
+					if(duty < 16)
+					{
+						duty = 16;
+						gpio->pwm.direction = gpio_up;
+					}
+				}
+
+				pwm_changed = true;
+				pwm_set_duty(duty, gpio->pwm.channel);
 			}
-			else
-			{
-				if(duty > gpio->pwm.max_duty)
-					duty = gpio->pwm.max_duty;
-
-				duty *= 100;
-				duty /= 115;
-
-				if(duty <= gpio->pwm.min_duty)
-				{
-					duty = gpio->pwm.min_duty;
-					gpio->pwm.direction = gpio_up;
-				}
-
-				if(duty < 16)
-				{
-					duty = 16;
-					gpio->pwm.direction = gpio_up;
-				}
-			}
-
-			pwm_changed = true;
-			pwm_set_duty(duty, gpio->pwm.channel);
 		}
 	}
 
@@ -587,7 +586,8 @@ irom static void gpio_init_pwm(gpio_t *gpio)
 
 	gpio->pwm.min_duty = cfg->pwm.min_duty;
 	gpio->pwm.max_duty = cfg->pwm.max_duty;
-	gpio->pwm.speed = cfg->pwm.speed;
+	gpio->pwm.delay_top = cfg->pwm.delay;
+	gpio->pwm.delay_current = 0;
 	gpio->pwm.direction	= gpio_up;
 }
 
@@ -675,14 +675,14 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, "\ndefault min duty: %u, max duty: %u, speed: %u",
-							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.speed);
+					length = snprintf(str, size, "\ndefault min duty: %u, max duty: %u, delay: %u",
+							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.delay);
 
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, "\nactive min duty: %u, max duty %u, speed: %u",
-							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.speed);
+					length = snprintf(str, size, "\ncurrent min duty: %u, max duty %u, delay: %u",
+							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.delay_top);
 
 					break;
 				}
@@ -830,7 +830,13 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			unsigned int speed;
+			unsigned int min_duty;
+			unsigned int max_duty;
+			unsigned int delay;
+
+			min_duty = 0;
+			max_duty = 0;
+			delay = 0;
 
 			if(gpio->flags.rtc_gpio)
 			{
@@ -839,23 +845,35 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 			}
 
 			if(ap.nargs > 3)
-				new_gpio_config->pwm.min_duty = atoi((*ap.args)[3]);
+				min_duty = atoi((*ap.args)[3]);
 
 			if(ap.nargs > 4)
-				new_gpio_config->pwm.max_duty = atoi((*ap.args)[4]);
+				max_duty = atoi((*ap.args)[4]);
 
 			if(ap.nargs > 5)
+				delay = atoi((*ap.args)[5]);
+
+			if(min_duty > 65535)
 			{
-				speed = atoi((*ap.args)[5]);
-
-				if(speed > 100)
-				{
-					snprintf(ap.dst, ap.size, "gpio-mode(pwm): speed too large4: %d%% > 100%%\n", speed);
-					return(app_action_error);
-				}
-
-				new_gpio_config->pwm.speed = (uint8_t)speed;
+				snprintf(ap.dst, ap.size, "gpio-mode(pwm): min_duty too large: %u > 65535\n", min_duty);
+				return(app_action_error);
 			}
+
+			if(max_duty > 65535)
+			{
+				snprintf(ap.dst, ap.size, "gpio-mode(pwm): max_duty too large: %u > 65535\n", max_duty);
+				return(app_action_error);
+			}
+
+			if(delay > 100)
+			{
+				snprintf(ap.dst, ap.size, "gpio-mode(pwm): delay too large: %u%% > 100%%\n", delay);
+				return(app_action_error);
+			}
+
+			new_gpio_config->pwm.min_duty = (uint16_t)min_duty;
+			new_gpio_config->pwm.max_duty = (uint16_t)max_duty;
+			new_gpio_config->pwm.delay = (uint8_t)delay;
 
 			break;
 		}
@@ -1045,33 +1063,43 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		{
 			unsigned int min_duty;
 			unsigned int max_duty;
-			unsigned int speed;
+			unsigned int delay;
+
+			min_duty = 0;
+			max_duty = 0;
+			delay = 0;
 
 			if(ap.nargs > 2)
 				min_duty = atoi((*ap.args)[2]);
-			else
-				min_duty = cfg->pwm.min_duty;
 
 			if(ap.nargs > 3)
 				max_duty = atoi((*ap.args)[3]);
-			else
-				max_duty = cfg->pwm.max_duty;
 
 			if(ap.nargs > 4)
-				speed = atoi((*ap.args)[4]);
-			else
-				speed = cfg->pwm.speed;
+				delay = atoi((*ap.args)[4]);
 
-			if(speed > 100)
+			if(min_duty > 65535)
 			{
-				snprintf(ap.dst, ap.size, "gpio-set: gpio %s, speed %u%% > 100%%\n", gpio->name, speed);
+				snprintf(ap.dst, ap.size, "gpio-set(pwm): min_duty too large: %u > 65535\n", min_duty);
 				return(app_action_error);
 			}
 
-			gpio->pwm.min_duty =	(uint32_t)min_duty;
-			gpio->pwm.max_duty =	(uint32_t)max_duty;
-			gpio->pwm.speed =		(uint16_t)speed;
-			gpio->pwm.direction =	(uint8_t)gpio_up;
+			if(max_duty > 65535)
+			{
+				snprintf(ap.dst, ap.size, "gpio-set(pwm): max_duty too large: %u > 65535\n", max_duty);
+				return(app_action_error);
+			}
+
+			if(delay > 100)
+			{
+				snprintf(ap.dst, ap.size, "gpio-set: gpio %s, delay %u%% > 100%%\n", gpio->name, delay);
+				return(app_action_error);
+			}
+
+			gpio->pwm.min_duty = min_duty;
+			gpio->pwm.max_duty = max_duty;
+			gpio->pwm.delay_top = delay;
+			gpio->pwm.direction = gpio_up;
 
 			pwm_set_duty(min_duty, gpio->pwm.channel);
 			pwm_start();
