@@ -554,6 +554,108 @@ irom static app_action_t application_function_display_set(application_parameters
 	return(app_action_normal);
 }
 
+irom static const char *wlan_scan_status_to_string(STATUS status)
+{
+	static const char *status_msg[] =
+	{
+		"OK",
+		"FAIL",
+		"PENDING",
+		"BUSY",
+		"CANCEL"
+	};
+
+	if(status <= CANCEL)
+		return(status_msg[status]);
+
+	return("ERROR");
+}
+
+irom static const char *wlan_scan_authmode_to_string(AUTH_MODE auth_mode)
+{
+	static const char *auth_mode_msg[] =
+	{
+		"OTHER",
+		"WEP",
+		"WPA PSK",
+		"WPA2 PSK",
+		"WPA PSK + WPA2 PSK"
+	};
+
+	if(auth_mode < AUTH_MAX)
+		return(auth_mode_msg[auth_mode]);
+
+	return("ERROR");
+}
+
+static char wlan_scan_result[2048] = "";
+
+irom static void wlan_scan_done_callback(void *arg, STATUS status)
+{
+	struct bss_info *bss;
+	unsigned int length;
+	char *dst;
+	unsigned int size;
+	bool_t first;
+
+	dst = wlan_scan_result;
+	size = sizeof(wlan_scan_result);
+
+	length = snprintf(dst, size, "wlan scan result: %s\n", wlan_scan_status_to_string(status));
+	dst += length;
+	size -= length;
+
+	first = true;
+
+	for(bss = arg; bss; bss = bss->next.stqe_next)
+	{
+		if(first)
+		{
+			length = snprintf(dst, size, "> %-16s  %-4s  %-4s  %-18s  %-6s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "HIDDEN", "OFFSET", "BSSID");
+			first = false;
+		}
+		else
+		{
+			length = snprintf(dst, size, "> %-16s  %4u  %4d  %-18s  %-6s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
+					bss->ssid,
+					bss->channel,
+					bss->rssi,
+					wlan_scan_authmode_to_string(bss->authmode),
+					yesno(bss->is_hidden),
+					bss->freq_offset,
+					bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
+		}
+
+		dst += length;
+		size -= length;
+	}
+}
+
+irom static app_action_t application_function_wlan_list(application_parameters_t ap)
+{
+	if(!*wlan_scan_result)
+	{
+		snprintf(ap.dst, ap.size, "wlan scan: no results (yet)\n");
+		return(app_action_normal);
+	}
+
+	snprintf(ap.dst, ap.size, "%s", wlan_scan_result);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_wlan_scan(application_parameters_t ap)
+{
+
+	*wlan_scan_result = '\0';
+
+	wifi_station_scan(0, wlan_scan_done_callback);
+
+	snprintf(ap.dst, ap.size, "wlan scan started, use wlan-list to retrieve the results\n");
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -723,6 +825,18 @@ static const application_function_table_t application_function_table[] =
 		1,
 		application_function_uart_parity,
 		"set uart parity [none/even/odd]",
+	},
+	{
+		"wl", "wlan-list",
+		0,
+		application_function_wlan_list,
+		"retrieve results from wlan-scan"
+	},
+	{
+		"ws", "wlan-scan",
+		0,
+		application_function_wlan_scan,
+		"scan wlan, use wlan-list to retrieve the results"
 	},
 	{
 		"", "",
