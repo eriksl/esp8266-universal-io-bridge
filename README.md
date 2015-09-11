@@ -218,7 +218,13 @@ Needless to say it will only work if i2c is up and running.
 <td>S</td><td>stats</td><td><i>none</i></td><td>Shows some statistics (timers, wlan, memory). These may change over time.</td>
 </tr>
 <tr>
-<td>rs</td><td>rtc-set</td><td><i>hours</i> <i>minutes</i> <i>seconds</i></td><td>Set "real time clock". It's a real time clock in the sense that it counts hours, minutes, seconds. It may not be that precise. YMMV.
+<td>rs</td><td>rtc-set</td><td><i>hours</i> <i>minutes</i> <i>seconds</i></td><td>Set "real time clock". It's a real time clock in the sense that it counts hours, minutes, seconds. It may not be that precise. YMMV.</td>
+</tr>
+<tr>
+<td>wl</td><td>wlan-list</td><td>View results of access point / ssid scan from wlan-list</td>
+</tr>
+<tr>
+<td>ws</td><td>wlan-scan</td><td>Initiate access point / ssid scan. Use wlan-list to view the results</td>
 </tr>
 </table>
 
