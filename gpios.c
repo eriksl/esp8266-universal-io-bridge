@@ -213,8 +213,6 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	gpio_config_entry_t *cfg;
 	unsigned int current;
 
-	gpio_intr_ack(pc);
-
 	for(current = 0; current < gpio_size; current++)
 	{
 		gpio = &gpios[current];
@@ -227,6 +225,8 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 			gpio->counter.debounce = cfg->counter.debounce;
 		}
 	}
+
+	gpio_intr_ack(pc);
 }
 
 irom static void select_pin_function(const gpio_t *gpio)
