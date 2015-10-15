@@ -392,7 +392,7 @@ iram void gpios_periodic(void)
 		gpio = &gpios[current];
 		cfg = get_config(gpio);
 
-		if((cfg->mode == gpio_counter) && (gpio->counter.debounce > 0))
+		if((cfg->mode == gpio_counter) && (gpio->counter.debounce != 0))
 		{
 			if(gpio->counter.debounce >= 10)
 				gpio->counter.debounce -= 10; // 10 ms per tick
