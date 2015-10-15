@@ -763,13 +763,14 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			if(ap.nargs > 3)
+			if(ap.nargs != 5)
 			{
-				new_gpio_config->counter.reset_on_get = (uint8_t)!!atoi((*ap.args)[3]);
-
-				if(ap.nargs > 4)
-					new_gpio_config->counter.debounce = atoi((*ap.args)[4]);
+				snprintf(ap.dst, ap.size, "gpio-mode(counter): <reset on get> <debounce ms>\n");
+				return(app_action_error);
 			}
+
+			new_gpio_config->counter.reset_on_get = (uint8_t)!!atoi((*ap.args)[3]);
+			new_gpio_config->counter.debounce = atoi((*ap.args)[4]);
 
 			break;
 		}
