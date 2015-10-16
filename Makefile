@@ -7,7 +7,7 @@ CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -W
 					-Wsuggest-attribute=const -Wsuggest-attribute=pure -Wno-div-by-zero -Wfloat-equal \
 					-Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=384 \
 					-Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wsequence-point \
-					-Wclobbered -Wlogical-op -Waggregate-return -Wold-style-definition -Wstrict-prototypes \
+					-Wclobbered -Wlogical-op -Wold-style-definition -Wstrict-prototypes \
 					-Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \
 					-Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code -Wtrigraphs -Wreturn-type \
 					-Wmissing-braces -Wparentheses -Wimplicit -Winit-self -Wformat-nonliteral -Wcomment \
