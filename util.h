@@ -31,7 +31,6 @@ void pin_func_select(uint32_t pin_name, uint32_t pin_func);
 
 // prototypes missing
 
-void *pvPortMalloc(size_t);
 int ets_vsnprintf(char *, size_t, const char *, va_list);
 
 void ets_isr_attach(int, void *, void *);
@@ -42,10 +41,16 @@ void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 void ets_delay_us(uint16_t);
 
+void *pvPortMalloc(size_t size, const char *file, unsigned int line);
+void *pvPortZalloc(size_t size, const char *file, unsigned int line);
+void *pvPortRealloc(void *ptr, size_t size, const char *file, unsigned int line);
+
 // local utility functions missing from libc
 
 int snprintf(char *, size_t, const char *, ...) __attribute__ ((format (printf, 3, 4)));
 void *malloc(size_t);
+void *zalloc(size_t);
+void *realloc(void *, size_t);
 
 // other convenience functions
 

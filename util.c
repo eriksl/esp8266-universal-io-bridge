@@ -56,7 +56,17 @@ irom void pin_func_select(uint32_t pin_name, uint32_t pin_func)
 
 irom void *malloc(size_t size)
 {
-	return(os_malloc(size));
+	return(pvPortMalloc(size, "", 0));
+}
+
+irom void *zalloc(size_t size)
+{
+	return(pvPortZalloc(size, "", 0));
+}
+
+irom void *realloc(void *ptr, size_t size)
+{
+	return(pvPortRealloc(ptr, size, "", 0));
 }
 
 irom void reset(void)
