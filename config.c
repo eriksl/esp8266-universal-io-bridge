@@ -174,6 +174,8 @@ iram void config_read_alt(config_t *cfg)
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
 			cfg->bridge_tcp_port = 25;
+			cfg->ntp_server = string_to_ip_addr("0.0.0.0");
+			cfg->ntp_timezone = 0;
 			gpios_config_init(&cfg->gpios);
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
@@ -218,17 +220,29 @@ irom void config_dump(unsigned int size, char *dst)
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> bridge tcp port: %u\n"
+			"> ntp time zone: GMT%c%u\n"
 			"> flags: ",
 			tmpconfig->magic,
 			tmpconfig->major_version,
 			tmpconfig->minor_version,
 			tmpconfig->ssid,
 			tmpconfig->passwd,
-			tmpconfig->bridge_tcp_port);
+			tmpconfig->bridge_tcp_port,
+			tmpconfig->ntp_timezone >= 0 ? '+' : '-',
+			tmpconfig->ntp_timezone >= 0 ? tmpconfig->ntp_timezone : 0 - tmpconfig->ntp_timezone);
+
 	size -= length;
 	dst += length;
 
 	length = config_flags_to_string(size, dst, config->flags);
+	size -= length;
+	dst += length;
+
+	length = snprintf(dst, size, "%s", "\n> ntp server: ");
+	size -= length;
+	dst += length;
+
+	length = ip_addr_to_string(size, dst, tmpconfig->ntp_server);
 	size -= length;
 	dst += length;
 

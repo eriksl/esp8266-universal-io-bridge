@@ -255,3 +255,91 @@ irom attr_pure double string_to_double(const char *src)
 
 	return(negative ? 0 - result : result);
 }
+
+typedef union
+{
+	ip_addr_t	ip_addr;
+	uint8_t		byte[3];
+} ip_addr_to_bytes_t;
+
+irom void split_ip_addr(ip_addr_t ip_addr, unsigned int byte[4])
+{
+	ip_addr_to_bytes_t ip_addr_to_bytes;
+
+	ip_addr_to_bytes.ip_addr = ip_addr;
+
+	byte[0] = ip_addr_to_bytes.byte[0];
+	byte[1] = ip_addr_to_bytes.byte[1];
+	byte[2] = ip_addr_to_bytes.byte[2];
+	byte[3] = ip_addr_to_bytes.byte[3];
+}
+
+irom ip_addr_t join_ip_addr(const unsigned int byte[4])
+{
+	ip_addr_to_bytes_t ip_addr_to_bytes;
+
+	ip_addr_to_bytes.byte[0] = byte[0];
+	ip_addr_to_bytes.byte[1] = byte[1];
+	ip_addr_to_bytes.byte[2] = byte[2];
+	ip_addr_to_bytes.byte[3] = byte[3];
+
+	return(ip_addr_to_bytes.ip_addr);
+}
+
+irom unsigned int ip_addr_to_string(unsigned int size, char *dst, ip_addr_t addr)
+{
+	unsigned int byte[4];
+
+	split_ip_addr(addr, byte);
+	return(snprintf(dst, size, "%u.%u.%u.%u", byte[0], byte[1], byte[2], byte[3]));
+}
+
+irom attr_pure ip_addr_t string_to_ip_addr(const char *src)
+{
+	ip_addr_to_bytes_t ip_addr_to_bytes;
+	unsigned int ix;
+	unsigned int current;
+
+	current = 0;
+
+	for(ix = 0; ix < 4; )
+	{
+		if(src && (*src >= '0') && (*src <= '9'))
+		{
+			current *= 10;
+			current += *src - '0';
+			src++;
+
+			continue;
+		}
+
+		ip_addr_to_bytes.byte[ix++] = current;
+		current = 0;
+
+		if(src && (*src == '.'))
+			src++;
+	}
+
+	return(ip_addr_to_bytes.ip_addr);
+}
+
+irom attr_pure bool ip_addr_valid(ip_addr_t ip_addr)
+{
+	ip_addr_to_bytes_t ip_addr_to_bytes;
+
+	ip_addr_to_bytes.ip_addr = ip_addr;
+
+	if(ip_addr_to_bytes.byte[0])
+		return(true);
+
+	if(ip_addr_to_bytes.byte[1])
+		return(true);
+
+	if(ip_addr_to_bytes.byte[2])
+		return(true);
+
+	if(ip_addr_to_bytes.byte[3])
+		return(true);
+
+	return(false);
+}

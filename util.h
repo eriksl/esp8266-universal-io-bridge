@@ -8,6 +8,7 @@
 #include <c_types.h>
 #include <osapi.h>
 #include <ets_sys.h>
+#include <ip_addr.h>
 
 typedef enum
 {
@@ -61,5 +62,10 @@ int dprintf(const char *fmt, ...);
 void msleep(unsigned int);
 unsigned int double_to_string(double value, unsigned int precision, double top_decimal, unsigned int size, char *dst);
 double string_to_double(const char *);
+void split_ip_addr(ip_addr_t, unsigned int [4]);
+ip_addr_t join_ip_addr(const unsigned int [4]);
+unsigned int ip_addr_to_string(unsigned int size, char *dst, ip_addr_t);
+ip_addr_t string_to_ip_addr(const char *);
+bool ip_addr_valid(ip_addr_t);
 
 #endif

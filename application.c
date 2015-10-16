@@ -13,6 +13,7 @@
 
 #include <user_interface.h>
 #include <c_types.h>
+#include <sntp.h>
 
 #include <stdlib.h>
 
@@ -646,12 +647,47 @@ irom static app_action_t application_function_wlan_list(application_parameters_t
 
 irom static app_action_t application_function_wlan_scan(application_parameters_t ap)
 {
-
 	*wlan_scan_result = '\0';
 
 	wifi_station_scan(0, wlan_scan_done_callback);
 
 	snprintf(ap.dst, ap.size, "wlan scan started, use wlan-list to retrieve the results\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_ntp_dump(application_parameters_t ap)
+{
+	ip_addr_t addr;
+	unsigned int length;
+	int timezone;
+
+	timezone = sntp_get_timezone();
+	addr = sntp_getserver(0);
+	length = snprintf(ap.dst, ap.size, "> server: ");
+	ap.dst += length;
+	ap.size -= length;
+	length = ip_addr_to_string(ap.size, ap.dst, addr);
+	ap.dst += length;
+	ap.size -= length;
+	snprintf(ap.dst, ap.size, "\n> time zone: GMT%c%u\n> ntp time: %s",
+			timezone < 0 ? '-' : '+',
+			timezone < 0 ? 0 - timezone : timezone,
+			sntp_get_real_time(sntp_get_current_timestamp()));
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_ntp_set(application_parameters_t ap)
+{
+	unsigned int length;
+
+	config->ntp_server = string_to_ip_addr((*ap.args)[1]);
+	config->ntp_timezone = atoi((*ap.args)[2]);
+
+	length = snprintf(ap.dst, ap.size, "ntp server set, write config and restart to activate\n");
+	ap.dst += length;
+	ap.size -= length;
 
 	return(app_action_normal);
 }
@@ -759,6 +795,18 @@ static const application_function_table_t application_function_table[] =
         0,
         application_function_i2c_sensor_dump,
         "dump all i2c sensors",
+    },
+    {
+        "nd", "ntp-dump",
+        0,
+        application_function_ntp_dump,
+        "dump ntp information",
+    },
+    {
+        "ns", "ntp-set",
+        2,
+        application_function_ntp_set,
+        "set ntp <ip addr> <timezone GMT+x>",
     },
 	{
 		"?", "help",

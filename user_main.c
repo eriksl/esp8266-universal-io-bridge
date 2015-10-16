@@ -11,6 +11,7 @@
 #include "display.h"
 
 #include <ip_addr.h>
+#include <sntp.h>
 #include <espconn.h>
 #include <user_interface.h>
 #include <os_type.h>
@@ -558,6 +559,7 @@ irom static void user_init2(void)
 {
 	static struct espconn esp_cmd_config, esp_data_config;
 	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;
+	ip_addr_t sntp_server;
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 
@@ -566,6 +568,15 @@ irom static void user_init2(void)
 	action.init_displays = 1;
 
 	config_wlan(config->ssid, config->passwd);
+
+	if(ip_addr_valid(config->ntp_server))
+	{
+		sntp_server = config->ntp_server;
+
+		sntp_set_timezone(config->ntp_timezone);
+		sntp_setserver(0, &sntp_server);
+		sntp_init();
+	}
 
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, config->bridge_tcp_port, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);
