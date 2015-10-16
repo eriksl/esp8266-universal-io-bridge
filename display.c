@@ -112,6 +112,7 @@ static const uint8_t led_charrom[] =
 };
 
 static display_data_t device_data[display_size];
+static char default_message[display_slot_size] = "";
 
 static irom unsigned int led_render_char(unsigned int character)
 {
@@ -265,6 +266,7 @@ irom void display_periodic(void) // call once per second
 	static unsigned int current_scroll = 0;
 	unsigned int display;
 	unsigned int slot;
+	unsigned int active_slots;
 	display_data_t *display_entry;
 
 	// expiration
@@ -273,14 +275,28 @@ irom void display_periodic(void) // call once per second
 	{
 		display_entry = &display_data[display];
 
-		if(display_entry->detected)
+		if(!display_entry->detected)
+			continue;
+
+		active_slots = 0;
+
+		for(slot = 0; slot < display_slot_amount; slot++)
 		{
-			for(slot = 0; slot < display_slot_amount; slot++)
+			if(display_entry->slot[slot].timeout > 0)
 			{
-				if(display_entry->slot[slot].timeout > 0)
-					if(--display_entry->slot[slot].timeout == 0)
-						display_entry->slot[slot].content[0] = '\0';
+				if(--display_entry->slot[slot].timeout == 0)
+					display_entry->slot[slot].content[0] = '\0';
 			}
+
+			if(display_entry->slot[slot].content[0])
+				active_slots++;
+		}
+
+		if(active_slots == 0)
+		{
+			snprintf(display_entry->slot[0].content, sizeof(display_entry->slot[0].content), "%s",
+					default_message);
+			current_scroll = 0;
 		}
 	}
 
@@ -289,13 +305,17 @@ irom void display_periodic(void) // call once per second
 		current_scroll = 0;
 		display_update(true);
 	}
+	else
+		display_update(false);
 }
 
-irom void display_init(const char *default_message)
+irom void display_init(const char *default_message_in)
 {
 	display_data_t *entry;
 	unsigned int current;
 	unsigned int slot;
+
+	snprintf(default_message, sizeof(default_message), "%s", default_message_in);
 
 	for(current = 0; current < display_size; current++)
 	{
@@ -313,9 +333,6 @@ irom void display_init(const char *default_message)
 			entry->slot[slot].timeout = 0;
 			entry->slot[slot].content[0] = '\0';
 		}
-
-		if(default_message && *default_message)
-			snprintf(entry->slot[0].content, sizeof(entry->slot[0].content), "%s", default_message);
 	}
 
 	display_update(false);
