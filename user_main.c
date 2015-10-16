@@ -10,6 +10,7 @@
 #include "i2c_sensor.h"
 #include "display.h"
 
+#include <stdlib.h>
 #include <ip_addr.h>
 #include <sntp.h>
 #include <espconn.h>
@@ -51,6 +52,7 @@ static struct
 	unsigned int reset:1;
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
+	unsigned int init_ntp_bogus:1;
 } action;
 
 static char *tcp_cmd_receive_buffer;
@@ -63,6 +65,32 @@ static char tcp_data_send_buffer_busy;
 static struct espconn *esp_data_tcp_connection;
 
 irom static void user_init2(void);
+
+irom static void ntp_init(void)
+{
+	if(ip_addr_valid(config->ntp_server))
+	{
+		sntp_setserver(0, &config->ntp_server);
+		sntp_set_timezone(config->ntp_timezone);
+		sntp_init();
+		action.init_ntp_bogus = 0;
+	}
+	else
+		action.init_ntp_bogus = 1;
+}
+
+irom static void ntp_periodic(void)
+{
+	const char *timestring;
+
+	if(action.init_ntp_bogus) // server not configured
+		return;
+
+	timestring = sntp_get_real_time(sntp_get_current_timestamp());
+
+	rt_hours = atoi(&timestring[11]);
+	rt_mins = atoi(&timestring[14]);
+}
 
 irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 		unsigned int port, void (*connect_callback)(struct espconn *))
@@ -490,14 +518,16 @@ irom noinline static void periodic_timer_slowpath(void)
 
 iram static void periodic_timer_callback(void *arg)
 {
-	static unsigned int timer_slow_dropped = 0;
-	static unsigned int timer_second_dropped = 0;
+	static unsigned int timer_slow_skipped = 0;
+	static unsigned int timer_second_skipped = 0;
+	static unsigned int timer_minute_skipped = 0;
 
 	(void)arg;
 
 	stat_timer_fast++;
-	timer_slow_dropped++;
-	timer_second_dropped++;
+	timer_slow_skipped++;
+	timer_second_skipped++;
+	timer_minute_skipped++;
 
 	// timer runs on 100 Hz == 10 ms
 
@@ -505,19 +535,28 @@ iram static void periodic_timer_callback(void *arg)
 
 	// run background task every 10 Hz = 100 ms
 
-	if(timer_slow_dropped > 9)
+	if(timer_slow_skipped > 9)
 	{
-		timer_slow_dropped = 0;
+		timer_slow_skipped = 0;
 		periodic_timer_slowpath();
 	}
 
-	// run display background task every 1 Hz  = 1000 ms
+	// run display background task every second  = 1000 ms
 
-	if(timer_second_dropped > 99)
+	if(timer_second_skipped > 99)
 	{
 		stat_timer_second++;
-		timer_second_dropped = 0;
+		timer_second_skipped = 0;
 		display_periodic();
+	}
+
+	// check ntp every minute = 60000 ms
+
+	if(timer_minute_skipped > 5999)
+	{
+		stat_timer_minute++;
+		timer_minute_skipped = 0;
+		ntp_periodic();
 	}
 }
 
@@ -559,24 +598,16 @@ irom static void user_init2(void)
 {
 	static struct espconn esp_cmd_config, esp_data_config;
 	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;
-	ip_addr_t sntp_server;
 
 	wifi_set_sleep_type(NONE_SLEEP_T);
 
+	ntp_init();
 	gpios_init();
 	action.init_i2c_sensors = 1;
 	action.init_displays = 1;
+	action.init_ntp_bogus = 0;
 
 	config_wlan(config->ssid, config->passwd);
-
-	if(ip_addr_valid(config->ntp_server))
-	{
-		sntp_server = config->ntp_server;
-
-		sntp_set_timezone(config->ntp_timezone);
-		sntp_setserver(0, &sntp_server);
-		sntp_init();
-	}
 
 	tcp_accept(&esp_data_config, &esp_data_tcp_config, config->bridge_tcp_port, tcp_data_connect_callback);
 	espconn_regist_time(&esp_data_config, 0, 0);

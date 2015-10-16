@@ -11,6 +11,7 @@ uint32_t stat_uart_tx_interrupts;
 uint32_t stat_timer_fast;
 uint32_t stat_timer_slow;
 uint32_t stat_timer_second;
+uint32_t stat_timer_minute;
 uint32_t stat_background_task;
 uint32_t stat_i2c_init_time_us;
 uint32_t stat_display_init_time_us;
@@ -97,6 +98,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> timer_fast fired: %u\n"
 			"> timer_slow fired: %u\n"
 			"> timer_second fired: %u\n"
+			"> timer_minute fired: %u\n"
 			"> background task: %u\n"
 			"> i2c initialisation time: %u us\n"
 			"> display initialisation time: %u us\n"
@@ -124,6 +126,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			stat_timer_fast,
 			stat_timer_slow,
 			stat_timer_second,
+			stat_timer_minute,
 			stat_background_task,
 			stat_i2c_init_time_us,
 			stat_display_init_time_us,

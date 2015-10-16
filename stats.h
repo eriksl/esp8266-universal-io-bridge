@@ -9,6 +9,7 @@ extern uint32_t stat_uart_tx_interrupts;
 extern uint32_t stat_timer_fast;
 extern uint32_t stat_timer_slow;
 extern uint32_t stat_timer_second;
+extern uint32_t stat_timer_minute;
 extern uint32_t stat_background_task;
 extern uint32_t stat_i2c_init_time_us;
 extern uint32_t stat_display_init_time_us;
