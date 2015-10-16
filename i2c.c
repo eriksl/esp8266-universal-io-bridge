@@ -103,7 +103,7 @@ irom static inline void short_delay(void)
 
 irom static inline void delay(void)
 {
-	os_delay_us(5);
+	os_delay_us(4);
 }
 
 irom static inline void set_io(uint32_t clear, uint32_t set)
@@ -270,7 +270,7 @@ irom static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_bit(bool_t bit)
+irom static i2c_error_t send_bit(bool_t bit)
 {
 	i2c_error_t error;
 
@@ -314,7 +314,7 @@ iram static i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_byte(unsigned int byte)
+irom static i2c_error_t send_byte(unsigned int byte)
 {
 	i2c_error_t error;
 	unsigned int current;
@@ -332,7 +332,7 @@ iram static i2c_error_t send_byte(unsigned int byte)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t receive_bit(bool_t *bit)
+irom static i2c_error_t receive_bit(bool_t *bit)
 {
 	unsigned int current;
 	unsigned int total;
@@ -393,7 +393,7 @@ iram static i2c_error_t receive_bit(bool_t *bit)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t receive_byte(uint8_t *byte)
+irom static i2c_error_t receive_byte(uint8_t *byte)
 {
 	unsigned int current;
 	bool_t bit;
