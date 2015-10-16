@@ -536,6 +536,29 @@ irom static app_action_t application_function_display_dump(application_parameter
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_display_default_message(application_parameters_t ap)
+{
+	const char *text;
+	unsigned int current;
+
+	text = ap.cmdline;
+
+	for(current = 1; current > 0; text++)
+	{
+		if(*text == '\0')
+			break;
+
+		if(*text == ' ')
+			current--;
+	}
+
+	snprintf(config->display_default_msg, sizeof(config->display_default_msg), "%s", text);
+	snprintf(ap.dst, ap.size, "set default display message to \"%s\", write config and restart to activate\n",
+			config->display_default_msg);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_display_set(application_parameters_t ap)
 {
 	unsigned int id;
@@ -732,6 +755,12 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_display_dump,
 		"shows all displays"
+	},
+	{
+		"ddm", "display-default-message",
+		0,
+		application_function_display_default_message,
+		"set default message",
 	},
 	{
 		"ds", "display-set",

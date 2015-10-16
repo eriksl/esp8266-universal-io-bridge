@@ -219,7 +219,8 @@ static display_data_t display_data[display_size] =
 
 irom static void display_update(bool advance)
 {
-	char stub_text[16];
+	char info_text[16];
+	const char *display_text;
 	unsigned int display;
 	unsigned int slot;
 	display_data_t *display_entry;
@@ -230,8 +231,7 @@ irom static void display_update(bool advance)
 
 		if(display_entry->detected)
 		{
-			for(slot = display_entry->current_slot + (advance ? 1 : 0);
-					slot < display_slot_amount; slot++)
+			for(slot = display_entry->current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 				if(display_entry->slot[slot].content[0])
 					break;
 
@@ -243,16 +243,19 @@ irom static void display_update(bool advance)
 			if(slot < display_slot_amount)
 			{
 				display_entry->current_slot = slot;
-				display_entry->set_fn(display_entry, display_entry->slot[slot].content);
+				display_text = display_entry->slot[slot].content;
+
+				if(!strcmp(display_text, "%%%%"))
+				{
+					snprintf(info_text, sizeof(info_text), "%02u.%02u %s %s",
+							rt_hours, rt_mins, display_entry->name, display_entry->type);
+					display_text = info_text;
+				}
+
+				display_entry->set_fn(display_entry, display_text);
 			}
 			else
-			{
-				snprintf(stub_text, sizeof(stub_text), "%02u.%02u %s %s",
-						rt_hours, rt_mins, display_entry->name, display_entry->type);
-
 				display_entry->current_slot = 0;
-				display_entry->set_fn(display_entry, stub_text);
-			}
 		}
 	}
 }
@@ -288,7 +291,7 @@ irom void display_periodic(void) // call once per second
 	}
 }
 
-irom void display_init(void)
+irom void display_init(const char *default_message)
 {
 	display_data_t *entry;
 	unsigned int current;
@@ -310,6 +313,9 @@ irom void display_init(void)
 			entry->slot[slot].timeout = 0;
 			entry->slot[slot].content[0] = '\0';
 		}
+
+		if(default_message && *default_message)
+			snprintf(entry->slot[0].content, sizeof(entry->slot[0].content), "%s", default_message);
 	}
 
 	display_update(false);

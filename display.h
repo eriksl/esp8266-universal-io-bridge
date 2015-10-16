@@ -28,7 +28,7 @@ typedef struct
 	char			content[display_slot_size];
 } display_slot_t;
 
-void			display_init(void);
+void			display_init(const char *default_message);
 void			display_periodic(void);
 bool_t			display_detected(display_id_t);
 unsigned int	display_dump(unsigned int size, char *dst, unsigned int verbose_level);

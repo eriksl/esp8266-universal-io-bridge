@@ -177,6 +177,7 @@ iram void config_read_alt(config_t *cfg)
 			cfg->ntp_server = string_to_ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
 			cfg->i2c_delay = 5;
+			strcpy(cfg->display_default_msg, "%%%%");
 			gpios_config_init(&cfg->gpios);
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
@@ -223,6 +224,7 @@ irom void config_dump(unsigned int size, char *dst)
 			"> bridge tcp port: %u\n"
 			"> ntp time zone: GMT%c%u\n"
 			"> i2c delay: %u\n"
+			"> display default message: %s\n"
 			"> flags: ",
 			tmpconfig->magic,
 			tmpconfig->major_version,
@@ -232,7 +234,8 @@ irom void config_dump(unsigned int size, char *dst)
 			tmpconfig->bridge_tcp_port,
 			tmpconfig->ntp_timezone >= 0 ? '+' : '-',
 			tmpconfig->ntp_timezone >= 0 ? tmpconfig->ntp_timezone : 0 - tmpconfig->ntp_timezone,
-			tmpconfig->i2c_delay);
+			tmpconfig->i2c_delay,
+			tmpconfig->display_default_msg);
 
 	size -= length;
 	dst += length;
