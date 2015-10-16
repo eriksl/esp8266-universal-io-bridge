@@ -111,7 +111,7 @@ static const uint8_t led_charrom[] =
 	0x40,		/*	95	_	*/
 };
 
-display_data_t device_data[display_size];
+static display_data_t device_data[display_size];
 
 static irom unsigned int led_render_char(unsigned int character)
 {
@@ -384,7 +384,7 @@ irom bool_t display_get_brightness(display_id_t display, unsigned int *brightnes
 	return(true);
 }
 
-irom attr_pure bool_t display_detected(display_id_t display)
+irom attr_const attr_pure bool_t display_detected(display_id_t display)
 {
 	if(display > display_size)
 		return(false);
