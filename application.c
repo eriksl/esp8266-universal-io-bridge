@@ -612,19 +612,19 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 		if(first)
 		{
 			length = snprintf(dst, size, "> %-16s  %-4s  %-4s  %-18s  %-6s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "HIDDEN", "OFFSET", "BSSID");
+			dst += length;
+			size -= length;
 			first = false;
 		}
-		else
-		{
-			length = snprintf(dst, size, "> %-16s  %4u  %4d  %-18s  %-6s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
-					bss->ssid,
-					bss->channel,
-					bss->rssi,
-					wlan_scan_authmode_to_string(bss->authmode),
-					yesno(bss->is_hidden),
-					bss->freq_offset,
-					bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
-		}
+
+		length = snprintf(dst, size, "> %-16s  %4u  %4d  %-18s  %-6s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
+				bss->ssid,
+				bss->channel,
+				bss->rssi,
+				wlan_scan_authmode_to_string(bss->authmode),
+				yesno(bss->is_hidden),
+				bss->freq_offset,
+				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 
 		dst += length;
 		size -= length;
