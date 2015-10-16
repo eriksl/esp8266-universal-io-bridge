@@ -54,7 +54,7 @@ typedef enum
 
 _Static_assert(sizeof(i2c_error_t) == 4, "sizeof(i2c_error_t) != 4");
 
-i2c_error_t		i2c_init(unsigned int sda_index, unsigned int scl_index);
+i2c_error_t		i2c_init(unsigned int sda_index, unsigned int scl_index, unsigned int bit_delay);
 i2c_error_t		i2c_reset(void);
 i2c_error_t		i2c_send(unsigned int address, unsigned int length, const uint8_t *bytes);
 i2c_error_t		i2c_receive(unsigned int address, unsigned int length, uint8_t *bytes);

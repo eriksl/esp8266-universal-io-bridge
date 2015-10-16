@@ -6,6 +6,7 @@
 
 static uint32_t sda_mask;
 static uint32_t scl_mask;
+static unsigned int transaction_bit_delay;
 static i2c_state_t state = i2c_state_invalid;
 
 typedef enum
@@ -103,7 +104,7 @@ irom static inline void short_delay(void)
 
 irom static inline void delay(void)
 {
-	os_delay_us(4);
+	os_delay_us(transaction_bit_delay);
 }
 
 irom static inline void set_io(uint32_t clear, uint32_t set)
@@ -512,10 +513,11 @@ irom i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_init(unsigned int sda_index, unsigned int scl_index)
+irom i2c_error_t i2c_init(unsigned int sda_index, unsigned int scl_index, unsigned int i2c_delay)
 {
 	sda_mask = 1 << sda_index;
 	scl_mask = 1 << scl_index;
+	transaction_bit_delay = i2c_delay;
 
 	i2c_flags.init_done = true;
 

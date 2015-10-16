@@ -299,7 +299,7 @@ irom void gpios_init(void)
 		gpio_mode_trait[config->gpios.entry[current].mode].init_fn(&gpios[current]);
 
 	if((sda > 0) && (scl > 0))
-		i2c_init(sda, scl);
+		i2c_init(sda, scl, config->i2c_delay);
 }
 
 irom static void gpio_config_init(gpio_config_entry_t *gpio)

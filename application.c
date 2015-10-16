@@ -258,6 +258,15 @@ irom static app_action_t application_function_i2c_address(application_parameters
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_i2c_delay(application_parameters_t ap)
+{
+	config->i2c_delay = atoi((*ap.args)[1]);
+
+	snprintf(ap.dst, ap.size, "i2c-delay: i2c delay set to %u, write config and restart to activate\n", config->i2c_delay);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_i2c_read(application_parameters_t ap)
 {
 	unsigned int length, current, size;
@@ -759,6 +768,12 @@ static const application_function_table_t application_function_table[] =
         1,
         application_function_i2c_address,
         "set i2c slave address",
+    },
+    {
+        "id", "i2c-delay",
+        1,
+        application_function_i2c_delay,
+        "set i2c bit transaction delay (microseconds, default 5 ~ standard 100 kHz bus)",
     },
     {
         "ir", "i2c-read",
