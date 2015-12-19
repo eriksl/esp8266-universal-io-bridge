@@ -815,9 +815,9 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 			repeat = atoi((*ap.args)[5]);
 			autotrigger = atoi((*ap.args)[6]);
 
-			if(delay < 100)
+			if(delay < 10)
 			{
-				snprintf(ap.dst, ap.size, "gpio-mode(timer): delay too small: %d ms, >= 100 ms\n", delay);
+				snprintf(ap.dst, ap.size, "gpio-mode(timer): delay too small: %d ms, >= 10 ms\n", delay);
 				return(app_action_error);
 			}
 
