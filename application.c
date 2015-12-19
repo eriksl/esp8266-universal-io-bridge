@@ -36,6 +36,9 @@ irom app_action_t application_content(const char *src, unsigned int size, char *
 	bool_t ws_skipped;
 	const application_function_table_t *tableptr;
 
+	if(config->stat_trigger_gpio >= 0)
+		gpios_trigger_output(config->stat_trigger_gpio);
+
 	*dst = '\0';
 
 	if(src[0] == '\0')
@@ -724,6 +727,29 @@ irom static app_action_t application_function_ntp_set(application_parameters_t a
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_gpio_status_set(application_parameters_t ap)
+{
+	int gpio;
+
+	if(ap.nargs > 1)
+	{
+		gpio = atoi((*ap.args)[1]);
+
+		if((gpio < 0) || (gpio > 16))
+		{
+			snprintf(ap.dst, ap.size, "status trigger gpio out of range: %d\n", gpio);
+			return(app_action_error);
+		}
+	}
+	else
+		gpio = -1;
+
+	config->stat_trigger_gpio = gpio;
+	snprintf(ap.dst, ap.size, "status trigger at gpio %d, write config and restart to activate\n", config->stat_trigger_gpio);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -791,6 +817,12 @@ static const application_function_table_t application_function_table[] =
 		1,
 		application_function_gpio_set,
 		"set gpio"
+	},
+	{
+		"gss", "gpio-status-set",
+		0,
+		application_function_gpio_status_set,
+		"set gpio to trigger on status update"
 	},
     {
         "ia", "i2c-address",

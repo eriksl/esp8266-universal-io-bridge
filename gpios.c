@@ -717,6 +717,47 @@ irom void gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *
 	dump(cfgs, 0, size, string);
 }
 
+irom bool gpios_trigger_output(unsigned int gpio_name)
+{
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
+
+	if(!(gpio = find_gpio(gpio_name)))
+		return(false);
+
+	cfg = get_config(gpio);
+
+	switch(cfg->mode)
+	{
+		case(gpio_output):
+		{
+			set_output(gpio, true);
+			break;
+		}
+
+		case(gpio_timer):
+		{
+			trigger_timer(gpio, true);
+			break;
+		}
+
+		case(gpio_pwm):
+		{
+			pwm_set_duty(0xffff, gpio->pwm.channel);
+			pwm_start();
+
+			break;
+		}
+
+		default:
+		{
+			return(false);
+		}
+	}
+
+	return(true);
+}
+
 irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 {
 	gpio_mode_t mode;

@@ -111,6 +111,7 @@ void gpios_init(void);
 void gpios_periodic(void);
 void gpios_config_init(gpio_config_t *);
 void gpios_dump_string(const gpio_config_t *, unsigned int, char *);
+bool gpios_trigger_output(unsigned int gpio_name);
 
 app_action_t application_function_gpio_get(application_parameters_t);
 app_action_t application_function_gpio_set(application_parameters_t);
