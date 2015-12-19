@@ -16,16 +16,17 @@ typedef struct
 	unsigned int detected:1;
 } device_data_t;
 
-typedef struct
+typedef struct device_table_entry_T
 {
 	i2c_sensor_t id;
+	uint8_t address;
 	const char *name;
 	const char *type;
 	const char *unity;
 	uint8_t precision;
-	i2c_error_t (* const init_fn)(void);
-	i2c_error_t (* const read_fn)(value_t *);
-} device_table_t;
+	i2c_error_t (* const init_fn)(const struct device_table_entry_T *);
+	i2c_error_t (* const read_fn)(const struct device_table_entry_T *, value_t *);
+} device_table_entry_t;
 
 device_data_t device_data[i2c_sensor_size];
 
@@ -40,26 +41,26 @@ irom void i2c_sensor_config_init(i2c_sensor_config_t *dst)
 	}
 }
 
-irom static i2c_error_t sensor_digipicco_temp_init(void)
+irom static i2c_error_t sensor_digipicco_temp_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
 
-	if((error = i2c_send(0x78, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send(entry->address, 1, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x78, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_temp_read(value_t *value)
+irom static i2c_error_t sensor_digipicco_temp_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
 
-	if((error = i2c_receive(0x78, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = ((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3];
@@ -68,7 +69,7 @@ irom static i2c_error_t sensor_digipicco_temp_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_hum_init(void)
+irom static i2c_error_t sensor_digipicco_hum_init(const device_table_entry_t *entry)
 {
 	if(!i2c_sensor_detected(i2c_sensor_digipicco_temperature))
 		return(i2c_error_address_nak);
@@ -76,12 +77,12 @@ irom static i2c_error_t sensor_digipicco_hum_init(void)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_hum_read(value_t *value)
+irom static i2c_error_t sensor_digipicco_hum_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
 
-	if((error = i2c_receive(0x78, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
@@ -90,39 +91,39 @@ irom static i2c_error_t sensor_digipicco_hum_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_init(void)
+irom static i2c_error_t sensor_ds1631_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 
 	//	0xac	select config register
 	//	0x0c	r0=r1=1, max resolution, other bits zero
 
-	if((error = i2c_send_2(0x48, 0xac, 0x0c)) != i2c_error_ok)
+	if((error = i2c_send_2(entry->address, 0xac, 0x0c)) != i2c_error_ok)
 		return(error);
 
 	// start conversions
 
-	if((error = i2c_send_1(0x48, 0x51)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0x51)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_read(value_t *value)
+irom static i2c_error_t sensor_ds1631_read(const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	unsigned int raw;
 
-	if(i2c_sensor_detected(i2c_sensor_lm75))
+	if((entry->id == i2c_sensor_ds1631_0) && i2c_sensor_detected(i2c_sensor_lm75_0))
 		return(i2c_error_device_error_1);
 
 	// read temperature
 
-	if((error = i2c_send_1(0x48, 0xaa)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0xaa)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = raw = ((unsigned int)(i2cbuffer[0] << 8)) | i2cbuffer[1];
@@ -138,22 +139,22 @@ irom static i2c_error_t sensor_ds1631_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_lm75_init(void)
+irom static i2c_error_t sensor_lm75_init(const device_table_entry_t *entry)
 {
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
 
-	if(i2c_sensor_detected(i2c_sensor_ds1631))
+	if((entry->id == i2c_sensor_lm75_0) && i2c_sensor_detected(i2c_sensor_ds1631_0))
 		return(i2c_error_device_error_1);
 
 	// 0x01		select config register
 	// 0x60		set all defaults, operation is not shutdown
 	// 			specific for tmp275 variant, select high-res operation
 
-	if((error = i2c_send_2(0x48, 0x01, 0x60)) != i2c_error_ok)
+	if((error = i2c_send_2(entry->address, 0x01, 0x60)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x48, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 1, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if(i2cbuffer[0] != 0x60)
@@ -161,10 +162,10 @@ irom static i2c_error_t sensor_lm75_init(void)
 
 	// 0x03	select overtemperature register
 
-	if((error = i2c_send_3(0x48, 0x03, 0xff, 0xff)) != i2c_error_ok)
+	if((error = i2c_send_3(entry->address, 0x03, 0xff, 0xff)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
@@ -172,10 +173,10 @@ irom static i2c_error_t sensor_lm75_init(void)
 
 	// 0x03	select overtemperature register
 
-	if((error = i2c_send_3(0x48, 0x03, 0x00, 0x00)) != i2c_error_ok)
+	if((error = i2c_send_3(entry->address, 0x03, 0x00, 0x00)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2cbuffer[0] != 0x00) || (i2cbuffer[1] != 0x00))
@@ -183,22 +184,22 @@ irom static i2c_error_t sensor_lm75_init(void)
 
 	// select temperature register
 
-	if((error = i2c_send_1(0x48, 0x00)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0x00)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_lm75_read(value_t *value)
+irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	unsigned int raw;
 
-	if(i2c_sensor_detected(i2c_sensor_ds1631))
+	if((entry->id == i2c_sensor_lm75_0) && i2c_sensor_detected(i2c_sensor_ds1631_0))
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_receive(0x48, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
@@ -214,25 +215,25 @@ irom static i2c_error_t sensor_lm75_read(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t bmp085_write(unsigned int reg, unsigned int value)
+irom static i2c_error_t bmp085_write(unsigned int address, unsigned int reg, unsigned int value)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_2(0x77, reg, value)) != i2c_error_ok)
+	if((error = i2c_send_2(address, reg, value)) != i2c_error_ok)
 		return(error);
 
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read(unsigned int reg, uint16_t *value)
+irom static i2c_error_t bmp085_read(unsigned int address, unsigned int reg, uint16_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
 
-	if((error = i2c_send_1(0x77, reg)) != i2c_error_ok)
+	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x77, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	*value = ((uint16_t)(i2cbuffer[0] << 8)) | (uint16_t)i2cbuffer[1];
@@ -240,15 +241,15 @@ irom static i2c_error_t bmp085_read(unsigned int reg, uint16_t *value)
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read_long(unsigned int reg, uint32_t *value)
+irom static i2c_error_t bmp085_read_long(unsigned int address, unsigned int reg, uint32_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
 
-	if((error = i2c_send_1(0x77, reg)) != i2c_error_ok)
+	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x77, 3, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(address, 3, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	*value = ((uint32_t)i2cbuffer[0] << 16) | ((uint32_t)i2cbuffer[1] << 8) | (uint32_t)i2cbuffer[2];
@@ -256,7 +257,7 @@ irom static i2c_error_t bmp085_read_long(unsigned int reg, uint32_t *value)
 	return(0);
 }
 
-irom static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, double *pressure, double *pressure_raw)
+irom static i2c_error_t sensor_read_bmp085(unsigned int address, double *temp, double *temp_raw, double *pressure, double *pressure_raw)
 {
 	int16_t		ac1, ac2, ac3;
 	uint16_t	ac4, ac5, ac6;
@@ -270,42 +271,42 @@ irom static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, doubl
 	uint8_t		oss = 3;
 	i2c_error_t	error;
 
-	if((error = bmp085_read(0xaa, (uint16_t *)&ac1)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xaa, (uint16_t *)&ac1)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xac, (uint16_t *)&ac2)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xac, (uint16_t *)&ac2)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xae, (uint16_t *)&ac3)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xae, (uint16_t *)&ac3)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xb0, &ac4)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xb0, &ac4)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xb2, &ac5)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xb2, &ac5)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xb4, &ac6)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xb4, &ac6)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xb6, (uint16_t *)&b1)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xb6, (uint16_t *)&b1)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xb8, (uint16_t *)&b2)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xb8, (uint16_t *)&b2)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xbc, (uint16_t *)&mc)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xbc, (uint16_t *)&mc)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_read(0xbe, (uint16_t *)&md)) != i2c_error_ok)
+	if((error = bmp085_read(address, 0xbe, (uint16_t *)&md)) != i2c_error_ok)
 		return(error);
 
-	if((error = bmp085_write(0xf4, 0x2e)) != i2c_error_ok) // set cmd = 0x2e = start temperature measurement
+	if((error = bmp085_write(address, 0xf4, 0x2e)) != i2c_error_ok) // set cmd = 0x2e = start temperature measurement
 		return(error);
 
 	msleep(5);
 
-	if((error = bmp085_read(0xf6, &ut)) != i2c_error_ok) // select result 0xf6+0xf7
+	if((error = bmp085_read(address, 0xf6, &ut)) != i2c_error_ok) // select result 0xf6+0xf7
 		return(error);
 
 #if 0
@@ -330,14 +331,14 @@ irom static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, doubl
 	*temp_raw	= ut;
 	*temp		= ((((double)b5 + 8) / 16) / 10);
 
-	if((error = bmp085_write(0xf4, 0x34 | (oss << 6))) != i2c_error_ok) // set cmd = 0x34 = start air pressure measurement
+	if((error = bmp085_write(address, 0xf4, 0x34 | (oss << 6))) != i2c_error_ok) // set cmd = 0x34 = start air pressure measurement
 		return(error);
 
 	msleep(20);
 
 	up = 0;
 
-	if((error = bmp085_read_long(0xf6, &up)) != i2c_error_ok) // select result 0xf6+0xf7+f8
+	if((error = bmp085_read_long(address, 0xf6, &up)) != i2c_error_ok) // select result 0xf6+0xf7+f8
 		return(error);
 #if 0
 			up	= 23843;
@@ -372,12 +373,12 @@ irom static i2c_error_t sensor_read_bmp085(double *temp, double *temp_raw, doubl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_temp(value_t *value)
+irom static i2c_error_t sensor_bmp085_read_temp(const device_table_entry_t *entry, value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
 
-	if((error = sensor_read_bmp085(&temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
+	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
 		return(error);
 
 	value->raw = temp_raw;
@@ -386,12 +387,12 @@ irom static i2c_error_t sensor_bmp085_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_pressure(value_t *value)
+irom static i2c_error_t sensor_bmp085_read_pressure(const device_table_entry_t *entry, value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
 
-	if((error = sensor_read_bmp085(&temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
+	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
 		return(error);
 
 	value->raw = pressure_raw;
@@ -419,42 +420,42 @@ static const tsl2560_lookup_t tsl2560_lookup[] =
 	{ 0.000, 0.00000, 0.00000 }
 };
 
-irom static i2c_error_t tsl2560_write(unsigned int reg, unsigned int value)
+irom static i2c_error_t tsl2560_write(unsigned int address, unsigned int reg, unsigned int value)
 {
 	i2c_error_t error;
 
 	// 0xc0	write byte
 
-	if((error = i2c_send_2(0x39, 0xc0 | reg, value)) != i2c_error_ok)
+	if((error = i2c_send_2(address, 0xc0 | reg, value)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_read(unsigned int reg, uint8_t *byte)
+irom static i2c_error_t tsl2560_read(unsigned int address, unsigned int reg, uint8_t *byte)
 {
 	i2c_error_t error;
 
 	// 0xc0	read byte
 
-	if((error = i2c_send_1(0x39, 0xc0 | reg)) != i2c_error_ok)
+	if((error = i2c_send_1(address, 0xc0 | reg)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x39 , 1, byte)) != i2c_error_ok)
+	if((error = i2c_receive(address, 1, byte)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_write_check(unsigned int reg, unsigned int value)
+irom static i2c_error_t tsl2560_write_check(unsigned int address, unsigned int reg, unsigned int value)
 {
 	i2c_error_t error;
 	uint8_t rv;
 
-	if((error = tsl2560_write(reg, value)) != i2c_error_ok)
+	if((error = tsl2560_write(address, reg, value)) != i2c_error_ok)
 		return(error);
 
-	if((error = tsl2560_read(reg, &rv)) != i2c_error_ok)
+	if((error = tsl2560_read(address, reg, &rv)) != i2c_error_ok)
 		return(error);
 
 	if(value != rv)
@@ -463,22 +464,22 @@ irom static i2c_error_t tsl2560_write_check(unsigned int reg, unsigned int value
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_read_block(unsigned int reg, uint8_t *values)
+irom static i2c_error_t tsl2560_read_block(unsigned int address, unsigned int reg, uint8_t *values)
 {
 	i2c_error_t error;
 
 	// 0xd0	read block
 
-	if((error = i2c_send_1(0x39, 0xd0 | reg)) != i2c_error_ok)
+	if((error = i2c_send_1(address, 0xd0 | reg)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x39 , 4, values)) != i2c_error_ok)
+	if((error = i2c_receive(address , 4, values)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2560_init(void)
+irom static i2c_error_t sensor_tsl2560_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t regval;
@@ -486,34 +487,34 @@ irom static i2c_error_t sensor_tsl2560_init(void)
 	if(i2c_sensor_detected(i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
-	if((error = tsl2560_write_check(0x00, 0x00)) != i2c_error_ok) // power down
+	if((error = tsl2560_write_check(entry->address, 0x00, 0x00)) != i2c_error_ok) // power down
 		return(error);
 
-	if((error = tsl2560_write(0x00, 0x03)) != i2c_error_ok)	// power up
+	if((error = tsl2560_write(entry->address, 0x00, 0x03)) != i2c_error_ok)	// power up
 		return(error);
 
-	if((error = tsl2560_read(0x00, &regval)) != i2c_error_ok)
+	if((error = tsl2560_read(entry->address, 0x00, &regval)) != i2c_error_ok)
 		return(error);
 
 	if((regval & 0x0f) != 0x03)
 		return(i2c_error_device_error_2);
 
-	if((error = tsl2560_write_check(0x06, 0x00)) != i2c_error_ok)	// disable interrupts
+	if((error = tsl2560_write_check(entry->address, 0x06, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
 
-	if((error = tsl2560_write(0x0a, 0x00)) != i2c_error_ok)	// id register 1
+	if((error = tsl2560_write(entry->address, 0x0a, 0x00)) != i2c_error_ok)	// id register 1
 		return(error);
 
-	if((error = tsl2560_read(0x0a, &regval)) != i2c_error_ok) // read id register 1
+	if((error = tsl2560_read(entry->address, 0x0a, &regval)) != i2c_error_ok) // read id register 1
 		return(error);
 
 	if(regval != 0x50)
 		return(i2c_error_device_error_3);
 
-	if((error = tsl2560_write(0x0b, 0x00)) != i2c_error_ok)	// id register 2
+	if((error = tsl2560_write(entry->address, 0x0b, 0x00)) != i2c_error_ok)	// id register 2
 		return(error);
 
-	if((error = tsl2560_read(0x0b, &regval)) != i2c_error_ok) // read id register 2
+	if((error = tsl2560_read(entry->address, 0x0b, &regval)) != i2c_error_ok) // read id register 2
 		return(error);
 
 	if(regval != 0x04)
@@ -524,25 +525,25 @@ irom static i2c_error_t sensor_tsl2560_init(void)
 	else
 		regval = 0b00000010; // 400 ms sampling window, gain is high, 1x
 
-	if((error = tsl2560_write_check(0x01, regval)) != i2c_error_ok)	// start continuous sampling
+	if((error = tsl2560_write_check(entry->address, 0x01, regval)) != i2c_error_ok)	// start continuous sampling
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2560_read(value_t *value)
+irom static i2c_error_t sensor_tsl2560_read(const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
 	unsigned int ch0r, ch1r;
 	double ratio, ch0, ch1;
-	const tsl2560_lookup_t *entry;
+	const tsl2560_lookup_t *tsl2560_entry;
 	unsigned int current;
 
 	if(i2c_sensor_detected(i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
-	if((error = tsl2560_read_block(0x0c, i2cbuffer)) != i2c_error_ok)
+	if((error = tsl2560_read_block(entry->address, 0x0c, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	ch0r = i2cbuffer[0] | (i2cbuffer[1] << 8);
@@ -580,16 +581,16 @@ irom static i2c_error_t sensor_tsl2560_read(value_t *value)
 
 	for(current = 0;; current++)
 	{
-		entry = &tsl2560_lookup[current];
+		tsl2560_entry = &tsl2560_lookup[current];
 
-		if(((unsigned int)entry->ratio_top == 0) || ((unsigned int)entry->ch0_factor == 0) || ((unsigned int)entry->ch1_factor == 0))
+		if(((unsigned int)tsl2560_entry->ratio_top == 0) || ((unsigned int)tsl2560_entry->ch0_factor == 0) || ((unsigned int)tsl2560_entry->ch1_factor == 0))
 			break;
 
-		if(ratio <= entry->ratio_top)
+		if(ratio <= tsl2560_entry->ratio_top)
 			break;
 	}
 
-	value->cooked = (ch0 * entry->ch0_factor) - (ch1 * entry->ch1_factor);
+	value->cooked = (ch0 * tsl2560_entry->ch0_factor) - (ch1 * tsl2560_entry->ch1_factor);
 
 	if(value->cooked < 0)
 		value->cooked = 0;
@@ -632,25 +633,25 @@ static const uint8_t tsl2550_ratio[129] =
 	30
 };
 
-irom static i2c_error_t sensor_tsl2550_rw(unsigned int in, uint8_t *out)
+irom static i2c_error_t sensor_tsl2550_rw(unsigned int address, unsigned int in, uint8_t *out)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_1(0x39, in)) != i2c_error_ok)
+	if((error = i2c_send_1(address, in)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x39, 1, out)) != i2c_error_ok)
+	if((error = i2c_receive(address, 1, out)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_write_check(unsigned int in, unsigned int compare)
+irom static i2c_error_t sensor_tsl2550_write_check(unsigned int address, unsigned int in, unsigned int compare)
 {
 	i2c_error_t error;
 	uint8_t out;
 
-	if((error = sensor_tsl2550_rw(in, &out)) != i2c_error_ok)
+	if((error = sensor_tsl2550_rw(address, in, &out)) != i2c_error_ok)
 		return(error);
 
 	if(out != compare)
@@ -659,7 +660,7 @@ irom static i2c_error_t sensor_tsl2550_write_check(unsigned int in, unsigned int
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_init(void)
+irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	unsigned int sens_command;
@@ -669,7 +670,7 @@ irom static i2c_error_t sensor_tsl2550_init(void)
 
 	// tsl2550 power up
 
-	if((error = sensor_tsl2550_write_check(0x03, 0x03)) != i2c_error_ok)
+	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
 		return(error);
 
 	// standard range / extended range
@@ -679,13 +680,13 @@ irom static i2c_error_t sensor_tsl2550_init(void)
 	else
 		sens_command = 0x1d;
 
-	if((error = sensor_tsl2550_write_check(sens_command, 0x1b)) != i2c_error_ok)
+	if((error = sensor_tsl2550_write_check(entry->address, sens_command, 0x1b)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_read(value_t *value)
+irom static i2c_error_t sensor_tsl2550_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t		error;
 	uint8_t			ch0, ch1;
@@ -700,12 +701,12 @@ irom static i2c_error_t sensor_tsl2550_read(value_t *value)
 	{
 		// read from channel 0
 
-		if((error = sensor_tsl2550_rw(0x43, &ch0)) != i2c_error_ok)
+		if((error = sensor_tsl2550_rw(entry->address, 0x43, &ch0)) != i2c_error_ok)
 			goto error;
 
 		// read from channel 1
 
-		if((error = sensor_tsl2550_rw(0x83, &ch1)) != i2c_error_ok)
+		if((error = sensor_tsl2550_rw(entry->address, 0x83, &ch1)) != i2c_error_ok)
 			goto error;
 
 		if((ch0 & 0x80) && (ch1 & 0x80))
@@ -741,7 +742,7 @@ error:
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bh1750_init(void)
+irom static i2c_error_t sensor_bh1750_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	unsigned int timing;
@@ -752,12 +753,12 @@ irom static i2c_error_t sensor_bh1750_init(void)
 
 	// power on
 
-	if((error = i2c_send_1(0x23, 0b00000001)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0b00000001)) != i2c_error_ok)
 		return(error);
 
 	// reset
 
-	if((error = i2c_send_1(0x23, 0b00000111)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0b00000111)) != i2c_error_ok)
 		return(error);
 
 	// set sensitivity
@@ -773,27 +774,27 @@ irom static i2c_error_t sensor_bh1750_init(void)
 	regval[0] = 0b01000000 | ((timing >> 5) & 0b00000111);
 	regval[1] = 0b01100000 | ((timing >> 0) & 0b00011111);
 
-	if((error = i2c_send_1(0x23, regval[0])) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, regval[0])) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_1(0x23, regval[1])) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, regval[1])) != i2c_error_ok)
 		return(error);
 
 	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
 
-	if((error = i2c_send_1(0x23, 0b00010001)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0b00010001)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bh1750_read(value_t *value)
+irom static i2c_error_t sensor_bh1750_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
 	double luxpercount;
 
-	if((error = i2c_receive(0x23, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if(config_get_flag(config_flag_bh_high_sens))
@@ -829,7 +830,7 @@ irom attr_pure static i2c_error_t htu21_crc(unsigned int length, const uint8_t *
 	return(crc);
 }
 
-irom static i2c_error_t sensor_htu21_read_temp(value_t *value)
+irom static i2c_error_t sensor_htu21_read_temp(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -837,10 +838,10 @@ irom static i2c_error_t sensor_htu21_read_temp(value_t *value)
 
 	// temperature measurement "hold master" mode
 
-	if((error = i2c_send_1(0x40, 0xe3)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0xe3)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x40, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
@@ -859,7 +860,7 @@ irom static i2c_error_t sensor_htu21_read_temp(value_t *value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_read_hum(value_t *value)
+irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -867,10 +868,10 @@ irom static i2c_error_t sensor_htu21_read_hum(value_t *value)
 
 	// humidity measurement "hold master" mode
 
-	if((error = i2c_send_1(0x40, 0xe5)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0xe5)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x40, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
@@ -912,7 +913,7 @@ irom attr_pure static unsigned int am2321_crc(unsigned int length, const uint8_t
 	return(crc);
 }
 
-irom static i2c_error_t sensor_am2321_read_registers(unsigned int offset, unsigned int length, uint8_t *values)
+irom static i2c_error_t sensor_am2321_read_registers(unsigned int address, unsigned int offset, unsigned int length, uint8_t *values)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[32];
@@ -920,19 +921,19 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int offset, unsign
 
 	// wake the device
 
-	i2c_send_1(0x5c, 0);
+	i2c_send_1(address, 0);
 
 	if((error = i2c_reset()) != i2c_error_ok)
 		return(i2c_error_device_error_1);
 
 	msleep(1);
 
-	if((error = i2c_send_3(0x5c, 0x03, offset, length)) != i2c_error_ok)
+	if((error = i2c_send_3(address, 0x03, offset, length)) != i2c_error_ok)
 		return(error);
 
 	msleep(1);
 
-	if((error = i2c_receive(0x5c, length + 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(address, length + 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
@@ -952,7 +953,7 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int offset, unsign
 static value_t sensor_am2321_cached_temperature;
 static value_t sensor_am2321_cached_humidity;
 
-irom static i2c_error_t sensor_am2321_read(value_t *value, bool_t request_humidity)
+irom static i2c_error_t sensor_am2321_read(unsigned int address, value_t *value, bool_t request_humidity)
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
@@ -960,7 +961,7 @@ irom static i2c_error_t sensor_am2321_read(value_t *value, bool_t request_humidi
 	//	0x00	start address: humidity (16 bits), temperature (16 bits)
 	//	0x04	length
 
-	if((error = sensor_am2321_read_registers(0x00, 0x04, values)) == i2c_error_ok)
+	if((error = sensor_am2321_read_registers(address, 0x00, 0x04, values)) == i2c_error_ok)
 	{
 		sensor_am2321_cached_humidity.raw = (values[0] << 8) | values[1];
 		sensor_am2321_cached_humidity.cooked = sensor_am2321_cached_humidity.raw / 10.0;
@@ -979,7 +980,7 @@ irom static i2c_error_t sensor_am2321_read(value_t *value, bool_t request_humidi
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_temp_init(void)
+irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entry)
 {
 	i2c_error_t	error;
 	uint8_t		values[2];
@@ -987,21 +988,21 @@ irom static i2c_error_t sensor_am2321_temp_init(void)
 	//	0x08	start address: device id
 	//	0x02	length
 
-	if((error = sensor_am2321_read_registers(0x08, 0x02, values)) != i2c_error_ok)
+	if((error = sensor_am2321_read_registers(entry->address, 0x08, 0x02, values)) != i2c_error_ok)
 		return(i2c_error_address_nak);
 
-	if((values[0] != 0x32) || (values[1] != 0x31))
-		return(i2c_error_address_nak);
+	//if((values[0] != 0x32) || (values[1] != 0x31))
+		//return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_temp_read(value_t *value)
+irom static i2c_error_t sensor_am2321_temp_read(const device_table_entry_t *entry, value_t *value)
 {
-	return(sensor_am2321_read(value, false));
+	return(sensor_am2321_read(entry->address, value, false));
 }
 
-irom static i2c_error_t sensor_am2321_hum_init(void)
+irom static i2c_error_t sensor_am2321_hum_init(const device_table_entry_t *entry)
 {
 	if(!i2c_sensor_detected(i2c_sensor_am2321_temperature))
 		return(i2c_error_address_nak);
@@ -1009,96 +1010,102 @@ irom static i2c_error_t sensor_am2321_hum_init(void)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_hum_read(value_t *value)
+irom static i2c_error_t sensor_am2321_hum_read(const device_table_entry_t *entry, value_t *value)
 {
-	return(sensor_am2321_read(value, true));
+	return(sensor_am2321_read(entry->address, value, true));
 }
 
-static const device_table_t device_table[] =
+static const device_table_entry_t device_table[] =
 {
 	{
-		i2c_sensor_digipicco_temperature,
+		i2c_sensor_digipicco_temperature, 0x78,
 		"digipicco", "temperature", "C", 1,
 		sensor_digipicco_temp_init,
 		sensor_digipicco_temp_read
 	},
 	{
-		i2c_sensor_digipicco_humidity,
+		i2c_sensor_digipicco_humidity, 0x78,
 		"digipicco", "humidity", "%", 0,
 		sensor_digipicco_hum_init,
 		sensor_digipicco_hum_read
 	},
 	{
-		i2c_sensor_ds1631,
-		"ds1621/ds1631/ds1731", "temperature", "C", 2,
+		i2c_sensor_ds1631_0, 0x48,
+		"ds1621/ds1631/ds1731@0x48", "temperature", "C", 2,
 		sensor_ds1631_init,
 		sensor_ds1631_read
 	},
 	{
-		i2c_sensor_lm75,
-		"lm75/tmp275", "temperature", "C", 1,
+		i2c_sensor_lm75_0, 0x48,
+		"lm75/tmp275@0x48", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
-		i2c_sensor_bmp085_temperature,
+		i2c_sensor_bmp085_temperature, 0x77,
 		"bmp085", "temperature", "C", 1,
 		0,
 		sensor_bmp085_read_temp
 	},
 	{
-		i2c_sensor_bmp085_airpressure,
+		i2c_sensor_bmp085_airpressure, 0x77,
 		"bmp085", "pressure", "hPa", 0,
 		0,
 		sensor_bmp085_read_pressure
 	},
 	{
-		i2c_sensor_tsl2560,
+		i2c_sensor_tsl2560, 0x39,
 		"tsl2560/tsl2561", "light", "Lux", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
 	{
-		i2c_sensor_tsl2550,
+		i2c_sensor_tsl2550, 0x39,
 		"tsl2550", "light", "Lux", 2,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
 	{
-		i2c_sensor_bh1750,
+		i2c_sensor_bh1750, 0x23,
 		"bh1750", "light", "Lux", 2,
 		sensor_bh1750_init,
 		sensor_bh1750_read
 	},
 	{
-		i2c_sensor_htu21_temperature,
+		i2c_sensor_htu21_temperature, 0x40,
 		"htu21", "temperature", "C", 1,
 		0,
 		sensor_htu21_read_temp
 	},
 	{
-		i2c_sensor_htu21_humidity,
+		i2c_sensor_htu21_humidity, 0x40,
 		"htu21", "humidity", "%", 0,
 		0,
 		sensor_htu21_read_hum
 	},
 	{
-		i2c_sensor_am2321_temperature,
+		i2c_sensor_am2321_temperature, 0x5c,
 		"am2321", "temperature", "C", 1,
 		sensor_am2321_temp_init,
 		sensor_am2321_temp_read
 	},
 	{
-		i2c_sensor_am2321_humidity,
+		i2c_sensor_am2321_humidity, 0x5c,
 		"am2321", "humidity", "%", 0,
 		sensor_am2321_hum_init,
 		sensor_am2321_hum_read
-	}
+	},
+	{
+		i2c_sensor_lm75_7, 0x4f,
+		"lm75/tmp275@0x4f", "temperature", "C", 1,
+		sensor_lm75_init,
+		sensor_lm75_read
+	},
 };
 
 irom void i2c_sensor_init(void)
 {
-	const device_table_t *entry;
+	const device_table_entry_t *entry;
 	i2c_sensor_t current;
 
 	for(current = 0; current < i2c_sensor_size; current++)
@@ -1107,7 +1114,7 @@ irom void i2c_sensor_init(void)
 
 		if(entry->init_fn)
 		{
-			if(entry->init_fn() == i2c_error_ok)
+			if(entry->init_fn(entry) == i2c_error_ok)
 				device_data[entry->id].detected = true;
 			else
 			{
@@ -1122,7 +1129,7 @@ irom void i2c_sensor_init(void)
 
 irom unsigned int i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, unsigned int size, char *dst)
 {
-	const device_table_t *entry;
+	const device_table_entry_t *entry;
 	i2c_error_t error;
 	value_t value;
 	unsigned int length;
@@ -1149,7 +1156,7 @@ irom unsigned int i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, unsigned 
 	dst += length;
 	size -= length;
 
-	if((error = entry->read_fn(&value)) == i2c_error_ok)
+	if((error = entry->read_fn(entry, &value)) == i2c_error_ok)
 	{
 		if(i2c_sensor_getcal(sensor, &factor, &offset))
 			extracooked = (value.cooked * factor) + offset;
