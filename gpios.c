@@ -577,7 +577,7 @@ irom static void gpio_init_timer(gpio_t *gpio)
 		gpio_output_set(1 << gpio->index, 0, 0, 0);
 
 	if(cfg->timer.autotrigger)
-		trigger_timer(gpio, 1);
+		trigger_timer(gpio, true);
 }
 
 irom static void gpio_init_pwm(gpio_t *gpio)

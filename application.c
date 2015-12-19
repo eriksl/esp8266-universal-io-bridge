@@ -167,7 +167,7 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 		if(tcp_port > 65535)
 		{
 			snprintf(ap.dst, ap.size, "bridge-tcp-port: out of range: %u\n", tcp_port);
-			return(1);
+			return(app_action_error);
 		}
 
 		config->bridge_tcp_port = (uint16_t)tcp_port;
