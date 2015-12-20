@@ -77,6 +77,7 @@ static void gpio_config_init(gpio_config_entry_t *);
 static struct
 {
 	unsigned int pwm_subsystem_active:1;
+	unsigned int counter_triggered:1;
 } gpio_flags;
 
 static gpio_mode_trait_t gpio_mode_trait[gpio_mode_size] =
@@ -227,6 +228,8 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	}
 
 	gpio_intr_ack(pc);
+
+	gpio_flags.counter_triggered = true;
 }
 
 irom static void select_pin_function(const gpio_t *gpio)
@@ -300,6 +303,8 @@ irom void gpios_init(void)
 
 	if((sda > 0) && (scl > 0))
 		i2c_init(sda, scl, config->i2c_delay);
+
+	gpio_flags.counter_triggered = false;
 }
 
 irom static void gpio_config_init(gpio_config_entry_t *gpio)
@@ -473,6 +478,14 @@ iram void gpios_periodic(void)
 
 	if(pwm_changed)
 		pwm_start();
+
+	if(gpio_flags.counter_triggered)
+	{
+		gpio_flags.counter_triggered = false;
+
+		if(config->stat_trigger_gpio >= 0)
+			gpios_trigger_output(config->stat_trigger_gpio);
+	}
 }
 
 irom static void trigger_timer(gpio_t *gpio, bool_t onoff)
