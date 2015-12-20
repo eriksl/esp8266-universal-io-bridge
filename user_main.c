@@ -115,8 +115,14 @@ irom noinline static void config_wlan(const char *ssid, const char *passwd)
 	if(config_get_flag(config_flag_print_debug))
 		dprintf("Configure wlan, set ssid=\"%s\", passwd=\"%s\"\r\n", ssid, passwd);
 
-	wifi_station_set_auto_connect(0);
-	wifi_station_disconnect();
+	if(config_get_flag(config_flag_wlan_sdk_connect))
+		wifi_station_set_auto_connect(1);
+	else
+	{
+		wifi_station_set_auto_connect(0);
+		wifi_station_disconnect();
+	}
+
 	wifi_set_opmode(STATION_MODE);
 
 	memset(&station_config, 0, sizeof(station_config));

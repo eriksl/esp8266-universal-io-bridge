@@ -44,6 +44,10 @@ static config_flag_t config_flag[config_flag_size] =
 		config_flag_wlan_power_save,
 		"wps", "wlan-power-save"
 	},
+	{
+		config_flag_wlan_sdk_connect,
+		"wsc", "wlan-sdk-connect"
+	},
 };
 
 irom bool_t config_init(void)
