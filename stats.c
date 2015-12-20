@@ -83,7 +83,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> firmware version date: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
-			"> cpu frequency: %u\n"
+			"> cpu frequency: %u MHz\n"
 			"> flash map: %s\n"
 			"> reset cause: %s\n"
 			">\n"

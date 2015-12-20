@@ -631,6 +631,11 @@ irom static void user_init2(void)
 		wlan_bootstrap_state = wlan_bootstrap_state_start;
 	}
 
+	if(config_get_flag(config_flag_cpu_high_speed))
+		system_update_cpu_freq(160);
+	else
+		system_update_cpu_freq(80);
+
 	os_timer_setfn(&periodic_timer, periodic_timer_callback, (void *)0);
 	os_timer_arm(&periodic_timer, 10, 1); // fast system timer = 100 Hz = 10 ms
 }
