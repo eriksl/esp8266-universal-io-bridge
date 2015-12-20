@@ -36,6 +36,10 @@ static config_flag_t config_flag[config_flag_size] =
 		config_flag_cpu_high_speed,
 		"chs", "cpu-high-speed"
 	},
+	{
+		config_flag_cpu_high_speed,
+		"pfg", "phy-force-802.11g",
+	},
 };
 
 irom bool_t config_init(void)

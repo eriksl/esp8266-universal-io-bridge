@@ -591,6 +591,12 @@ irom void user_init(void)
 	config_read();
 	uart_init(&config->uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
+
+	if(config_get_flag(config_flag_phy_force_g))
+		wifi_set_phy_mode(PHY_MODE_11G);
+	else
+		wifi_set_phy_mode(PHY_MODE_11N);
+
 	system_init_done_cb(user_init2);
 }
 
