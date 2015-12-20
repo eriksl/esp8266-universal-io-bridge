@@ -38,7 +38,11 @@ static config_flag_t config_flag[config_flag_size] =
 	},
 	{
 		config_flag_cpu_high_speed,
-		"pfg", "phy-force-802.11g",
+		"pfg", "phy-force-802.11g"
+	},
+	{
+		config_flag_wlan_power_save,
+		"wps", "wlan-power-save"
 	},
 };
 

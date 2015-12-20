@@ -597,6 +597,11 @@ irom void user_init(void)
 	else
 		wifi_set_phy_mode(PHY_MODE_11N);
 
+	if(config_get_flag(config_flag_wlan_power_save))
+		wifi_set_sleep_type(MODEM_SLEEP_T);
+	else
+		wifi_set_sleep_type(NONE_SLEEP_T);
+
 	system_init_done_cb(user_init2);
 }
 
@@ -604,8 +609,6 @@ irom static void user_init2(void)
 {
 	static struct espconn esp_cmd_config, esp_data_config;
 	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;
-
-	wifi_set_sleep_type(NONE_SLEEP_T);
 
 	ntp_init();
 	gpios_init();
