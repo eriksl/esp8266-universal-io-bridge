@@ -469,7 +469,7 @@ irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t valu
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "> flag %s %s\n", (*ap.args)[1], onoff(value));
+	snprintf(ap.dst, ap.size, "> flag %s %s, write config and restart to effectuate\n", (*ap.args)[1], onoff(value));
 
 	return(app_action_normal);
 }
