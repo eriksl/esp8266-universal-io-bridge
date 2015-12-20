@@ -717,6 +717,22 @@ irom void gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *
 	dump(cfgs, 0, size, string);
 }
 
+irom attr_pure gpio_mode_t gpios_mode(unsigned int gpio_name, bool plain_only)
+{
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
+
+	if(!(gpio = find_gpio(gpio_name)))
+		return(gpio_mode_error);
+
+	if(plain_only && gpio->flags.rtc_gpio)
+		return(gpio_mode_error);
+
+	cfg = get_config(gpio);
+
+	return(cfg->mode);
+}
+
 irom bool gpios_trigger_output(unsigned int gpio_name)
 {
 	gpio_t *gpio;
@@ -754,6 +770,27 @@ irom bool gpios_trigger_output(unsigned int gpio_name)
 			return(false);
 		}
 	}
+
+	return(true);
+}
+
+irom bool gpios_set_wlan_trigger(unsigned int gpio_name)
+{
+	gpio_t *gpio;
+	const gpio_config_entry_t *cfg;
+
+	if(!(gpio = find_gpio(gpio_name)))
+		return(false);
+
+	cfg = get_config(gpio);
+
+	if(cfg->mode != gpio_output)
+		return(false);
+
+	if(gpio->flags.rtc_gpio)
+		return(false);
+
+	wifi_status_led_install(gpio->index, gpio->io_mux, gpio->io_func);
 
 	return(true);
 }

@@ -598,6 +598,9 @@ irom void user_init(void)
 	uart_init(&config->uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
 
+	if(config->wlan_trigger_gpio >= 0)
+		gpios_set_wlan_trigger(config->wlan_trigger_gpio);
+
 	if(config_get_flag(config_flag_phy_force_g))
 		wifi_set_phy_mode(PHY_MODE_11G);
 	else

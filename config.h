@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 1,
-	config_minor_version = 10
+	config_minor_version = 11
 };
 
 typedef enum
@@ -53,6 +53,7 @@ typedef struct
 	uint8_t				i2c_delay;
 	char				display_default_msg[32];
 	int8_t				stat_trigger_gpio;
+	int8_t				wlan_trigger_gpio;
 	gpio_config_t		gpios;
 	i2c_sensor_config_t	i2c_sensors;
 } config_t;

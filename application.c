@@ -750,6 +750,35 @@ irom static app_action_t application_function_gpio_status_set(application_parame
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_gpio_wlan_set(application_parameters_t ap)
+{
+	int gpio;
+
+	if(ap.nargs > 1)
+	{
+		gpio = atoi((*ap.args)[1]);
+
+		if((gpio < 0) || (gpio > 16))
+		{
+			snprintf(ap.dst, ap.size, "wlan trigger gpio out of range: %d\n", gpio);
+			return(app_action_error);
+		}
+	}
+	else
+		gpio = -1;
+
+	if(gpios_mode(gpio, true) != gpio_output)
+	{
+		snprintf(ap.dst, ap.size, "wlan trigger gpio %d is not a plain gpio or not a plain output\n", gpio);
+		return(app_action_error);
+	}
+
+	config->wlan_trigger_gpio = gpio;
+	snprintf(ap.dst, ap.size, "wlan trigger at gpio %d, write config and restart to activate\n", config->wlan_trigger_gpio);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -823,6 +852,12 @@ static const application_function_table_t application_function_table[] =
 		0,
 		application_function_gpio_status_set,
 		"set gpio to trigger on status update"
+	},
+	{
+		"gws", "gpio-wlan-set",
+		0,
+		application_function_gpio_wlan_set,
+		"set gpio to trigger on wlan activity"
 	},
     {
         "ia", "i2c-address",
