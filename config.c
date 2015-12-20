@@ -177,7 +177,7 @@ iram void config_read_alt(config_t *cfg)
 			cfg->magic = config_magic;
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
-			cfg->bridge_tcp_port = 25;
+			cfg->bridge_tcp_port = 23;
 			cfg->ntp_server = string_to_ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
 			cfg->i2c_delay = 5;
