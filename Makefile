@@ -4,8 +4,7 @@ OBJCOPY				= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 ESPTOOL				= ~/bin/esptool
 
 SPI_FLASH_MODE		= qio
-PLAIN_FLASH_MBITS	= 4
-RBOOT_FLASH_MBITS	= 4
+FLASH_SIZE_MBITS	= 4
 
 LD_ADDRESS_PLAIN	= 0x40210000
 LD_ADDRESS_RBOOT	= 0x40202010
@@ -29,29 +28,9 @@ CONFIG_RBOOT_BIN	= rboot-config.bin
 ESPTOOL2			= ./esptool2
 RBOOT				= ./rboot
 LINKMAP				= linkmap
-RBOOT_BIG_FLASH		= 1
-
-CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -Wno-unused-parameter \
-					-Wsuggest-attribute=const -Wsuggest-attribute=pure -Wno-div-by-zero -Wfloat-equal \
-					-Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=384 \
-					-Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wsequence-point \
-					-Wclobbered -Wlogical-op -Wold-style-definition -Wstrict-prototypes \
-					-Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \
-					-Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code -Wtrigraphs -Wreturn-type \
-					-Wmissing-braces -Wparentheses -Wimplicit -Winit-self -Wformat-nonliteral -Wcomment \
-					-Os -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -DICACHE_FLASH
-CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -isystem$(SDKROOT)/sdk/include -I.
-LDFLAGS			= -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-LDSDK			= -L$(SDKROOT)/sdk/lib
-LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm -lcrypto
-
-OBJS			= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
-HEADERS			= esp-uart-register.h \
-				  application.h application-parameters.h config.h display.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
 
 V ?= $(VERBOSE)
-ifeq ("$(V)","1")
+ifeq ($(V),1)
 	Q :=
 	VECHO := @true
 	MAKEMINS :=
@@ -61,51 +40,55 @@ else
 	MAKEMINS := -s
 endif
 
-ifeq ("$(PLAIN_FLASH_MBITS)","2")
-	PLAIN_FLASH_KBYTES := 256
-endif
-
-ifeq ("$(PLAIN_FLASH_MBITS)","4")
-	PLAIN_FLASH_KBYTES := 512
-endif
-
-ifeq ("$(PLAIN_FLASH_MBITS)","8")
-	PLAIN_FLASH_KBYTES := 1024
-endif
-
-ifeq ("$(PLAIN_FLASH_MBITS)","16")
-	PLAIN_FLASH_KBYTES := 2048
-endif
-
-ifeq ("$(PLAIN_FLASH_MBITS)","32")
-	PLAIN_FLASH_KBYTES := 4096
-endif
-
-ifeq ("$(RBOOT_FLASH_MBITS)","2")
-	RBOOT_FLASH_KBYTES := 256
+ifeq ($(FLASH_SIZE_MBITS),2)
+	IMAGE = plain
+	FLASH_SIZE_KBITS := 256
 	RBOOT_SPI_SIZE := 256K
 endif
 
-ifeq ("$(RBOOT_FLASH_MBITS)","4")
-	RBOOT_FLASH_KBYTES := 512
+ifeq ($(FLASH_SIZE_MBITS),4)
+	IMAGE = plain
+	FLASH_SIZE_KBITS := 512
 	RBOOT_SPI_SIZE := 512K
 endif
 
-ifeq ("$(RBOOT_FLASH_MBITS)","8")
-	RBOOT_FLASH_KBYTES := 1024
+ifeq ($(FLASH_SIZE_MBITS),8)
+	IMAGE = rboot
+	FLASH_SIZE_KBITS := 1024
 	RBOOT_SPI_SIZE := 1M
 endif
 
-ifeq ("$(RBOOT_FLASH_MBITS)","16")
-	RBOOT_FLASH_KBYTES := 2048
+ifeq ($(FLASH_SIZE_MBITS),16)
+	IMAGE = rboot
+	FLASH_SIZE_KBITS := 2048
 	RBOOT_SPI_SIZE := 2M
 endif
 
-ifeq ("$(RBOOT_FLASH_MBITS)","32")
-	RBOOT_FLASH_KBYTES := 4096
+ifeq ($(FLASH_SIZE_MBITS),32)
+	IMAGE = rboot
+	FLASH_SIZE_KBITS := 4096
 	RBOOT_SPI_SIZE := 4M
 endif
 
+CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -Wno-unused-parameter \
+					-Wsuggest-attribute=const -Wsuggest-attribute=pure -Wno-div-by-zero -Wfloat-equal \
+					-Wno-declaration-after-statement -Wundef -Wshadow -Wframe-larger-than=384 \
+					-Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wsequence-point \
+					-Wclobbered -Wlogical-op -Wold-style-definition -Wstrict-prototypes \
+					-Wmissing-prototypes -Wmissing-field-initializers -Wpacked -Wredundant-decls -Wnested-externs \
+					-Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code -Wtrigraphs -Wreturn-type \
+					-Wmissing-braces -Wparentheses -Wimplicit -Winit-self -Wformat-nonliteral -Wcomment \
+					-Os -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ \
+					-DICACHE_FLASH -DFLASH_SIZE=$(FLASH_SIZE_MBITS) -DIMAGE_TYPE=$(IMAGE)
+CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
+					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -isystem$(SDKROOT)/sdk/include -I.
+LDFLAGS			= -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
+LDSDK			= -L$(SDKROOT)/sdk/lib
+LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm -lcrypto
+
+OBJS			= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
+HEADERS			= esp-uart-register.h \
+				  application.h application-parameters.h config.h display.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "xtensa-lx106-elf-size -A $(1) |"); \
@@ -152,10 +135,16 @@ link_debug		= $(Q) perl -e '\
 						printf("size: %u, free: %u\n", $$top - hex('$(4)'), ($(3) * 1024) - ($$top - hex('$(4)'))); \
 						close($$fd);'
 
+ifeq ($(IMAGE),plain)
+	ALL_TARGETS = $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
+else
+	ALL_TARGETS = $(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_RBOOT_IMG)
+endif
+
 .PHONY:	all plain rboot clean free linkdebug
 
-all:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(FIRMWARE_RBOOT_BOOT) $(FIRMWARE_RBOOT_IMG) $(CONFIG_RBOOT_BIN) free
-				$(VECHO) "DONE"
+all:			$(ALL_TARGETS) free
+				$(VECHO) "DONE $(IMAGE) $(ALL_TARGETS)"
 
 clean:
 				$(VECHO) "CLEAN"
@@ -196,7 +185,7 @@ $(ESPTOOL2)/esptool2:
 
 $(RBOOT)/firmware/rboot.bin:	$(ESPTOOL2)/esptool2
 						$(VECHO) "MAKE RBOOT"
-						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=$(RBOOT_BIG_FLASH) SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
+						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
 
 $(LDSCRIPT_PLAIN):		$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $@"
@@ -216,28 +205,28 @@ $(ELF_RBOOT):			$(OBJS) $(LDSCRIPT_RBOOT)
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2)/esptool2
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
-						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -$(PLAIN_FLASH_KBYTES) -$(SPI_FLASH_MODE) -boot0 $< $@ .text .data .rodata
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -$(FLASH_SIZE_KBITS) -$(SPI_FLASH_MODE) -boot0 $< $@ .text .data .rodata
 
 $(FIRMWARE_PLAIN_IROM):	$(ELF_PLAIN) $(ESPTOOL2)/esptool2
 						$(VECHO) "PLAIN FIRMWARE IROM $@"
-						$(Q) $(ESPTOOL2)/esptool2 -quiet -lib -$(PLAIN_FLASH_KBYTES) -$(SPI_FLASH_MODE) $< $@
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -lib -$(FLASH_SIZE_KBITS) -$(SPI_FLASH_MODE) $< $@
 
 $(FIRMWARE_RBOOT_BOOT):	$(RBOOT)/firmware/rboot.bin
 						cp $< $@
 
 $(FIRMWARE_RBOOT_IMG):	$(ELF_RBOOT) $(ESPTOOL2)/esptool2
 						$(VECHO) "RBOOT FIRMWARE $@"
-						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -$(RBOOT_FLASH_KBYTES) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -$(FLASH_SIZE_KBITS) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
 
 $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
 plain:					$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
-						$(Q) $(ESPTOOL) write_flash --flash_size $(PLAIN_FLASH_MBITS)m --flash_mode $(SPI_FLASH_MODE) $(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) $(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM)
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_MBITS)m --flash_mode $(SPI_FLASH_MODE) $(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) $(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM)
 
 rboot:					$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_RBOOT_IMG) free
-						$(Q) $(ESPTOOL) write_flash --flash_size $(PLAIN_FLASH_MBITS)m --flash_mode $(SPI_FLASH_MODE) $(OFFSET_BOOT_RBOOT) $(FIRMWARE_RBOOT_BOOT) $(OFFSET_CONFIG_RBOOT) $(CONFIG_RBOOT_BIN) $(OFFSET_IMG_RBOOT) $(FIRMWARE_RBOOT_IMG)
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_MBITS)m --flash_mode $(SPI_FLASH_MODE) $(OFFSET_BOOT_RBOOT) $(FIRMWARE_RBOOT_BOOT) $(OFFSET_CONFIG_RBOOT) $(CONFIG_RBOOT_BIN) $(OFFSET_IMG_RBOOT) $(FIRMWARE_RBOOT_IMG)
 
 %.o:					%.c
 						$(VECHO) "CC $<"
