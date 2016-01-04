@@ -1,7 +1,34 @@
-SDKROOT			= /nfs/src/esp/opensdk
-SDKLD			= $(SDKROOT)/sdk/ld
+SDKROOT				= /nfs/src/esp/opensdk
+CC					= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
+OBJCOPY				= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
+ESPTOOL				= ~/bin/esptool
 
-LINKMAP			= linkmap
+LD_ADDRESS_PLAIN	= 0x40210000
+LD_ADDRESS_RBOOT	= 0x40202010
+LDSCRIPT_TEMPLATE	= loadscript-template
+LDSCRIPT_PLAIN		= loadscript-plain
+LDSCRIPT_RBOOT		= loadscript-rboot
+ELF_PLAIN			= espiobridge-plain.o
+ELF_RBOOT			= espiobridge-rboot.o
+OFFSET_IRAM_PLAIN	= 0x00000
+OFFSET_IROM_PLAIN	= 0x10000
+OFFSET_BOOT_RBOOT	= 0x00000
+OFFSET_CONFIG_RBOOT	= 0x01000
+OFFSET_IMG_RBOOT	= 0x02000
+FIRMWARE_PLAIN_IRAM	= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
+FIRMWARE_PLAIN_IROM	= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
+FIRMWARE_RBOOT_BOOT	= espiobridge-rboot-boot.bin
+FIRMWARE_RBOOT_IMG	= espiobridge-rboot-image.bin
+CONFIG_RBOOT_SRC	= rboot-config.c
+CONFIG_RBOOT_ELF	= rboot-config.o
+CONFIG_RBOOT_BIN	= rboot-config.bin
+ESPTOOL2			= ./esptool2
+RBOOT				= ./rboot
+LINKMAP				= linkmap
+RBOOT_BIG_FLASH		= 0
+RBOOT_SPI_SIZE		= 512K
+ESPTOOL_SPI_SIZE	= 4m
+RBOOT_SPI_MODE		= qio
 
 CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -Wno-unused-parameter \
 					-Wsuggest-attribute=const -Wsuggest-attribute=pure -Wno-div-by-zero -Wfloat-equal \
@@ -15,7 +42,6 @@ CFLAGS			= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign -W
 CINC			= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include -isystem$(SDKROOT)/sdk/include -I.
 LDFLAGS			= -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-LDSCRIPT		= -T./eagle.app.v6.ld
 LDSDK			= -L$(SDKROOT)/sdk/lib
 LDLIBS			= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain -lpwm -lcrypto
 
@@ -23,61 +49,33 @@ OBJS			= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o sta
 HEADERS			= esp-uart-register.h \
 				  application.h application-parameters.h config.h display.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
 
-ELF				= espiobridge.elf
-ADDR_IRAM		= 0x00000
-ADDR_IROM		= 0x10000
-FILE_IRAM		= espiobridge-iram-$(ADDR_IRAM).bin
-FILE_IROM		= espiobridge-irom-$(ADDR_IROM).bin
-ESPTOOL2		= ./esptool2
-RBOOT			= ./rboot
-
 V ?= $(VERBOSE)
 ifeq ("$(V)","1")
 	Q :=
-	vecho := @true
+	VECHO := @true
+	MAKEMINS :=
 else
 	Q := @
-	vecho := @echo
+	VECHO := @echo
+	MAKEMINS := -s
 endif
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "xtensa-lx106-elf-size -A $(1) |"); \
+						$$available = $(5) * 1024; \
+						$$used = 0; \
 						while(<$$fd>) \
 						{ \
 							chomp; \
 							@_ = split; \
-							if($$_[0] eq "$(3)") \
+							if(($$_[0] eq "$(3)") || ($$_[0] eq "$(4)")) \
 							{ \
-								$$total = $(4) * 1024; \
-								$$used = $$_[1]; \
-								$$left = $$total - $$used; \
-								printf("%-8s available: %3u k, used: %3u k, free: %6u\n", "$(2)" . ":", $$total / 1024, $$used / 1024, $$left); \
+								$$used += $$_[1]; \
 							} \
 						} \
+						$$free = $$available - $$used; \
+						printf("    %-8s available: %3u k, used: %6u, free: %6u, %2u %%\n", "$(2)" . ":", $$available / 1024, $$used, $$free, 100 * $$free / $$available); \
 						close($$fd);'
-
-section2_free	= $(Q) perl -e '\
-						open($$fd, "< linkmap"); \
-						while(<$$fd>) \
-						{ \
-							chomp(); \
-							($$end_address) = m/\s+(0x[0-9a-f]+)\s+$(3) = ABSOLUTE \(.\)/; \
-							if(defined($$end_address)) \
-							{ \
-								$$start_address = $(4); \
-								$$end_address = hex($$end_address); \
-								$$used = $$end_address - $$start_address; \
-								$$available = $(5); \
-								$$free = $$available - $$used; \
-								printf("%-8s available: %3u k, used: %3u k, free: %6d\n", "$(1)" . ":", $$available / 1024, $$used / 1024, $$free); \
-							} \
-						} \
-						close($$fd);'
-
-file_free =		$(Q) perl -e '\
-					$$iram = (-s "$(FILE_IRAM)") / 1024; \
-					$$irom = (-s "$(FILE_IROM)") / 1024; \
-					printf("file size: iram: %u k, irom: %u k, both: %u k, free: %u k\n", $$iram, $$irom, $$all, $(1) - $$all);'
 
 link_debug		= $(Q) perl -e '\
 						open($$fd, "< $(1)"); \
@@ -85,11 +83,11 @@ link_debug		= $(Q) perl -e '\
 						while(<$$fd>) \
 						{ \
 							chomp; \
-							if(/^\s+\.$(2)/) \
+							if(m/^\s+\.$(2)/) \
 							{ \
 								@_ = split; \
 								$$top = hex($$_[1]) if(hex($$_[1]) > $$top); \
-								if(hex($$_[2]) > 0) \
+								if((hex($$_[2]) > 0) && !m/\.a\(/) \
 								{ \
 									$$size = sprintf("%06x", hex($$_[2])); \
 									$$file = $$_[3]; \
@@ -107,41 +105,30 @@ link_debug		= $(Q) perl -e '\
 						printf("size: %u, free: %u\n", $$top - hex('$(4)'), ($(3) * 1024) - ($$top - hex('$(4)'))); \
 						close($$fd);'
 
-.PHONY:	all flash clean free linkdebug
+.PHONY:	all plain rboot clean free linkdebug
 
-all:			$(FILE_IRAM) $(FILE_IROM)
-#				$(call section_free,$(ELF),.bss,80)
-#				$(call section_free,$(ELF),.data,80)
-#				$(call section_free,$(ELF),.rodata,80)
-				$(call section_free,$(ELF),iram,.text,32)
-				$(call section_free,$(ELF),irom,.irom0.text,424)
-				$(call file_free, 456)
-
-$(ESPTOOL2)/esptool2:
-				$(vecho) "MAKE ESPTOOL2"
-				$(Q) $(MAKE) -C $(ESPTOOL2)
-
-$(RBOOT)/firmware/rboot.bin:
-				$(vecho) "MAKE RBOOT"
-				$(Q) $(MAKE) -C $(RBOOT)
+all:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(FIRMWARE_RBOOT_BOOT) $(FIRMWARE_RBOOT_IMG) $(CONFIG_RBOOT_BIN) free
+				$(VECHO) "DONE"
 
 clean:
-				$(vecho) "CLEAN"
-				$(Q) $(MAKE) -C $(ESPTOOL2) clean > /dev/null 2>&1
-				$(Q) $(MAKE) -C $(RBOOT) clean > /dev/null 2>&1
-				$(Q) rm -f $(OBJS) $(ELF) $(FILE_IRAM) $(FILE_IROM) $(ZIP) $(LINKMAP)
+				$(VECHO) "CLEAN"
+				$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2) clean
+				$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) clean
+				$(Q) rm -f $(OBJS) $(ELF_PLAIN) $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(FIRMWARE_RBOOT_BOOT) $(FIRMWARE_RBOOT_IMG)
+				$(Q) rm -f $(ZIP) $(LINKMAP) $(LDSCRIPT_PLAIN) $(LDSCRIPT_RBOOT) $(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN)
 
-free:			$(LINKMAP) $(FILE_IRAM) $(FILE_IROM)
-#				$(call section2_free,dram,dram0,_bss_end,0x3ffe8000,0x14000)
-				$(call section2_free,iram,iram1,_lit4_end,0x40100000,0x8000)
-				$(call section2_free,irom,irom0,_irom0_text_end,0x40210000,0x6a000)
+free:			$(ELF_PLAIN)
+				$(VECHO) "MEMORY USAGE"
+				$(call section_free,$(ELF_PLAIN),iram,.text,,32)
+				$(call section_free,$(ELF_PLAIN),dram,.bss,.data,80)
+				$(call section_free,$(ELF_PLAIN),irom,.rodata,.irom0.text,424)
 
-linkdebug:		$(OBJS)
-				$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
+linkdebug:		$(LINKMAP)
 				$(Q) echo "IROM:"
-				$(call link_debug, $(LINKMAP),irom0.text,424,40210000)
+				$(call link_debug,$<,irom0.text,424,40210000)
 				$(Q) echo "IRAM:"
-				$(call link_debug, $(LINKMAP),text,32,40100000)
+				$(call link_debug,$<,text,32,40100000)
+
 
 i2c.o:			$(HEADERS)
 util.o:			$(HEADERS)
@@ -154,24 +141,57 @@ application.o:	$(HEADERS)
 user_main.o:	$(HEADERS)
 uart.o:			$(HEADERS)
 stats.o:		$(HEADERS)
+$(LINKMAP):		$(ELF_PLAIN)
 
-$(ELF):			$(OBJS)
-				$(vecho) "LD $@"
-				$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
+$(ESPTOOL2)/esptool2:
+						$(VECHO) "MAKE ESPTOOL2"
+						$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2)
 
-$(FILE_IRAM):	$(ELF) $(ESPTOOL2)/esptool2
-				$(vecho) "SEGMENT IRAM"
-				$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -boot0 $< $@ .text .data .rodata
+$(RBOOT)/firmware/rboot.bin:	$(ESPTOOL2)/esptool2
+						$(VECHO) "MAKE RBOOT"
+						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=$(RBOOT_BIG_FLASH) SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(RBOOT_SPI_MODE)
 
-$(FILE_IROM):	$(ELF) $(ESPTOOL2)/esptool2
-				$(vecho) "SEGMENT IROM"
-				$(Q) $(ESPTOOL2)/esptool2 -quiet -lib $< $@
+$(LDSCRIPT_PLAIN):		$(LDSCRIPT_TEMPLATE)
+						$(VECHO) "LINKER SCRIPT $@"
+						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS_PLAIN)/' < $< > $@
 
-flash:			$(FILE_IRAM) $(FILE_IROM)
-				$(Q) esptool write_flash $(ADDR_IRAM) $(FILE_IRAM) $(ADDR_IROM) $(FILE_IROM)
+$(LDSCRIPT_RBOOT):		$(LDSCRIPT_TEMPLATE)
+						$(VECHO) "LINKER SCRIPT $@"
+						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS_RBOOT)/' < $< > $@
 
-$(LINKMAP):		$(ELF)
+$(ELF_PLAIN):			$(OBJS) $(LDSCRIPT_PLAIN)
+						$(VECHO) "LD $@"
+						$(Q) $(CC) $(LDSDK) -T./$(LDSCRIPT_PLAIN) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
 
-%.o:			%.c
-				$(vecho) "CC $<"
-				$(Q) xtensa-lx106-elf-gcc $(CINC) $(CFLAGS) -c $< -o $@
+$(ELF_RBOOT):			$(OBJS) $(LDSCRIPT_RBOOT)
+						$(VECHO) "LD $@"
+						$(Q) $(CC) $(LDSDK) -T./$(LDSCRIPT_RBOOT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
+
+$(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2)/esptool2
+						$(VECHO) "PLAIN FIRMWARE IRAM $@"
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -boot0 $< $@ .text .data .rodata
+
+$(FIRMWARE_PLAIN_IROM):	$(ELF_PLAIN) $(ESPTOOL2)/esptool2
+						$(VECHO) "PLAIN FIRMWARE IROM $@"
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -lib $< $@
+
+$(FIRMWARE_RBOOT_BOOT):	$(RBOOT)/firmware/rboot.bin
+						cp $< $@
+
+$(FIRMWARE_RBOOT_IMG):	$(ELF_RBOOT) $(ESPTOOL2)/esptool2
+						$(VECHO) "RBOOT FIRMWARE $@"
+						$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -boot2 $< $@ .text .data .rodata
+
+$(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
+						$(VECHO) "RBOOT CONFIG $@"
+						$(Q) $(OBJCOPY) --output-target binary $< $@
+
+plain:					$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
+						$(Q) $(ESPTOOL) write_flash --flash_size $(ESPTOOL_SPI_SIZE) $(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) $(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM)
+
+rboot:					$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_RBOOT_IMG) free
+						$(Q) $(ESPTOOL) write_flash --flash_size $(ESPTOOL_SPI_SIZE) $(OFFSET_BOOT_RBOOT) $(FIRMWARE_RBOOT_BOOT) $(OFFSET_CONFIG_RBOOT) $(CONFIG_RBOOT_BIN) $(OFFSET_IMG_RBOOT) $(FIRMWARE_RBOOT_IMG)
+
+%.o:					%.c
+						$(VECHO) "CC $<"
+						$(Q) $(CC) $(CINC) $(CFLAGS) -c $< -o $@
