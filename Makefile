@@ -23,13 +23,13 @@ OBJS			= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o sta
 HEADERS			= esp-uart-register.h \
 				  application.h application-parameters.h config.h display.h gpios.h i2c.h i2c_sensor.h stats.h queue.h uart.h user_main.h user_config.h
 
-ELF				= fw.elf
+ELF				= espiobridge.elf
 ADDR_IRAM		= 0x00000
 ADDR_IROM		= 0x10000
-FILE_IRAM		= region-$(ADDR_IRAM).bin
-FILE_IRAM_PAD	= region-$(ADDR_IRAM)-padded.bin
-FILE_IROM		= region-$(ADDR_IROM).bin
-FW				= espiobridge.bin
+FILE_IRAM		= espiobridge-iram-$(ADDR_IRAM).bin
+FILE_IROM		= espiobridge-irom-$(ADDR_IROM).bin
+ESPTOOL2		= ./esptool2
+RBOOT			= ./rboot
 
 V ?= $(VERBOSE)
 ifeq ("$(V)","1")
@@ -75,9 +75,8 @@ section2_free	= $(Q) perl -e '\
 						close($$fd);'
 
 file_free =		$(Q) perl -e '\
-					$$iram = (-s "$(FILE_IRAM_PAD)") / 1024; \
+					$$iram = (-s "$(FILE_IRAM)") / 1024; \
 					$$irom = (-s "$(FILE_IROM)") / 1024; \
-					$$all  = (-s "$(FW)") / 1024; \
 					printf("file size: iram: %u k, irom: %u k, both: %u k, free: %u k\n", $$iram, $$irom, $$all, $(1) - $$all);'
 
 link_debug		= $(Q) perl -e '\
@@ -110,21 +109,27 @@ link_debug		= $(Q) perl -e '\
 
 .PHONY:	all flash clean free linkdebug
 
-all:			$(FW)
+all:			$(FILE_IRAM) $(FILE_IROM)
 #				$(call section_free,$(ELF),.bss,80)
 #				$(call section_free,$(ELF),.data,80)
 #				$(call section_free,$(ELF),.rodata,80)
 				$(call section_free,$(ELF),iram,.text,32)
 				$(call section_free,$(ELF),irom,.irom0.text,424)
 				$(call file_free, 456)
-				$(Q) rm -f $(FILE_IRAM) $(FILE_IRAM_PAD) $(FILE_IROM)
 
-flash:			all
-				$(Q) esptool write_flash 0 $(FW)
+$(ESPTOOL2)/esptool2:
+				$(vecho) "MAKE ESPTOOL2"
+				$(Q) $(MAKE) -C $(ESPTOOL2)
+
+$(RBOOT)/firmware/rboot.bin:
+				$(vecho) "MAKE RBOOT"
+				$(Q) $(MAKE) -C $(RBOOT)
 
 clean:
 				$(vecho) "CLEAN"
-				$(Q) rm -f $(OBJS) $(ELF) $(FILE_IRAM) $(FILE_IRAM_PAD) $(FILE_IROM) $(FW) $(ZIP) $(LINKMAP)
+				$(Q) $(MAKE) -C $(ESPTOOL2) clean > /dev/null 2>&1
+				$(Q) $(MAKE) -C $(RBOOT) clean > /dev/null 2>&1
+				$(Q) rm -f $(OBJS) $(ELF) $(FILE_IRAM) $(FILE_IROM) $(ZIP) $(LINKMAP)
 
 free:			$(LINKMAP) $(FILE_IRAM) $(FILE_IROM)
 #				$(call section2_free,dram,dram0,_bss_end,0x3ffe8000,0x14000)
@@ -154,10 +159,16 @@ $(ELF):			$(OBJS)
 				$(vecho) "LD $@"
 				$(Q) xtensa-lx106-elf-gcc $(LDSDK) $(LDSCRIPT) $(LDFLAGS) -Wl,--start-group $(LDLIBS) $(OBJS) -Wl,--end-group -o $@
 
-$(FW):			$(ELF)
-				$(Q) esptool.py elf2image --output region- $(ELF)
-				$(Q) dd if=$(FILE_IRAM) of=$(FILE_IRAM_PAD) ibs=64K conv=sync > /dev/null 2>&1
-				$(Q) cat $(FILE_IRAM_PAD) $(FILE_IROM) > $(FW)
+$(FILE_IRAM):	$(ELF) $(ESPTOOL2)/esptool2
+				$(vecho) "SEGMENT IRAM"
+				$(Q) $(ESPTOOL2)/esptool2 -quiet -bin -boot0 $< $@ .text .data .rodata
+
+$(FILE_IROM):	$(ELF) $(ESPTOOL2)/esptool2
+				$(vecho) "SEGMENT IROM"
+				$(Q) $(ESPTOOL2)/esptool2 -quiet -lib $< $@
+
+flash:			$(FILE_IRAM) $(FILE_IROM)
+				$(Q) esptool write_flash $(ADDR_IRAM) $(FILE_IRAM) $(ADDR_IROM) $(FILE_IROM)
 
 $(LINKMAP):		$(ELF)
 
