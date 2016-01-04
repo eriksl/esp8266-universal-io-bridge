@@ -148,7 +148,7 @@ irom unsigned int config_flags_to_string(unsigned int size, char *dst, unsigned 
 	return(total);
 }
 
-iram void config_read_alt(config_t *cfg)
+irom void config_read_alt(config_t *cfg)
 {
 	enum
 	{
@@ -214,7 +214,7 @@ irom void config_read(void)
 	return(config_read_alt(config));
 }
 
-iram void config_write_alt(config_t *cfg)
+irom void config_write_alt(config_t *cfg)
 {
 	ETS_UART_INTR_DISABLE();
 	spi_flash_erase_sector(0x7a);

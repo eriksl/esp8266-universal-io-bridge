@@ -376,7 +376,7 @@ irom static bool_t get_input(const gpio_t *gpio)
 	return(!!(gpio_input_get() & (1 << gpio->index)));
 }
 
-iram static inline void arm_counter(const gpio_t *gpio)
+irom static inline void arm_counter(const gpio_t *gpio)
 {
 	// no use in specifying POSEDGE or NEGEDGE here (bummer),
 	// they act exactly like ANYEDGE, I assume that's an SDK bug
@@ -384,7 +384,7 @@ iram static inline void arm_counter(const gpio_t *gpio)
 	gpio_pin_intr_state_set(gpio->index, GPIO_PIN_INTR_ANYEDGE);
 }
 
-iram void gpios_periodic(void)
+irom void gpios_periodic(void)
 {
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
