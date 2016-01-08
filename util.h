@@ -89,6 +89,10 @@ unsigned int ip_addr_to_string(unsigned int size, char *dst, ip_addr_t);
 ip_addr_t string_to_ip_addr(const char *);
 bool ip_addr_valid(ip_addr_t);
 void md5_hash_to_string(const char *hash, unsigned int size, char *string);
+int string_to_int_ex(const char *startptr, const char **endptr, unsigned int size, int base, bool *valid);
+int string_to_int(const char *startptr);
+int hex_string_to_int(const char *startptr);
+int hex_to_bin(int src_length, const char *src, int dst_size, char *dst);
 
 #define strcpy #error strcpy unsafe
 #define strncpy #error strncpy unsafe

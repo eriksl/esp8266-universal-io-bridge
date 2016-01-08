@@ -88,8 +88,8 @@ irom static void ntp_periodic(void)
 
 	timestring = sntp_get_real_time(sntp_get_current_timestamp());
 
-	rt_hours = atoi(&timestring[11]);
-	rt_mins = atoi(&timestring[14]);
+	rt_hours = string_to_int(&timestring[11]);
+	rt_mins = string_to_int(&timestring[14]);
 }
 
 irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,

@@ -6,6 +6,7 @@
 
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <mem.h>
 #include <user_interface.h>
@@ -465,4 +466,121 @@ irom void md5_hash_to_string(const char *hash, unsigned int size, char *string)
 	}
 
 	string[dst++] = '\0';
+}
+
+irom int string_to_int_ex(const char *startptr, const char **endptr, unsigned int size, int base, bool *valid_ptr)
+{
+	bool negative, valid;
+	int value;
+	unsigned int length;
+	char current;
+
+	for(length = 0; (!size || (length < size)) && startptr[length]; length++)
+		if(startptr[length] != ' ')
+			break;
+
+	if(base == 0)
+	{
+		if((!size || ((length + 1) < size)) && (startptr[length + 0] == '0') && (startptr[length + 1] == 'x'))
+		{
+			base = 16;
+			length += 2;
+		}
+		else
+			base = 10;
+	}
+
+	if((!size || (length < size)) && (base == 10))
+	{
+		if(startptr[length] == '-')
+		{
+			negative = true;
+			length++;
+		}
+
+		if(startptr[length] == '+')
+			length++;
+	}
+
+	for(value = 0, valid = false, negative = false; (!size || (length < size)) && startptr[length]; length++)
+	{
+		current = startptr[length];
+
+		if((current >= 'A') && (current <= 'Z'))
+			current |= 0x20;
+
+		if((current >= '0') && (current <= '9'))
+		{
+			value *= base;
+			value += current - '0';
+		}
+		else
+		{
+			if((base > 10) && (current >= 'a') && (current <= ('a' + base - 11)))
+			{
+				value *= base;
+				value += current - 'a' + 10;
+			}
+			else
+			{
+				if((current != '\0') && (current != ' ') && (current != '\n') && (current != '\r'))
+					valid = false;
+
+				break;
+			}
+		}
+
+		valid = true;
+	}
+
+	if(valid_ptr)
+		*valid_ptr = valid;
+
+	if(endptr)
+		*endptr = &startptr[length];
+
+	return(negative ? 0 - value : value);
+}
+
+irom int string_to_int(const char *startptr)
+{
+	return(string_to_int_ex(startptr, 0, 0, 0, 0));
+}
+
+irom int hex_string_to_int(const char *startptr)
+{
+	return(string_to_int_ex(startptr, 0, 0, 16, 0));
+}
+
+irom int hex_to_bin(int src_length, const char *src, int dst_size, char *dst)
+{
+	int src_offset, dst_offset;
+	char in, out;
+
+	for(src_offset = 0, dst_offset = 0;
+		((src_offset + 1) < src_length) && (dst_offset < dst_size);
+		src_offset += 2, dst_offset++)
+	{
+		in = src[src_offset];
+		out = 0;
+
+		if((in >= '0') && (in <= '9'))
+			out |= in - '0';
+		else
+			if((in >= 'a') && (in <= 'f'))
+				out |= in - 'a' + 10;
+
+		in = src[src_offset + 1];
+		out <<= 4;
+
+		if((in >= '0') && (in <= '9'))
+			out |= in - '0';
+		else
+			if((in >= 'a') && (in <= 'f'))
+				out |= in - 'a' + 10;
+
+		dst[dst_offset] = out;
+	}
+
+	return(dst_offset);
 }

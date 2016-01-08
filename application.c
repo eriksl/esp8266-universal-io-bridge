@@ -165,7 +165,7 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 
 	if(ap.nargs > 1)
 	{
-		tcp_port = atoi((*ap.args)[1]);
+		tcp_port = string_to_int((*ap.args)[1]);
 
 		if(tcp_port > 65535)
 		{
@@ -184,7 +184,7 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 
 irom static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
 {
-	unsigned int baud_rate = atoi((*ap.args)[1]);
+	unsigned int baud_rate = string_to_int((*ap.args)[1]);
 
 	if(baud_rate > 1000000)
 	{
@@ -201,7 +201,7 @@ irom static app_action_t application_function_uart_baud_rate(application_paramet
 
 irom static app_action_t application_function_uart_data_bits(application_parameters_t ap)
 {
-	unsigned int data_bits = atoi((*ap.args)[1]);
+	unsigned int data_bits = string_to_int((*ap.args)[1]);
 
 	if((data_bits < 5) || (data_bits > 8))
 	{
@@ -218,7 +218,7 @@ irom static app_action_t application_function_uart_data_bits(application_paramet
 
 irom static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
 {
-	unsigned int stop_bits = atoi((*ap.args)[1]);
+	unsigned int stop_bits = string_to_int((*ap.args)[1]);
 
 	if((stop_bits < 1) || (stop_bits > 2))
 	{
@@ -254,7 +254,7 @@ static unsigned int i2c_address = 0;
 
 irom static app_action_t application_function_i2c_address(application_parameters_t ap)
 {
-	i2c_address = strtoul((*ap.args)[1], 0, 16);
+	i2c_address = hex_string_to_int((*ap.args)[1]);
 
 	snprintf(ap.dst, ap.size, "i2c-address: i2c slave address set to 0x%02x\n", i2c_address);
 
@@ -263,7 +263,7 @@ irom static app_action_t application_function_i2c_address(application_parameters
 
 irom static app_action_t application_function_i2c_delay(application_parameters_t ap)
 {
-	config->i2c_delay = atoi((*ap.args)[1]);
+	config->i2c_delay = string_to_int((*ap.args)[1]);
 
 	snprintf(ap.dst, ap.size, "i2c-delay: i2c delay set to %u, write config and restart to activate\n", config->i2c_delay);
 
@@ -276,7 +276,7 @@ irom static app_action_t application_function_i2c_read(application_parameters_t 
 	i2c_error_t error;
 	uint8_t bytes[32];
 
-	size = atoi((*ap.args)[1]);
+	size = string_to_int((*ap.args)[1]);
 
 	if(size > sizeof(bytes))
 	{
@@ -318,7 +318,7 @@ irom static app_action_t application_function_i2c_write(application_parameters_t
 			(src_current < ap.nargs) && (dst_current < sizeof(bytes));
 			src_current++, dst_current++)
 	{
-		bytes[dst_current] = (uint8_t)strtoul((*ap.args)[src_current], 0, 16);
+		bytes[dst_current] = hex_string_to_int((*ap.args)[src_current]);
 	}
 
 	if((error = i2c_send(i2c_address, dst_current, bytes)) != i2c_error_ok)
@@ -354,7 +354,7 @@ irom static app_action_t application_function_i2c_sensor_read(application_parame
 {
 	i2c_sensor_t sensor;
 
-	sensor = atoi((*ap.args)[1]);
+	sensor = string_to_int((*ap.args)[1]);
 
 	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
 	{
@@ -372,7 +372,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(application_p
 	float offset;
 	unsigned int length;
 
-	sensor = atoi((*ap.args)[1]);
+	sensor = string_to_int((*ap.args)[1]);
 	factor = string_to_double((*ap.args)[2]);
 	offset = string_to_double((*ap.args)[3]);
 
@@ -417,7 +417,7 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 
 	if(ap.nargs > 1)
 	{
-		switch(atoi((*ap.args)[1]))
+		switch(string_to_int((*ap.args)[1]))
 		{
 			case(2):
 				verbose = true;
@@ -486,8 +486,8 @@ irom static app_action_t application_function_unset(application_parameters_t ap)
 
 irom static app_action_t application_function_rtc_set(application_parameters_t ap)
 {
-	rt_hours = atoi((*ap.args)[1]);
-	rt_mins = atoi((*ap.args)[2]);
+	rt_hours = string_to_int((*ap.args)[1]);
+	rt_mins = string_to_int((*ap.args)[2]);
 	rt_secs = 0;
 
 	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u\n", rt_hours, rt_mins);
@@ -501,11 +501,11 @@ irom static app_action_t application_function_display_brightness(application_par
 	unsigned int value;
 	static const char *usage = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
 
-	id = atoi((*ap.args)[1]);
+	id = string_to_int((*ap.args)[1]);
 
 	if(ap.nargs > 2)
 	{
-		value = atoi((*ap.args)[2]);
+		value = string_to_int((*ap.args)[2]);
 
 		if(!display_set_brightness(id, value))
 		{
@@ -530,7 +530,7 @@ irom static app_action_t application_function_display_dump(application_parameter
 	unsigned int verbose;
 
 	if(ap.nargs > 1)
-		verbose = atoi((*ap.args)[1]);
+		verbose = string_to_int((*ap.args)[1]);
 	else
 		verbose = 0;
 
@@ -570,9 +570,9 @@ irom static app_action_t application_function_display_set(application_parameters
 	unsigned int timeout;
 	const char *text;
 
-	id = atoi((*ap.args)[1]);
-	slot = atoi((*ap.args)[2]);
-	timeout = atoi((*ap.args)[3]);
+	id = string_to_int((*ap.args)[1]);
+	slot = string_to_int((*ap.args)[2]);
+	timeout = string_to_int((*ap.args)[3]);
 
 	text = ap.cmdline;
 
@@ -718,7 +718,7 @@ irom static app_action_t application_function_ntp_set(application_parameters_t a
 	unsigned int length;
 
 	config->ntp_server = string_to_ip_addr((*ap.args)[1]);
-	config->ntp_timezone = atoi((*ap.args)[2]);
+	config->ntp_timezone = string_to_int((*ap.args)[2]);
 
 	length = snprintf(ap.dst, ap.size, "ntp server set, write config and restart to activate\n");
 	ap.dst += length;
@@ -733,7 +733,7 @@ irom static app_action_t application_function_gpio_status_set(application_parame
 
 	if(ap.nargs > 1)
 	{
-		gpio = atoi((*ap.args)[1]);
+		gpio = string_to_int((*ap.args)[1]);
 
 		if((gpio < 0) || (gpio > 16))
 		{
@@ -756,7 +756,7 @@ irom static app_action_t application_function_gpio_wlan_set(application_paramete
 
 	if(ap.nargs > 1)
 	{
-		gpio = atoi((*ap.args)[1]);
+		gpio = string_to_int((*ap.args)[1]);
 
 		if((gpio < 0) || (gpio > 16))
 		{

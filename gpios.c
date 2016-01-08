@@ -821,7 +821,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		return(app_action_normal);
 	}
 
-	gpio_index = atoi((*ap.args)[1]);
+	gpio_index = string_to_int((*ap.args)[1]);
 
 	if(!(gpio = find_gpio(gpio_index)))
 	{
@@ -860,8 +860,8 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			new_gpio_config->counter.reset_on_get = (uint8_t)!!atoi((*ap.args)[3]);
-			new_gpio_config->counter.debounce = atoi((*ap.args)[4]);
+			new_gpio_config->counter.reset_on_get = (uint8_t)!!string_to_int((*ap.args)[3]);
+			new_gpio_config->counter.debounce = string_to_int((*ap.args)[4]);
 
 			break;
 		}
@@ -874,7 +874,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			new_gpio_config->output.startup_state = (uint8_t)!!atoi((*ap.args)[3]);
+			new_gpio_config->output.startup_state = (uint8_t)!!string_to_int((*ap.args)[3]);
 
 			break;
 		}
@@ -902,9 +902,9 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			delay = atoi((*ap.args)[4]);
-			repeat = atoi((*ap.args)[5]);
-			autotrigger = atoi((*ap.args)[6]);
+			delay = string_to_int((*ap.args)[4]);
+			repeat = string_to_int((*ap.args)[5]);
+			autotrigger = string_to_int((*ap.args)[6]);
 
 			if(delay < 10)
 			{
@@ -937,13 +937,13 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 			}
 
 			if(ap.nargs > 3)
-				min_duty = atoi((*ap.args)[3]);
+				min_duty = string_to_int((*ap.args)[3]);
 
 			if(ap.nargs > 4)
-				max_duty = atoi((*ap.args)[4]);
+				max_duty = string_to_int((*ap.args)[4]);
 
 			if(ap.nargs > 5)
-				delay = atoi((*ap.args)[5]);
+				delay = string_to_int((*ap.args)[5]);
 
 			if(min_duty > 65535)
 			{
@@ -1023,7 +1023,7 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 		return(app_action_error);
 	}
 
-	gpio_index = atoi((*ap.args)[1]);
+	gpio_index = string_to_int((*ap.args)[1]);
 
 	if(!(gpio = find_gpio(gpio_index)))
 	{
@@ -1094,7 +1094,7 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
-	gpio_index = atoi((*ap.args)[1]);
+	gpio_index = string_to_int((*ap.args)[1]);
 
 	if(!(gpio = find_gpio(gpio_index)))
 	{
@@ -1123,7 +1123,7 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 			if(ap.nargs < 3)
 				gpio->counter.count = 0;
 			else
-				gpio->counter.count = atoi((*ap.args)[2]);
+				gpio->counter.count = string_to_int((*ap.args)[2]);
 
 			break;
 		}
@@ -1136,7 +1136,7 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 				return(app_action_error);
 			}
 
-			set_output(gpio, !!atoi((*ap.args)[2]));
+			set_output(gpio, !!string_to_int((*ap.args)[2]));
 
 			break;
 		}
@@ -1144,7 +1144,7 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		case(gpio_timer):
 		{
 			if(ap.nargs == 3)
-				trigger_timer(gpio, !!atoi((*ap.args)[2]));
+				trigger_timer(gpio, !!string_to_int((*ap.args)[2]));
 			else
 				trigger_timer(gpio, !gpio->timer.delay);
 
@@ -1162,13 +1162,13 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 			delay = 0;
 
 			if(ap.nargs > 2)
-				min_duty = atoi((*ap.args)[2]);
+				min_duty = string_to_int((*ap.args)[2]);
 
 			if(ap.nargs > 3)
-				max_duty = atoi((*ap.args)[3]);
+				max_duty = string_to_int((*ap.args)[3]);
 
 			if(ap.nargs > 4)
-				delay = atoi((*ap.args)[4]);
+				delay = string_to_int((*ap.args)[4]);
 
 			if(min_duty > 65535)
 			{
