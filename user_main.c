@@ -198,7 +198,7 @@ irom noinline static void process_uart_fifo(void)
 		if(tcp_data_send_buffer_length > 0)
 		{
 			tcp_data_send_buffer_busy = true;
-			espconn_sent(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
+			espconn_send(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
 		}
 	}
 
@@ -297,7 +297,7 @@ irom noinline static void process_command(void)
 	}
 
 	tcp_cmd_send_buffer_busy = true;
-	espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+	espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 }
 
 irom static void background_task(os_event_t *events)
