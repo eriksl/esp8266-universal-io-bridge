@@ -61,7 +61,7 @@ static bool tcp_cmd_send_buffer_busy;
 static struct espconn *esp_cmd_tcp_connection;
 
 static char *tcp_data_send_buffer;
-static char tcp_data_send_buffer_busy;
+static bool tcp_data_send_buffer_busy;
 static struct espconn *esp_data_tcp_connection;
 
 irom static void user_init2(void);
@@ -352,7 +352,7 @@ irom static void background_task(os_event_t *events)
 
 irom static void tcp_data_sent_callback(void *arg)
 {
-    tcp_data_send_buffer_busy = 0;
+    tcp_data_send_buffer_busy = false;
 
 	// retry to send data still in the fifo
 
@@ -414,7 +414,7 @@ irom static void tcp_data_connect_callback(struct espconn *new_connection)
 	else
 	{
 		esp_data_tcp_connection	= new_connection;
-		tcp_data_send_buffer_busy = 0;
+		tcp_data_send_buffer_busy = false;
 
 		espconn_regist_recvcb(esp_data_tcp_connection, tcp_data_receive_callback);
 		espconn_regist_sentcb(esp_data_tcp_connection, tcp_data_sent_callback);
@@ -429,7 +429,7 @@ irom static void tcp_data_connect_callback(struct espconn *new_connection)
 
 irom static void tcp_cmd_sent_callback(void *arg)
 {
-    tcp_cmd_send_buffer_busy = 0;
+    tcp_cmd_send_buffer_busy = false;
 }
 
 irom static void tcp_cmd_receive_callback(void *arg, char *data, unsigned short length)
@@ -461,7 +461,7 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	else
 	{
 		esp_cmd_tcp_connection = new_connection;
-		tcp_cmd_send_buffer_busy = 0;
+		tcp_cmd_send_buffer_busy = false;
 
 		espconn_regist_recvcb(esp_cmd_tcp_connection, tcp_cmd_receive_callback);
 		espconn_regist_sentcb(esp_cmd_tcp_connection, tcp_cmd_sent_callback);
@@ -471,7 +471,7 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 
 		queue_flush(tcp_cmd_receive_queue);
 
-		tcp_cmd_send_buffer_busy = 1;
+		tcp_cmd_send_buffer_busy = true;
 		snprintf(tcp_cmd_send_buffer, buffer_size, "OK\n");
 		espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 	}
