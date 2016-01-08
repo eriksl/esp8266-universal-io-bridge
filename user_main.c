@@ -9,6 +9,7 @@
 #include "i2c.h"
 #include "i2c_sensor.h"
 #include "display.h"
+#include "http.h"
 
 #include <stdlib.h>
 #include <ip_addr.h>
@@ -53,6 +54,7 @@ static struct
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
 	unsigned int init_ntp_bogus:1;
+	unsigned int http_disconnect:1;
 } action;
 
 static char *tcp_cmd_receive_buffer;
@@ -63,6 +65,10 @@ static struct espconn *esp_cmd_tcp_connection;
 static char *tcp_data_send_buffer;
 static bool tcp_data_send_buffer_busy;
 static struct espconn *esp_data_tcp_connection;
+
+static char *tcp_http_send_buffer;
+static bool tcp_http_send_buffer_busy;
+static struct espconn *esp_http_tcp_connection;
 
 irom static void user_init2(void);
 
@@ -290,6 +296,7 @@ irom noinline static void process_command(void)
 		{
 			strlcpy(tcp_cmd_send_buffer, "> reset\n", buffer_size);
 			action.disconnect = 1;
+			action.http_disconnect = 1;
 			action.reset = 1;
 
 			break;
@@ -325,6 +332,12 @@ irom static void background_task(os_event_t *events)
 	{
 		espconn_disconnect(esp_cmd_tcp_connection);
 		action.disconnect = 0;
+	}
+
+	if(action.http_disconnect)
+	{
+		espconn_disconnect(esp_http_tcp_connection);
+		action.http_disconnect = 0;
 	}
 
 	if(wlan_bootstrap_state != wlan_bootstrap_state_start)
@@ -477,6 +490,62 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	}
 }
 
+irom static void tcp_http_sent_callback(void *arg)
+{
+    tcp_http_send_buffer_busy = false;
+}
+
+irom static void tcp_http_receive_callback(void *arg, char *data, unsigned short length)
+{
+	http_action_t http_action;
+	http_buffer_t request, reply;
+
+	if(!tcp_http_send_buffer_busy)
+	{
+		data[length] = '\0';
+
+		request.string = data;
+		request.size = 0;
+		request.length = length;
+
+		reply.string = tcp_http_send_buffer;
+		reply.size = buffer_size;
+		reply.length = 0;
+
+		http_action = http_process_request(request, &reply);
+
+		(void)http_action; //FIXME
+
+		tcp_http_send_buffer_busy = true;
+		espconn_send(esp_http_tcp_connection, tcp_http_send_buffer, reply.length);
+	}
+
+	action.http_disconnect = 1;
+}
+
+irom static void tcp_http_disconnect_callback(void *arg)
+{
+	esp_http_tcp_connection = 0;
+}
+
+irom static void tcp_http_connect_callback(struct espconn *new_connection)
+{
+	if(esp_http_tcp_connection)
+		espconn_disconnect(new_connection); // not allowed but won't occur anyway
+	else
+	{
+		esp_http_tcp_connection = new_connection;
+
+		espconn_regist_recvcb(esp_http_tcp_connection, tcp_http_receive_callback);
+		espconn_regist_sentcb(esp_http_tcp_connection, tcp_http_sent_callback);
+		espconn_regist_disconcb(esp_http_tcp_connection, tcp_http_disconnect_callback);
+
+		espconn_set_opt(esp_http_tcp_connection, ESPCONN_REUSEADDR);
+
+		tcp_http_send_buffer_busy = false;
+	}
+}
+
 irom noinline static void periodic_timer_slowpath(void)
 {
 	stat_timer_slow++;
@@ -589,6 +658,9 @@ irom void user_init(void)
 	if(!(tcp_cmd_send_buffer = malloc(buffer_size)))
 		reset();
 
+	if(!(tcp_http_send_buffer = malloc(buffer_size)))
+		reset();
+
 	if(!(tcp_data_send_buffer = malloc(buffer_size)))
 		reset();
 
@@ -620,14 +692,15 @@ irom void user_init(void)
 
 irom static void user_init2(void)
 {
-	static struct espconn esp_cmd_config, esp_data_config;
-	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config;
+	static struct espconn esp_cmd_config, esp_data_config, esp_http_config;
+	static esp_tcp esp_cmd_tcp_config, esp_data_tcp_config, esp_http_tcp_config;
 
 	ntp_init();
 	gpios_init();
 	action.init_i2c_sensors = 1;
 	action.init_displays = 1;
 	action.init_ntp_bogus = 0;
+	action.http_disconnect = 0;
 
 	config_wlan(config->ssid, config->passwd);
 
@@ -638,6 +711,10 @@ irom static void user_init2(void)
 	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, tcp_cmd_connect_callback);
 	espconn_regist_time(&esp_cmd_config, 30, 0);
 	esp_cmd_tcp_connection = 0;
+
+	tcp_accept(&esp_http_config, &esp_http_tcp_config, 80, tcp_http_connect_callback);
+	espconn_regist_time(&esp_cmd_config, 30, 0);
+	esp_http_tcp_connection = 0;
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 

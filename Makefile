@@ -145,9 +145,9 @@ CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx
 LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 SDKLIBS			:= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
 
-OBJS			:= application.o config.o display.o gpios.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
+OBJS			:= application.o config.o display.o gpios.o http.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o ota.o
-HEADERS			:= application.h application-parameters.h config.h display.h esp-uart-register.h gpios.h i2c.h \
+HEADERS			:= application.h application-parameters.h config.h display.h esp-uart-register.h gpios.h http.h i2c.h \
 					i2c_sensor.h ota.h queue.h stats.h uart.h user_config.h user_main.h util.h
 
 .PRECIOUS:		*.c *.h
@@ -186,6 +186,7 @@ application.o:		$(HEADERS)
 config.o:			$(HEADERS)
 display.o:			$(HEADERS)
 gpios.o:			$(HEADERS)
+http.o:				$(HEADERS)
 i2c.o:				$(HEADERS)
 i2c_sensor.o:		$(HEADERS)
 ota.o:				$(HEADERS)
