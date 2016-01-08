@@ -41,10 +41,18 @@ void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
 void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 void ets_delay_us(uint16_t);
+int ets_memcmp(const void *, const void *, size_t);
+size_t ets_strlen(const char *);
+int ets_strcmp(const char *, const char *);
+int ets_strncmp(const char *, const char *, size_t);
+void *ets_memcpy(void *, const void *, size_t);
+void *ets_memset(void *, int, size_t);
+char *ets_strcpy(char *, const char *);
 
 void *pvPortMalloc(size_t size, const char *file, unsigned int line);
 void *pvPortZalloc(size_t size, const char *file, unsigned int line);
 void *pvPortRealloc(void *ptr, size_t size, const char *file, unsigned int line);
+void vPortFree(void *ptr, const char *file, int line);
 
 // local utility functions missing from libc
 

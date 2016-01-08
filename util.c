@@ -69,6 +69,41 @@ irom void *realloc(void *ptr, size_t size)
 	return(pvPortRealloc(ptr, size, "", 0));
 }
 
+irom int memcmp(const void *s1, const void *s2, size_t s)
+{
+	return(ets_memcmp(s1, s2, s));
+}
+
+irom size_t strlen(const char *s)
+{
+	return(ets_strlen(s));
+}
+
+irom int strcmp(const char *s1, const char *s2)
+{
+	return(ets_strcmp(s1, s2));
+}
+
+irom int strncmp(const char *s1, const char *s2, size_t n)
+{
+	return(ets_strncmp(s1, s2, n));
+}
+
+irom void *memcpy(void *d, const void *s, size_t n)
+{
+	return(ets_memcpy(d, s, n));
+}
+
+irom void *memset(void *s, int c, size_t n)
+{
+	return(ets_memset(s, c, n));
+}
+
+irom char *strcpy(char *dest, const char *src)
+{
+	return(ets_strcpy(dest, src));
+}
+
 irom void reset(void)
 {
 	system_restart();
