@@ -61,6 +61,19 @@ void *malloc(size_t);
 void *zalloc(size_t);
 void *realloc(void *, size_t);
 
+// undocumented functions from ROM
+
+typedef struct {
+  uint32_t i[2];
+  uint32_t buf[4];
+  unsigned char in[64];
+  unsigned char digest[16];
+} MD5_CTX;
+
+void MD5Init(MD5_CTX *mdContext);
+void MD5Update(MD5_CTX *mdContext, const unsigned char *inBuf, unsigned int inLen);
+void MD5Final(unsigned char hash[], MD5_CTX *mdContext);
+
 // other convenience functions
 
 void reset(void);
@@ -75,5 +88,5 @@ ip_addr_t join_ip_addr(const unsigned int [4]);
 unsigned int ip_addr_to_string(unsigned int size, char *dst, ip_addr_t);
 ip_addr_t string_to_ip_addr(const char *);
 bool ip_addr_valid(ip_addr_t);
-
+void md5_hash_to_string(const char *hash, unsigned int size, char *string);
 #endif

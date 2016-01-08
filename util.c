@@ -378,3 +378,32 @@ irom attr_pure bool ip_addr_valid(ip_addr_t ip_addr)
 
 	return(false);
 }
+
+irom void md5_hash_to_string(const char *hash, unsigned int size, char *string)
+{
+	unsigned int src, dst;
+	unsigned int high, low;
+
+	for(src = 0, dst = 0; (src < 16) && ((dst + 2) < size); src++)
+	{
+		high = (hash[src] & 0xf0) >> 4;
+
+		if(high > 9)
+			high = (high - 10) + 'a';
+		else
+			high = high + '0';
+
+		string[dst++] = high;
+
+		low = (hash[src] & 0x0f) >> 0;
+
+		if(low > 9)
+			low = (low - 10) + 'a';
+		else
+			low = low + '0';
+
+		string[dst++] = low;
+	}
+
+	string[dst++] = '\0';
+}
