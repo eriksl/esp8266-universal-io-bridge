@@ -216,10 +216,8 @@ irom void config_read(void)
 
 irom void config_write_alt(config_t *cfg)
 {
-	ETS_UART_INTR_DISABLE();
 	spi_flash_erase_sector(0x7a);
 	spi_flash_write(0x7a * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
-	ETS_UART_INTR_ENABLE();
 }
 
 irom void config_write(void)
