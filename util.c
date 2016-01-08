@@ -104,6 +104,63 @@ irom char *strcpy(char *dest, const char *src)
 	return(ets_strcpy(dest, src));
 }
 
+/* from OpenBSD https://code.google.com/p/honeyd/source/browse/trunk/honeyd/strlcat.c */
+irom size_t strlcat(char *dst, const char *src, size_t siz)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t n = siz;
+	size_t dlen;
+
+	while (n-- != 0 && *d != '\0')
+		d++;
+
+	dlen = d - dst;
+	n = siz - dlen;
+
+	if (n == 0)
+		return(dlen + strlen(s));
+
+	while (*s != '\0')
+	{
+		if (n != 1)
+		{
+			*d++ = *s;
+			n--;
+		}
+		s++;
+	}
+
+	*d = '\0';
+
+	return(dlen + (s - src));
+}
+
+/* from OpenBSD http://code.google.com/p/honeyd/source/browse/trunk/honeyd/strlcpy.c */
+irom size_t strlcpy(char *dst, const char *src, size_t siz)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t n = siz;
+
+	if (n == 0)
+		return(strlen(s));
+
+	while (*s != '\0')
+	{
+		if (n != 1)
+		{
+			*d++ = *s;
+			n--;
+		}
+		s++;
+	}
+
+	*d = '\0';
+
+	return(s - src);
+}
+
 irom void reset(void)
 {
 	system_restart();
