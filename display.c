@@ -177,7 +177,7 @@ static irom bool_t display_saa1064_set(display_data_t *display, const char *from
 	uint8_t i2cdata[6];
 	unsigned int current;
 
-	strcpy(text,  "    ");
+	strlcpy(text,  "    ", sizeof(text));
 
 	for(current = 0; *from && (current < sizeof(text)); from++)
 	{

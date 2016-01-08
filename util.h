@@ -89,4 +89,10 @@ unsigned int ip_addr_to_string(unsigned int size, char *dst, ip_addr_t);
 ip_addr_t string_to_ip_addr(const char *);
 bool ip_addr_valid(ip_addr_t);
 void md5_hash_to_string(const char *hash, unsigned int size, char *string);
+
+#define strcpy #error strcpy unsafe
+#define strncpy #error strncpy unsafe
+#define strcat #error strcat unsafe
+#define strncat #error strncat unsafe
+
 #endif

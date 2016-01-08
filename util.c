@@ -99,10 +99,12 @@ irom void *memset(void *s, int c, size_t n)
 	return(ets_memset(s, c, n));
 }
 
+#undef strcpy
 irom char *strcpy(char *dest, const char *src)
 {
 	return(ets_strcpy(dest, src));
 }
+#define strcpy #error strcpy unsafe
 
 /* from OpenBSD https://code.google.com/p/honeyd/source/browse/trunk/honeyd/strlcat.c */
 irom size_t strlcat(char *dst, const char *src, size_t siz)

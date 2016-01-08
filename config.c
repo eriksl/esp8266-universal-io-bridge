@@ -193,7 +193,7 @@ irom void config_read_alt(config_t *cfg)
 			cfg->ntp_server = string_to_ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
 			cfg->i2c_delay = 5;
-			strcpy(cfg->display_default_msg, "%%%%");
+			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
 			cfg->stat_trigger_gpio = -1;
 			cfg->wlan_trigger_gpio = -1;
 			gpios_config_init(&cfg->gpios);
