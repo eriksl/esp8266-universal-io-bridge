@@ -470,6 +470,10 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 		espconn_set_opt(esp_cmd_tcp_connection, ESPCONN_REUSEADDR);
 
 		queue_flush(tcp_cmd_receive_queue);
+
+		tcp_cmd_send_buffer_busy = 1;
+		snprintf(tcp_cmd_send_buffer, buffer_size, "OK\n");
+		espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 	}
 }
 
