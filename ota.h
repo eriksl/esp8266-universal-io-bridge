@@ -1,0 +1,12 @@
+#ifndef ota_h
+#define ota_h
+
+#include "application-parameters.h"
+
+app_action_t application_function_ota_write(application_parameters_t);
+app_action_t application_function_ota_verify(application_parameters_t);
+app_action_t application_function_ota_send(application_parameters_t);
+app_action_t application_function_ota_finish(application_parameters_t);
+app_action_t application_function_ota_commit(application_parameters_t);
+
+#endif

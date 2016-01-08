@@ -11,6 +11,10 @@
 #include "i2c_sensor.h"
 #include "display.h"
 
+#if IMAGE_OTA == 1
+#include "ota.h"
+#endif
+
 #include <user_interface.h>
 #include <c_types.h>
 #include <sntp.h>
@@ -925,6 +929,38 @@ static const application_function_table_t application_function_table[] =
 		application_function_help,
 		"help [command]",
 	},
+#if IMAGE_OTA == 1
+	{
+		"ow", "ota-write",
+		1,
+		application_function_ota_write,
+		"ota-write file_length",
+	},
+	{
+		"ov", "ota-verify",
+		1,
+		application_function_ota_verify,
+		"ota-verify file_length",
+	},
+	{
+		"os", "ota-send",
+		2,
+		application_function_ota_send,
+		"ota-send chunk_length data",
+	},
+	{
+		"of", "ota-finish",
+		1,
+		application_function_ota_finish,
+		"ota-finish md5sum",
+	},
+	{
+		"oc", "ota-commit",
+		0,
+		application_function_ota_commit,
+		"ota-commit",
+	},
+#endif
 	{
 		"q", "quit",
 		0,

@@ -1,0 +1,17 @@
+#ifdef RBOOT_API_INCLUDED
+#error something went wrong!
+#endif
+
+#define RBOOT_API_INCLUDED
+
+#include <stdint.h>
+
+typedef uint8_t uint8;
+typedef uint32_t uint32;
+
+#include "util.h"
+
+#define IRAM_CACHE_ATTR irom
+
+#include <rboot-api.h>
+#include <rboot-api.c>

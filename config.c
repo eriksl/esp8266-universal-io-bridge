@@ -157,7 +157,7 @@ irom void config_read_alt(config_t *cfg)
 		init_all
 	} init;
 
-	spi_flash_read(0x7a * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
+	spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 
 	if((cfg->magic == config_magic) && (cfg->major_version == config_major_version))
 	{
@@ -216,8 +216,8 @@ irom void config_read(void)
 
 irom void config_write_alt(config_t *cfg)
 {
-	spi_flash_erase_sector(0x7a);
-	spi_flash_write(0x7a * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
+	spi_flash_erase_sector(USER_CONFIG_SECTOR);
+	spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 }
 
 irom void config_write(void)

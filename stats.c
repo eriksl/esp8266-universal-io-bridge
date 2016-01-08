@@ -6,6 +6,10 @@
 #include <c_types.h>
 #include <user_interface.h>
 
+#if IMAGE_OTA == 1
+#include <rboot-api.h>
+#endif
+
 uint32_t stat_uart_rx_interrupts;
 uint32_t stat_uart_tx_interrupts;
 uint32_t stat_timer_fast;
@@ -37,7 +41,8 @@ static const char *flash_map[] =
 	"32 Mb map 512/512",
 	"16 Mb map 1024/1024",
 	"32 Mb map 1024/1024",
-	"unknown"
+	"unknown map",
+	"unknown",
 };
 
 static const char *reset_map[] =
@@ -69,6 +74,11 @@ static const char *slp[] =
 
 irom void stats_generate(unsigned int size, char *dst)
 {
+	int length;
+#if IMAGE_OTA == 1
+	rboot_config rcfg;
+#endif
+
 	const struct rst_info *rst_info;
 	struct station_config sc_default, sc_current;
 	unsigned int system_time;
@@ -79,7 +89,7 @@ irom void stats_generate(unsigned int size, char *dst)
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
 
-	snprintf(dst, size,
+	length = snprintf(dst, size,
 			"> firmware version date: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
@@ -91,6 +101,8 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> system clock: %u.%06u s\n"
 			"> uptime: %u %02d:%02d:%02d\n"
 			"> real time: %u %02d:%02d:%02d\n"
+			">\n"
+			"> config is at %x\n"
 			"> size of config: %u\n"
 			">\n"
 			"> int uart rx: %u\n"
@@ -120,6 +132,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			system_time % 1000000,
 			ut_days, ut_hours, ut_mins, ut_secs,
 			rt_days, rt_hours, rt_mins, rt_secs,
+			USER_CONFIG_SECTOR * 0x1000,
 			sizeof(config_t),
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
@@ -136,4 +149,30 @@ irom void stats_generate(unsigned int size, char *dst)
 			slp[wifi_get_sleep_type()],
 			wifi_get_channel(),
 			wifi_station_get_rssi());
+
+	dst += length;
+	size -= length;
+
+#if IMAGE_OTA == 1
+	rcfg = rboot_get_config();
+
+	snprintf(dst, size, ">\n"
+			"> OTA image information\n"
+			"> magic: 0x%x\n"
+			"> version: %u\n"
+			"> mode: %x\n"
+			"> current: %u\n"
+			"> count: %u\n"
+			"> rom 0: 0x%06x\n"
+			"> rom 1: 0x%06x\n",
+			rcfg.magic,
+			rcfg.version,
+			rcfg.mode,
+			rcfg.current_rom,
+			rcfg.count,
+			rcfg.roms[0],
+			rcfg.roms[1]);
+#else
+	snprintf(dst, size, "%s", ">\n> No OTA image\n");
+#endif
 }
