@@ -57,7 +57,7 @@ static struct
 
 static char *tcp_cmd_receive_buffer;
 static char *tcp_cmd_send_buffer;
-static char tcp_cmd_send_buffer_busy;
+static bool tcp_cmd_send_buffer_busy;
 static struct espconn *esp_cmd_tcp_connection;
 
 static char *tcp_data_send_buffer;
@@ -197,7 +197,7 @@ irom noinline static void process_uart_fifo(void)
 
 		if(tcp_data_send_buffer_length > 0)
 		{
-			tcp_data_send_buffer_busy = 1;
+			tcp_data_send_buffer_busy = true;
 			espconn_sent(esp_data_tcp_connection, tcp_data_send_buffer, tcp_data_send_buffer_length);
 		}
 	}
@@ -296,7 +296,7 @@ irom noinline static void process_command(void)
 		}
 	}
 
-	tcp_cmd_send_buffer_busy = 1;
+	tcp_cmd_send_buffer_busy = true;
 	espconn_sent(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 }
 
