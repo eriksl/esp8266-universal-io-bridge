@@ -786,6 +786,12 @@ irom static app_action_t application_function_gpio_wlan_set(application_paramete
 static const application_function_table_t application_function_table[] =
 {
 	{
+		"ar", "analog-read",
+		0,
+		application_function_analog_read,
+		"read analog input"
+	},
+	{
 		"btp", "bridge-tcp-port",
 		0,
 		application_function_bridge_tcp_port,

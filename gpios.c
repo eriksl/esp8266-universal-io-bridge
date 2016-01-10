@@ -203,6 +203,10 @@ static gpio_t gpios[gpio_size] =
 	}
 };
 
+static unsigned int analog_sampling_current = 0;
+static unsigned int analog_sampling_total = 0;
+static unsigned int analog_sampling_value = 0;
+
 irom static gpio_config_entry_t *get_config(const gpio_t *gpio)
 {
 	return(&config->gpios.entry[gpio->id]);
@@ -391,6 +395,28 @@ irom void gpios_periodic(void)
 	unsigned int current;
 	unsigned int duty;
 	bool_t pwm_changed = false;
+
+	current = system_adc_read();
+
+	if(current == 1023)
+		current = 1024;
+
+	analog_sampling_total += current;
+
+	if(++analog_sampling_current >= 256)
+	{
+		current = analog_sampling_total / 4;
+
+		if(current > 65535)
+			current = 65535;
+
+		if(current < 256)
+			current = 0;
+
+		analog_sampling_current = 0;
+		analog_sampling_total = 0;
+		analog_sampling_value = current;
+	}
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -1219,6 +1245,13 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 irom app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
 	dump(&config->gpios, 0, ap.size, ap.dst);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_analog_read(application_parameters_t ap)
+{
+	snprintf(ap.dst, ap.size, "analog-read: value: %u\n", analog_sampling_value);
 
 	return(app_action_normal);
 }

@@ -119,5 +119,6 @@ app_action_t application_function_gpio_get(application_parameters_t);
 app_action_t application_function_gpio_set(application_parameters_t);
 app_action_t application_function_gpio_mode(application_parameters_t);
 app_action_t application_function_gpio_dump(application_parameters_t);
+app_action_t application_function_analog_read(application_parameters_t);
 
 #endif
