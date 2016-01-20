@@ -305,7 +305,7 @@ irom void gpios_init(void)
 	for(current = 0; current < gpio_size; current++)
 		gpio_mode_trait[config->gpios.entry[current].mode].init_fn(&gpios[current]);
 
-	if((sda > 0) && (scl > 0))
+	if((sda >= 0) && (scl >= 0))
 		i2c_init(sda, scl, config->i2c_delay);
 
 	gpio_flags.counter_triggered = false;
