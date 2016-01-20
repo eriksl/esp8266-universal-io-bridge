@@ -135,7 +135,7 @@ WARNINGS1		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign
 					-Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code \
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
 					-Winit-self -Wformat-nonliteral -Wcomment
-WARNINGS2		:= -Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align
+WARNINGS2		:= -Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
 CFLAGS			:=  -Os -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -Wframe-larger-than=384 \
 					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto

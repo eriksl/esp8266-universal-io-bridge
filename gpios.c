@@ -640,12 +640,102 @@ irom static void gpio_init_i2c(gpio_t *gpio)
 	gpio_output_set(1 << gpio->index, 0, 1 << gpio->index, 0);
 }
 
-irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned int size, char *str)
+typedef enum
+{
+	ds_id_gpio,
+	ds_id_disabled,
+	ds_id_input,
+	ds_id_counter,
+	ds_id_output,
+	ds_id_timer,
+	ds_id_pwm_inactive,
+	ds_id_pwm_active,
+	ds_id_pwm_duty_default,
+	ds_id_pwm_duty_current,
+	ds_id_i2c,
+	ds_id_unknown,
+	ds_id_header,
+	ds_id_footer,
+	ds_id_preline,
+	ds_id_postline,
+
+	ds_id_length,
+	ds_id_invalid = ds_id_length
+} dump_string_id_t;
+
+typedef struct {
+	struct
+	{
+		const char *plain[ds_id_length];
+		const char *html[ds_id_length];
+	} strings;
+} dump_string_t;
+
+static const dump_string_t dump_strings =
+{
+	.strings =
+	{
+		.plain =
+		{
+			"> gpio: %u, name: %s, mode: ",
+			"disabled",
+			"input, state: %s",
+			"counter, state: %s, counter: %u, debounce: %u/%u, reset on get: %s",
+			"output, state: %s, startup: %s",
+			"timer, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
+			"pwm, inactive",
+			"pwm, active, channel: %u, current frequency: %u Hz, current duty: %u",
+			"\ndefault min duty: %u, max duty: %u, delay: %u",
+			"\ncurrent min duty: %u, max duty: %u, delay: %u",
+			"i2c, pin: %s",
+			"unknown",
+			"",
+			"",
+			"",
+			"\n",
+		},
+
+		.html =
+		{
+			"<td>%u</td><td>%s</td>",
+			"<td>disabled</td>",
+			"<td>input</td><td>state: %s</td>",
+			"<td>counter</td><td>state: %s</td><td>counter: %u</td><td>debounce: %u/%u</td><td>reset on get: %s</td>",
+			"<td>output</td><td>state: %s</td><td>startup: %s</td>",
+			"<td>timer</td><td>direction: %s</td><td>delay: %u ms</td><td> repeat: %s</td><td>autotrigger: %s</td><td>active: %s</td><td>current state: %s</td>",
+			"<td>pwm</<td><td>inactive</td>",
+			"<td>pwm</td><td>active</td><td>channel: %u</td><td>current frequency: %u Hz</td><td>current duty: %u</td>",
+			"<td>default min duty: %u, max duty: %u, delay: %u</td>",
+			"<td>current min duty: %u, max duty: %u, delay: %u</td>",
+			"<td>i2c</td><td>pin %s</td>",
+			"<td>unknown</td>",
+			"<table border=\"1\"><tr><th>index</th><th>name</th><th>mode</th><th colspan=\"8\"></th></tr>",
+			"</table>\n",
+			"<tr>",
+			"</trd>\n",
+		}
+	}
+};
+
+irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned int size, char *str, bool html)
 {
 	unsigned int current;
 	unsigned int length;
 	const gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
+	const char * const *strings;
+	const char * str_in;
+
+	str_in = str;
+
+	if(html)
+		strings = dump_strings.strings.html;
+	else
+		strings = dump_strings.strings.plain;
+
+	length = snprintf(str, size, strings[ds_id_header]);
+	size -= length;
+	str += length;
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -654,7 +744,11 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
-			length = snprintf(str, size, "> gpio: %u, name: %s, mode: ", gpio->index, gpio->name);
+			length = snprintf(str, size, strings[ds_id_preline], gpio->index, gpio->name);
+			size -= length;
+			str += length;
+
+			length = snprintf(str, size, strings[ds_id_gpio], gpio->index, gpio->name);
 			size -= length;
 			str += length;
 			length = 0;
@@ -663,64 +757,59 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 			{
 				case(gpio_disabled):
 				{
-					length = snprintf(str, size, "disabled");
+					length = snprintf(str, size, strings[ds_id_disabled]);
+
 					break;
 				}
 
 				case(gpio_input):
 				{
-					length = snprintf(str, size, "input, state: %s", onoff(get_input(gpio)));
+					length = snprintf(str, size, strings[ds_id_input], onoff(get_input(gpio)));
+
 					break;
 				}
 
 				case(gpio_counter):
 				{
-					length = snprintf(str, size, "counter, state: %s, counter: %u, debounce: %u/%u, reset on get: %s",
-							onoff(get_input(gpio)), gpio->counter.count,
-							cfg->counter.debounce, gpio->counter.debounce,
-							onoff(cfg->counter.reset_on_get));
+					length = snprintf(str, size, strings[ds_id_counter], onoff(get_input(gpio)), gpio->counter.count,
+							cfg->counter.debounce, gpio->counter.debounce, onoff(cfg->counter.reset_on_get));
+
 					break;
 				}
 
 				case(gpio_output):
 				{
-					length = snprintf(str, size, "output, state: %s, startup: %s",
-							onoff(get_input(gpio)), onoff(cfg->output.startup_state));
+					length = snprintf(str, size, strings[ds_id_output], onoff(get_input(gpio)), onoff(cfg->output.startup_state));
+
 					break;
 				}
 
 				case(gpio_timer):
 				{
-					length = snprintf(str, size, "timer, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
-							cfg->timer.direction == gpio_up ? "up" : "down",
-							cfg->timer.delay, onoff(cfg->timer.repeat),
-							onoff(cfg->timer.autotrigger), onoff(gpio->timer.delay > 0),
-							onoff(get_input(gpio)));
+					length = snprintf(str, size, strings[ds_id_timer], cfg->timer.direction == gpio_up ? "up" : "down",
+							cfg->timer.delay, onoff(cfg->timer.repeat), onoff(cfg->timer.autotrigger),
+							onoff(gpio->timer.delay > 0), onoff(get_input(gpio)));
 					break;
 				}
 
 				case(gpio_pwm):
 				{
-					length = snprintf(str, size, "pwm, ");
-					str += length;
-					size -= length;
-
 					if(gpio_flags.pwm_subsystem_active)
-						length = snprintf(str, size, "active, channel: %u, current frequency: %u Hz, current duty: %u",
-								gpio->pwm.channel, 1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
+						snprintf(str, size, strings[ds_id_pwm_active], gpio->pwm.channel,
+								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
 					else
-						length = snprintf(str, size, "inactive");
+						length = snprintf(str, size, strings[ds_id_pwm_inactive]);
 
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, "\ndefault min duty: %u, max duty: %u, delay: %u",
-							cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.delay);
+					length = snprintf(str, size, strings[ds_id_pwm_duty_default], cfg->pwm.min_duty,
+							cfg->pwm.max_duty, cfg->pwm.delay);
 
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, "\ncurrent min duty: %u, max duty %u, delay: %u",
+					length = snprintf(str, size, strings[ds_id_pwm_duty_current],
 							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.delay_top);
 
 					break;
@@ -728,7 +817,7 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 
 				case(gpio_i2c):
 				{
-					length = snprintf(str, size, "i2c, pin: %s", cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
+					length = snprintf(str, size, strings[ds_id_i2c], cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
 
 					break;
 				}
@@ -744,16 +833,26 @@ irom static void dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned
 			str += length;
 			size =- length;
 
-			length = snprintf(str, size, "\n");
+			length = snprintf(str, size, strings[ds_id_postline]);
 			str += length;
 			size -= length;
 		}
 	}
+
+	snprintf(str, size, strings[ds_id_footer]);
+	str += length;
+
+	return(str - str_in);
 }
 
-irom void gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *string)
+irom unsigned int gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *string)
 {
-	dump(cfgs, 0, size, string);
+	return(dump(cfgs, 0, size, string, false));
+}
+
+irom unsigned int gpios_dump_html(unsigned int size, char *string)
+{
+	return(dump(&config->gpios, 0, size, string, true));
 }
 
 irom attr_pure gpio_mode_t gpios_mode(unsigned int gpio_name, bool plain_only)
@@ -843,7 +942,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 	if(ap.nargs < 2)
 	{
-		dump(&config->gpios, 0, ap.size, ap.dst);
+		dump(&config->gpios, 0, ap.size, ap.dst, false);
 		return(app_action_normal);
 	}
 
@@ -857,7 +956,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 	if(ap.nargs < 3)
 	{
-		dump(&config->gpios, gpio, ap.size, ap.dst);
+		dump(&config->gpios, gpio, ap.size, ap.dst, false);
 		return(app_action_normal);
 	}
 
@@ -1031,7 +1130,7 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	new_gpio_config->mode = mode;
 	config_write_alt(tmpconfig);
 
-	dump(&tmpconfig->gpios, gpio, ap.size, ap.dst);
+	dump(&tmpconfig->gpios, gpio, ap.size, ap.dst, false);
 	strlcat(ap.dst, "! gpio-mode: restart to activate new mode\n", ap.size);
 
 	return(app_action_normal);
@@ -1095,7 +1194,7 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			dump(&config->gpios, gpio, ap.size, ap.dst);
+			dump(&config->gpios, gpio, ap.size, ap.dst, false);
 			return(app_action_normal);
 		}
 
@@ -1238,13 +1337,13 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 		}
 	}
 
-	dump(&config->gpios, gpio, ap.size, ap.dst);
+	dump(&config->gpios, gpio, ap.size, ap.dst, false);
 	return(app_action_normal);
 }
 
 irom app_action_t application_function_gpio_dump(application_parameters_t ap)
 {
-	dump(&config->gpios, 0, ap.size, ap.dst);
+	dump(&config->gpios, 0, ap.size, ap.dst, false);
 
 	return(app_action_normal);
 }

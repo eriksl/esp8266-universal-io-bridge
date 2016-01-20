@@ -1,5 +1,7 @@
 #include "http.h"
 #include "util.h"
+#include "gpios.h"
+#include "config.h"
 
 #include <string.h>
 
@@ -32,7 +34,8 @@ irom http_action_t root_handler(const char *location, http_buffer_t *reply)
 {
 	unsigned int length;
 
-	length = snprintf(reply->string, reply->size, "<h1>test: \"%s\"</h1>\r\n", location);
+	length = gpios_dump_html(reply->size, reply->string);
+
 	reply->string += length;
 	reply->size -= length;
 	reply->length += length;
