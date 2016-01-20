@@ -60,11 +60,8 @@ link_debug		= $(Q) perl -e '\
 CC					:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
 OBJCOPY				:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 
-LD_ADDRESS_PLAIN	:= 0x40210000
-LD_ADDRESS_OTA		:= 0x40202010
 LDSCRIPT_TEMPLATE	:= loadscript-template
-LDSCRIPT_PLAIN		:= loadscript-plain
-LDSCRIPT_OTA		:= loadscript-rboot
+LDSCRIPT			:= loadscript
 ELF_PLAIN			:= espiobridge-plain.o
 ELF_OTA				:= espiobridge-rboot.o
 OFFSET_IRAM_PLAIN	:= 0x00000
@@ -106,6 +103,8 @@ ifeq ($(IMAGE),plain)
 	FLASH_SIZE_KBYTES := 512
 	RBOOT_SPI_SIZE := 512K
 	USER_CONFIG_SECTOR := 7a
+	LD_ADDRESS := 0x40210000
+	LD_LENGTH := 0x79000
 	ELF := $(ELF_PLAIN)
 	ALL_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
 	FLASH_TARGET := flash-plain
@@ -114,10 +113,12 @@ endif
 
 ifeq ($(IMAGE),ota)
 	IMAGE_OTA := 1
-	FLASH_SIZE_ESPTOOL := 32m-c1
-	FLASH_SIZE_KBYTES := 4096
-	RBOOT_SPI_SIZE := 4M
-	USER_CONFIG_SECTOR := 1fc
+	FLASH_SIZE_ESPTOOL := 16m
+	FLASH_SIZE_KBYTES := 2048
+	RBOOT_SPI_SIZE := 2M
+	USER_CONFIG_SECTOR := fa
+	LD_ADDRESS := 0x40202010
+	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
 	ALL_TARGETS := $(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush
 	FLASH_TARGET := flash-ota
@@ -164,7 +165,7 @@ clean:
 						$(ELF_PLAIN) $(ELF_OTA) \
 						$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) \
 						$(FIRMWARE_RBOOT_BOOT) $(FIRMWARE_OTA_IMG) \
-						$(LDSCRIPT_PLAIN) $(LDSCRIPT_OTA) \
+						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush
 
@@ -210,25 +211,21 @@ $(RBOOT_BIN):			$(ESPTOOL2_BIN)
 						$(VECHO) "MAKE RBOOT"
 						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
 
-$(LDSCRIPT_PLAIN):		$(LDSCRIPT_TEMPLATE)
-						$(VECHO) "LINKER SCRIPT $@"
-						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS_PLAIN)/' < $< > $@
+$(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
+						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
+						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS)/' -e 's/@IROM_SEG_LENGTH@/$(LD_LENGTH)/' < $< > $@
 
-$(LDSCRIPT_OTA):		$(LDSCRIPT_TEMPLATE)
-						$(VECHO) "LINKER SCRIPT $@"
-						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS_OTA)/' < $< > $@
-
-$(ELF_PLAIN):			$(OBJS) $(LDSCRIPT_PLAIN)
+$(ELF_PLAIN):			$(OBJS) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT_PLAIN) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(OBJS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(OBJS) -Wl,--end-group -o $@
 
 $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT_OTA) 
+$(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT_OTA) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(OTA_OBJ) $(OBJS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(OTA_OBJ) $(OBJS) -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
