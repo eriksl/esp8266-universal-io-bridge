@@ -666,12 +666,12 @@ typedef enum
 typedef struct {
 	struct
 	{
-		const char *plain[ds_id_length];
-		const char *html[ds_id_length];
+		const char plain[ds_id_length][256];
+		const char html[ds_id_length][256];
 	} strings;
 } dump_string_t;
 
-static const dump_string_t dump_strings =
+static roflash const dump_string_t dump_strings =
 {
 	.strings =
 	{
@@ -723,7 +723,7 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 	unsigned int length;
 	const gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
-	const char * const *strings;
+	const char (*strings)[256];
 	const char * str_in;
 
 	str_in = str;
@@ -733,7 +733,7 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 	else
 		strings = dump_strings.strings.plain;
 
-	length = snprintf(str, size, strings[ds_id_header]);
+	length = snprintf_roflash(str, size, strings[ds_id_header]);
 	size -= length;
 	str += length;
 
@@ -744,11 +744,11 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
-			length = snprintf(str, size, strings[ds_id_preline], gpio->index, gpio->name);
+			length = snprintf_roflash(str, size, strings[ds_id_preline], gpio->index, gpio->name);
 			size -= length;
 			str += length;
 
-			length = snprintf(str, size, strings[ds_id_gpio], gpio->index, gpio->name);
+			length = snprintf_roflash(str, size, strings[ds_id_gpio], gpio->index, gpio->name);
 			size -= length;
 			str += length;
 			length = 0;
@@ -757,21 +757,21 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 			{
 				case(gpio_disabled):
 				{
-					length = snprintf(str, size, strings[ds_id_disabled]);
+					length = snprintf_roflash(str, size, strings[ds_id_disabled]);
 
 					break;
 				}
 
 				case(gpio_input):
 				{
-					length = snprintf(str, size, strings[ds_id_input], onoff(get_input(gpio)));
+					length = snprintf_roflash(str, size, strings[ds_id_input], onoff(get_input(gpio)));
 
 					break;
 				}
 
 				case(gpio_counter):
 				{
-					length = snprintf(str, size, strings[ds_id_counter], onoff(get_input(gpio)), gpio->counter.count,
+					length = snprintf_roflash(str, size, strings[ds_id_counter], onoff(get_input(gpio)), gpio->counter.count,
 							cfg->counter.debounce, gpio->counter.debounce, onoff(cfg->counter.reset_on_get));
 
 					break;
@@ -779,14 +779,14 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 				case(gpio_output):
 				{
-					length = snprintf(str, size, strings[ds_id_output], onoff(get_input(gpio)), onoff(cfg->output.startup_state));
+					length = snprintf_roflash(str, size, strings[ds_id_output], onoff(get_input(gpio)), onoff(cfg->output.startup_state));
 
 					break;
 				}
 
 				case(gpio_timer):
 				{
-					length = snprintf(str, size, strings[ds_id_timer], cfg->timer.direction == gpio_up ? "up" : "down",
+					length = snprintf_roflash(str, size, strings[ds_id_timer], cfg->timer.direction == gpio_up ? "up" : "down",
 							cfg->timer.delay, onoff(cfg->timer.repeat), onoff(cfg->timer.autotrigger),
 							onoff(gpio->timer.delay > 0), onoff(get_input(gpio)));
 					break;
@@ -795,21 +795,21 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 				case(gpio_pwm):
 				{
 					if(gpio_flags.pwm_subsystem_active)
-						snprintf(str, size, strings[ds_id_pwm_active], gpio->pwm.channel,
+						snprintf_roflash(str, size, strings[ds_id_pwm_active], gpio->pwm.channel,
 								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
 					else
-						length = snprintf(str, size, strings[ds_id_pwm_inactive]);
+						length = snprintf_roflash(str, size, strings[ds_id_pwm_inactive]);
 
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, strings[ds_id_pwm_duty_default], cfg->pwm.min_duty,
+					length = snprintf_roflash(str, size, strings[ds_id_pwm_duty_default], cfg->pwm.min_duty,
 							cfg->pwm.max_duty, cfg->pwm.delay);
 
 					str += length;
 					size -= length;
 
-					length = snprintf(str, size, strings[ds_id_pwm_duty_current],
+					length = snprintf_roflash(str, size, strings[ds_id_pwm_duty_current],
 							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.delay_top);
 
 					break;
@@ -817,7 +817,7 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 				case(gpio_i2c):
 				{
-					length = snprintf(str, size, strings[ds_id_i2c], cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
+					length = snprintf_roflash(str, size, strings[ds_id_i2c], cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
 
 					break;
 				}
@@ -833,13 +833,13 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 			str += length;
 			size =- length;
 
-			length = snprintf(str, size, strings[ds_id_postline]);
+			length = snprintf_roflash(str, size, strings[ds_id_postline]);
 			str += length;
 			size -= length;
 		}
 	}
 
-	snprintf(str, size, strings[ds_id_footer]);
+	snprintf_roflash(str, size, strings[ds_id_footer]);
 	str += length;
 
 	return(str - str_in);
