@@ -281,20 +281,23 @@ irom noinline static void process_command(void)
 		}
 		case(app_action_empty):
 		{
-			strlcpy(tcp_cmd_send_buffer, "> empty command\n", buffer_size);
+			static roflash const char str[] = "> empty command\n";
+			strlcpy_roflash(tcp_cmd_send_buffer, str, buffer_size);
 
 			break;
 		}
 		case(app_action_disconnect):
 		{
-			strlcpy(tcp_cmd_send_buffer, "> disconnect\n", buffer_size);
+			static roflash const char str[] = "> disconnect\n";
+			strlcpy_roflash(tcp_cmd_send_buffer, str, buffer_size);
 			action.disconnect = 1;
 
 			break;
 		}
 		case(app_action_reset):
 		{
-			strlcpy(tcp_cmd_send_buffer, "> reset\n", buffer_size);
+			static roflash const char str[] = "> reset\n";
+			strlcpy_roflash(tcp_cmd_send_buffer, str, buffer_size);
 			action.disconnect = 1;
 			action.http_disconnect = 1;
 			action.reset = 1;

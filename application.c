@@ -95,7 +95,8 @@ irom app_action_t application_content(const char *src, unsigned int size, char *
 	{
 		if(args_count < (unsigned int)(tableptr->required_args + 1))
 		{
-			snprintf(dst, size, "insufficient arguments: %d (%d required)\n", args_count - 1, tableptr->required_args);
+			static roflash const char fmt[] = "insufficient arguments: %d (%d required)\n";
+			snprintf_roflash(dst, size, fmt, args_count - 1, tableptr->required_args);
 			return(app_action_error);
 		}
 
@@ -110,7 +111,8 @@ irom app_action_t application_content(const char *src, unsigned int size, char *
 		return(tableptr->function(ap));
 	}
 
-	snprintf(dst, size, "command \"%s\" unknown\n", args[0]);
+	static roflash const char fmt[] = "command \"%s\" unknown\n";
+	snprintf_roflash(dst, size, fmt, args[0]);
 	return(app_action_error);
 }
 
@@ -123,8 +125,10 @@ irom static app_action_t application_function_config_dump(application_parameters
 
 irom static app_action_t application_function_config_write(application_parameters_t ap)
 {
+	static roflash const char str[] = "config write OK\n";
+
 	config_write();
-	strlcpy(ap.dst, "config write OK\n", ap.size);
+	strlcpy_roflash(ap.dst, str, ap.size);
 
 	return(app_action_normal);
 }
@@ -133,10 +137,11 @@ irom static app_action_t application_function_help(application_parameters_t ap)
 {
 	const application_function_table_t *tableptr;
 	unsigned int length;
+	static roflash const char str[] = "> %s/%s[%d]: %s\n";
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
-		length = snprintf(ap.dst, ap.size, "> %s/%s[%d]: %s\n",
+		length = snprintf_roflash(ap.dst, ap.size, str,
 				tableptr->command1, tableptr->command2,
 				tableptr->required_args, tableptr->description);
 		ap.dst	+= length;
@@ -173,15 +178,20 @@ irom static app_action_t application_function_bridge_tcp_port(application_parame
 
 		if(tcp_port > 65535)
 		{
-			snprintf(ap.dst, ap.size, "bridge-tcp-port: out of range: %u\n", tcp_port);
+			static roflash const char str[] = "bridge-tcp-port: out of range: %u\n";
+			snprintf_roflash(ap.dst, ap.size, str, tcp_port);
 			return(app_action_error);
 		}
 
+		static roflash const char str[] = "bridge-tcp_port: %u, write config and restart to activate\n";
 		config->bridge_tcp_port = (uint16_t)tcp_port;
-		snprintf(ap.dst, ap.size, "bridge-tcp_port: %u, write config and restart to activate\n", config->bridge_tcp_port);
+		snprintf_roflash(ap.dst, ap.size, str, config->bridge_tcp_port);
 	}
 	else
-		snprintf(ap.dst, ap.size, "bridge-tcp_port: %u\n", config->bridge_tcp_port);
+	{
+		static roflash const char str[] = "bridge-tcp_port: %u\n";
+		snprintf_roflash(ap.dst, ap.size, str, config->bridge_tcp_port);
+	}
 
 	return(app_action_normal);
 }
@@ -192,13 +202,15 @@ irom static app_action_t application_function_uart_baud_rate(application_paramet
 
 	if(baud_rate > 1000000)
 	{
-		snprintf(ap.dst, ap.size, "uart-baud: out of range: %u\n", baud_rate);
+		static roflash const char str[] = "uart-baud: out of range: %u\n";
+		snprintf_roflash(ap.dst, ap.size, str, baud_rate);
 		return(1);
 	}
 
 	config->uart.baud_rate = baud_rate;
 
-	snprintf(ap.dst, ap.size, "uart-baud: %u\n", config->uart.baud_rate);
+	static roflash const char str[] = "uart-baud: %u\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->uart.baud_rate);
 
 	return(app_action_normal);
 }
@@ -209,13 +221,15 @@ irom static app_action_t application_function_uart_data_bits(application_paramet
 
 	if((data_bits < 5) || (data_bits > 8))
 	{
-		snprintf(ap.dst, ap.size, "uart-data: out of range: %u\n", data_bits);
+		static roflash const char str[] = "uart-data: out of range: %u\n";
+		snprintf_roflash(ap.dst, ap.size, str, data_bits);
 		return(1);
 	}
 
 	config->uart.data_bits = data_bits;
 
-	snprintf(ap.dst, ap.size, "uart-data: %u\n", config->uart.data_bits);
+	static roflash const char str[] = "uart-data: %u\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->uart.data_bits);
 
 	return(app_action_normal);
 }
@@ -226,13 +240,15 @@ irom static app_action_t application_function_uart_stop_bits(application_paramet
 
 	if((stop_bits < 1) || (stop_bits > 2))
 	{
-		snprintf(ap.dst, ap.size, "uart-stop: out of range: %u\n", stop_bits);
+		static roflash const char str[] = "uart-stop: out of range: %u\n";
+		snprintf_roflash(ap.dst, ap.size, str, stop_bits);
 		return(1);
 	}
 
 	config->uart.stop_bits = stop_bits;
 
-	snprintf(ap.dst, ap.size, "uart-stop: %u\n", config->uart.stop_bits);
+	static roflash const char str[] = "uart-stop: %u\n";
+	snprintf(ap.dst, ap.size, str, config->uart.stop_bits);
 
 	return(app_action_normal);
 }
@@ -243,13 +259,15 @@ irom static app_action_t application_function_uart_parity(application_parameters
 
 	if(parity == parity_error)
 	{
-		snprintf(ap.dst, ap.size, "uart-parity: out of range: %s\n", (*ap.args)[1]);
+		static roflash const char str[] = "uart-parity: out of range: %s\n";
+		snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1]);
 		return(1);
 	}
 
 	config->uart.parity = parity;
 
-	snprintf(ap.dst, ap.size, "uart-parity: %s\n", uart_parity_to_string(config->uart.parity));
+	static roflash const char str[] = "uart-parity: %s\n";
+	snprintf_roflash(ap.dst, ap.size, str, uart_parity_to_string(config->uart.parity));
 
 	return(app_action_normal);
 }
@@ -260,7 +278,8 @@ irom static app_action_t application_function_i2c_address(application_parameters
 {
 	i2c_address = hex_string_to_int((*ap.args)[1]);
 
-	snprintf(ap.dst, ap.size, "i2c-address: i2c slave address set to 0x%02x\n", i2c_address);
+	static roflash const char str[] = "i2c-address: i2c slave address set to 0x%02x\n";
+	snprintf_roflash(ap.dst, ap.size, str, i2c_address);
 
 	return(app_action_normal);
 }
@@ -269,7 +288,8 @@ irom static app_action_t application_function_i2c_delay(application_parameters_t
 {
 	config->i2c_delay = string_to_int((*ap.args)[1]);
 
-	snprintf(ap.dst, ap.size, "i2c-delay: i2c delay set to %u, write config and restart to activate\n", config->i2c_delay);
+	static roflash const char str[] = "i2c-delay: i2c delay set to %u, write config and restart to activate\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->i2c_delay);
 
 	return(app_action_normal);
 }
@@ -284,7 +304,8 @@ irom static app_action_t application_function_i2c_read(application_parameters_t 
 
 	if(size > sizeof(bytes))
 	{
-		snprintf(ap.dst, ap.size, "i2c-read: read max %u bytes\n", sizeof(bytes));
+		static roflash const char str[] = "i2c-read: read max %u bytes\n";
+		snprintf_roflash(ap.dst, ap.size, str, sizeof(bytes));
 		return(app_action_error);
 	}
 
@@ -296,7 +317,8 @@ irom static app_action_t application_function_i2c_read(application_parameters_t 
 		return(app_action_error);
 	}
 
-	length = snprintf(ap.dst, ap.size, "i2c_read: read %u bytes from %02x:", size, i2c_address);
+	static roflash const char str[] = "i2c_read: read %u bytes from %02x:";
+	length = snprintf_roflash(ap.dst, ap.size, str, size, i2c_address);
 	ap.dst += length;
 	ap.size -= length;
 
@@ -333,7 +355,8 @@ irom static app_action_t application_function_i2c_write(application_parameters_t
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "i2c_write: written %u bytes to %02x\n", dst_current, i2c_address);
+	static roflash const char str[] = "i2c_write: written %u bytes to %02x\n";
+	snprintf_roflash(ap.dst, ap.size, str, dst_current, i2c_address);
 
 	return(app_action_normal);
 }
@@ -349,7 +372,8 @@ irom static app_action_t application_function_i2c_reset(application_parameters_t
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "i2c_reset: ok\n");
+	static roflash const char str[] ="i2c_reset: ok\n";
+	snprintf_roflash(ap.dst, ap.size, str);
 
 	return(app_action_normal);
 }
@@ -362,7 +386,8 @@ irom static app_action_t application_function_i2c_sensor_read(application_parame
 
 	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
 	{
-		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
+		static roflash const char str[] = "> invalid i2c sensor: %d\n";
+		snprintf_roflash(ap.dst, ap.size, str, (int)sensor);
 		return(app_action_error);
 	}
 
@@ -382,11 +407,13 @@ irom static app_action_t application_function_i2c_sensor_calibrate(application_p
 
 	if(!i2c_sensor_setcal(sensor, factor, offset))
 	{
-		snprintf(ap.dst, ap.size, "> invalid i2c sensor: %d\n", (int)sensor);
+		static roflash const char str[] = "> invalid i2c sensor: %d\n";
+		snprintf_roflash(ap.dst, ap.size, str, (int)sensor);
 		return(app_action_error);
 	}
 
-	length = snprintf(ap.dst, ap.size, "> i2c sensor %d calibration set to factor ", (int)sensor);
+	static roflash const char str1[] = "> i2c sensor %d calibration set to factor ";
+	length = snprintf_roflash(ap.dst, ap.size, str1, (int)sensor);
 	ap.dst += length;
 	ap.size -= length;
 
@@ -394,7 +421,8 @@ irom static app_action_t application_function_i2c_sensor_calibrate(application_p
 	ap.dst += length;
 	ap.size -= length;
 
-	length = snprintf(ap.dst, ap.size, ", offset: ");
+	static roflash const char str2[] = ", offset: ";
+	length = snprintf_roflash(ap.dst, ap.size, str2);
 	ap.dst += length;
 	ap.size -= length;
 
@@ -443,7 +471,10 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 	}
 
 	if(ap.dst == orig_dst)
-		snprintf(ap.dst, ap.size, "%s", "> no sensors detected\n");
+	{
+		static roflash const char str[] = "> no sensors detected\n";
+		snprintf_roflash(ap.dst, ap.size, str);
+	}
 
 	return(app_action_normal);
 }
@@ -454,7 +485,8 @@ irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t valu
 
 	if(ap.nargs < 2)
 	{
-		length = snprintf(ap.dst, ap.size, "%s", "flags: ");
+		static roflash const char str[] = "flags: ";
+		length = strlcpy_roflash(ap.dst, str, ap.size);
 		ap.dst += length;
 		ap.size -= length;
 
@@ -469,11 +501,13 @@ irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t valu
 
 	if(!config_set_flag_by_name((*ap.args)[1], value))
 	{
-		snprintf(ap.dst, ap.size, "> unknown flag %s\n", (*ap.args)[1]);
+		static roflash const char str[] = "> unknown flag %s\n";
+		snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1]);
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "> flag %s %s, write config and restart to effectuate\n", (*ap.args)[1], onoff(value));
+	static roflash const char str[] = "> flag %s %s, write config and restart to effectuate\n";
+	snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1], onoff(value));
 
 	return(app_action_normal);
 }
@@ -494,7 +528,8 @@ irom static app_action_t application_function_rtc_set(application_parameters_t a
 	rt_mins = string_to_int((*ap.args)[2]);
 	rt_secs = 0;
 
-	snprintf(ap.dst, ap.size, "rtc set to %02u:%02u\n", rt_hours, rt_mins);
+	static roflash const char str[] = "rtc set to %02u:%02u\n";
+	snprintf_roflash(ap.dst, ap.size, str, rt_hours, rt_mins);
 
 	return(app_action_normal);
 }
@@ -503,7 +538,7 @@ irom static app_action_t application_function_display_brightness(application_par
 {
 	unsigned int id;
 	unsigned int value;
-	static const char *usage = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
+	static roflash const char usage[] = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
 
 	id = string_to_int((*ap.args)[1]);
 
@@ -513,18 +548,19 @@ irom static app_action_t application_function_display_brightness(application_par
 
 		if(!display_set_brightness(id, value))
 		{
-			snprintf(ap.dst, ap.size, "%s", usage);
+			strlcpy_roflash(ap.dst, usage, ap.size);
 			return(app_action_error);
 		}
 	}
 
 	if(!display_get_brightness(id, &value))
 	{
-		snprintf(ap.dst, ap.size, "%s", usage);
+		strlcpy_roflash(ap.dst, usage, ap.size);
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "display %u brightness: %u\n", id, value);
+	static roflash const char str[] = "display %u brightness: %u\n";
+	snprintf_roflash(ap.dst, ap.size, str, id, value);
 
 	return(app_action_normal);
 }
@@ -559,9 +595,10 @@ irom static app_action_t application_function_display_default_message(applicatio
 			current--;
 	}
 
-	snprintf(config->display_default_msg, sizeof(config->display_default_msg), "%s", text);
-	snprintf(ap.dst, ap.size, "set default display message to \"%s\", write config and restart to activate\n",
-			config->display_default_msg);
+	strlcpy(config->display_default_msg, text, sizeof(config->display_default_msg));
+
+	static roflash const char str[] = "set default display message to \"%s\", write config and restart to activate\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->display_default_msg);
 
 	return(app_action_normal);
 }
@@ -594,40 +631,6 @@ irom static app_action_t application_function_display_set(application_parameters
 	return(app_action_normal);
 }
 
-irom static const char *wlan_scan_status_to_string(STATUS status)
-{
-	static const char *status_msg[] =
-	{
-		"OK",
-		"FAIL",
-		"PENDING",
-		"BUSY",
-		"CANCEL"
-	};
-
-	if(status <= CANCEL)
-		return(status_msg[status]);
-
-	return("ERROR");
-}
-
-irom static const char *wlan_scan_authmode_to_string(AUTH_MODE auth_mode)
-{
-	static const char *auth_mode_msg[] =
-	{
-		"OTHER",
-		"WEP",
-		"WPA PSK",
-		"WPA2 PSK",
-		"WPA PSK + WPA2 PSK"
-	};
-
-	if(auth_mode < AUTH_MAX)
-		return(auth_mode_msg[auth_mode]);
-
-	return("ERROR");
-}
-
 static char wlan_scan_result[2048] = "";
 
 irom static void wlan_scan_done_callback(void *arg, STATUS status)
@@ -638,10 +641,31 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	unsigned int size;
 	bool_t first;
 
+	static const char *status_msg[] =
+	{
+		"OK",
+		"FAIL",
+		"PENDING",
+		"BUSY",
+		"CANCEL"
+	};
+
+	static const char *auth_mode_msg[] =
+	{
+		"OTHER",
+		"WEP",
+		"WPA PSK",
+		"WPA2 PSK",
+		"WPA PSK + WPA2 PSK"
+	};
+
+	static roflash const char str1[] = "wlan scan results: %s\n";
+	static roflash const char str2[] = "> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n";
+	static roflash const char str3[] = "> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n";
 	dst = wlan_scan_result;
 	size = sizeof(wlan_scan_result);
 
-	length = snprintf(dst, size, "wlan scan result: %s\n", wlan_scan_status_to_string(status));
+	length = snprintf_roflash(dst, size, str1, status <= CANCEL ? status_msg[status] : "<invalid status>");
 	dst += length;
 	size -= length;
 
@@ -651,18 +675,17 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	{
 		if(first)
 		{
-			length = snprintf(dst, size, "> %-16s  %-4s  %-4s  %-18s  %-6s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "HIDDEN", "OFFSET", "BSSID");
+			length = snprintf_roflash(dst, size, str2, "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
 			dst += length;
 			size -= length;
 			first = false;
 		}
 
-		length = snprintf(dst, size, "> %-16s  %4u  %4d  %-18s  %-6s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
+		length = snprintf_roflash(dst, size, str3,
 				bss->ssid,
 				bss->channel,
 				bss->rssi,
-				wlan_scan_authmode_to_string(bss->authmode),
-				yesno(bss->is_hidden),
+				bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid auth>",
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 
@@ -675,11 +698,12 @@ irom static app_action_t application_function_wlan_list(application_parameters_t
 {
 	if(!*wlan_scan_result)
 	{
-		snprintf(ap.dst, ap.size, "wlan scan: no results (yet)\n");
+		static roflash const char str[] = "wlan scan: no results (yet)\n";
+		snprintf_roflash(ap.dst, ap.size, str);
 		return(app_action_normal);
 	}
 
-	snprintf(ap.dst, ap.size, "%s", wlan_scan_result);
+	strlcpy(ap.dst, wlan_scan_result, ap.size);
 
 	return(app_action_normal);
 }
@@ -690,7 +714,8 @@ irom static app_action_t application_function_wlan_scan(application_parameters_t
 
 	wifi_station_scan(0, wlan_scan_done_callback);
 
-	snprintf(ap.dst, ap.size, "wlan scan started, use wlan-list to retrieve the results\n");
+	static roflash const char str[] = "wlan scan started, use wlan-list to retrieve the results\n";
+	snprintf_roflash(ap.dst, ap.size, str);
 
 	return(app_action_normal);
 }
@@ -703,13 +728,18 @@ irom static app_action_t application_function_ntp_dump(application_parameters_t 
 
 	timezone = sntp_get_timezone();
 	addr = sntp_getserver(0);
-	length = snprintf(ap.dst, ap.size, "> server: ");
+
+	static roflash const char str1[] = "> server: ";
+	length = snprintf_roflash(ap.dst, ap.size, str1);
 	ap.dst += length;
 	ap.size -= length;
+
 	length = ip_addr_to_string(ap.size, ap.dst, addr);
 	ap.dst += length;
 	ap.size -= length;
-	snprintf(ap.dst, ap.size, "\n> time zone: GMT%c%u\n> ntp time: %s",
+
+	static roflash const char str2[] = "\n> time zone: GMT%c%u\n> ntp time: %s";
+	snprintf_roflash(ap.dst, ap.size, str2,
 			timezone < 0 ? '-' : '+',
 			timezone < 0 ? 0 - timezone : timezone,
 			sntp_get_real_time(sntp_get_current_timestamp()));
@@ -724,7 +754,8 @@ irom static app_action_t application_function_ntp_set(application_parameters_t a
 	config->ntp_server = string_to_ip_addr((*ap.args)[1]);
 	config->ntp_timezone = string_to_int((*ap.args)[2]);
 
-	length = snprintf(ap.dst, ap.size, "ntp server set, write config and restart to activate\n");
+	static roflash const char str[] = "ntp server set, write config and restart to activate\n";
+	length = snprintf_roflash(ap.dst, ap.size, str);
 	ap.dst += length;
 	ap.size -= length;
 
@@ -741,7 +772,8 @@ irom static app_action_t application_function_gpio_status_set(application_parame
 
 		if((gpio < 0) || (gpio > 16))
 		{
-			snprintf(ap.dst, ap.size, "status trigger gpio out of range: %d\n", gpio);
+			static roflash const char str[] = "status trigger gpio out of range: %d\n";
+			snprintf_roflash(ap.dst, ap.size, str, gpio);
 			return(app_action_error);
 		}
 	}
@@ -749,7 +781,8 @@ irom static app_action_t application_function_gpio_status_set(application_parame
 		gpio = -1;
 
 	config->stat_trigger_gpio = gpio;
-	snprintf(ap.dst, ap.size, "status trigger at gpio %d, write config and restart to activate\n", config->stat_trigger_gpio);
+	static roflash const char str[] = "status trigger at gpio %d, write config and restart to activate\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->stat_trigger_gpio);
 
 	return(app_action_normal);
 }
@@ -764,7 +797,8 @@ irom static app_action_t application_function_gpio_wlan_set(application_paramete
 
 		if((gpio < 0) || (gpio > 16))
 		{
-			snprintf(ap.dst, ap.size, "wlan trigger gpio out of range: %d\n", gpio);
+			static roflash const char str[] = "wlan trigger gpio out of range: %d\n";
+			snprintf_roflash(ap.dst, ap.size, str, gpio);
 			return(app_action_error);
 		}
 	}
@@ -773,12 +807,14 @@ irom static app_action_t application_function_gpio_wlan_set(application_paramete
 
 	if(gpios_mode(gpio, true) != gpio_output)
 	{
-		snprintf(ap.dst, ap.size, "wlan trigger gpio %d is not a plain gpio or not a plain output\n", gpio);
+		static roflash const char str[] = "wlan trigger gpio %d is not a plain gpio or not a plain output\n";
+		snprintf_roflash(ap.dst, ap.size, str, gpio);
 		return(app_action_error);
 	}
 
 	config->wlan_trigger_gpio = gpio;
-	snprintf(ap.dst, ap.size, "wlan trigger at gpio %d, write config and restart to activate\n", config->wlan_trigger_gpio);
+	static roflash const char str[] = "wlan trigger at gpio %d, write config and restart to activate\n";
+	snprintf_roflash(ap.dst, ap.size, str, config->wlan_trigger_gpio);
 
 	return(app_action_normal);
 }

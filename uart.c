@@ -54,7 +54,9 @@ irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 
 irom unsigned int uart_parameters_to_string(const uart_parameters_t *params, unsigned int size, char *string)
 {
-	snprintf(string, size, "%u %u%c%u",
+	static roflash const char str[] = "%u %u%c%u";
+
+	snprintf_roflash(string, size, str,
 			params->baud_rate,
 			params->data_bits,
 			uart_parity_to_char(params->parity),
