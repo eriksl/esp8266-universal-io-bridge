@@ -31,7 +31,7 @@ struct
 
 static i2c_error_t send_bit(bool_t bit);
 
-static const char *state_strings[i2c_state_size] =
+static roflash const char state_strings[i2c_state_size][32] =
 {
 	"invalid",
 	"idle",
@@ -50,7 +50,7 @@ static const char *state_strings[i2c_state_size] =
 	"send stop"
 };
 
-static const char *error_strings[i2c_error_size] =
+static roflash const char error_strings[i2c_error_size][32] =
 {
 	"ok",
 	"uninitialised",
@@ -74,27 +74,56 @@ static const char *error_strings[i2c_error_size] =
 	"device specific error 5",
 };
 
-irom static const char *i2c_state_string(void)
-{
-	if(state < i2c_state_size)
-		return(state_strings[state]);
-	else
-		return("<unknown state>");
-}
-
-irom static const char *i2c_error_string(i2c_error_t error)
-{
-	if(error < i2c_error_size)
-		return(error_strings[error]);
-	else
-		return("<unknown error>");
-}
-
 irom unsigned int i2c_error_format_string(const char *tag, i2c_error_t error,
 		unsigned int size, char *dst)
 {
-	return(snprintf(dst, size, "%s: bus error: %s (in bus state: %s)",
-				tag, i2c_error_string(error), i2c_state_string()));
+	unsigned int length;
+	unsigned int rlength;
+	static roflash const char str1[] = ": i2c bus error: ";
+	static roflash const char str2[] = "<unknown error>";
+	static roflash const char str3[] = " (in bus state: ";
+	static roflash const char str4[] = "<unknown state>";
+	static roflash const char str5[] = ")";
+
+	length = strlcpy(dst, tag, size);
+
+	rlength = length;
+	dst += length;
+	size -= length;
+
+	length = strlcpy_roflash(dst, str1, size);
+
+	rlength += length;
+	dst += length;
+	size -= length;
+
+	if(error < i2c_error_size)
+		length = strlcpy_roflash(dst, error_strings[error], size);
+	else
+		length = strlcpy_roflash(dst, str2, size);
+
+	rlength += length;
+	dst += length;
+	size -= length;
+
+	length = strlcpy_roflash(dst, str3, size);
+
+	rlength += length;
+	dst += length;
+	size -= length;
+
+	if(state < i2c_state_size)
+		length = strlcpy_roflash(dst, state_strings[state], size);
+	else
+		length = strlcpy_roflash(dst, str4, size);
+
+	rlength += length;
+	dst += length;
+	size -= length;
+
+	rlength += strlcpy_roflash(dst, str5, size);
+
+	return(rlength);
 }
 
 irom static inline void short_delay(void)
