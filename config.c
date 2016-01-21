@@ -231,7 +231,7 @@ irom void config_dump(unsigned int size, char *dst)
 
 	config_read_alt(tmpconfig);
 
-	length = snprintf(dst, size,
+	static roflash const char fmt_1[] =
 			"> config magic: %04x\n"
 			"> config major version: %d\n"
 			"> config minor version: %d\n"
@@ -243,7 +243,9 @@ irom void config_dump(unsigned int size, char *dst)
 			"> display default message: %s\n"
 			"> status trigger gpio (-1 is disabled): %d\n"
 			"> wlan trigger gpio (-1 is disabled): %d\n"
-			"> flags: ",
+			"> flags: ";
+
+	length = snprintf_roflash(dst, size, fmt_1,
 			tmpconfig->magic,
 			tmpconfig->major_version,
 			tmpconfig->minor_version,
