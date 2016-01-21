@@ -719,14 +719,12 @@ static roflash const dump_string_t dump_strings =
 
 irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned int size, char *str, bool html)
 {
-	unsigned int current;
-	unsigned int length;
+	unsigned int current, length, rlength;
 	const gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 	const char (*strings)[256];
-	const char * str_in;
 
-	str_in = str;
+	rlength = 0;
 
 	if(html)
 		strings = dump_strings.strings.html;
@@ -736,6 +734,7 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 	length = snprintf_roflash(str, size, strings[ds_id_header]);
 	size -= length;
 	str += length;
+	rlength += length;
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -747,10 +746,13 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 			length = snprintf_roflash(str, size, strings[ds_id_preline], gpio->index, gpio->name);
 			size -= length;
 			str += length;
+			rlength += length;
 
 			length = snprintf_roflash(str, size, strings[ds_id_gpio], gpio->index, gpio->name);
 			size -= length;
 			str += length;
+			rlength += length;
+
 			length = 0;
 
 			switch(cfg->mode)
@@ -834,17 +836,18 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 			str += length;
 			size =- length;
+			rlength += length;
 
 			length = snprintf_roflash(str, size, strings[ds_id_postline]);
 			str += length;
 			size -= length;
+			rlength += length;
 		}
 	}
 
-	snprintf_roflash(str, size, strings[ds_id_footer]);
-	str += length;
+	rlength += snprintf_roflash(str, size, strings[ds_id_footer]);
 
-	return(str - str_in);
+	return(rlength);
 }
 
 irom unsigned int gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *string)
