@@ -89,8 +89,8 @@ irom void stats_generate(unsigned int size, char *dst)
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
 
-	length = snprintf(dst, size,
-			"> firmware version date: %s\n"
+	static roflash const char stats_fmt[] =
+			"* firmware version date: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
 			"> cpu frequency: %u MHz\n"
@@ -120,7 +120,9 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
-			"> signal strength: %d dB\n",
+			"> signal strength: %d dB\n";
+
+	length = snprintf_roflash(dst, size, stats_fmt,
 			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),

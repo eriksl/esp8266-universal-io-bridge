@@ -42,6 +42,21 @@ irom int snprintf(char *buffer, size_t size, const char *fmt, ...)
 	return(n);
 }
 
+irom int snprintf_roflash(char *buffer, size_t size, const char *fmt_flash, ...)
+{
+	static char fmt_dram[1024];
+	va_list ap;
+	int n;
+
+	strlcpy_roflash(fmt_dram, fmt_flash, sizeof(fmt_dram));
+
+	va_start(ap, fmt_flash);
+	n = ets_vsnprintf(buffer, size, fmt_dram, ap);
+	va_end(ap);
+
+	return(n);
+}
+
 irom void pin_func_select(uint32_t pin_name, uint32_t pin_func)
 {
 	uint32_t pin_value;
@@ -162,6 +177,38 @@ irom size_t strlcpy(char *dst, const char *src, size_t siz)
 	*d = '\0';
 
 	return(s - src);
+}
+
+irom size_t strlcpy_roflash(char *dst, const char *from_flash_ptr, size_t size)
+{
+	const uint32_t *from_ptr;
+	unsigned int from, to;
+	uint32_t current32, byte;
+	uint8_t current8;
+
+	from_ptr = (const void *)from_flash_ptr;
+
+	for(from = 0, to = 0; (from * sizeof(*from_ptr)) < size; from++)
+	{
+		current32 = from_ptr[from];
+
+		for(byte = 4; byte > 0; byte--)
+		{
+			if((current8 = (current32 & 0x000000ff)) == '\0')
+				goto done;
+
+			if((to + 1) >= size)
+				goto done;
+
+			dst[to++] = (char)current8;
+			current32 = (current32 >> 8) & 0x00ffffff;
+		}
+	}
+
+done:
+	dst[to] = '\0';
+
+	return(to);
 }
 
 irom void reset(void)

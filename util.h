@@ -22,6 +22,7 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 
 #define irom __attribute__((section(".irom0.text")))
 #define iram __attribute__((section(".text")))
+#define roflash __attribute__((section(".flash.rodata"))) __attribute__((aligned(sizeof(char*))))
 #define noinline __attribute__ ((noinline))
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))
@@ -57,6 +58,8 @@ void vPortFree(void *ptr, const char *file, int line);
 // local utility functions missing from libc
 
 int snprintf(char *, size_t, const char *, ...) __attribute__ ((format (printf, 3, 4)));
+int snprintf_roflash(char *, size_t, const char *, ...) __attribute__ ((format (printf, 3, 4)));
+size_t strlcpy_roflash(char *dst, const char *from_flash_ptr, size_t size);
 void *malloc(size_t);
 void *zalloc(size_t);
 void *realloc(void *, size_t);
