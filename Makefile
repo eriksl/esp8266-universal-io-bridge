@@ -11,13 +11,13 @@ OTA_HOST			?= 10.1.12.253
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "xtensa-lx106-elf-size -A $(1) |"); \
-						$$available = $(5) * 1024; \
+						$$available = $(6) * 1024; \
 						$$used = 0; \
 						while(<$$fd>) \
 						{ \
 							chomp; \
 							@_ = split; \
-							if(($$_[0] eq "$(3)") || ($$_[0] eq "$(4)")) \
+							if(($$_[0] eq "$(3)") || ($$_[0] eq "$(4)") || ($$_[0] eq "$(5)")) \
 							{ \
 								$$used += $$_[1]; \
 							} \
@@ -171,9 +171,9 @@ clean:
 
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
-				$(call section_free,$(ELF),iram,.text,,32)
-				$(call section_free,$(ELF),dram,.bss,.data,80)
-				$(call section_free,$(ELF),irom,.rodata,.irom0.text,424)
+				$(call section_free,$(ELF),iram,.text,,,32)
+				$(call section_free,$(ELF),dram,.bss,.data,.rodata,62)
+				$(call section_free,$(ELF),irom,.irom0.text,,,424)
 
 linkdebug:		$(LINKMAP)
 				$(Q) echo "IROM:"
