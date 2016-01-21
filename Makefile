@@ -57,34 +57,39 @@ link_debug		= $(Q) perl -e '\
 						printf("size: %u, free: %u\n", $$top - hex('$(4)'), ($(3) * 1024) - ($$top - hex('$(4)'))); \
 						close($$fd);'
 
-CC					:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
-OBJCOPY				:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
-
-LDSCRIPT_TEMPLATE	:= loadscript-template
-LDSCRIPT			:= loadscript
-ELF_PLAIN			:= espiobridge-plain.o
-ELF_OTA				:= espiobridge-rboot.o
-OFFSET_IRAM_PLAIN	:= 0x00000
-OFFSET_IROM_PLAIN	:= 0x10000
-OFFSET_BOOT_OTA		:= 0x00000
-OFFSET_CONFIG_OTA	:= 0x01000
-OFFSET_IMG_OTA_0	:= 0x002000
-OFFSET_IMG_OTA_1	:= 0x102000
-FIRMWARE_PLAIN_IRAM	:= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
-FIRMWARE_PLAIN_IROM	:= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
-FIRMWARE_RBOOT_BOOT	:= espiobridge-rboot-boot.bin
-FIRMWARE_OTA_IMG	:= espiobridge-rboot-image.bin
-CONFIG_RBOOT_SRC	:= rboot-config.c
-CONFIG_RBOOT_ELF	:= rboot-config.o
-CONFIG_RBOOT_BIN	:= rboot-config.bin
-LINKMAP				:= linkmap
-SDKLIBDIR			:= $(SDKROOT)/sdk/lib
-LIBMAIN_PLAIN		:= main
-LIBMAIN_PLAIN_FILE	:= $(SDKROOT)/sdk/lib/lib$(LIBMAIN_PLAIN).a
-LIBMAIN_RBB			:= main-rbb
-LIBMAIN_RBB_FILE	:= lib$(LIBMAIN_RBB).a
-ESPTOOL2_BIN		:= $(ESPTOOL2)/esptool2
-RBOOT_BIN			:= $(RBOOT)/firmware/rboot.bin
+CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
+OBJCOPY						:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
+DEFAULT_BIN_OFFSET_PLAIN	:= 0x07c000
+DEFAULT_BIN_OFFSET_OTA		:= 0x1fc000
+DEFAULT_BIN_FILE			:= $(SDKROOT)/sdk/bin/esp_init_data_default.bin
+BLANK_BIN_OFFSET_PLAIN		:= 0x07e000
+BLANK_BIN_OFFSET_OTA		:= 0x1fe000
+BLANK_BIN_FILE				:= $(SDKROOT)/sdk/bin/blank.bin
+LDSCRIPT_TEMPLATE			:= loadscript-template
+LDSCRIPT					:= loadscript
+ELF_PLAIN					:= espiobridge-plain.o
+ELF_OTA						:= espiobridge-rboot.o
+OFFSET_IRAM_PLAIN			:= 0x00000
+OFFSET_IROM_PLAIN			:= 0x10000
+OFFSET_BOOT_OTA				:= 0x00000
+OFFSET_CONFIG_OTA			:= 0x01000
+OFFSET_IMG_OTA_0			:= 0x002000
+OFFSET_IMG_OTA_1			:= 0x102000
+FIRMWARE_PLAIN_IRAM			:= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
+FIRMWARE_PLAIN_IROM			:= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
+FIRMWARE_RBOOT_BOOT			:= espiobridge-rboot-boot.bin
+FIRMWARE_OTA_IMG			:= espiobridge-rboot-image.bin
+CONFIG_RBOOT_SRC			:= rboot-config.c
+CONFIG_RBOOT_ELF			:= rboot-config.o
+CONFIG_RBOOT_BIN			:= rboot-config.bin
+LINKMAP						:= linkmap
+SDKLIBDIR					:= $(SDKROOT)/sdk/lib
+LIBMAIN_PLAIN				:= main
+LIBMAIN_PLAIN_FILE			:= $(SDKROOT)/sdk/lib/lib$(LIBMAIN_PLAIN).a
+LIBMAIN_RBB					:= main-rbb
+LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
+ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
+RBOOT_BIN					:= $(RBOOT)/firmware/rboot.bin
 
 V ?= $(VERBOSE)
 ifeq ($(V),1)
@@ -252,15 +257,18 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
 						$(VECHO) "FLASH PLAIN"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
-							$(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM)
+							$(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM) \
+							$(BLANK_BIN_OFFSET_PLAIN) $(BLANK_BIN_FILE) \
+							$(DEFAULT_BIN_OFFSET_PLAIN) $(DEFAULT_BIN_FILE)
 
 flash-ota:				$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_BOOT_OTA) $(FIRMWARE_RBOOT_BOOT) \
 							$(OFFSET_CONFIG_OTA) $(CONFIG_RBOOT_BIN) \
-							$(OFFSET_IMG_OTA_0) $(FIRMWARE_OTA_IMG)
-#							$(OFFSET_IMG_OTA_1) $(FIRMWARE_OTA_IMG)
+							$(OFFSET_IMG_OTA_0) $(FIRMWARE_OTA_IMG) \
+							$(BLANK_BIN_OFFSET_OTA) $(BLANK_BIN_FILE) \
+							$(DEFAULT_BIN_OFFSET_OTA) $(DEFAULT_BIN_FILE)
 
 ota:					$(OTA_TARGET)
 
