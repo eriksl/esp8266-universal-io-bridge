@@ -53,7 +53,7 @@ static int read_timeout(int fd, void *dst, ssize_t size)
 	pfd.fd		= fd;
 	pfd.events	= POLLIN;
 
-	if(poll(&pfd, 1, 2000) != 1)
+	if(poll(&pfd, 1, 10000) != 1)
 		return(-1);
 
 	return(read(fd, dst, size));
@@ -66,7 +66,7 @@ static int write_timeout(int fd, const void *src, ssize_t length)
 	pfd.fd		= fd;
 	pfd.events	= POLLOUT;
 
-	if(poll(&pfd, 1, 2000) != 1)
+	if(poll(&pfd, 1, 10000) != 1)
 		return(-1);
 
 	return(write(fd, src, length));
