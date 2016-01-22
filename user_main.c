@@ -715,7 +715,7 @@ irom static void user_init2(void)
 	esp_cmd_tcp_connection = 0;
 
 	tcp_accept(&esp_http_config, &esp_http_tcp_config, 80, tcp_http_connect_callback);
-	espconn_regist_time(&esp_cmd_config, 30, 0);
+	espconn_regist_time(&esp_http_config, 30, 0);
 	esp_http_tcp_connection = 0;
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
