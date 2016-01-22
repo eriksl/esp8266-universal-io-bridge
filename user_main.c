@@ -344,10 +344,7 @@ irom static void background_task(os_event_t *events)
 	}
 
 	if(wlan_bootstrap_state != wlan_bootstrap_state_start)
-	{
 		process_uart_fifo();
-		process_command();
-	}
 
 	if(action.init_i2c_sensors)
 	{
@@ -364,6 +361,8 @@ irom static void background_task(os_event_t *events)
 		action.init_displays = 0;
 		stat_display_init_time_us = system_get_time() - now;
 	}
+
+	process_command();
 }
 
 irom static void tcp_data_sent_callback(void *arg)
