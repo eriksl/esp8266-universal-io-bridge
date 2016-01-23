@@ -29,8 +29,13 @@ irom static app_action_t flash_write_verify(application_parameters_t *ap)
 {
 	if(state == state_write)
 	{
-		spi_flash_erase_sector(flash_sector);
-		spi_flash_write(flash_sector * 0x1000, (void *)flash_buffer, flash_buffer_offset);
+		spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, flash_buffer_offset);
+
+		if(memcmp(flash_buffer, verify_buffer, flash_buffer_offset))
+		{
+			spi_flash_erase_sector(flash_sector);
+			spi_flash_write(flash_sector * 0x1000, (void *)flash_buffer, flash_buffer_offset);
+		}
 	}
 
 	spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, flash_buffer_offset);
