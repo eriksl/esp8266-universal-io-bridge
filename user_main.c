@@ -505,10 +505,8 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 
 		snprintf(tcp_cmd_send_buffer, buffer_size, "OK\n");
 
-		tcp_cmd_send_buffer_busy = true;
-
-		if(espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer)))
-			tcp_cmd_send_buffer_busy = false;
+		tcp_cmd_send_buffer_busy =
+			!espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
 	}
 }
 
