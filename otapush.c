@@ -14,10 +14,12 @@
 
 static void usage(void)
 {
-    fprintf(stderr, "usage: otapush [options] host file\n");
-    fprintf(stderr, "-c|--dont-commit  don't commit (reset and load new image)\n");
-    fprintf(stderr, "-p|--port         set command port (default 24)\n");
-    fprintf(stderr, "-v|--verify       verify (instead of write)\n");
+	fprintf(stderr, "usage: otapush [options] host file\n");
+	fprintf(stderr, "-c|--dont-commit      don't commit (reset and load new image)\n");
+	fprintf(stderr, "-p|--port             set command port (default 24)\n");
+	fprintf(stderr, "-s|--chunk-size 2^s   set command port (default 9 = 512 bytes)\n");
+	fprintf(stderr, "-t|--timeout ms       set communication timeout (default = 30000 = 30s)\n");
+	fprintf(stderr, "-v|--verify           verify (instead of write)\n");
 }
 
 static int resolve(const char * hostname, int port, struct sockaddr_in6 *saddr)
@@ -174,7 +176,7 @@ int main(int argc, char * const *argv)
 	static const char *shortopts = "p:v";
 	static const struct option longopts[] =
 	{
-		{ "dont-commmit",   no_argument,		0, 'c' },
+		{ "dont-commmit",	no_argument,		0, 'c' },
 		{ "port",			required_argument,	0, 'p' },
 		{ "verify",			no_argument,		0, 'v' },
 		{ 0, 0, 0, 0 }
@@ -183,8 +185,8 @@ int main(int argc, char * const *argv)
 	file_fd = -1;
 	sock_fd = -1;
 
-    while((arg = getopt_long(argc, argv, shortopts, longopts, 0)) != -1)
-    {
+	while((arg = getopt_long(argc, argv, shortopts, longopts, 0)) != -1)
+	{
 		switch(arg)
 		{
 			case('c'):
@@ -354,12 +356,12 @@ int main(int argc, char * const *argv)
 
 		gettimeofday(&now, 0);
 
-		seconds  = now.tv_sec  - start.tv_sec;
+		seconds = now.tv_sec - start.tv_sec;
 		useconds = now.tv_usec - start.tv_usec;
 		duration = seconds + (useconds / 1000000.0);
 		rate = done / 1024.0 / duration;
 
-		fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%   \r", trait->progress, done / 1024, (int)duration, (int)rate, (done * 100) / file_length);
+		fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%    \r", trait->progress, done / 1024, (int)duration, (int)rate, (done * 100) / file_length);
 	}
 
 	fprintf(stderr, "\nfinishing\n");
