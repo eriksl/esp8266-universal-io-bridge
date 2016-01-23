@@ -30,9 +30,9 @@ _Static_assert(sizeof(wlan_bootstrap_state_t) == 4, "sizeof(telnet_strip_state) 
 
 typedef enum
 {
-    ts_raw,
-    ts_dodont,
-    ts_data,
+	ts_raw,
+	ts_dodont,
+	ts_data,
 } telnet_strip_state_t;
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
@@ -377,7 +377,7 @@ irom static void background_task(os_event_t *events)
 
 irom static void tcp_data_sent_callback(void *arg)
 {
-    tcp_data_send_buffer_busy = false;
+	tcp_data_send_buffer_busy = false;
 
 	// retry to send data still in the fifo
 
@@ -454,7 +454,7 @@ irom static void tcp_data_connect_callback(struct espconn *new_connection)
 
 irom static void tcp_cmd_sent_callback(void *arg)
 {
-    tcp_cmd_send_buffer_busy = false;
+	tcp_cmd_send_buffer_busy = false;
 }
 
 irom static void tcp_cmd_receive_callback(void *arg, char *data, unsigned short length)
@@ -470,12 +470,12 @@ irom static void tcp_cmd_receive_callback(void *arg, char *data, unsigned short 
 
 irom static void tcp_cmd_reconnect_callback(void *arg, int8_t err)
 {
-    tcp_cmd_send_buffer_busy = false;
+	tcp_cmd_send_buffer_busy = false;
 }
 
 irom static void tcp_cmd_disconnect_callback(void *arg)
 {
-    tcp_cmd_send_buffer_busy = false;
+	tcp_cmd_send_buffer_busy = false;
 
 	if(action.reset)
 	{
@@ -512,7 +512,7 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 
 irom static void tcp_http_sent_callback(void *arg)
 {
-    tcp_http_send_buffer_busy = false;
+	tcp_http_send_buffer_busy = false;
 }
 
 irom static void tcp_http_receive_callback(void *arg, char *data, unsigned short length)
@@ -640,7 +640,7 @@ iram static void periodic_timer_callback(void *arg)
 		periodic_timer_slowpath();
 	}
 
-	// run display background task every second  = 1000 ms
+	// run display background task every second = 1000 ms
 
 	if(timer_second_skipped > 99)
 	{
