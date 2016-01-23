@@ -445,7 +445,7 @@ irom static void tcp_data_connect_callback(struct espconn *new_connection)
 		espconn_regist_sentcb(esp_data_tcp_connection, tcp_data_sent_callback);
 		espconn_regist_disconcb(esp_data_tcp_connection, tcp_data_disconnect_callback);
 
-		espconn_set_opt(esp_data_tcp_connection, ESPCONN_REUSEADDR);
+		espconn_set_opt(esp_data_tcp_connection, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
 
 		queue_flush(uart_send_queue);
 		queue_flush(uart_receive_queue);
@@ -499,7 +499,7 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 		espconn_regist_reconcb(esp_cmd_tcp_connection, tcp_cmd_reconnect_callback);
 		espconn_regist_disconcb(esp_cmd_tcp_connection, tcp_cmd_disconnect_callback);
 
-		espconn_set_opt(esp_cmd_tcp_connection, ESPCONN_REUSEADDR);
+		espconn_set_opt(esp_cmd_tcp_connection, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
 
 		queue_flush(tcp_cmd_receive_queue);
 
@@ -560,7 +560,7 @@ irom static void tcp_http_connect_callback(struct espconn *new_connection)
 		espconn_regist_sentcb(esp_http_tcp_connection, tcp_http_sent_callback);
 		espconn_regist_disconcb(esp_http_tcp_connection, tcp_http_disconnect_callback);
 
-		espconn_set_opt(esp_http_tcp_connection, ESPCONN_REUSEADDR);
+		espconn_set_opt(esp_http_tcp_connection, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
 
 		tcp_http_send_buffer_busy = false;
 	}
