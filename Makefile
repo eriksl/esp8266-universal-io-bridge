@@ -149,7 +149,7 @@ CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
 					-isystem$(SDKROOT)/sdk/include -I$(RBOOT)/appcode -I$(RBOOT) -I.
 LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-SDKLIBS			:= -lc -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
+SDKLIBS			:= -lcirom -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
 
 OBJS			:= application.o config.o display.o gpios.o http.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o ota.o
