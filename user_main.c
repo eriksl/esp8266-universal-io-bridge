@@ -102,8 +102,9 @@ irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 		unsigned int port, void (*connect_callback)(struct espconn *))
 {
 	memset(esp_tcp_config, 0, sizeof(*esp_tcp_config));
-	esp_tcp_config->local_port = port;
 	memset(esp_config, 0, sizeof(*esp_config));
+
+	esp_tcp_config->local_port = port;
 	esp_config->type = ESPCONN_TCP;
 	esp_config->state = ESPCONN_NONE;
 	esp_config->proto.tcp = esp_tcp_config;
