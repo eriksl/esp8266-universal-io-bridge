@@ -222,6 +222,12 @@ irom noinline static void process_command(void)
 	telnet_strip_state_t telnet_strip_state;
 	bool_t eol;
 
+	if(queue_empty(tcp_cmd_receive_queue))
+		return;
+
+	if(queue_lf(tcp_cmd_receive_queue) == 0)
+		return;
+
 	if(tcp_cmd_send_buffer_busy)
 		return;
 
