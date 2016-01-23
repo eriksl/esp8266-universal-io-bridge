@@ -109,8 +109,6 @@ irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 	esp_config->proto.tcp = esp_tcp_config;
 	espconn_regist_connectcb(esp_config, (espconn_connect_callback)connect_callback);
 	espconn_accept(esp_config);
-	esp_cmd_tcp_connection = 0;
-
 	espconn_tcp_set_max_con_allow(esp_config, 1);
 }
 
