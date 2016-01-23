@@ -316,7 +316,7 @@ irom noinline static void process_command(void)
 	if(espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer)))
 		tcp_cmd_send_buffer_busy = false;
 
-	return(true);
+	return;
 }
 
 irom static void background_task(os_event_t *events)
