@@ -273,7 +273,7 @@ flash-ota:				$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) fre
 ota:					$(OTA_TARGET)
 
 push-ota:				$(FIRMWARE_OTA_IMG) free otapush
-						./otapush $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+						./otapush -s 9 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
 %.o:					%.c
 						$(VECHO) "CC $<"
