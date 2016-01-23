@@ -17,7 +17,7 @@ static void usage(void)
 	fprintf(stderr, "usage: otapush [options] host file\n");
 	fprintf(stderr, "-c|--dont-commit      don't commit (reset and load new image)\n");
 	fprintf(stderr, "-p|--port             set command port (default 24)\n");
-	fprintf(stderr, "-s|--chunk-size 2^s   set command port (default 9 = 512 bytes)\n");
+	fprintf(stderr, "-s|--chunk-size 2^s   set command port (5 - 9, default 8 = 256 bytes)\n");
 	fprintf(stderr, "-t|--timeout ms       set communication timeout (default = 30000 = 30s)\n");
 	fprintf(stderr, "-v|--verify           verify (instead of write)\n");
 }
@@ -48,27 +48,27 @@ static int resolve(const char * hostname, int port, struct sockaddr_in6 *saddr)
 	return(1);
 }
 
-static int read_timeout(int fd, void *dst, ssize_t size)
+static int read_timeout(int fd, void *dst, ssize_t size, int timeout)
 {
 	struct pollfd	pfd;
 
 	pfd.fd		= fd;
 	pfd.events	= POLLIN;
 
-	if(poll(&pfd, 1, 10000) != 1)
+	if(poll(&pfd, 1, timeout) != 1)
 		return(-1);
 
 	return(read(fd, dst, size));
 }
 
-static int write_timeout(int fd, const void *src, ssize_t length)
+static int write_timeout(int fd, const void *src, ssize_t length, int timeout)
 {
 	struct pollfd	pfd;
 
 	pfd.fd		= fd;
 	pfd.events	= POLLOUT;
 
-	if(poll(&pfd, 1, 10000) != 1)
+	if(poll(&pfd, 1, timeout) != 1)
 		return(-1);
 
 	return(write(fd, src, length));
@@ -158,8 +158,7 @@ int main(int argc, char * const *argv)
 	char				md5_hash[MD5_DIGEST_LENGTH], md5_string[MD5_DIGEST_LENGTH * 2 + 1];
 	int					arg;
 	int					port;
-	int					verify;
-	int					dontcommit;
+	int					verify, dontcommit, chunk_size, timeout;
 	int					rv = 1;
 	struct timeval		start, now;
 	int					seconds, useconds;
@@ -171,13 +170,17 @@ int main(int argc, char * const *argv)
 
 	dontcommit = 0;
 	port = 24;
+	chunk_size = 8;
+	timeout = 30000;
 	verify = 0;
 
-	static const char *shortopts = "p:v";
+	static const char *shortopts = "cp:s:t:v";
 	static const struct option longopts[] =
 	{
 		{ "dont-commmit",	no_argument,		0, 'c' },
 		{ "port",			required_argument,	0, 'p' },
+		{ "chunk-size",		required_argument,	0, 's' },
+		{ "timeout",		required_argument,	0, 't' },
 		{ "verify",			no_argument,		0, 'v' },
 		{ 0, 0, 0, 0 }
 	};
@@ -201,6 +204,18 @@ int main(int argc, char * const *argv)
 				break;
 			}
 
+			case('s'):
+			{
+				chunk_size = atoi(optarg);
+				break;
+			}
+
+			case('t'):
+			{
+				timeout = atoi(optarg);
+				break;
+			}
+
 			case('v'):
 			{
 				verify = 1;
@@ -212,6 +227,12 @@ int main(int argc, char * const *argv)
 	if((argc - optind) < 2)
 	{
 		usage();
+		exit(1);
+	}
+
+	if((chunk_size < 5) || (chunk_size > 9))
+	{
+		fprintf(stderr, "chunk size must be between 5 (32 bytes) and 9 (512 bytes)\n");
 		exit(1);
 	}
 
@@ -261,13 +282,21 @@ int main(int argc, char * const *argv)
 		goto error;
 	}
 
+	val = 1200;
+
+	if(setsockopt(sock_fd, IPPROTO_TCP, TCP_WINDOW_CLAMP, &val, sizeof(val)))
+	{
+		fprintf(stderr, "socket set window clamp failed: %m\n");
+		goto error;
+	}
+
 	if(connect(sock_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 	{
 		fprintf(stderr, "connect failed: %m\n");
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1)) <= 0)
+	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1, timeout)) <= 0)
 	{
 		fprintf(stderr, "socket read failed: %m\n");
 		goto error;
@@ -283,13 +312,13 @@ int main(int argc, char * const *argv)
 
 	snprintf(cmdbuf, sizeof(cmdbuf), "%s %u\n", trait->cmd, file_length);
 
-	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf)) != (ssize_t)strlen(cmdbuf))
+	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
 	{
 		fprintf(stderr, "command %s failed (%m)\n", trait->id);
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1)) <= 0)
+	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1, timeout)) <= 0)
 	{
 		fprintf(stderr, "command %s timeout: %m\n", trait->id);
 		goto error;
@@ -315,7 +344,7 @@ int main(int argc, char * const *argv)
 
 	for(done = 0;;)
 	{
-		if((bufread = read(file_fd, buffer, 512)) < 0)
+		if((bufread = read(file_fd, buffer, 1 << chunk_size)) < 0)
 		{
 			fprintf(stderr, "\nfile read failed: %m\n");
 			goto error;
@@ -334,13 +363,13 @@ int main(int argc, char * const *argv)
 
 		snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %s\n", bufread, hexbuf);
 
-		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf)) != (ssize_t)strlen(cmdbuf))
+		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
 		{
 			fprintf(stderr, "\nsend failed (%m)\n");
 			goto error;
 		}
 
-		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer))) <= 0)
+		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
 		{
 			fprintf(stderr, "\nsend acknowledge timed out\n");
 			goto error;
@@ -371,13 +400,13 @@ int main(int argc, char * const *argv)
 
 	snprintf(cmdbuf, sizeof(cmdbuf), "of %s\n", md5_string);
 
-	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf)) != (ssize_t)strlen(cmdbuf))
+	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
 	{
 		fprintf(stderr, "finish failed (%m)\n");
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer))) <= 0)
+	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
 	{
 		fprintf(stderr, "finish failed: %m\n");
 		goto error;
@@ -409,13 +438,13 @@ int main(int argc, char * const *argv)
 	{
 		snprintf(cmdbuf, sizeof(cmdbuf), "oc\n");
 
-		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf)) != (ssize_t)strlen(cmdbuf))
+		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
 		{
 			fprintf(stderr, "commit write failed (%m)\n");
 			goto error;
 		}
 
-		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer))) <= 0)
+		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
 		{
 			fprintf(stderr, "commit acknowledge failed: %m\n");
 			goto error;
