@@ -312,7 +312,11 @@ irom noinline static void process_command(void)
 	}
 
 	tcp_cmd_send_buffer_busy = true;
-	espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+
+	if(espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer)))
+		tcp_cmd_send_buffer_busy = false;
+
+	return(true);
 }
 
 irom static void background_task(os_event_t *events)
@@ -463,8 +467,15 @@ irom static void tcp_cmd_receive_callback(void *arg, char *data, unsigned short 
 		system_os_post(background_task_id, 0, 0);
 }
 
+irom static void tcp_cmd_reconnect_callback(void *arg, int8_t err)
+{
+    tcp_cmd_send_buffer_busy = false;
+}
+
 irom static void tcp_cmd_disconnect_callback(void *arg)
 {
+    tcp_cmd_send_buffer_busy = false;
+
 	if(action.reset)
 	{
 		msleep(10);
@@ -481,19 +492,22 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	else
 	{
 		esp_cmd_tcp_connection = new_connection;
-		tcp_cmd_send_buffer_busy = false;
 
 		espconn_regist_recvcb(esp_cmd_tcp_connection, tcp_cmd_receive_callback);
 		espconn_regist_sentcb(esp_cmd_tcp_connection, tcp_cmd_sent_callback);
+		espconn_regist_reconcb(esp_cmd_tcp_connection, tcp_cmd_reconnect_callback);
 		espconn_regist_disconcb(esp_cmd_tcp_connection, tcp_cmd_disconnect_callback);
 
 		espconn_set_opt(esp_cmd_tcp_connection, ESPCONN_REUSEADDR);
 
 		queue_flush(tcp_cmd_receive_queue);
 
-		tcp_cmd_send_buffer_busy = true;
 		snprintf(tcp_cmd_send_buffer, buffer_size, "OK\n");
-		espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer));
+
+		tcp_cmd_send_buffer_busy = true;
+
+		if(espconn_send(esp_cmd_tcp_connection, tcp_cmd_send_buffer, strlen(tcp_cmd_send_buffer)))
+			tcp_cmd_send_buffer_busy = false;
 	}
 }
 
