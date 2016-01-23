@@ -99,7 +99,7 @@ irom static void ntp_periodic(void)
 }
 
 irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
-		unsigned int port, void (*connect_callback)(struct espconn *))
+		unsigned int port, unsigned int timeout, void (*connect_callback)(struct espconn *))
 {
 	memset(esp_tcp_config, 0, sizeof(*esp_tcp_config));
 	memset(esp_config, 0, sizeof(*esp_config));
@@ -110,6 +110,7 @@ irom static void tcp_accept(struct espconn *esp_config, esp_tcp *esp_tcp_config,
 	esp_config->proto.tcp = esp_tcp_config;
 	espconn_regist_connectcb(esp_config, (espconn_connect_callback)connect_callback);
 	espconn_accept(esp_config);
+	espconn_regist_time(esp_config, timeout, 0);
 	espconn_tcp_set_max_con_allow(esp_config, 1);
 }
 
@@ -725,17 +726,13 @@ irom static void user_init2(void)
 
 	config_wlan(config->ssid, config->passwd);
 
-	tcp_accept(&esp_data_config, &esp_data_tcp_config, config->bridge_tcp_port, tcp_data_connect_callback);
-	espconn_regist_time(&esp_data_config, 0, 0);
 	esp_data_tcp_connection = 0;
-
-	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, tcp_cmd_connect_callback);
-	espconn_regist_time(&esp_cmd_config, 30, 0);
 	esp_cmd_tcp_connection = 0;
-
-	tcp_accept(&esp_http_config, &esp_http_tcp_config, 80, tcp_http_connect_callback);
-	espconn_regist_time(&esp_http_config, 30, 0);
 	esp_http_tcp_connection = 0;
+
+	tcp_accept(&esp_data_config, &esp_data_tcp_config, config->bridge_tcp_port, 0, tcp_data_connect_callback);
+	tcp_accept(&esp_cmd_config, &esp_cmd_tcp_config, 24, 30, tcp_cmd_connect_callback);
+	tcp_accept(&esp_http_config, &esp_http_tcp_config, 80, 30, tcp_http_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
