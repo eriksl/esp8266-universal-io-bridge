@@ -921,6 +921,8 @@ irom app_action_t application_function_gpio_mode(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
+	string_clear(dst);
+
 	config_read(&tmpconfig);
 	new_gpio_config = &tmpconfig.gpios.entry[gpio->id];
 
@@ -981,7 +983,7 @@ irom app_action_t application_function_gpio_mode(string_t *src, string_t *dst)
 				direction = gpio_down;
 			else
 			{
-				string_copy(dst, "gpio-mode(timer): direction invalid\n");
+				string_cat(dst, ": timer direction invalid\n");
 				return(app_action_error);
 			}
 
