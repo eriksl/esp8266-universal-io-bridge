@@ -1,7 +1,7 @@
 #ifndef gpios_h
 #define gpios_h
 
-#include "application-parameters.h"
+#include "application.h"
 #include "util.h"
 
 #include <stdint.h>
@@ -107,19 +107,18 @@ typedef struct
 	gpio_config_entry_t	entry[gpio_size];
 } gpio_config_t;
 
-void			gpios_init(void);
-void			gpios_periodic(void);
-void			gpios_config_init(gpio_config_t *);
-unsigned int	gpios_dump_string(const gpio_config_t *, unsigned int, char *);
-unsigned int	gpios_dump_html(unsigned int, char *);
-gpio_mode_t		gpios_mode(unsigned int gpio_name, bool plain_only);
-bool			gpios_trigger_output(unsigned int gpio_name);
-bool			gpios_set_wlan_trigger(unsigned int gpio_name);
+void gpios_init(void);
+void gpios_periodic(void);
+void gpios_config_init(gpio_config_t *);
+void gpios_dump_string(string_t *dst, const gpio_config_t *);
+void gpios_dump_html(string_t *dst, const gpio_config_t *);
+bool gpios_trigger_output(int gpio_name);
+bool gpios_set_wlan_trigger(int gpio_name);
 
-app_action_t application_function_gpio_get(application_parameters_t);
-app_action_t application_function_gpio_set(application_parameters_t);
-app_action_t application_function_gpio_mode(application_parameters_t);
-app_action_t application_function_gpio_dump(application_parameters_t);
-app_action_t application_function_analog_read(application_parameters_t);
+app_action_t application_function_gpio_get(string_t *, string_t *);
+app_action_t application_function_gpio_set(string_t *, string_t *);
+app_action_t application_function_gpio_mode(string_t *, string_t *);
+app_action_t application_function_gpio_dump(string_t *, string_t *);
+app_action_t application_function_analog_read(string_t *, string_t *);
 
 #endif

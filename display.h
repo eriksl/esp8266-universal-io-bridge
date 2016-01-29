@@ -2,6 +2,7 @@
 #define display_h
 
 #include "util.h"
+#include "application.h"
 
 #include <stdint.h>
 
@@ -24,16 +25,15 @@ _Static_assert(sizeof(display_slot_enum_t) == 4, "sizeof(display_slot_enum_t) !=
 
 typedef struct
 {
-	unsigned int	timeout;
+	int				timeout;
 	char			content[display_slot_size];
 } display_slot_t;
 
-void			display_init(const char *default_message);
-void			display_periodic(void);
-bool_t			display_detected(display_id_t);
-unsigned int	display_dump(unsigned int size, char *dst, unsigned int verbose_level);
-unsigned int	display_setslot(display_id_t display, unsigned int slot, unsigned int timeout,
-					const char *text, unsigned int size, char *dst);
-bool_t			display_set_brightness(display_id_t display, unsigned int brightness);
-bool_t			display_get_brightness(display_id_t display, unsigned int *brightness);
+void	display_init(const char *default_message);
+void	display_periodic(void);
+
+app_action_t application_function_display_brightness(string_t *src, string_t *dst);
+app_action_t application_function_display_dump(string_t *src, string_t *dst);
+app_action_t application_function_display_default_message(string_t *src, string_t *dst);
+app_action_t application_function_display_set(string_t *src, string_t *dst);
 #endif

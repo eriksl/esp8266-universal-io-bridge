@@ -11,15 +11,15 @@
 
 #include "esp-uart-register.h"
 
-irom attr_pure uart_parity_t uart_string_to_parity(const char *str)
+irom attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
 {
 	uart_parity_t rv;
 
-	if(!strcmp(str, "none"))
+	if(string_match(src, "none"))
 		rv = parity_none;
-	else if(!strcmp(str, "even"))
+	else if(string_match(src, "even"))
 		rv = parity_even;
-	else if(!strcmp(str, "odd"))
+	else if(string_match(src, "odd"))
 		rv = parity_odd;
 	else
 		rv = parity_error;
@@ -27,7 +27,7 @@ irom attr_pure uart_parity_t uart_string_to_parity(const char *str)
 	return(rv);
 }
 
-irom attr_pure attr_const const char *uart_parity_to_string(uart_parity_t ix)
+irom void uart_parity_to_string(string_t *dst, uart_parity_t ix)
 {
 	static const char *parity[] =
 	{
@@ -36,10 +36,7 @@ irom attr_pure attr_const const char *uart_parity_to_string(uart_parity_t ix)
 		"odd",
 	};
 
-	if(ix > parity_odd)
-		return("error");
-
-	return(parity[ix]);
+	string_format(dst, "%s", ix <= parity_odd ? parity[ix] : "<error>");
 }
 
 irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
@@ -52,25 +49,21 @@ irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 	return(parity[ix]);
 }
 
-irom unsigned int uart_parameters_to_string(const uart_parameters_t *params, unsigned int size, char *string)
+irom void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
 {
-	static roflash const char str[] = "%u %u%c%u";
-
-	snprintf_roflash(string, size, str,
+	string_format(dst, "%u %u%c%u",
 			params->baud_rate,
 			params->data_bits,
 			uart_parity_to_char(params->parity),
 			params->stop_bits);
-
-	return(strlen(string));
 }
 
-iram static unsigned int uart_rx_fifo_length(void)
+iram static int uart_rx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-iram static unsigned int uart_tx_fifo_length(void)
+iram static int uart_tx_fifo_length(void)
 {
 	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
@@ -94,8 +87,8 @@ iram static void uart_callback(void *p)
 		{
 			data = READ_PERI_REG(UART_FIFO(0));
 
-			if(!queue_full(uart_receive_queue))
-				queue_push(uart_receive_queue, data);
+			if(!queue_full(&data_receive_queue))
+				queue_push(&data_receive_queue, data);
 		}
 
 		system_os_post(background_task_id, 0, 0);
@@ -107,10 +100,10 @@ iram static void uart_callback(void *p)
 	{
 		stat_uart_tx_interrupts++;
 
-		while(!queue_empty(uart_send_queue) && (uart_tx_fifo_length() < 64))
-			WRITE_PERI_REG(UART_FIFO(0), queue_pop(uart_send_queue));
+		while(!queue_empty(&data_send_queue) && (uart_tx_fifo_length() < 64))
+			WRITE_PERI_REG(UART_FIFO(0), queue_pop(&data_send_queue));
 
-		uart_start_transmit(!queue_empty(uart_send_queue));
+		uart_start_transmit(!queue_empty(&data_send_queue));
 	}
 
 	// acknowledge all uart interrupts
@@ -121,8 +114,8 @@ iram static void uart_callback(void *p)
 
 irom void uart_init(const uart_parameters_t *params)
 {
-	unsigned int data_bits;
-	unsigned int stop_bits;
+	int data_bits;
+	int stop_bits;
 	uart_parity_t parity;
 
 	ETS_UART_INTR_DISABLE();

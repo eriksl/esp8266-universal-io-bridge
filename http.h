@@ -1,6 +1,8 @@
 #ifndef http_h
 #define http_h
 
+#include <util.h>
+
 typedef enum
 {
 	http_action_normal,
@@ -9,17 +11,10 @@ typedef enum
 
 typedef struct
 {
-	unsigned int length;
-	unsigned int size;
-	char *string;
-} http_buffer_t;
-
-typedef struct
-{
 	const char *location;
-	http_action_t (*handler)(const char *location, http_buffer_t *reply);
+	http_action_t (*handler)(const string_t *src, string_t *dst);
 } http_handler_t;
 
-http_action_t http_process_request(http_buffer_t request, http_buffer_t *reply);
+http_action_t http_process_request(const string_t *src, string_t *dst);
 
 #endif

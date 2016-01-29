@@ -5,7 +5,7 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
-OTA_HOST			?= 10.1.12.253
+OTA_HOST			?= 10.1.12.210
 
 # no user serviceable parts below
 
@@ -142,18 +142,18 @@ WARNINGS1		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
 					-Winit-self -Wformat-nonliteral -Wcomment
 WARNINGS2		:= -Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
-CFLAGS			:=  -Os -nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -D__ets__ -Wframe-larger-than=384 \
+CFLAGS			:=  -Os -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -fno-builtin -D__ets__ -Wframe-larger-than=384 \
 					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
 					-isystem$(SDKROOT)/sdk/include -I$(RBOOT)/appcode -I$(RBOOT) -I.
 LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-SDKLIBS			:= -lcirom -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
+SDKLIBS			:= -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
 
 OBJS			:= application.o config.o display.o gpios.o http.o i2c.o i2c_sensor.o queue.o stats.o uart.o user_main.o util.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o ota.o
-HEADERS			:= application.h application-parameters.h config.h display.h esp-uart-register.h gpios.h http.h i2c.h \
+HEADERS			:= application.h config.h display.h esp-uart-register.h gpios.h http.h i2c.h \
 					i2c_sensor.h ota.h queue.h stats.h uart.h user_config.h user_main.h util.h
 
 .PRECIOUS:		*.c *.h
@@ -177,7 +177,7 @@ clean:
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF),iram,.text,,,32)
-				$(call section_free,$(ELF),dram,.bss,.data,.rodata,62)
+				$(call section_free,$(ELF),dram,.bss,.data,.rodata,77)
 				$(call section_free,$(ELF),irom,.irom0.text,,,424)
 
 linkdebug:		$(LINKMAP)
@@ -278,6 +278,10 @@ push-ota:				$(FIRMWARE_OTA_IMG) free otapush
 %.o:					%.c
 						$(VECHO) "CC $<"
 						$(Q) $(CC) $(WARNINGS1) $(WARNINGS2) $(CFLAGS) $(CINC) -c $< -o $@
+
+%.i:					%.c
+						$(VECHO) "CC $<"
+						$(Q) $(CC) -E $(WARNINGS1) $(WARNINGS2) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.o:					%.ci
 						$(VECHO) "CCI $<"

@@ -23,7 +23,7 @@ typedef enum
 	config_flag_bh_high_sens,
 	config_flag_disable_wlan_bootstrap,
 	config_flag_cpu_high_speed,
-	config_flag_phy_force_g,
+	config_flag_phy_force,
 	config_flag_wlan_power_save,
 	config_flag_wlan_sdk_connect,
 	config_flag_size
@@ -58,23 +58,17 @@ typedef struct
 	i2c_sensor_config_t	i2c_sensors;
 } config_t;
 
-extern config_t *config;
-extern config_t *tmpconfig;
+extern config_t config;
+extern config_t tmpconfig;
 
-const char *		config_flag_to_string(config_flag_enum_t);
-config_flag_enum_t	config_flag_to_id(const char *);
+bool_t	config_get_flag(config_flag_enum_t);
+bool_t	config_set_flag(config_flag_enum_t, bool_t onoff);
+bool_t	config_get_flag_by_name(const string_t *);
+bool_t	config_set_flag_by_name(const string_t *, bool_t);
+void	config_flags_to_string(string_t *, const char *, const char *, int);
 
-bool_t			config_get_flag(config_flag_enum_t);
-bool_t			config_set_flag(config_flag_enum_t, bool_t onoff);
-bool_t			config_get_flag_by_name(const char *);
-bool_t			config_set_flag_by_name(const char *, bool_t);
-unsigned int	config_flags_to_string(unsigned int, char *, unsigned int);
-
-bool_t	config_init(void);
-void	config_read_alt(config_t *);
-void	config_read(void);
-void	config_write_alt(config_t *);
-void	config_write(void);
-void	config_dump(unsigned int size, char *);
+void	config_read(config_t *);
+void	config_write(config_t *);
+void	config_dump(string_t *, const config_t *cfg);
 
 #endif

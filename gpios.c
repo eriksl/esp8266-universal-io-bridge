@@ -1,6 +1,6 @@
 #include "gpios.h"
 
-#include "application-parameters.h"
+#include "application.h"
 #include "util.h"
 #include "config.h"
 #include "i2c.h"
@@ -23,12 +23,12 @@ _Static_assert(sizeof(rtcgpio_setup_t) == 4, "sizeof(rtcgpio_setup_t) != 4");
 
 typedef struct
 {
-	const	gpio_id_t		id;
-	const	char			*name;
-	const	unsigned int	index;
+	const	gpio_id_t	id;
+	const	char		*name;
+	const	int			index;
 	const struct
 	{
-		unsigned int rtc_gpio;
+		int rtc_gpio;
 	} flags;
 
 	const	uint32_t	io_mux;
@@ -36,22 +36,22 @@ typedef struct
 
 	struct
 	{
-		unsigned int count;
-		unsigned int debounce;
+		int count;
+		int debounce;
 	} counter;
 
 	struct
 	{
-		unsigned int delay;
+		int delay;
 	} timer;
 
 	struct
 	{
-		unsigned int		channel;
-		unsigned int		min_duty;
-		unsigned int		max_duty;
-		unsigned int		delay_current;
-		unsigned int		delay_top;
+		int					channel;
+		int					min_duty;
+		int					max_duty;
+		int					delay_current;
+		int					delay_top;
 		gpio_direction_t	direction;
 	} pwm;
 } gpio_t;
@@ -209,14 +209,14 @@ static unsigned int analog_sampling_value = 0;
 
 irom static gpio_config_entry_t *get_config(const gpio_t *gpio)
 {
-	return(&config->gpios.entry[gpio->id]);
+	return(&config.gpios.entry[gpio->id]);
 }
 
 iram static void pc_int_handler(uint32_t pc, void *arg)
 {
 	gpio_t *gpio;
 	gpio_config_entry_t *cfg;
-	unsigned int current;
+	int current;
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -247,8 +247,8 @@ irom static void select_pin_function(const gpio_t *gpio)
 
 irom void gpios_init(void)
 {
-	unsigned int current;
-	unsigned int pwmchannel;
+	int current;
+	int pwmchannel;
 	gpio_t *gpio;
 	gpio_config_entry_t *cfg;
 	uint32_t pwm_io_info[gpio_pwm_size][3];
@@ -303,10 +303,10 @@ irom void gpios_init(void)
 	}
 
 	for(current = 0; current < gpio_size; current++)
-		gpio_mode_trait[config->gpios.entry[current].mode].init_fn(&gpios[current]);
+		gpio_mode_trait[config.gpios.entry[current].mode].init_fn(&gpios[current]);
 
 	if((sda >= 0) && (scl >= 0))
-		i2c_init(sda, scl, config->i2c_delay);
+		i2c_init(sda, scl, config.i2c_delay);
 
 	gpio_flags.counter_triggered = false;
 }
@@ -393,7 +393,7 @@ irom void gpios_periodic(void)
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 	unsigned int current;
-	unsigned int duty;
+	int duty;
 	bool_t pwm_changed = false;
 
 	current = system_adc_read();
@@ -509,8 +509,8 @@ irom void gpios_periodic(void)
 	{
 		gpio_flags.counter_triggered = false;
 
-		if(config->stat_trigger_gpio >= 0)
-			gpios_trigger_output(config->stat_trigger_gpio);
+		if(config.stat_trigger_gpio >= 0)
+			gpios_trigger_output(config.stat_trigger_gpio);
 	}
 }
 
@@ -532,7 +532,7 @@ irom static void trigger_timer(gpio_t *gpio, bool_t onoff)
 
 irom static gpio_t *find_gpio(gpio_id_t index)
 {
-	unsigned int current;
+	int current;
 	gpio_t *gpio;
 
 	for(current = 0; current < gpio_size; current++)
@@ -546,27 +546,27 @@ irom static gpio_t *find_gpio(gpio_id_t index)
 	return(0);
 }
 
-irom static gpio_mode_t gpio_mode_from_string(const char *mode)
+irom static gpio_mode_t gpio_mode_from_string(string_t *src)
 {
-	const  gpio_mode_trait_t *entry;
-	unsigned int current;
+	int current;
+	const gpio_mode_trait_t *entry;
 
 	for(current = 0; current < gpio_mode_size; current++)
 	{
 		entry = &gpio_mode_trait[current];
 
-		if(!strcmp(mode, entry->name))
+		if(string_match(src, entry->name))
 			return(entry->mode);
 	}
 
 	return(gpio_mode_error);
 }
 
-irom static gpio_i2c_t gpio_i2c_pin_from_string(const char *mode)
+irom static gpio_i2c_t gpio_i2c_pin_from_string(string_t *pin)
 {
-	if(!strcmp(mode, "sda"))
+	if(string_match(pin, "sda"))
 		return(gpio_i2c_sda);
-	else if(!strcmp(mode, "scl"))
+	else if(string_match(pin, "scl"))
 		return(gpio_i2c_scl);
 	else
 		return(gpio_i2c_error);
@@ -677,16 +677,16 @@ static roflash const dump_string_t dump_strings =
 	{
 		.plain =
 		{
-			"> gpio: %u, name: %s, mode: ",
+			"> gpio: %d, name: %s, mode: ",
 			"disabled",
 			"input, state: %s",
-			"counter, state: %s, counter: %u, debounce: %u/%u, reset on get: %s",
+			"counter, state: %s, counter: %d, debounce: %d/%d, reset on get: %s",
 			"output, state: %s, startup: %s",
-			"timer, direction: %s, delay: %u ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
+			"timer, direction: %s, delay: %d ms, repeat: %s, autotrigger: %s, active: %s, current state: %s",
 			"pwm, inactive",
-			"pwm, active, channel: %u, current frequency: %u Hz, current duty: %u",
-			"\ndefault min duty: %u, max duty: %u, delay: %u",
-			"\ncurrent min duty: %u, max duty: %u, delay: %u",
+			"pwm, active, channel: %d, current frequency: %d Hz, current duty: %d",
+			"\ndefault min duty: %d, max duty: %d, delay: %d",
+			"\ncurrent min duty: %d, max duty: %d, delay: %d",
 			"i2c, pin: %s",
 			"unknown",
 			"",
@@ -697,16 +697,16 @@ static roflash const dump_string_t dump_strings =
 
 		.html =
 		{
-			"<td>%u</td><td>%s</td>",
+			"<td>%d</td><td>%s</td>",
 			"<td>disabled</td>",
 			"<td>input</td><td>state: %s</td>",
-			"<td>counter</td><td>state: %s</td><td>counter: %u</td><td>debounce: %u/%u</td><td>reset on get: %s</td>",
+			"<td>counter</td><td>state: %s</td><td>counter: %d</td><td>debounce: %d/%d</td><td>reset on get: %s</td>",
 			"<td>output</td><td>state: %s</td><td>startup: %s</td>",
-			"<td>timer</td><td>direction: %s</td><td>delay: %u ms</td><td> repeat: %s</td><td>autotrigger: %s</td><td>active: %s</td><td>current state: %s</td>",
+			"<td>timer</td><td>direction: %s</td><td>delay: %d ms</td><td> repeat: %s</td><td>autotrigger: %s</td><td>active: %s</td><td>current state: %s</td>",
 			"<td>pwm</<td><td>inactive</td>",
-			"<td>pwm</td><td>active</td><td>channel: %u</td><td>current frequency: %u Hz</td><td>current duty: %u</td>",
-			"<td>default min duty: %u, max duty: %u, delay: %u</td>",
-			"<td>current min duty: %u, max duty: %u, delay: %u</td>",
+			"<td>pwm</td><td>active</td><td>channel: %d</td><td>current frequency: %d Hz</td><td>current duty: %d</td>",
+			"<td>default min duty: %d, max duty: %d, delay: %d</td>",
+			"<td>current min duty: %d, max duty: %d, delay: %d</td>",
 			"<td>i2c</td><td>pin %s</td>",
 			"<td>unknown</td>",
 			"<table border=\"1\"><tr><th>index</th><th>name</th><th>mode</th><th colspan=\"8\"></th></tr>",
@@ -717,24 +717,19 @@ static roflash const dump_string_t dump_strings =
 	}
 };
 
-irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, unsigned int size, char *str, bool html)
+irom static void dump(string_t *dst, const gpio_config_t *cfgs, const gpio_t *gpio_in, bool html)
 {
-	unsigned int current, length, rlength;
+	int current;
 	const gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 	const char (*strings)[256];
-
-	rlength = 0;
 
 	if(html)
 		strings = dump_strings.strings.html;
 	else
 		strings = dump_strings.strings.plain;
 
-	length = snprintf_roflash(str, size, strings[ds_id_header]);
-	size -= length;
-	str += length;
-	rlength += length;
+	string_cat_ptr(dst, strings[ds_id_header]);
 
 	for(current = 0; current < gpio_size; current++)
 	{
@@ -743,37 +738,28 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 		if(!gpio_in || (gpio_in->id == gpio->id))
 		{
-			length = snprintf_roflash(str, size, strings[ds_id_preline], gpio->index, gpio->name);
-			size -= length;
-			str += length;
-			rlength += length;
-
-			length = snprintf_roflash(str, size, strings[ds_id_gpio], gpio->index, gpio->name);
-			size -= length;
-			str += length;
-			rlength += length;
-
-			length = 0;
+			string_format_ptr(dst, strings[ds_id_preline], gpio->index, gpio->name);
+			string_format_ptr(dst, strings[ds_id_gpio], gpio->index, gpio->name);
 
 			switch(cfg->mode)
 			{
 				case(gpio_disabled):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_disabled]);
+					string_cat_ptr(dst, strings[ds_id_disabled]);
 
 					break;
 				}
 
 				case(gpio_input):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_input], onoff(get_input(gpio)));
+					string_format_ptr(dst, strings[ds_id_input], onoff(get_input(gpio)));
 
 					break;
 				}
 
 				case(gpio_counter):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_counter], onoff(get_input(gpio)), gpio->counter.count,
+					string_format_ptr(dst, strings[ds_id_counter], onoff(get_input(gpio)), gpio->counter.count,
 							cfg->counter.debounce, gpio->counter.debounce, onoff(cfg->counter.reset_on_get));
 
 					break;
@@ -781,14 +767,14 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 				case(gpio_output):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_output], onoff(get_input(gpio)), onoff(cfg->output.startup_state));
+					string_format_ptr(dst, strings[ds_id_output], onoff(get_input(gpio)), onoff(cfg->output.startup_state));
 
 					break;
 				}
 
 				case(gpio_timer):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_timer], cfg->timer.direction == gpio_up ? "up" : "down",
+					string_format_ptr(dst, strings[ds_id_timer], cfg->timer.direction == gpio_up ? "up" : "down",
 							cfg->timer.delay, onoff(cfg->timer.repeat), onoff(cfg->timer.autotrigger),
 							onoff(gpio->timer.delay > 0), onoff(get_input(gpio)));
 					break;
@@ -797,29 +783,20 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 				case(gpio_pwm):
 				{
 					if(gpio_flags.pwm_subsystem_active)
-						snprintf_roflash(str, size, strings[ds_id_pwm_active], gpio->pwm.channel,
+						string_format_ptr(dst, strings[ds_id_pwm_active], gpio->pwm.channel,
 								1000000 / pwm_get_period(), pwm_get_duty(gpio->pwm.channel));
 					else
-						length = snprintf_roflash(str, size, strings[ds_id_pwm_inactive]);
+						string_cat_ptr(dst, strings[ds_id_pwm_inactive]);
 
-					str += length;
-					size -= length;
-
-					length = snprintf_roflash(str, size, strings[ds_id_pwm_duty_default], cfg->pwm.min_duty,
-							cfg->pwm.max_duty, cfg->pwm.delay);
-
-					str += length;
-					size -= length;
-
-					length = snprintf_roflash(str, size, strings[ds_id_pwm_duty_current],
-							gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.delay_top);
+					string_format_ptr(dst, strings[ds_id_pwm_duty_default], cfg->pwm.min_duty, cfg->pwm.max_duty, cfg->pwm.delay);
+					string_format_ptr(dst, strings[ds_id_pwm_duty_current], gpio->pwm.min_duty, gpio->pwm.max_duty, gpio->pwm.delay_top);
 
 					break;
 				}
 
 				case(gpio_i2c):
 				{
-					length = snprintf_roflash(str, size, strings[ds_id_i2c], cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
+					string_format_ptr(dst, strings[ds_id_i2c], cfg->i2c.pin == gpio_i2c_sda ? "sda" : "scl");
 
 					break;
 				}
@@ -827,56 +804,30 @@ irom static unsigned int dump(const gpio_config_t *cfgs, const gpio_t *gpio_in, 
 
 				default:
 				{
-					static roflash const char str1[] = "unknown mode";
-					length = snprintf_roflash(str, size, str1);
+					string_cat(dst, "unknown mode");
 
 					break;
 				}
 			}
 
-			str += length;
-			size =- length;
-			rlength += length;
-
-			length = snprintf_roflash(str, size, strings[ds_id_postline]);
-			str += length;
-			size -= length;
-			rlength += length;
+			string_cat_ptr(dst, strings[ds_id_postline]);
 		}
 	}
 
-	rlength += snprintf_roflash(str, size, strings[ds_id_footer]);
-
-	return(rlength);
+	string_cat_ptr(dst, strings[ds_id_footer]);
 }
 
-irom unsigned int gpios_dump_string(const gpio_config_t *cfgs, unsigned int size, char *string)
+irom void gpios_dump_string(string_t *dst, const gpio_config_t *cfgs)
 {
-	return(dump(cfgs, 0, size, string, false));
+	return(dump(dst, cfgs, 0, false));
 }
 
-irom unsigned int gpios_dump_html(unsigned int size, char *string)
+irom void gpios_dump_html(string_t *dst, const gpio_config_t *cfgs)
 {
-	return(dump(&config->gpios, 0, size, string, true));
+	return(dump(dst, cfgs, 0, true));
 }
 
-irom attr_pure gpio_mode_t gpios_mode(unsigned int gpio_name, bool plain_only)
-{
-	gpio_t *gpio;
-	const gpio_config_entry_t *cfg;
-
-	if(!(gpio = find_gpio(gpio_name)))
-		return(gpio_mode_error);
-
-	if(plain_only && gpio->flags.rtc_gpio)
-		return(gpio_mode_error);
-
-	cfg = get_config(gpio);
-
-	return(cfg->mode);
-}
-
-irom bool gpios_trigger_output(unsigned int gpio_name)
+irom bool gpios_trigger_output(int gpio_name)
 {
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
@@ -917,7 +868,7 @@ irom bool gpios_trigger_output(unsigned int gpio_name)
 	return(true);
 }
 
-irom bool gpios_set_wlan_trigger(unsigned int gpio_name)
+irom bool gpios_set_wlan_trigger(int gpio_name)
 {
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
@@ -938,44 +889,40 @@ irom bool gpios_set_wlan_trigger(unsigned int gpio_name)
 	return(true);
 }
 
-irom app_action_t application_function_gpio_mode(application_parameters_t ap)
+irom app_action_t application_function_gpio_mode(string_t *src, string_t *dst)
 {
 	gpio_mode_t mode;
-	unsigned int gpio_index;
+	int gpio_index;
 	gpio_t *gpio;
 	gpio_config_entry_t *new_gpio_config;
-	unsigned int length;
 
-	if(ap.nargs < 2)
+	if(parse_int(1, src, &gpio_index, 0) != parse_ok)
 	{
-		dump(&config->gpios, 0, ap.size, ap.dst, false);
+		dump(dst, &config.gpios, 0, false);
 		return(app_action_normal);
 	}
-
-	gpio_index = string_to_int((*ap.args)[1]);
 
 	if(!(gpio = find_gpio(gpio_index)))
 	{
-		static roflash const char str[] = "gpio-mode: invalid gpio %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, gpio_index);
+		string_format(dst, "gpio-mode: invalid gpio %d\n", gpio_index);
 		return(app_action_error);
 	}
 
-	if(ap.nargs < 3)
+	if(parse_string(2, src, dst) != parse_ok)
 	{
-		dump(&config->gpios, gpio, ap.size, ap.dst, false);
+		string_clear(dst);
+		dump(dst, &config.gpios, gpio, false);
 		return(app_action_normal);
 	}
 
-	if((mode = gpio_mode_from_string((*ap.args)[2])) == gpio_mode_error)
+	if((mode = gpio_mode_from_string(dst)) == gpio_mode_error)
 	{
-		static roflash const char str[] = "gpio-mode: invalid mode %s\n";
-		snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[2]);
+		string_copy(dst, "gpio-mode: invalid mode\n");
 		return(app_action_error);
 	}
 
-	config_read_alt(tmpconfig);
-	new_gpio_config = &tmpconfig->gpios.entry[gpio->id];
+	config_read(&tmpconfig);
+	new_gpio_config = &tmpconfig.gpios.entry[gpio->id];
 
 	switch(mode)
 	{
@@ -983,34 +930,36 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		{
 			if(gpio->flags.rtc_gpio)
 			{
-				static roflash const char str[] = "gpio-mode: counter mode invalid for gpio 16\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode: counter mode invalid for gpio 16\n");
 				return(app_action_error);
 			}
 
-			if(ap.nargs != 5)
+			int reset_on_get;
+			int debounce;
+
+			if((parse_int(3, src, &reset_on_get, 0) != parse_ok) || (parse_int(4, src, &debounce, 0) != parse_ok))
 			{
-				static roflash const char str[] = "gpio-mode(counter): <reset on get> <debounce ms>\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode(counter): <reset on get> <debounce ms>\n");
 				return(app_action_error);
 			}
 
-			new_gpio_config->counter.reset_on_get = (uint8_t)!!string_to_int((*ap.args)[3]);
-			new_gpio_config->counter.debounce = string_to_int((*ap.args)[4]);
+			new_gpio_config->counter.reset_on_get = !!reset_on_get;
+			new_gpio_config->counter.debounce = debounce;
 
 			break;
 		}
 
 		case(gpio_output):
 		{
-			if(ap.nargs != 4)
+			int startup_state;
+
+			if(parse_int(3, src, &startup_state, 0) != parse_ok)
 			{
-				static roflash const char str[] = "gpio-mode(output): <startup value>\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode(output): <startup value>\n");
 				return(app_action_error);
 			}
 
-			new_gpio_config->output.startup_state = (uint8_t)!!string_to_int((*ap.args)[3]);
+			new_gpio_config->output.startup_state = startup_state;
 
 			break;
 		}
@@ -1018,36 +967,37 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 		case(gpio_timer):
 		{
 			gpio_direction_t direction;
-			unsigned int delay;
-			unsigned int repeat;
-			unsigned int autotrigger;
+			int delay, repeat, autotrigger;
 
-			if(ap.nargs != 7)
+			if(parse_string(3, src, dst) != parse_ok)
 			{
-				static roflash const char str[] = "gpio-mode: timer direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode: timer direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
 				return(app_action_error);
 			}
 
-			if(!strcmp((*ap.args)[3], "up"))
+			if(string_match(dst, "up"))
 				direction = gpio_up;
-			else if(!strcmp((*ap.args)[3], "down"))
+			else if(string_match(dst, "down"))
 				direction = gpio_down;
 			else
 			{
-				static roflash const char str[] = "gpio-mode(timer): direction invalid: %s\n";
-				snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[3]);
+				string_copy(dst, "gpio-mode(timer): direction invalid\n");
 				return(app_action_error);
 			}
 
-			delay = string_to_int((*ap.args)[4]);
-			repeat = string_to_int((*ap.args)[5]);
-			autotrigger = string_to_int((*ap.args)[6]);
+			string_clear(dst);
+
+			if((parse_int(4, src, &delay, 0) != parse_ok) ||
+				(parse_int(5, src, &repeat, 0) != parse_ok) ||
+				(parse_int(6, src, &autotrigger, 0) != parse_ok))
+			{
+				string_cat(dst, "gpio-mode: timer direction:up/down delay:ms repeat:0/1 autotrigger:0/1\n");
+				return(app_action_error);
+			}
 
 			if(delay < 10)
 			{
-				static roflash const char str[] = "gpio-mode(timer): delay too small: %d ms, >= 10 ms\n";
-				snprintf_roflash(ap.dst, ap.size, str, delay);
+				string_cat(dst, "gpio-mode(timer): delay too small: %d ms, >= 10 ms\n");
 				return(app_action_error);
 			}
 
@@ -1061,9 +1011,9 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			unsigned int min_duty;
-			unsigned int max_duty;
-			unsigned int delay;
+			int min_duty;
+			int max_duty;
+			int delay;
 
 			min_duty = 0;
 			max_duty = 0;
@@ -1071,38 +1021,29 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(gpio->flags.rtc_gpio)
 			{
-				static roflash const char str[] = "gpio-mode: pwm mode not supported for this gpio\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode: pwm mode not supported for this gpio\n");
 				return(app_action_error);
 			}
 
-			if(ap.nargs > 3)
-				min_duty = string_to_int((*ap.args)[3]);
+			parse_int(3, src, &min_duty, 0);
+			parse_int(4, src, &max_duty, 0);
+			parse_int(5, src, &delay, 0);
 
-			if(ap.nargs > 4)
-				max_duty = string_to_int((*ap.args)[4]);
-
-			if(ap.nargs > 5)
-				delay = string_to_int((*ap.args)[5]);
-
-			if(min_duty > 65535)
+			if((min_duty < 0) || (min_duty > 65535))
 			{
-				static roflash const char str[] = "gpio-mode(pwm): min_duty too large: %u > 65535\n";
-				snprintf_roflash(ap.dst, ap.size, str, min_duty);
+				string_format(dst, "gpio-mode(pwm): min_duty out of range: %d\n", min_duty);
 				return(app_action_error);
 			}
 
-			if(max_duty > 65535)
+			if((min_duty < 0) || (max_duty > 65535))
 			{
-				static roflash const char str[] = "gpio-mode(pwm): max_duty too large: %u > 65535\n";
-				snprintf_roflash(ap.dst, ap.size, str, max_duty);
+				string_format(dst, "gpio-mode(pwm): max_duty out of range: %d\n", max_duty);
 				return(app_action_error);
 			}
 
-			if(delay > 100)
+			if((delay < 0) || (delay > 100))
 			{
-				static roflash const char str[] = "gpio-mode(pwm): delay too large: %u%% > 100%%\n";
-				snprintf_roflash(ap.dst, ap.size, str, delay);
+				string_format(dst, "gpio-mode(pwm): out of range: %d%%\n", delay);
 				return(app_action_error);
 			}
 
@@ -1119,24 +1060,23 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 
 			if(gpio->flags.rtc_gpio)
 			{
-				static roflash const char str[] = "gpio-mode: i2c mode invalid for gpio 16\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_cat(dst, "gpio-mode: i2c mode invalid for gpio 16\n");
 				return(app_action_error);
 			}
 
-			if(ap.nargs != 4)
+			if(parse_string(3, src, dst) != parse_ok)
 			{
-				static roflash const char str[] = "gpio-mode(i2c): usage: i2c sda|scl\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_copy(dst, "gpio-mode(i2c): usage: i2c sda|scl\n");
 				return(app_action_error);
 			}
 
-			if((pin = gpio_i2c_pin_from_string((*ap.args)[3])) == gpio_i2c_error)
+			if((pin = gpio_i2c_pin_from_string(dst)) == gpio_i2c_error)
 			{
-				static roflash const char str[] = "gpio-mode(i2c): usage: i2c sda|scl\n";
-				strlcpy_roflash(ap.dst, str, ap.size);
+				string_copy(dst, "gpio-mode(i2c): usage: i2c sda|scl\n");
 				return(app_action_error);
 			}
+
+			string_clear(dst);
 
 			new_gpio_config->i2c.pin = pin;
 
@@ -1149,37 +1089,29 @@ irom app_action_t application_function_gpio_mode(application_parameters_t ap)
 	}
 
 	new_gpio_config->mode = mode;
-	config_write_alt(tmpconfig);
+	config_write(&tmpconfig);
 
-	length = dump(&tmpconfig->gpios, gpio, ap.size, ap.dst, false);
-	ap.dst += length;
-	ap.size -= length;
-
-	static roflash const char str[] = "! gpio-mode: restart to activate new mode\n";
-	strlcpy_roflash(ap.dst, str, ap.size);
+	dump(dst, &tmpconfig.gpios, gpio, false);
+	string_cat(dst, "! gpio-mode: restart to activate new mode\n");
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_gpio_get(application_parameters_t ap)
+irom app_action_t application_function_gpio_get(string_t *src, string_t *dst)
 {
-	unsigned int gpio_index;
+	int gpio_index;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
-	if(ap.nargs < 2)
+	if(parse_int(1, src, &gpio_index, 0) != parse_ok)
 	{
-		static roflash const char str[] = "gpio-get: too few arguments: %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, ap.nargs - 1);
+		string_cat(dst, "gpio-get: too few arguments\n");
 		return(app_action_error);
 	}
 
-	gpio_index = string_to_int((*ap.args)[1]);
-
 	if(!(gpio = find_gpio(gpio_index)))
 	{
-		static roflash const char str[] = "gpio-get: invalid gpio %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, gpio_index);
+		string_format(dst, "gpio-get: invalid gpio %d\n", gpio_index);
 		return(app_action_error);
 	}
 
@@ -1189,22 +1121,19 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 	{
 		case(gpio_disabled):
 		{
-			static roflash const char str[] = "gpio-get: gpio %s is disabled\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-get: gpio %s is disabled\n", gpio->name);
 			return(app_action_error);
 		}
 
 		case(gpio_input):
 		{
-			static roflash const char str[] = "gpio-get: gpio %s is %s\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name, onoff(get_input(gpio)));
+			string_format(dst, "gpio-get: gpio %s is %s\n", gpio->name, onoff(get_input(gpio)));
 			return(app_action_normal);
 		}
 
 		case(gpio_counter):
 		{
-			static roflash const char str[] = "gpio-get: gpio %s is %u (state: %s)\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name, gpio->counter.count, onoff(get_input(gpio)));
+			string_format(dst, "gpio-get: gpio %s is %d (state: %s)\n", gpio->name, gpio->counter.count, onoff(get_input(gpio)));
 
 			if(cfg->counter.reset_on_get)
 				gpio->counter.count = 0;
@@ -1217,21 +1146,19 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 		case(gpio_output):
 		case(gpio_timer):
 		{
-			static roflash const char str[] = "gpio-get: gpio %s is output\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-get: gpio %s is output\n", gpio->name);
 			return(app_action_error);
 		}
 
 		case(gpio_pwm):
 		{
-			dump(&config->gpios, gpio, ap.size, ap.dst, false);
+			dump(dst, &config.gpios, gpio, false);
 			return(app_action_normal);
 		}
 
 		case(gpio_i2c):
 		{
-			static roflash const char str[] = "gpio-get: gpio %s is reserved for i2c\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-get: gpio %s is reserved for i2c\n", gpio->name);
 			return(app_action_error);
 		}
 
@@ -1240,23 +1167,25 @@ irom app_action_t application_function_gpio_get(application_parameters_t ap)
 		}
 	}
 
-	static roflash const char str[] = "gpio-get: invalid mode %u\n";
-	snprintf_roflash(ap.dst, ap.size, str, cfg->mode);
+	string_format(dst, "gpio-get: invalid mode %d\n", cfg->mode);
 	return(app_action_error);
 }
 
-irom app_action_t application_function_gpio_set(application_parameters_t ap)
+irom app_action_t application_function_gpio_set(string_t *src, string_t *dst)
 {
-	unsigned int gpio_index;
+	int gpio_index;
 	gpio_t *gpio;
 	const gpio_config_entry_t *cfg;
 
-	gpio_index = string_to_int((*ap.args)[1]);
+	if(parse_int(1, src, &gpio_index, 0) != parse_ok)
+	{
+		string_cat(dst, "gpio-set: <gpio> ...\n");
+		return(app_action_error);
+	}
 
 	if(!(gpio = find_gpio(gpio_index)))
 	{
-		static roflash const char str[] = "gpio-set: invalid gpio %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, gpio_index);
+		string_format(dst, "gpio-set: invalid gpio %d\n", gpio_index);
 		return(app_action_error);
 	}
 
@@ -1266,46 +1195,47 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 	{
 		case(gpio_disabled):
 		{
-			static roflash const char str[] = "gpio-set: gpio %s is disabled\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-set: gpio %s is disabled\n", gpio->name);
 			return(app_action_error);
 		}
 
 		case(gpio_input):
 		{
-			static roflash const char str[] = "gpio-set: gpio %s is input\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-set: gpio %s is input\n", gpio->name);
 			return(app_action_error);
 		}
 
 		case(gpio_counter):
 		{
-			if(ap.nargs < 3)
-				gpio->counter.count = 0;
-			else
-				gpio->counter.count = string_to_int((*ap.args)[2]);
+			int counter = 0;
+
+			parse_int(2, src, &counter, 0);
+			gpio->counter.count = counter;
 
 			break;
 		}
 
 		case(gpio_output):
 		{
-			if(ap.nargs < 3)
+			int value;
+
+			if(parse_int(2, src, &value, 0) != parse_ok)
 			{
-				static roflash const char str[] = "gpio-set: missing arguments\n";
-				snprintf_roflash(ap.dst, ap.size, str);
+				string_cat(dst, "gpio-set output: missing arguments\n");
 				return(app_action_error);
 			}
 
-			set_output(gpio, !!string_to_int((*ap.args)[2]));
+			set_output(gpio, value);
 
 			break;
 		}
 
 		case(gpio_timer):
 		{
-			if(ap.nargs == 3)
-				trigger_timer(gpio, !!string_to_int((*ap.args)[2]));
+			int value;
+
+			if(parse_int(2, src, &value, 0) == parse_ok)
+				trigger_timer(gpio, !!value);
 			else
 				trigger_timer(gpio, !gpio->timer.delay);
 
@@ -1314,41 +1244,33 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 
 		case(gpio_pwm):
 		{
-			unsigned int min_duty;
-			unsigned int max_duty;
-			unsigned int delay;
+			int min_duty;
+			int max_duty;
+			int delay;
 
 			min_duty = 0;
 			max_duty = 0;
 			delay = 0;
 
-			if(ap.nargs > 2)
-				min_duty = string_to_int((*ap.args)[2]);
+			parse_int(2, src, &min_duty, 0);
+			parse_int(3, src, &max_duty, 0);
+			parse_int(4, src, &delay, 0);
 
-			if(ap.nargs > 3)
-				max_duty = string_to_int((*ap.args)[3]);
-
-			if(ap.nargs > 4)
-				delay = string_to_int((*ap.args)[4]);
-
-			if(min_duty > 65535)
+			if((min_duty < 0) || (min_duty > 65535))
 			{
-				static roflash const char str[] = "gpio-set(pwm): min_duty too large: %u > 65535\n";
-				snprintf_roflash(ap.dst, ap.size, str, min_duty);
+				string_format(dst, "gpio-set(pwm): min_duty out of range: %d\n", min_duty);
 				return(app_action_error);
 			}
 
-			if(max_duty > 65535)
+			if((max_duty < 0) || (max_duty > 65535))
 			{
-				static roflash const char str[] = "gpio-set(pwm): max_duty too large: %u > 65535\n";
-				snprintf_roflash(ap.dst, ap.size, str, max_duty);
+				string_format(dst, "gpio-set(pwm): max_duty out of range: %d\n", max_duty);
 				return(app_action_error);
 			}
 
-			if(delay > 100)
+			if((delay < 0) || (delay > 100))
 			{
-				static roflash const char str[] = "gpio-set: gpio %s, delay %u%% > 100%%\n";
-				snprintf_roflash(ap.dst, ap.size, str, gpio->name, delay);
+				string_format(dst, "gpio-set(pwm): delay out of range: %d\n", delay);
 				return(app_action_error);
 			}
 
@@ -1365,35 +1287,29 @@ irom app_action_t application_function_gpio_set(application_parameters_t ap)
 
 		case(gpio_i2c):
 		{
-			static roflash const char str[] = "gpio-set: gpio %s is reserved for i2c\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio->name);
+			string_format(dst, "gpio-set: gpio %s is reserved for i2c\n", gpio->name);
 			return(app_action_error);
 		}
 
 		default:
 		{
-			static roflash const char str[] = "gpio-set: cannot set gpio %u\n";
-			snprintf_roflash(ap.dst, ap.size, str, cfg->mode);
+			string_format(dst, "gpio-set: cannot set gpio %s\n", gpio->name);
 			return(app_action_error);
 		}
 	}
 
-	dump(&config->gpios, gpio, ap.size, ap.dst, false);
+	dump(dst, &config.gpios, gpio, false);
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_gpio_dump(application_parameters_t ap)
+irom app_action_t application_function_gpio_dump(string_t *src, string_t *dst)
 {
-	dump(&config->gpios, 0, ap.size, ap.dst, false);
-
+	dump(dst, &config.gpios, 0, false);
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_analog_read(application_parameters_t ap)
+irom app_action_t application_function_analog_read(string_t *src, string_t *dst)
 {
-	static roflash const char str[] = "analog-read: value: %u\n";
-
-	snprintf_roflash(ap.dst, ap.size, str, analog_sampling_value);
-
+	string_format(dst, "analog-read: value: [%u]\n", analog_sampling_value);
 	return(app_action_normal);
 }

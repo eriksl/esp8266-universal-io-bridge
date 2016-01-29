@@ -7,8 +7,8 @@
 #include <c_types.h>
 #include <spi_flash.h>
 
-config_t *config = 0;
-config_t *tmpconfig = 0;
+config_t config;
+config_t tmpconfig;
 
 static config_flag_t config_flag[config_flag_size] =
 {
@@ -37,8 +37,8 @@ static config_flag_t config_flag[config_flag_size] =
 		"chs", "cpu-high-speed"
 	},
 	{
-		config_flag_cpu_high_speed,
-		"pfg", "phy-force-802.11g"
+		config_flag_phy_force,
+		"pf", "phy-force"
 	},
 	{
 		config_flag_wlan_power_save,
@@ -50,26 +50,7 @@ static config_flag_t config_flag[config_flag_size] =
 	},
 };
 
-irom bool_t config_init(void)
-{
-	if(!(config = (config_t *)malloc(sizeof(config_t))))
-		return(false);
-
-	if(!(tmpconfig = (config_t *)malloc(sizeof(config_t))))
-		return(false);
-
-	return(true);
-}
-
-irom attr_pure const char *config_flag_to_string(config_flag_enum_t id)
-{
-	if(id > config_flag_size)
-		return("unknown");
-
-	return(config_flag[id].long_name);
-}
-
-irom attr_pure config_flag_enum_t config_flag_to_id(const char *flag_name)
+irom static attr_pure config_flag_enum_t config_flag_to_id(const string_t *flag_name)
 {
 	const config_flag_t *entry;
 	config_flag_enum_t current;
@@ -78,7 +59,7 @@ irom attr_pure config_flag_enum_t config_flag_to_id(const char *flag_name)
 	{
 		entry = &config_flag[current];
 
-		if(!strcmp(flag_name, entry->short_name) || !strcmp(flag_name, entry->long_name))
+		if(string_match(flag_name, entry->short_name) || string_match(flag_name, entry->long_name))
 			break;
 	}
 
@@ -88,7 +69,7 @@ irom attr_pure config_flag_enum_t config_flag_to_id(const char *flag_name)
 irom attr_pure bool_t config_get_flag(config_flag_enum_t flag)
 {
 	if(flag < config_flag_size)
-		return(config->flags & (1 << flag));
+		return(config.flags & (1 << flag));
 
 	return(false);
 }
@@ -98,9 +79,9 @@ irom bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 	if(flag < config_flag_size)
 	{
 		if(onoff)
-			config->flags |= (1 << flag);
+			config.flags |= (1 << flag);
 		else
-			config->flags &= ~(1 << flag);
+			config.flags &= ~(1 << flag);
 
 		return(true);
 	}
@@ -108,47 +89,31 @@ irom bool_t config_set_flag(config_flag_enum_t flag, bool_t onoff)
 	return(false);
 }
 
-irom bool_t attr_pure config_get_flag_by_name(const char *flag_name)
+irom bool_t attr_pure config_get_flag_by_name(const string_t *flag_name)
 {
 	return(config_get_flag(config_flag_to_id(flag_name)));
 }
 
-irom bool_t config_set_flag_by_name(const char *flag_name, bool_t value)
+irom bool_t config_set_flag_by_name(const string_t *flag_name, bool_t value)
 {
 	return(config_set_flag(config_flag_to_id(flag_name), value));
 }
 
-irom unsigned int config_flags_to_string(unsigned int size, char *dst, unsigned int flags)
+irom void config_flags_to_string(string_t *dst, const char *pre, const char *post, int flags)
 {
 	config_flag_enum_t current;
-	unsigned int length, total;
 
-	if(size > 0)
-		*dst = '\0';
-	else
-		return(0);
-
-	total = 0;
+	if(pre)
+		string_format(dst, "%s", pre);
 
 	for(current = 0; current < config_flag_size; current++)
-	{
-		if((current != 0) && (size > 1))
-		{
-			*dst++ = ' ';
-			size--;
-			total++;
-		}
+		string_format(dst, "%s%s:%s", string_length(dst) > 0 ? " " : "", config_flag[current].long_name, onoff(flags & 1 << current));
 
-		length = snprintf(dst, size, "%s:%s", config_flag[current].long_name, onoff(flags & 1 << current));
-		dst += length;
-		size -= length;
-		total += length;
-	}
-
-	return(total);
+	if(post)
+		string_format(dst, "%s", post);
 }
 
-irom void config_read_alt(config_t *cfg)
+irom void config_read(config_t *cfg)
 {
 	enum
 	{
@@ -190,7 +155,7 @@ irom void config_read_alt(config_t *cfg)
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
 			cfg->bridge_tcp_port = 23;
-			cfg->ntp_server = string_to_ip_addr("0.0.0.0");
+			cfg->ntp_server = ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
 			cfg->i2c_delay = 5;
 			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
@@ -209,82 +174,52 @@ irom void config_read_alt(config_t *cfg)
 	}
 }
 
-irom void config_read(void)
-{
-	return(config_read_alt(config));
-}
-
-irom void config_write_alt(config_t *cfg)
+irom void config_write(config_t *cfg)
 {
 	spi_flash_erase_sector(USER_CONFIG_SECTOR);
 	spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 }
 
-irom void config_write(void)
+irom void config_dump(string_t *dst, const config_t *cfg)
 {
-	config_write_alt(config);
-}
+	string_new(static, ntp_server, 32);
 
-irom void config_dump(unsigned int size, char *dst)
-{
-	unsigned int length;
+	string_ip(&ntp_server, cfg->ntp_server);
 
-	config_read_alt(tmpconfig);
-
-	static roflash const char fmt_1[] =
-			"> config magic: %04x\n"
+	string_format(dst, 
+		"> config magic: %04x\n"
 			"> config major version: %d\n"
 			"> config minor version: %d\n"
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> bridge tcp port: %u\n"
+			"> ntp server: %s\n"
 			"> ntp time zone: GMT%c%u\n"
 			"> i2c delay: %u\n"
 			"> display default message: %s\n"
 			"> status trigger gpio (-1 is disabled): %d\n"
 			"> wlan trigger gpio (-1 is disabled): %d\n"
-			"> flags: ";
+			"> flags: ", 
+		cfg->magic,
+		cfg->major_version,
+		cfg->minor_version,
+		cfg->ssid,
+		cfg->passwd,
+		cfg->bridge_tcp_port,
+		string_to_ptr(&ntp_server),
+		cfg->ntp_timezone >= 0 ? '+' : '-',
+		cfg->ntp_timezone >= 0 ? cfg->ntp_timezone : 0 - cfg->ntp_timezone,
+		cfg->i2c_delay,
+		cfg->display_default_msg,
+		cfg->stat_trigger_gpio,
+		cfg->wlan_trigger_gpio);
 
-	length = snprintf_roflash(dst, size, fmt_1,
-			tmpconfig->magic,
-			tmpconfig->major_version,
-			tmpconfig->minor_version,
-			tmpconfig->ssid,
-			tmpconfig->passwd,
-			tmpconfig->bridge_tcp_port,
-			tmpconfig->ntp_timezone >= 0 ? '+' : '-',
-			tmpconfig->ntp_timezone >= 0 ? tmpconfig->ntp_timezone : 0 - tmpconfig->ntp_timezone,
-			tmpconfig->i2c_delay,
-			tmpconfig->display_default_msg,
-			tmpconfig->stat_trigger_gpio,
-			tmpconfig->wlan_trigger_gpio);
+	config_flags_to_string(dst, 0, 0, cfg->flags);
 
-	size -= length;
-	dst += length;
-
-	length = config_flags_to_string(size, dst, config->flags);
-	size -= length;
-	dst += length;
-
-	length = snprintf(dst, size, "%s", "\n> ntp server: ");
-	size -= length;
-	dst += length;
-
-	length = ip_addr_to_string(size, dst, tmpconfig->ntp_server);
-	size -= length;
-	dst += length;
-
-	length = snprintf(dst, size, "%s", "\n> uart: ");
-	size -= length;
-	dst += length;
-
-	length = uart_parameters_to_string(&tmpconfig->uart, size, dst);
-	size -= length;
-	dst += length;
-
-	length = snprintf(dst, size, "%s", "\n> gpios:\n");
-	size -= length;
-	dst += length;
-
-	gpios_dump_string(&tmpconfig->gpios, size, dst);
+	string_cat(dst, "\n> ntp server: ");
+	string_ip(dst, cfg->ntp_server);
+	string_cat(dst, "\n> uart: ");
+	uart_parameters_to_string(dst, &cfg->uart);
+	string_cat(dst, "\n> gpios:\n");
+	gpios_dump_string(dst, &cfg->gpios);
 }

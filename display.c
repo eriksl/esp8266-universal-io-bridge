@@ -3,6 +3,7 @@
 #include "util.h"
 #include "i2c.h"
 #include "stats.h"
+#include "config.h"
 
 struct display_data_struct
 {
@@ -111,12 +112,11 @@ static const uint8_t led_charrom[] =
 	0x40,		/*	95	_	*/
 };
 
-static display_data_t device_data[display_size];
 static char default_message[display_slot_size] = "";
 
-static irom unsigned int led_render_char(unsigned int character)
+static irom int led_render_char(int character)
 {
-	unsigned int add_dot = 0;
+	int add_dot = 0;
 
 	if(character & 0x80)
 	{
@@ -135,7 +135,7 @@ static irom unsigned int led_render_char(unsigned int character)
 
 	character -= 0x20;		// skip control characters 0x00 - 0x20
 
-	if(character >= sizeof(led_charrom))
+	if(character >= (int)sizeof(led_charrom))
 		return(0xff);		// this should never happen
 
 	return(led_charrom[character] | add_dot);
@@ -175,11 +175,11 @@ static irom bool_t display_saa1064_set(display_data_t *display, const char *from
 
 	uint8_t text[4];
 	uint8_t i2cdata[6];
-	unsigned int current;
+	int current;
 
 	strlcpy(text,  "    ", sizeof(text));
 
-	for(current = 0; *from && (current < sizeof(text)); from++)
+	for(current = 0; *from && (current < (int)sizeof(text)); from++)
 	{
 		if((*from == '.') && (current > 0))
 			text[current - 1] |= 0x80;
@@ -220,11 +220,10 @@ static display_data_t display_data[display_size] =
 
 irom static void display_update(bool advance)
 {
-	char info_text[16];
 	const char *display_text;
-	unsigned int display;
-	unsigned int slot;
+	int display, slot;
 	display_data_t *display_entry;
+	string_new(static, info_text, 16);
 
 	for(display = 0; display < display_size; display++)
 	{
@@ -246,11 +245,11 @@ irom static void display_update(bool advance)
 				display_entry->current_slot = slot;
 				display_text = display_entry->slot[slot].content;
 
-				if(!strcmp(display_text, "%%%%"))
+				if(!ets_strcmp(display_text, "%%%%"))
 				{
-					snprintf(info_text, sizeof(info_text), "%02u.%02u %s %s",
+					string_format(&info_text, "%02u.%02u %s %s",
 							rt_hours, rt_mins, display_entry->name, display_entry->type);
-					display_text = info_text;
+					display_text = string_to_ptr(&info_text);
 				}
 
 				display_entry->set_fn(display_entry, display_text);
@@ -263,10 +262,8 @@ irom static void display_update(bool advance)
 
 irom void display_periodic(void) // call once per second
 {
-	static unsigned int current_scroll = 0;
-	unsigned int display;
-	unsigned int slot;
-	unsigned int active_slots;
+	static int current_scroll = 0;
+	int display, slot, active_slots;
 	display_data_t *display_entry;
 
 	// expiration
@@ -294,8 +291,7 @@ irom void display_periodic(void) // call once per second
 
 		if(active_slots == 0)
 		{
-			snprintf(display_entry->slot[0].content, sizeof(display_entry->slot[0].content), "%s",
-					default_message);
+			strlcpy(display_entry->slot[0].content, default_message, sizeof(display_entry->slot[0].content));
 			current_scroll = 0;
 		}
 	}
@@ -312,10 +308,9 @@ irom void display_periodic(void) // call once per second
 irom void display_init(const char *default_message_in)
 {
 	display_data_t *entry;
-	unsigned int current;
-	unsigned int slot;
+	int current, slot;
 
-	snprintf(default_message, sizeof(default_message), "%s", default_message_in);
+	strlcpy(default_message, default_message_in, sizeof(default_message));
 
 	for(current = 0; current < display_size; current++)
 	{
@@ -338,32 +333,40 @@ irom void display_init(const char *default_message_in)
 	display_update(false);
 }
 
-irom unsigned int display_setslot(display_id_t display, unsigned int slot, unsigned int timeout,
-		const char *text, unsigned int size, char *dst)
+irom static void display_setslot(string_t *dst, display_id_t display, int slot, int timeout, const char *text)
 {
 	display_data_t *display_entry;
 
 	if(display >= display_size)
-		return(snprintf(dst, size, "display setslot: display #%d unknown\n", (int)display));
+	{
+		string_format(dst, "display setslot: display #%d unknown\n", display);
+		return;
+	}
 
 	display_entry = &display_data[display];
 
 	if(!display_entry->detected)
-		return(snprintf(dst, size, "display setslot: display #%d not found\n", (int)display));
+	{
+		string_format(dst, "display setslot: display #%d not found\n", display);
+		return;
+	}
 
 	if(slot > display_slot_amount)
-		return(snprintf(dst, size, "display setslot: slot #%d out of limits\n", (int)slot));
+	{
+		string_format(dst, "display setslot: slot #%d out of limits\n", slot);
+		return;
+	}
 
 	strlcpy(display_entry->slot[slot].content, text, display_slot_size);
 	display_entry->slot[slot].timeout = timeout;
 
 	display_update(false);
 
-	return(snprintf(dst, size, "display setslot: set slot %d on %s to \"%s\"\n",
-				slot, display_entry->name, display_entry->slot[slot].content));
+	string_format(dst, "display setslot: set slot %d on %s to \"%s\"\n",
+				slot, display_entry->name, display_entry->slot[slot].content);
 }
 
-irom bool_t display_set_brightness(display_id_t display, unsigned int brightness)
+irom static bool_t display_set_brightness(display_id_t display, int brightness)
 {
 	display_data_t *display_entry;
 
@@ -384,7 +387,7 @@ irom bool_t display_set_brightness(display_id_t display, unsigned int brightness
 	return(true);
 }
 
-irom bool_t display_get_brightness(display_id_t display, unsigned int *brightness)
+irom static bool_t display_get_brightness(display_id_t display, int *brightness)
 {
 	display_data_t *display_entry;
 
@@ -401,22 +404,13 @@ irom bool_t display_get_brightness(display_id_t display, unsigned int *brightnes
 	return(true);
 }
 
-irom attr_const attr_pure bool_t display_detected(display_id_t display)
+irom static void display_dump(string_t *dst, int verbose_level)
 {
-	if(display > display_size)
-		return(false);
-
-	return(device_data[display].detected);
-}
-
-irom unsigned int display_dump(unsigned int size, char *dst, unsigned int verbose_level)
-{
-	unsigned int display;
-	unsigned int slot;
-	unsigned int length;
+	int display;
+	int slot;
 	display_data_t *entry;
 	display_slot_t *slot_entry;
-	char *orig_dst = dst;
+	int original_length = string_length(dst);
 
 	for(display = 0; display < display_size; display++)
 	{
@@ -424,34 +418,110 @@ irom unsigned int display_dump(unsigned int size, char *dst, unsigned int verbos
 
 		if((verbose_level > 0) || entry->detected)
 		{
-			length = snprintf(dst, size, "> %c display #%u (%s: %s)\n",
+			string_format(dst, "> %c display #%u (%s: %s)\n",
 					entry->detected ? '+' : ' ', display, entry->name, entry->type);
-
-			size -= length;
-			dst += length;
 
 			if(verbose_level > 1)
 			{
 				for(slot = 0; slot < display_slot_amount; slot++)
 				{
 					slot_entry = &entry->slot[slot];
-
-					length = snprintf(dst, size, ">> slot %u: timeout %u, text: \"%s\"\n",
-							slot, slot_entry->timeout, slot_entry->content);
-
-					size -= length;
-					dst += length;
+					string_format(dst, ">> slot %u: timeout %u, text: \"%s\"\n", slot, slot_entry->timeout, slot_entry->content);
 				}
 			}
 		}
 	}
 
-	if(dst == orig_dst)
+	if(original_length == string_length(dst))
+		string_cat(dst, "> no displays found\n");
+}
+
+irom app_action_t application_function_display_brightness(string_t *src, string_t *dst)
+{
+	int id, value;
+
+	if(parse_int(1, src, &id, 0) != parse_ok)
 	{
-		length = snprintf(dst, size, "> no displays found\n");
-		dst += length;
-		size -= length;
+		string_cat(dst, "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n");
+		return(app_action_error);
 	}
 
-	return(dst - orig_dst);
+	if((parse_int(2, src, &value, 0) == parse_ok) && !display_set_brightness(id, value))
+	{
+		string_cat(dst, "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n");
+		return(app_action_error);
+	}
+
+	if(!display_get_brightness(id, &value))
+	{
+		string_format(dst, "display-brightness: invalid display: %d\n", id);
+		return(app_action_error);
+	}
+
+	string_format(dst, "display %u brightness: %u\n", id, value);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_display_dump(string_t *src, string_t *dst)
+{
+	int verbose;
+
+	if(parse_int(1, src, &verbose, 0) != parse_ok)
+		verbose = 0;
+
+	display_dump(dst, verbose);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_display_default_message(string_t *src, string_t *dst)
+{
+	const char *text;
+	int ws;
+
+	text = string_to_ptr(src);
+
+	for(ws = 1; ws > 0; text++)
+	{
+		if(*text == '\0')
+			break;
+
+		if(*text == ' ')
+			ws--;
+	}
+
+	strlcpy(config.display_default_msg, text, sizeof(config.display_default_msg));
+	string_format(dst, "set default display message to \"%s\"\n", config.display_default_msg);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_display_set(string_t *src, string_t *dst)
+{
+	int id, slot, timeout, current;
+	const char *text;
+
+	if((parse_int(1, src, &id, 0) != parse_ok) ||
+		(parse_int(2, src, &slot, 0) != parse_ok) ||
+		(parse_int(3, src, &timeout, 0) != parse_ok))
+	{
+		string_cat(dst, "display-set: usage: display_id slot timeout text\n");
+		return(app_action_error);
+	}
+
+	text = src->buffer;
+
+	for(current = 4; current > 0; text++)
+	{
+		if(*text == '\0')
+			break;
+
+		if(*text == ' ')
+			current--;
+	}
+
+	display_setslot(dst, id, slot, timeout, text);
+
+	return(app_action_normal);
 }

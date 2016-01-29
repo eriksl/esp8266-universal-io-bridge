@@ -32,7 +32,7 @@ device_data_t device_data[i2c_sensor_size];
 
 irom void i2c_sensor_config_init(i2c_sensor_config_t *dst)
 {
-	unsigned int current;
+	int current;
 
 	for(current = 0; current < i2c_sensor_size; current++)
 	{
@@ -113,7 +113,7 @@ irom static i2c_error_t sensor_ds1631_read(const device_table_entry_t *entry, va
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
-	unsigned int raw;
+	int raw;
 
 	if((entry->id == i2c_sensor_ds1631_0) && i2c_sensor_detected(i2c_sensor_lm75_0))
 		return(i2c_error_device_error_1);
@@ -194,7 +194,7 @@ irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, valu
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
-	unsigned int raw;
+	int raw;
 
 	if((entry->id == i2c_sensor_lm75_0) && i2c_sensor_detected(i2c_sensor_ds1631_0))
 		return(i2c_error_device_error_1);
@@ -215,7 +215,7 @@ irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, valu
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t bmp085_write(unsigned int address, unsigned int reg, unsigned int value)
+irom static i2c_error_t bmp085_write(int address, int reg, int value)
 {
 	i2c_error_t error;
 
@@ -225,7 +225,7 @@ irom static i2c_error_t bmp085_write(unsigned int address, unsigned int reg, uns
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read(unsigned int address, unsigned int reg, uint16_t *value)
+irom static i2c_error_t bmp085_read(int address, int reg, uint16_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
@@ -241,7 +241,7 @@ irom static i2c_error_t bmp085_read(unsigned int address, unsigned int reg, uint
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read_long(unsigned int address, unsigned int reg, uint32_t *value)
+irom static i2c_error_t bmp085_read_long(int address, int reg, uint32_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
@@ -257,7 +257,7 @@ irom static i2c_error_t bmp085_read_long(unsigned int address, unsigned int reg,
 	return(0);
 }
 
-irom static i2c_error_t sensor_read_bmp085(unsigned int address, double *temp, double *temp_raw, double *pressure, double *pressure_raw)
+irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *temp_raw, double *pressure, double *pressure_raw)
 {
 	int16_t		ac1, ac2, ac3;
 	uint16_t	ac4, ac5, ac6;
@@ -420,7 +420,7 @@ static const tsl2560_lookup_t tsl2560_lookup[] =
 	{ 0.000, 0.00000, 0.00000 }
 };
 
-irom static i2c_error_t tsl2560_write(unsigned int address, unsigned int reg, unsigned int value)
+irom static i2c_error_t tsl2560_write(int address, int reg, int value)
 {
 	i2c_error_t error;
 
@@ -432,7 +432,7 @@ irom static i2c_error_t tsl2560_write(unsigned int address, unsigned int reg, un
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_read(unsigned int address, unsigned int reg, uint8_t *byte)
+irom static i2c_error_t tsl2560_read(int address, int reg, uint8_t *byte)
 {
 	i2c_error_t error;
 
@@ -447,7 +447,7 @@ irom static i2c_error_t tsl2560_read(unsigned int address, unsigned int reg, uin
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_write_check(unsigned int address, unsigned int reg, unsigned int value)
+irom static i2c_error_t tsl2560_write_check(int address, int reg, int value)
 {
 	i2c_error_t error;
 	uint8_t rv;
@@ -464,7 +464,7 @@ irom static i2c_error_t tsl2560_write_check(unsigned int address, unsigned int r
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2560_read_block(unsigned int address, unsigned int reg, uint8_t *values)
+irom static i2c_error_t tsl2560_read_block(int address, int reg, uint8_t *values)
 {
 	i2c_error_t error;
 
@@ -538,7 +538,7 @@ irom static i2c_error_t sensor_tsl2560_read(const device_table_entry_t *entry, v
 	unsigned int ch0r, ch1r;
 	double ratio, ch0, ch1;
 	const tsl2560_lookup_t *tsl2560_entry;
-	unsigned int current;
+	int current;
 
 	if(i2c_sensor_detected(i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
@@ -633,7 +633,7 @@ static const uint8_t tsl2550_ratio[129] =
 	30
 };
 
-irom static i2c_error_t sensor_tsl2550_rw(unsigned int address, unsigned int in, uint8_t *out)
+irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
 {
 	i2c_error_t error;
 
@@ -646,7 +646,7 @@ irom static i2c_error_t sensor_tsl2550_rw(unsigned int address, unsigned int in,
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_write_check(unsigned int address, unsigned int in, unsigned int compare)
+irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int compare)
 {
 	i2c_error_t error;
 	uint8_t out;
@@ -663,7 +663,7 @@ irom static i2c_error_t sensor_tsl2550_write_check(unsigned int address, unsigne
 irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
-	unsigned int sens_command;
+	int sens_command;
 
 	if(i2c_sensor_detected(i2c_sensor_tsl2560))
 		return(i2c_error_device_error_1);
@@ -688,9 +688,9 @@ irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 
 irom static i2c_error_t sensor_tsl2550_read(const device_table_entry_t *entry, value_t *value)
 {
-	i2c_error_t		error;
-	uint8_t			ch0, ch1;
-	unsigned int	attempt, ratio;
+	i2c_error_t	error;
+	uint8_t		ch0, ch1;
+	int			attempt, ratio;
 
 	if(i2c_sensor_detected(i2c_sensor_tsl2560))
 		return(i2c_error_device_error_1);
@@ -745,7 +745,7 @@ error:
 irom static i2c_error_t sensor_bh1750_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
-	unsigned int timing;
+	int timing;
 	uint8_t regval[2];
 
 	// there is no "read register" command on this device, so assume
@@ -808,13 +808,13 @@ irom static i2c_error_t sensor_bh1750_read(const device_table_entry_t *entry, va
 	return(i2c_error_ok);
 }
 
-irom attr_pure static i2c_error_t htu21_crc(unsigned int length, const uint8_t *data)
+irom attr_pure static i2c_error_t htu21_crc(int length, const uint8_t *data)
 {
 	i2c_error_t outer, inner, testbit, crc;
 
 	crc = 0;
 
-	for(outer = 0; outer < length; outer++)
+	for(outer = 0; (int)outer < length; outer++)
 	{
 		crc ^= data[outer];
 
@@ -890,7 +890,7 @@ irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry,
 	return(i2c_error_ok);
 }
 
-irom attr_pure static unsigned int am2321_crc(unsigned int length, const uint8_t *data)
+irom attr_pure static int am2321_crc(int length, const uint8_t *data)
 {
 	uint8_t		outer, inner, testbit;
 	uint16_t	crc;
@@ -913,7 +913,7 @@ irom attr_pure static unsigned int am2321_crc(unsigned int length, const uint8_t
 	return(crc);
 }
 
-irom static i2c_error_t sensor_am2321_read_registers(unsigned int address, unsigned int offset, unsigned int length, uint8_t *values)
+irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, int length, uint8_t *values)
 {
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[32];
@@ -945,7 +945,7 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int address, unsig
 	if(crc1 != crc2)
 		return(i2c_error_device_error_3);
 
-	memcpy(values, &i2cbuffer[2], length);
+	ets_memcpy(values, &i2cbuffer[2], length);
 
 	return(i2c_error_ok);
 }
@@ -953,7 +953,7 @@ irom static i2c_error_t sensor_am2321_read_registers(unsigned int address, unsig
 static value_t sensor_am2321_cached_temperature;
 static value_t sensor_am2321_cached_humidity;
 
-irom static i2c_error_t sensor_am2321_read(unsigned int address, value_t *value, bool_t request_humidity)
+irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t request_humidity)
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
@@ -1127,14 +1127,12 @@ irom void i2c_sensor_init(void)
 	}
 }
 
-irom unsigned int i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, unsigned int size, char *dst)
+irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 {
 	const device_table_entry_t *entry;
 	i2c_error_t error;
 	value_t value;
-	unsigned int length;
-	char *orig_dst = dst;
-	unsigned int current;
+	int current;
 	float factor, offset;
 	double extracooked;
 
@@ -1147,14 +1145,14 @@ irom unsigned int i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, unsigned 
 	}
 
 	if(current >= i2c_sensor_size)
-		return(snprintf(dst, size, "i2c sensor read: sensor #%d unknown\n", sensor));
+	{
+		string_format(dst, "i2c sensor read: sensor #%d unknown\n", sensor);
+		return(false);
+	}
 
 	error = i2c_error_ok;
 
-	length = snprintf(dst, size, "%s sensor %d:%s, %s: ",
-			device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
-	dst += length;
-	size -= length;
+	string_format(dst, "%s sensor %d:%s, %s: ", device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
 
 	if((error = entry->read_fn(entry, &value)) == i2c_error_ok)
 	{
@@ -1163,78 +1161,41 @@ irom unsigned int i2c_sensor_read(i2c_sensor_t sensor, bool_t verbose, unsigned 
 		else
 			extracooked = value.cooked;
 
-		length = snprintf(dst, size, "[");
-		dst += length;
-		size -= length;
-
-		length = double_to_string(extracooked, entry->precision, 1e10, size, dst);
-		dst += length;
-		size -= length;
-
-		length = snprintf(dst, size, "]");
-		dst += length;
-		size -= length;
+		string_cat(dst, "[");
+		string_double(dst, extracooked, entry->precision, 1e10);
+		string_cat(dst, "]");
 
 		if(verbose)
 		{
-			length = snprintf(dst, size, " (uncalibrated: ");
-			dst += length;
-			size -= length;
-
-			length = double_to_string(value.cooked, entry->precision, 1e10, size, dst);
-			dst += length;
-			size -= length;
-
-			length = snprintf(dst, size, ", raw: ");
-			dst += length;
-			size -= length;
-
-			length = double_to_string(value.raw, 0, 1e10, size, dst);
-			dst += length;
-			size -= length;
-
-			length = snprintf(dst, size, ")");
-			dst += length;
-			size -= length;
+			string_cat(dst, " (uncalibrated: ")
+			string_double(dst, value.cooked, entry->precision, 1e10);
+			string_cat(dst, ", raw: ");
+			string_double(dst, value.raw, 0, 1e10);
+			string_cat(dst, ")");
 		}
 	}
 	else
 	{
 		if(verbose)
-			length = i2c_error_format_string("error", error, size, dst);
+		{
+			string_cat(dst, "error");
+			i2c_error_format_string(dst, error);
+		}
 		else
-			length = snprintf(dst, size, "%s", "error");
-
-		dst += length;
-		size -= length;
+			string_cat(dst, "error");
 
 		i2c_reset();
 	}
 
 	if(verbose)
 	{
-		length = snprintf(dst, size, ", calibration: factor=");
-		dst += length;
-		size -= length;
-
-		length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10, size, dst);
-		dst += length;
-		size -= length;
-
-		length = snprintf(dst, size, ", offset=");
-		dst += length;
-		size -= length;
-
-		length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10, size, dst);
-		dst += length;
-		size -= length;
+		string_cat(dst, ", calibration: factor=");
+		string_double(dst, config.i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10);
+		string_cat(dst, ", offset=");
+		string_double(dst, config.i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10);
 	}
 
-	length = snprintf(dst, size, "\n");
-	dst += length;
-	size -= length;
-
-	return(dst - orig_dst);
+	return(true);
 }
 
 irom attr_pure bool_t i2c_sensor_detected(i2c_sensor_t sensor)
@@ -1249,8 +1210,8 @@ irom bool_t i2c_sensor_getcal(i2c_sensor_t sensor, float *factor, float *offset)
 {
 	if(sensor < i2c_sensor_size)
 	{
-		*factor = config->i2c_sensors.sensor[sensor].calibration.factor;
-		*offset = config->i2c_sensors.sensor[sensor].calibration.offset;
+		*factor = config.i2c_sensors.sensor[sensor].calibration.factor;
+		*offset = config.i2c_sensors.sensor[sensor].calibration.offset;
 		return(true);
 	}
 
@@ -1261,8 +1222,8 @@ irom bool_t i2c_sensor_setcal(i2c_sensor_t sensor, float factor, float offset)
 {
 	if(sensor < i2c_sensor_size)
 	{
-		config->i2c_sensors.sensor[sensor].calibration.factor = factor;
-		config->i2c_sensors.sensor[sensor].calibration.offset = offset;
+		config.i2c_sensors.sensor[sensor].calibration.factor = factor;
+		config.i2c_sensors.sensor[sensor].calibration.offset = offset;
 		return(true);
 	}
 

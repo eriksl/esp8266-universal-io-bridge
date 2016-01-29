@@ -10,27 +10,27 @@
 #include <rboot-api.h>
 #endif
 
-uint32_t stat_uart_rx_interrupts;
-uint32_t stat_uart_tx_interrupts;
-uint32_t stat_timer_fast;
-uint32_t stat_timer_slow;
-uint32_t stat_timer_second;
-uint32_t stat_timer_minute;
-uint32_t stat_background_task;
-uint32_t stat_i2c_init_time_us;
-uint32_t stat_display_init_time_us;
+int stat_uart_rx_interrupts;
+int stat_uart_tx_interrupts;
+int stat_timer_fast;
+int stat_timer_slow;
+int stat_timer_second;
+int stat_timer_minute;
+int stat_background_task;
+int stat_i2c_init_time_us;
+int stat_display_init_time_us;
 
-uint8_t	ut_days;
-uint8_t	ut_hours;
-uint8_t	ut_mins;
-uint8_t	ut_secs;
-uint8_t	ut_tens;
+int	ut_days;
+int	ut_hours;
+int	ut_mins;
+int	ut_secs;
+int	ut_tens;
 
-uint8_t	rt_days;
-uint8_t	rt_hours;
-uint8_t	rt_mins;
-uint8_t	rt_secs;
-uint8_t	rt_tens;
+int	rt_days;
+int	rt_hours;
+int	rt_mins;
+int	rt_secs;
+int	rt_tens;
 
 static const char *flash_map[] =
 {
@@ -72,16 +72,15 @@ static const char *slp[] =
 	"unknown"
 };
 
-irom void stats_generate(unsigned int size, char *dst)
+irom void stats_generate(string_t *dst)
 {
-	int length;
 #if IMAGE_OTA == 1
 	rboot_config rcfg;
 #endif
 
 	const struct rst_info *rst_info;
 	struct station_config sc_default, sc_current;
-	unsigned int system_time;
+	int system_time;
 
 	system_time = system_get_time();
 	rst_info = system_get_rst_info();
@@ -89,8 +88,8 @@ irom void stats_generate(unsigned int size, char *dst)
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
 
-	static roflash const char stats_fmt_1[] =
-			"* firmware version date: %s\n"
+	string_format(dst,
+			"> firmware version date: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
 			"> cpu frequency: %u MHz\n"
@@ -120,9 +119,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
-			"> signal strength: %d dB\n";
-
-	length = snprintf_roflash(dst, size, stats_fmt_1,
+			"> signal strength: %d dB\n",
 			__DATE__ " " __TIME__,
 			system_get_chip_id(),
 			spi_flash_get_id(),
@@ -152,13 +149,10 @@ irom void stats_generate(unsigned int size, char *dst)
 			wifi_get_channel(),
 			wifi_station_get_rssi());
 
-	dst += length;
-	size -= length;
-
 #if IMAGE_OTA == 1
 	rcfg = rboot_get_config();
 
-	static roflash const char stats_fmt_2[] =
+	string_format(dst,
 			">\n"
 			"> OTA image information\n"
 			"> magic: 0x%x\n"
@@ -167,9 +161,7 @@ irom void stats_generate(unsigned int size, char *dst)
 			"> current: %u\n"
 			"> count: %u\n"
 			"> rom 0: 0x%06x\n"
-			"> rom 1: 0x%06x\n";
-
-	snprintf_roflash(dst, size, stats_fmt_2,
+			"> rom 1: 0x%06x\n",
 			rcfg.magic,
 			rcfg.version,
 			rcfg.mode,
@@ -178,8 +170,6 @@ irom void stats_generate(unsigned int size, char *dst)
 			rcfg.roms[0],
 			rcfg.roms[1]);
 #else
-	static roflash const char stats_fmt_2[] = ">\n> No OTA image\n";
-
-	snprintf_roflash(dst, size, stats_fmt_2);
+	cat(dst, ">\n> No OTA image\n");
 #endif
 }

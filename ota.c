@@ -14,57 +14,78 @@ typedef enum
 	state_successful
 } state_t;
 
-static state_t state = state_inactive;
-static unsigned int remote_file_length, received;
+static state_t ota_state = state_inactive;
+static int remote_file_length, received, flash_slot,flash_sector;
 static MD5_CTX md5;
-static char md5_sum[16];
-static char md5_string[33];
-static int flash_slot;
-static unsigned int flash_sector;
-static char flash_buffer[0x1000];
-static char verify_buffer[0x1000];
-static int flash_buffer_offset;
 
-irom static app_action_t flash_write_verify(application_parameters_t *ap)
+irom attr_pure bool ota_active(void)
 {
-	if(state == state_write)
+	return(ota_state != state_inactive);
+}
+
+irom static app_action_t flash_write_verify(string_t *src, string_t *dst)
+{
+	char *verify_buffer = string_to_ptr(src);
+
+	if(string_size(&buffer_4k) < 0x1000)
 	{
-		spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, flash_buffer_offset);
-
-		if(memcmp(flash_buffer, verify_buffer, flash_buffer_offset))
-		{
-			spi_flash_erase_sector(flash_sector);
-			spi_flash_write(flash_sector * 0x1000, (void *)flash_buffer, flash_buffer_offset);
-		}
-	}
-
-	spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, flash_buffer_offset);
-	MD5Update(&md5, verify_buffer, flash_buffer_offset);
-
-	if(memcmp(flash_buffer, verify_buffer, flash_buffer_offset))
-	{
-		state = state_inactive;
+		string_cat(dst, "OTA: string write buffer too small\n");
 		return(app_action_error);
 	}
 
-	received += flash_buffer_offset;
+	if(string_size(src) < 0x1000)
+	{
+		string_cat(dst, "OTA: string verify buffer too small\n");
+		return(app_action_error);
+	}
+
+	if(ota_state == state_write)
+	{
+		spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, string_length(&buffer_4k));
+
+		if(ets_memcmp(&buffer_4k, verify_buffer, string_length(&buffer_4k)))
+		{
+			spi_flash_erase_sector(flash_sector);
+			spi_flash_write(flash_sector * 0x1000, (void *)&buffer_4k, string_length(&buffer_4k));
+		}
+	}
+
+	spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, string_length(&buffer_4k));
+	MD5Update(&md5, verify_buffer, string_length(&buffer_4k));
+
+	if(ets_memcmp(&buffer_4k, verify_buffer, string_length(&buffer_4k)))
+	{
+		string_cat(dst, "OTA: verify mismatch\n");
+		return(app_action_error);
+	}
+
 	flash_sector++;
-	flash_buffer_offset = 0;
+	string_clear(&buffer_4k);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t ota_start(application_parameters_t *ap, bool verify)
+irom static app_action_t ota_start(string_t *src, string_t *dst, bool verify)
 {
 	rboot_config rcfg;
 
+	if(wlan_scan_active())
+	{
+		string_cat(dst, "OTA: wlan scan active\n");
+		return(app_action_error);
+	}
+
 	rcfg = rboot_get_config();
-	remote_file_length = string_to_int((*ap->args)[1]);
+
+	if(parse_int(1, src, &remote_file_length, 0) != parse_ok)
+	{
+		string_cat(dst, "OTA: invalid/missing file length\n");
+		return(app_action_error);
+	}
 
 	if((rcfg.magic != BOOT_CONFIG_MAGIC) || (rcfg.count != 2) || (rcfg.current_rom > 1))
 	{
-		snprintf(ap->dst, ap->size, "OTA: rboot config invalid\n");
-		state = state_inactive;
+		string_cat(dst, "OTA: rboot config invalid\n");
 		return(app_action_error);
 	}
 
@@ -72,136 +93,139 @@ irom static app_action_t ota_start(application_parameters_t *ap, bool verify)
 	flash_sector = rcfg.roms[flash_slot] / 0x1000;
 
 	received = 0;
-	flash_buffer_offset = 0;
+	string_clear(&buffer_4k);
 	MD5Init(&md5);
 
-	state = verify ? state_verify : state_write;
+	ota_state = verify ? state_verify : state_write;
 
-	snprintf(ap->dst, ap->size, "%s %d %d\n", verify ? "VERIFY" : "WRITE", flash_slot, flash_sector);
+	string_format(dst, "%s %d %d\n", verify ? "VERIFY" : "WRITE", flash_slot, flash_sector);
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_write(application_parameters_t ap)
+irom app_action_t application_function_ota_write(string_t *src, string_t *dst)
 {
-	return(ota_start(&ap, false));
+	return(ota_start(src, dst, false));
 }
 
-irom app_action_t application_function_ota_verify(application_parameters_t ap)
+irom app_action_t application_function_ota_verify(string_t *src, string_t *dst)
 {
-	return(ota_start(&ap, true));
+	return(ota_start(src, dst, true));
 }
 
-irom app_action_t application_function_ota_send(application_parameters_t ap)
+irom app_action_t application_function_ota_send(string_t *src, string_t *dst)
 {
-	const char *hex_chunk;
-	int remote_chunk_length, hex_chunk_length, bin_chunk_length;
-	int skip_ws;
+	int remote_chunk_length, bin_chunk_length, hex_chunk_offset;
 	app_action_t action;
 
-	if((state != state_write) && (state != state_verify))
+	if((ota_state != state_write) && (ota_state != state_verify))
 	{
-		snprintf(ap.dst, ap.size, "OTA: not active\n");
-		state = state_inactive;
+		string_cat(dst, "OTA: not active\n");
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	remote_chunk_length = string_to_int((*ap.args)[1]);
-	hex_chunk_length = strlen(ap.cmdline);
-	hex_chunk = ap.cmdline;
-
-	for(skip_ws = 2; skip_ws > 0; hex_chunk++, hex_chunk_length--)
+	if(parse_int(1, src, &remote_chunk_length, 0) != parse_ok)
 	{
-		if(*hex_chunk == '\0')
-			break;
-
-		if(*hex_chunk == ' ')
-			skip_ws--;
+		string_cat(dst, "OTA: missing chunk length\n");
+		ota_state = state_inactive;
+		return(app_action_error);
 	}
 
-	bin_chunk_length = hex_to_bin(hex_chunk_length, hex_chunk,
-			sizeof(flash_buffer) - flash_buffer_offset, flash_buffer + flash_buffer_offset);
+	if((hex_chunk_offset = string_sep(src, 0, 2, ' ')) < 0)
+	{
+		string_copy(dst, "OTA: missing hex chunk\n");
+		ota_state = state_inactive;
+		return(app_action_error);
+	}
+
+	bin_chunk_length = string_hex_to_bin(&buffer_4k, src, hex_chunk_offset);
+	received += bin_chunk_length;
 
 	if(remote_chunk_length != bin_chunk_length)
 	{
-		snprintf(ap.dst, ap.size, "OTA: chunk size mismatch %u != %u\n", remote_chunk_length, bin_chunk_length);
-		state = state_inactive;
+		string_format(dst, "OTA: chunk size mismatch %u != %u\n", remote_chunk_length, bin_chunk_length);
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	flash_buffer_offset += bin_chunk_length;
-
-	if(flash_buffer_offset > 0x1000)
+	if(string_length(&buffer_4k) > 0x1000)
 	{
-		snprintf(ap.dst, ap.size, "OTA: unaligned %u\n", flash_buffer_offset);
-		state = state_inactive;
+		string_format(dst, "OTA: unaligned %u\n", string_length(&buffer_4k));
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	if((flash_buffer_offset == 0x1000) && ((action = flash_write_verify(&ap)) != app_action_normal))
+	if((string_length(&buffer_4k) == 0x1000) &&
+			((action = flash_write_verify(src, dst)) != app_action_normal))
+	{
+		ota_state = state_inactive;
 		return(action);
+	}
 
-	snprintf(ap.dst, ap.size, "ACK\n");
+	string_format(dst, "ACK %d\n", received);
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_finish(application_parameters_t ap)
+irom app_action_t application_function_ota_finish(string_t *src, string_t *dst)
 {
-	const char *md5_string_remote;
-	int skip_ws;
+	string_new(static, remote_md5_string, 34);
 	app_action_t action;
 
-	md5_string_remote = ap.cmdline;
-
-	for(skip_ws = 1; skip_ws > 0; md5_string_remote++)
+	if((parse_string(1, src, &remote_md5_string)) != parse_ok)
 	{
-		if(*md5_string_remote == '\0')
-			break;
-
-		if(*md5_string_remote == ' ')
-			skip_ws--;
+		string_copy(dst, "OTA: missing md5sum string\n");
+		ota_state = state_inactive;
+		return(app_action_error);
 	}
 
-	if((flash_buffer_offset > 0) && ((action = flash_write_verify(&ap)) != app_action_normal))
+	if((string_length(&buffer_4k) > 0) &&
+			((action = flash_write_verify(src, dst)) != app_action_normal))
+	{
+		ota_state = state_inactive;
 		return(action);
-
-	MD5Final(md5_sum, &md5);
-	md5_hash_to_string(md5_sum, sizeof(md5_string), md5_string);
+	}
 
 	if(remote_file_length != received)
 	{
-		snprintf(ap.dst, ap.size, "OTA: file size differs: %u != %u\n", remote_file_length, received);
-		state = state_inactive;
+		string_format(dst, "OTA: file size differs: %u != %u\n", remote_file_length, received);
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	if(strcmp(md5_string, md5_string_remote))
+	MD5Final(string_to_ptr(dst), &md5);
+	string_setlength(dst, 16);
+	string_bin_to_hex(src, dst, 0);
+	string_clear(dst);
+
+	if(!string_match_string(src, &remote_md5_string))
 	{
-		snprintf(ap.dst, ap.size, "OTA: invalid md5sum: \"%s\" != \"%s\"\n", md5_string, md5_string_remote);
-		state = state_inactive;
+		string_format(dst, "OTA: invalid md5sum: \"%s\" != \"%s\"\n",
+				string_to_ptr(src), string_to_ptr(&remote_md5_string));
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	snprintf(ap.dst, ap.size, "%s %s\n", state == state_verify ? "VERIFY_OK" : "WRITE_OK", md5_string);
+	string_format(dst, "%s %s\n", ota_state == state_verify ? "VERIFY_OK" : "WRITE_OK", string_to_ptr(src));
 
-	state = state_successful;
+	ota_state = state_successful;
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_commit(application_parameters_t ap)
+irom app_action_t application_function_ota_commit(string_t *src, string_t *dst)
 {
-	if(state != state_successful)
+	if(ota_state != state_successful)
 	{
-		snprintf(ap.dst, ap.size, "OTA: no candidate for commit\n");
-		state = state_inactive;
+		string_cat(dst, "OTA: no candidate for commit\n");
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
 	if(!rboot_set_current_rom(flash_slot))
 	{
-		snprintf(ap.dst, ap.size, "OTA: set current slot to %d failed\n", flash_slot);
-		state = state_inactive;
+		string_format(dst, "OTA: set current slot to %d failed\n", flash_slot);
+		ota_state = state_inactive;
 		return(app_action_error);
 	}
 

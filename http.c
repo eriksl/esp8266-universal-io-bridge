@@ -5,9 +5,7 @@
 
 #include <string.h>
 
-static char location_buffer[64];
-
-irom static http_action_t root_handler(const char *, http_buffer_t *);
+irom static http_action_t root_handler(const string_t *src, string_t *dst);
 
 static const http_handler_t handlers[] =
 {
@@ -17,77 +15,65 @@ static const http_handler_t handlers[] =
 	},
 };
 
-static const char *html_header =
-	"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n"
-	"<html>\r\n"
-	"<head>\r\n"
-	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\r\n"
-	"<title>Universal I/O bridge</title>\r\n"
-    "</head>\r\n"
-    "<body>\r\n";
-
-static const char *html_footer =
-    "</body>\r\n"
-    "</html>\r\n";
-
-irom http_action_t root_handler(const char *location, http_buffer_t *reply)
+irom http_action_t root_handler(const string_t *src, string_t *dst)
 {
-	unsigned int length;
-
-	length = gpios_dump_html(reply->size, reply->string);
-
-	reply->string += length;
-	reply->size -= length;
-	reply->length += length;
+	gpios_dump_html(dst, &config.gpios);
 
 	return(http_action_normal);
 }
 
-irom http_action_t http_process_request(http_buffer_t request, http_buffer_t *reply)
+irom http_action_t http_process_request(const string_t *src, string_t *dst)
 {
-	unsigned int ix, length;
+	char current;
+	string_new(static, location, 32);
+	int ix;
 	const http_handler_t *handler;
 	http_action_t action;
 
-	if((request.length < 5) || strncmp(request.string, "GET /", 5))
+	if((string_length(src) < 5) || !string_nmatch(src, "GET /", 5))
 	{
-		reply->length += snprintf(reply->string, reply->size, "400 Bad request\r\n");
+		string_cat(dst, "400 Bad request\r\n");
 		return(http_action_error);
 	}
 
-	request.string += 4;
-	request.length -= 4;
-
-	for(ix = 0; (request.string[ix] > ' ') && ((ix + 1) < sizeof(location_buffer)); ix++)
-		location_buffer[ix] = request.string[ix];
-
-	location_buffer[ix] = '\0';
-
-	for(ix = 0; ix < (sizeof(handlers) / sizeof(*handlers)); ix++)
+	for(ix = 4; ix < string_length(src); ix++)
 	{
-		handler = &handlers[ix];
+		current = string_index(src, ix);
 
-		if(!strcmp(handler->location, location_buffer))
+		if(current > ' ')
+			string_append(&location, current);
+		else
 			break;
 	}
 
-	if(ix >= (sizeof(handlers) / sizeof(*handlers)))
+	for(ix = 0; ix < (int)((sizeof(handlers) / sizeof(*handlers))); ix++)
 	{
-		reply->length += snprintf(reply->string, reply->size, "404 Not found: %s\r\n", location_buffer);
+		handler = &handlers[ix];
+
+		if(string_match(&location, handler->location))
+			break;
+	}
+
+	if(ix >= (int)(sizeof(handlers) / sizeof(*handlers)))
+	{
+		string_format(dst, "404 Not found: %s\r\n", string_to_ptr(&location));
 		return(http_action_error);
 	}
 
-	length = snprintf(reply->string, reply->size, "%s", html_header);
-	reply->string += length;
-	reply->size -= length;
-	reply->length += length;
+	string_cat(dst,
+		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n"
+		"<html>\r\n"
+		"<head>\r\n"
+		"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\r\n"
+		"<title>Universal I/O bridge</title>\r\n"
+		"</head>\r\n"
+		"<body>\r\n");
 
-	action = handler->handler(location_buffer, reply);
+	action = handler->handler(dst, &location);
 
-	length = snprintf(reply->string, reply->size, "%s", html_footer);
-	reply->string += length;
-	reply->size -= length;
-	reply->length += length;
+	string_cat(dst, 
+		"</body>\r\n"
+		"</html>\r\n");
 
 	return(action);
 }

@@ -1,5 +1,4 @@
 #include "application.h"
-#include "application-parameters.h"
 
 #include "gpios.h"
 #include "stats.h"
@@ -21,435 +20,399 @@
 
 #include <stdlib.h>
 
+typedef enum
+{
+	ws_inactive,
+	ws_scanning,
+	ws_finished,
+} wlan_scan_state_t;
+
 typedef struct
 {
 	const char		*command1;
 	const char		*command2;
-	uint8_t			required_args;
-	app_action_t	(*function)(application_parameters_t);
+	app_action_t	(*function)(string_t *, string_t *);
 	const char		*description;
 } application_function_table_t;
 
 static const application_function_table_t application_function_table[];
+static wlan_scan_state_t wlan_scan_state = ws_inactive;
 
-irom app_action_t application_content(const char *src, unsigned int size, char *dst)
+irom app_action_t application_content(string_t *src, string_t *dst)
 {
-	args_t	args;
-	unsigned int args_count, arg_current;
-	unsigned int src_current = 0, src_left;
-	bool_t ws_skipped;
 	const application_function_table_t *tableptr;
 
-	if(config->stat_trigger_gpio >= 0)
-		gpios_trigger_output(config->stat_trigger_gpio);
+	if(config.stat_trigger_gpio >= 0)
+		gpios_trigger_output(config.stat_trigger_gpio);
 
-	*dst = '\0';
-
-	if(src[0] == '\0')
-		return(app_action_empty);
-
-	src_left = strlen(src);
-
-	for(args_count = 0; (src_left > 0) && (args_count < application_num_args);)
-	{
-		ws_skipped = 0;
-
-		for(arg_current = 0;
-				(src_left > 0) && (arg_current < (application_length_args - 1));
-				src_current++, src_left--)
-		{
-			if((src[src_current] <= ' ') || (src[src_current] > '~'))
-			{
-				if(!ws_skipped)
-					continue;
-				else
-					break;
-			}
-
-			ws_skipped = 1;
-
-			args[args_count][arg_current++] = src[src_current];
-		}
-
-		args[args_count][arg_current] = '\0';
-
-		if(arg_current)
-			args_count++;
-
-		while((src_left > 0) && (src[src_current] > ' ') && (src[src_current] <= '~'))
-		{
-			src_left--;
-			src_current++;
-		}
-	}
-
-	if(args_count == 0)
+	if(parse_string(0, src, dst) != parse_ok)
 		return(app_action_empty);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		if(!strcmp(args[0], tableptr->command1) ||
-			!strcmp(args[0], tableptr->command2))
+		if(string_match(dst, tableptr->command1) ||
+				string_match(dst, tableptr->command2))
 			break;
 
 	if(tableptr->function)
 	{
-		if(args_count < (unsigned int)(tableptr->required_args + 1))
-		{
-			static roflash const char fmt[] = "insufficient arguments: %d (%d required)\n";
-			snprintf_roflash(dst, size, fmt, args_count - 1, tableptr->required_args);
-			return(app_action_error);
-		}
-
-		application_parameters_t ap;
-
-		ap.cmdline			= src;
-		ap.nargs			= args_count;
-		ap.args				= &args;
-		ap.size				= size;
-		ap.dst				= dst;
-
-		return(tableptr->function(ap));
+		string_clear(dst);
+		return(tableptr->function(src, dst));
 	}
 
-	static roflash const char fmt[] = "command \"%s\" unknown\n";
-	snprintf_roflash(dst, size, fmt, args[0]);
+	string_cat(dst, ": command unknown\n");
 	return(app_action_error);
 }
 
-irom static app_action_t application_function_config_dump(application_parameters_t ap)
+irom static app_action_t application_function_config_dump(string_t *src, string_t *dst)
 {
-	config_dump(ap.size, ap.dst);
-
+	config_read(&tmpconfig);
+	config_dump(dst, &tmpconfig);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_write(application_parameters_t ap)
+irom static app_action_t application_function_config_write(string_t *src, string_t *dst)
 {
-	static roflash const char str[] = "config write OK\n";
-
-	config_write();
-	strlcpy_roflash(ap.dst, str, ap.size);
-
+	config_write(&config);
+	string_cat(dst, "config write done\n");
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_help(application_parameters_t ap)
+irom static app_action_t application_function_help(string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
-	unsigned int length;
-	static roflash const char str[] = "> %s/%s[%d]: %s\n";
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-	{
-		length = snprintf_roflash(ap.dst, ap.size, str,
+		string_format(dst, "> %s/%s: %s\n",
 				tableptr->command1, tableptr->command2,
-				tableptr->required_args, tableptr->description);
-		ap.dst	+= length;
-		ap.size	-= length;
-	}
+				tableptr->description);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_quit(application_parameters_t ap)
+irom static app_action_t application_function_quit(string_t *src, string_t *dst)
 {
 	return(app_action_disconnect);
 }
 
-irom static app_action_t application_function_reset(application_parameters_t ap)
+irom static app_action_t application_function_reset(string_t *src, string_t *dst)
 {
 	return(app_action_reset);
 }
 
-irom static app_action_t application_function_stats(application_parameters_t ap)
+irom static app_action_t application_function_stats(string_t *src, string_t *dst)
 {
-	stats_generate(ap.size, ap.dst);
-
+	stats_generate(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_tcp_port(application_parameters_t ap)
+irom static app_action_t application_function_bridge_tcp_port(string_t *src, string_t *dst)
 {
-	unsigned int tcp_port;
+	int tcp_port;
 
-	if(ap.nargs > 1)
+	if(parse_int(1, src, &tcp_port, 0) == parse_ok)
 	{
-		tcp_port = string_to_int((*ap.args)[1]);
-
-		if(tcp_port > 65535)
+		if((tcp_port < 1) || (tcp_port > 65535))
 		{
-			static roflash const char str[] = "bridge-tcp-port: out of range: %u\n";
-			snprintf_roflash(ap.dst, ap.size, str, tcp_port);
+			string_format(dst, "bridge-tcp-port: invalid port %d\n", tcp_port);
 			return(app_action_error);
 		}
 
-		static roflash const char str[] = "bridge-tcp_port: %u, write config and restart to activate\n";
-		config->bridge_tcp_port = (uint16_t)tcp_port;
-		snprintf_roflash(ap.dst, ap.size, str, config->bridge_tcp_port);
+		config.bridge_tcp_port = (uint16_t)tcp_port;
 	}
-	else
+
+	string_format(dst, "bridge-tcp_port: %d\n", config.bridge_tcp_port);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
+{
+	int baud_rate;
+
+	if(parse_int(1, src, &baud_rate, 0) == parse_ok)
 	{
-		static roflash const char str[] = "bridge-tcp_port: %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, config->bridge_tcp_port);
+		if((baud_rate < 150) || (baud_rate > 1000000))
+		{
+			string_format(dst, "uart-baud: invalid baud rate: %d\n", baud_rate);
+			return(app_action_error);
+		}
+
+		config.uart.baud_rate = baud_rate;
 	}
+
+	string_format(dst, "uart-baud: %d\n", config.uart.baud_rate);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_baud_rate(application_parameters_t ap)
+irom static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
 {
-	unsigned int baud_rate = string_to_int((*ap.args)[1]);
+	int data_bits;
 
-	if(baud_rate > 1000000)
+	if(parse_int(1, src, &data_bits, 0) == parse_ok)
 	{
-		static roflash const char str[] = "uart-baud: out of range: %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, baud_rate);
-		return(1);
+		if((data_bits < 5) || (data_bits > 8))
+		{
+			string_format(dst, "uart-data: invalid data bits: %d\n", data_bits);
+			return(app_action_error);
+		}
+
+		config.uart.data_bits = data_bits;
 	}
 
-	config->uart.baud_rate = baud_rate;
-
-	static roflash const char str[] = "uart-baud: %u\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->uart.baud_rate);
+	string_format(dst, "uart-data: %d\n", config.uart.data_bits);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_data_bits(application_parameters_t ap)
+irom static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
 {
-	unsigned int data_bits = string_to_int((*ap.args)[1]);
+	int stop_bits;
 
-	if((data_bits < 5) || (data_bits > 8))
+	if(parse_int(1, src, &stop_bits, 0) == parse_ok)
 	{
-		static roflash const char str[] = "uart-data: out of range: %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, data_bits);
-		return(1);
+		if((stop_bits < 1) || (stop_bits > 2))
+		{
+			string_format(dst, "uart-stop: stop bits out of range: %d\n", stop_bits);
+			return(app_action_error);
+		}
+
+		config.uart.stop_bits = stop_bits;
 	}
 
-	config->uart.data_bits = data_bits;
-
-	static roflash const char str[] = "uart-data: %u\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->uart.data_bits);
+	string_format(dst, "uart-stop: %d\n", config.uart.stop_bits);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_stop_bits(application_parameters_t ap)
+irom static app_action_t application_function_uart_parity(string_t *src, string_t *dst)
 {
-	unsigned int stop_bits = string_to_int((*ap.args)[1]);
+	uart_parity_t parity;
 
-	if((stop_bits < 1) || (stop_bits > 2))
+	if(parse_string(1, src, dst) == parse_ok)
 	{
-		static roflash const char str[] = "uart-stop: out of range: %u\n";
-		snprintf_roflash(ap.dst, ap.size, str, stop_bits);
-		return(1);
+		parity = uart_string_to_parity(dst);
+
+		if((parity < parity_none) || (parity >= parity_error))
+		{
+			string_cat(dst, ": invalid parity\n");
+			return(app_action_error);
+		}
+
+		config.uart.parity = parity;
 	}
 
-	config->uart.stop_bits = stop_bits;
-
-	static roflash const char str[] = "uart-stop: %u\n";
-	snprintf(ap.dst, ap.size, str, config->uart.stop_bits);
+	string_copy(dst, "uart-parity: ");
+	uart_parity_to_string(dst, config.uart.parity);
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_parity(application_parameters_t ap)
-{
-	uart_parity_t parity = uart_string_to_parity((*ap.args)[1]);
+static int i2c_address = 0;
 
-	if(parity == parity_error)
+irom static app_action_t application_function_i2c_address(string_t *src, string_t *dst)
+{
+	int intin;
+
+	if(parse_int(1, src, &intin, 16) == parse_ok)
 	{
-		static roflash const char str[] = "uart-parity: out of range: %s\n";
-		snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1]);
-		return(1);
+		if((intin < 2) || (intin > 127))
+		{
+			string_format(dst, "i2c-address: invalid address 0x%02x\n", intin);
+			return(app_action_error);
+		}
+
+		i2c_address = intin;
 	}
 
-	config->uart.parity = parity;
-
-	static roflash const char str[] = "uart-parity: %s\n";
-	snprintf_roflash(ap.dst, ap.size, str, uart_parity_to_string(config->uart.parity));
+	string_format(dst, "i2c-address: address: 0x%02x\n", i2c_address);
 
 	return(app_action_normal);
 }
 
-static unsigned int i2c_address = 0;
-
-irom static app_action_t application_function_i2c_address(application_parameters_t ap)
+irom static app_action_t application_function_i2c_delay(string_t *src, string_t *dst)
 {
-	i2c_address = hex_string_to_int((*ap.args)[1]);
+	int intin;
 
-	static roflash const char str[] = "i2c-address: i2c slave address set to 0x%02x\n";
-	snprintf_roflash(ap.dst, ap.size, str, i2c_address);
+	if(parse_int(1, src, &intin, 0) == parse_ok)
+	{
+		if((intin < 0) || (intin > 100))
+		{
+			string_format(dst, "i2c-delay: invalid delay %d\n", intin);
+			return(app_action_error);
+		}
+
+		config.i2c_delay = intin;
+	}
+
+	string_format(dst, "i2c-delay: delay: %d\n", config.i2c_delay);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_delay(application_parameters_t ap)
+irom static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
 {
-	config->i2c_delay = string_to_int((*ap.args)[1]);
-
-	static roflash const char str[] = "i2c-delay: i2c delay set to %u, write config and restart to activate\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->i2c_delay);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_i2c_read(application_parameters_t ap)
-{
-	unsigned int length, current, size;
+	int size, current;
 	i2c_error_t error;
 	uint8_t bytes[32];
 
-	size = string_to_int((*ap.args)[1]);
-
-	if(size > sizeof(bytes))
+	if(parse_int(1, src, &size, 0) != parse_ok)
 	{
-		static roflash const char str[] = "i2c-read: read max %u bytes\n";
-		snprintf_roflash(ap.dst, ap.size, str, sizeof(bytes));
+		string_cat(dst, "i2c-read: missing byte count\n");
+		return(app_action_error);
+	}
+
+	if(size > (int)sizeof(bytes))
+	{
+		string_format(dst, "i2c-read: read max %d bytes\n", sizeof(bytes));
 		return(app_action_error);
 	}
 
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
-		i2c_error_format_string("i2c-read", error, ap.size, ap.dst);
-		strlcat(ap.dst, "\n", ap.size);
+		string_cat(dst, "i2c_read");
+		i2c_error_format_string(dst, error);
+		string_cat(dst, "\n");
 		i2c_reset();
 		return(app_action_error);
 	}
 
-	static roflash const char str[] = "i2c_read: read %u bytes from %02x:";
-	length = snprintf_roflash(ap.dst, ap.size, str, size, i2c_address);
-	ap.dst += length;
-	ap.size -= length;
+	string_format(dst, "i2c_read: read %d bytes from %02x:", size, i2c_address);
 
 	for(current = 0; current < size; current++)
-	{
-		length = snprintf(ap.dst, ap.size, " %02x", bytes[current]);
-		ap.dst += length;
-		ap.size -= length;
-	}
+		string_format(dst, " %02x", bytes[current]);
 
-	snprintf(ap.dst, ap.size, "\n");
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_write(application_parameters_t ap)
+irom static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
 {
-	unsigned int src_current, dst_current;
 	i2c_error_t error;
-	uint8_t bytes[32];
+	static uint8_t bytes[32];
+	int current, out;
 
-	for(src_current = 1, dst_current = 0;
-			(src_current < ap.nargs) && (dst_current < sizeof(bytes));
-			src_current++, dst_current++)
+	for(current = 0; current < (int)sizeof(bytes); current++)
 	{
-		bytes[dst_current] = hex_string_to_int((*ap.args)[src_current]);
+		if(parse_int(current + 1, src, &out, 16) != parse_ok)
+			break;
+
+		bytes[current] = (uint8_t)(out & 0xff);
 	}
 
-	if((error = i2c_send(i2c_address, dst_current, bytes)) != i2c_error_ok)
+	if((error = i2c_send(i2c_address, current, bytes)) != i2c_error_ok)
 	{
-		i2c_error_format_string("i2c-write", error, ap.size, ap.dst);
-		strlcat(ap.dst, "\n", ap.size);
+		string_cat(dst, "i2c_write");
+		i2c_error_format_string(dst, error);
+		string_cat(dst, "\n");
 		i2c_reset();
 		return(app_action_error);
 	}
 
-	static roflash const char str[] = "i2c_write: written %u bytes to %02x\n";
-	snprintf_roflash(ap.dst, ap.size, str, dst_current, i2c_address);
+	string_format(dst, "i2c_write: written %d bytes to %02x\n", current, i2c_address);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_reset(application_parameters_t ap)
+irom static app_action_t application_function_i2c_reset(string_t *src, string_t *dst)
 {
 	i2c_error_t error;
 
 	if((error = i2c_reset()) != i2c_error_ok)
 	{
-		i2c_error_format_string("i2c-reset", error, ap.size, ap.dst);
-		strlcat(ap.dst, "\n", ap.size);
+		string_cat(dst, "i2c-reset: ");
+		i2c_error_format_string(dst, error);
+		string_cat(dst, "\n");
 		return(app_action_error);
 	}
 
-	static roflash const char str[] ="i2c_reset: ok\n";
-	snprintf_roflash(ap.dst, ap.size, str);
+	string_cat(dst, "i2c_reset: ok\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_read(application_parameters_t ap)
+irom static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
 {
+	int intin;
 	i2c_sensor_t sensor;
 
-	sensor = string_to_int((*ap.args)[1]);
-
-	if(!i2c_sensor_read(sensor, true, ap.size, ap.dst))
+	if((parse_int(1, src, &intin, 0)) != parse_ok)
 	{
-		static roflash const char str[] = "> invalid i2c sensor: %d\n";
-		snprintf_roflash(ap.dst, ap.size, str, (int)sensor);
+		string_cat(dst, "> invalid i2c sensor\n");
 		return(app_action_error);
 	}
+
+	sensor = (i2c_sensor_t)intin;
+
+	if(!i2c_sensor_read(dst, sensor, true))
+	{
+		string_clear(dst);
+		string_format(dst, "> invalid i2c sensor: %d\n", (int)sensor);
+		return(app_action_error);
+	}
+
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_calibrate(application_parameters_t ap)
+irom static app_action_t application_function_i2c_sensor_calibrate(string_t *src, string_t *dst)
 {
+	int intin;
 	i2c_sensor_t sensor;
-	float factor;
-	float offset;
-	unsigned int length;
+	double factor;
+	double offset;
 
-	sensor = string_to_int((*ap.args)[1]);
-	factor = string_to_double((*ap.args)[2]);
-	offset = string_to_double((*ap.args)[3]);
+	if(parse_int(1, src, &intin, 0) != parse_ok)
+	{
+		string_cat(dst, "> invalid i2c sensor\n");
+		return(app_action_error);
+	}
+
+	sensor = (i2c_sensor_t)intin;
+
+	if(parse_float(2, src, &factor) != parse_ok)
+	{
+		string_cat(dst, "> invalid factor\n");
+		return(app_action_error);
+	}
+
+	if(parse_float(3, src, &offset) != parse_ok)
+	{
+		string_cat(dst, "> invalid offset\n")
+		return(app_action_error);
+	}
 
 	if(!i2c_sensor_setcal(sensor, factor, offset))
 	{
-		static roflash const char str[] = "> invalid i2c sensor: %d\n";
-		snprintf_roflash(ap.dst, ap.size, str, (int)sensor);
+		string_format(dst, "> invalid i2c sensor: %d\n", (int)sensor);
 		return(app_action_error);
 	}
 
-	static roflash const char str1[] = "> i2c sensor %d calibration set to factor ";
-	length = snprintf_roflash(ap.dst, ap.size, str1, (int)sensor);
-	ap.dst += length;
-	ap.size -= length;
-
-	length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10, ap.size, ap.dst);
-	ap.dst += length;
-	ap.size -= length;
-
-	static roflash const char str2[] = ", offset: ";
-	length = snprintf_roflash(ap.dst, ap.size, str2);
-	ap.dst += length;
-	ap.size -= length;
-
-	length = double_to_string(config->i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10, ap.size, ap.dst);
-	ap.dst += length;
-	ap.size -= length;
-
-	length = snprintf(ap.dst, ap.size, "\n");
-	ap.dst += length;
-	ap.size -= length;
+	string_format(dst, "> i2c sensor %d calibration set to factor ", (int)sensor);
+	string_double(dst, config.i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10);
+	string_cat(dst, ", offset: ");
+	string_double(dst, config.i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10);
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_dump(application_parameters_t ap)
+irom static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
-	unsigned int offset;
+	int option;
 	bool_t all, verbose;
-	char *orig_dst = ap.dst;
+	int original_length = string_length(dst);
 
 	all = false;
 	verbose = false;
 
-	if(ap.nargs > 1)
+	if(parse_int(1, src, &option, 0) == parse_ok)
 	{
-		switch(string_to_int((*ap.args)[1]))
+		switch(option)
 		{
 			case(2):
 				verbose = true;
@@ -464,182 +427,63 @@ irom static app_action_t application_function_i2c_sensor_dump(application_parame
 	{
 		if(all || i2c_sensor_detected(sensor))
 		{
-			offset = i2c_sensor_read(sensor, verbose, ap.size, ap.dst);
-			ap.dst	+= offset;
-			ap.size	-= offset;
+			i2c_sensor_read(dst, sensor, verbose);
+			string_cat(dst, "\n");
 		}
 	}
 
-	if(ap.dst == orig_dst)
-	{
-		static roflash const char str[] = "> no sensors detected\n";
-		snprintf_roflash(ap.dst, ap.size, str);
-	}
+	if(string_length(dst) == original_length)
+		string_cat(dst, "> no sensors detected\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t set_unset_flag(application_parameters_t ap, bool_t value)
+irom static app_action_t set_unset_flag(string_t *src, string_t *dst, bool_t value)
 {
-	unsigned int length;
-
-	if(ap.nargs < 2)
+	if(parse_string(1, src, dst) == parse_ok)
 	{
-		static roflash const char str[] = "flags: ";
-		length = strlcpy_roflash(ap.dst, str, ap.size);
-		ap.dst += length;
-		ap.size -= length;
-
-		length = config_flags_to_string(ap.size, ap.dst, config->flags);
-		ap.dst += length;
-		ap.size -= length;
-
-		strlcpy(ap.dst, "\n", ap.size);
-
-		return(app_action_normal);
-	}
-
-	if(!config_set_flag_by_name((*ap.args)[1], value))
-	{
-		static roflash const char str[] = "> unknown flag %s\n";
-		snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1]);
-		return(app_action_error);
-	}
-
-	static roflash const char str[] = "> flag %s %s, write config and restart to effectuate\n";
-	snprintf_roflash(ap.dst, ap.size, str, (*ap.args)[1], onoff(value));
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_set(application_parameters_t ap)
-{
-	return(set_unset_flag(ap, true));
-}
-
-irom static app_action_t application_function_unset(application_parameters_t ap)
-{
-	return(set_unset_flag(ap, false));
-}
-
-irom static app_action_t application_function_rtc_set(application_parameters_t ap)
-{
-	rt_hours = string_to_int((*ap.args)[1]);
-	rt_mins = string_to_int((*ap.args)[2]);
-	rt_secs = 0;
-
-	static roflash const char str[] = "rtc set to %02u:%02u\n";
-	snprintf_roflash(ap.dst, ap.size, str, rt_hours, rt_mins);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_display_brightness(application_parameters_t ap)
-{
-	unsigned int id;
-	unsigned int value;
-	static roflash const char usage[] = "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n";
-
-	id = string_to_int((*ap.args)[1]);
-
-	if(ap.nargs > 2)
-	{
-		value = string_to_int((*ap.args)[2]);
-
-		if(!display_set_brightness(id, value))
+		if(!config_set_flag_by_name(dst, value))
 		{
-			strlcpy_roflash(ap.dst, usage, ap.size);
+			string_copy(dst, "> unknown flag\n");
 			return(app_action_error);
 		}
 	}
 
-	if(!display_get_brightness(id, &value))
+	config_flags_to_string(dst, "flags: ", "\n", config.flags);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_set(string_t *src, string_t *dst)
+{
+	return(set_unset_flag(src, dst, true));
+}
+
+irom static app_action_t application_function_unset(string_t *src, string_t *dst)
+{
+	return(set_unset_flag(src, dst, false));
+}
+
+irom static app_action_t application_function_rtc_set(string_t *src, string_t *dst)
+{
+	int hours, minutes;
+
+	if((parse_int(1, src, &hours, 0) == parse_ok) &&
+		(parse_int(2, src, &minutes, 0) == parse_ok))
 	{
-		strlcpy_roflash(ap.dst, usage, ap.size);
-		return(app_action_error);
+		rt_hours = hours;
+		rt_mins = minutes;
+		rt_secs = 0;
 	}
 
-	static roflash const char str[] = "display %u brightness: %u\n";
-	snprintf_roflash(ap.dst, ap.size, str, id, value);
+	string_format(dst, "rtc: %02u:%02u\n", rt_hours, rt_mins);
 
 	return(app_action_normal);
 }
-
-irom static app_action_t application_function_display_dump(application_parameters_t ap)
-{
-	unsigned int verbose;
-
-	if(ap.nargs > 1)
-		verbose = string_to_int((*ap.args)[1]);
-	else
-		verbose = 0;
-
-	display_dump(ap.size, ap.dst, verbose);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_display_default_message(application_parameters_t ap)
-{
-	const char *text;
-	unsigned int current;
-
-	text = ap.cmdline;
-
-	for(current = 1; current > 0; text++)
-	{
-		if(*text == '\0')
-			break;
-
-		if(*text == ' ')
-			current--;
-	}
-
-	strlcpy(config->display_default_msg, text, sizeof(config->display_default_msg));
-
-	static roflash const char str[] = "set default display message to \"%s\", write config and restart to activate\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->display_default_msg);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_display_set(application_parameters_t ap)
-{
-	unsigned int id;
-	unsigned int slot;
-	unsigned int current;
-	unsigned int timeout;
-	const char *text;
-
-	id = string_to_int((*ap.args)[1]);
-	slot = string_to_int((*ap.args)[2]);
-	timeout = string_to_int((*ap.args)[3]);
-
-	text = ap.cmdline;
-
-	for(current = 4; current > 0; text++)
-	{
-		if(*text == '\0')
-			break;
-
-		if(*text == ' ')
-			current--;
-	}
-
-	display_setslot(id, slot, timeout, text, ap.size, ap.dst);
-
-	return(app_action_normal);
-}
-
-static char wlan_scan_result[2048] = "";
 
 irom static void wlan_scan_done_callback(void *arg, STATUS status)
 {
 	struct bss_info *bss;
-	unsigned int length;
-	char *dst;
-	unsigned int size;
-	bool_t first;
 
 	static const char *status_msg[] =
 	{
@@ -659,29 +503,12 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 		"WPA PSK + WPA2 PSK"
 	};
 
-	static roflash const char str1[] = "wlan scan results: %s\n";
-	static roflash const char str2[] = "> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n";
-	static roflash const char str3[] = "> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n";
-	dst = wlan_scan_result;
-	size = sizeof(wlan_scan_result);
-
-	length = snprintf_roflash(dst, size, str1, status <= CANCEL ? status_msg[status] : "<invalid status>");
-	dst += length;
-	size -= length;
-
-	first = true;
+	string_clear(&buffer_4k);
+	string_format(&buffer_4k, "wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
+	string_format(&buffer_4k, "> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
-	{
-		if(first)
-		{
-			length = snprintf_roflash(dst, size, str2, "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
-			dst += length;
-			size -= length;
-			first = false;
-		}
-
-		length = snprintf_roflash(dst, size, str3,
+		string_format(&buffer_4k, "> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
 				bss->ssid,
 				bss->channel,
 				bss->rssi,
@@ -689,57 +516,60 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 
-		dst += length;
-		size -= length;
-	}
+	wlan_scan_state = ws_finished;
 }
 
-irom static app_action_t application_function_wlan_list(application_parameters_t ap)
+irom static app_action_t application_function_wlan_list(string_t *src, string_t *dst)
 {
-	if(!*wlan_scan_result)
+	if(wlan_scan_state != ws_finished)
 	{
-		static roflash const char str[] = "wlan scan: no results (yet)\n";
-		snprintf_roflash(ap.dst, ap.size, str);
+		string_cat(dst, "wlan scan: no results (yet)\n");
 		return(app_action_normal);
 	}
 
-	strlcpy(ap.dst, wlan_scan_result, ap.size);
-
+	string_copy_string(dst, &buffer_4k);
+	wlan_scan_state = ws_inactive;
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_wlan_scan(application_parameters_t ap)
+irom static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 {
-	*wlan_scan_result = '\0';
+	if(wlan_scan_state != ws_inactive)
+	{
+		string_cat(dst, "wlan-scan: already scanning\n");
+		return(app_action_error);
+	}
 
+	if(ota_active())
+	{
+		string_cat(dst, "wlan-scan: ota active\n");
+		return(app_action_error);
+	}
+
+	wlan_scan_state = ws_scanning;
 	wifi_station_scan(0, wlan_scan_done_callback);
-
-	static roflash const char str[] = "wlan scan started, use wlan-list to retrieve the results\n";
-	snprintf_roflash(ap.dst, ap.size, str);
+	string_cat(dst, "wlan scan started, use wlan-list to retrieve the results\n");
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_ntp_dump(application_parameters_t ap)
+irom attr_pure bool wlan_scan_active(void)
+{
+	return(wlan_scan_state != ws_inactive);
+}
+
+irom static app_action_t application_function_ntp_dump(string_t *src, string_t *dst)
 {
 	ip_addr_t addr;
-	unsigned int length;
 	int timezone;
 
 	timezone = sntp_get_timezone();
 	addr = sntp_getserver(0);
 
-	static roflash const char str1[] = "> server: ";
-	length = snprintf_roflash(ap.dst, ap.size, str1);
-	ap.dst += length;
-	ap.size -= length;
+	string_cat(dst, "> server: ");
+	string_ip(dst, addr);
 
-	length = ip_addr_to_string(ap.size, ap.dst, addr);
-	ap.dst += length;
-	ap.size -= length;
-
-	static roflash const char str2[] = "\n> time zone: GMT%c%u\n> ntp time: %s";
-	snprintf_roflash(ap.dst, ap.size, str2,
+	string_format(dst, "\n> time zone: GMT%c%d\n> ntp time: %s",
 			timezone < 0 ? '-' : '+',
 			timezone < 0 ? 0 - timezone : timezone,
 			sntp_get_real_time(sntp_get_current_timestamp()));
@@ -747,74 +577,56 @@ irom static app_action_t application_function_ntp_dump(application_parameters_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_ntp_set(application_parameters_t ap)
+irom static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
 {
-	unsigned int length;
+	int timezone;
+	string_new(static, ip, 32);
 
-	config->ntp_server = string_to_ip_addr((*ap.args)[1]);
-	config->ntp_timezone = string_to_int((*ap.args)[2]);
+	if((parse_string(1, src, &ip) == parse_ok) && (parse_int(2, src, &timezone, 0) == parse_ok))
+	{
+		config.ntp_server = ip_addr(string_to_ptr(&ip));
+		config.ntp_timezone = timezone;
+	}
 
-	static roflash const char str[] = "ntp server set, write config and restart to activate\n";
-	length = snprintf_roflash(ap.dst, ap.size, str);
-	ap.dst += length;
-	ap.size -= length;
+	return(application_function_ntp_dump(src, dst));
+}
+
+irom static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
+{
+	int gpio;
+
+	if(parse_int(1, src, &gpio, 0) == parse_ok)
+	{
+		if((gpio < -1) || (gpio > 16))
+		{
+			string_format(dst, "status trigger gpio %d invalid\n", gpio);
+			return(app_action_error);
+		}
+
+		config.stat_trigger_gpio = gpio;
+	}
+
+	string_format(dst, "status trigger at gpio %d (-1 is disabled)\n", config.stat_trigger_gpio);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_gpio_status_set(application_parameters_t ap)
+irom static app_action_t application_function_gpio_wlan_set(string_t *src, string_t *dst)
 {
 	int gpio;
 
-	if(ap.nargs > 1)
+	if(parse_int(1, src, &gpio, 0) == parse_ok)
 	{
-		gpio = string_to_int((*ap.args)[1]);
-
-		if((gpio < 0) || (gpio > 16))
+		if((gpio < -1) || (gpio > 16))
 		{
-			static roflash const char str[] = "status trigger gpio out of range: %d\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio);
+			string_format(dst, "wlan status gpio %d invalid\n", gpio);
 			return(app_action_error);
 		}
-	}
-	else
-		gpio = -1;
 
-	config->stat_trigger_gpio = gpio;
-	static roflash const char str[] = "status trigger at gpio %d, write config and restart to activate\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->stat_trigger_gpio);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_gpio_wlan_set(application_parameters_t ap)
-{
-	int gpio;
-
-	if(ap.nargs > 1)
-	{
-		gpio = string_to_int((*ap.args)[1]);
-
-		if((gpio < 0) || (gpio > 16))
-		{
-			static roflash const char str[] = "wlan trigger gpio out of range: %d\n";
-			snprintf_roflash(ap.dst, ap.size, str, gpio);
-			return(app_action_error);
-		}
-	}
-	else
-		gpio = -1;
-
-	if(gpios_mode(gpio, true) != gpio_output)
-	{
-		static roflash const char str[] = "wlan trigger gpio %d is not a plain gpio or not a plain output\n";
-		snprintf_roflash(ap.dst, ap.size, str, gpio);
-		return(app_action_error);
+		config.wlan_trigger_gpio = gpio;
 	}
 
-	config->wlan_trigger_gpio = gpio;
-	static roflash const char str[] = "wlan trigger at gpio %d, write config and restart to activate\n";
-	snprintf_roflash(ap.dst, ap.size, str, config->wlan_trigger_gpio);
+	string_format(dst, "wlan status at gpio %d (-1 is disabled)\n", config.wlan_trigger_gpio);
 
 	return(app_action_normal);
 }
@@ -823,261 +635,218 @@ static const application_function_table_t application_function_table[] =
 {
 	{
 		"ar", "analog-read",
-		0,
 		application_function_analog_read,
 		"read analog input"
 	},
 	{
 		"btp", "bridge-tcp-port",
-		0,
 		application_function_bridge_tcp_port,
 		"set uart tcp bridge tcp port (default 25)"
 	},
 	{
 		"cd", "config-dump",
-		0,
 		application_function_config_dump,
 		"dump config contents"
 	},
 	{
 		"cw", "config-write",
-		0,
 		application_function_config_write,
 		"write config to non-volatile storage"
 	},
 	{
 		"db", "display-brightness",
-		1,
 		application_function_display_brightness,
 		"set or show display brightness"
 	},
 	{
 		"dd", "display-dump",
-		0,
 		application_function_display_dump,
 		"shows all displays"
 	},
 	{
 		"ddm", "display-default-message",
-		0,
 		application_function_display_default_message,
 		"set default message",
 	},
 	{
 		"ds", "display-set",
-		3,
 		application_function_display_set,
 		"put content on display <display id> <slot> <timeout> <text>"
 	},
 	{
 		"gd", "gpio-dump",
-		0,
 		application_function_gpio_dump,
 		"dump all gpio config"
 	},
 	{
 		"gg", "gpio-get",
-		1,
 		application_function_gpio_get,
 		"get gpio"
 	},
 	{
 		"gm", "gpio-mode",
-		0,
 		application_function_gpio_mode,
 		"get/set gpio mode (gpio, mode, parameters)",
 	},
 	{
 		"gs", "gpio-set",
-		1,
 		application_function_gpio_set,
 		"set gpio"
 	},
 	{
 		"gss", "gpio-status-set",
-		0,
 		application_function_gpio_status_set,
 		"set gpio to trigger on status update"
 	},
 	{
 		"gws", "gpio-wlan-set",
-		0,
 		application_function_gpio_wlan_set,
 		"set gpio to trigger on wlan activity"
 	},
-    {
-        "ia", "i2c-address",
-        1,
-        application_function_i2c_address,
-        "set i2c slave address",
-    },
-    {
-        "id", "i2c-delay",
-        1,
-        application_function_i2c_delay,
-        "set i2c bit transaction delay (microseconds, default 5 ~ standard 100 kHz bus)",
-    },
-    {
-        "ir", "i2c-read",
-        1,
-        application_function_i2c_read,
-        "read data from i2c slave",
-    },
-    {
-        "irst", "i2c-reset",
-        0,
-        application_function_i2c_reset,
-        "i2c interface reset",
-    },
-    {
-        "iw", "i2c-write",
-        1,
-        application_function_i2c_write,
-        "write data to i2c slave",
-    },
-    {
-        "isr", "i2c-sensor-read",
-        1,
-        application_function_i2c_sensor_read,
-        "read from i2c sensor",
-    },
-    {
-        "isc", "i2c-sensor-calibrate",
-        3,
-        application_function_i2c_sensor_calibrate,
-        "calibrate i2c sensor, use sensor factor offset",
-    },
-    {
-        "isd", "i2c-sensor-dump",
-        0,
-        application_function_i2c_sensor_dump,
-        "dump all i2c sensors",
-    },
-    {
-        "nd", "ntp-dump",
-        0,
-        application_function_ntp_dump,
-        "dump ntp information",
-    },
-    {
-        "ns", "ntp-set",
-        2,
-        application_function_ntp_set,
-        "set ntp <ip addr> <timezone GMT+x>",
-    },
+	{
+		"ia", "i2c-address",
+		application_function_i2c_address,
+		"set i2c slave address",
+	},
+	{
+		"id", "i2c-delay",
+		application_function_i2c_delay,
+		"set i2c bit transaction delay (microseconds, default 5 ~ standard 100 kHz bus)",
+	},
+	{
+		"ir", "i2c-read",
+		application_function_i2c_read,
+		"read data from i2c slave",
+	},
+	{
+		"irst", "i2c-reset",
+		application_function_i2c_reset,
+		"i2c interface reset",
+	},
+	{
+		"iw", "i2c-write",
+		application_function_i2c_write,
+		"write data to i2c slave",
+	},
+	{
+		"isr", "i2c-sensor-read",
+		application_function_i2c_sensor_read,
+		"read from i2c sensor",
+	},
+	{
+		"isc", "i2c-sensor-calibrate",
+		application_function_i2c_sensor_calibrate,
+		"calibrate i2c sensor, use sensor factor offset",
+	},
+	{
+		"isd", "i2c-sensor-dump",
+		application_function_i2c_sensor_dump,
+		"dump all i2c sensors",
+	},
+	{
+		"nd", "ntp-dump",
+		application_function_ntp_dump,
+		"dump ntp information",
+	},
+	{
+		"ns", "ntp-set",
+		application_function_ntp_set,
+		"set ntp <ip addr> <timezone GMT+x>",
+	},
 	{
 		"?", "help",
-		0,
 		application_function_help,
 		"help [command]",
 	},
 #if IMAGE_OTA == 1
 	{
 		"ow", "ota-write",
-		1,
 		application_function_ota_write,
 		"ota-write file_length",
 	},
 	{
 		"ov", "ota-verify",
-		1,
 		application_function_ota_verify,
 		"ota-verify file_length",
 	},
 	{
 		"os", "ota-send",
-		2,
 		application_function_ota_send,
 		"ota-send chunk_length data",
 	},
 	{
 		"of", "ota-finish",
-		1,
 		application_function_ota_finish,
 		"ota-finish md5sum",
 	},
 	{
 		"oc", "ota-commit",
-		0,
 		application_function_ota_commit,
 		"ota-commit",
 	},
 #endif
 	{
 		"q", "quit",
-		0,
 		application_function_quit,
 		"quit",
 	},
 	{
 		"r", "reset",
-		0,
 		application_function_reset,
 		"reset",
 	},
 	{
 		"rs", "rtc-set",
-		2,
 		application_function_rtc_set,
 		"set rtc [h m]",
 	},
 	{
 		"s", "set",
-		0,
 		application_function_set,
 		"set an option",
 	},
 	{
 		"u", "unset",
-		0,
 		application_function_unset,
 		"unset an option",
 	},
 	{
 		"S", "stats",
-		0,
 		application_function_stats,
 		"statistics",
 	},
 	{
 		"ub", "uart-baud",
-		1,
 		application_function_uart_baud_rate,
 		"set uart baud rate [1-1000000]",
 	},
 	{
 		"ud", "uart-data",
-		1,
 		application_function_uart_data_bits,
 		"set uart data bits [5/6/7/8]",
 	},
 	{
 		"us", "uart-stop",
-		1,
 		application_function_uart_stop_bits,
 		"set uart stop bits [1/2]",
 	},
 	{
 		"up", "uart-parity",
-		1,
 		application_function_uart_parity,
 		"set uart parity [none/even/odd]",
 	},
 	{
 		"wl", "wlan-list",
-		0,
 		application_function_wlan_list,
 		"retrieve results from wlan-scan"
 	},
 	{
 		"ws", "wlan-scan",
-		0,
 		application_function_wlan_scan,
 		"scan wlan, use wlan-list to retrieve the results"
 	},
 	{
 		"", "",
-		0,
 		(void *)0,
 		"",
 	},

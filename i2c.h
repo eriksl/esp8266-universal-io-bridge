@@ -1,6 +1,8 @@
 #ifndef i2c_h
 #define i2c_h
 
+#include "util.h"
+
 #include <stdint.h>
 
 typedef enum
@@ -54,14 +56,13 @@ typedef enum
 
 _Static_assert(sizeof(i2c_error_t) == 4, "sizeof(i2c_error_t) != 4");
 
-i2c_error_t		i2c_init(unsigned int sda_index, unsigned int scl_index, unsigned int bit_delay);
-i2c_error_t		i2c_reset(void);
-i2c_error_t		i2c_send(unsigned int address, unsigned int length, const uint8_t *bytes);
-i2c_error_t		i2c_receive(unsigned int address, unsigned int length, uint8_t *bytes);
-unsigned int	i2c_error_format_string(const char *tag, i2c_error_t error,
-					unsigned int size, char *dst);
+i2c_error_t	i2c_init(int sda_index, int scl_index, int bit_delay);
+i2c_error_t	i2c_reset(void);
+i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
+i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
+void		i2c_error_format_string(string_t *dst, i2c_error_t error);
 
-i2c_error_t		i2c_send_1(unsigned int address, unsigned int byte0);
-i2c_error_t		i2c_send_2(unsigned int address, unsigned int byte0, unsigned int byte1);
-i2c_error_t		i2c_send_3(unsigned int address, unsigned int byte0, unsigned int byte1, unsigned int byte2);
+i2c_error_t		i2c_send_1(int address, int byte0);
+i2c_error_t		i2c_send_2(int address, int byte0, int byte1);
+i2c_error_t		i2c_send_3(int address, int byte0, int byte1, int byte2);
 #endif

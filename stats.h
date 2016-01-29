@@ -3,29 +3,30 @@
 
 #include <stdint.h>
 #include "c_types.h"
+#include "util.h"
 
-extern uint32_t stat_uart_rx_interrupts;
-extern uint32_t stat_uart_tx_interrupts;
-extern uint32_t stat_timer_fast;
-extern uint32_t stat_timer_slow;
-extern uint32_t stat_timer_second;
-extern uint32_t stat_timer_minute;
-extern uint32_t stat_background_task;
-extern uint32_t stat_i2c_init_time_us;
-extern uint32_t stat_display_init_time_us;
+extern int stat_uart_rx_interrupts;
+extern int stat_uart_tx_interrupts;
+extern int stat_timer_fast;
+extern int stat_timer_slow;
+extern int stat_timer_second;
+extern int stat_timer_minute;
+extern int stat_background_task;
+extern int stat_i2c_init_time_us;
+extern int stat_display_init_time_us;
 
-extern uint8_t ut_days;
-extern uint8_t ut_hours;
-extern uint8_t ut_mins;
-extern uint8_t ut_secs;
-extern uint8_t ut_tens;
+extern int ut_days;
+extern int ut_hours;
+extern int ut_mins;
+extern int ut_secs;
+extern int ut_tens;
 
-extern uint8_t rt_days;
-extern uint8_t rt_hours;
-extern uint8_t rt_mins;
-extern uint8_t rt_secs;
-extern uint8_t rt_tens;
+extern int rt_days;
+extern int rt_hours;
+extern int rt_mins;
+extern int rt_secs;
+extern int rt_tens;
 
-void stats_generate(unsigned int size, char *dst);
+void stats_generate(string_t *);
 
 #endif
