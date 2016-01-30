@@ -7,18 +7,24 @@
 
 static const http_handler_t handlers[];
 
-irom static app_action_t root_handler(const string_t *src, string_t *dst)
+roflash static const char http_header_pre[] =
 {
-	gpios_dump_html(dst, &config.gpios);
+	"HTTP/1.0 "
+};
 
-	return(app_action_http_ok);
-}
-
-roflash static const char http_header[] =
+roflash static const char http_header_ok[] =
 {
-	"HTTP/1.0 200 OK\r\n"
+	"200 OK\r\n"
 	"Content-Type: text/html; charset=UTF-8\r\n"
 	"Content-Length: @@@@\r\n"
+	"Connection: close\r\n"
+	"\r\n"
+};
+
+roflash static const char http_header_error[] =
+{
+	"Content-Type: text/html; charset=UTF-8\r\n"
+	"Content-Length: 0\r\n"
 	"Connection: close\r\n"
 	"\r\n"
 };
@@ -51,7 +57,9 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 	if((parse_string(1, src, &location)) != parse_ok)
 	{
+		string_cat_ptr(dst, http_header_pre);
 		string_cat(dst, "400 Bad Request\r\n");
+		string_cat_ptr(dst, http_header_error);
 		return(app_action_error);
 	}
 
@@ -61,27 +69,34 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 	if(!handler->location || !handler->handler)
 	{
-		string_format(dst, "404 Not found: %s\r\n", string_to_const_ptr(&location));
+		string_cat_ptr(dst, http_header_pre);
+		string_format(dst, "404 Not Found: %s\r\n", string_to_const_ptr(&location));
+		string_cat_ptr(dst, http_header_error);
 		return(app_action_error);
 	}
 
 	string_clear(dst);
-	string_cat_ptr(dst, http_header);
+	string_cat_ptr(dst, http_header_pre);
+	string_cat_ptr(dst, http_header_ok);
 	string_cat_ptr(dst, html_header);
 
 	if((action = handler->handler(&location, dst)) == app_action_http_ok)
 	{
 		string_cat_ptr(dst, html_footer);
 
-		if((length = string_length(dst) - (sizeof(http_header) - 1)) <= 0)
+		if((length = string_length(dst) - (sizeof(http_header_pre) - 1) - (sizeof(http_header_ok) - 1)) <= 0)
 		{
+			string_cat_ptr(dst, http_header_pre);
 			string_copy(dst, "500 Internal Server Error\r\n");
+			string_cat_ptr(dst, http_header_error);
 			return(app_action_error);
 		}
 
 		if((ix = string_find(dst, 0, '@')) <= 0)
 		{
+			string_cat_ptr(dst, http_header_pre);
 			string_copy(dst, "501 Not Implemented\r\n");
+			string_cat_ptr(dst, http_header_error);
 			return(app_action_error);
 		}
 
@@ -97,6 +112,13 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	}
 
 	return(action);
+}
+
+irom static app_action_t root_handler(const string_t *src, string_t *dst)
+{
+	gpios_dump_html(dst, &config.gpios);
+
+	return(app_action_http_ok);
 }
 
 static const http_handler_t handlers[] =
