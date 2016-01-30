@@ -138,6 +138,7 @@ void string_cat_ptr(string_t *, const char *);
 	string_cat_ptr(dst, src_flash); \
 }
 
+void string_cat_strptr(string_t *dst, const char *src);
 int string_copy_string(string_t *dst, string_t *src);
 void string_ip(string_t *dst, ip_addr_t);
 int string_double(string_t *dst, double value, int precision, double top_decimal);

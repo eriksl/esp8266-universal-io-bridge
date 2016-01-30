@@ -87,6 +87,14 @@ irom void string_format_ptr(string_t *dst, const char *fmt_flash, ...)
 	va_end(ap);
 }
 
+irom void string_cat_strptr(string_t *dst, const char *src)
+{
+	if(dst->length < dst->size)
+		dst->length += strlcpy(dst->buffer + dst->length, src, dst->size - dst->length);
+	else
+		dst->buffer[dst->size - 1] = '\0';
+}
+
 irom void string_cat_ptr(string_t *dst, const char *src)
 {
 	if(dst->length < dst->size)

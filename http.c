@@ -3,7 +3,7 @@
 #include "gpios.h"
 #include "config.h"
 
-#include <string.h>
+#include <sntp.h>
 
 static const http_handler_t handlers[];
 
@@ -31,19 +31,19 @@ roflash static const char http_header_error[] =
 
 roflash static const char html_header[] =
 {
-	"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n"
-	"<html>\r\n"
-	"<head>\r\n"
-	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\r\n"
-	"<title>Universal I/O bridge</title>\r\n"
-	"</head>\r\n"
-	"<body>\r\n"
+	"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+	"<html>\n"
+	"<head>\n"
+	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\n"
+	"<title>Universal I/O bridge</title>\n"
+	"</head>\n"
+	"<body>\n"
 };
 
 roflash static const char html_footer[] =
 {
-	"</body>\r\n"
-	"</html>\r\n"
+	"</body>\n"
+	"</html>\n"
 };
 
 irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
@@ -116,6 +116,9 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 irom static app_action_t root_handler(const string_t *src, string_t *dst)
 {
+	string_cat(dst, "<p>\n");
+	string_cat_strptr(dst, sntp_get_real_time(sntp_get_current_timestamp()));
+	string_cat(dst, "</p>\n");
 	gpios_dump_html(dst, &config.gpios);
 
 	return(app_action_http_ok);
