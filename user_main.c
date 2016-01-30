@@ -7,7 +7,6 @@
 #include "stats.h"
 #include "i2c.h"
 #include "display.h"
-#include "http.h"
 
 #include <stdlib.h>
 #include <sntp.h>
@@ -58,13 +57,10 @@ static struct
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
 	unsigned int init_ntp_bogus:1;
-	unsigned int http_disconnect:1;
-	unsigned int new_cmd_connection:1;
 } bg_action;
 
 static espsrv_t cmd;
 static espsrv_t data;
-static espsrv_t http;
 
 irom static void user_init2(void);
 
@@ -219,12 +215,6 @@ irom static void background_task(os_event_t *events)
 		bg_action.disconnect = 0;
 	}
 
-	if(bg_action.http_disconnect)
-	{
-		espconn_disconnect(http.child_socket);
-		bg_action.http_disconnect = 0;
-	}
-
 	if(bg_action.init_i2c_sensors)
 	{
 		uint32_t now = system_get_time();
@@ -243,18 +233,13 @@ irom static void background_task(os_event_t *events)
 
 	string_clear(cmd.send_buffer);
 
-	if(bg_action.new_cmd_connection && !cmd.send_busy)
-	{
-		bg_action.new_cmd_connection = 0;
-		string_copy(cmd.send_buffer, "OK\n");
-	}
-
 	if(cmd.receive_ready)
 	{
 		switch(application_content(&cmd.receive_buffer, cmd.send_buffer))
 		{
 			case(app_action_normal):
 			case(app_action_error):
+			case(app_action_http_ok):
 			{
 				/* no special action for now */
 				break;
@@ -274,7 +259,6 @@ irom static void background_task(os_event_t *events)
 			{
 				string_copy(cmd.send_buffer, "> reset\n");
 				bg_action.disconnect = 1;
-				bg_action.http_disconnect = 1;
 				bg_action.reset = 1;
 				break;
 			}
@@ -413,52 +397,6 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 		espconn_regist_disconcb(cmd.child_socket, tcp_cmd_disconnect_callback);
 
 		espconn_set_opt(cmd.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
-		bg_action.new_cmd_connection = 1;
-	}
-}
-
-irom static void tcp_http_sent_callback(void *arg)
-{
-	http.send_busy = false;
-}
-
-irom static void tcp_http_receive_callback(void *arg, char *buffer, unsigned short length)
-{
-	string_t src = string_from_ptr(length, buffer);
-	http_action_t http_action;
-
-	if(!http.send_busy)
-	{
-		http_action = http_process_request(&src, http.send_buffer);
-
-		(void)http_action; //FIXME
-
-		http.send_busy =
-				espconn_send(http.child_socket, string_to_ptr(http.send_buffer), string_length(http.send_buffer)) == 0;
-	}
-
-	bg_action.http_disconnect = 1;
-}
-
-irom static void tcp_http_disconnect_callback(void *arg)
-{
-	http.child_socket = 0;
-}
-
-irom static void tcp_http_connect_callback(struct espconn *new_connection)
-{
-	if(http.child_socket)
-		espconn_disconnect(new_connection); // not allowed but won't occur anyway
-	else
-	{
-		http.child_socket = new_connection;
-		http.send_busy = false;
-
-		espconn_regist_recvcb(http.child_socket, tcp_http_receive_callback);
-		espconn_regist_sentcb(http.child_socket, tcp_http_sent_callback);
-		espconn_regist_disconcb(http.child_socket, tcp_http_disconnect_callback);
-
-		espconn_set_opt(http.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
 	}
 }
 
@@ -570,8 +508,6 @@ irom void user_init(void)
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
 	bg_action.init_ntp_bogus = 0;
-	bg_action.http_disconnect = 0;
-	bg_action.new_cmd_connection = 0;
 
 	config_read(&config);
 	uart_init(&config.uart);
@@ -599,7 +535,6 @@ irom void user_init(void)
 irom static void user_init2(void)
 {
 	string_new(static, data_send_buffer, 1024);
-	string_new(static, http_send_buffer, 2048);
 	string_new(static, cmd_send_buffer, 4096);
 
 	ntp_init();
@@ -609,7 +544,6 @@ irom static void user_init2(void)
 
 	tcp_accept(&data,	&data_send_buffer,	config.bridge_tcp_port, 0,	tcp_data_connect_callback);
 	tcp_accept(&cmd,	&cmd_send_buffer,	24,						30,	tcp_cmd_connect_callback);
-	tcp_accept(&http,	&http_send_buffer,	80,						30,	tcp_http_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 

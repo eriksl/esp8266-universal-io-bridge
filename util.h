@@ -152,6 +152,8 @@ bool string_match_string(const string_t *, const string_t *);
 bool string_nmatch(const string_t *, const char *, int);
 char string_index(const string_t *, int index);
 int string_sep(const string_t *, int offset, int occurence, char c);
+int string_find(const string_t *, int offset, char c);
+void string_replace(string_t *, int index, char c);
 int string_bin_to_hex(string_t *dst, const string_t *src, int offset);
 int string_hex_to_bin(string_t *dst, const string_t *src, int offset);
 

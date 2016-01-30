@@ -9,6 +9,7 @@
 #include "i2c.h"
 #include "i2c_sensor.h"
 #include "display.h"
+#include "http.h"
 
 #if IMAGE_OTA == 1
 #include "ota.h"
@@ -844,6 +845,11 @@ static const application_function_table_t application_function_table[] =
 		"ws", "wlan-scan",
 		application_function_wlan_scan,
 		"scan wlan, use wlan-list to retrieve the results"
+	},
+	{
+		"GET", "http-get",
+		application_function_http_get,
+		"get access over http"
 	},
 	{
 		"", "",

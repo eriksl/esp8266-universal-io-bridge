@@ -276,6 +276,29 @@ irom attr_pure int string_sep(const string_t *src, int offset, int occurence, ch
 	return(offset);
 }
 
+irom attr_pure int string_find(const string_t *src, int offset, char c)
+{
+	for(; offset < string_length(src); offset++)
+		if(string_index(src, offset) == c)
+			return(offset);
+
+	return(-1);
+}
+
+irom void string_replace(string_t *dst, int offset, char c)
+{
+	if((offset + 1) < dst->size)
+	{
+		dst->buffer[offset] = c;
+
+		if(offset > dst->length)
+		{
+			dst->length = offset;
+			dst->buffer[dst->length + 1] = '\0';
+		}
+	}
+}
+
 irom int string_bin_to_hex(string_t *dst, const string_t *src, int offset)
 {
 	uint8_t out;

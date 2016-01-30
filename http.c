@@ -5,7 +5,99 @@
 
 #include <string.h>
 
-irom static http_action_t root_handler(const string_t *src, string_t *dst);
+static const http_handler_t handlers[];
+
+irom static app_action_t root_handler(const string_t *src, string_t *dst)
+{
+	gpios_dump_html(dst, &config.gpios);
+
+	return(app_action_http_ok);
+}
+
+roflash static const char http_header[] =
+{
+	"HTTP/1.0 200 OK\r\n"
+	"Content-Type: text/html; charset=UTF-8\r\n"
+	"Content-Length: @@@@\r\n"
+	"Connection: close\r\n"
+	"\r\n"
+};
+
+roflash static const char html_header[] =
+{
+	"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n"
+	"<html>\r\n"
+	"<head>\r\n"
+	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\r\n"
+	"<title>Universal I/O bridge</title>\r\n"
+	"</head>\r\n"
+	"<body>\r\n"
+};
+
+roflash static const char html_footer[] =
+{
+	"</body>\r\n"
+	"</html>\r\n"
+};
+
+irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
+{
+	string_new(static, location, 32);
+	int ix, length;
+	const http_handler_t *handler;
+	app_action_t action;
+
+	string_clear(&location);
+
+	if((parse_string(1, src, &location)) != parse_ok)
+	{
+		string_cat(dst, "400 Bad Request\r\n");
+		return(app_action_error);
+	}
+
+	for(handler = &handlers[0]; handler->location && handler->handler; handler++)
+		if(string_match(&location, handler->location))
+			break;
+
+	if(!handler->location || !handler->handler)
+	{
+		string_format(dst, "404 Not found: %s\r\n", string_to_const_ptr(&location));
+		return(app_action_error);
+	}
+
+	string_clear(dst);
+	string_cat_ptr(dst, http_header);
+	string_cat_ptr(dst, html_header);
+
+	if((action = handler->handler(&location, dst)) == app_action_http_ok)
+	{
+		string_cat_ptr(dst, html_footer);
+
+		if((length = string_length(dst) - (sizeof(http_header) - 1)) <= 0)
+		{
+			string_copy(dst, "500 Internal Server Error\r\n");
+			return(app_action_error);
+		}
+
+		if((ix = string_find(dst, 0, '@')) <= 0)
+		{
+			string_copy(dst, "501 Not Implemented\r\n");
+			return(app_action_error);
+		}
+
+		string_replace(dst, ix + 0, (length / 1000) + '0');
+		length %= 1000;
+		string_replace(dst, ix + 1, (length / 100) + '0');
+		length %= 100;
+		string_replace(dst, ix + 2, (length / 10) + '0');
+		length %= 10;
+		string_replace(dst, ix + 3, (length / 1) + '0');
+
+		action = app_action_normal;
+	}
+
+	return(action);
+}
 
 static const http_handler_t handlers[] =
 {
@@ -13,67 +105,8 @@ static const http_handler_t handlers[] =
 		"/",
 		root_handler
 	},
+	{
+		(const char *)0,
+		(app_action_t (*)(const string_t *, string_t *))0
+	}
 };
-
-irom http_action_t root_handler(const string_t *src, string_t *dst)
-{
-	gpios_dump_html(dst, &config.gpios);
-
-	return(http_action_normal);
-}
-
-irom http_action_t http_process_request(const string_t *src, string_t *dst)
-{
-	char current;
-	string_new(static, location, 32);
-	int ix;
-	const http_handler_t *handler;
-	http_action_t action;
-
-	if((string_length(src) < 5) || !string_nmatch(src, "GET /", 5))
-	{
-		string_cat(dst, "400 Bad request\r\n");
-		return(http_action_error);
-	}
-
-	for(ix = 4; ix < string_length(src); ix++)
-	{
-		current = string_index(src, ix);
-
-		if(current > ' ')
-			string_append(&location, current);
-		else
-			break;
-	}
-
-	for(ix = 0; ix < (int)((sizeof(handlers) / sizeof(*handlers))); ix++)
-	{
-		handler = &handlers[ix];
-
-		if(string_match(&location, handler->location))
-			break;
-	}
-
-	if(ix >= (int)(sizeof(handlers) / sizeof(*handlers)))
-	{
-		string_format(dst, "404 Not found: %s\r\n", string_to_ptr(&location));
-		return(http_action_error);
-	}
-
-	string_cat(dst,
-		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n"
-		"<html>\r\n"
-		"<head>\r\n"
-		"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\r\n"
-		"<title>Universal I/O bridge</title>\r\n"
-		"</head>\r\n"
-		"<body>\r\n");
-
-	action = handler->handler(dst, &location);
-
-	string_cat(dst, 
-		"</body>\r\n"
-		"</html>\r\n");
-
-	return(action);
-}
