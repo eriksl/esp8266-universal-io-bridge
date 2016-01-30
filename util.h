@@ -113,6 +113,8 @@ void MD5Final(unsigned char hash[], MD5_CTX *mdContext);
 
 string_t string_from_ptr(size_t size, char *buffer);
 char * string_to_ptr(string_t *string);
+const char * string_to_const_ptr(const string_t *string);
+void string_set(string_t *string, char *buffer, int size, int length);
 
 void string_format_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
 void string_cat_ptr(string_t *, const char *);

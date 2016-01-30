@@ -23,9 +23,9 @@ irom attr_pure bool ota_active(void)
 	return(ota_state != state_inactive);
 }
 
-irom static app_action_t flash_write_verify(string_t *src, string_t *dst)
+irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 {
-	char *verify_buffer = string_to_ptr(src);
+	char *verify_buffer = string_to_ptr(dst);
 
 	if(string_size(&buffer_4k) < 0x1000)
 	{
@@ -33,7 +33,7 @@ irom static app_action_t flash_write_verify(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if(string_size(src) < 0x1000)
+	if(string_size(dst) < 0x1000)
 	{
 		string_cat(dst, "OTA: string verify buffer too small\n");
 		return(app_action_error);
@@ -55,17 +55,17 @@ irom static app_action_t flash_write_verify(string_t *src, string_t *dst)
 
 	if(ets_memcmp(&buffer_4k, verify_buffer, string_length(&buffer_4k)))
 	{
-		string_cat(dst, "OTA: verify mismatch\n");
+		string_copy(dst, "OTA: verify mismatch\n");
 		return(app_action_error);
 	}
 
 	flash_sector++;
-	string_clear(&buffer_4k);
+	string_clear(dst);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t ota_start(string_t *src, string_t *dst, bool verify)
+irom static app_action_t ota_start(const string_t *src, string_t *dst, bool verify)
 {
 	rboot_config rcfg;
 
@@ -102,17 +102,17 @@ irom static app_action_t ota_start(string_t *src, string_t *dst, bool verify)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_write(string_t *src, string_t *dst)
+irom app_action_t application_function_ota_write(const string_t *src, string_t *dst)
 {
 	return(ota_start(src, dst, false));
 }
 
-irom app_action_t application_function_ota_verify(string_t *src, string_t *dst)
+irom app_action_t application_function_ota_verify(const string_t *src, string_t *dst)
 {
 	return(ota_start(src, dst, true));
 }
 
-irom app_action_t application_function_ota_send(string_t *src, string_t *dst)
+irom app_action_t application_function_ota_send(const string_t *src, string_t *dst)
 {
 	int remote_chunk_length, bin_chunk_length, hex_chunk_offset;
 	app_action_t action;
@@ -167,8 +167,9 @@ irom app_action_t application_function_ota_send(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_finish(string_t *src, string_t *dst)
+irom app_action_t application_function_ota_finish(const string_t *src, string_t *dst)
 {
+	string_new(static, local_md5_string, 34);
 	string_new(static, remote_md5_string, 34);
 	app_action_t action;
 
@@ -195,25 +196,25 @@ irom app_action_t application_function_ota_finish(string_t *src, string_t *dst)
 
 	MD5Final(string_to_ptr(dst), &md5);
 	string_setlength(dst, 16);
-	string_bin_to_hex(src, dst, 0);
 	string_clear(dst);
+	string_bin_to_hex(&local_md5_string, dst, 0);
 
 	if(!string_match_string(src, &remote_md5_string))
 	{
 		string_format(dst, "OTA: invalid md5sum: \"%s\" != \"%s\"\n",
-				string_to_ptr(src), string_to_ptr(&remote_md5_string));
+				string_to_const_ptr(&local_md5_string), string_to_ptr(&remote_md5_string));
 		ota_state = state_inactive;
 		return(app_action_error);
 	}
 
-	string_format(dst, "%s %s\n", ota_state == state_verify ? "VERIFY_OK" : "WRITE_OK", string_to_ptr(src));
+	string_format(dst, "%s %s\n", ota_state == state_verify ? "VERIFY_OK" : "WRITE_OK", string_to_const_ptr(&local_md5_string));
 
 	ota_state = state_successful;
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_commit(string_t *src, string_t *dst)
+irom app_action_t application_function_ota_commit(const string_t *src, string_t *dst)
 {
 	if(ota_state != state_successful)
 	{

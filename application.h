@@ -16,7 +16,7 @@ typedef enum
 
 _Static_assert(sizeof(app_action_t) == 4, "sizeof(app_action_t) != 4");
 
-app_action_t application_content(string_t *src, string_t *dst);
+app_action_t application_content(const string_t *src, string_t *dst);
 
 bool wlan_scan_active(void);
 

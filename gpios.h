@@ -115,10 +115,10 @@ void gpios_dump_html(string_t *dst, const gpio_config_t *);
 bool gpios_trigger_output(int gpio_name);
 bool gpios_set_wlan_trigger(int gpio_name);
 
-app_action_t application_function_gpio_get(string_t *, string_t *);
-app_action_t application_function_gpio_set(string_t *, string_t *);
-app_action_t application_function_gpio_mode(string_t *, string_t *);
-app_action_t application_function_gpio_dump(string_t *, string_t *);
-app_action_t application_function_analog_read(string_t *, string_t *);
+app_action_t application_function_gpio_get(const string_t *, string_t *);
+app_action_t application_function_gpio_set(const string_t *, string_t *);
+app_action_t application_function_gpio_mode(const string_t *, string_t *);
+app_action_t application_function_gpio_dump(const string_t *, string_t *);
+app_action_t application_function_analog_read(const string_t *, string_t *);
 
 #endif

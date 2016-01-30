@@ -436,7 +436,7 @@ irom static void display_dump(string_t *dst, int verbose_level)
 		string_cat(dst, "> no displays found\n");
 }
 
-irom app_action_t application_function_display_brightness(string_t *src, string_t *dst)
+irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
 {
 	int id, value;
 
@@ -463,7 +463,7 @@ irom app_action_t application_function_display_brightness(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_dump(string_t *src, string_t *dst)
+irom app_action_t application_function_display_dump(const string_t *src, string_t *dst)
 {
 	int verbose;
 
@@ -475,12 +475,12 @@ irom app_action_t application_function_display_dump(string_t *src, string_t *dst
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_default_message(string_t *src, string_t *dst)
+irom app_action_t application_function_display_default_message(const string_t *src, string_t *dst)
 {
 	const char *text;
 	int ws;
 
-	text = string_to_ptr(src);
+	text = string_to_const_ptr(src);
 
 	for(ws = 1; ws > 0; text++)
 	{
@@ -497,7 +497,7 @@ irom app_action_t application_function_display_default_message(string_t *src, st
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_set(string_t *src, string_t *dst)
+irom app_action_t application_function_display_set(const string_t *src, string_t *dst)
 {
 	int id, slot, timeout, current;
 	const char *text;

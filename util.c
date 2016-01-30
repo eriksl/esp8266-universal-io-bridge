@@ -50,6 +50,13 @@ done:
 	return(to);
 }
 
+irom void string_set(string_t *dst, char *buffer, int size, int length)
+{
+	dst->buffer = buffer;
+	dst->size   = size;
+	dst->length = length;
+}
+
 irom string_t string_from_ptr(size_t size, char *buffer)
 {
 	string_t string = { size, ets_strlen(buffer), buffer };
@@ -61,6 +68,11 @@ irom char *string_to_ptr(string_t *string)
 {
 	string->buffer[string->length] = '\0';
 
+	return(string->buffer);
+}
+
+irom attr_pure const char *string_to_const_ptr(const string_t *string)
+{
 	return(string->buffer);
 }
 

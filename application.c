@@ -31,14 +31,14 @@ typedef struct
 {
 	const char		*command1;
 	const char		*command2;
-	app_action_t	(*function)(string_t *, string_t *);
+	app_action_t	(*function)(const string_t *, string_t *);
 	const char		*description;
 } application_function_table_t;
 
 static const application_function_table_t application_function_table[];
 static wlan_scan_state_t wlan_scan_state = ws_inactive;
 
-irom app_action_t application_content(string_t *src, string_t *dst)
+irom app_action_t application_content(const string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
 
@@ -63,21 +63,21 @@ irom app_action_t application_content(string_t *src, string_t *dst)
 	return(app_action_error);
 }
 
-irom static app_action_t application_function_config_dump(string_t *src, string_t *dst)
+irom static app_action_t application_function_config_dump(const string_t *src, string_t *dst)
 {
 	config_read(&tmpconfig);
 	config_dump(dst, &tmpconfig);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_write(string_t *src, string_t *dst)
+irom static app_action_t application_function_config_write(const string_t *src, string_t *dst)
 {
 	config_write(&config);
 	string_cat(dst, "config write done\n");
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_help(string_t *src, string_t *dst)
+irom static app_action_t application_function_help(const string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
 
@@ -89,23 +89,23 @@ irom static app_action_t application_function_help(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_quit(string_t *src, string_t *dst)
+irom static app_action_t application_function_quit(const string_t *src, string_t *dst)
 {
 	return(app_action_disconnect);
 }
 
-irom static app_action_t application_function_reset(string_t *src, string_t *dst)
+irom static app_action_t application_function_reset(const string_t *src, string_t *dst)
 {
 	return(app_action_reset);
 }
 
-irom static app_action_t application_function_stats(string_t *src, string_t *dst)
+irom static app_action_t application_function_stats(const string_t *src, string_t *dst)
 {
 	stats_generate(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_tcp_port(string_t *src, string_t *dst)
+irom static app_action_t application_function_bridge_tcp_port(const string_t *src, string_t *dst)
 {
 	int tcp_port;
 
@@ -125,7 +125,7 @@ irom static app_action_t application_function_bridge_tcp_port(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
+irom static app_action_t application_function_uart_baud_rate(const string_t *src, string_t *dst)
 {
 	int baud_rate;
 
@@ -145,7 +145,7 @@ irom static app_action_t application_function_uart_baud_rate(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
+irom static app_action_t application_function_uart_data_bits(const string_t *src, string_t *dst)
 {
 	int data_bits;
 
@@ -165,7 +165,7 @@ irom static app_action_t application_function_uart_data_bits(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
+irom static app_action_t application_function_uart_stop_bits(const string_t *src, string_t *dst)
 {
 	int stop_bits;
 
@@ -185,7 +185,7 @@ irom static app_action_t application_function_uart_stop_bits(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_parity(string_t *src, string_t *dst)
+irom static app_action_t application_function_uart_parity(const string_t *src, string_t *dst)
 {
 	uart_parity_t parity;
 
@@ -211,7 +211,7 @@ irom static app_action_t application_function_uart_parity(string_t *src, string_
 
 static int i2c_address = 0;
 
-irom static app_action_t application_function_i2c_address(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_address(const string_t *src, string_t *dst)
 {
 	int intin;
 
@@ -231,7 +231,7 @@ irom static app_action_t application_function_i2c_address(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_delay(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_delay(const string_t *src, string_t *dst)
 {
 	int intin;
 
@@ -251,7 +251,7 @@ irom static app_action_t application_function_i2c_delay(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_read(const string_t *src, string_t *dst)
 {
 	int size, current;
 	i2c_error_t error;
@@ -288,7 +288,7 @@ irom static app_action_t application_function_i2c_read(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_write(const string_t *src, string_t *dst)
 {
 	i2c_error_t error;
 	static uint8_t bytes[32];
@@ -316,7 +316,7 @@ irom static app_action_t application_function_i2c_write(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_reset(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_reset(const string_t *src, string_t *dst)
 {
 	i2c_error_t error;
 
@@ -333,7 +333,7 @@ irom static app_action_t application_function_i2c_reset(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_sensor_read(const string_t *src, string_t *dst)
 {
 	int intin;
 	i2c_sensor_t sensor;
@@ -358,7 +358,7 @@ irom static app_action_t application_function_i2c_sensor_read(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_calibrate(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_sensor_calibrate(const string_t *src, string_t *dst)
 {
 	int intin;
 	i2c_sensor_t sensor;
@@ -400,7 +400,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(string_t *src
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_sensor_dump(const string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
 	int option;
@@ -438,7 +438,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t set_unset_flag(string_t *src, string_t *dst, bool_t value)
+irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool_t value)
 {
 	if(parse_string(1, src, dst) == parse_ok)
 	{
@@ -454,17 +454,17 @@ irom static app_action_t set_unset_flag(string_t *src, string_t *dst, bool_t val
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_set(string_t *src, string_t *dst)
+irom static app_action_t application_function_set(const string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, true));
 }
 
-irom static app_action_t application_function_unset(string_t *src, string_t *dst)
+irom static app_action_t application_function_unset(const string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, false));
 }
 
-irom static app_action_t application_function_rtc_set(string_t *src, string_t *dst)
+irom static app_action_t application_function_rtc_set(const string_t *src, string_t *dst)
 {
 	int hours, minutes;
 
@@ -519,7 +519,7 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	wlan_scan_state = ws_finished;
 }
 
-irom static app_action_t application_function_wlan_list(string_t *src, string_t *dst)
+irom static app_action_t application_function_wlan_list(const string_t *src, string_t *dst)
 {
 	if(wlan_scan_state != ws_finished)
 	{
@@ -532,7 +532,7 @@ irom static app_action_t application_function_wlan_list(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
+irom static app_action_t application_function_wlan_scan(const string_t *src, string_t *dst)
 {
 	if(wlan_scan_state != ws_inactive)
 	{
@@ -558,7 +558,7 @@ irom attr_pure bool wlan_scan_active(void)
 	return(wlan_scan_state != ws_inactive);
 }
 
-irom static app_action_t application_function_ntp_dump(string_t *src, string_t *dst)
+irom static app_action_t application_function_ntp_dump(const string_t *src, string_t *dst)
 {
 	ip_addr_t addr;
 	int timezone;
@@ -577,7 +577,7 @@ irom static app_action_t application_function_ntp_dump(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
+irom static app_action_t application_function_ntp_set(const string_t *src, string_t *dst)
 {
 	int timezone;
 	string_new(static, ip, 32);
@@ -591,7 +591,7 @@ irom static app_action_t application_function_ntp_set(string_t *src, string_t *d
 	return(application_function_ntp_dump(src, dst));
 }
 
-irom static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
+irom static app_action_t application_function_gpio_status_set(const string_t *src, string_t *dst)
 {
 	int gpio;
 
@@ -611,7 +611,7 @@ irom static app_action_t application_function_gpio_status_set(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_gpio_wlan_set(string_t *src, string_t *dst)
+irom static app_action_t application_function_gpio_wlan_set(const string_t *src, string_t *dst)
 {
 	int gpio;
 
