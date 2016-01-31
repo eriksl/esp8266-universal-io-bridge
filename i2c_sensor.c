@@ -808,9 +808,9 @@ irom static i2c_error_t sensor_bh1750_read(const device_table_entry_t *entry, va
 	return(i2c_error_ok);
 }
 
-irom attr_pure static i2c_error_t htu21_crc(int length, const uint8_t *data)
+irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 {
-	i2c_error_t outer, inner, testbit, crc;
+	uint8_t outer, inner, testbit, crc;
 
 	crc = 0;
 
@@ -834,7 +834,7 @@ irom static i2c_error_t sensor_htu21_read_temp(const device_table_entry_t *entry
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
-	unsigned int crc1, crc2;
+	uint8_t crc1, crc2;
 
 	// temperature measurement "hold master" mode
 
@@ -864,7 +864,7 @@ irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry,
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
-	unsigned int crc1, crc2;
+	uint8_t crc1, crc2;
 
 	// humidity measurement "hold master" mode
 
@@ -890,10 +890,10 @@ irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry,
 	return(i2c_error_ok);
 }
 
-irom attr_pure static int am2321_crc(int length, const uint8_t *data)
+irom attr_pure static uint16_t am2321_crc(int length, const uint8_t *data)
 {
-	uint8_t		outer, inner, testbit;
-	uint16_t	crc;
+	uint8_t outer, inner, testbit;
+	uint16_t crc;
 
 	crc = 0xffff;
 
