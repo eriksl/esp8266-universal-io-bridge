@@ -12,14 +12,45 @@
 #include <openssl/md5.h>
 #include <sys/time.h>
 
+static void crc32_init(void);
+static uint32_t crc32(int length, const char *src);
+static int verbose;
+
 static void usage(void)
 {
 	fprintf(stderr, "usage: otapush [options] host file\n");
 	fprintf(stderr, "-c|--dont-commit      don't commit (reset and load new image)\n");
 	fprintf(stderr, "-p|--port             set command port (default 24)\n");
-	fprintf(stderr, "-s|--chunk-size 2^s   set command port (5 - 9, default 8 = 256 bytes)\n");
+	fprintf(stderr, "-s|--chunk-size 2^s   set command port (5 - 10, default 8 = 256 bytes)\n");
 	fprintf(stderr, "-t|--timeout ms       set communication timeout (default = 30000 = 30s)\n");
-	fprintf(stderr, "-v|--verify           verify (instead of write)\n");
+	fprintf(stderr, "-V|--verify           verify (instead of write)\n");
+	fprintf(stderr, "-v|--verbose          verbose\n");
+}
+
+static void do_log(const char *tag, int msglength, const char *msg)
+{
+	int ix;
+	char byte;
+
+	if(!verbose)
+		return;
+
+	fprintf(stderr, "* %s: ", tag);
+
+	if(msglength > 64)
+		msglength = 64;
+
+	for(ix = 0; ix < msglength; ix++)
+	{
+		byte = msg[ix];
+
+		if((byte < ' ') || (byte > '~'))
+			byte = '-';
+
+		fputc(byte, stderr);
+	}
+
+	fprintf(stderr, "\n");
 }
 
 static int resolve(const char * hostname, int port, struct sockaddr_in6 *saddr)
@@ -48,9 +79,10 @@ static int resolve(const char * hostname, int port, struct sockaddr_in6 *saddr)
 	return(1);
 }
 
-static int read_timeout(int fd, void *dst, ssize_t size, int timeout)
+static int do_read(int fd, char *dst, ssize_t size, int timeout)
 {
-	struct pollfd	pfd;
+	struct pollfd pfd;
+	int length;
 
 	pfd.fd		= fd;
 	pfd.events	= POLLIN;
@@ -58,10 +90,21 @@ static int read_timeout(int fd, void *dst, ssize_t size, int timeout)
 	if(poll(&pfd, 1, timeout) != 1)
 		return(-1);
 
-	return(read(fd, dst, size));
+	length = read(fd, dst, size);
+
+	if(length > 0)
+		dst[length] = '\0';
+
+	if((length > 0) && (dst[length - 1] == '\n'))
+		dst[--length] = '\0';
+
+	if((length > 0) && (dst[length - 1] == '\r'))
+		dst[--length] = '\0';
+
+	return(length >= 0);
 }
 
-static int write_timeout(int fd, const void *src, ssize_t length, int timeout)
+static int do_write(int fd, char *src, ssize_t length, int timeout)
 {
 	struct pollfd	pfd;
 
@@ -71,21 +114,10 @@ static int write_timeout(int fd, const void *src, ssize_t length, int timeout)
 	if(poll(&pfd, 1, timeout) != 1)
 		return(-1);
 
-	return(write(fd, src, length));
-}
+	src[length++] = '\r';
+	src[length++] = '\n';
 
-static void bin_to_hex(unsigned int src_length, const char *src, unsigned int dst_size, char *dst)
-{
-	unsigned int src_ix, dst_ix;
-	unsigned char current;
-
-	for(src_ix = 0, dst_ix = 0; (src_ix < src_length) && ((dst_ix + 1) < dst_size); src_ix++, dst_ix += 2)
-	{
-		current = (unsigned char)src[src_ix];
-		sprintf(&dst[dst_ix], "%02x", current);
-	}
-
-	dst[dst_ix] = '\0';
+	return(write(fd, src, length) == length);
 }
 
 static void md5_hash_to_string(const char *hash, unsigned int size, char *string)
@@ -147,15 +179,20 @@ static cmd_trait_t cmd_trait[] =
 
 int main(int argc, char * const *argv)
 {
-	int					file_fd, sock_fd, val;
+	int					file_fd, sock_fd;
 	struct sockaddr_in6	saddr;
 	const char			*hostname;
 	const char			*filename;
 	int					file_length, done;
-	char				buffer[1024], hexbuf[2048], cmdbuf[4048];
+	int					length, written, skipped;
+	char				buffer[8192], cmdbuf[8192];
 	ssize_t				bufread;
 	MD5_CTX				md5;
-	char				md5_hash[MD5_DIGEST_LENGTH], md5_string[MD5_DIGEST_LENGTH * 2 + 1];
+	char				md5_hash[MD5_DIGEST_LENGTH];
+	char				md5_string[MD5_DIGEST_LENGTH * 2 + 1];
+	char				remote_md5_string[MD5_DIGEST_LENGTH * 2 + 1];
+	char				remote_remote_md5_string[MD5_DIGEST_LENGTH * 2 + 1];
+	uint32_t			crc;
 	int					arg;
 	int					port;
 	int					verify, dontcommit, chunk_size, timeout;
@@ -173,6 +210,7 @@ int main(int argc, char * const *argv)
 	chunk_size = 8;
 	timeout = 30000;
 	verify = 0;
+	verbose = 0;
 
 	static const char *shortopts = "cp:s:t:v";
 	static const struct option longopts[] =
@@ -181,7 +219,8 @@ int main(int argc, char * const *argv)
 		{ "port",			required_argument,	0, 'p' },
 		{ "chunk-size",		required_argument,	0, 's' },
 		{ "timeout",		required_argument,	0, 't' },
-		{ "verify",			no_argument,		0, 'v' },
+		{ "verify",			no_argument,		0, 'V' },
+		{ "verbose",		no_argument,		0, 'v' },
 		{ 0, 0, 0, 0 }
 	};
 
@@ -216,9 +255,15 @@ int main(int argc, char * const *argv)
 				break;
 			}
 
-			case('v'):
+			case('V'):
 			{
 				verify = 1;
+				break;
+			}
+
+			case('v'):
+			{
+				verbose = 1;
 				break;
 			}
 		}
@@ -230,9 +275,9 @@ int main(int argc, char * const *argv)
 		exit(1);
 	}
 
-	if((chunk_size < 5) || (chunk_size > 9))
+	if((chunk_size < 5) || (chunk_size > 10))
 	{
-		fprintf(stderr, "chunk size must be between 5 (32 bytes) and 9 (512 bytes)\n");
+		fprintf(stderr, "chunk size must be between 5 (32 bytes) and 10 (1024 bytes)\n");
 		exit(1);
 	}
 
@@ -274,6 +319,7 @@ int main(int argc, char * const *argv)
 		goto error;
 	}
 
+#if 0
 	val = 1;
 
 	if(setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)))
@@ -281,7 +327,9 @@ int main(int argc, char * const *argv)
 		fprintf(stderr, "socket set nodelay failed: %m\n");
 		goto error;
 	}
+#endif
 
+#if 0
 	val = 1200;
 
 	if(setsockopt(sock_fd, IPPROTO_TCP, TCP_WINDOW_CLAMP, &val, sizeof(val)))
@@ -289,6 +337,7 @@ int main(int argc, char * const *argv)
 		fprintf(stderr, "socket set window clamp failed: %m\n");
 		goto error;
 	}
+#endif
 
 	if(connect(sock_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 	{
@@ -296,37 +345,27 @@ int main(int argc, char * const *argv)
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1, timeout)) <= 0)
-	{
-		fprintf(stderr, "socket read failed: %m\n");
-		goto error;
-	}
+	do_log("connect", 0, 0);
 
-	buffer[bufread] = '\0';
+	snprintf(cmdbuf, sizeof(cmdbuf), "%s %u", trait->cmd, file_length);
 
-	if(strcmp(buffer, "OK\n"))
-	{
-		fprintf(stderr, "no response\n");
-		goto error;
-	}
+	do_log("send", strlen(cmdbuf), cmdbuf);
 
-	snprintf(cmdbuf, sizeof(cmdbuf), "%s %u\n", trait->cmd, file_length);
-
-	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
+	if(!do_write(sock_fd, cmdbuf, strlen(cmdbuf), timeout))
 	{
 		fprintf(stderr, "command %s failed (%m)\n", trait->id);
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer) - 1, timeout)) <= 0)
+	if(!do_read(sock_fd, buffer, sizeof(buffer), timeout))
 	{
 		fprintf(stderr, "command %s timeout: %m\n", trait->id);
 		goto error;
 	}
 
-	buffer[bufread] = '\0';
+	do_log("receive", strlen(buffer), buffer);
 
-	if(sscanf(buffer, "%16s %d %d\n", cmdbuf, &slot, &sector) != 3)
+	if(sscanf(buffer, "%16s %d %d", cmdbuf, &slot, &sector) != 3)
 	{
 		fprintf(stderr, "command %s failed: %s\n", trait->id, buffer);
 		goto error;
@@ -338,6 +377,7 @@ int main(int argc, char * const *argv)
 		goto error;
 	}
 
+	crc32_init();
 	MD5_Init(&md5);
 
 	fprintf(stderr, "starting %s of file: %s, length: %u, slot: %d, address: 0x%x\n", trait->id, filename, file_length, slot, sector * 0x1000);
@@ -358,26 +398,30 @@ int main(int argc, char * const *argv)
 		buffer[bufread] = '\0';
 
 		MD5_Update(&md5, buffer, bufread);
+		crc = crc32(bufread, buffer);
 
-		bin_to_hex(bufread, buffer, sizeof(hexbuf), hexbuf);
+		snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %u ", bufread, crc);
+		length = strlen(cmdbuf);
+		memcpy(cmdbuf + length, buffer, bufread);
+		length += bufread;
 
-		snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %s\n", bufread, hexbuf);
+		do_log("send data", length, cmdbuf);
 
-		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
+		if(!do_write(sock_fd, cmdbuf, length, timeout))
 		{
 			fprintf(stderr, "\nsend failed (%m)\n");
 			goto error;
 		}
 
-		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
+		if(!do_read(sock_fd, buffer, sizeof(buffer), timeout))
 		{
 			fprintf(stderr, "\nsend acknowledge timed out\n");
 			goto error;
 		}
 
-		buffer[bufread] = '\0';
+		do_log("receive", strlen(buffer), buffer);
 
-		if(strcmp(buffer, "ACK\n"))
+		if(strncmp(buffer, "ACK ", 4))
 		{
 			fprintf(stderr, "\nsend: %s\n", buffer);
 			goto error;
@@ -390,71 +434,63 @@ int main(int argc, char * const *argv)
 		duration = seconds + (useconds / 1000000.0);
 		rate = done / 1024.0 / duration;
 
-		fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%    \r", trait->progress, done / 1024, (int)duration, (int)rate, (done * 100) / file_length);
+		if(!verbose)
+			fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%    \r", trait->progress, done / 1024, (int)duration, (int)rate, (done * 100) / file_length);
 	}
 
-	fprintf(stderr, "\nfinishing\n");
+	if(!verbose)
+		fprintf(stderr, "\nfinishing\n");
 
 	MD5_Final(md5_hash, &md5);
 	md5_hash_to_string(md5_hash, sizeof(md5_string), md5_string);
 
 	snprintf(cmdbuf, sizeof(cmdbuf), "of %s\n", md5_string);
 
-	if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
+	do_log("send", strlen(cmdbuf), cmdbuf);
+
+	if(!do_write(sock_fd, cmdbuf, strlen(cmdbuf), timeout))
 	{
 		fprintf(stderr, "finish failed (%m)\n");
 		goto error;
 	}
 
-	if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
+	if(!do_read(sock_fd, buffer, sizeof(buffer), timeout))
 	{
 		fprintf(stderr, "finish failed: %m\n");
 		goto error;
 	}
 
-	buffer[bufread] = '\0';
+	do_log("receive", strlen(buffer), buffer);
 
-	if(sscanf(buffer, "%16s %32s\n", cmdbuf, hexbuf) != 2)
+	if(sscanf(buffer, "%s %s %s %d %d\n", cmdbuf, remote_md5_string, remote_remote_md5_string, &written, &skipped) != 5)
 	{
-		fprintf(stderr, "finish failed: %s\n", buffer);
+		fprintf(stderr, "finish failed 0: %s\n", buffer);
 		goto error;
 	}
 
-	if(strcmp(trait->reply_ok, cmdbuf))
+	if(strncmp(trait->reply_ok, cmdbuf, strlen(trait->reply_ok)))
 	{
-		fprintf(stderr, "finish failed: %s\n", buffer);
+		fprintf(stderr, "finish failed 1: %s\n", buffer);
 		goto error;
 	}
 
-	if(strcmp(md5_string, hexbuf))
+	if(strcmp(md5_string, remote_md5_string))
 	{
-		fprintf(stderr, "md5sum mismatch: \"%s\" != \"%s\"\n", md5_string, hexbuf);
+		fprintf(stderr, "md5sums don't match: \"%s\" != \"%s\"\n", md5_string, remote_md5_string);
 		goto error;
 	}
 
-	fprintf(stderr, "%s successful\n", trait->id);
+	fprintf(stderr, "%s successful, %d sectors written, %d sectors skipped\n", trait->id, written, skipped);
 
 	if(!dontcommit && !verify)
 	{
-		snprintf(cmdbuf, sizeof(cmdbuf), "oc\n");
+		snprintf(cmdbuf, sizeof(cmdbuf), "oc");
 
-		if(write_timeout(sock_fd, cmdbuf, strlen(cmdbuf), timeout) != (ssize_t)strlen(cmdbuf))
+		do_log("send", strlen(cmdbuf), cmdbuf);
+
+		if(!do_write(sock_fd, cmdbuf, strlen(cmdbuf), timeout))
 		{
 			fprintf(stderr, "commit write failed (%m)\n");
-			goto error;
-		}
-
-		if((bufread = read_timeout(sock_fd, buffer, sizeof(buffer), timeout)) <= 0)
-		{
-			fprintf(stderr, "commit acknowledge failed: %m\n");
-			goto error;
-		}
-
-		buffer[bufread] = '\0';
-
-		if(strcmp("> reset\n", buffer))
-		{
-			fprintf(stderr, "commit failed: %s\n", buffer);
 			goto error;
 		}
 
@@ -467,4 +503,49 @@ error:
 	close(file_fd);
 
 	exit(rv);
+}
+
+/**********************************************************************
+ * Copyright (c) 2000 by Michael Barr.  This software is placed into
+ * the public domain and may be used for any purpose.  However, this
+ * notice must not be changed or removed and no warranty is either
+ * expressed or implied by its publication or distribution.
+ **********************************************************************/
+
+static uint32_t string_crc_table[256];
+
+static void crc32_init(void)
+{
+	unsigned int dividend, bit;
+	uint32_t remainder;
+
+	for(dividend = 0; dividend < (sizeof(string_crc_table) / sizeof(*string_crc_table)); dividend++)
+	{
+		remainder = dividend << (32 - 8);
+
+		for (bit = 8; bit > 0; --bit)
+		{
+			if (remainder & (1 << 31))
+				remainder = (remainder << 1) ^ 0x04c11db7;
+			else
+				remainder = (remainder << 1);
+		}
+
+		string_crc_table[dividend] = remainder;
+	}
+}
+
+static uint32_t crc32(int length, const char *src)
+{
+	uint32_t remainder = 0xffffffff;
+	uint8_t data;
+	int offset;
+
+	for(offset = 0; offset < length; offset++)
+	{
+		data = src[offset] ^ (remainder >> (32 - 8));
+		remainder = string_crc_table[data] ^ (remainder << 8);
+	}
+
+	return(remainder ^ 0xffffffff);
 }

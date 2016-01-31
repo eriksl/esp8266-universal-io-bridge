@@ -5,7 +5,7 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
-OTA_HOST			?= 10.1.12.210
+OTA_HOST			?= esp5
 
 # no user serviceable parts below
 
@@ -273,7 +273,7 @@ flash-ota:				$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) fre
 ota:					$(OTA_TARGET)
 
 push-ota:				$(FIRMWARE_OTA_IMG) free otapush
-						./otapush -s 9 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+						./otapush -s 10 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
 %.o:					%.c
 						$(VECHO) "CC $<"

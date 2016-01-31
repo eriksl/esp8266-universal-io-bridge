@@ -155,8 +155,10 @@ char string_index(const string_t *, int index);
 int string_sep(const string_t *, int offset, int occurence, char c);
 int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
-int string_bin_to_hex(string_t *dst, const string_t *src, int offset);
-int string_hex_to_bin(string_t *dst, const string_t *src, int offset);
+void string_splice(string_t *dst, const string_t *src, int src_offset, int length);
+void string_bin_to_hex(string_t *dst, const char *src, int length);
+void string_crc32_init(void);
+uint32_t string_crc32(const string_t *src, int offset, int length);
 
 parse_error_t parse_string(int index, const string_t *in, string_t *out);
 parse_error_t parse_int(int index, const string_t *src, int *dst, int base);

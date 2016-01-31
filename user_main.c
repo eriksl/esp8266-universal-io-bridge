@@ -535,7 +535,7 @@ irom void user_init(void)
 irom static void user_init2(void)
 {
 	string_new(static, data_send_buffer, 1024);
-	string_new(static, cmd_send_buffer, 4096);
+	string_new(static, cmd_send_buffer, 4096 + 4); // need a few extra bytes to make up exactly 4096 bytes for OTA
 
 	ntp_init();
 	gpios_init();

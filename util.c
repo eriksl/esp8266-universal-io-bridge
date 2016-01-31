@@ -12,7 +12,7 @@
 #include <user_interface.h>
 
 static char dram_buffer[1024];
-string_new(, buffer_4k, 0x1000);
+string_new(, buffer_4k, 4096 + 4);
 
 int ets_vsnprintf(char *, size_t, const char *, va_list);
 
@@ -307,69 +307,105 @@ irom void string_replace(string_t *dst, int offset, char c)
 	}
 }
 
-irom int string_bin_to_hex(string_t *dst, const string_t *src, int offset)
+void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
 {
-	uint8_t out;
-	int length;
+	const char *from;
+	char *to;
 
-	for(length = 0; offset < string_length(src) ; offset++, length++)
-	{
-		out = (string_index(src, offset) & 0xf0) >> 4;
+	if((src_offset + length) > string_length(src))
+		length = string_length(src) - src_offset;
 
-		if(out > 9)
-			out = (out - 10) + 'a';
-		else
-			out = out + '0';
+	if((string_length(dst) + length) > string_size(dst))
+		length = string_size(dst) - string_length(dst);
 
-		string_append(dst, out);
+	if(length <= 0)
+		return;
 
-		out = (string_index(src, offset) & 0x0f) >> 0;
+	from = string_to_const_ptr(src);
+	to = string_to_ptr(dst);
 
-		if(out > 9)
-			out = (out - 10) + 'a';
-		else
-			out = out + '0';
+	ets_memcpy(to + string_length(dst), from + src_offset, length); 
 
-		string_append(dst, out);
-	}
-
-	return(length);
+	string_setlength(dst, string_length(dst) + length);
 }
 
-irom int string_hex_to_bin(string_t *dst, const string_t *src, int offset)
+irom void string_bin_to_hex(string_t *dst, const char *src, int length)
 {
-	uint8_t in, out;
-	int length;
+	int offset;
+	uint8_t out;
 
-	for(length = 0; (offset + 1) < string_length(src); offset += 2, length++)
+	for(offset = 0; offset < length ; offset++)
 	{
-		in = string_index(src, offset);
-		out = 0;
+		out = (src[offset] & 0xf0) >> 4;
 
-		if((in >= '0') && (in <= '9'))
-			out |= in - '0';
+		if(out > 9)
+			out = (out - 10) + 'a';
 		else
-			if((in >= 'a') && (in <= 'f'))
-				out |= in - 'a' + 10;
+			out = out + '0';
 
-		in = string_index(src, offset + 1);
-		out <<= 4;
+		string_append(dst, out);
 
-		if((in >= '0') && (in <= '9'))
-			out |= in - '0';
+		out = (src[offset] & 0x0f) >> 0;
+
+		if(out > 9)
+			out = (out - 10) + 'a';
 		else
-			if((in >= 'a') && (in <= 'f'))
-				out |= in - 'a' + 10;
+			out = out + '0';
 
 		string_append(dst, out);
 	}
+}
 
-	return(length);
+/**********************************************************************
+ * Copyright (c) 2000 by Michael Barr.  This software is placed into
+ * the public domain and may be used for any purpose.  However, this
+ * notice must not be changed or removed and no warranty is either
+ * expressed or implied by its publication or distribution.
+ **********************************************************************/
+
+static uint32_t string_crc_table[256];
+
+irom void string_crc32_init(void)
+{
+	unsigned int dividend, bit;
+	uint32_t remainder;
+
+	for(dividend = 0; dividend < (sizeof(string_crc_table) / sizeof(*string_crc_table)); dividend++)
+	{
+		remainder = dividend << (32 - 8);
+
+		for (bit = 8; bit > 0; --bit)
+		{
+			if (remainder & (1 << 31))
+				remainder = (remainder << 1) ^ 0x04c11db7;
+			else
+				remainder = (remainder << 1);
+		}
+
+		string_crc_table[dividend] = remainder;
+	}
+}
+
+irom attr_pure uint32_t string_crc32(const string_t *src, int offset, int length)
+{
+	uint32_t remainder = 0xffffffff;
+	uint8_t data;
+	int src_length;
+
+	src_length = string_length(src);
+
+	for(; (length > 0) && (offset < src_length); offset++, length--)
+	{
+		data = string_index(src, offset) ^ (remainder >> (32 - 8));
+		remainder = string_crc_table[data] ^ (remainder << 8);
+	}
+
+	return(remainder ^ 0xffffffff);
 }
 
 irom parse_error_t parse_string(int index, const string_t *src, string_t *dst)
 {
-	char current;
+	uint8_t current;
 	int offset;
 
 	if((offset = string_sep(src, 0, index, ' ')) < 0)
@@ -381,7 +417,8 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst)
 
 		if(current == ' ')
 			break;
-		else
+
+		if((current > ' ') && (current <= '~'))
 			string_append(dst, current);
 	}
 
