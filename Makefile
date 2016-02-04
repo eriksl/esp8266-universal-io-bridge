@@ -132,7 +132,7 @@ endif
 
 USER_CONFIG_SECTOR_HEX := 0x$(USER_CONFIG_SECTOR)
 
-WARNINGS1		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign \
+WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign \
 					-Wno-unused-parameter -Wsuggest-attribute=const -Wsuggest-attribute=pure \
 					-Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement -Wundef \
 					-Wshadow -Wpointer-arith -Wbad-function-cast \
@@ -140,8 +140,8 @@ WARNINGS1		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign
 					-Wlogical-op -Wmissing-field-initializers -Wpacked -Wredundant-decls \
 					-Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code \
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
-					-Winit-self -Wformat-nonliteral -Wcomment
-WARNINGS2		:= -Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
+					-Winit-self -Wformat-nonliteral -Wcomment \
+					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
 CFLAGS			:=  -Os -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -fno-builtin -D__ets__ -Wframe-larger-than=384 \
 					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
@@ -277,16 +277,16 @@ push-ota:				$(FIRMWARE_OTA_IMG) free otapush
 
 %.o:					%.c
 						$(VECHO) "CC $<"
-						$(Q) $(CC) $(WARNINGS1) $(WARNINGS2) $(CFLAGS) $(CINC) -c $< -o $@
+						$(Q) $(CC) $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.i:					%.c
 						$(VECHO) "CC $<"
-						$(Q) $(CC) -E $(WARNINGS1) $(WARNINGS2) $(CFLAGS) $(CINC) -c $< -o $@
+						$(Q) $(CC) -E $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.o:					%.ci
 						$(VECHO) "CCI $<"
-						$(Q) $(CC) -x c $(WARNINGS1) $(CFLAGS) -I$(RBOOT) $(CINC) -c $< -o $@
+						$(Q) $(CC) -x c $(WARNINGS) $(CFLAGS) -I$(RBOOT) $(CINC) -c $< -o $@
 
 otapush:				otapush.c
 						$(VECHO) "HOST CC $<"
-						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS1) $(WARNINGS2) $< -o $@
+						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@

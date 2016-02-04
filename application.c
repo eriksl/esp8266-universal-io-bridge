@@ -840,6 +840,11 @@ static const application_function_table_t application_function_table[] =
 		"set an option",
 	},
 	{
+		"tw", "test-wlan",
+		application_function_test_wlan,
+		"test wlan"
+	},
+	{
 		"u", "unset",
 		application_function_unset,
 		"unset an option",
