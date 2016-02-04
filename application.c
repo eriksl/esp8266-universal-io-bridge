@@ -64,6 +64,13 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 	return(app_action_error);
 }
 
+irom static app_action_t application_function_current_config_dump(const string_t *src, string_t *dst)
+{
+	config_dump(dst, &config);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_config_dump(const string_t *src, string_t *dst)
 {
 	config_read(&tmpconfig);
@@ -645,9 +652,14 @@ static const application_function_table_t application_function_table[] =
 		"set uart tcp bridge tcp port (default 25)"
 	},
 	{
+		"ccd", "current-config-dump",
+		application_function_current_config_dump,
+		"dump current config contents"
+	},
+	{
 		"cd", "config-dump",
 		application_function_config_dump,
-		"dump config contents"
+		"dump config contents (stored in flash)"
 	},
 	{
 		"cw", "config-write",
