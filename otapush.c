@@ -212,7 +212,7 @@ int main(int argc, char * const *argv)
 	verify = 0;
 	verbose = 0;
 
-	static const char *shortopts = "cp:s:t:v";
+	static const char *shortopts = "cp:s:t:vV";
 	static const struct option longopts[] =
 	{
 		{ "dont-commmit",	no_argument,		0, 'c' },
@@ -435,7 +435,7 @@ int main(int argc, char * const *argv)
 		rate = done / 1024.0 / duration;
 
 		if(!verbose)
-			fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%    \r", trait->progress, done / 1024, (int)duration, (int)rate, (done * 100) / file_length);
+			fprintf(stderr, "%s %u kbytes in %d seconds, rate %u kbytes/s, %u %%    \r", trait->progress, done / 1024, (int)(duration + 0.5), (int)rate, (done * 100) / file_length);
 	}
 
 	if(!verbose)
