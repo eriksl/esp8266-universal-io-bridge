@@ -184,6 +184,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 {
 	string_new(static, ntp_server, 32);
 
+	string_clear(&ntp_server);
 	string_ip(&ntp_server, cfg->ntp_server);
 
 	string_format(dst, 
