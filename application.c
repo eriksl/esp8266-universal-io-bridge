@@ -527,6 +527,27 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	wlan_scan_state = ws_finished;
 }
 
+
+irom static app_action_t application_function_wlan_configure(const string_t *src, string_t *dst)
+{
+	string_new(static, ssid, 32);
+	string_new(static, passwd, 32);
+
+	string_clear(&ssid);
+	string_clear(&passwd);
+
+	if((parse_string(1, src, &ssid) == parse_ok) && (parse_string(2, src, &passwd) == parse_ok))
+	{
+		strlcpy(config.ssid, string_to_const_ptr(&ssid), sizeof(config.ssid));
+		strlcpy(config.passwd, string_to_const_ptr(&passwd), sizeof(config.passwd));
+	}
+
+	string_format(dst, "wlan-configure: ssid: \"%s\", passwd: \"%s\"\n",
+			config.ssid, config.passwd);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_wlan_list(const string_t *src, string_t *dst)
 {
 	if(wlan_scan_state != ws_finished)
@@ -847,6 +868,11 @@ static const application_function_table_t application_function_table[] =
 		"up", "uart-parity",
 		application_function_uart_parity,
 		"set uart parity [none/even/odd]",
+	},
+	{
+		"wc", "wlan-configure",
+		application_function_wlan_configure,
+		"configure wlan, give ssid and passwd"
 	},
 	{
 		"wl", "wlan-list",
