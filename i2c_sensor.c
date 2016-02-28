@@ -3,8 +3,6 @@
 #include "util.h"
 #include "config.h"
 
-#include <math.h>
-
 typedef struct
 {
 	double raw;
