@@ -369,7 +369,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	if(parse_float(3, src, &offset) != parse_ok)
 	{
-		string_cat(dst, "> invalid offset\n")
+		string_cat(dst, "> invalid offset\n");
 		return(app_action_error);
 	}
 

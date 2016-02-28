@@ -1167,7 +1167,7 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 
 		if(verbose)
 		{
-			string_cat(dst, " (uncalibrated: ")
+			string_cat(dst, " (uncalibrated: ");
 			string_double(dst, value.cooked, entry->precision, 1e10);
 			string_cat(dst, ", raw: ");
 			string_double(dst, value.raw, 0, 1e10);

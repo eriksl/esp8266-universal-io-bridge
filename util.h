@@ -120,23 +120,23 @@ void string_format_ptr(string_t *dst, const char *, ...) __attribute__ ((format 
 void string_cat_ptr(string_t *, const char *);
 
 #define string_format(dst, fmt, ...) \
-{ \
+do { \
 	static roflash const char fmt_flash[] = fmt; \
 	string_format_ptr(dst, fmt_flash, __VA_ARGS__); \
-}
+} while(0)
 
 #define string_cat(dst, src) \
-{ \
+do { \
 	static roflash const char src_flash[] = src; \
 	string_cat_ptr(dst, src_flash); \
-}
+} while(0)
 
 #define string_copy(dst, src) \
-{ \
+do { \
 	static roflash const char src_flash[] = src; \
 	string_clear(dst); \
 	string_cat_ptr(dst, src_flash); \
-}
+} while(0)
 
 void string_cat_strptr(string_t *dst, const char *src);
 int string_copy_string(string_t *dst, string_t *src);
