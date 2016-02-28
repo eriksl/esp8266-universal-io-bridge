@@ -5,7 +5,9 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
-OTA_HOST			?= esp5
+OTA_HOST			?= esp6
+CONFIG_SSID			?= ssid
+CONFIG_PASSWD		?= passwd
 
 # no user serviceable parts below
 
@@ -69,19 +71,22 @@ LDSCRIPT_TEMPLATE			:= loadscript-template
 LDSCRIPT					:= loadscript
 ELF_PLAIN					:= espiobridge-plain.o
 ELF_OTA						:= espiobridge-rboot.o
-OFFSET_IRAM_PLAIN			:= 0x00000
-OFFSET_IROM_PLAIN			:= 0x10000
-OFFSET_BOOT_OTA				:= 0x00000
-OFFSET_CONFIG_OTA			:= 0x01000
-OFFSET_IMG_OTA_0			:= 0x002000
-OFFSET_IMG_OTA_1			:= 0x102000
+OFFSET_IRAM_PLAIN			:= 0x000000
+OFFSET_IROM_PLAIN			:= 0x010000
+OFFSET_OTA_BOOT				:= 0x000000
+OFFSET_OTA_RBOOT_CFG		:= 0x001000
+OFFSET_OTA_IMG_0			:= 0x002000
+OFFSET_OTA_IMG_1			:= 0x102000
 FIRMWARE_PLAIN_IRAM			:= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
 FIRMWARE_PLAIN_IROM			:= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
-FIRMWARE_RBOOT_BOOT			:= espiobridge-rboot-boot.bin
+FIRMWARE_OTA_RBOOT			:= espiobridge-rboot-boot.bin
 FIRMWARE_OTA_IMG			:= espiobridge-rboot-image.bin
 CONFIG_RBOOT_SRC			:= rboot-config.c
 CONFIG_RBOOT_ELF			:= rboot-config.o
 CONFIG_RBOOT_BIN			:= rboot-config.bin
+CONFIG_DEFAULT_SRC			:= default-config.c
+CONFIG_DEFAULT_ELF			:= default-config.o
+CONFIG_DEFAULT_BIN			:= default-config.bin
 LINKMAP						:= linkmap
 SDKLIBDIR					:= $(SDKROOT)/sdk/lib
 LIBMAIN_PLAIN				:= main
@@ -125,7 +130,7 @@ ifeq ($(IMAGE),ota)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
-	ALL_TARGETS := $(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush
+	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush
 	FLASH_TARGET := flash-ota
 	OTA_TARGET := push-ota
 endif
@@ -143,7 +148,8 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Winit-self -Wformat-nonliteral -Wcomment \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
 CFLAGS			:=  -Os -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -fno-builtin -D__ets__ -Wframe-larger-than=384 \
-					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
+					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX) \
+					-DCONFIG_SSID=$(CONFIG_SSID) -DCONFIG_PASSWD=$(CONFIG_PASSWD)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -169,9 +175,10 @@ clean:
 				$(Q) rm -f $(OBJS) $(OTA_OBJ) \
 						$(ELF_PLAIN) $(ELF_OTA) \
 						$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) \
-						$(FIRMWARE_RBOOT_BOOT) $(FIRMWARE_OTA_IMG) \
+						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
+						$(CONFIG_DEFAULT_ELF) $(CONFIG_DEFAULT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush
 
 free:			$(ELF)
@@ -241,15 +248,23 @@ $(FIRMWARE_PLAIN_IROM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IROM $@"
 						$(Q) $(ESPTOOL2_BIN) -quiet -lib -$(FLASH_SIZE_KBYTES) -$(SPI_FLASH_MODE) $< $@
 
-$(FIRMWARE_RBOOT_BOOT):	$(RBOOT_BIN)
+$(FIRMWARE_OTA_RBOOT):	$(RBOOT_BIN)
 						cp $< $@
 
 $(FIRMWARE_OTA_IMG):	$(ELF_OTA) $(ESPTOOL2_BIN)
 						$(VECHO) "RBOOT FIRMWARE $@"
 						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_KBYTES) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
 
+$(CONFIG_RBOOT_ELF):	$(CONFIG_RBOOT_SRC)
+
+$(CONFIG_DEFAULT_ELF):	always
+
 $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
+						$(Q) $(OBJCOPY) --output-target binary $< $@
+
+$(CONFIG_DEFAULT_BIN):	$(CONFIG_DEFAULT_ELF)
+						$(VECHO) "DEFAULT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
 flash:					$(FLASH_TARGET)
@@ -262,12 +277,12 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
 							$(BLANK_BIN_OFFSET_PLAIN) $(BLANK_BIN_FILE) \
 							$(DEFAULT_BIN_OFFSET_PLAIN) $(DEFAULT_BIN_FILE)
 
-flash-ota:				$(FIRMWARE_RBOOT_BOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
+flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(OFFSET_BOOT_OTA) $(FIRMWARE_RBOOT_BOOT) \
-							$(OFFSET_CONFIG_OTA) $(CONFIG_RBOOT_BIN) \
-							$(OFFSET_IMG_OTA_0) $(FIRMWARE_OTA_IMG) \
+							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
+							$(OFFSET_OTA_RBOOT_CFG) $(CONFIG_RBOOT_BIN) \
+							$(OFFSET_OTA_IMG_0) $(FIRMWARE_OTA_IMG) \
 							$(BLANK_BIN_OFFSET_OTA) $(BLANK_BIN_FILE) \
 							$(DEFAULT_BIN_OFFSET_OTA) $(DEFAULT_BIN_FILE)
 
@@ -275,6 +290,11 @@ ota:					$(OTA_TARGET)
 
 push-ota:				$(FIRMWARE_OTA_IMG) free otapush
 						./otapush -s 10 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+
+default-config:			$(CONFIG_DEFAULT_BIN)
+						$(VECHO) "FLASH DEFAULT CONFIG"
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(USER_CONFIG_SECTOR_HEX)000 $(CONFIG_DEFAULT_BIN)
 
 %.o:					%.c
 						$(VECHO) "CC $<"

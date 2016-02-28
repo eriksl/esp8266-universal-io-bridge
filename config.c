@@ -141,8 +141,6 @@ irom void config_read(config_t *cfg)
 	{
 		case(init_all):
 		{
-			cfg->ssid[0] = '\0';
-			cfg->passwd[0] = '\0';
 			cfg->flags = 0;
 			cfg->uart.baud_rate = 115200;
 			cfg->uart.data_bits = 8;
