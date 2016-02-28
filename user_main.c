@@ -20,6 +20,7 @@ typedef enum
 } wlan_bootstrap_state_t;
 
 _Static_assert(sizeof(wlan_bootstrap_state_t) == 4, "sizeof(wlan_bootstrap_state_t) != 4");
+#include <rboot-api.h>
 
 typedef enum
 {
@@ -262,6 +263,17 @@ irom static void background_task(os_event_t *events)
 				bg_action.reset = 1;
 				break;
 			}
+#if IMAGE_OTA == 1
+			case(app_action_ota_commit):
+			{
+				rboot_config rcfg = rboot_get_config();
+				string_format(cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
+				bg_action.disconnect = 1;
+				bg_action.reset = 1;
+
+				break;
+			}
+#endif
 		}
 
 		cmd.receive_ready = false;

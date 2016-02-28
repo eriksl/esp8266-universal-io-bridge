@@ -494,6 +494,24 @@ int main(int argc, char * const *argv)
 			goto error;
 		}
 
+		if(!do_read(sock_fd, buffer, strlen(buffer), timeout))
+		{
+			fprintf(stderr, "commit write failed (no reply)\n");
+			goto error;
+		}
+
+		if(sscanf(buffer, "OTA commit slot %d\n", &written) != 1)
+		{
+			fprintf(stderr, "commit write failed (invalid reply)\n");
+			goto error;
+		}
+
+		if(written != slot)
+		{
+			fprintf(stderr, "commit write failed (invalid slot)\n");
+			goto error;
+		}
+
 		fprintf(stderr, "commit slot %u successful\n", slot);
 	}
 

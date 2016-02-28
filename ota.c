@@ -269,5 +269,5 @@ irom app_action_t application_function_ota_commit(const string_t *src, string_t 
 		return(app_action_error);
 	}
 
-	return(app_action_reset);
+	return(app_action_ota_commit);
 }
