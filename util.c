@@ -521,6 +521,9 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst)
 	result = 0;
 	decimal = 0;
 
+	if((offset = string_sep(src, 0, index, ' ')) < 0)
+		return(parse_out_of_range);
+
 	if((offset < string_length(src)) && (string_index(src, offset) == '-'))
 	{
 		negative = true;
