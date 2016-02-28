@@ -508,10 +508,10 @@ irom i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_init(int sda_index, int scl_index, int i2c_delay)
+irom i2c_error_t i2c_init(int sda_pin, int scl_pin, int i2c_delay)
 {
-	sda_mask = 1 << sda_index;
-	scl_mask = 1 << scl_index;
+	sda_mask = 1 << sda_pin;
+	scl_mask = 1 << scl_pin;
 	transaction_bit_delay = i2c_delay;
 
 	i2c_flags.init_done = true;
