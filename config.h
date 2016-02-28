@@ -21,7 +21,6 @@ typedef enum
 	config_flag_print_debug,
 	config_flag_tsl_high_sens,
 	config_flag_bh_high_sens,
-	config_flag_disable_wlan_bootstrap,
 	config_flag_cpu_high_speed,
 	config_flag_phy_force,
 	config_flag_wlan_power_save,

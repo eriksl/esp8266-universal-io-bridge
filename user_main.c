@@ -12,14 +12,6 @@
 #include <sntp.h>
 #include <espconn.h>
 
-typedef enum
-{
-	wlan_bootstrap_state_skip,
-	wlan_bootstrap_state_start,
-	wlan_bootstrap_state_done
-} wlan_bootstrap_state_t;
-
-_Static_assert(sizeof(wlan_bootstrap_state_t) == 4, "sizeof(wlan_bootstrap_state_t) != 4");
 #include <rboot-api.h>
 
 typedef enum
@@ -48,8 +40,6 @@ queue_t data_receive_queue;
 os_event_t background_task_queue[background_task_queue_length];
 
 static ETSTimer periodic_timer;
-
-static wlan_bootstrap_state_t wlan_bootstrap_state;
 
 static struct
 {
@@ -139,76 +129,25 @@ irom noinline static void config_wlan(const char *ssid, const char *passwd)
 	wifi_station_connect();
 }
 
-irom noinline static void wlan_bootstrap(void)
-{
-	string_new(static, ssid, 32);
-	string_new(static, passwd, 32);
-	char byte;
-
-	while(string_space(&ssid) && !queue_empty(&data_receive_queue))
-	{
-		if((byte = queue_pop(&data_receive_queue)) == ' ')
-			break;
-
-		string_append(&ssid, byte);
-	}
-
-	while(string_space(&passwd) && !queue_empty(&data_receive_queue))
-	{
-		if((byte = queue_pop(&data_receive_queue)) == '\n')
-			break;
-
-		string_append(&passwd, byte);
-	}
-
-	config_wlan(string_to_ptr(&ssid), string_to_ptr(&passwd));
-
-	strlcpy(config.ssid, string_to_ptr(&ssid), sizeof(config.ssid));
-	strlcpy(config.passwd, string_to_ptr(&passwd), sizeof(config.passwd));
-	config_write(&config);
-
-	wlan_bootstrap_state = wlan_bootstrap_state_done;
-}
-
 irom static void background_task(os_event_t *events)
 {
 	stat_background_task++;
 
-	if(wlan_bootstrap_state == wlan_bootstrap_state_start)
+	// send data in the uart receive fifo to tcp
+
+	if(!queue_empty(&data_receive_queue) && !data.send_busy && string_space(data.send_buffer))
 	{
-		if(queue_lf(&data_receive_queue))
-		{
-			wlan_bootstrap();
-			wlan_bootstrap_state = wlan_bootstrap_state_done;
-		}
+		// data available and can be sent now
 
-		if(stat_timer_slow > 100) // ~10 secs
-		{
-			if(config_get_flag(config_flag_print_debug))
-				dprintf("%s\r\n", "Returning to normal uart bridge mode\r\n");
+		while(!queue_empty(&data_receive_queue) && string_space(data.send_buffer))
+			string_append(data.send_buffer, queue_pop(&data_receive_queue));
 
-			wlan_bootstrap_state = wlan_bootstrap_state_done;
-		}
+		if(string_length(data.send_buffer) > 0)
+			data.send_busy = espconn_send(data.child_socket, string_to_ptr(data.send_buffer), string_length(data.send_buffer)) == 0;
 	}
 
-	if(wlan_bootstrap_state != wlan_bootstrap_state_start)
-	{
-		// send data in the uart receive fifo to tcp
-
-		if(!queue_empty(&data_receive_queue) && !data.send_busy && string_space(data.send_buffer))
-		{
-			// data available and can be sent now
-
-			while(!queue_empty(&data_receive_queue) && string_space(data.send_buffer))
-				string_append(data.send_buffer, queue_pop(&data_receive_queue));
-
-			if(string_length(data.send_buffer) > 0)
-				data.send_busy = espconn_send(data.child_socket, string_to_ptr(data.send_buffer), string_length(data.send_buffer)) == 0;
-		}
-
-		// if there is still data in uart receive fifo that can't be
-		// sent to tcp yet, tcp_sent_callback will call us when it can
-	}
+	// if there is still data in uart receive fifo that can't be
+	// sent to tcp yet, tcp_sent_callback will call us when it can
 
 	if(bg_action.disconnect)
 	{
@@ -555,18 +494,6 @@ irom static void user_init2(void)
 	tcp_accept(&cmd,	&cmd_send_buffer,	24,						30,	tcp_cmd_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
-
-	if(config_get_flag(config_flag_disable_wlan_bootstrap))
-		wlan_bootstrap_state = wlan_bootstrap_state_skip;
-	else
-	{
-		if(config_get_flag(config_flag_print_debug))
-		{
-			dprintf("\r\n%s\r\n", "You now can enter wlan ssid and passwd within 10 seconds.");
-			dprintf("%s\r\n", "Use exactly one space between them and a linefeed at the end.");
-		}
-		wlan_bootstrap_state = wlan_bootstrap_state_start;
-	}
 
 	if(config_get_flag(config_flag_cpu_high_speed))
 		system_update_cpu_freq(160);
