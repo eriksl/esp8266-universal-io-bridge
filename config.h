@@ -29,7 +29,7 @@ typedef enum
 	config_flag_size
 } config_flag_enum_t;
 
-_Static_assert(sizeof(config_flag_enum_t) == 4, "sizeof(config_flag_enum_t) != 4");
+assert_size(config_flag_enum_t, 4);
 
 typedef struct
 {

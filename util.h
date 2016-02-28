@@ -33,6 +33,8 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 #define noinline __attribute__ ((noinline))
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))
+#define attr_packed __attribute__ ((__packed__))
+#define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 
 typedef struct
 {
