@@ -3,7 +3,7 @@
 #include "util.h"
 #include "application.h"
 #include "config.h"
-#include "gpios.h"
+#include "io.h"
 #include "stats.h"
 #include "i2c.h"
 #include "display.h"
@@ -464,7 +464,7 @@ iram static void periodic_timer_callback(void *arg)
 
 	// timer runs on 100 Hz == 10 ms
 
-	gpios_periodic();
+	io_periodic();
 
 	// run background task every 10 Hz = 100 ms
 
@@ -513,9 +513,6 @@ irom void user_init(void)
 	uart_init(&config.uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
 
-	if(config.wlan_trigger_gpio >= 0)
-		gpios_set_wlan_trigger(config.wlan_trigger_gpio);
-
 	if(config_get_flag(config_flag_phy_force))
 	{
 		//wifi_set_phy_mode(PHY_MODE_11G);
@@ -538,7 +535,7 @@ irom static void user_init2(void)
 	string_new(static, cmd_send_buffer, 4096 + 4); // need a few extra bytes to make up exactly 4096 bytes for OTA
 
 	ntp_init();
-	gpios_init();
+	io_init();
 
 	config_wlan(config.ssid, config.passwd);
 

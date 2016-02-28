@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "util.h"
-#include "gpios.h"
+#include "io.h"
 
 #include <ets_sys.h>
 #include <c_types.h>
@@ -115,6 +115,9 @@ irom void config_flags_to_string(string_t *dst, const char *pre, const char *pos
 
 irom void config_read(config_t *cfg)
 {
+	int io, pin;
+	io_config_pin_entry_t *pin_config;
+
 	enum
 	{
 		init_none,
@@ -157,12 +160,26 @@ irom void config_read(config_t *cfg)
 			cfg->bridge_tcp_port = 23;
 			cfg->ntp_server = ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
-			cfg->i2c_delay = 5;
 			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
-			cfg->stat_trigger_gpio = -1;
-			cfg->wlan_trigger_gpio = -1;
-			gpios_config_init(&cfg->gpios);
+			cfg->status_trigger_io.io = -1;
+			cfg->status_trigger_io.pin = -1;
 			i2c_sensor_config_init(&cfg->i2c_sensors);
+
+			for(io = 0; io < io_id_size; io++)
+			{
+				for(pin = 0; pin < max_pins_per_io; pin++)
+				{
+					pin_config = &config.io_config[io][pin];
+
+					pin_config->mode = io_pin_disabled;
+					pin_config->flags.autostart = 0;
+					pin_config->flags.repeat = 0;
+					pin_config->flags.pullup = 0;
+					pin_config->flags.reset_on_read = 0;
+
+					ets_memset(pin_config, 0, sizeof(*pin_config));
+				}
+			}
 
 			break;
 		}
@@ -196,10 +213,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> bridge tcp port: %u\n"
 			"> ntp server: %s\n"
 			"> ntp time zone: GMT%c%u\n"
-			"> i2c delay: %u\n"
 			"> display default message: %s\n"
-			"> status trigger gpio (-1 is disabled): %d\n"
-			"> wlan trigger gpio (-1 is disabled): %d\n"
+			"> status trigger gpio (-1 is disabled): %d/%d\n"
 			"> flags: ", 
 		cfg->magic,
 		cfg->major_version,
@@ -210,10 +225,9 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		string_to_ptr(&ntp_server),
 		cfg->ntp_timezone >= 0 ? '+' : '-',
 		cfg->ntp_timezone >= 0 ? cfg->ntp_timezone : 0 - cfg->ntp_timezone,
-		cfg->i2c_delay,
 		cfg->display_default_msg,
-		cfg->stat_trigger_gpio,
-		cfg->wlan_trigger_gpio);
+		cfg->status_trigger_io.io,
+		cfg->status_trigger_io.pin);
 
 	config_flags_to_string(dst, 0, 0, cfg->flags);
 
@@ -222,5 +236,5 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 	string_cat(dst, "\n> uart: ");
 	uart_parameters_to_string(dst, &cfg->uart);
 	string_cat(dst, "\n> gpios:\n");
-	gpios_dump_string(dst, &cfg->gpios);
+	io_config_dump(dst, cfg, -1, -1, false);
 }

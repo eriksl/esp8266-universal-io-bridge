@@ -1,6 +1,5 @@
 #include "application.h"
 
-#include "gpios.h"
 #include "stats.h"
 #include "util.h"
 #include "user_main.h"
@@ -10,6 +9,7 @@
 #include "i2c_sensor.h"
 #include "display.h"
 #include "http.h"
+#include "io.h"
 
 #if IMAGE_OTA == 1
 #include "ota.h"
@@ -43,8 +43,8 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
 
-	if(config.stat_trigger_gpio >= 0)
-		gpios_trigger_output(config.stat_trigger_gpio);
+	if((config.status_trigger_io.io >= 0) && (config.status_trigger_io.pin >= 0))
+		io_write_pin((string_t *)0, config.status_trigger_io.io, config.status_trigger_io.pin, -1);
 
 	if(parse_string(0, src, dst) != parse_ok)
 		return(app_action_empty);
@@ -235,26 +235,6 @@ irom static app_action_t application_function_i2c_address(const string_t *src, s
 	}
 
 	string_format(dst, "i2c-address: address: 0x%02x\n", i2c_address);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_i2c_delay(const string_t *src, string_t *dst)
-{
-	int intin;
-
-	if(parse_int(1, src, &intin, 0) == parse_ok)
-	{
-		if((intin < 0) || (intin > 100))
-		{
-			string_format(dst, "i2c-delay: invalid delay %d\n", intin);
-			return(app_action_error);
-		}
-
-		config.i2c_delay = intin;
-	}
-
-	string_format(dst, "i2c-delay: delay: %d\n", config.i2c_delay);
 
 	return(app_action_normal);
 }
@@ -622,51 +602,29 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 
 irom static app_action_t application_function_gpio_status_set(const string_t *src, string_t *dst)
 {
-	int gpio;
+	int io, pin;
 
-	if(parse_int(1, src, &gpio, 0) == parse_ok)
+	if((parse_int(1, src, &io, 0) == parse_ok) && (parse_int(2, src, &pin, 0) == parse_ok))
 	{
-		if((gpio < -1) || (gpio > 16))
+		if((io < -1) || (io > io_id_size))
 		{
-			string_format(dst, "status trigger gpio %d invalid\n", gpio);
+			string_format(dst, "status trigger io %d/%d invalid\n", io, pin);
 			return(app_action_error);
 		}
 
-		config.stat_trigger_gpio = gpio;
+		config.status_trigger_io.io = io;
+		config.status_trigger_io.pin = pin;
 	}
 
-	string_format(dst, "status trigger at gpio %d (-1 is disabled)\n", config.stat_trigger_gpio);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_gpio_wlan_set(const string_t *src, string_t *dst)
-{
-	int gpio;
-
-	if(parse_int(1, src, &gpio, 0) == parse_ok)
-	{
-		if((gpio < -1) || (gpio > 16))
-		{
-			string_format(dst, "wlan status gpio %d invalid\n", gpio);
-			return(app_action_error);
-		}
-
-		config.wlan_trigger_gpio = gpio;
-	}
-
-	string_format(dst, "wlan status at gpio %d (-1 is disabled)\n", config.wlan_trigger_gpio);
+	string_format(dst, "status trigger at io %d/%d (-1 is disabled)\n",
+			config.status_trigger_io.io,
+			config.status_trigger_io.pin);
 
 	return(app_action_normal);
 }
 
 static const application_function_table_t application_function_table[] =
 {
-	{
-		"ar", "analog-read",
-		application_function_analog_read,
-		"read analog input"
-	},
 	{
 		"btp", "bridge-tcp-port",
 		application_function_bridge_tcp_port,
@@ -708,59 +666,54 @@ static const application_function_table_t application_function_table[] =
 		"put content on display <display id> <slot> <timeout> <text>"
 	},
 	{
-		"gd", "gpio-dump",
-		application_function_gpio_dump,
-		"dump all gpio config"
-	},
-	{
-		"gg", "gpio-get",
-		application_function_gpio_get,
-		"get gpio"
-	},
-	{
-		"gm", "gpio-mode",
-		application_function_gpio_mode,
-		"get/set gpio mode (gpio, mode, parameters)",
-	},
-	{
-		"gs", "gpio-set",
-		application_function_gpio_set,
-		"set gpio"
-	},
-	{
 		"gss", "gpio-status-set",
 		application_function_gpio_status_set,
 		"set gpio to trigger on status update"
 	},
 	{
-		"gws", "gpio-wlan-set",
-		application_function_gpio_wlan_set,
-		"set gpio to trigger on wlan activity"
-	},
-	{
-		"ia", "i2c-address",
+		"i2a", "i2c-address",
 		application_function_i2c_address,
 		"set i2c slave address",
 	},
 	{
-		"id", "i2c-delay",
-		application_function_i2c_delay,
-		"set i2c bit transaction delay (microseconds, default 5 ~ standard 100 kHz bus)",
-	},
-	{
-		"ir", "i2c-read",
+		"i2r", "i2c-read",
 		application_function_i2c_read,
 		"read data from i2c slave",
 	},
 	{
-		"irst", "i2c-reset",
+		"i2rst", "i2c-reset",
 		application_function_i2c_reset,
 		"i2c interface reset",
 	},
 	{
-		"iw", "i2c-write",
+		"i2w", "i2c-write",
 		application_function_i2c_write,
 		"write data to i2c slave",
+	},
+	{
+		"im", "io-mode",
+		application_function_io_mode,
+		"config i/o pin",
+	},
+	{
+		"ir", "io-read",
+		application_function_io_read,
+		"read from i/o pin",
+	},
+	{
+		"iw", "io-write",
+		application_function_io_write,
+		"write to i/o pin",
+	},
+	{
+		"isf", "io-set-flag",
+		application_function_io_set_flag,
+		"set i/o pin flag",
+	},
+	{
+		"icf", "io-clear-flag",
+		application_function_io_clear_flag,
+		"clear i/o pin flag",
 	},
 	{
 		"isr", "i2c-sensor-read",
