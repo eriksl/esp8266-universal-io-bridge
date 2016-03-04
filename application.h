@@ -12,7 +12,9 @@ typedef enum
 	app_action_empty,
 	app_action_disconnect,
 	app_action_reset,
+#if IMAGE_OTA == 1
 	app_action_ota_commit,
+#endif
 	app_action_http_ok,
 } app_action_t;
 

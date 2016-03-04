@@ -549,11 +549,13 @@ irom static app_action_t application_function_wlan_scan(const string_t *src, str
 		return(app_action_error);
 	}
 
+#if IMAGE_OTA == 1
 	if(ota_active())
 	{
 		string_cat(dst, "wlan-scan: ota active\n");
 		return(app_action_error);
 	}
+#endif
 
 	wlan_scan_state = ws_scanning;
 	wifi_station_scan(0, wlan_scan_done_callback);
