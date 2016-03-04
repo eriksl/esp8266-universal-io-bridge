@@ -684,6 +684,17 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			break;
 		}
 
+		case(io_pin_input_analog):
+		{
+			if(!info->caps.input_analog)
+			{
+				string_cat(dst, "analog input mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			break;
+		}
+
 		case(io_pin_output_analog):
 		{
 			int lower_bound = 0;
@@ -775,7 +786,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		}
 
 		case(io_pin_disabled):
-		case(io_pin_input_analog):
+		{
+			break;
+		}
+
 		case(io_pin_error):
 		{
 			string_cat(dst, "unsupported io mode\n");
