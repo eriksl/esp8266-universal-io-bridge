@@ -1,6 +1,7 @@
 #include "io_config.h"
 #include "io_shared.h"
 #include "io_gpio.h"
+#include "io_aux.h"
 #include "io.h"
 #include "config.h"
 
@@ -25,6 +26,26 @@ io_info_t io_info =
 		io_gpio_get_pin_info,
 		io_gpio_read_pin,
 		io_gpio_write_pin,
+	},
+	{
+		/* io_id_aux = 1 */
+		0,
+		2,
+		{
+			.input_digital = 1,
+			.counter = 0,
+			.output_digital = 1,
+			.input_analog = 1,
+			.output_analog = 0,
+			.i2c = 0,
+		},
+		"auxilliary gpio (rtc+adc)",
+		io_aux_init,
+		io_aux_periodic,
+		io_aux_init_pin_mode,
+		io_aux_get_pin_info,
+		io_aux_read_pin,
+		io_aux_write_pin,
 	}
 };
 
