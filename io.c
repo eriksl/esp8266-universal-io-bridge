@@ -945,6 +945,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 		return(app_action_error);
 	}
 
+	string_clear(dst);
 	string_format(dst, "flags for pin %d/%d:", io, pin);
 
 	pin_string_from_flags(dst, pin_config);
