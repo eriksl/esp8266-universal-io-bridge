@@ -170,6 +170,6 @@ irom void stats_generate(string_t *dst)
 			rcfg.roms[0],
 			rcfg.roms[1]);
 #else
-	cat(dst, ">\n> No OTA image\n");
+	string_cat(dst, ">\n> No OTA image\n");
 #endif
 }
