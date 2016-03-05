@@ -12,6 +12,7 @@ typedef struct
 	unsigned int input_analog:1;
 	unsigned int output_analog:1;
 	unsigned int i2c:1;
+	unsigned int pullup:1;
 } io_caps_t;
 
 assert_size(io_caps_t, 4);

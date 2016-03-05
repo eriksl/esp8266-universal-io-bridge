@@ -18,6 +18,7 @@ io_info_t io_info =
 			.input_analog = 0,
 			.output_analog = 1,
 			.i2c = 1,
+			.pullup = 1,
 		},
 		"Internal GPIO",
 		io_gpio_init,
@@ -38,6 +39,7 @@ io_info_t io_info =
 			.input_analog = 1,
 			.output_analog = 0,
 			.i2c = 0,
+			.pullup = 0,
 		},
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
@@ -979,6 +981,13 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	if((parse_string(3, src, dst) == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
 	{
 		string_copy(dst, "io-flag <io> <pin> <flag>\n");
+		return(app_action_error);
+	}
+
+	if(pin_config->flags.pullup && !info->caps.pullup)
+	{
+		pin_config->flags.pullup = 0;
+		string_copy(dst, "io does not support pullup\n");
 		return(app_action_error);
 	}
 
