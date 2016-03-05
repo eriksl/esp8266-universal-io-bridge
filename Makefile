@@ -5,7 +5,7 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
-OTA_HOST			?= esp6
+OTA_HOST			?= esp5
 CONFIG_SSID			?= ssid
 CONFIG_PASSWD		?= passwd
 
