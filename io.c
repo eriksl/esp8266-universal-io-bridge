@@ -413,6 +413,9 @@ irom void io_init(void)
 								i2c_delay = pin_config->delay;
 							}
 
+							if((i2c_sda >= 0) && (i2c_scl >= 0) && (i2c_delay >= 0))
+								i2c_init(i2c_sda, i2c_scl, i2c_delay);
+
 							break;
 						}
 					}
@@ -420,9 +423,6 @@ irom void io_init(void)
 			}
 		}
 	}
-
-	if((i2c_sda >= 0) && (i2c_scl >= 0) && (i2c_delay >= 0))
-		i2c_init(i2c_sda, i2c_scl, i2c_delay);
 }
 
 irom void io_periodic(void)
