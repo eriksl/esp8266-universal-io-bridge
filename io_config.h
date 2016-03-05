@@ -14,12 +14,6 @@ typedef enum attr_packed
 {
 	io_id_gpio = 0,
 	io_id_aux,
-#if 0
-	io_mcp23017_0,
-	io_mcp23017_1,
-	io_pcf8574_4,
-	io_pcf8574_5,
-#endif
 	io_id_size,
 } io_id_t;
 

@@ -9,7 +9,7 @@ io_info_t io_info =
 {
 	{
 		/* io_id_gpio = 0 */
-		0,
+		0x00,
 		16,
 		{
 			.input_digital = 1,
@@ -19,7 +19,7 @@ io_info_t io_info =
 			.output_analog = 1,
 			.i2c = 1,
 		},
-		"internal digital gpio",
+		"Internal GPIO",
 		io_gpio_init,
 		io_gpio_periodic,
 		io_gpio_init_pin_mode,
@@ -29,7 +29,7 @@ io_info_t io_info =
 	},
 	{
 		/* io_id_aux = 1 */
-		0,
+		0x01,
 		2,
 		{
 			.input_digital = 1,
@@ -39,7 +39,7 @@ io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 		},
-		"auxilliary gpio (rtc+adc)",
+		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
 		io_aux_periodic,
 		io_aux_init_pin_mode,
@@ -275,7 +275,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 	return(io_ok);
 }
 
-irom io_error_t io_read_pin(string_t *errormsg, int io, int pin, int *value)
+irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -285,8 +285,8 @@ irom io_error_t io_read_pin(string_t *errormsg, int io, int pin, int *value)
 
 	if(io >= io_id_size)
 	{
-		if(errormsg)
-			string_cat(errormsg, "io out of range\n");
+		if(error_msg)
+			string_cat(error_msg, "io out of range\n");
 		return(io_error);
 	}
 
@@ -295,17 +295,19 @@ irom io_error_t io_read_pin(string_t *errormsg, int io, int pin, int *value)
 
 	if(pin >= info->pins)
 	{
-		if(errormsg)
-			string_cat(errormsg, "pin out of range\n");
+		if(error_msg)
+			string_cat(error_msg, "pin out of range\n");
 		return(io_error);
 	}
 
 	pin_config = &config.io_config[io][pin];
 	pin_data = &data->pin[pin];
 
-	if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, value)) == io_ok)
+	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
+		string_cat(error_msg, "\n");
+	else
 		if((pin_config->mode == io_pin_counter) && (pin_config->flags.reset_on_read))
-			error = io_write_pin_x(errormsg, info, pin_data, pin_config, pin, 0);
+			error = io_write_pin_x(error_msg, info, pin_data, pin_config, pin, 0);
 
 	return(error);
 }
@@ -1042,7 +1044,7 @@ static const roflash dump_string_t dump_strings =
 {
 	.plain =
 	{
-		"io[%d]: %s@%d",
+		"io[%d]: %s@%x",
 		"  pin: %2d",
 		" flags:",
 		", ",
@@ -1056,7 +1058,7 @@ static const roflash dump_string_t dump_strings =
 		"i2c/sda",
 		"i2c/scl, delay: %d",
 		"unknown",
-		"not detected\n",
+		"  not found\n",
 		", info: ",
 		"",
 		"",
@@ -1068,7 +1070,7 @@ static const roflash dump_string_t dump_strings =
 
 	.html =
 	{
-		"<td>io[%d]</td><td>%s@%d</td>",
+		"<td>io[%d]</td><td>%s@%x</td>",
 		"<td></td><td>%d</td>",
 		"<td>",
 		"</td>",
@@ -1082,7 +1084,7 @@ static const roflash dump_string_t dump_strings =
 		"<td>i2c</td><td>sda</td>",
 		"<td>i2c</td><td>scl, delay: %d</td>",
 		"<td>unknown</td>",
-		"<td>not detected</td>",
+		"<td>not found</td>",
 		"<td>",
 		"</td>",
 		"<table border=\"1\"><tr><th>index</th><th>name</th><th>mode</th><th colspan=\"8\"></th></tr>",
@@ -1148,7 +1150,10 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 			string_cat_ptr(dst, (*strings)[ds_id_mode]);
 
 			if(pin_config->mode != io_pin_disabled)
+			{
 				error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value);
+				string_cat(dst, "\n");
+			}
 			else
 				error = io_ok;
 
