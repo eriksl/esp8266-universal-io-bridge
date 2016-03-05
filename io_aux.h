@@ -11,7 +11,7 @@ typedef enum
 	io_aux_pin_rtc = 0,
 	io_aux_pin_adc,
 	io_aux_pin_error,
-	io_aux_pin_size
+	io_aux_pin_size = io_aux_pin_error
 } io_aux_pin_t;
 
 assert_size(io_aux_pin_t, 4);
