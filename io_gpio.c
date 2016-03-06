@@ -268,9 +268,11 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			uint32_t pinaddr = GPIO_PIN_ADDR(GPIO_ID_PIN(pin));
 
-			/* set to open drain */
-			GPIO_REG_WRITE(pinaddr, GPIO_REG_READ(pinaddr) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE));
-			gpio_output_set(0, 0, 1 << pin, 0);
+			gpio_output_set(0, 0, 0, 1 << pin);		// set to input
+			PIN_PULLUP_DIS(gpio_info->mux);			// disable pullup
+			gpio_output_set(0, 0, 1 << pin, 0);		// set to output
+			GPIO_REG_WRITE(pinaddr, GPIO_REG_READ(pinaddr) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE)); // set to open drain
+			gpio_output_set(1 << pin, 0, 0, 0);		// set idle = high
 
 			break;
 		}
