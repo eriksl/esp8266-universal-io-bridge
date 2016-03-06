@@ -947,8 +947,11 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, int value)
 {
 	const io_info_entry_t *info;
+	io_data_entry_t *data;
+	io_data_pin_entry_t *pin_data;
 	io_config_pin_entry_t *pin_config;
 	int io, pin;
+	io_pin_flag_t saved_flags;
 
 	if(parse_int(1, src, &io, 0) != parse_ok)
 	{
@@ -963,6 +966,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	}
 
 	info = &io_info[io];
+	data = &io_data[io];
 
 	if(parse_int(2, src, &pin, 0) != parse_ok)
 	{
@@ -976,7 +980,10 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 		return(app_action_error);
 	}
 
+	pin_data = &data->pin[pin];
 	pin_config = &config.io_config[io][pin];
+
+	saved_flags = pin_config->flags;
 
 	if((parse_string(3, src, dst) == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
 	{
@@ -986,8 +993,15 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	if(pin_config->flags.pullup && !info->caps.pullup)
 	{
-		pin_config->flags.pullup = 0;
+		pin_config->flags = saved_flags;
 		string_copy(dst, "io does not support pullup\n");
+		return(app_action_error);
+	}
+
+	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
+	{
+		pin_config->flags = saved_flags;
+		string_copy(dst, "cannot enable this flag\n");
 		return(app_action_error);
 	}
 
