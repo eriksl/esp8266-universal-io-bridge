@@ -220,11 +220,6 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 	pin_func_select(gpio_info->mux, gpio_info->func);
 
-	if(pin_config->flags.pullup)
-		PIN_PULLUP_EN(gpio_info->mux);
-	else
-		PIN_PULLUP_DIS(gpio_info->mux);
-
 	gpio_pin_data = &gpio_data[pin];
 
 	gpio_pin_data->counter.counter = 0;
@@ -233,15 +228,18 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 	switch(pin_config->mode)
 	{
 		case(io_pin_input_digital):
-		{
-			gpio_output_set(0, 0, 0, 1 << pin);
-			break;
-		}
-
 		case(io_pin_counter):
 		{
 			gpio_output_set(0, 0, 0, 1 << pin);
-			pin_arm_counter(pin);
+
+			if(pin_config->flags.pullup)
+				PIN_PULLUP_EN(gpio_info->mux);
+			else
+				PIN_PULLUP_DIS(gpio_info->mux);
+
+			if(pin_config->mode == io_pin_counter)
+				pin_arm_counter(pin);
+
 			break;
 		}
 
