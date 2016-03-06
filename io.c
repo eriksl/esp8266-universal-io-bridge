@@ -1173,10 +1173,10 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 			string_cat_ptr(dst, (*strings)[ds_id_mode]);
 
 			if(pin_config->mode != io_pin_disabled)
-			{
-				error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value);
-				string_cat(dst, "\n");
-			}
+				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
+					string_cat(dst, "\n");
+				else
+					(void)0;
 			else
 				error = io_ok;
 
