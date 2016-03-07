@@ -44,6 +44,7 @@ typedef io_data_entry_t io_data_t[io_id_size];
 typedef const struct io_info_entry_T
 {
 	uint8_t address;
+	uint8_t	instance;
 	uint8_t pins;
 	io_caps_t caps;
 	const char *name;

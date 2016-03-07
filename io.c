@@ -10,6 +10,7 @@ io_info_t io_info =
 	{
 		/* io_id_gpio = 0 */
 		0x00,
+		0,
 		16,
 		{
 			.input_digital = 1,
@@ -31,6 +32,7 @@ io_info_t io_info =
 	{
 		/* io_id_aux = 1 */
 		0x01,
+		0,
 		2,
 		{
 			.input_digital = 1,
