@@ -166,18 +166,16 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom void io_gpio_periodic(const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+irom void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	io_config_pin_entry_t *pin_config;
 	gpio_data_pin_t *gpio_pin_data;
 
 	int pin;
 
-	(void)info;
-
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		pin_config = &config.io_config[io_id_gpio][pin];
+		pin_config = &config.io_config[io][pin];
 		gpio_pin_data = &gpio_data[pin];
 
 		if((pin_config->mode == io_pin_counter) && (gpio_pin_data->counter.debounce != 0))

@@ -452,7 +452,7 @@ irom void io_periodic(void)
 			continue;
 
 		if(info->periodic_fn)
-			info->periodic_fn(info, data, &flags);
+			info->periodic_fn(io, info, data, &flags);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{

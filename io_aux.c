@@ -35,7 +35,7 @@ irom io_error_t io_aux_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom void io_aux_periodic(const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+irom void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	unsigned int current;
 
