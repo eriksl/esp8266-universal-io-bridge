@@ -81,19 +81,28 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	io_config_pin_entry_t *pin_config;
 	gpio_data_pin_t *gpio_pin_data;
 	int pin;
+	int pinvalues;
+
+	pinvalues = gpio_input_get();
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		if(pc & (1 << pin))
+		pin_config = &config.io_config[io_id_gpio][pin];
+
+		if((pc & (1 << pin)) && (pin_config->mode == io_pin_counter))
 		{
-			pin_config = &config.io_config[io_id_gpio][pin];
 			gpio_pin_data = &gpio_data[pin];
 
-			if((pin_config->mode == io_pin_counter) && (gpio_pin_data->counter.debounce == 0))
+			if(pinvalues & (1 << pin)) // only count downward edge, counter is commonly pull-up
+				gpio_pin_data->counter.debounce = 1; // workaround to ingore pcint but have it re-armed
+			else
 			{
-				gpio_pin_data->counter.counter++;
-				gpio_pin_data->counter.debounce = pin_config->delay;
-				gpio_flags.counter_triggered = 1;
+				if(gpio_pin_data->counter.debounce == 0)
+				{
+					gpio_pin_data->counter.counter++;
+					gpio_pin_data->counter.debounce = pin_config->delay;
+					gpio_flags.counter_triggered = 1;
+				}
 			}
 		}
 	}
