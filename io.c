@@ -46,7 +46,7 @@ io_info_t io_info =
 		},
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
-		io_aux_periodic,
+		(void *)0,
 		io_aux_init_pin_mode,
 		io_aux_get_pin_info,
 		io_aux_read_pin,

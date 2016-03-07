@@ -16,7 +16,6 @@ typedef enum
 
 assert_size(io_aux_pin_t, 4);
 
-void		io_aux_periodic(int io, const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 io_error_t	io_aux_init(const struct io_info_entry_T *);
 io_error_t	io_aux_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t	io_aux_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);

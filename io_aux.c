@@ -7,15 +7,6 @@
 
 #include <stdlib.h>
 
-enum
-{
-	io_aux_adc_samples = 256,
-};
-
-static unsigned int adc_index;
-static unsigned int adc_total;
-static unsigned int adc_last;
-
 irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
 {
 	uint32_t tmp;
@@ -26,39 +17,9 @@ irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
     WRITE_PERI_REG(reg, tmp);
 }
 
-irom io_error_t io_aux_init(const struct io_info_entry_T *info)
+irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 {
-	adc_index = 0;
-	adc_total = 0;
-	adc_last = 0;
-
 	return(io_ok);
-}
-
-irom void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
-{
-	unsigned int current;
-
-	current = system_adc_read();
-
-	if(current == 1023)
-		current = 1024;
-
-	adc_total += current;
-
-	if(++adc_index >= io_aux_adc_samples)
-	{
-		adc_last = adc_total / (io_aux_adc_samples / 64);
-
-		if(adc_last > 65535)
-			adc_last = 65535;
-
-		if(adc_last < 256)
-			adc_last = 0;
-
-		adc_index = 0;
-		adc_total = 0;
-	}
 }
 
 irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -162,8 +123,7 @@ irom io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T 
 
 		case(io_aux_pin_adc):
 		{
-			string_format(dst, "builtin adc input, samples: %d/%d, current total: %d",
-					adc_index, io_aux_adc_samples, adc_total);
+			string_cat(dst, "builtin adc input");
 
 			break;
 		}
@@ -234,7 +194,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 
 				case(io_pin_input_analog):
 				{
-					*value = adc_last;
+					*value = system_adc_read() << 6;
 
 					break;
 				}
