@@ -178,7 +178,7 @@ clean:
 						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
-						$(CONFIG_DEFAULT_ELF) $(CONFIG_DEFAULT_BIN) \
+						$(CONFIG_DEFAULT_ELF) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush
 
 free:			$(ELF)
