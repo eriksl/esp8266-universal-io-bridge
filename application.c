@@ -597,6 +597,9 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 	{
 		config.ntp_server = ip_addr(string_to_ptr(&ip));
 		config.ntp_timezone = timezone;
+
+		sntp_setserver(0, &config.ntp_server);
+		sntp_set_timezone(config.ntp_timezone);
 	}
 
 	return(application_function_ntp_dump(src, dst));
