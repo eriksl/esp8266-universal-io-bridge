@@ -305,12 +305,12 @@ irom void display_periodic(void) // call once per second
 		display_update(false);
 }
 
-irom void display_init(const char *default_message_in)
+irom void display_init(void)
 {
 	display_data_t *entry;
 	int current, slot;
 
-	strlcpy(default_message, default_message_in, sizeof(default_message));
+	strlcpy(default_message, config.display_default_msg, sizeof(default_message));
 
 	for(current = 0; current < display_size; current++)
 	{

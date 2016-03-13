@@ -29,7 +29,7 @@ typedef struct
 	char			content[display_slot_size];
 } display_slot_t;
 
-void	display_init(const char *default_message);
+void	display_init(void);
 void	display_periodic(void);
 
 app_action_t application_function_display_brightness(const string_t *src, string_t *dst);

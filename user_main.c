@@ -173,7 +173,7 @@ irom static void background_task(os_event_t *events)
 	if(bg_action.init_displays)
 	{
 		uint32_t now = system_get_time();
-		display_init(config.display_default_msg);
+		display_init();
 		bg_action.init_displays = 0;
 		stat_display_init_time_us = system_get_time() - now;
 	}
