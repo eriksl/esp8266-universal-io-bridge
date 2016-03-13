@@ -83,8 +83,13 @@ irom void string_format_ptr(string_t *dst, const char *fmt_flash, ...)
 	copy_flash_to_ram(dram_buffer, fmt_flash, sizeof(dram_buffer));
 
 	va_start(ap, fmt_flash);
-	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length, dram_buffer, ap);
+	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, dram_buffer, ap);
 	va_end(ap);
+
+	if(dst->length > (dst->size - 1))
+		dst->length = dst->size - 1;
+
+	dst->buffer[dst->length] = '\0';
 }
 
 irom void string_cat_strptr(string_t *dst, const char *src)
