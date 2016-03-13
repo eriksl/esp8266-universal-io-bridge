@@ -5,21 +5,36 @@
 #include "stats.h"
 #include "config.h"
 
-struct display_data_struct
+typedef struct
 {
-	uint8_t			const size;
-	const char *	const name;
-	const char *	const type;
-	bool_t			(* const init_fn)(void);
-	bool_t			(* const set_fn)(struct display_data_struct *, const char *text);
-
 	unsigned int	detected:1;
 	uint8_t			current_slot;
 	uint8_t			brightness;
 	display_slot_t	slot[display_slot_amount];
+} display_data_t;
+
+typedef const struct
+{
+	int				const size;
+	const char *	const name;
+	const char *	const type;
+	bool_t			(* const init_fn)(void);
+	bool_t			(* const set_fn)(const display_data_t *, const char *text);
+} display_info_t;
+
+static bool_t display_saa1064_init(void);
+static bool_t display_saa1064_set(const display_data_t *display_data_entry, const char *from);
+
+static roflash display_info_t display_info[display_size] =
+{
+	{
+		4, "saa1064", "4 digit led display",
+		display_saa1064_init,
+		display_saa1064_set,
+	}
 };
 
-typedef struct display_data_struct display_data_t;
+static display_data_t display_data[display_size];
 
 /*
 	+--1--+
@@ -166,7 +181,7 @@ static irom bool_t display_saa1064_init(void)
 	return(true);
 }
 
-static irom bool_t display_saa1064_set(display_data_t *display, const char *from)
+static irom bool_t display_saa1064_set(const display_data_t *display_data_entry, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
@@ -190,7 +205,7 @@ static irom bool_t display_saa1064_set(display_data_t *display, const char *from
 	i2cdata[0] = 0x00;	// start at control register (0x00),
 						// followed by four digits segments registers (0x01-0x04)
 	i2cdata[1] = 0x07;	// multiplex mode, enable all digits, no test mode
-	i2cdata[1] |= bright_to_saa[display->brightness];
+	i2cdata[1] |= bright_to_saa[display_data_entry->brightness];
 
 	for(current = 0; current < 4; current++)
 		i2cdata[2 + current] = 0x00;
@@ -207,55 +222,46 @@ static irom bool_t display_saa1064_set(display_data_t *display, const char *from
 	return(true);
 }
 
-static display_data_t display_data[display_size] =
-{
-	{
-		4, "saa1064", "4 digit led display",
-		display_saa1064_init,
-		display_saa1064_set,
-		0, 0, 0,
-		{ }
-	}
-};
-
-irom static void display_update(bool advance)
+irom static void display_update(bool_t advance)
 {
 	const char *display_text;
 	int display, slot;
-	display_data_t *display_entry;
+	display_info_t *display_info_entry;
+	display_data_t *display_data_entry;
 	string_new(static, info_text, 16);
 
 	for(display = 0; display < display_size; display++)
 	{
-		display_entry = &display_data[display];
+		display_info_entry = &display_info[display];
+		display_data_entry = &display_data[display];
 
-		if(display_entry->detected)
+		if(display_data_entry->detected)
 		{
-			for(slot = display_entry->current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
-				if(display_entry->slot[slot].content[0])
+			for(slot = display_data_entry->current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
+				if(display_data_entry->slot[slot].content[0])
 					break;
 
 			if(slot >= display_slot_amount)
 				for(slot = 0; slot < display_slot_amount; slot++)
-					if(display_entry->slot[slot].content[0])
+					if(display_data_entry->slot[slot].content[0])
 						break;
 
 			if(slot < display_slot_amount)
 			{
-				display_entry->current_slot = slot;
-				display_text = display_entry->slot[slot].content;
+				display_data_entry->current_slot = slot;
+				display_text = display_data_entry->slot[slot].content;
 
 				if(!ets_strcmp(display_text, "%%%%"))
 				{
 					string_format(&info_text, "%02u.%02u %s %s",
-							rt_hours, rt_mins, display_entry->name, display_entry->type);
+							rt_hours, rt_mins, display_info_entry->name, display_info_entry->type);
 					display_text = string_to_ptr(&info_text);
 				}
 
-				display_entry->set_fn(display_entry, display_text);
+				display_info_entry->set_fn(display_data, display_text);
 			}
 			else
-				display_entry->current_slot = 0;
+				display_data_entry->current_slot = 0;
 		}
 	}
 }
@@ -264,34 +270,34 @@ irom void display_periodic(void) // call once per second
 {
 	static int current_scroll = 0;
 	int display, slot, active_slots;
-	display_data_t *display_entry;
+	display_data_t *display_data_entry;
 
 	// expiration
 
 	for(display = 0; display < display_size; display++)
 	{
-		display_entry = &display_data[display];
+		display_data_entry = &display_data[display];
 
-		if(!display_entry->detected)
+		if(!display_data_entry->detected)
 			continue;
 
 		active_slots = 0;
 
 		for(slot = 0; slot < display_slot_amount; slot++)
 		{
-			if(display_entry->slot[slot].timeout > 0)
+			if(display_data_entry->slot[slot].timeout > 0)
 			{
-				if(--display_entry->slot[slot].timeout == 0)
-					display_entry->slot[slot].content[0] = '\0';
+				if(--display_data_entry->slot[slot].timeout == 0)
+					display_data_entry->slot[slot].content[0] = '\0';
 			}
 
-			if(display_entry->slot[slot].content[0])
+			if(display_data_entry->slot[slot].content[0])
 				active_slots++;
 		}
 
 		if(active_slots == 0)
 		{
-			strlcpy(display_entry->slot[0].content, default_message, sizeof(display_entry->slot[0].content));
+			strlcpy(display_data_entry->slot[0].content, default_message, sizeof(display_data_entry->slot[0].content));
 			current_scroll = 0;
 		}
 	}
@@ -307,26 +313,28 @@ irom void display_periodic(void) // call once per second
 
 irom void display_init(void)
 {
-	display_data_t *entry;
+	display_info_t *display_info_entry;
+	display_data_t *display_data_entry;
 	int current, slot;
 
 	strlcpy(default_message, config.display_default_msg, sizeof(default_message));
 
 	for(current = 0; current < display_size; current++)
 	{
-		entry = &display_data[current];
+		display_info_entry = &display_info[current];
+		display_data_entry = &display_data[current];
 
-		if(entry->init_fn && (entry->init_fn()))
-			entry->detected = true;
+		if(display_info_entry->init_fn && (display_info_entry->init_fn()))
+			display_data_entry->detected = 1;
 		else
-			entry->detected = false;
+			display_data_entry->detected = 0;
 
 		for(slot = 0; slot < display_slot_amount; slot++)
 		{
-			entry->current_slot = 0;
-			entry->brightness = 1;
-			entry->slot[slot].timeout = 0;
-			entry->slot[slot].content[0] = '\0';
+			display_data_entry->current_slot = 0;
+			display_data_entry->brightness = 1;
+			display_data_entry->slot[slot].timeout = 0;
+			display_data_entry->slot[slot].content[0] = '\0';
 		}
 	}
 
@@ -335,7 +343,8 @@ irom void display_init(void)
 
 irom static void display_setslot(string_t *dst, display_id_t display, int slot, int timeout, const char *text)
 {
-	display_data_t *display_entry;
+	display_info_t *display_info_entry;
+	display_data_t *display_data_entry;
 
 	if(display >= display_size)
 	{
@@ -343,9 +352,10 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 		return;
 	}
 
-	display_entry = &display_data[display];
+	display_info_entry = &display_info[display];
+	display_data_entry = &display_data[display];
 
-	if(!display_entry->detected)
+	if(!display_data_entry->detected)
 	{
 		string_format(dst, "display setslot: display #%d not found\n", display);
 		return;
@@ -357,18 +367,18 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 		return;
 	}
 
-	strlcpy(display_entry->slot[slot].content, text, display_slot_size);
-	display_entry->slot[slot].timeout = timeout;
+	strlcpy(display_data_entry->slot[slot].content, text, display_slot_size);
+	display_data_entry->slot[slot].timeout = timeout;
 
 	display_update(false);
 
 	string_format(dst, "display setslot: set slot %d on %s to \"%s\"\n",
-				slot, display_entry->name, display_entry->slot[slot].content);
+				slot, display_info_entry->name, display_data_entry->slot[slot].content);
 }
 
 irom static bool_t display_set_brightness(display_id_t display, int brightness)
 {
-	display_data_t *display_entry;
+	display_data_t *display_data_entry;
 
 	if(brightness > 4)
 		return(false);
@@ -376,12 +386,12 @@ irom static bool_t display_set_brightness(display_id_t display, int brightness)
 	if(display >= display_size)
 		return(false);
 
-	display_entry = &display_data[display];
+	display_data_entry = &display_data[display];
 
-	if(!display_entry->detected)
+	if(!display_data_entry->detected)
 		return(false);
 
-	display_entry->brightness = brightness;
+	display_data_entry->brightness = brightness;
 	display_update(false);
 
 	return(true);
@@ -389,17 +399,17 @@ irom static bool_t display_set_brightness(display_id_t display, int brightness)
 
 irom static bool_t display_get_brightness(display_id_t display, int *brightness)
 {
-	display_data_t *display_entry;
+	display_data_t *display_data_entry;
 
 	if(display >= display_size)
 		return(false);
 
-	display_entry = &display_data[display];
+	display_data_entry = &display_data[display];
 
-	if(!display_entry->detected)
+	if(!display_data_entry->detected)
 		return(false);
 
-	*brightness = display_entry->brightness;
+	*brightness = display_data_entry->brightness;
 
 	return(true);
 }
@@ -408,24 +418,26 @@ irom static void display_dump(string_t *dst, int verbose_level)
 {
 	int display;
 	int slot;
-	display_data_t *entry;
+	display_info_t *display_info_entry;
+	display_data_t *display_data_entry;
 	display_slot_t *slot_entry;
 	int original_length = string_length(dst);
 
 	for(display = 0; display < display_size; display++)
 	{
-		entry = &display_data[display];
+		display_info_entry = &display_info[display];
+		display_data_entry = &display_data[display];
 
-		if((verbose_level > 0) || entry->detected)
+		if((verbose_level > 0) || display_data_entry->detected)
 		{
 			string_format(dst, "> %c display #%u (%s: %s)\n",
-					entry->detected ? '+' : ' ', display, entry->name, entry->type);
+					display_data_entry->detected ? '+' : ' ', display, display_info_entry->name, display_info_entry->type);
 
 			if(verbose_level > 1)
 			{
 				for(slot = 0; slot < display_slot_amount; slot++)
 				{
-					slot_entry = &entry->slot[slot];
+					slot_entry = &display_data_entry->slot[slot];
 					string_format(dst, ">> slot %u: timeout %u, text: \"%s\"\n", slot, slot_entry->timeout, slot_entry->content);
 				}
 			}
