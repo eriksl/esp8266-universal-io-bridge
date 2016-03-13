@@ -48,7 +48,14 @@ static struct
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
 	unsigned int init_ntp_bogus:1;
-} bg_action;
+} bg_action =
+{
+	.disconnect = 0,
+	.reset = 0,
+	.init_i2c_sensors = 0,
+	.init_displays = 0,
+	.init_ntp_bogus = 0
+};
 
 static espsrv_t cmd;
 static espsrv_t data;

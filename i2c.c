@@ -27,7 +27,10 @@ typedef enum
 struct
 {
 	unsigned int init_done:1;
-} i2c_flags;
+} i2c_flags =
+{
+	.init_done = 0
+};
 
 static i2c_error_t send_bit(bool_t bit);
 
@@ -88,7 +91,7 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	if(state < i2c_state_size)
 		string_cat_ptr(dst, state_strings[state]);
 	else
-		string_cat(dst, "<unknown state>");
+		string_format(dst, "<unknown state %d>", state);
 
 	string_cat(dst, ")");
 }
@@ -514,7 +517,7 @@ irom i2c_error_t i2c_init(int sda_pin, int scl_pin, int i2c_delay)
 	scl_mask = 1 << scl_pin;
 	transaction_bit_delay = i2c_delay;
 
-	i2c_flags.init_done = true;
+	i2c_flags.init_done = 1;
 
 	return(i2c_reset());
 }

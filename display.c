@@ -168,7 +168,7 @@ static irom bool_t display_saa1064_init(void)
 
 static irom bool_t display_saa1064_set(display_data_t *display, const char *from)
 {
-	static uint8_t bright_to_saa[5] =
+	static const uint8_t bright_to_saa[5] =
 	{
 		0x00, 0x10, 0x30, 0x50, 0x70
 	};
