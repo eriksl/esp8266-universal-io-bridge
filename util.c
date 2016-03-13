@@ -612,6 +612,9 @@ irom int dprintf(const char *fmt, ...)
 		if(!queue_full(&data_send_queue))
 			queue_push(&data_send_queue, dram_buffer[current]);
 
+	queue_push(&data_send_queue, '\r');
+	queue_push(&data_send_queue, '\n');
+
 	uart_start_transmit(!queue_empty(&data_send_queue));
 
 	return(n);
