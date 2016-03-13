@@ -228,7 +228,7 @@ irom static void display_update(bool_t advance)
 	int display, slot;
 	display_info_t *display_info_entry;
 	display_data_t *display_data_entry;
-	string_new(static, info_text, 16);
+	string_new(static, info_text, 80);
 
 	for(display = 0; display < display_size; display++)
 	{
@@ -253,6 +253,7 @@ irom static void display_update(bool_t advance)
 
 				if(!ets_strcmp(display_text, "%%%%"))
 				{
+					string_clear(&info_text);
 					string_format(&info_text, "%02u.%02u %s %s",
 							rt_hours, rt_mins, display_info_entry->name, display_info_entry->type);
 					display_text = string_to_ptr(&info_text);
