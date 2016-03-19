@@ -18,21 +18,22 @@ static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 irom static io_error_t readregister(string_t *error_message, int address, int reg, int *value)
 {
 	uint8_t i2cbuffer[2];
+	i2c_error_t error;
 
 	i2cbuffer[0] = reg;
 
-	if(i2c_send(address, 1, &i2cbuffer[0]) != i2c_error_ok)
+	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
-			string_cat(error_message, "can't write to device\n");
+			i2c_error_format_string(error_message, error);
 
 		return(io_error);
 	}
 
-	if(i2c_receive(address, 1, &i2cbuffer[1]) != i2c_error_ok)
+	if((error = i2c_receive(address, 1, &i2cbuffer[1])) != i2c_error_ok)
 	{
 		if(error_message)
-			string_cat(error_message, "can't read from device\n");
+			i2c_error_format_string(error_message, error);
 
 		return(io_error);
 	}
@@ -45,21 +46,22 @@ irom static io_error_t readregister(string_t *error_message, int address, int re
 irom static io_error_t clearsetregister(string_t *error_message, int address, int reg, int clearmask, int setmask)
 {
 	uint8_t i2cbuffer[2];
+	i2c_error_t error;
 
 	i2cbuffer[0] = reg;
 
-	if(i2c_send(address, 1, &i2cbuffer[0]) != i2c_error_ok)
+	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
-			string_cat(error_message, "can't write to device\n");
+			i2c_error_format_string(error_message, error);
 
-			return(io_error);
+		return(io_error);
 	}
 
-	if(i2c_receive(address, 1, &i2cbuffer[1]) != i2c_error_ok)
+	if((error = i2c_receive(address, 1, &i2cbuffer[1])) != i2c_error_ok)
 	{
 		if(error_message)
-			string_cat(error_message, "can't read from device\n");
+			i2c_error_format_string(error_message, error);
 
 		return(io_error);
 	}
