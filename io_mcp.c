@@ -78,7 +78,7 @@ irom static io_error_t clearsetregister(string_t *error_message, int address, in
 	return(io_ok);
 }
 
-irom attr_const io_error_t io_mcp_init(const struct io_info_entry_T *info)
+irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
 	int ix;
 	int instance, pin;
@@ -113,7 +113,7 @@ irom attr_const io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom attr_const void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+irom void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	int pin;
 	int intf[2], intcap[2];
@@ -227,7 +227,7 @@ irom io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_in
 	return(io_ok);
 }
 
-irom attr_const io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin, tv, value;
 	mcp_data_pin_t *mcp_pin_data;
