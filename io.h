@@ -16,8 +16,7 @@ typedef enum
 
 assert_size(io_error_t, 4);
 
-void io_init(void);
-
+void		io_init(void);
 void		io_periodic(void);
 io_error_t	io_read_pin(string_t *, int, int, int *);
 io_error_t	io_write_pin(string_t *, int, int, int);

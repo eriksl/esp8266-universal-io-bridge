@@ -86,14 +86,14 @@ typedef struct
 
 static io_mode_trait_t io_mode_traits[io_pin_size] =
 {
-	{ io_pin_disabled,			"disabled"			},
-	{ io_pin_input_digital,		"inputd"			},
-	{ io_pin_counter,			"counter"			},
-	{ io_pin_output_digital,	"outputd"			},
-	{ io_pin_timer,				"timer"				},
-	{ io_pin_input_analog,		"inputa"			},
-	{ io_pin_output_analog,		"outputa"			},
-	{ io_pin_i2c,				"i2c"				},
+	{ io_pin_disabled,			"disabled"	},
+	{ io_pin_input_digital,		"inputd"	},
+	{ io_pin_counter,			"counter"	},
+	{ io_pin_output_digital,	"outputd"	},
+	{ io_pin_timer,				"timer"		},
+	{ io_pin_input_analog,		"inputa"	},
+	{ io_pin_output_analog,		"outputa"	},
+	{ io_pin_i2c,				"i2c"		},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
