@@ -28,14 +28,13 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 	{
 		case(io_aux_pin_rtc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_input_analog):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_error):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_input_analog):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -43,12 +42,12 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 					return(io_error);
 				}
 
-				case(io_pin_disabled):
+				case(io_pin_ll_disabled):
 				{
 					break;
 				}
 
-				case(io_pin_input_digital):
+				case(io_pin_ll_input_digital):
 				{
 					setclear_perireg(PAD_XPD_DCDC_CONF, 0x43, 0x01);
 					setclear_perireg(RTC_GPIO_CONF, 0x01, 0x00);
@@ -57,7 +56,7 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 					break;
 				}
 
-				case(io_pin_output_digital):
+				case(io_pin_ll_output_digital):
 				{
 					setclear_perireg(PAD_XPD_DCDC_CONF, 0x43, 0x01);
 					setclear_perireg(RTC_GPIO_CONF, 0x01, 0x00);
@@ -72,16 +71,15 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 
 		case(io_aux_pin_adc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_input_digital):
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_output_digital):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_error):
+				case(io_pin_ll_disabled):
+				case(io_pin_ll_input_digital):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_output_digital):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -89,7 +87,7 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 					return(io_error);
 				}
 
-				case(io_pin_input_analog):
+				case(io_pin_ll_input_analog):
 				{
 					break;
 				}
@@ -145,15 +143,14 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 	{
 		case(io_aux_pin_rtc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_input_analog):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_error):
+				case(io_pin_ll_disabled):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_input_analog):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -161,8 +158,8 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 					return(io_error);
 				}
 
-				case(io_pin_input_digital):
-				case(io_pin_output_digital):
+				case(io_pin_ll_input_digital):
+				case(io_pin_ll_output_digital):
 				{
 					*value = !!(READ_PERI_REG(RTC_GPIO_IN_DATA) & 0x01);
 
@@ -175,16 +172,15 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 
 		case(io_aux_pin_adc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_input_digital):
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_output_digital):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_error):
+				case(io_pin_ll_disabled):
+				case(io_pin_ll_input_digital):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_output_digital):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -192,7 +188,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 					return(io_error);
 				}
 
-				case(io_pin_input_analog):
+				case(io_pin_ll_input_analog):
 				{
 					*value = system_adc_read() << 6;
 
@@ -221,15 +217,14 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 	{
 		case(io_aux_pin_rtc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_input_analog):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_error):
+				case(io_pin_ll_disabled):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_input_analog):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -237,7 +232,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 					return(io_error);
 				}
 
-				case(io_pin_input_digital):
+				case(io_pin_ll_input_digital):
 				{
 					if(error_message)
 						string_cat(error_message, "cannot write to input\n");
@@ -245,7 +240,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 					return(io_error);
 				}
 
-				case(io_pin_output_digital):
+				case(io_pin_ll_output_digital):
 				{
 					setclear_perireg(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
 
@@ -258,16 +253,15 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 
 		case(io_aux_pin_adc):
 		{
-			switch(pin_config->mode)
+			switch(pin_config->llmode)
 			{
-				case(io_pin_input_digital):
-				case(io_pin_counter):
-				case(io_pin_timer):
-				case(io_pin_output_digital):
-				case(io_pin_output_analog):
-				case(io_pin_i2c):
-				case(io_pin_disabled):
-				case(io_pin_error):
+				case(io_pin_ll_input_digital):
+				case(io_pin_ll_counter):
+				case(io_pin_ll_output_digital):
+				case(io_pin_ll_output_analog):
+				case(io_pin_ll_i2c):
+				case(io_pin_ll_disabled):
+				case(io_pin_ll_error):
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -275,7 +269,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 					return(io_error);
 				}
 
-				case(io_pin_input_analog):
+				case(io_pin_ll_input_analog):
 				{
 					if(error_message)
 						string_cat(error_message, "cannot write to adc\n");

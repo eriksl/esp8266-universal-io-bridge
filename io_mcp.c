@@ -135,7 +135,7 @@ irom attr_const void io_mcp_periodic(int io, const struct io_info_entry_T *info,
 		mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 		pin_config = &config.io_config[io][pin];
 
-		if(pin_config->mode == io_pin_counter)
+		if(pin_config->llmode == io_pin_ll_counter)
 		{
 			if(mcp_pin_data->debounce != 0)
 			{
@@ -185,15 +185,15 @@ irom io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_in
 	if(clearsetregister(error_message, info->address, 0x14 + bank, 1 << bankpin, 0) != io_ok) // latch = 0
 		return(io_error);
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_disabled):
+		case(io_pin_ll_disabled):
 		{
 			break;
 		}
 
-		case(io_pin_input_digital):
-		case(io_pin_counter):
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_counter):
 		{
 			if(clearsetregister(error_message, info->address, 0x00 + bank, 0, 1 << bankpin) != io_ok) // direction = 1
 				return(io_error);
@@ -201,14 +201,13 @@ irom io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_in
 			if(pin_config->flags.pullup && (clearsetregister(error_message, info->address, 0x0c + bank, 0, 1 << bankpin) != io_ok))
 				return(io_error);
 
-			if((pin_config->mode == io_pin_counter) && (clearsetregister(error_message, info->address, 0x04 + bank, 0, 1 << bankpin) != io_ok)) // pc int enable = 1
+			if((pin_config->llmode == io_pin_ll_counter) && (clearsetregister(error_message, info->address, 0x04 + bank, 0, 1 << bankpin) != io_ok)) // pc int enable = 1
 				return(io_error);
 
 			break;
 		}
 
-		case(io_pin_output_digital):
-		case(io_pin_timer):
+		case(io_pin_ll_output_digital):
 		{
 			if(clearsetregister(error_message, info->address, 0x00 + bank, 1 << bankpin, 0) != io_ok) // direction = 0
 				return(io_error);
@@ -238,9 +237,9 @@ irom attr_const io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_in
 
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_counter):
+		case(io_pin_ll_counter):
 		{
 			if(readregister(dst, info->address, 0x12 + bank, &tv) != io_ok)
 				return(io_error);
@@ -270,11 +269,10 @@ irom io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_en
 
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_timer):
-		case(io_pin_input_digital):
-		case(io_pin_output_digital):
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_output_digital):
 		{
 			if(readregister(error_message, info->address, 0x12 + bank, &tv) != io_ok)
 				return(io_error);
@@ -284,7 +282,7 @@ irom io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_en
 			break;
 		}
 
-		case(io_pin_counter):
+		case(io_pin_ll_counter):
 		{
 			*value = mcp_pin_data->counter;
 
@@ -324,10 +322,9 @@ irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_e
 		setmask = 0x00;
 	}
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_timer):
-		case(io_pin_output_digital):
+		case(io_pin_ll_output_digital):
 		{
 			if(clearsetregister(error_message, info->address, 0x12 + bank, clearmask, setmask) != io_ok)
 				return(io_error);
@@ -335,7 +332,7 @@ irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_e
 			break;
 		}
 
-		case(io_pin_counter):
+		case(io_pin_ll_counter):
 		{
 			mcp_pin_data->counter = value;
 

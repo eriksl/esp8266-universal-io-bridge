@@ -66,12 +66,28 @@ typedef enum attr_packed
 
 assert_size(io_i2c_t, 1);
 
+typedef enum attr_packed
+{
+	io_pin_ll_disabled = 0,
+	io_pin_ll_input_digital,
+	io_pin_ll_counter,
+	io_pin_ll_output_digital,
+	io_pin_ll_input_analog,
+	io_pin_ll_output_analog,
+	io_pin_ll_i2c,
+	io_pin_ll_error,
+	io_pin_ll_size = io_pin_ll_error
+} io_pin_ll_mode_t;
+
+assert_size(io_pin_ll_mode_t, 1);
+
 typedef struct
 {
-	io_pin_mode_t	mode;
-	io_pin_flag_t	flags;
-	io_direction_t	direction;
-	uint32_t		delay;
+	io_pin_mode_t		mode;
+	io_pin_ll_mode_t	llmode;
+	io_pin_flag_t		flags;
+	io_direction_t		direction;
+	uint32_t			delay;
 
 	union
 	{

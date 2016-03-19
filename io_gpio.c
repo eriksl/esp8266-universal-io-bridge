@@ -89,7 +89,7 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	{
 		pin_config = &config.io_config[io_id_gpio][pin];
 
-		if((pc & (1 << pin)) && (pin_config->mode == io_pin_counter))
+		if((pc & (1 << pin)) && (pin_config->llmode == io_pin_ll_counter))
 		{
 			gpio_pin_data = &gpio_data[pin];
 
@@ -131,21 +131,20 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 		gpio_pin_data->counter.debounce = 0;
 		gpio_pin_data->pwm.channel = -1;
 
-		switch(pin_config->mode)
+		switch(pin_config->llmode)
 		{
-			case(io_pin_disabled):
-			case(io_pin_input_digital):
-			case(io_pin_output_digital):
-			case(io_pin_timer):
-			case(io_pin_input_analog):
-			case(io_pin_i2c):
-			case(io_pin_error):
-			case(io_pin_counter):
+			case(io_pin_ll_disabled):
+			case(io_pin_ll_input_digital):
+			case(io_pin_ll_counter):
+			case(io_pin_ll_output_digital):
+			case(io_pin_ll_input_analog):
+			case(io_pin_ll_i2c):
+			case(io_pin_ll_error):
 			{
 				break;
 			}
 
-			case(io_pin_output_analog):
+			case(io_pin_ll_output_analog):
 			{
 				if(pwmchannel < io_gpio_pwm_size)
 				{
@@ -187,7 +186,7 @@ irom void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 		pin_config = &config.io_config[io][pin];
 		gpio_pin_data = &gpio_data[pin];
 
-		if((pin_config->mode == io_pin_counter) && (gpio_pin_data->counter.debounce != 0))
+		if((pin_config->llmode == io_pin_ll_counter) && (gpio_pin_data->counter.debounce != 0))
 		{
 			if(gpio_pin_data->counter.debounce >= 10)
 				gpio_pin_data->counter.debounce -= 10; // 10 ms per tick
@@ -218,7 +217,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		return(io_error);
 	}
 
-	if(pin_config->mode == io_pin_disabled)
+	if(pin_config->llmode == io_pin_ll_disabled)
 	{
 		if(error_message)
 			string_format(error_message, "pin %d disabled\n", pin);
@@ -232,10 +231,10 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 	gpio_pin_data->counter.counter = 0;
 	gpio_pin_data->counter.debounce = 0;
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_input_digital):
-		case(io_pin_counter):
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_counter):
 		{
 			gpio_output_set(0, 0, 0, 1 << pin);
 
@@ -244,20 +243,19 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			else
 				PIN_PULLUP_DIS(gpio_info->mux);
 
-			if(pin_config->mode == io_pin_counter)
+			if(pin_config->llmode == io_pin_ll_counter)
 				pin_arm_counter(pin);
 
 			break;
 		}
 
-		case(io_pin_output_digital):
-		case(io_pin_timer):
+		case(io_pin_ll_output_digital):
 		{
 			gpio_output_set(0, 0, 1 << pin, 0);
 			break;
 		}
 
-		case(io_pin_output_analog):
+		case(io_pin_ll_output_analog):
 		{
 			int value = pin_config->shared.output_analog.lower_bound; 
 			int channel = gpio_pin_data->pwm.channel;
@@ -271,7 +269,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			break;
 		}
 
-		case(io_pin_i2c):
+		case(io_pin_ll_i2c):
 		{
 			uint32_t pinaddr = GPIO_PIN_ADDR(GPIO_ID_PIN(pin));
 
@@ -287,7 +285,10 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		default:
 		{
 			if(error_message)
-				string_format(error_message, "gpio %d invalid mode: %d\n", pin, pin_config->mode);
+			{
+				string_format(error_message, "gpio %d invalid mode", pin);
+				io_string_from_ll_mode(error_message, pin_config->llmode);
+			}
 			return(io_error);
 		}
 	}
@@ -308,20 +309,19 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 		string_cat(dst, "unusable i/o pin");
 	else
 	{
-		switch(pin_config->mode)
+		switch(pin_config->llmode)
 		{
-			case(io_pin_disabled):
-			case(io_pin_input_digital):
-			case(io_pin_output_digital):
-			case(io_pin_timer):
-			case(io_pin_input_analog):
-			case(io_pin_i2c):
-			case(io_pin_error):
+			case(io_pin_ll_disabled):
+			case(io_pin_ll_input_digital):
+			case(io_pin_ll_output_digital):
+			case(io_pin_ll_input_analog):
+			case(io_pin_ll_i2c):
+			case(io_pin_ll_error):
 			{
 				break;
 			}
 
-			case(io_pin_counter):
+			case(io_pin_ll_counter):
 			{
 				string_format(dst, "current state: %s, debounce delay: %d",
 						onoff(gpio_input_get() & 1 << pin),
@@ -330,7 +330,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				break;
 			}
 
-			case(io_pin_output_analog):
+			case(io_pin_ll_output_analog):
 			{
 				if(gpio_flags.pwm_subsystem_active)
 				{
@@ -365,35 +365,34 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 
 	gpio_pin_data = &gpio_data[pin];
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_disabled):
-		case(io_pin_input_analog):
-		case(io_pin_error):
+		case(io_pin_ll_disabled):
+		case(io_pin_ll_input_analog):
+		case(io_pin_ll_error):
 		{
 			if(error_message)
 				string_format(error_message, "io %d/%d invalid\n", io_id_gpio, pin);
 			return(io_error);
 		}
 
-		case(io_pin_input_digital):
-		case(io_pin_output_digital):
-		case(io_pin_timer):
-		case(io_pin_i2c):
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_output_digital):
+		case(io_pin_ll_i2c):
 		{
 			*value = !!(gpio_input_get() & 1 << pin);
 
 			break;
 		}
 
-		case(io_pin_counter):
+		case(io_pin_ll_counter):
 		{
 			*value = gpio_pin_data->counter.counter;
 
 			break;
 		}
 
-		case(io_pin_output_analog):
+		case(io_pin_ll_output_analog):
 		{
 			if(gpio_flags.pwm_subsystem_active && ((channel = gpio_pin_data->pwm.channel) >= 0))
 				*value = pwm_get_duty(channel);
@@ -420,25 +419,24 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 	gpio_pin_data = &gpio_data[pin];
 
-	switch(pin_config->mode)
+	switch(pin_config->llmode)
 	{
-		case(io_pin_disabled):
-		case(io_pin_input_digital):
-		case(io_pin_input_analog):
-		case(io_pin_error):
+		case(io_pin_ll_disabled):
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_input_analog):
+		case(io_pin_ll_error):
 		{
 			break;
 		}
 
-		case(io_pin_counter):
+		case(io_pin_ll_counter):
 		{
 			gpio_pin_data->counter.counter = value;
 			break;
 		}
 
-		case(io_pin_output_digital):
-		case(io_pin_timer):
-		case(io_pin_i2c):
+		case(io_pin_ll_output_digital):
+		case(io_pin_ll_i2c):
 		{
 			if(value)
 				gpio_output_set(1 << pin, 0, 0, 0);
@@ -448,7 +446,7 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 			break;
 		}
 
-		case(io_pin_output_analog):
+		case(io_pin_ll_output_analog):
 		{
 			int channel = gpio_pin_data->pwm.channel;
 

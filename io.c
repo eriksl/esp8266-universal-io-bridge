@@ -120,6 +120,42 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode)
 		string_format(name, "%s", io_mode_traits[mode].name);
 }
 
+typedef struct
+{
+	io_pin_ll_mode_t	llmode;
+	const char			*name;
+} io_ll_mode_trait_t;
+
+static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
+{
+	{ io_pin_ll_disabled,			"disabled"	},
+	{ io_pin_ll_input_digital,		"d-input"	},
+	{ io_pin_ll_counter,			"counter"	},
+	{ io_pin_ll_output_digital,		"d-output"	},
+	{ io_pin_ll_input_analog,		"a-input"	},
+	{ io_pin_ll_output_analog,		"a-output"	},
+	{ io_pin_ll_i2c,				"i2c"	},
+};
+
+irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t llmode)
+{
+	io_pin_mode_t mode;
+	const io_ll_mode_trait_t *entry;
+
+	for(mode = io_pin_disabled; mode < io_pin_size; mode++)
+	{
+		entry = &io_ll_mode_traits[mode];
+
+		if(entry->llmode == llmode)
+		{
+			string_format(name, "%s", io_ll_mode_traits[mode].name);
+			return;
+		}
+	}
+
+	string_cat(name, "error");
+}
+
 irom static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
 {
 	if(string_match(pin, "sda"))
@@ -589,6 +625,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	io_config_pin_entry_t	*pin_config;
 	io_data_pin_entry_t		*pin_data;
 	io_pin_mode_t			mode;
+	io_pin_ll_mode_t		llmode;
 	int io, pin;
 
 	if(parse_int(1, src, &io, 0) != parse_ok)
@@ -642,6 +679,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 	string_clear(dst);
 
+	llmode = io_pin_ll_error;
+
 	switch(mode)
 	{
 		case(io_pin_input_digital):
@@ -651,6 +690,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				string_cat(dst, "digital input mode invalid for this io\n");
 				return(app_action_error);
 			}
+
+			llmode = io_pin_ll_input_digital;
 
 			break;
 		}
@@ -673,6 +714,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			pin_config->delay = debounce;
 
+			llmode = io_pin_ll_counter;
+
 			break;
 		}
 
@@ -683,6 +726,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				string_cat(dst, "digital output mode invalid for this io\n");
 				return(app_action_error);
 			}
+
+			llmode = io_pin_ll_output_digital;
 
 			break;
 		}
@@ -731,6 +776,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			pin_config->direction = direction;
 			pin_config->delay = delay;
 
+			llmode = io_pin_ll_output_digital;
+
 			break;
 		}
 
@@ -741,6 +788,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				string_cat(dst, "analog input mode invalid for this io\n");
 				return(app_action_error);
 			}
+
+			llmode = io_pin_ll_input_analog;
 
 			break;
 		}
@@ -792,6 +841,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			pin_config->shared.output_analog.upper_bound = upper_bound;
 			pin_config->delay = speed;
 
+			llmode = io_pin_ll_output_analog;
+
 			break;
 		}
 
@@ -832,22 +883,35 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			pin_config->delay = delay;
 			pin_config->shared.i2c.pin_mode = pin_mode;
 
+			llmode = io_pin_ll_i2c;
+
 			break;
 		}
 
 		case(io_pin_disabled):
 		{
 			break;
+
+			llmode = io_pin_ll_disabled;
 		}
 
 		case(io_pin_error):
 		{
+			llmode = io_pin_ll_error;
+
 			string_cat(dst, "unsupported io mode\n");
 			return(app_action_error);
 		}
 	}
 
+	if((mode == io_pin_error) || (llmode == io_pin_ll_error))
+	{
+		string_cat(dst, "error\n");
+		return(app_action_error);
+	}
+
 	pin_config->mode = mode;
+	pin_config->llmode = llmode;
 
 	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
 	{
@@ -1291,6 +1355,10 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 					break;
 				}
 			}
+
+			string_cat(dst, " [hw: ");
+			io_string_from_ll_mode(dst, pin_config->llmode);
+			string_cat(dst, "]");
 
 			string_cat_ptr(dst, (*strings)[ds_id_info_1]);
 			info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
