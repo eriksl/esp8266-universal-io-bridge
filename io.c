@@ -3,6 +3,7 @@
 #include "io_gpio.h"
 #include "io_aux.h"
 #include "io_mcp.h"
+#include "io_pcf.h"
 #include "io.h"
 #include "config.h"
 
@@ -73,6 +74,28 @@ io_info_t io_info =
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
 		io_mcp_write_pin,
+	},
+	{
+		/* io_id_pcf_3a = 3 */
+		0x3a,
+		io_pcf_instance_3a,
+		8,
+		{
+			.input_digital = 1,
+			.counter = 0,
+			.output_digital = 1,
+			.input_analog = 0,
+			.output_analog = 0,
+			.i2c = 0,
+			.pullup = 0,
+		},
+		"PCF8574A I2C I/O expander",
+		io_pcf_init,
+		0,
+		io_pcf_init_pin_mode,
+		0,
+		io_pcf_read_pin,
+		io_pcf_write_pin,
 	}
 };
 
@@ -1360,9 +1383,12 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 			io_string_from_ll_mode(dst, pin_config->llmode);
 			string_cat(dst, "]");
 
-			string_cat_ptr(dst, (*strings)[ds_id_info_1]);
-			info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
-			string_cat_ptr(dst, (*strings)[ds_id_info_2]);
+			if(info->get_pin_info_fn)
+			{
+				string_cat_ptr(dst, (*strings)[ds_id_info_1]);
+				info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
+				string_cat_ptr(dst, (*strings)[ds_id_info_2]);
+			}
 
 			string_cat_ptr(dst, (*strings)[ds_id_postline]);
 		}

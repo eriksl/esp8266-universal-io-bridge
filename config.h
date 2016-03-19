@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 2,
-	config_minor_version = 1,
+	config_minor_version = 2,
 };
 
 typedef enum
