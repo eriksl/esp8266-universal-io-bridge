@@ -30,18 +30,6 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_counter):
-				case(io_pin_ll_input_analog):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_error):
-				{
-					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
-
-					return(io_error);
-				}
-
 				case(io_pin_ll_disabled):
 				{
 					break;
@@ -64,6 +52,15 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 
 					break;
 				}
+
+				default:
+				{
+					if(error_message)
+						string_cat(error_message, "invalid mode for this pin\n");
+
+					return(io_error);
+				}
+
 			}
 
 			break;
@@ -73,13 +70,12 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_disabled):
-				case(io_pin_ll_input_digital):
-				case(io_pin_ll_counter):
-				case(io_pin_ll_output_digital):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_error):
+				case(io_pin_ll_input_analog):
+				{
+					break;
+				}
+
+				default:
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -87,10 +83,6 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 					return(io_error);
 				}
 
-				case(io_pin_ll_input_analog):
-				{
-					break;
-				}
 			}
 
 			break;
@@ -145,19 +137,6 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_disabled):
-				case(io_pin_ll_counter):
-				case(io_pin_ll_input_analog):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_error):
-				{
-					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
-
-					return(io_error);
-				}
-
 				case(io_pin_ll_input_digital):
 				case(io_pin_ll_output_digital):
 				{
@@ -165,6 +144,15 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 
 					break;
 				}
+
+				default:
+				{
+					if(error_message)
+						string_cat(error_message, "invalid mode for this pin\n");
+
+					return(io_error);
+				}
+
 			}
 
 			break;
@@ -174,13 +162,14 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_disabled):
-				case(io_pin_ll_input_digital):
-				case(io_pin_ll_counter):
-				case(io_pin_ll_output_digital):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_error):
+				case(io_pin_ll_input_analog):
+				{
+					*value = system_adc_read() << 6;
+
+					break;
+				}
+
+				default:
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
@@ -188,12 +177,6 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 					return(io_error);
 				}
 
-				case(io_pin_ll_input_analog):
-				{
-					*value = system_adc_read() << 6;
-
-					break;
-				}
 			}
 
 			break;
@@ -219,19 +202,6 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_disabled):
-				case(io_pin_ll_counter):
-				case(io_pin_ll_input_analog):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_error):
-				{
-					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
-
-					return(io_error);
-				}
-
 				case(io_pin_ll_input_digital):
 				{
 					if(error_message)
@@ -246,6 +216,15 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 
 					break;
 				}
+
+				default:
+				{
+					if(error_message)
+						string_cat(error_message, "invalid mode for this pin\n");
+
+					return(io_error);
+				}
+
 			}
 
 			break;
@@ -255,20 +234,6 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 		{
 			switch(pin_config->llmode)
 			{
-				case(io_pin_ll_input_digital):
-				case(io_pin_ll_counter):
-				case(io_pin_ll_output_digital):
-				case(io_pin_ll_output_analog):
-				case(io_pin_ll_i2c):
-				case(io_pin_ll_disabled):
-				case(io_pin_ll_error):
-				{
-					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
-
-					return(io_error);
-				}
-
 				case(io_pin_ll_input_analog):
 				{
 					if(error_message)
@@ -276,6 +241,15 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 
 					return(io_error);
 				}
+
+				default:
+				{
+					if(error_message)
+						string_cat(error_message, "invalid mode for this pin\n");
+
+					return(io_error);
+				}
+
 			}
 
 			break;

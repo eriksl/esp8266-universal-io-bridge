@@ -133,17 +133,6 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 
 		switch(pin_config->llmode)
 		{
-			case(io_pin_ll_disabled):
-			case(io_pin_ll_input_digital):
-			case(io_pin_ll_counter):
-			case(io_pin_ll_output_digital):
-			case(io_pin_ll_input_analog):
-			case(io_pin_ll_i2c):
-			case(io_pin_ll_error):
-			{
-				break;
-			}
-
 			case(io_pin_ll_output_analog):
 			{
 				if(pwmchannel < io_gpio_pwm_size)
@@ -158,6 +147,12 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 
 				break;
 			}
+
+			default:
+			{
+				break;
+			}
+
 		}
 	}
 
@@ -311,16 +306,6 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	{
 		switch(pin_config->llmode)
 		{
-			case(io_pin_ll_disabled):
-			case(io_pin_ll_input_digital):
-			case(io_pin_ll_output_digital):
-			case(io_pin_ll_input_analog):
-			case(io_pin_ll_i2c):
-			case(io_pin_ll_error):
-			{
-				break;
-			}
-
 			case(io_pin_ll_counter):
 			{
 				string_format(dst, "current state: %s, debounce delay: %d",
@@ -345,6 +330,12 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 				break;
 			}
+
+			default:
+			{
+				break;
+			}
+
 		}
 	}
 
@@ -421,14 +412,6 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 	switch(pin_config->llmode)
 	{
-		case(io_pin_ll_disabled):
-		case(io_pin_ll_input_digital):
-		case(io_pin_ll_input_analog):
-		case(io_pin_ll_error):
-		{
-			break;
-		}
-
 		case(io_pin_ll_counter):
 		{
 			gpio_pin_data->counter.counter = value;
@@ -457,6 +440,12 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 			break;
 
 		}
+
+		default:
+		{
+			break;
+		}
+
 	}
 
 	return(io_ok);
