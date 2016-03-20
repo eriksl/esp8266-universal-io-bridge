@@ -939,6 +939,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
 	{
 		pin_config->mode = io_pin_disabled;
+		pin_config->llmode = io_pin_ll_disabled;
 		return(app_action_error);
 	}
 

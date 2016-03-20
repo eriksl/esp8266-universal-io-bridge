@@ -166,6 +166,7 @@ irom void config_read(config_t *cfg)
 					pin_config = &config.io_config[io][pin];
 
 					pin_config->mode = io_pin_disabled;
+					pin_config->llmode = io_pin_ll_disabled;
 					pin_config->flags.autostart = 0;
 					pin_config->flags.repeat = 0;
 					pin_config->flags.pullup = 0;
