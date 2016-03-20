@@ -297,6 +297,11 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 			pin_func_select(gpio_info->mux, gpio_info->uart_func);
 
+			if(pin_config->flags.pullup)
+				PIN_PULLUP_EN(gpio_info->mux);
+			else
+				PIN_PULLUP_DIS(gpio_info->mux);
+
 			break;
 		}
 
