@@ -281,7 +281,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			if(error_message)
 			{
-				string_format(error_message, "gpio %d invalid mode", pin);
+				string_format(error_message, "gpio %d invalid mode: ", pin);
 				io_string_from_ll_mode(error_message, pin_config->llmode);
 			}
 			return(io_error);
@@ -350,7 +350,7 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 	if(!gpio_info_table[pin].valid)
 	{
 		if(error_message)
-			string_format(error_message, "io %d/%d invalid\n", io_id_gpio, pin);
+			string_format(error_message, "gpio %d invalid\n", pin);
 		return(io_error);
 	}
 
@@ -358,15 +358,6 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 
 	switch(pin_config->llmode)
 	{
-		case(io_pin_ll_disabled):
-		case(io_pin_ll_input_analog):
-		case(io_pin_ll_error):
-		{
-			if(error_message)
-				string_format(error_message, "io %d/%d invalid\n", io_id_gpio, pin);
-			return(io_error);
-		}
-
 		case(io_pin_ll_input_digital):
 		case(io_pin_ll_output_digital):
 		case(io_pin_ll_i2c):
@@ -392,6 +383,13 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 
 			break;
 		}
+
+		default:
+		{
+			if(error_message)
+				string_format(error_message, "cannot read from gpio %d\n", pin);
+			return(io_error);
+		}
 	}
 
 	return(io_ok);
@@ -404,7 +402,7 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 	if(!gpio_info_table[pin].valid)
 	{
 		if(error_message)
-			string_format(error_message, "io %d/%d invalid\n", io_id_gpio, pin);
+			string_format(error_message, "gpio %d invalid\n", pin);
 		return(io_error);
 	}
 
@@ -443,9 +441,10 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 		default:
 		{
-			break;
+			if(error_message)
+				string_format(error_message, "cannot write to gpio %d\n", pin);
+			return(io_error);
 		}
-
 	}
 
 	return(io_ok);
