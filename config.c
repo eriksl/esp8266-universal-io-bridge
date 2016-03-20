@@ -180,7 +180,9 @@ irom void config_read(config_t *cfg)
 					{
 						pin_config->mode = io_pin_uart;
 						pin_config->llmode = io_pin_ll_uart;
-						pin_config->flags.pullup = 1; // FIXME, this will probably only be needed on RX
+
+						if(pin == 3)
+							pin_config->flags.pullup = 1;
 					}
 				}
 			}
