@@ -21,6 +21,7 @@ io_info_t io_info =
 			.input_analog = 0,
 			.output_analog = 1,
 			.i2c = 1,
+			.uart = 1,
 			.pullup = 1,
 		},
 		"Internal GPIO",
@@ -43,6 +44,7 @@ io_info_t io_info =
 			.input_analog = 1,
 			.output_analog = 0,
 			.i2c = 0,
+			.uart = 0,
 			.pullup = 0,
 		},
 		"Auxilliary GPIO (RTC+ADC)",
@@ -65,6 +67,7 @@ io_info_t io_info =
 			.input_analog = 0,
 			.output_analog = 0,
 			.i2c = 0,
+			.uart = 0,
 			.pullup = 1,
 		},
 		"MCP23017 I2C I/O expander",
@@ -87,6 +90,7 @@ io_info_t io_info =
 			.input_analog = 0,
 			.output_analog = 0,
 			.i2c = 0,
+			.uart = 0,
 			.pullup = 0,
 		},
 		"PCF8574A I2C I/O expander",
@@ -117,6 +121,7 @@ static io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_input_analog,		"inputa"	},
 	{ io_pin_output_analog,		"outputa"	},
 	{ io_pin_i2c,				"i2c"		},
+	{ io_pin_uart,				"uart"		},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -157,7 +162,8 @@ static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 	{ io_pin_ll_output_digital,		"d-output"	},
 	{ io_pin_ll_input_analog,		"a-input"	},
 	{ io_pin_ll_output_analog,		"a-output"	},
-	{ io_pin_ll_i2c,				"i2c"	},
+	{ io_pin_ll_i2c,				"i2c"		},
+	{ io_pin_ll_uart,				"uart"		},
 };
 
 irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t llmode)
@@ -269,6 +275,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 		case(io_pin_input_analog):
 		case(io_pin_output_analog):
 		case(io_pin_i2c):
+		case(io_pin_uart):
 		{
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -290,6 +297,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 		case(io_pin_input_digital):
 		case(io_pin_input_analog):
 		case(io_pin_i2c):
+		case(io_pin_uart):
 		case(io_pin_error):
 		{
 			if(errormsg)
@@ -468,6 +476,7 @@ irom void io_init(void)
 						case(io_pin_input_digital):
 						case(io_pin_counter):
 						case(io_pin_input_analog):
+						case(io_pin_uart):
 						case(io_pin_error):
 						{
 							break;
@@ -549,6 +558,7 @@ irom void io_periodic(void)
 				case(io_pin_output_digital):
 				case(io_pin_input_analog):
 				case(io_pin_i2c):
+				case(io_pin_uart):
 				case(io_pin_error):
 				{
 					break;
@@ -911,11 +921,22 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			break;
 		}
 
+		case(io_pin_uart):
+		{
+			if(!info->caps.uart)
+			{
+				string_cat(dst, "uart mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			llmode = io_pin_ll_uart;
+		}
+
 		case(io_pin_disabled):
 		{
-			break;
-
 			llmode = io_pin_ll_disabled;
+
+			break;
 		}
 
 		case(io_pin_error):
@@ -1155,6 +1176,7 @@ typedef enum
 	ds_id_analog_output,
 	ds_id_i2c_sda,
 	ds_id_i2c_scl,
+	ds_id_uart,
 	ds_id_unknown,
 	ds_id_not_detected,
 	ds_id_info_1,
@@ -1193,6 +1215,7 @@ static const roflash dump_string_t dump_strings =
 		"analog output, min/static: %d, max: %d, speed: %d, current direction: %s, value: %d",
 		"i2c/sda",
 		"i2c/scl, delay: %d",
+		"uart",
 		"unknown",
 		"  not found\n",
 		", info: ",
@@ -1219,6 +1242,7 @@ static const roflash dump_string_t dump_strings =
 		"<td>analog output</td><td>min/static: %d, max: %d, delay: %d, current direction: %s, value: %d",
 		"<td>i2c</td><td>sda</td>",
 		"<td>i2c</td><td>scl, delay: %d</td>",
+		"<td>uart</td>",
 		"<td>unknown</td>",
 		"<td>not found</td>",
 		"<td>",
@@ -1285,7 +1309,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 
 			string_cat_ptr(dst, (*strings)[ds_id_mode]);
 
-			if(pin_config->mode != io_pin_disabled)
+			if((pin_config->mode != io_pin_disabled) && (pin_config->mode != io_pin_i2c) && (pin_config->mode != io_pin_uart))
 				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
 					string_cat(dst, "\n");
 				else
@@ -1371,6 +1395,14 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 
 					break;
 				}
+
+				case(io_pin_uart):
+				{
+					string_cat_ptr(dst, (*strings)[ds_id_uart]);
+
+					break;
+				}
+
 
 				default:
 				{

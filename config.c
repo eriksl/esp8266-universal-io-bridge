@@ -173,6 +173,15 @@ irom void config_read(config_t *cfg)
 					pin_config->flags.reset_on_read = 0;
 
 					ets_memset(pin_config, 0, sizeof(*pin_config));
+
+					// activate UART by default
+
+					if((io == io_id_gpio) && ((pin == 1) || (pin == 3))) // shamefully hardcoded :-(
+					{
+						pin_config->mode = io_pin_uart;
+						pin_config->llmode = io_pin_ll_uart;
+						pin_config->flags.pullup = 1; // FIXME, this will probably only be needed on RX
+					}
 				}
 			}
 

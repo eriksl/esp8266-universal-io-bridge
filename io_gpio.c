@@ -17,11 +17,20 @@ enum
 	io_gpio_pwm_size = 8,
 };
 
+typedef enum
+{
+	io_uart_rx,
+	io_uart_tx,
+	io_uart_none,
+} io_uart_t;
+
 typedef const struct
 {
 	const	bool		valid;
 	const	uint32_t	mux;
 	const	uint32_t	func;
+	const	io_uart_t	uart_pin;
+	const	uint32_t	uart_func;
 } gpio_info_t;
 
 typedef union
@@ -48,22 +57,22 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ true, 	PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0	},
-	{ true,		PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1	},
-	{ true,		PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2	},
-	{ true,		PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3	},
-	{ true,		PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4	},
-	{ true,		PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5	},
-	{ false,	0, 0, },
-	{ false,	0, 0, },
-	{ false,	0, 0, },
-	{ false,	0, 0, },
-	{ false,	0, 0, },
-	{ false,	0, 0, },
-	{ true,		PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12 },
-	{ true,		PERIPHS_IO_MUX_MTCK_U, FUNC_GPIO13 },
-	{ true,		PERIPHS_IO_MUX_MTMS_U, FUNC_GPIO14 },
-	{ true,		PERIPHS_IO_MUX_MTDO_U, FUNC_GPIO15 },
+	{ true, 	PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0, io_uart_none, -1		},
+	{ true,		PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1, io_uart_tx, FUNC_U0TXD,	},
+	{ true,		PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2, io_uart_none, -1,		},
+	{ true,		PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3, io_uart_rx, FUNC_U0RXD	},
+	{ true,		PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4, io_uart_none, -1		},
+	{ true,		PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5, io_uart_none, -1		},
+	{ false,	0, 0, io_uart_none, -1 },
+	{ false,	0, 0, io_uart_none, -1 },
+	{ false,	0, 0, io_uart_none, -1 },
+	{ false,	0, 0, io_uart_none, -1 },
+	{ false,	0, 0, io_uart_none, -1 },
+	{ false,	0, 0, io_uart_none, -1 },
+	{ true,		PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12, io_uart_none, -1 },
+	{ true,		PERIPHS_IO_MUX_MTCK_U, FUNC_GPIO13, io_uart_none, -1 },
+	{ true,		PERIPHS_IO_MUX_MTMS_U, FUNC_GPIO14, io_uart_none, -1 },
+	{ true,		PERIPHS_IO_MUX_MTDO_U, FUNC_GPIO15, io_uart_none, -1 },
 };
 
 static uint32_t pwm_duty[io_gpio_pwm_size];
@@ -277,6 +286,20 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			break;
 		}
 
+		case(io_pin_ll_uart):
+		{
+			if(gpio_info->uart_pin == io_uart_none)
+			{
+				if(error_message)
+					string_format(error_message, "gpio pin %d cannot be used for uart", pin);
+				return(io_error);
+			}
+
+			pin_func_select(gpio_info->mux, gpio_info->uart_func);
+
+			break;
+		}
+
 		default:
 		{
 			if(error_message)
@@ -331,11 +354,17 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				break;
 			}
 
+			case(io_pin_ll_uart):
+			{
+				string_format(dst, "uart pin: %s", (gpio_info_table[pin].uart_pin == io_uart_rx) ? "rx" : "tx");
+
+				break;
+			}
+
 			default:
 			{
 				break;
 			}
-
 		}
 	}
 

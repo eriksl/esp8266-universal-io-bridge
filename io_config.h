@@ -41,6 +41,7 @@ typedef enum attr_packed
 	io_pin_input_analog,
 	io_pin_output_analog,
 	io_pin_i2c,
+	io_pin_uart,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -76,6 +77,7 @@ typedef enum attr_packed
 	io_pin_ll_input_analog,
 	io_pin_ll_output_analog,
 	io_pin_ll_i2c,
+	io_pin_ll_uart,
 	io_pin_ll_error,
 	io_pin_ll_size = io_pin_ll_error
 } io_pin_ll_mode_t;
