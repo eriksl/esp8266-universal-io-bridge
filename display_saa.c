@@ -146,7 +146,7 @@ irom bool_t display_saa1064_init(void)
 	return(true);
 }
 
-irom bool_t display_saa1064_set(const display_data_t *display_data_entry, const char *from)
+irom bool_t display_saa1064_set(int brightness, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
@@ -170,7 +170,7 @@ irom bool_t display_saa1064_set(const display_data_t *display_data_entry, const 
 	i2cdata[0] = 0x00;	// start at control register (0x00),
 						// followed by four digits segments registers (0x01-0x04)
 	i2cdata[1] = 0x07;	// multiplex mode, enable all digits, no test mode
-	i2cdata[1] |= bright_to_saa[display_data_entry->brightness];
+	i2cdata[1] |= bright_to_saa[brightness];
 
 	for(current = 0; current < 4; current++)
 		i2cdata[2 + current] = 0x00;

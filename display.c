@@ -1,5 +1,6 @@
 #include "display.h"
 #include "display_saa.h"
+#include "display_lcd.h"
 
 #include "util.h"
 #include "stats.h"
@@ -11,12 +12,13 @@ typedef const struct
 	const char *	const name;
 	const char *	const type;
 	bool_t			(* const init_fn)(void);
-	bool_t			(* const set_fn)(const display_data_t *, const char *text);
+	bool_t			(* const set_fn)(int brightness, const char *text);
 } display_info_t;
 
 typedef enum
 {
 	display_saa1064,
+	display_lcd,
 	display_error,
 	display_size = display_error
 } display_id_t;
@@ -29,6 +31,11 @@ static roflash display_info_t display_info[display_size] =
 		4, "saa1064", "4 digit led display",
 		display_saa1064_init,
 		display_saa1064_set,
+	},
+	{
+		80, "hd44780", "4x20 character LCD display",
+		display_lcd_init,
+		display_lcd_set,
 	}
 };
 
@@ -73,7 +80,7 @@ irom static void display_update(bool_t advance)
 					display_text = string_to_ptr(&info_text);
 				}
 
-				display_info_entry->set_fn(display_data, display_text);
+				display_info_entry->set_fn(display_data_entry->brightness, display_text);
 			}
 			else
 				display_data_entry->current_slot = 0;
@@ -160,6 +167,7 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 {
 	display_info_t *display_info_entry;
 	display_data_t *display_data_entry;
+	int from, to;
 
 	if(display >= display_size)
 	{
@@ -182,7 +190,10 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 		return;
 	}
 
-	strlcpy(display_data_entry->slot[slot].content, text, display_slot_size);
+	for(from = 0, to = 0; text[from] && (to < display_slot_size); from++)
+		if((text[from] >= ' ') && (text[from] <= '~'))
+			display_data_entry->slot[slot].content[to++] = text[from];
+
 	display_data_entry->slot[slot].timeout = timeout;
 
 	display_update(false);

@@ -122,6 +122,7 @@ static io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_output_analog,		"outputa"	},
 	{ io_pin_i2c,				"i2c"		},
 	{ io_pin_uart,				"uart"		},
+	{ io_pin_lcd,				"lcd"		},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -216,6 +217,58 @@ irom static void io_string_from_i2c_type(string_t *name, io_i2c_t type)
 	}
 }
 
+typedef struct
+{
+	io_lcd_mode_t	mode;
+	const char		*name;
+} io_lcd_mode_trait_t;
+
+static io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
+{
+	{ io_lcd_rs,	"rs"	},
+	{ io_lcd_e,		"e"		},
+	{ io_lcd_d4,	"d4"	},
+	{ io_lcd_d5,	"d5"	},
+	{ io_lcd_d6,	"d6"	},
+	{ io_lcd_d7,	"d7"	},
+	{ io_lcd_bl,	"bl"	}
+};
+
+irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
+{
+	int ix;
+	const io_lcd_mode_trait_t *entry;
+
+	for(ix = 0; ix < io_lcd_size; ix++)
+	{
+		entry = &io_lcd_mode_traits[ix];
+
+		if(string_match(src, entry->name))
+			return(entry->mode);
+	}
+
+	return(io_lcd_error);
+}
+
+irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
+{
+	int ix;
+	const io_lcd_mode_trait_t *entry;
+
+	for(ix = 0; ix < io_lcd_size; ix++)
+	{
+		entry = &io_lcd_mode_traits[ix];
+
+		if(entry->mode == mode)
+		{
+			string_format(name, "%s", entry->name);
+			return;
+		}
+	}
+
+	string_cat(name, "error");
+}
+
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
 {
 	if(string_match(flag, "autostart"))
@@ -287,6 +340,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 		case(io_pin_output_analog):
 		case(io_pin_i2c):
 		case(io_pin_uart):
+		case(io_pin_lcd):
 		{
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -319,6 +373,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 
 		case(io_pin_counter):
 		case(io_pin_output_digital):
+		case(io_pin_lcd):
 		{
 			if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -494,6 +549,7 @@ irom void io_init(void)
 						}
 
 						case(io_pin_output_digital):
+						case(io_pin_lcd):
 						case(io_pin_timer):
 						{
 							io_write_pin_x((string_t *)0, info, pin_data, pin_config, pin, pin_config->flags.autostart);
@@ -570,6 +626,7 @@ irom void io_periodic(void)
 				case(io_pin_input_analog):
 				case(io_pin_i2c):
 				case(io_pin_uart):
+				case(io_pin_lcd):
 				case(io_pin_error):
 				{
 					break;
@@ -945,6 +1002,53 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			break;
 		}
 
+		case(io_pin_lcd):
+		{
+			io_lcd_mode_t pin_mode;
+
+			if(parse_string(4, src, dst) != parse_ok)
+			{
+				string_copy(dst, "lcd: <pin use>=rs|e|d4|d5|d6|d7|bl\n");
+				return(app_action_error);
+			}
+
+			if((pin_mode = io_lcd_mode_from_string(dst)) == io_lcd_error)
+			{
+				string_copy(dst, "lcd: <pin use>=rs|e|d4|d5|d6|d7|bl\n");
+				return(app_action_error);
+			}
+
+			string_clear(dst);
+
+			if(pin_mode == io_lcd_bl) // backlight
+			{
+				if(info->caps.output_analog)
+					llmode = io_pin_ll_output_analog;
+				else
+					if(info->caps.output_digital)
+						llmode = io_pin_ll_output_digital;
+					else
+					{
+						string_cat(dst, "analog/digital output mode invalid for this io\n");
+						return(app_action_error);
+					}
+			}
+			else
+			{
+				if(!info->caps.output_digital)
+				{
+					string_cat(dst, "digital output mode invalid for this io\n");
+					return(app_action_error);
+				}
+
+				llmode = io_pin_ll_output_digital;
+			}
+
+			pin_config->shared.lcd.pin_use = pin_mode;
+
+			break;
+		}
+
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
@@ -1024,6 +1128,12 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 		io_string_from_i2c_type(dst, pin_config->shared.i2c.pin_mode);
 	}
 
+	if(pin_config->mode == io_pin_lcd)
+	{
+		string_cat(dst, "/");
+		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
+	}
+
 	string_cat(dst, ": ");
 
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
@@ -1072,6 +1182,13 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	parse_int(3, src, &value, 0);
 
 	io_string_from_mode(dst, pin_config->mode);
+
+	if(pin_config->mode == io_pin_lcd)
+	{
+		string_cat(dst, "/");
+		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
+	}
+
 	string_cat(dst, ": ");
 
 	if(io_write_pin(dst, io, pin, value) != io_ok)
@@ -1190,6 +1307,7 @@ typedef enum
 	ds_id_i2c_sda,
 	ds_id_i2c_scl,
 	ds_id_uart,
+	ds_id_lcd,
 	ds_id_unknown,
 	ds_id_not_detected,
 	ds_id_info_1,
@@ -1229,6 +1347,7 @@ static const roflash dump_string_t dump_strings =
 		"i2c/sda",
 		"i2c/scl, delay: %d",
 		"uart",
+		"lcd",
 		"unknown",
 		"  not found\n",
 		", info: ",
@@ -1256,6 +1375,7 @@ static const roflash dump_string_t dump_strings =
 		"<td>i2c</td><td>sda</td>",
 		"<td>i2c</td><td>scl, delay: %d</td>",
 		"<td>uart</td>",
+		"<td>lcd</td>",
 		"<td>unknown</td>",
 		"<td>not found</td>",
 		"<td>",
@@ -1412,6 +1532,15 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 				case(io_pin_uart):
 				{
 					string_cat_ptr(dst, (*strings)[ds_id_uart]);
+
+					break;
+				}
+
+				case(io_pin_lcd):
+				{
+					string_cat_ptr(dst, (*strings)[ds_id_lcd]);
+					string_cat(dst, "/");
+					io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
 
 					break;
 				}

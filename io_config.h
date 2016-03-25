@@ -42,6 +42,7 @@ typedef enum attr_packed
 	io_pin_output_analog,
 	io_pin_i2c,
 	io_pin_uart,
+	io_pin_lcd,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -84,6 +85,21 @@ typedef enum attr_packed
 
 assert_size(io_pin_ll_mode_t, 1);
 
+typedef enum attr_packed
+{
+	io_lcd_rs = 0,
+	io_lcd_e,
+	io_lcd_d4,
+	io_lcd_d5,
+	io_lcd_d6,
+	io_lcd_d7,
+	io_lcd_bl,
+	io_lcd_error,
+	io_lcd_size = io_lcd_error
+} io_lcd_mode_t;
+
+assert_size(io_lcd_mode_t, 1);
+
 typedef struct
 {
 	io_pin_mode_t		mode;
@@ -104,6 +120,11 @@ typedef struct
 		{
 			io_i2c_t		pin_mode;
 		} i2c;
+
+		struct
+		{
+			io_lcd_mode_t	pin_use;
+		} lcd;
 	} shared;
 } io_config_pin_entry_t;
 

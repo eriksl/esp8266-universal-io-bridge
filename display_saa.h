@@ -2,6 +2,6 @@
 #define display_saa_h
 
 bool_t display_saa1064_init(void);
-bool_t display_saa1064_set(const display_data_t *display_data_entry, const char *from);
+bool_t display_saa1064_set(int brightness, const char *text);
 
 #endif
