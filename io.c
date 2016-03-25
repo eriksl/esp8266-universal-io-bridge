@@ -930,6 +930,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			}
 
 			llmode = io_pin_ll_uart;
+
+			break;
 		}
 
 		case(io_pin_disabled):
