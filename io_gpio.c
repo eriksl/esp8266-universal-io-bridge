@@ -291,7 +291,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			if(gpio_info->uart_pin == io_uart_none)
 			{
 				if(error_message)
-					string_format(error_message, "gpio pin %d cannot be used for uart", pin);
+					string_format(error_message, "gpio pin %d cannot be used for uart\n", pin);
 				return(io_error);
 			}
 
