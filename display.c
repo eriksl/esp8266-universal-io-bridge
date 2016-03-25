@@ -267,19 +267,15 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 {
 	int id, value;
 
-	if(parse_int(1, src, &id, 0) != parse_ok)
+	if((parse_int(1, src, &id, 0) != parse_ok) ||
+			(parse_int(2, src, &value, 0) != parse_ok) ||
+			(value < 0) || (value > 4))
 	{
 		string_cat(dst, "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n");
 		return(app_action_error);
 	}
 
-	if((parse_int(2, src, &value, 0) == parse_ok) && !display_set_brightness(id, value))
-	{
-		string_cat(dst, "display-brightness: usage: display_id <brightess>=0,1,2,3,4\n");
-		return(app_action_error);
-	}
-
-	if(!display_get_brightness(id, &value))
+	if(!display_set_brightness(id, value) || !display_get_brightness(id, &value))
 	{
 		string_format(dst, "display-brightness: invalid display: %d\n", id);
 		return(app_action_error);
