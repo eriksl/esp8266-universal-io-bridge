@@ -126,12 +126,12 @@ static io_mode_trait_t io_mode_traits[io_pin_size] =
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 {
-	io_pin_mode_t mode;
+	int ix;
 	const io_mode_trait_t *entry;
 
-	for(mode = io_pin_disabled; mode < io_pin_size; mode++)
+	for(ix = 0; ix < io_pin_size; ix++)
 	{
-		entry = &io_mode_traits[mode];
+		entry = &io_mode_traits[ix];
 
 		if(string_match(src, entry->name))
 			return(entry->mode);
@@ -142,15 +142,26 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 
 irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode)
 {
-	if(mode >= io_pin_error)
-		string_cat(name, "error");
-	else
-		string_format(name, "%s", io_mode_traits[mode].name);
+	int ix;
+	const io_mode_trait_t *entry;
+
+	for(ix = 0; ix < io_pin_size; ix++)
+	{
+		entry = &io_mode_traits[ix];
+
+		if(entry->mode == mode)
+		{
+			string_format(name, "%s", entry->name);
+			return;
+		}
+	}
+
+	string_cat(name, "error");
 }
 
 typedef struct
 {
-	io_pin_ll_mode_t	llmode;
+	io_pin_ll_mode_t	mode;
 	const char			*name;
 } io_ll_mode_trait_t;
 
@@ -166,18 +177,18 @@ static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 	{ io_pin_ll_uart,				"uart"		},
 };
 
-irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t llmode)
+irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode)
 {
-	io_pin_mode_t mode;
+	int ix;
 	const io_ll_mode_trait_t *entry;
 
-	for(mode = io_pin_disabled; mode < io_pin_size; mode++)
+	for(ix = 0; ix < io_pin_size; ix++)
 	{
-		entry = &io_ll_mode_traits[mode];
+		entry = &io_ll_mode_traits[ix];
 
-		if(entry->llmode == llmode)
+		if(entry->mode == mode)
 		{
-			string_format(name, "%s", io_ll_mode_traits[mode].name);
+			string_format(name, "%s", entry->name);
 			return;
 		}
 	}
