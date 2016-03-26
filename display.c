@@ -167,7 +167,6 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 {
 	display_info_t *display_info_entry;
 	display_data_t *display_data_entry;
-	int from, to;
 
 	if(display >= display_size)
 	{
@@ -190,10 +189,7 @@ irom static void display_setslot(string_t *dst, display_id_t display, int slot, 
 		return;
 	}
 
-	for(from = 0, to = 0; text[from] && (to < display_slot_size); from++)
-		if((text[from] >= ' ') && (text[from] <= '~'))
-			display_data_entry->slot[slot].content[to++] = text[from];
-
+	strlcpy(display_data_entry->slot[slot].content, text, display_slot_size);
 	display_data_entry->slot[slot].timeout = timeout;
 
 	display_update(false);
