@@ -63,53 +63,39 @@ irom static bool send_byte(int byte, bool data)
 	return(true);
 }
 
+irom static bool set_cursor(void)
+{
+	int data;
+
+	if((current_position < 0) || (current_position > 79))
+		current_position = 0;
+
+	if(current_position < 20)
+		data = 0 + 0;
+	else if(current_position < 40)
+		data = 0 + 64;
+	else if(current_position < 60)
+		data = 20 + 0;
+	else
+		data = 20 + 64;
+
+	if(!send_byte(0x80 | data, false))
+		return(false);
+
+	return(true);
+}
+
 irom static bool write_byte(uint8_t character)
 {
-	switch(current_position)
-	{
-		case(0):
-		{
-			if(!send_byte(0x80 | (0 + 0), false))
-				return(false);
-
-			break;
-		}
-
-		case(20):
-		{
-			if(!send_byte(0x80 | (0 + 64), false))
-				return(false);
-
-			break;
-		}
-
-		case(40):
-		{
-			if(!send_byte(0x80 | (20 + 0), false))
-				return(false);
-
-			break;
-		}
-
-		case(60):
-		{
-			if(!send_byte(0x80 | (20 + 64), false))
-				return(false);
-
-			break;
-		}
-
-		default:
-		{
-			break;
-		}
-	}
+	if((current_position == 0) || (current_position == 20) ||
+			(current_position == 40) || (current_position == 60))
+		if(!set_cursor())
+			return(false);
 
 	if(!send_byte(character, true))
 		return(false);
 
-	if(++current_position > 79)
-		current_position = 0;
+	current_position = (current_position + 1) % 80;
 
 	return(true);
 }
