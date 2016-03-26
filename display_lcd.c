@@ -9,9 +9,9 @@ typedef struct
 	int pin;
 } lcd_io_t;
 
+static char buffer[4][20];
 static lcd_io_t lcd_io_pins[io_lcd_size];
 static bool inited = false;
-static int current_position;
 
 irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
@@ -63,43 +63,6 @@ irom static bool send_byte(int byte, bool data)
 	return(true);
 }
 
-irom static bool set_cursor(void)
-{
-	int data;
-
-	if((current_position < 0) || (current_position > 79))
-		current_position = 0;
-
-	if(current_position < 20)
-		data = 0 + 0;
-	else if(current_position < 40)
-		data = 0 + 64;
-	else if(current_position < 60)
-		data = 20 + 0;
-	else
-		data = 20 + 64;
-
-	if(!send_byte(0x80 | data, false))
-		return(false);
-
-	return(true);
-}
-
-irom static bool write_byte(uint8_t character)
-{
-	if((current_position == 0) || (current_position == 20) ||
-			(current_position == 40) || (current_position == 60))
-		if(!set_cursor())
-			return(false);
-
-	if(!send_byte(character, true))
-		return(false);
-
-	current_position = (current_position + 1) % 80;
-
-	return(true);
-}
-
 irom bool_t display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
@@ -144,16 +107,23 @@ irom bool_t display_lcd_init(void)
 	send_byte(0b00001100, false);		// display on, cursor off, blink off
 
 	inited = true;
-	current_position = 0;
 
 	return(true);
 }
 
 irom bool_t display_lcd_set(int brightness, const char *str)
 {
-	current_position = 0;
 	int cmd = -1;
 	int bl = 0;
+	char current;
+	int y, x;
+
+	if(!inited)
+		return(false);
+
+	for(y = 0; y < 4; y++)
+		for(x = 0; x < 20; x++)
+			buffer[y][x] = ' ';
 
 	switch(brightness)
 	{
@@ -212,8 +182,54 @@ irom bool_t display_lcd_set(int brightness, const char *str)
 			return(false);
 	}
 
+	y = 0;
+	x = 0;
+
 	for(; *str; str++)
-		if(!write_byte(*str))
+	{
+		current = *str;
+
+		if(current == '\r')
+		{
+			x = 0;
+			continue;
+		}
+		else if(current == '\n')
+		{
+			x = 0;
+			y = (y + 1) % 4;
+			continue;
+		}
+		else if(current < ' ')
+			current = ' ';
+
+		if(x < 20)
+		{
+			buffer[y][x] = current;
+			x++;
+		}
+	}
+
+	if(!send_byte(0x80 + 0x00, false))
+		return(false);
+
+	for(x = 0; x < 20; x++)
+		if(!send_byte(buffer[0][x], true))
+			return(false);
+
+	for(x = 0; x < 20; x++)
+		if(!send_byte(buffer[2][x], true))
+			return(false);
+
+	if(!send_byte(0x80 + 0x40, false))
+		return(false);
+
+	for(x = 0; x < 20; x++)
+		if(!send_byte(buffer[1][x], true))
+			return(false);
+
+	for(x = 0; x < 20; x++)
+		if(!send_byte(buffer[3][x], true))
 			return(false);
 
 	return(true);
