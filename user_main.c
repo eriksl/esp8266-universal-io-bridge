@@ -47,14 +47,12 @@ static struct
 	unsigned int reset:1;
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
-	unsigned int init_ntp_bogus:1;
 } bg_action =
 {
 	.disconnect = 0,
 	.reset = 0,
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
-	.init_ntp_bogus = 0
 };
 
 static espsrv_t cmd;
@@ -66,13 +64,11 @@ irom static void ntp_init(void)
 {
 	if(ip_addr_valid(config.ntp_server))
 	{
+		sntp_stop();
 		sntp_setserver(0, &config.ntp_server);
 		sntp_set_timezone(config.ntp_timezone);
 		sntp_init();
-		bg_action.init_ntp_bogus = 0;
 	}
-	else
-		bg_action.init_ntp_bogus = 1;
 }
 
 irom static void ntp_periodic(void)
@@ -80,14 +76,21 @@ irom static void ntp_periodic(void)
 	struct tm *tm;
 	time_t ticks;
 
-	if(bg_action.init_ntp_bogus) // server not configured
-		return;
+	if(ip_addr_valid(config.ntp_server))
+	{
+		ticks = sntp_get_current_timestamp();
 
-	ticks = sntp_get_current_timestamp();
-	tm = sntp_localtime(&ticks);
+		if(ticks > 0)
+		{
+			ticks += 59; // take delay of sync in account
+			tm = sntp_localtime(&ticks);
 
-	rt_hours = tm->tm_hour;
-	rt_mins  = tm->tm_min;
+			rt_hours = tm->tm_hour;
+			rt_mins  = tm->tm_min;
+
+			ntp_init();	// FIXME SDK bug, stop and start ntp to get continuous updating
+		}
+	}
 }
 
 irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
@@ -465,7 +468,6 @@ irom void user_init(void)
 	bg_action.disconnect = 0;
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
-	bg_action.init_ntp_bogus = 0;
 
 	config_read(&config);
 	uart_init(&config.uart);
