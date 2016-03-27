@@ -82,7 +82,7 @@ irom static void display_update(bool_t advance)
 				}
 
 				string_clear(&tag_text);
-				string_format(&tag_text, "%02u.%02u ", rt_hours, rt_mins);
+				string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
 				string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
 				string_format(&tag_text, " [%u]", slot);
 				display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
