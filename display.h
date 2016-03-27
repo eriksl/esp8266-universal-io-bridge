@@ -17,7 +17,7 @@ assert_size(display_slot_enum_t, 4);
 typedef struct
 {
 	int		timeout;
-	char	content[display_slot_size];
+	char	content[display_slot_size + 1];
 } display_slot_t;
 
 typedef struct

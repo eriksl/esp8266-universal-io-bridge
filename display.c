@@ -41,7 +41,7 @@ static roflash display_info_t display_info[display_size] =
 
 static display_data_t display_data[display_size];
 
-static char default_message[display_slot_size] = "";
+static char default_message[display_slot_size + 1] = "";
 
 irom static void display_update(bool_t advance)
 {
