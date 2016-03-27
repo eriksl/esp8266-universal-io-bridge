@@ -12,7 +12,7 @@ typedef const struct
 	const char *	const name;
 	const char *	const type;
 	bool_t			(* const init_fn)(void);
-	bool_t			(* const set_fn)(int brightness, const char *text);
+	bool_t			(* const set_fn)(int brightness, const char *tag, const char *text);
 } display_info_t;
 
 typedef enum
@@ -41,7 +41,7 @@ static roflash display_info_t display_info[display_size] =
 
 static display_data_t display_data[display_size];
 
-static char default_message[display_slot_size + 1] = "";
+static char default_message[display_slot_content_size + 1] = "";
 
 irom static void display_update(bool_t advance)
 {
@@ -49,7 +49,8 @@ irom static void display_update(bool_t advance)
 	int display, slot;
 	display_info_t *display_info_entry;
 	display_data_t *display_data_entry;
-	string_new(static, info_text, 80);
+	string_new(static, tag_text, 32);
+	string_new(static, info_text, 64);
 
 	for(display = 0; display < display_size; display++)
 	{
@@ -80,7 +81,11 @@ irom static void display_update(bool_t advance)
 					display_text = string_to_ptr(&info_text);
 				}
 
-				display_info_entry->set_fn(display_data_entry->brightness, display_text);
+				string_clear(&tag_text);
+				string_format(&tag_text, "%02u.%02u ", rt_hours, rt_mins);
+				string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
+				string_format(&tag_text, " [%u]", slot);
+				display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
 			}
 			else
 				display_data_entry->current_slot = 0;
@@ -90,7 +95,7 @@ irom static void display_update(bool_t advance)
 
 irom void display_periodic(void) // call once per second
 {
-	static int current_scroll = 0;
+	static int current_page = 0;
 	int display, slot, active_slots;
 	display_data_t *display_data_entry;
 
@@ -119,14 +124,15 @@ irom void display_periodic(void) // call once per second
 
 		if(active_slots == 0)
 		{
-			strlcpy(display_data_entry->slot[0].content, default_message, sizeof(display_data_entry->slot[0].content));
-			current_scroll = 0;
+			strlcpy(display_data_entry->slot[0].tag, "boot", display_slot_tag_size);
+			strlcpy(display_data_entry->slot[0].content, default_message, display_slot_content_size);
+			current_page = 0;
 		}
 	}
 
-	if(++current_scroll > 10)
+	if(++current_page > 10)
 	{
-		current_scroll = 0;
+		current_page = 0;
 		display_update(true);
 	}
 	else
@@ -156,46 +162,12 @@ irom void display_init(void)
 			display_data_entry->current_slot = 0;
 			display_data_entry->brightness = 1;
 			display_data_entry->slot[slot].timeout = 0;
+			display_data_entry->slot[slot].tag[0] = '\0';
 			display_data_entry->slot[slot].content[0] = '\0';
 		}
 	}
 
 	display_update(false);
-}
-
-irom static void display_setslot(string_t *dst, display_id_t display, int slot, int timeout, const char *text)
-{
-	display_info_t *display_info_entry;
-	display_data_t *display_data_entry;
-
-	if(display >= display_size)
-	{
-		string_format(dst, "display setslot: display #%d unknown\n", display);
-		return;
-	}
-
-	display_info_entry = &display_info[display];
-	display_data_entry = &display_data[display];
-
-	if(!display_data_entry->detected)
-	{
-		string_format(dst, "display setslot: display #%d not found\n", display);
-		return;
-	}
-
-	if(slot > display_slot_amount)
-	{
-		string_format(dst, "display setslot: slot #%d out of limits\n", slot);
-		return;
-	}
-
-	strlcpy(display_data_entry->slot[slot].content, text, display_slot_size);
-	display_data_entry->slot[slot].timeout = timeout;
-
-	display_update(false);
-
-	string_format(dst, "display setslot: set slot %d on %s to \"%s\"\n",
-				slot, display_info_entry->name, display_data_entry->slot[slot].content);
 }
 
 irom static bool_t display_set_brightness(display_id_t display, int brightness)
@@ -260,7 +232,8 @@ irom static void display_dump(string_t *dst, int verbose_level)
 				for(slot = 0; slot < display_slot_amount; slot++)
 				{
 					slot_entry = &display_data_entry->slot[slot];
-					string_format(dst, ">> slot %u: timeout %u, text: \"%s\"\n", slot, slot_entry->timeout, slot_entry->content);
+					string_format(dst, ">> slot %u: timeout %u, tag: \"%s\", text: \"%s\"\n", slot,
+							slot_entry->timeout, slot_entry->tag, slot_entry->content);
 				}
 			}
 		}
@@ -329,20 +302,24 @@ irom app_action_t application_function_display_default_message(const string_t *s
 
 irom app_action_t application_function_display_set(const string_t *src, string_t *dst)
 {
-	int id, slot, timeout, current;
+	display_info_t *display_info_entry;
+	display_data_t *display_data_entry;
+	int display, slot, timeout, current;
 	const char *text;
 
-	if((parse_int(1, src, &id, 0) != parse_ok) ||
+	if((parse_int(1, src, &display, 0) != parse_ok) ||
 		(parse_int(2, src, &slot, 0) != parse_ok) ||
-		(parse_int(3, src, &timeout, 0) != parse_ok))
+		(parse_int(3, src, &timeout, 0) != parse_ok) ||
+		(parse_string(4, src, dst) != parse_ok))
 	{
-		string_cat(dst, "display-set: usage: display_id slot timeout text\n");
+		string_clear(dst);
+		string_cat(dst, "display-set: usage: display_id slot timeout tag text\n");
 		return(app_action_error);
 	}
 
 	text = src->buffer;
 
-	for(current = 4; current > 0; text++)
+	for(current = 5; current > 0; text++)
 	{
 		if(*text == '\0')
 			break;
@@ -351,7 +328,48 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 			current--;
 	}
 
-	display_setslot(dst, id, slot, timeout, text);
+	if(current > 0)
+	{
+		string_clear(dst);
+		string_cat(dst, "display-set: usage: display_id slot timeout tag text\n");
+		return(app_action_error);
+	}
+
+	if(display >= display_size)
+	{
+		string_clear(dst);
+		string_format(dst, "display setslot: display #%d unknown\n", display);
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display];
+	display_data_entry = &display_data[display];
+
+	if(!display_data_entry->detected)
+	{
+		string_clear(dst);
+		string_format(dst, "display setslot: display #%d not found\n", display);
+		return(app_action_error);
+	}
+
+	if(slot > display_slot_amount)
+	{
+		string_clear(dst);
+		string_format(dst, "display setslot: slot #%d out of limits\n", slot);
+		return(app_action_error);
+	}
+
+	strlcpy(display_data_entry->slot[slot].tag, string_to_ptr(dst), display_slot_content_size);
+	strlcpy(display_data_entry->slot[slot].content, text, display_slot_content_size);
+	display_data_entry->slot[slot].timeout = timeout;
+
+	display_update(false);
+	string_clear(dst);
+
+	string_format(dst, "display setslot: set slot %d on %s tag %s to \"%s\"\n",
+				slot, display_info_entry->name,
+				display_data_entry->slot[slot].tag,
+				display_data_entry->slot[slot].content);
 
 	return(app_action_normal);
 }

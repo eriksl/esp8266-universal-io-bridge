@@ -146,7 +146,7 @@ irom bool_t display_saa1064_init(void)
 	return(true);
 }
 
-irom bool_t display_saa1064_set(int brightness, const char *from)
+irom bool_t display_saa1064_set(int brightness, const char *tag, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{

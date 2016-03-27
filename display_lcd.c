@@ -111,7 +111,7 @@ irom bool_t display_lcd_init(void)
 	return(true);
 }
 
-irom bool_t display_lcd_set(int brightness, const char *str)
+irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 {
 	int cmd = -1;
 	int bl = 0;
@@ -120,10 +120,6 @@ irom bool_t display_lcd_set(int brightness, const char *str)
 
 	if(!inited)
 		return(false);
-
-	for(y = 0; y < 4; y++)
-		for(x = 0; x < 20; x++)
-			buffer[y][x] = ' ';
 
 	switch(brightness)
 	{
@@ -182,12 +178,32 @@ irom bool_t display_lcd_set(int brightness, const char *str)
 			return(false);
 	}
 
-	y = 0;
+	for(y = 0; y < 4; y++)
+		for(x = 0; x < 20; x++)
+			buffer[y][x] = ' ';
+
 	x = 0;
 
-	for(; *str; str++)
+	for(; *tag; tag++)
 	{
-		current = *str;
+		current = *tag;
+
+		if(current < ' ')
+			continue;
+
+		if(x < 20)
+		{
+			buffer[0][x] = current;
+			x++;
+		}
+	}
+
+	y = 1;
+	x = 0;
+
+	for(; *text; text++)
+	{
+		current = *text;
 
 		if(current == '\r')
 		{
@@ -197,7 +213,10 @@ irom bool_t display_lcd_set(int brightness, const char *str)
 		else if(current == '\n')
 		{
 			x = 0;
-			y = (y + 1) % 4;
+
+			if(y < 4)
+				y++;
+
 			continue;
 		}
 		else if(current < ' ')
