@@ -12,6 +12,11 @@
 #include <openssl/md5.h>
 #include <sys/time.h>
 
+enum
+{
+	max_attempts = 8
+};
+
 static void crc32_init(void);
 static uint32_t crc32(int length, const char *src);
 static int verbose;
@@ -184,8 +189,8 @@ int main(int argc, char * const *argv)
 	const char			*hostname;
 	const char			*filename;
 	int					file_length, done;
-	int					length, written, skipped;
-	char				buffer[8192], cmdbuf[8192];
+	int					length, written, skipped, attempt;
+	char				readbuffer[8192], buffer[8192], cmdbuf[8192];
 	ssize_t				bufread;
 	MD5_CTX				md5;
 	char				md5_hash[MD5_DIGEST_LENGTH];
@@ -319,26 +324,6 @@ int main(int argc, char * const *argv)
 		goto error;
 	}
 
-#if 0
-	val = 1;
-
-	if(setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)))
-	{
-		fprintf(stderr, "socket set nodelay failed: %m\n");
-		goto error;
-	}
-#endif
-
-#if 0
-	val = 1200;
-
-	if(setsockopt(sock_fd, IPPROTO_TCP, TCP_WINDOW_CLAMP, &val, sizeof(val)))
-	{
-		fprintf(stderr, "socket set window clamp failed: %m\n");
-		goto error;
-	}
-#endif
-
 	if(connect(sock_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 	{
 		fprintf(stderr, "connect failed: %m\n");
@@ -384,46 +369,60 @@ int main(int argc, char * const *argv)
 
 	for(done = 0;;)
 	{
-		if((bufread = read(file_fd, buffer, 1 << chunk_size)) < 0)
+		if((bufread = read(file_fd, readbuffer, 1 << chunk_size)) < 0)
 		{
 			fprintf(stderr, "\nfile read failed: %m\n");
 			goto error;
 		}
+
+		readbuffer[bufread] = '\0';
 
 		if(bufread == 0)
 			break;
 
 		done += bufread;
 
-		buffer[bufread] = '\0';
+		MD5_Update(&md5, readbuffer, bufread);
+		crc = crc32(bufread, readbuffer);
 
-		MD5_Update(&md5, buffer, bufread);
-		crc = crc32(bufread, buffer);
-
-		snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %u ", bufread, crc);
-		length = strlen(cmdbuf);
-		memcpy(cmdbuf + length, buffer, bufread);
-		length += bufread;
-
-		do_log("send data", length, cmdbuf);
-
-		if(!do_write(sock_fd, cmdbuf, length, timeout))
+		for(attempt = 0; attempt < max_attempts; attempt++)
 		{
-			fprintf(stderr, "\nsend failed (%m)\n");
-			goto error;
+			if(attempt > 0)
+				fprintf(stderr, "retry, attempt: %d\n", attempt);
+
+			snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %u ", bufread, crc);
+			length = strlen(cmdbuf);
+			memcpy(cmdbuf + length, readbuffer, bufread);
+			length += bufread;
+
+			do_log("send data", length, cmdbuf);
+
+			if(!do_write(sock_fd, cmdbuf, length, timeout))
+			{
+				fprintf(stderr, "\nsend failed (%m)\n");
+				continue;
+			}
+
+			if(!do_read(sock_fd, buffer, sizeof(buffer), timeout))
+			{
+				fprintf(stderr, "\nsend acknowledge timed out\n");
+				continue;
+			}
+
+			do_log("receive", strlen(buffer), buffer);
+
+			if(strncmp(buffer, "ACK ", 4))
+			{
+				fprintf(stderr, "\nsend: %s\n", buffer);
+				continue;
+			}
+
+			break;
 		}
 
-		if(!do_read(sock_fd, buffer, sizeof(buffer), timeout))
+		if(attempt >= max_attempts)
 		{
-			fprintf(stderr, "\nsend acknowledge timed out\n");
-			goto error;
-		}
-
-		do_log("receive", strlen(buffer), buffer);
-
-		if(strncmp(buffer, "ACK ", 4))
-		{
-			fprintf(stderr, "\nsend: %s\n", buffer);
+			fprintf(stderr, "\nmax tries to send failed\n");
 			goto error;
 		}
 
