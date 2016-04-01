@@ -3,15 +3,135 @@
 #include "io.h"
 #include "config.h"
 
+enum
+{
+	udg_amount = 8,
+	udg_byte_amount = 8,
+};
+
 typedef struct
 {
 	int	io;
 	int pin;
 } lcd_io_t;
 
-static char buffer[4][20];
-static lcd_io_t lcd_io_pins[io_lcd_size];
+typedef struct
+{
+	uint8_t utf8_2;
+	uint8_t pattern[udg_byte_amount];
+} udg_t;
+
+static const udg_t udg[udg_amount] = 
+{
+	{
+		0xa9,	// é	0
+		{
+			0b00000100,
+			0b00001000,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0xa8,	// è	1
+		{
+			0b00001000,
+			0b00000100,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0xaa,	// ê	2
+		{
+			0b00000100,
+			0b00001010,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0xab,	// ë	3
+		{
+			0b00001010,
+			0b00000000,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0xbc,	// ü	4
+		{
+			0b00001010,
+			0b00000000,
+			0b00010001,
+			0b00010001,
+			0b00010001,
+			0b00010011,
+			0b00001101,
+			0b00000000,
+		}
+	},
+	{
+		0xa7,	// ç	5
+		{
+			0b00000000,
+			0b00000000,
+			0b00001110,
+			0b00010000,
+			0b00010000,
+			0b00010101,
+			0b00001110,
+			0b00000100,
+		}
+	},
+	{
+		0xb1,	// ǹ	6
+		{
+			0b00001000,
+			0b00000100,
+			0b00010110,
+			0b00011001,
+			0b00010001,
+			0b00010001,
+			0b00010001,
+			0b00000000,
+		}
+	},
+	{
+		0xaf,	// ï	7
+		{
+			0b00001010,
+			0b00000000,
+			0b00001100,
+			0b00000100,
+			0b00000100,
+			0b00000100,
+			0b00001110,
+			0b00000000,
+		}
+	}
+};
+
 static bool inited = false;
+static lcd_io_t lcd_io_pins[io_lcd_size];
+static char buffer[4][20];
 
 irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
@@ -66,7 +186,7 @@ irom static bool send_byte(int byte, bool data)
 irom bool_t display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
-	int io, pin;
+	int io, pin, ix, byte;
 
 	for(pin = 0; pin < io_lcd_size; pin++)
 	{
@@ -106,6 +226,12 @@ irom bool_t display_lcd_init(void)
 	send_byte(0b00000110, false);		// cursor move direction = LTR / no display shift
 	send_byte(0b00001100, false);		// display on, cursor off, blink off
 
+	send_byte(0b01000000, false);		// start writing to CGRAM @ 0
+
+	for(ix = 0; ix < udg_amount; ix++)
+		for(byte = 0; byte < udg_byte_amount; byte++)
+			send_byte(udg[ix].pattern[byte], true);
+
 	inited = true;
 
 	return(true);
@@ -116,7 +242,8 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 	int cmd = -1;
 	int bl = 0;
 	char current;
-	int y, x;
+	int y, x, ix;
+	bool utf_two_byte_started;
 
 	if(!inited)
 		return(false);
@@ -183,44 +310,65 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			buffer[y][x] = ' ';
 
 	x = 0;
+	y = 0;
+	utf_two_byte_started = false;
 
-	for(; *tag; tag++)
+	for(;;)
 	{
-		current = *tag;
-
-		if(current < ' ')
-			continue;
-
-		if(x < 20)
+		if(tag && ((current = *tag++) == '\0'))
 		{
-			buffer[0][x] = current;
-			x++;
+			tag = (char *)0;
+			x = 0;
+			y = 1;
+			utf_two_byte_started = false;
 		}
-	}
 
-	y = 1;
-	x = 0;
+		if(!tag && ((current = *text++) == '\0'))
+			break;
 
-	for(; *text; text++)
-	{
-		current = *text;
+		if(utf_two_byte_started)
+		{
+			if((current & 0b11000000) == 0b10000000) // valid second byte of a two-byte sequence
+			{
+				for(ix = 0; ix < udg_amount; ix++)
+				{
+					if(udg[ix].utf8_2 == current)
+					{
+						current = ix;
+						break;
+					}
+				}
+			}
+
+			if(current >= 0x80)
+				current = '~';
+		}
+
+		if((current & 0b11100000) == 0b11000000) // UTF-8, start of two byte sequence
+		{
+			utf_two_byte_started = true;
+			continue;
+		}
+
+		utf_two_byte_started = false;
 
 		if(current == '\r')
 		{
 			x = 0;
+
 			continue;
 		}
-		else if(current == '\n')
+
+		if(current == '\n')
 		{
 			x = 0;
+			tag = (char *)0;
 
 			if(y < 4)
 				y++;
 
 			continue;
 		}
-		else if(current < ' ')
-			current = ' ';
 
 		if(x < 20)
 		{
