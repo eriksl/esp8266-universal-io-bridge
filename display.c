@@ -81,11 +81,16 @@ irom static void display_update(bool_t advance)
 					display_text = string_to_ptr(&info_text);
 				}
 
-				string_clear(&tag_text);
-				string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
-				string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
-				string_format(&tag_text, " [%u]", slot);
-				display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
+				if(ets_strcmp(display_data_entry->slot[slot].tag, "-"))
+				{
+					string_clear(&tag_text);
+					string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
+					string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
+					string_format(&tag_text, " [%u]", slot);
+					display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
+				}
+				else
+					display_info_entry->set_fn(display_data_entry->brightness, (char *)0, display_text);
 			}
 			else
 				display_data_entry->current_slot = 0;
