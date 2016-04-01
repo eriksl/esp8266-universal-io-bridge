@@ -243,7 +243,7 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 {
 	int cmd = -1;
 	int bl = 0;
-	char current;
+	uint8_t current;
 	int y, x, ix;
 	bool utf_two_byte_started;
 
@@ -317,7 +317,7 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 
 	for(;;)
 	{
-		if(tag && ((current = *tag++) == '\0'))
+		if(tag && ((current = (uint8_t)*tag++) == '\0'))
 		{
 			tag = (char *)0;
 			x = 0;
@@ -325,7 +325,7 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			utf_two_byte_started = false;
 		}
 
-		if(!tag && ((current = *text++) == '\0'))
+		if(!tag && ((current = (uint8_t)*text++) == '\0'))
 			break;
 
 		if(utf_two_byte_started)
