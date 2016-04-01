@@ -5,6 +5,8 @@
 
 enum
 {
+	buffer_rows = 4,
+	buffer_columns = 20,
 	udg_amount = 8,
 	udg_byte_amount = 8,
 };
@@ -131,7 +133,7 @@ static const udg_t udg[udg_amount] =
 
 static bool inited = false;
 static lcd_io_t lcd_io_pins[io_lcd_size];
-static char buffer[4][20];
+static char buffer[buffer_rows][buffer_columns];
 
 irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
@@ -305,8 +307,8 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			return(false);
 	}
 
-	for(y = 0; y < 4; y++)
-		for(x = 0; x < 20; x++)
+	for(y = 0; y < buffer_rows; y++)
+		for(x = 0; x < buffer_columns; x++)
 			buffer[y][x] = ' ';
 
 	x = 0;
@@ -370,32 +372,29 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			continue;
 		}
 
-		if(x < 20)
-		{
-			buffer[y][x] = current;
-			x++;
-		}
+		if((y < buffer_rows) && (x < buffer_columns))
+			buffer[y][x++] = current;
 	}
 
 	if(!send_byte(0x80 + 0x00, false))
 		return(false);
 
-	for(x = 0; x < 20; x++)
+	for(x = 0; x < buffer_columns; x++)
 		if(!send_byte(buffer[0][x], true))
 			return(false);
 
-	for(x = 0; x < 20; x++)
+	for(x = 0; x < buffer_columns; x++)
 		if(!send_byte(buffer[2][x], true))
 			return(false);
 
 	if(!send_byte(0x80 + 0x40, false))
 		return(false);
 
-	for(x = 0; x < 20; x++)
+	for(x = 0; x < buffer_columns; x++)
 		if(!send_byte(buffer[1][x], true))
 			return(false);
 
-	for(x = 0; x < 20; x++)
+	for(x = 0; x < buffer_columns; x++)
 		if(!send_byte(buffer[3][x], true))
 			return(false);
 
