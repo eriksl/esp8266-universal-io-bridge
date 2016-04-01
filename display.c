@@ -57,44 +57,45 @@ irom static void display_update(bool_t advance)
 		display_info_entry = &display_info[display];
 		display_data_entry = &display_data[display];
 
-		if(display_data_entry->detected)
-		{
-			for(slot = display_data_entry->current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
+		if(!display_data_entry->detected)
+			continue;
+
+		for(slot = display_data_entry->current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
+			if(display_data_entry->slot[slot].content[0])
+				break;
+
+		if(slot >= display_slot_amount)
+			for(slot = 0; slot < display_slot_amount; slot++)
 				if(display_data_entry->slot[slot].content[0])
 					break;
 
-			if(slot >= display_slot_amount)
-				for(slot = 0; slot < display_slot_amount; slot++)
-					if(display_data_entry->slot[slot].content[0])
-						break;
-
-			if(slot < display_slot_amount)
-			{
-				display_data_entry->current_slot = slot;
-				display_text = display_data_entry->slot[slot].content;
-
-				if(!ets_strcmp(display_text, "%%%%"))
-				{
-					string_clear(&info_text);
-					string_format(&info_text, "%02u.%02u %s %s",
-							rt_hours, rt_mins, display_info_entry->name, display_info_entry->type);
-					display_text = string_to_ptr(&info_text);
-				}
-
-				if(ets_strcmp(display_data_entry->slot[slot].tag, "-"))
-				{
-					string_clear(&tag_text);
-					string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
-					string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
-					string_format(&tag_text, " [%u]", slot);
-					display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
-				}
-				else
-					display_info_entry->set_fn(display_data_entry->brightness, (char *)0, display_text);
-			}
-			else
-				display_data_entry->current_slot = 0;
+		if(slot >= display_slot_amount)
+		{
+			display_data_entry->current_slot = 0;
+			continue;
 		}
+
+		display_data_entry->current_slot = slot;
+		display_text = display_data_entry->slot[slot].content;
+
+		if(!ets_strcmp(display_text, "%%%%"))
+		{
+			string_clear(&info_text);
+			string_format(&info_text, "%02u.%02u %s %s",
+					rt_hours, rt_mins, display_info_entry->name, display_info_entry->type);
+			display_text = string_to_ptr(&info_text);
+		}
+
+		if(ets_strcmp(display_data_entry->slot[slot].tag, "-"))
+		{
+			string_clear(&tag_text);
+			string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
+			string_cat_ptr(&tag_text, display_data_entry->slot[slot].tag);
+			string_format(&tag_text, " [%u]", slot);
+			display_info_entry->set_fn(display_data_entry->brightness, string_to_ptr(&tag_text), display_text);
+		}
+		else
+			display_info_entry->set_fn(display_data_entry->brightness, (char *)0, display_text);
 	}
 }
 
@@ -120,7 +121,10 @@ irom void display_periodic(void) // call once per second
 			if(display_data_entry->slot[slot].timeout > 0)
 			{
 				if(--display_data_entry->slot[slot].timeout == 0)
+				{
+					display_data_entry->slot[slot].tag[0] = '\0';
 					display_data_entry->slot[slot].content[0] = '\0';
+				}
 			}
 
 			if(display_data_entry->slot[slot].content[0])
@@ -129,13 +133,14 @@ irom void display_periodic(void) // call once per second
 
 		if(active_slots == 0)
 		{
+			display_data_entry->slot[0].timeout = 0;
 			strlcpy(display_data_entry->slot[0].tag, "boot", display_slot_tag_size);
 			strlcpy(display_data_entry->slot[0].content, default_message, display_slot_content_size);
 			current_page = 0;
 		}
 	}
 
-	if(++current_page > 10)
+	if(++current_page > 4)
 	{
 		current_page = 0;
 		display_update(true);
