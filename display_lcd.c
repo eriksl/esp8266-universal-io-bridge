@@ -9,6 +9,7 @@ enum
 	buffer_columns = 20,
 	udg_amount = 8,
 	udg_byte_amount = 8,
+	map_amount = 15,
 };
 
 typedef struct
@@ -19,14 +20,39 @@ typedef struct
 
 typedef struct
 {
-	uint8_t utf8_2;
+	uint16_t utf16;
+	uint8_t to;
+} map_t;
+
+typedef struct
+{
+	uint16_t utf16;
 	uint8_t pattern[udg_byte_amount];
 } udg_t;
+
+static const map_t map[map_amount] =
+{
+	{	0x00b0, 0xdf },	// °
+	{	0x03b1, 0xe0 },	// α
+	{	0x00e4, 0xe1 },	// ä
+	{	0x03b2, 0xe2 },	// β
+	{	0x03b5, 0xe3 },	// ε
+	{	0x03bc, 0xe4 },	// μ
+	{	0x03c3, 0xe5 },	// σ
+	{	0x03c1, 0xe6 },	// ρ
+	{	0x00f1, 0xee },	// ñ
+	{	0x00f6, 0xef },	// ö
+	{	0x03b8, 0xf2 },	// θ
+	{	0x221e, 0xf3 },	// ∞ FIXME: this cannot work with 2-byte UTF-8
+	{	0x03a9, 0xf4 },	// Ω
+	{	0x03a3, 0xf6 },	// Σ
+	{	0x03c0, 0xf7 },	// π
+};
 
 static const udg_t udg[udg_amount] = 
 {
 	{
-		0xa9,	// é	0
+		0x00e9,		// é	0
 		{
 			0b00000100,
 			0b00001000,
@@ -39,7 +65,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xa8,	// è	1
+		0x00e8,	// è	1
 		{
 			0b00001000,
 			0b00000100,
@@ -52,7 +78,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xaa,	// ê	2
+		0x00ea,	// ê	2
 		{
 			0b00000100,
 			0b00001010,
@@ -65,7 +91,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xab,	// ë	3
+		0x00eb,	// ë	3
 		{
 			0b00001010,
 			0b00000000,
@@ -78,7 +104,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xbc,	// ü	4
+		0x00fc,	// ü	4
 		{
 			0b00001010,
 			0b00000000,
@@ -91,7 +117,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xa7,	// ç	5
+		0x00e7,	// ç	5
 		{
 			0b00000000,
 			0b00000000,
@@ -104,7 +130,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xb1,	// ǹ	6
+		0x20ac,	// €	6 // FIXME: this cannot work with 2-byte UTF-8
 		{
 			0b00001000,
 			0b00000100,
@@ -117,7 +143,7 @@ static const udg_t udg[udg_amount] =
 		}
 	},
 	{
-		0xaf,	// ï	7
+		0x00ef,	// ï	7
 		{
 			0b00001010,
 			0b00000000,
@@ -133,7 +159,7 @@ static const udg_t udg[udg_amount] =
 
 static bool inited = false;
 static lcd_io_t lcd_io_pins[io_lcd_size];
-static char buffer[buffer_rows][buffer_columns];
+static uint8_t buffer[buffer_rows][buffer_columns];
 
 irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
@@ -243,9 +269,8 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 {
 	int cmd = -1;
 	int bl = 0;
-	uint8_t current;
+	unsigned int current, mapped, utf16;
 	int y, x, ix;
-	bool utf_two_byte_started;
 
 	if(!inited)
 		return(false);
@@ -313,7 +338,7 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 
 	x = 0;
 	y = 0;
-	utf_two_byte_started = false;
+	utf16 = 0x00;
 
 	for(;;)
 	{
@@ -322,58 +347,76 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			tag = (char *)0;
 			x = 0;
 			y = 1;
-			utf_two_byte_started = false;
+			utf16 = 0x00;
 		}
 
 		if(!tag && ((current = (uint8_t)*text++) == '\0'))
 			break;
 
-		if(utf_two_byte_started)
+		mapped = ~0UL;
+
+		if(utf16)
 		{
-			if((current & 0b11000000) == 0b10000000) // valid second byte of a two-byte sequence
+			if((current & 0xc0) == 0x80) // valid second byte of a two-byte sequence
 			{
+				utf16 |= current & 0x3f;
+
+				for(ix = 0; ix < map_amount; ix++)
+				{
+					if(map[ix].utf16 == utf16)
+					{
+						mapped = map[ix].to;
+						break;
+					}
+				}
+
 				for(ix = 0; ix < udg_amount; ix++)
 				{
-					if(udg[ix].utf8_2 == current)
+					if((udg[ix].utf16 == utf16))
 					{
-						current = ix;
+						mapped = ix;
 						break;
 					}
 				}
 			}
-
-			if(current >= 0x80)
-				current = '~';
 		}
 
-		if((current & 0b11100000) == 0b11000000) // UTF-8, start of two byte sequence
+		utf16 = 0x0000;
+
+		if(mapped != ~0UL)
+			current = mapped;
+		else
 		{
-			utf_two_byte_started = true;
-			continue;
-		}
+			if((current & 0xe0) == 0xc0) // UTF-8, start of two byte sequence
+			{
+				utf16 = (current & 0x1f) << 6;
+				continue;
+			}
 
-		utf_two_byte_started = false;
+			if(current == '\r')
+			{
+				x = 0;
 
-		if(current == '\r')
-		{
-			x = 0;
+				continue;
+			}
 
-			continue;
-		}
+			if(current == '\n')
+			{
+				x = 0;
+				tag = (char *)0;
 
-		if(current == '\n')
-		{
-			x = 0;
-			tag = (char *)0;
+				if(y < 4)
+					y++;
 
-			if(y < 4)
-				y++;
+				continue;
+			}
 
-			continue;
+			if((current < ' ') || (current >= 0x80))
+				current = ' ';
 		}
 
 		if((y < buffer_rows) && (x < buffer_columns))
-			buffer[y][x++] = current;
+			buffer[y][x++] = (uint8_t)(current & 0xff);
 	}
 
 	if(!send_byte(0x80 + 0x00, false))
