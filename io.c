@@ -226,7 +226,12 @@ typedef struct
 static io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
 {
 	{ io_lcd_rs,	"rs"	},
+	{ io_lcd_rw,	"rw"	},
 	{ io_lcd_e,		"e"		},
+	{ io_lcd_d0,	"d0"	},
+	{ io_lcd_d1,	"d1"	},
+	{ io_lcd_d2,	"d2"	},
+	{ io_lcd_d3,	"d3"	},
 	{ io_lcd_d4,	"d4"	},
 	{ io_lcd_d5,	"d5"	},
 	{ io_lcd_d6,	"d6"	},
@@ -1008,13 +1013,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if(parse_string(4, src, dst) != parse_ok)
 			{
-				string_copy(dst, "lcd: <pin use>=rs|e|d4|d5|d6|d7|bl\n");
+				string_copy(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 
 			if((pin_mode = io_lcd_mode_from_string(dst)) == io_lcd_error)
 			{
-				string_copy(dst, "lcd: <pin use>=rs|e|d4|d5|d6|d7|bl\n");
+				string_copy(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 

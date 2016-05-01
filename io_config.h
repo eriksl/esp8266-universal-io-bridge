@@ -88,7 +88,12 @@ assert_size(io_pin_ll_mode_t, 1);
 typedef enum attr_packed
 {
 	io_lcd_rs = 0,
+	io_lcd_rw,
 	io_lcd_e,
+	io_lcd_d0,
+	io_lcd_d1,
+	io_lcd_d2,
+	io_lcd_d3,
 	io_lcd_d4,
 	io_lcd_d5,
 	io_lcd_d6,

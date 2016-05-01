@@ -166,17 +166,21 @@ static const udg_t udg[udg_amount] =
 };
 
 static row_status_t row_status;
-static bool inited = false;
+static bool_t inited = false;
+static bool_t transfer_nibbles;
 static int brightness = 0;
-static lcd_io_t lcd_io_pins[io_lcd_size];
+static lcd_io_t lcd_io_pin[io_lcd_size];
 static uint8_t buffer[buffer_rows][buffer_columns];
 
 irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
 	int io, pin;
 
-	io = lcd_io_pins[pin_use].io;
-	pin = lcd_io_pins[pin_use].pin;
+	io = lcd_io_pin[pin_use].io;
+	pin = lcd_io_pin[pin_use].pin;
+
+	if((io < 0) || (pin < 0))
+		return(true);
 
 	if(io_write_pin((string_t *)0, io, pin, value) != io_ok)
 		return(false);
@@ -187,6 +191,9 @@ irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 irom static bool send_nibble(int nibble, bool data)
 {
 	if(!set_pin(io_lcd_rs, data))
+		return(false);
+
+	if(!set_pin(io_lcd_rw, 0))
 		return(false);
 
 	if(!set_pin(io_lcd_d4, !!(nibble & (1 << 0))))
@@ -212,11 +219,52 @@ irom static bool send_nibble(int nibble, bool data)
 
 irom static bool send_byte(int byte, bool data)
 {
-	if(!send_nibble((byte & 0xf0) >> 4, data))
-		return(false);
+	if(transfer_nibbles)
+	{
+		if(!send_nibble((byte & 0xf0) >> 4, data))
+			return(false);
 
-	if(!send_nibble((byte & 0x0f) >> 0, data))
-		return(false);
+		if(!send_nibble((byte & 0x0f) >> 0, data))
+			return(false);
+	}
+	else
+	{
+		if(!set_pin(io_lcd_rs, data))
+			return(false);
+
+		if(!set_pin(io_lcd_rw, 0))
+			return(false);
+
+		if(!set_pin(io_lcd_d0, !!(byte & (1 << 0))))
+			return(false);
+
+		if(!set_pin(io_lcd_d1, !!(byte & (1 << 1))))
+			return(false);
+
+		if(!set_pin(io_lcd_d2, !!(byte & (1 << 2))))
+			return(false);
+
+		if(!set_pin(io_lcd_d3, !!(byte & (1 << 3))))
+			return(false);
+
+		if(!set_pin(io_lcd_d4, !!(byte & (1 << 4))))
+			return(false);
+
+		if(!set_pin(io_lcd_d5, !!(byte & (1 << 5))))
+			return(false);
+
+		if(!set_pin(io_lcd_d6, !!(byte & (1 << 6))))
+			return(false);
+
+		if(!set_pin(io_lcd_d7, !!(byte & (1 << 7))))
+			return(false);
+
+		if(!set_pin(io_lcd_e, false))
+			return(false);
+
+		if(!set_pin(io_lcd_e, true))
+			return(false);
+	}
 
 	return(true);
 }
@@ -228,8 +276,8 @@ irom bool_t display_lcd_init(void)
 
 	for(pin = 0; pin < io_lcd_size; pin++)
 	{
-		lcd_io_pins[pin].io = -1;
-		lcd_io_pins[pin].pin = -1;
+		lcd_io_pin[pin].io = -1;
+		lcd_io_pin[pin].pin = -1;
 	}
 
 	for(io = 0; io < io_id_size; io++)
@@ -240,32 +288,80 @@ irom bool_t display_lcd_init(void)
 
 			if(pin_config->mode == io_pin_lcd)
 			{
-				lcd_io_pins[pin_config->shared.lcd.pin_use].io = io;
-				lcd_io_pins[pin_config->shared.lcd.pin_use].pin = pin;
+				lcd_io_pin[pin_config->shared.lcd.pin_use].io = io;
+				lcd_io_pin[pin_config->shared.lcd.pin_use].pin = pin;
 			}
 		}
 	}
 
-	for(pin = 0; pin < io_lcd_size; pin++)
-		if((lcd_io_pins[pin].io == -1) || (lcd_io_pins[pin].pin == -1))
-			return(false);
+	if((lcd_io_pin[io_lcd_rs].io < 0) || (lcd_io_pin[io_lcd_rs].pin < 0))
+		return(false);
 
-	for(pin = 2; pin >= 0; pin--)		// set to 4-bit mode trickery
-	{									// apparently this needs to be done twice sometimes
-		if(!send_nibble(0b0011, false))
-			return(false);
+	if((lcd_io_pin[io_lcd_e].io < 0) || (lcd_io_pin[io_lcd_e].pin < 0))
+		return(false);
 
-		if(!send_nibble(0b0011, false))
-			return(false);
+	if((lcd_io_pin[io_lcd_d4].io < 0) || (lcd_io_pin[io_lcd_d4].pin < 0))
+		return(false);
 
-		if(!send_nibble(0b0010, false))
-			return(false);
+	if((lcd_io_pin[io_lcd_d5].io < 0) || (lcd_io_pin[io_lcd_d5].pin < 0))
+		return(false);
+
+	if((lcd_io_pin[io_lcd_d6].io < 0) || (lcd_io_pin[io_lcd_d6].pin < 0))
+		return(false);
+
+	if((lcd_io_pin[io_lcd_d7].io < 0) || (lcd_io_pin[io_lcd_d7].pin < 0))
+		return(false);
+
+	transfer_nibbles = false;
+
+	if((lcd_io_pin[io_lcd_d0].io < 0) || (lcd_io_pin[io_lcd_d0].pin < 0))
+		transfer_nibbles = true;
+
+	if((lcd_io_pin[io_lcd_d1].io < 0) || (lcd_io_pin[io_lcd_d1].pin < 0))
+		transfer_nibbles = true;
+
+	if((lcd_io_pin[io_lcd_d2].io < 0) || (lcd_io_pin[io_lcd_d2].pin < 0))
+		transfer_nibbles = true;
+
+	if((lcd_io_pin[io_lcd_d3].io < 0) || (lcd_io_pin[io_lcd_d3].pin < 0))
+		transfer_nibbles = true;
+
+	if(transfer_nibbles)
+	{
+		for(pin = 2; pin >= 0; pin--)		// set to 4-bit mode trickery
+		{									// apparently this needs to be done twice sometimes
+			if(!send_nibble(0b0011, false))
+				return(false);
+
+			msleep(10);
+
+			if(!send_nibble(0b0011, false))
+				return(false);
+
+			msleep(10);
+
+			if(!send_nibble(0b0010, false))
+				return(false);
+
+			msleep(10);
+		}
+
+		send_byte(0b00101000, false);		// set 4 bit mode / two lines / 5x8 font
+
+		msleep(10);
+	}
+	else
+	{
+		for(pin = 3; pin >= 0; pin--)
+		{
+			send_byte(0b00111000, false);		// set 8 bit mode / two lines / 5x8 font
+			msleep(10);
+		}
 	}
 
 	for(ix = 0; ix < (buffer_rows + 1); ix++)
 		row_status.row[ix].dirty = 1;
 
-	send_byte(0b00101000, false);		// set 4 bit mode / two lines / 5x8 font
 	send_byte(0b00000001, false);		// clear screen
 	send_byte(0b00000110, false);		// cursor move direction = LTR / no display shift
 	send_byte(0b00001100, false);		// display on, cursor off, blink off
