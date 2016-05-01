@@ -30,6 +30,14 @@ typedef struct
 	uint8_t pattern[udg_byte_amount];
 } udg_t;
 
+typedef struct
+{
+	struct
+	{
+		unsigned int dirty:1;
+	} row[buffer_rows + 1];
+} row_status_t;
+
 static const map_t map[map_amount] =
 {
 	{	0x00b0, 0xdf },	// °
@@ -157,7 +165,9 @@ static const udg_t udg[udg_amount] =
 	}
 };
 
+static row_status_t row_status;
 static bool inited = false;
+static int brightness = 0;
 static lcd_io_t lcd_io_pins[io_lcd_size];
 static uint8_t buffer[buffer_rows][buffer_columns];
 
@@ -237,17 +247,23 @@ irom bool_t display_lcd_init(void)
 	}
 
 	for(pin = 0; pin < io_lcd_size; pin++)
-	{
 		if((lcd_io_pins[pin].io == -1) || (lcd_io_pins[pin].pin == -1))
 			return(false);
-	}
 
 	for(pin = 2; pin >= 0; pin--)		// set to 4-bit mode trickery
 	{									// apparently this needs to be done twice sometimes
-		send_nibble(0b0011, false);
-		send_nibble(0b0011, false);
-		send_nibble(0b0010, false);
+		if(!send_nibble(0b0011, false))
+			return(false);
+
+		if(!send_nibble(0b0011, false))
+			return(false);
+
+		if(!send_nibble(0b0010, false))
+			return(false);
 	}
+
+	for(ix = 0; ix < (buffer_rows + 1); ix++)
+		row_status.row[ix].dirty = 1;
 
 	send_byte(0b00101000, false);		// set 4 bit mode / two lines / 5x8 font
 	send_byte(0b00000001, false);		// clear screen
@@ -265,72 +281,15 @@ irom bool_t display_lcd_init(void)
 	return(true);
 }
 
-irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
+irom bool_t display_lcd_set(int brightness_in, const char *tag, const char *text)
 {
-	int cmd = -1;
-	int bl = 0;
 	unsigned int current, mapped, utf16;
 	int y, x, ix;
 
 	if(!inited)
 		return(false);
 
-	switch(brightness)
-	{
-		case(0):
-		{
-			cmd = 0b00001000;	// display off, cursor off, blink off
-			bl = 0;
-
-			break;
-		}
-
-		case(1):
-		{
-			cmd = 0b00001100;	// display on, cursor off, blink off
-			bl = 8192;
-
-			break;
-		}
-
-		case(2):
-		{
-			cmd = 0b00001100;	// display on, cursor off, blink off
-			bl = 16384;
-
-			break;
-		}
-
-		case(3):
-		{
-			cmd = 0b00001100;	// display on, cursor off, blink off
-			bl = 32768;
-
-			break;
-		}
-
-		case(4):
-		{
-			cmd = 0b00001100;	// display on, cursor off, blink off
-			bl = 65535;
-
-			break;
-		}
-
-		default:
-		{
-			break;
-		}
-	}
-
-	if(cmd != -1)
-	{
-		if(!send_byte(cmd, false))
-			return(false);
-
-		if(!set_pin(io_lcd_bl, bl) != io_ok)
-			return(false);
-	}
+	brightness = brightness_in;
 
 	for(y = 0; y < buffer_rows; y++)
 		for(x = 0; x < buffer_columns; x++)
@@ -419,27 +378,126 @@ irom bool_t display_lcd_set(int brightness, const char *tag, const char *text)
 			buffer[y][x++] = (uint8_t)(current & 0xff);
 	}
 
-	if(!send_byte(0x80 + 0x00, false))
+	for(ix = 0; ix < (buffer_rows + 1); ix++)
+		row_status.row[ix].dirty = 1;
+
+	return(true);
+}
+
+irom bool_t display_lcd_show(void)
+{
+	int cmd = -1;
+	int bl = 0;
+	int x;
+
+	if(!inited)
 		return(false);
 
-	for(x = 0; x < buffer_columns; x++)
-		if(!send_byte(buffer[0][x], true))
+	if(row_status.row[0].dirty)
+	{
+		switch(brightness)
+		{
+			case(0):
+			{
+				cmd = 0b00001000;	// display off, cursor off, blink off
+				bl = 0;
+
+				break;
+			}
+
+			case(1):
+			{
+				cmd = 0b00001100;	// display on, cursor off, blink off
+				bl = 8192;
+
+				break;
+			}
+
+			case(2):
+			{
+				cmd = 0b00001100;	// display on, cursor off, blink off
+				bl = 16384;
+
+				break;
+			}
+
+			case(3):
+			{
+				cmd = 0b00001100;	// display on, cursor off, blink off
+				bl = 32768;
+
+				break;
+			}
+
+			case(4):
+			{
+				cmd = 0b00001100;	// display on, cursor off, blink off
+				bl = 65535;
+
+				break;
+			}
+
+			default:
+			{
+				cmd = 0b00001000;	// display off, cursor off, blink off
+				bl = 0;
+
+				break;
+			}
+		}
+
+		if(!send_byte(cmd, false))
 			return(false);
 
-	for(x = 0; x < buffer_columns; x++)
-		if(!send_byte(buffer[2][x], true))
+		if(!set_pin(io_lcd_bl, bl) != io_ok)
 			return(false);
 
-	if(!send_byte(0x80 + 0x40, false))
-		return(false);
-
-	for(x = 0; x < buffer_columns; x++)
-		if(!send_byte(buffer[1][x], true))
+		row_status.row[0].dirty = 0;
+	}
+	else if(row_status.row[1].dirty)
+	{
+		if(!send_byte(0x80 + 0 + 0, false))
 			return(false);
 
-	for(x = 0; x < buffer_columns; x++)
-		if(!send_byte(buffer[3][x], true))
+		for(x = 0; x < buffer_columns; x++)
+			if(!send_byte(buffer[0][x], true))
+				return(false);
+
+		row_status.row[1].dirty = 0;
+	}
+	else if(row_status.row[2].dirty)
+	{
+		if(!send_byte(0x80 + 0 + 64, false))
 			return(false);
+
+		for(x = 0; x < buffer_columns; x++)
+			if(!send_byte(buffer[1][x], true))
+				return(false);
+
+		row_status.row[2].dirty = 0;
+	}
+	else if(row_status.row[3].dirty)
+	{
+		if(!send_byte(0x80 + 20 + 0, false))
+			return(false);
+
+		for(x = 0; x < buffer_columns; x++)
+			if(!send_byte(buffer[2][x], true))
+				return(false);
+
+		row_status.row[3].dirty = 0;
+	}
+	else if(row_status.row[4].dirty)
+	{
+		if(!send_byte(0x80 + 20 + 64, false))
+			return(false);
+
+		for(x = 0; x < buffer_columns; x++)
+			if(!send_byte(buffer[3][x], true))
+				return(false);
+
+		row_status.row[4].dirty = 0;
+	}
 
 	return(true);
 }

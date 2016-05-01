@@ -32,6 +32,7 @@ typedef const struct
 	const char *	const type;
 	bool_t			(* const init_fn)(void);
 	bool_t			(* const set_fn)(int brightness, const char *tag, const char *text);
+	bool_t			(* const show_fn)(void);
 } display_info_t;
 
 typedef struct
@@ -54,14 +55,17 @@ static roflash display_info_t display_info[display_size] =
 		4, "saa1064", "4 digit led display",
 		display_saa1064_init,
 		display_saa1064_set,
+		(void *)0,
 	},
 	{
 		80, "hd44780", "4x20 character LCD display",
 		display_lcd_init,
 		display_lcd_set,
+		display_lcd_show
 	}
 };
 
+static int page_delay = 0;
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
@@ -112,15 +116,12 @@ irom static void display_update(bool_t advance)
 		display_info_entry->set_fn(display_data.brightness, (char *)0, display_text);
 }
 
-irom void display_periodic(void) // call once per second
+irom static void display_expire(void) // call one time per second
 {
-	static int current_page = 0;
 	int active_slots, slot;
 
 	if(display_data.detected < 0)
 		return;
-
-	// expiration
 
 	active_slots = 0;
 
@@ -144,16 +145,36 @@ irom void display_periodic(void) // call once per second
 		display_slot[0].timeout = 0;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
 		strlcpy(display_slot[0].content, config.display_default_msg, display_slot_content_size - 1);
-		current_page = 0;
+		page_delay = 0;
+	}
+}
+
+irom void display_periodic(void) // gets called 10 times per second
+{
+	static int expire_counter = 0;
+	display_info_t *display_info_entry;
+
+	if(display_data.detected < 0)
+		return;
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(++expire_counter > 10) // expire once a second
+	{
+		display_expire();
+		expire_counter = 0;
+
+		if(++page_delay > 4) // 4 seconds for each slot
+		{
+			page_delay = 0;
+			display_update(true);
+		}
+		else
+			display_update(false);
 	}
 
-	if(++current_page > 4) // 4 seconds for each slot
-	{
-		current_page = 0;
-		display_update(true);
-	}
-	else
-		display_update(false);
+	if(display_info_entry->show_fn)
+		display_info_entry->show_fn();
 }
 
 irom void display_init(void)

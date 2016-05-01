@@ -433,15 +433,15 @@ iram static void periodic_timer_callback(void *arg)
 	{
 		timer_slow_skipped = 0;
 		periodic_timer_slowpath();
+		display_periodic();
 	}
 
-	// run display background task every second = 1000 ms
+	// run seconds
 
 	if(timer_second_skipped > 99)
 	{
 		stat_timer_second++;
 		timer_second_skipped = 0;
-		display_periodic();
 	}
 
 	// check ntp every minute = 60000 ms
