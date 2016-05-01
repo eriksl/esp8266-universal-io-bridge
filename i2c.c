@@ -19,9 +19,9 @@ _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {
-	i2c_config_idle_timeout = 256,			// * long delay  5 us = ~1280 ms
-	i2c_config_scl_sampling_window = 32,	// * short delay 1 us =   ~32 ms
-	i2c_config_sda_sampling_window = 32,	// * short delay 1 us =  ~ 32 ms
+	i2c_config_idle_timeout = 32,
+	i2c_config_scl_waiting_window = 64,
+	i2c_config_sda_sampling_window = 16,
 } i2c_config_t;
 
 struct
@@ -96,57 +96,55 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	string_cat(dst, ")");
 }
 
-irom static inline void short_delay(void)
+irom static always_inline void delay(void)
 {
-	os_delay_us(1);
+	int delay = transaction_bit_delay;
+
+	while(delay-- > 0)
+		asm("nop");
 }
 
-irom static inline void delay(void)
-{
-	os_delay_us(transaction_bit_delay);
-}
-
-irom static inline void set_io(uint32_t clear, uint32_t set)
+irom static always_inline void set_io(uint32_t clear, uint32_t set)
 {
 	gpio_output_set(set, clear, 0, 0);
 }
 
-irom static inline uint32_t get_io(void)
+irom static always_inline uint32_t get_io(void)
 {
 	return(gpio_input_get() & (sda_mask | scl_mask));
 }
 
-irom static inline void clear_sda(void)
+irom static always_inline void clear_sda(void)
 {
 	set_io(sda_mask, 0);
 }
 
-irom static inline void set_sda(void)
+irom static always_inline void set_sda(void)
 {
 	set_io(0, sda_mask);
 }
 
-irom static inline void clear_scl(void)
+irom static always_inline void clear_scl(void)
 {
 	set_io(scl_mask, 0);
 }
 
-irom static inline void set_scl(void)
+irom static always_inline void set_scl(void)
 {
 	set_io(0, scl_mask);
 }
 
-irom static inline bool_t sda_is_set(void)
+irom static always_inline bool_t sda_is_set(void)
 {
 	return(!!(get_io() & sda_mask));
 }
 
-irom static inline bool_t scl_is_set(void)
+irom static always_inline bool_t scl_is_set(void)
 {
 	return(!!(get_io() & scl_mask));
 }
 
-irom static i2c_error_t wait_idle(void)
+irom static always_inline i2c_error_t wait_idle(void)
 {
 	int current;
 
@@ -200,12 +198,9 @@ irom static i2c_error_t send_start(void)
 
 	// demand bus is idle for a minimum window
 
-	for(current = i2c_config_scl_sampling_window; current > 0; current--)
-	{
+	for(current = i2c_config_scl_waiting_window; current > 0; current--)
 		if(!scl_is_set() || !sda_is_set())
 			return(i2c_error_bus_lock);
-		short_delay();
-	}
 
 	// generate start condition by leaving scl high and pulling sda low
 
@@ -378,8 +373,6 @@ irom static i2c_error_t receive_bit(bool_t *bit)
 		set = sda_is_set();
 
 		total += set ? 4 : 0;
-
-		short_delay();
 	}
 
 	if(total < (i2c_config_sda_sampling_window * 1))		// 0-1/4	=> 0
