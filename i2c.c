@@ -19,9 +19,8 @@ _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {
-	i2c_config_idle_timeout = 32,
-	i2c_config_scl_waiting_window = 64,
-	i2c_config_sda_sampling_window = 16,
+	i2c_config_wait_idle_timeout = 32,
+	i2c_config_scl_waiting_window = 4,
 } i2c_config_t;
 
 struct
@@ -31,8 +30,6 @@ struct
 {
 	.init_done = 0
 };
-
-static i2c_error_t send_bit(bool_t bit);
 
 static roflash const char state_strings[i2c_state_size][32] =
 {
@@ -96,7 +93,7 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	string_cat(dst, ")");
 }
 
-irom static always_inline void delay(void)
+iram static always_inline void delay(void)
 {
 	int delay = transaction_bit_delay;
 
@@ -104,51 +101,51 @@ irom static always_inline void delay(void)
 		asm("nop");
 }
 
-irom static always_inline void set_io(uint32_t clear, uint32_t set)
+iram static always_inline void set_io(uint32_t clear, uint32_t set)
 {
 	gpio_output_set(set, clear, 0, 0);
 }
 
-irom static always_inline uint32_t get_io(void)
+iram static always_inline uint32_t get_io(void)
 {
 	return(gpio_input_get() & (sda_mask | scl_mask));
 }
 
-irom static always_inline void clear_sda(void)
+iram static always_inline void clear_sda(void)
 {
 	set_io(sda_mask, 0);
 }
 
-irom static always_inline void set_sda(void)
+iram static always_inline void set_sda(void)
 {
 	set_io(0, sda_mask);
 }
 
-irom static always_inline void clear_scl(void)
+iram static always_inline void clear_scl(void)
 {
 	set_io(scl_mask, 0);
 }
 
-irom static always_inline void set_scl(void)
+iram static always_inline void set_scl(void)
 {
 	set_io(0, scl_mask);
 }
 
-irom static always_inline bool_t sda_is_set(void)
+iram static always_inline bool_t sda_is_set(void)
 {
 	return(!!(get_io() & sda_mask));
 }
 
-irom static always_inline bool_t scl_is_set(void)
+iram static always_inline bool_t scl_is_set(void)
 {
 	return(!!(get_io() & scl_mask));
 }
 
-irom static always_inline i2c_error_t wait_idle(void)
+iram static always_inline i2c_error_t wait_idle(void)
 {
 	int current;
 
-	for(current = i2c_config_idle_timeout; current > 0; current--)
+	for(current = i2c_config_wait_idle_timeout; current > 0; current--)
 	{
 		if(scl_is_set())
 			break;
@@ -162,7 +159,7 @@ irom static always_inline i2c_error_t wait_idle(void)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t send_start(void)
+irom static noinline i2c_error_t send_start(void)
 {
 	i2c_error_t error;
 	int current;
@@ -213,7 +210,7 @@ irom static i2c_error_t send_start(void)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t send_stop(void)
+irom static noinline i2c_error_t send_stop(void)
 {
 	i2c_error_t error;
 
@@ -265,7 +262,7 @@ irom static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t send_bit(bool_t bit)
+iram static noinline i2c_error_t send_bit(bool_t bit)
 {
 	i2c_error_t error;
 
@@ -327,9 +324,8 @@ irom static i2c_error_t send_byte(int byte)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t receive_bit(bool_t *bit)
+iram static noinline i2c_error_t receive_bit(bool_t *bit)
 {
-	int current, total;
 	i2c_error_t error;
 
 	// at this point scl should be high and sda is unknown,
@@ -364,28 +360,12 @@ irom static i2c_error_t receive_bit(bool_t *bit)
 
 	delay();
 
-	// do oversampling of sda, to implement a software
-	// low-pass filter / spike filter
-
-	for(total = 0, current = 0; current < i2c_config_sda_sampling_window; current++)
-	{
-		int set;
-		set = sda_is_set();
-
-		total += set ? 4 : 0;
-	}
-
-	if(total < (i2c_config_sda_sampling_window * 1))		// 0-1/4	=> 0
-		*bit = 0;
-	else if(total < (i2c_config_sda_sampling_window * 3))	// 1/4-3/4	=> error
-		return(i2c_error_receive_error);
-	else													// 3/4-1	=> 1
-		*bit = 1;
+	*bit = sda_is_set() ? 1 : 0;
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t receive_byte(uint8_t *byte)
+irom static noinline i2c_error_t receive_byte(uint8_t *byte)
 {
 	int current;
 	bool_t bit;
@@ -405,7 +385,7 @@ irom static i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-irom static inline i2c_error_t send_ack(bool_t ack)
+iram static noinline i2c_error_t send_ack(bool_t ack)
 {
 	i2c_error_t error;
 
@@ -418,7 +398,7 @@ irom static inline i2c_error_t send_ack(bool_t ack)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t receive_ack(bool_t *ack)
+iram static noinline i2c_error_t receive_ack(bool_t *ack)
 {
 	i2c_error_t error;
 	bool_t bit;
@@ -434,7 +414,7 @@ irom static i2c_error_t receive_ack(bool_t *ack)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t send_header(int address, i2c_direction_t direction)
+irom static noinline i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t ack;
@@ -482,7 +462,7 @@ irom i2c_error_t i2c_reset(void)
 	// if someone is holding the sda line, simulate clock cycles
 	// to make them release it
 
-	for(current = i2c_config_idle_timeout; current > 0; current--)
+	for(current = i2c_config_wait_idle_timeout; current > 0; current--)
 	{
 		if(sda_is_set())
 			break;
