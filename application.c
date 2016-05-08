@@ -244,6 +244,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 	int size, current;
 	i2c_error_t error;
 	uint8_t bytes[32];
+	uint32_t start, stop, clocks, spent;
 
 	if(parse_int(1, src, &size, 0) != parse_ok)
 	{
@@ -257,6 +258,8 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 		return(app_action_error);
 	}
 
+	start = system_get_time();
+
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
 		string_cat(dst, "i2c_read");
@@ -266,12 +269,21 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 		return(app_action_error);
 	}
 
-	string_format(dst, "i2c_read: read %d bytes from %02x:", size, i2c_address);
+	stop = system_get_time();
+
+	string_format(dst, "> i2c_read: read %d bytes from %02x:", size, i2c_address);
 
 	for(current = 0; current < size; current++)
 		string_format(dst, " %02x", bytes[current]);
 
 	string_cat(dst, "\n");
+
+	clocks = (size + 1) * 20U;
+	spent = (stop - start) * 1000U;
+
+	string_format(dst, "> transferred %u bytes in %u scl clocks\n", size + 1U, clocks);
+	string_format(dst, "> time spent: %u microseconds, makes %u kHz i2c bus\n",
+			spent / 1000U, 1000000U / (spent / clocks));
 
 	return(app_action_normal);
 }
