@@ -241,14 +241,40 @@ irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T 
 
 	switch(pin_config->llmode)
 	{
-		case(io_pin_ll_counter):
+		case(io_pin_ll_input_analog):
 		{
-			if(readregister(dst, info->address, 0x12 + bank, &tv) != io_ok)
+			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
-			value = !!(tv & (1 << bankpin));
+			string_format(dst, "current io: %s", onoff(tv & (1 << bankpin)));
 
-			string_format(dst, "current state: %s, debounce: %d", onoff(value), mcp_pin_data->debounce);
+			break;
+		}
+
+		case(io_pin_ll_counter):
+		{
+			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
+				return(io_error);
+
+			string_format(dst, "current io: %s, debounce: %d", onoff(tv & (1 << bankpin)), mcp_pin_data->debounce);
+
+			break;
+		}
+
+		case(io_pin_ll_output_digital):
+		{
+			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
+				return(io_error);
+
+			io = tv & (1 << bankpin);
+
+			if(read_register(dst, info->address, OLAT(bank), &tv) != io_ok)
+				return(io_error);
+
+			olat = tv & (1 << bankpin);
+			cached = pin_output_cache[bank] & (1 << bankpin);
+
+			string_format(dst, "current latch: %s, io: %s, cache: %s", onoff(io), onoff(olat), onoff(cached));
 
 			break;
 		}
