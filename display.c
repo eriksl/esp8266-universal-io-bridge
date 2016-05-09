@@ -252,8 +252,9 @@ irom static void display_dump(string_t *dst)
 			display_info_entry->name, display_info_entry->type);
 
 	for(slot = 0; slot < display_slot_amount; slot++)
-		string_format(dst, ">> slot %u: timeout %u, tag: \"%s\", text: \"%s\"\n", slot,
-				display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
+		string_format(dst, ">> %c slot %u: timeout %u, tag: \"%s\", text: \"%s\"\n",
+				slot == display_data.current_slot ? '+' : ' ',
+				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
 }
 
 irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
