@@ -146,7 +146,6 @@ irom static void display_expire(void) // call one time per second
 		display_slot[0].timeout = 1;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
 		strlcpy(display_slot[0].content, config.display_default_msg, display_slot_content_size - 1);
-		page_delay = 0;
 	}
 }
 
@@ -164,14 +163,12 @@ irom bool display_periodic(void) // gets called 10 times per second
 	{
 		display_expire();
 		expire_counter = 0;
+	}
 
-		if(++page_delay > 4) // 4 seconds for each slot
-		{
-			page_delay = 0;
-			display_update(true);
-		}
-		else
-			display_update(false);
+	if(++page_delay > 40) // 4 seconds for each slot
+	{
+		page_delay = 0;
+		display_update(true);
 	}
 
 	if(display_info_entry->show_fn)
@@ -207,9 +204,6 @@ irom void display_init(void)
 		display_slot[slot].tag[0] = '\0';
 		display_slot[slot].content[0] = '\0';
 	}
-
-	if(display_data.detected >= 0)
-		display_update(false);
 }
 
 irom static bool_t display_set_brightness(int brightness)
