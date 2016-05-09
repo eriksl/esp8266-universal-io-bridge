@@ -85,6 +85,7 @@ irom static void display_update(bool_t advance)
 	for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 		if(display_slot[slot].content[0])
 			break;
+
 	if(slot >= display_slot_amount)
 		for(slot = 0; slot < display_slot_amount; slot++)
 			if(display_slot[slot].content[0])
