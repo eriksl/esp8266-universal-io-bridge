@@ -130,7 +130,7 @@ irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
 	espconn_tcp_set_max_con_allow(&espsrv->parent_socket, 1);
 }
 
-irom noinline static void config_wlan(const char *ssid, const char *passwd)
+irom static void config_wlan(const char *ssid, const char *passwd)
 {
 	struct station_config station_config;
 
