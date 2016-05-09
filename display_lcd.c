@@ -346,7 +346,8 @@ irom bool_t display_lcd_init(void)
 			msleep(10);
 		}
 
-		send_byte(0b00101000, false);		// set 4 bit mode / two lines / 5x8 font
+		if(!send_byte(0b00101000, false))		// set 4 bit mode / two lines / 5x8 font
+			return(false);
 
 		msleep(10);
 	}
@@ -354,7 +355,8 @@ irom bool_t display_lcd_init(void)
 	{
 		for(pin = 3; pin >= 0; pin--)
 		{
-			send_byte(0b00111000, false);		// set 8 bit mode / two lines / 5x8 font
+			if(!send_byte(0b00111000, false))		// set 8 bit mode / two lines / 5x8 font
+				return(false);
 			msleep(10);
 		}
 	}
@@ -362,15 +364,22 @@ irom bool_t display_lcd_init(void)
 	for(ix = 0; ix < (buffer_rows + 1); ix++)
 		row_status.row[ix].dirty = 1;
 
-	send_byte(0b00000001, false);		// clear screen
-	send_byte(0b00000110, false);		// cursor move direction = LTR / no display shift
-	send_byte(0b00001100, false);		// display on, cursor off, blink off
+	if(!send_byte(0b00000001, false))		// clear screen
+		return(false);
 
-	send_byte(0b01000000, false);		// start writing to CGRAM @ 0
+	if(!send_byte(0b00000110, false))		// cursor move direction = LTR / no display shift
+		return(false);
+
+	if(!send_byte(0b00001100, false))		// display on, cursor off, blink off
+		return(false);
+
+	if(!send_byte(0b01000000, false))		// start writing to CGRAM @ 0
+		return(false);
 
 	for(ix = 0; ix < udg_amount; ix++)
 		for(byte = 0; byte < udg_byte_amount; byte++)
-			send_byte(udg[ix].pattern[byte], true);
+			if(!send_byte(udg[ix].pattern[byte], true))
+				return(false);
 
 	inited = true;
 
