@@ -28,8 +28,8 @@ typedef struct
 	struct espconn *child_socket;
 	string_t receive_buffer;
 	string_t *send_buffer;
-	bool receive_ready;
-	bool send_busy;
+	bool_t receive_ready;
+	bool_t send_busy;
 } espsrv_t;
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
