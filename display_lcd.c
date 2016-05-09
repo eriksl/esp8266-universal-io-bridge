@@ -167,7 +167,7 @@ static const udg_t udg[udg_amount] =
 
 static row_status_t row_status;
 static bool_t inited = false;
-static bool_t transfer_nibbles;
+static bool_t nibble_mode;
 static int brightness = 0;
 static lcd_io_t lcd_io_pin[io_lcd_size];
 static uint8_t buffer[buffer_rows][buffer_columns];
@@ -219,7 +219,7 @@ irom static bool send_nibble(int nibble, bool data)
 
 irom static bool send_byte(int byte, bool data)
 {
-	if(transfer_nibbles)
+	if(nibble_mode)
 	{
 		if(!send_nibble((byte & 0xf0) >> 4, data))
 			return(false);
@@ -312,21 +312,21 @@ irom bool_t display_lcd_init(void)
 	if((lcd_io_pin[io_lcd_d7].io < 0) || (lcd_io_pin[io_lcd_d7].pin < 0))
 		return(false);
 
-	transfer_nibbles = false;
+	nibble_mode = false;
 
 	if((lcd_io_pin[io_lcd_d0].io < 0) || (lcd_io_pin[io_lcd_d0].pin < 0))
-		transfer_nibbles = true;
+		nibble_mode = true;
 
 	if((lcd_io_pin[io_lcd_d1].io < 0) || (lcd_io_pin[io_lcd_d1].pin < 0))
-		transfer_nibbles = true;
+		nibble_mode = true;
 
 	if((lcd_io_pin[io_lcd_d2].io < 0) || (lcd_io_pin[io_lcd_d2].pin < 0))
-		transfer_nibbles = true;
+		nibble_mode = true;
 
 	if((lcd_io_pin[io_lcd_d3].io < 0) || (lcd_io_pin[io_lcd_d3].pin < 0))
-		transfer_nibbles = true;
+		nibble_mode = true;
 
-	if(transfer_nibbles)
+	if(nibble_mode)
 	{
 		for(pin = 2; pin >= 0; pin--)		// set to 4-bit mode trickery
 		{									// apparently this needs to be done twice sometimes
