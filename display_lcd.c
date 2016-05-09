@@ -557,8 +557,11 @@ irom bool_t display_lcd_show(void)
 		set_pin(io_lcd_bl, bl);		// backlight pin might be not configured, ignore error
 
 		row_status.row[0].dirty = 0;
+
+		return(true);
 	}
-	else if(row_status.row[1].dirty)
+
+	if(row_status.row[1].dirty)
 	{
 		if(!send_byte(0x80 + 0 + 0, false))
 			return(false);
@@ -568,8 +571,11 @@ irom bool_t display_lcd_show(void)
 				return(false);
 
 		row_status.row[1].dirty = 0;
+
+		return(true);
 	}
-	else if(row_status.row[2].dirty)
+
+	if(row_status.row[2].dirty)
 	{
 		if(!send_byte(0x80 + 0 + 64, false))
 			return(false);
@@ -579,8 +585,11 @@ irom bool_t display_lcd_show(void)
 				return(false);
 
 		row_status.row[2].dirty = 0;
+
+		return(true);
 	}
-	else if(row_status.row[3].dirty)
+
+	if(row_status.row[3].dirty)
 	{
 		if(!send_byte(0x80 + 20 + 0, false))
 			return(false);
@@ -590,8 +599,11 @@ irom bool_t display_lcd_show(void)
 				return(false);
 
 		row_status.row[3].dirty = 0;
+
+		return(true);
 	}
-	else if(row_status.row[4].dirty)
+
+	if(row_status.row[4].dirty)
 	{
 		if(!send_byte(0x80 + 20 + 64, false))
 			return(false);
@@ -601,7 +613,9 @@ irom bool_t display_lcd_show(void)
 				return(false);
 
 		row_status.row[4].dirty = 0;
+
+		return(true);
 	}
 
-	return(true);
+	return(false);
 }
