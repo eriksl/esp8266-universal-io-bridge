@@ -180,7 +180,7 @@ irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 	pin = lcd_io_pin[pin_use].pin;
 
 	if((io < 0) || (pin < 0))
-		return(true);
+		return(false);
 
 	if(io_write_pin((string_t *)0, io, pin, value) != io_ok)
 		return(false);
@@ -545,8 +545,7 @@ irom bool_t display_lcd_show(void)
 		if(!send_byte(cmd, false))
 			return(false);
 
-		if(!set_pin(io_lcd_bl, bl) != io_ok)
-			return(false);
+		set_pin(io_lcd_bl, bl);		// backlight pin might be not configured, ignore error
 
 		row_status.row[0].dirty = 0;
 	}
