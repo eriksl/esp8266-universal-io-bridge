@@ -188,24 +188,27 @@ irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 	return(true);
 }
 
-irom static bool send_nibble(int nibble, bool data)
+irom static bool send_byte_raw(int byte, bool data)
 {
 	if(!set_pin(io_lcd_rs, data))
 		return(false);
 
-	if(!set_pin(io_lcd_rw, 0))
+	set_pin(io_lcd_rw, 0);
+	set_pin(io_lcd_d0, !!(byte & (1 << 0)));
+	set_pin(io_lcd_d1, !!(byte & (1 << 1)));
+	set_pin(io_lcd_d2, !!(byte & (1 << 2)));
+	set_pin(io_lcd_d3, !!(byte & (1 << 3)));
+
+	if(!set_pin(io_lcd_d4, !!(byte & (1 << 4))))
 		return(false);
 
-	if(!set_pin(io_lcd_d4, !!(nibble & (1 << 0))))
+	if(!set_pin(io_lcd_d5, !!(byte & (1 << 5))))
 		return(false);
 
-	if(!set_pin(io_lcd_d5, !!(nibble & (1 << 1))))
+	if(!set_pin(io_lcd_d6, !!(byte & (1 << 6))))
 		return(false);
 
-	if(!set_pin(io_lcd_d6, !!(nibble & (1 << 2))))
-		return(false);
-
-	if(!set_pin(io_lcd_d7, !!(nibble & (1 << 3))))
+	if(!set_pin(io_lcd_d7, !!(byte & (1 << 7))))
 		return(false);
 
 	if(!set_pin(io_lcd_e, false))
@@ -221,52 +224,16 @@ irom static bool send_byte(int byte, bool data)
 {
 	if(nibble_mode)
 	{
-		if(!send_nibble((byte & 0xf0) >> 4, data))
+		if(!send_byte_raw((byte & 0xf0) << 0, data))
 			return(false);
 
-		if(!send_nibble((byte & 0x0f) >> 0, data))
-			return(false);
-	}
-	else
-	{
-		if(!set_pin(io_lcd_rs, data))
+		if(!send_byte_raw((byte & 0x0f) << 4, data))
 			return(false);
 
-		if(!set_pin(io_lcd_rw, 0))
-			return(false);
-
-		if(!set_pin(io_lcd_d0, !!(byte & (1 << 0))))
-			return(false);
-
-		if(!set_pin(io_lcd_d1, !!(byte & (1 << 1))))
-			return(false);
-
-		if(!set_pin(io_lcd_d2, !!(byte & (1 << 2))))
-			return(false);
-
-		if(!set_pin(io_lcd_d3, !!(byte & (1 << 3))))
-			return(false);
-
-		if(!set_pin(io_lcd_d4, !!(byte & (1 << 4))))
-			return(false);
-
-		if(!set_pin(io_lcd_d5, !!(byte & (1 << 5))))
-			return(false);
-
-		if(!set_pin(io_lcd_d6, !!(byte & (1 << 6))))
-			return(false);
-
-		if(!set_pin(io_lcd_d7, !!(byte & (1 << 7))))
-			return(false);
-
-		if(!set_pin(io_lcd_e, false))
-			return(false);
-
-		if(!set_pin(io_lcd_e, true))
-			return(false);
+		return(true);
 	}
 
-	return(true);
+	return(send_byte_raw(byte, data));
 }
 
 irom bool_t display_lcd_init(void)
@@ -326,54 +293,45 @@ irom bool_t display_lcd_init(void)
 	if((lcd_io_pin[io_lcd_d3].io < 0) || (lcd_io_pin[io_lcd_d3].pin < 0))
 		nibble_mode = true;
 
+	// robust initialisation sequence,
+	// from http://web.alfredstate.edu/weimandn/lcd/lcd_initialization/lcd_initialization_index.html
+
+	msleep(50);
+
+	for(pin = 3; pin > 0; pin--)
+	{
+		if(!send_byte_raw(0b00110000, false))	// 3 x special "reset" command, low nibble ignored
+			return(false);
+
+		msleep(5);
+	}
+
 	if(nibble_mode)
 	{
-		for(pin = 2; pin >= 0; pin--)		// set to 4-bit mode trickery
-		{									// apparently this needs to be done twice sometimes
-			if(!send_nibble(0b0011, false))
-				return(false);
+		if(!send_byte_raw(0b00100000, false))	// set 4 bit mode, low nibble ignored
+			return(false);
 
-			msleep(10);
-
-			if(!send_nibble(0b0011, false))
-				return(false);
-
-			msleep(10);
-
-			if(!send_nibble(0b0010, false))
-				return(false);
-
-			msleep(10);
-		}
+		msleep(2);
 
 		if(!send_byte(0b00101000, false))		// set 4 bit mode / two lines / 5x8 font
 			return(false);
-
-		msleep(10);
 	}
 	else
-	{
-		for(pin = 3; pin >= 0; pin--)
-		{
-			if(!send_byte(0b00111000, false))		// set 8 bit mode / two lines / 5x8 font
-				return(false);
-			msleep(10);
-		}
-	}
+		if(!send_byte(0b00111000, false))		// set 8 bit mode / two lines / 5x8 font
+			return(false);
 
-	for(ix = 0; ix < (buffer_rows + 1); ix++)
-		row_status.row[ix].dirty = 1;
-
-	if(!send_byte(0b00000001, false))		// clear screen
+	if(!send_byte(0b00000001, false))			// clear screen
 		return(false);
 
-	if(!send_byte(0b00000110, false))		// cursor move direction = LTR / no display shift
+	msleep(2);
+
+	if(!send_byte(0b00000110, false))			// cursor move direction = LTR / no display shift
 		return(false);
 
-	if(!send_byte(0b00001100, false))		// display on, cursor off, blink off
+	if(!send_byte(0b00001100, false))			// display on, cursor off, blink off
 		return(false);
 
-	if(!send_byte(0b01000000, false))		// start writing to CGRAM @ 0
+	if(!send_byte(0b01000000, false))			// start writing to CGRAM @ 0
 		return(false);
 
 	for(ix = 0; ix < udg_amount; ix++)
@@ -382,6 +340,9 @@ irom bool_t display_lcd_init(void)
 				return(false);
 
 	inited = true;
+
+	for(ix = 0; ix < (buffer_rows + 1); ix++)
+		row_status.row[ix].dirty = 1;
 
 	return(true);
 }
