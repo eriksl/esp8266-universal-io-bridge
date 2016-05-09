@@ -142,7 +142,7 @@ irom static void display_expire(void) // call one time per second
 
 	if(active_slots == 0)
 	{
-		display_slot[0].timeout = 0;
+		display_slot[0].timeout = 1;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
 		strlcpy(display_slot[0].content, config.display_default_msg, display_slot_content_size - 1);
 		page_delay = 0;
