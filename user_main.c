@@ -39,7 +39,8 @@ queue_t data_receive_queue;
 
 os_event_t background_task_queue[background_task_queue_length];
 
-static ETSTimer periodic_timer;
+static ETSTimer fast_timer;
+static ETSTimer slow_timer;
 
 static struct
 {
@@ -153,100 +154,6 @@ irom noinline static void config_wlan(const char *ssid, const char *passwd)
 
 	wifi_station_set_config(&station_config);
 	wifi_station_connect();
-}
-
-irom static void background_task(os_event_t *events)
-{
-	stat_background_task++;
-
-	// send data in the uart receive fifo to tcp
-
-	if(!queue_empty(&data_receive_queue) && !data.send_busy && string_space(data.send_buffer))
-	{
-		// data available and can be sent now
-
-		while(!queue_empty(&data_receive_queue) && string_space(data.send_buffer))
-			string_append(data.send_buffer, queue_pop(&data_receive_queue));
-
-		if(string_length(data.send_buffer) > 0)
-			data.send_busy = espconn_send(data.child_socket, string_to_ptr(data.send_buffer), string_length(data.send_buffer)) == 0;
-	}
-
-	// if there is still data in uart receive fifo that can't be
-	// sent to tcp yet, tcp_sent_callback will call us when it can
-
-	if(bg_action.disconnect)
-	{
-		espconn_disconnect(cmd.child_socket);
-		bg_action.disconnect = 0;
-	}
-
-	if(bg_action.init_i2c_sensors)
-	{
-		uint32_t now = system_get_time();
-		i2c_sensor_init();
-		bg_action.init_i2c_sensors = 0;
-		stat_i2c_init_time_us = system_get_time() - now;
-	}
-
-	if(bg_action.init_displays)
-	{
-		uint32_t now = system_get_time();
-		display_init();
-		bg_action.init_displays = 0;
-		stat_display_init_time_us = system_get_time() - now;
-	}
-
-	string_clear(cmd.send_buffer);
-
-	if(cmd.receive_ready)
-	{
-		switch(application_content(&cmd.receive_buffer, cmd.send_buffer))
-		{
-			case(app_action_normal):
-			case(app_action_error):
-			case(app_action_http_ok):
-			{
-				/* no special action for now */
-				break;
-			}
-			case(app_action_empty):
-			{
-				string_copy(cmd.send_buffer, "> empty command\n");
-				break;
-			}
-			case(app_action_disconnect):
-			{
-				string_copy(cmd.send_buffer, "> disconnect\n");
-				bg_action.disconnect = 1;
-				break;
-			}
-			case(app_action_reset):
-			{
-				string_copy(cmd.send_buffer, "> reset\n");
-				bg_action.disconnect = 1;
-				bg_action.reset = 1;
-				break;
-			}
-#if IMAGE_OTA == 1
-			case(app_action_ota_commit):
-			{
-				rboot_config rcfg = rboot_get_config();
-				string_format(cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
-				bg_action.disconnect = 1;
-				bg_action.reset = 1;
-
-				break;
-			}
-#endif
-		}
-
-		cmd.receive_ready = false;
-	}
-
-	if(string_length(cmd.send_buffer) > 0)
-		cmd.send_busy =
-				espconn_send(cmd.child_socket, string_to_ptr(cmd.send_buffer), string_length(cmd.send_buffer)) == 0;
 }
 
 irom static void tcp_data_sent_callback(void *arg)
@@ -377,9 +284,9 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	}
 }
 
-irom noinline static void periodic_timer_slowpath(void)
+irom static void background_task_update_clocks(void)
 {
-	stat_timer_slow++;
+	// uptime clock
 
 	if(++ut_tens > 9)
 	{
@@ -402,6 +309,8 @@ irom noinline static void periodic_timer_slowpath(void)
 		}
 	}
 
+	// realtime clock
+
 	if(++rt_tens > 9)
 	{
 		rt_tens = 0;
@@ -422,52 +331,182 @@ irom noinline static void periodic_timer_slowpath(void)
 			}
 		}
 	}
-
-	system_os_post(background_task_id, 0, 0);
 }
 
-iram static void periodic_timer_callback(void *arg)
+irom static bool_t background_task_update_uart(void)
 {
-	static int timer_slow_skipped = 0;
-	static int timer_second_skipped = 0;
-	static int timer_minute_skipped = 0;
+	// send data in the uart receive fifo to tcp
 
+	if(!queue_empty(&data_receive_queue) && !data.send_busy && string_space(data.send_buffer))
+	{
+		// data available and can be sent now
+
+		while(!queue_empty(&data_receive_queue) && string_space(data.send_buffer))
+			string_append(data.send_buffer, queue_pop(&data_receive_queue));
+
+		if(string_length(data.send_buffer) > 0)
+			data.send_busy = espconn_send(data.child_socket, string_to_ptr(data.send_buffer), string_length(data.send_buffer)) == 0;
+
+		return(true);
+	}
+
+	// if there is still data in uart receive fifo that can't be
+	// sent to tcp yet, tcp_sent_callback will call us when it can
+
+	return(false);
+}
+
+irom static bool_t background_task_longop_handler(void)
+{
+	if(bg_action.disconnect)
+	{
+		espconn_disconnect(cmd.child_socket);
+		bg_action.disconnect = 0;
+		return(true);
+	}
+
+	if(bg_action.init_i2c_sensors)
+	{
+		uint32_t now = system_get_time();
+		i2c_sensor_init();
+		bg_action.init_i2c_sensors = 0;
+		stat_i2c_init_time_us = system_get_time() - now;
+		return(true);
+	}
+
+	if(bg_action.init_displays)
+	{
+		uint32_t now = system_get_time();
+		display_init();
+		bg_action.init_displays = 0;
+		stat_display_init_time_us = system_get_time() - now;
+		return(true);
+	}
+
+	return(false);
+}
+
+irom static bool_t background_task_command_handler(void)
+{
+	string_clear(cmd.send_buffer);
+
+	if(cmd.receive_ready)
+	{
+		switch(application_content(&cmd.receive_buffer, cmd.send_buffer))
+		{
+			case(app_action_normal):
+			case(app_action_error):
+			case(app_action_http_ok):
+			{
+				/* no special action for now */
+				break;
+			}
+			case(app_action_empty):
+			{
+				string_copy(cmd.send_buffer, "> empty command\n");
+				break;
+			}
+			case(app_action_disconnect):
+			{
+				string_copy(cmd.send_buffer, "> disconnect\n");
+				bg_action.disconnect = 1;
+				break;
+			}
+			case(app_action_reset):
+			{
+				string_copy(cmd.send_buffer, "> reset\n");
+				bg_action.disconnect = 1;
+				bg_action.reset = 1;
+				break;
+			}
+#if IMAGE_OTA == 1
+			case(app_action_ota_commit):
+			{
+				rboot_config rcfg = rboot_get_config();
+				string_format(cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
+				bg_action.disconnect = 1;
+				bg_action.reset = 1;
+
+				break;
+			}
+#endif
+		}
+
+		cmd.receive_ready = false;
+	}
+
+	if(string_length(cmd.send_buffer) > 0)
+	{
+		cmd.send_busy =
+				espconn_send(cmd.child_socket, string_to_ptr(cmd.send_buffer), string_length(cmd.send_buffer)) == 0;
+		return(true);
+	}
+
+	return(false);
+}
+
+irom static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
+{
+	stat_slow_timer++;
+
+	background_task_update_clocks();
+
+	if(background_task_update_uart())
+	{
+		stat_update_uart++;
+		system_os_post(background_task_id, 0, 0);
+		return;
+	}
+
+	if(background_task_longop_handler())
+	{
+		stat_update_longop++;
+		system_os_post(background_task_id, 0, 0);
+		return;
+	}
+
+	if(background_task_command_handler())
+	{
+		stat_update_command++;
+		system_os_post(background_task_id, 0, 0);
+		return;
+	}
+
+	if(ntp_periodic())
+	{
+		stat_update_ntp++;
+		system_os_post(background_task_id, 0, 0);
+		return;
+	}
+
+	if(display_periodic())
+	{
+		stat_update_display++;
+		system_os_post(background_task_id, 0, 0);
+		return;
+	}
+
+	stat_update_idle++;
+}
+
+iram static void fast_timer_callback(void *arg)
+{
 	(void)arg;
 
-	stat_timer_fast++;
-	timer_slow_skipped++;
-	timer_second_skipped++;
-	timer_minute_skipped++;
+	stat_fast_timer++;
 
-	// timer runs on 100 Hz == 10 ms
+	// timer runs every 10 ms = 100 Hz
 
 	io_periodic();
+}
 
-	// run background task every 10 Hz = 100 ms
+irom static void slow_timer_callback(void *arg)
+{
+	(void)arg;
 
-	if(timer_slow_skipped > 9)
-	{
-		timer_slow_skipped = 0;
-		periodic_timer_slowpath();
-		display_periodic();
-	}
+	// run background task every ~100 ms = ~10 Hz
 
-	// run seconds
-
-	if(timer_second_skipped > 99)
-	{
-		stat_timer_second++;
-		timer_second_skipped = 0;
-	}
-
-	// check ntp every minute = 60000 ms
-
-	if(timer_minute_skipped > 5999)
-	{
-		stat_timer_minute++;
-		timer_minute_skipped = 0;
-		ntp_periodic();
-	}
+	system_os_post(background_task_id, 0, 0);
 }
 
 irom void user_init(void);
@@ -525,6 +564,9 @@ irom static void user_init2(void)
 	else
 		system_update_cpu_freq(80);
 
-	os_timer_setfn(&periodic_timer, periodic_timer_callback, (void *)0);
-	os_timer_arm(&periodic_timer, 10, 1); // fast system timer = 100 Hz = 10 ms
+	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
+	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms
+
+	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
+	os_timer_arm(&fast_timer, 10, 1); // fast system timer / 100 Hz / 10 ms
 }

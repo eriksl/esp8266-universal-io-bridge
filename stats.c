@@ -12,13 +12,17 @@
 
 int stat_uart_rx_interrupts;
 int stat_uart_tx_interrupts;
-int stat_timer_fast;
-int stat_timer_slow;
-int stat_timer_second;
-int stat_timer_minute;
-int stat_background_task;
+int stat_fast_timer;
+int stat_slow_timer;
 int stat_i2c_init_time_us;
 int stat_display_init_time_us;
+
+int stat_update_uart;
+int stat_update_longop;
+int stat_update_command;
+int stat_update_display;
+int stat_update_ntp;
+int stat_update_idle;
 
 int	ut_days;
 int	ut_hours;
@@ -106,11 +110,14 @@ irom void stats_generate(string_t *dst)
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
-			"> timer_fast fired: %u\n"
-			"> timer_slow fired: %u\n"
-			"> timer_second fired: %u\n"
-			"> timer_minute fired: %u\n"
-			"> background task: %u\n"
+			"> fast timer fired: %u\n"
+			"> slow timer fired: %u\n"
+			"> uart updated: %u\n"
+			"> longops processed: %u\n"
+			"> commands processed: %u\n"
+			"> display updated: %u\n"
+			"> ntp updated: %u\n"
+			"> background idle: %u\n"
 			"> i2c initialisation time: %u us\n"
 			"> display initialisation time: %u us\n"
 			">\n"
@@ -135,11 +142,14 @@ irom void stats_generate(string_t *dst)
 			sizeof(config_t),
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
-			stat_timer_fast,
-			stat_timer_slow,
-			stat_timer_second,
-			stat_timer_minute,
-			stat_background_task,
+			stat_fast_timer,
+			stat_slow_timer,
+			stat_update_uart,
+			stat_update_longop,
+			stat_update_command,
+			stat_update_display,
+			stat_update_ntp,
+			stat_update_idle,
 			stat_i2c_init_time_us,
 			stat_display_init_time_us,
 			sc_default.ssid, sc_default.password,
