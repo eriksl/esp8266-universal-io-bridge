@@ -71,26 +71,42 @@ irom static void ntp_init(void)
 	}
 }
 
-irom static void ntp_periodic(void)
+irom static bool ntp_periodic(void)
 {
+	static int delay = 0;
+	static bool_t initial_burst = true;
 	struct tm *tm;
 	time_t ticks;
 
-	if(ip_addr_valid(config.ntp_server))
+	delay++;
+
+	if(delay < 10) // always check once a second or less
+		return(false);
+
+	if(!initial_burst && (delay < 6000)) // after initial burst only check every 10 minutes
+		return(false);
+
+	delay = 0;
+
+	if(!ip_addr_valid(config.ntp_server))
+		return(false);
+
+	ticks = sntp_get_current_timestamp();
+
+	if(ticks > 0)
 	{
-		ticks = sntp_get_current_timestamp();
+		initial_burst = false;
 
-		if(ticks > 0)
-		{
-			ticks += 59; // take delay of sync in account
-			tm = sntp_localtime(&ticks);
+		ticks += 59; // take delay of sync in account
+		tm = sntp_localtime(&ticks);
 
-			rt_hours = tm->tm_hour;
-			rt_mins  = tm->tm_min;
+		rt_hours = tm->tm_hour;
+		rt_mins  = tm->tm_min;
 
-			ntp_init();	// FIXME SDK bug, stop and start ntp to get continuous updating
-		}
+		ntp_init();	// FIXME SDK bug, stop and start ntp to get continuous updating
 	}
+
+	return(true);
 }
 
 irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
