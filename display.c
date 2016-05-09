@@ -149,13 +149,13 @@ irom static void display_expire(void) // call one time per second
 	}
 }
 
-irom void display_periodic(void) // gets called 10 times per second
+irom bool display_periodic(void) // gets called 10 times per second
 {
 	static int expire_counter = 0;
 	display_info_t *display_info_entry;
 
 	if(display_data.detected < 0)
-		return;
+		return(false);
 
 	display_info_entry = &display_info[display_data.detected];
 
@@ -174,7 +174,9 @@ irom void display_periodic(void) // gets called 10 times per second
 	}
 
 	if(display_info_entry->show_fn)
-		display_info_entry->show_fn();
+		return(display_info_entry->show_fn());
+
+	return(false);
 }
 
 irom void display_init(void)
