@@ -65,7 +65,6 @@ static roflash display_info_t display_info[display_size] =
 	}
 };
 
-static int page_delay = 0;
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
@@ -128,13 +127,11 @@ irom static void display_expire(void) // call one time per second
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
-		if(display_slot[slot].timeout > 0)
+		if(display_slot[slot].timeout == 1)
 		{
-			if(--display_slot[slot].timeout <= 0)
-			{
-				display_slot[slot].tag[0] = '\0';
-				display_slot[slot].content[0] = '\0';
-			}
+			display_slot[slot].timeout = 0;
+			display_slot[slot].tag[0] = '\0';
+			display_slot[slot].content[0] = '\0';
 		}
 
 		if(display_slot[slot].content[0])
@@ -151,6 +148,7 @@ irom static void display_expire(void) // call one time per second
 
 irom bool display_periodic(void) // gets called 10 times per second
 {
+	static int page_delay = 0;
 	static int expire_counter = 0;
 	display_info_t *display_info_entry;
 
@@ -161,8 +159,8 @@ irom bool display_periodic(void) // gets called 10 times per second
 
 	if(++expire_counter > 10) // expire once a second
 	{
-		display_expire();
 		expire_counter = 0;
+		display_expire();
 	}
 
 	if(++page_delay > 40) // 4 seconds for each slot
