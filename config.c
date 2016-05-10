@@ -153,6 +153,8 @@ irom void config_read(config_t *cfg)
 			cfg->minor_version = config_minor_version;
 			cfg->tcp_port.bridge = 23;
 			cfg->tcp_port.command = 24;
+			cfg->tcp_timeout.bridge = 0;
+			cfg->tcp_timeout.command = 0;
 			cfg->ntp_server = ip_addr("0.0.0.0");
 			cfg->ntp_timezone = 0;
 			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
@@ -212,13 +214,15 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 	string_ip(&ntp_server, cfg->ntp_server);
 
 	string_format(dst, 
-		"> config magic: %04x\n"
+			"> config magic: %04x\n"
 			"> config major version: %d\n"
 			"> config minor version: %d\n"
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> bridge tcp port: %u\n"
 			"> command tcp port: %u\n"
+			"> bridge tcp timeout: %u\n"
+			"> command tcp timeout: %u\n"
 			"> ntp server: %s\n"
 			"> ntp time zone: GMT%c%u\n"
 			"> display default message: %s\n"
@@ -231,6 +235,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->passwd,
 		cfg->tcp_port.bridge,
 		cfg->tcp_port.command,
+		cfg->tcp_timeout.bridge,
+		cfg->tcp_timeout.command,
 		string_to_ptr(&ntp_server),
 		cfg->ntp_timezone >= 0 ? '+' : '-',
 		cfg->ntp_timezone >= 0 ? cfg->ntp_timezone : 0 - cfg->ntp_timezone,

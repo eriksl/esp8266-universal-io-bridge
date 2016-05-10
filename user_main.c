@@ -554,8 +554,8 @@ irom static void user_init2(void)
 
 	config_wlan(config.ssid, config.passwd);
 
-	tcp_accept(&data,	&data_send_buffer,	config.tcp_port.bridge, 	0,	tcp_data_connect_callback);
-	tcp_accept(&cmd,	&cmd_send_buffer,	config.tcp_port.command,	30,	tcp_cmd_connect_callback);
+	tcp_accept(&data,	&data_send_buffer,	config.tcp_port.bridge, 	config.tcp_timeout.bridge,	tcp_data_connect_callback);
+	tcp_accept(&cmd,	&cmd_send_buffer,	config.tcp_port.command,	config.tcp_timeout.command,	tcp_cmd_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 

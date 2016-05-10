@@ -133,6 +133,26 @@ irom static app_action_t application_function_bridge_tcp_port(const string_t *sr
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_bridge_tcp_timeout(const string_t *src, string_t *dst)
+{
+	int tcp_timeout;
+
+	if(parse_int(1, src, &tcp_timeout, 0) == parse_ok)
+	{
+		if((tcp_timeout < 0) || (tcp_timeout > 65535))
+		{
+			string_format(dst, "bridge-tcp-timeout: invalid timeout: %d\n", tcp_timeout);
+			return(app_action_error);
+		}
+
+		config.tcp_timeout.bridge = (uint16_t)tcp_timeout;
+	}
+
+	string_format(dst, "bridge-tcp-timeout: %d\n", config.tcp_timeout.bridge);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_command_tcp_port(const string_t *src, string_t *dst)
 {
 	int tcp_port;
@@ -149,6 +169,26 @@ irom static app_action_t application_function_command_tcp_port(const string_t *s
 	}
 
 	string_format(dst, "command-tcp-port: %d\n", config.tcp_port.command);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_command_tcp_timeout(const string_t *src, string_t *dst)
+{
+	int tcp_timeout;
+
+	if(parse_int(1, src, &tcp_timeout, 0) == parse_ok)
+	{
+		if((tcp_timeout < 0) || (tcp_timeout > 65535))
+		{
+			string_format(dst, "command-tcp-timeout: invalid timeout: %d\n", tcp_timeout);
+			return(app_action_error);
+		}
+
+		config.tcp_timeout.command = (uint16_t)tcp_timeout;
+	}
+
+	string_format(dst, "command-tcp-timeout: %d\n", config.tcp_timeout.command);
 
 	return(app_action_normal);
 }
@@ -668,9 +708,19 @@ static const application_function_table_t application_function_table[] =
 		"set uart tcp bridge tcp port (default 23)"
 	},
 	{
+		"btt", "bridge-tcp-timeout",
+		application_function_bridge_tcp_timeout,
+		"set uart tcp bridge tcp timeout (default 0)"
+	},
+	{
 		"ctp", "command-tcp-port",
 		application_function_command_tcp_port,
 		"set command tcp port (default 24)"
+	},
+	{
+		"ctt", "command-tcp-timeout",
+		application_function_command_tcp_timeout,
+		"set command tcp timeout (default 0)"
 	},
 	{
 		"ccd", "current-config-dump",

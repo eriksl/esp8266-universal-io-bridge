@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 2,
-	config_minor_version = 3,
+	config_minor_version = 4,
 };
 
 typedef enum
@@ -52,6 +52,12 @@ typedef struct
 		uint16_t bridge;
 		uint16_t command;
 	} tcp_port;
+
+	struct
+	{
+		uint16_t bridge;
+		uint16_t command;
+	} tcp_timeout;
 
 	ip_addr_t			ntp_server;
 	int8_t				ntp_timezone;
