@@ -7,6 +7,7 @@ enum
 {
 	buffer_rows = 4,
 	buffer_columns = 20,
+	buffer_status_rows = buffer_rows + 1,
 	udg_amount = 8,
 	udg_byte_amount = 8,
 	map_amount = 15,
@@ -35,7 +36,7 @@ typedef struct
 	struct
 	{
 		unsigned int dirty:1;
-	} row[buffer_rows + 1];
+	} row[buffer_status_rows];
 } row_status_t;
 
 static const map_t map[map_amount] =
@@ -341,7 +342,7 @@ irom bool_t display_lcd_init(void)
 
 	inited = true;
 
-	for(ix = 0; ix < (buffer_rows + 1); ix++)
+	for(ix = 0; ix < buffer_status_rows; ix++)
 		row_status.row[ix].dirty = 1;
 
 	return(true);
@@ -444,7 +445,7 @@ irom bool_t display_lcd_set(int brightness_in, const char *tag, const char *text
 			buffer[y][x++] = (uint8_t)(current & 0xff);
 	}
 
-	for(ix = 0; ix < (buffer_rows + 1); ix++)
+	for(ix = 0; ix < buffer_status_rows; ix++)
 		row_status.row[ix].dirty = 1;
 
 	return(true);
