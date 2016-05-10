@@ -98,7 +98,6 @@ irom static bool ntp_periodic(void)
 	{
 		initial_burst = false;
 
-		ticks += 59; // take delay of sync in account
 		tm = sntp_localtime(&ticks);
 
 		rt_hours = tm->tm_hour;
