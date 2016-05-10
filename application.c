@@ -125,10 +125,30 @@ irom static app_action_t application_function_bridge_tcp_port(const string_t *sr
 			return(app_action_error);
 		}
 
-		config.bridge_tcp_port = (uint16_t)tcp_port;
+		config.tcp_port.bridge = (uint16_t)tcp_port;
 	}
 
-	string_format(dst, "bridge-tcp_port: %d\n", config.bridge_tcp_port);
+	string_format(dst, "bridge-tcp-port: %d\n", config.tcp_port.bridge);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_command_tcp_port(const string_t *src, string_t *dst)
+{
+	int tcp_port;
+
+	if(parse_int(1, src, &tcp_port, 0) == parse_ok)
+	{
+		if((tcp_port < 1) || (tcp_port > 65535))
+		{
+			string_format(dst, "command-tcp-port: invalid port %d\n", tcp_port);
+			return(app_action_error);
+		}
+
+		config.tcp_port.command = (uint16_t)tcp_port;
+	}
+
+	string_format(dst, "command-tcp-port: %d\n", config.tcp_port.command);
 
 	return(app_action_normal);
 }
@@ -645,7 +665,12 @@ static const application_function_table_t application_function_table[] =
 	{
 		"btp", "bridge-tcp-port",
 		application_function_bridge_tcp_port,
-		"set uart tcp bridge tcp port (default 25)"
+		"set uart tcp bridge tcp port (default 23)"
+	},
+	{
+		"ctp", "command-tcp-port",
+		application_function_command_tcp_port,
+		"set command tcp port (default 24)"
 	},
 	{
 		"ccd", "current-config-dump",

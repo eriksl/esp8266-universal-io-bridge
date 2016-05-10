@@ -46,7 +46,13 @@ typedef struct
 	char				passwd[32];
 	uint32_t			flags;
 	uart_parameters_t	uart;
-	uint16_t			bridge_tcp_port;
+
+	struct
+	{
+		uint16_t bridge;
+		uint16_t command;
+	} tcp_port;
+
 	ip_addr_t			ntp_server;
 	int8_t				ntp_timezone;
 	char				display_default_msg[32];
