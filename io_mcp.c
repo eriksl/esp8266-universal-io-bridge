@@ -55,6 +55,7 @@ irom static io_error_t read_register(string_t *error_message, int address, int r
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -63,6 +64,7 @@ irom static io_error_t read_register(string_t *error_message, int address, int r
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -84,6 +86,7 @@ irom static io_error_t write_register(string_t *error_message, int address, int 
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -102,6 +105,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -110,6 +114,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -121,6 +126,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 		if(error_message)
 			i2c_error_format_string(error_message, error);
 
+		i2c_reset();
 		return(io_error);
 	}
 
@@ -135,10 +141,16 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	mcp_data_pin_t *mcp_pin_data;
 
 	if(i2c_send_1(info->address, IODIR(0)) != i2c_error_ok)
+	{
+		i2c_reset();
 		return(io_error);
+	}
 
 	if(i2c_receive(info->address, sizeof(i2cbuffer), i2cbuffer) != i2c_error_ok)
+	{
+		i2c_reset();
 		return(io_error);
+	}
 
 	for(ix = DEFVAL(0); ix < 0x0b; ix++)
 		if(i2cbuffer[ix] != 0x00)
