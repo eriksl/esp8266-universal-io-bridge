@@ -157,6 +157,7 @@ irom static void config_wlan(const char *ssid, const char *passwd)
 
 irom static void tcp_data_sent_callback(void *arg)
 {
+	string_clear(data.send_buffer);
 	data.send_busy = false;
 
 	// retry to send data still in the fifo
