@@ -240,7 +240,7 @@ irom static bool send_byte(int byte, bool data)
 irom bool_t display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
-	int io, pin, ix, byte;
+	int io, pin, ix, byte, x, y;
 
 	for(pin = 0; pin < io_lcd_size; pin++)
 	{
@@ -341,6 +341,10 @@ irom bool_t display_lcd_init(void)
 				return(false);
 
 	inited = true;
+
+	for(y = 0; y < buffer_rows; y++)
+		for(x = 0; x < buffer_columns; x++)
+			buffer[y][x] = ' ';
 
 	for(ix = 0; ix < buffer_status_rows; ix++)
 		row_status.row[ix].dirty = 1;
