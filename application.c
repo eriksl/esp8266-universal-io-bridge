@@ -760,7 +760,7 @@ static const application_function_table_t application_function_table[] =
 	{
 		"ds", "display-set",
 		application_function_display_set,
-		"put content on display <display id> <slot> <timeout> <text>"
+		"put content on display <slot> <timeout> <tag> <text>"
 	},
 	{
 		"gss", "gpio-status-set",
