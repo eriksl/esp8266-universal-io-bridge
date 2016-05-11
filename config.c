@@ -155,8 +155,8 @@ irom void config_read(config_t *cfg)
 			cfg->tcp_port.command = 24;
 			cfg->tcp_timeout.bridge = 0;
 			cfg->tcp_timeout.command = 0;
-			cfg->ntp_server = ip_addr("0.0.0.0");
-			cfg->ntp_timezone = 0;
+			cfg->ntp.server = ip_addr("0.0.0.0");
+			cfg->ntp.timezone = 0;
 			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
 			cfg->status_trigger_io.io = -1;
 			cfg->status_trigger_io.pin = -1;
@@ -211,7 +211,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 	string_new(static, ntp_server, 32);
 
 	string_clear(&ntp_server);
-	string_ip(&ntp_server, cfg->ntp_server);
+	string_ip(&ntp_server, cfg->ntp.server);
 
 	string_format(dst, 
 			"> config magic: %04x\n"
@@ -238,8 +238,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->tcp_timeout.bridge,
 		cfg->tcp_timeout.command,
 		string_to_ptr(&ntp_server),
-		cfg->ntp_timezone >= 0 ? '+' : '-',
-		cfg->ntp_timezone >= 0 ? cfg->ntp_timezone : 0 - cfg->ntp_timezone,
+		cfg->ntp.timezone >= 0 ? '+' : '-',
+		cfg->ntp.timezone >= 0 ? cfg->ntp.timezone : 0 - cfg->ntp.timezone,
 		cfg->display_default_msg,
 		cfg->status_trigger_io.io,
 		cfg->status_trigger_io.pin);

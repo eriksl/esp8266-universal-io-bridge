@@ -21,8 +21,8 @@ const config_t default_config_data =
 	.tcp_port.bridge = 23,
 	.tcp_timeout.command = 0,
 	.tcp_timeout.bridge = 0,
-	.ntp_server.addr = 0,
-	.ntp_timezone = 0,
+	.ntp.server.addr = 0,
+	.ntp.timezone = 0,
 	.display_default_msg = "%%%%",
 	.status_trigger_io = { -1, -1 },
 };

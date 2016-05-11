@@ -59,15 +59,19 @@ typedef struct
 		uint16_t command;
 	} tcp_timeout;
 
-	ip_addr_t			ntp_server;
-	int8_t				ntp_timezone;
-	char				display_default_msg[32];
-
 	struct
 	{
 		int8_t	io;
 		int8_t	pin;
 	} status_trigger_io;
+
+	struct
+	{
+		ip_addr_t	server;
+		int8_t		timezone;
+	} ntp;
+
+	char				display_default_msg[32];
 
 	i2c_sensor_config_t	i2c_sensors;
 	io_config_t			io_config;

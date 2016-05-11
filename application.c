@@ -667,11 +667,11 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 
 	if((parse_string(1, src, &ip) == parse_ok) && (parse_int(2, src, &timezone, 0) == parse_ok))
 	{
-		config.ntp_server = ip_addr(string_to_ptr(&ip));
-		config.ntp_timezone = timezone;
+		config.ntp.server = ip_addr(string_to_ptr(&ip));
+		config.ntp.timezone = timezone;
 
-		sntp_setserver(0, &config.ntp_server);
-		sntp_set_timezone(config.ntp_timezone);
+		sntp_setserver(0, &config.ntp.server);
+		sntp_set_timezone(config.ntp.timezone);
 	}
 
 	return(application_function_ntp_dump(src, dst));

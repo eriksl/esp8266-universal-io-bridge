@@ -63,11 +63,11 @@ irom static void user_init2(void);
 
 irom static void ntp_init(void)
 {
-	if(ip_addr_valid(config.ntp_server))
+	if(ip_addr_valid(config.ntp.server))
 	{
 		sntp_stop();
-		sntp_setserver(0, &config.ntp_server);
-		sntp_set_timezone(config.ntp_timezone);
+		sntp_setserver(0, &config.ntp.server);
+		sntp_set_timezone(config.ntp.timezone);
 		sntp_init();
 	}
 }
@@ -89,7 +89,7 @@ irom static bool ntp_periodic(void)
 
 	delay = 0;
 
-	if(!ip_addr_valid(config.ntp_server))
+	if(!ip_addr_valid(config.ntp.server))
 		return(false);
 
 	ticks = sntp_get_current_timestamp();
