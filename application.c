@@ -753,6 +753,11 @@ static const application_function_table_t application_function_table[] =
 		"set default message",
 	},
 	{
+		"dft", "display-flip-timeout",
+		application_function_display_flip_timeout,
+		"set the time between flipping of the slots",
+	},
+	{
 		"ds", "display-set",
 		application_function_display_set,
 		"put content on display <display id> <slot> <timeout> <text>"

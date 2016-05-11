@@ -23,6 +23,7 @@ const config_t default_config_data =
 	.tcp_timeout.bridge = 0,
 	.ntp.server.addr = 0,
 	.ntp.timezone = 0,
-	.display_default_msg = "%%%%",
+	.display.default_msg = "%%%%",
+	.display.flip_timeout = 4,
 	.status_trigger_io = { -1, -1 },
 };

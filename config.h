@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 2,
-	config_minor_version = 4,
+	config_minor_version = 5,
 };
 
 typedef enum
@@ -71,7 +71,11 @@ typedef struct
 		int8_t		timezone;
 	} ntp;
 
-	char				display_default_msg[32];
+	struct
+	{
+		uint16_t	flip_timeout;
+		char		default_msg[32];
+	} display;
 
 	i2c_sensor_config_t	i2c_sensors;
 	io_config_t			io_config;

@@ -157,7 +157,8 @@ irom void config_read(config_t *cfg)
 			cfg->tcp_timeout.command = 0;
 			cfg->ntp.server = ip_addr("0.0.0.0");
 			cfg->ntp.timezone = 0;
-			strlcpy(cfg->display_default_msg, "%%%%", sizeof(cfg->display_default_msg));
+			cfg->display.flip_timeout = 4;
+			strlcpy(cfg->display.default_msg, "%%%%", sizeof(cfg->display.default_msg));
 			cfg->status_trigger_io.io = -1;
 			cfg->status_trigger_io.pin = -1;
 			i2c_sensor_config_init(&cfg->i2c_sensors);
@@ -225,6 +226,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> command tcp timeout: %u\n"
 			"> ntp server: %s\n"
 			"> ntp time zone: GMT%c%u\n"
+			"> display flip timeout: %u\n"
 			"> display default message: %s\n"
 			"> status trigger gpio (-1 is disabled): %d/%d\n"
 			"> flags: ", 
@@ -240,7 +242,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		string_to_ptr(&ntp_server),
 		cfg->ntp.timezone >= 0 ? '+' : '-',
 		cfg->ntp.timezone >= 0 ? cfg->ntp.timezone : 0 - cfg->ntp.timezone,
-		cfg->display_default_msg,
+		cfg->display.flip_timeout,
+		cfg->display.default_msg,
 		cfg->status_trigger_io.io,
 		cfg->status_trigger_io.pin);
 

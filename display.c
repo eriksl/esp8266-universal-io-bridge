@@ -6,6 +6,8 @@
 #include "stats.h"
 #include "config.h"
 
+#include <user_interface.h>
+
 typedef enum
 {
 	display_slot_amount = 8,
@@ -142,18 +144,21 @@ irom static void display_expire(void) // call one time per second
 	{
 		display_slot[0].timeout = 1;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
-		strlcpy(display_slot[0].content, config.display_default_msg, display_slot_content_size - 1);
+		strlcpy(display_slot[0].content, config.display.default_msg, display_slot_content_size - 1);
 	}
 }
 
 irom bool display_periodic(void) // gets called 10 times per second
 {
-	static int page_delay = 0;
+	static int last_update = 0;
 	static int expire_counter = 0;
+	int now;
 	display_info_t *display_info_entry;
 
 	if(display_data.detected < 0)
 		return(false);
+
+	now = system_get_time() / 1000000;
 
 	display_info_entry = &display_info[display_data.detected];
 
@@ -163,9 +168,9 @@ irom bool display_periodic(void) // gets called 10 times per second
 		display_expire();
 	}
 
-	if(++page_delay > 40) // 4 seconds for each slot
+	if((last_update > now) || ((last_update + config.display.flip_timeout) < now))
 	{
-		page_delay = 0;
+		last_update = now;
 		display_update(true);
 	}
 
@@ -294,8 +299,28 @@ irom app_action_t application_function_display_default_message(const string_t *s
 			ws--;
 	}
 
-	strlcpy(config.display_default_msg, text, sizeof(config.display_default_msg) - 1);
-	string_format(dst, "set default display message to \"%s\"\n", config.display_default_msg);
+	strlcpy(config.display.default_msg, text, sizeof(config.display.default_msg) - 1);
+	string_format(dst, "set default display message to \"%s\"\n", config.display.default_msg);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_display_flip_timeout(const string_t *src, string_t *dst)
+{
+	int timeout;
+
+	if(parse_int(1, src, &timeout, 0) == parse_ok)
+	{
+		if((timeout < 1) || (timeout > 60))
+		{
+			string_format(dst, "display-flip-timeout: invalid timeout: %u\n", timeout);
+			return(app_action_error);
+		}
+
+		config.display.flip_timeout = (uint16_t)timeout;
+	}
+
+	string_format(dst, "display-flip-timeout: %u s\n", config.display.flip_timeout);
 
 	return(app_action_normal);
 }
