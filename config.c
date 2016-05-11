@@ -246,8 +246,6 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 
 	config_flags_to_string(dst, 0, 0, cfg->flags);
 
-	string_cat(dst, "\n> ntp server: ");
-	string_ip(dst, cfg->ntp_server);
 	string_cat(dst, "\n> uart: ");
 	uart_parameters_to_string(dst, &cfg->uart);
 	string_cat(dst, "\n> gpios:\n");
