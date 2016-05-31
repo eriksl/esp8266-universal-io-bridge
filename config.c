@@ -8,7 +8,6 @@
 #include <spi_flash.h>
 
 config_t config;
-config_t tmpconfig;
 
 static config_flag_t config_flag[config_flag_size] =
 {

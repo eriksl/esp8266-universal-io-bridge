@@ -82,7 +82,6 @@ typedef struct
 } config_t;
 
 extern config_t config;
-extern config_t tmpconfig;
 
 bool_t	config_get_flag(config_flag_enum_t);
 bool_t	config_set_flag(config_flag_enum_t, bool_t onoff);

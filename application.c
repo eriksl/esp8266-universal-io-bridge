@@ -73,6 +73,7 @@ irom static app_action_t application_function_current_config_dump(const string_t
 
 irom static app_action_t application_function_config_dump(const string_t *src, string_t *dst)
 {
+	static config_t tmpconfig;
 	config_read(&tmpconfig);
 	config_dump(dst, &tmpconfig);
 	return(app_action_normal);
