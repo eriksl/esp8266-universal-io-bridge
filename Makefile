@@ -87,6 +87,7 @@ CONFIG_RBOOT_BIN			:= rboot-config.bin
 CONFIG_DEFAULT_SRC			:= default-config.c
 CONFIG_DEFAULT_ELF			:= default-config.o
 CONFIG_DEFAULT_BIN			:= default-config.bin
+CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
 SDKLIBDIR					:= $(SDKROOT)/sdk/lib
 LIBMAIN_PLAIN				:= main
@@ -295,6 +296,22 @@ default-config:			$(CONFIG_DEFAULT_BIN)
 						$(VECHO) "FLASH DEFAULT CONFIG"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(USER_CONFIG_SECTOR_HEX)000 $(CONFIG_DEFAULT_BIN)
+
+backup-config:
+						$(VECHO) "BACKUP CONFIG"
+						$(Q) $(ESPTOOL) read_flash $(USER_CONFIG_SECTOR_HEX)000 0x1000 $(CONFIG_BACKUP_BIN)
+
+restore-config:
+						$(VECHO) "RESTORE CONFIG"
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(USER_CONFIG_SECTOR_HEX)000 $(CONFIG_BACKUP_BIN)
+
+wipe-config:
+						$(VECHO) "WIPE CONFIG"
+						dd if=/dev/zero of=wipe-config.bin bs=4096 count=1
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(USER_CONFIG_SECTOR_HEX)000 wipe-config.bin
+						rm wipe-config.bin
 
 %.o:					%.c
 						$(VECHO) "CC $<"
