@@ -8,13 +8,10 @@
 const config_t default_config_data =
 {
 	.magic = config_magic,
-	.major_version = config_major_version,
-	.minor_version = 0,
-	.ssid = STRINGIFY(CONFIG_SSID),
-	.passwd = STRINGIFY(CONFIG_PASSWD),
+	.version = config_version,
+	.flags = 1 << config_flag_print_debug,
 	.uart.stop_bits = 1,
 	.uart.parity = parity_none,
 	.uart.data_bits = 8,
 	.uart.baud_rate = 115200,
-	.flags = 0,
 };

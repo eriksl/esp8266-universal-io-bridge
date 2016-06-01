@@ -109,97 +109,83 @@ irom void config_read(config_t *cfg)
 	int io, pin;
 	io_config_pin_entry_t *pin_config;
 
-	enum
-	{
-		init_none,
-		init_some,
-		init_all
-	} init;
-
 	spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, (void *)cfg, sizeof(*cfg));
 
-	if((cfg->magic == config_magic) && (cfg->major_version == config_major_version))
+	if((cfg->magic != config_magic) || (cfg->version != config_version)) // init config to default
 	{
-		if(cfg->minor_version == config_minor_version)
-			init = init_none;
-		else
-			init = init_some;
+		ets_memset(cfg, 0, sizeof(*cfg));
+
+		cfg->magic = config_magic;
+		cfg->version = config_version;
+
+		strlcpy(cfg->client_wlan.ssid, "esp", sizeof(cfg->client_wlan.ssid));
+		strlcpy(cfg->client_wlan.passwd, "esp", sizeof(cfg->client_wlan.passwd));
+
+		strlcpy(cfg->ap_wlan.ssid, "esp", sizeof(cfg->ap_wlan.ssid));
+		strlcpy(cfg->ap_wlan.passwd, "esp", sizeof(cfg->ap_wlan.passwd));
+		cfg->ap_wlan.channel = '1';
+
+		cfg->wlan_mode = config_wlan_mode_client;
+
+		cfg->flags = 0;
+
+		cfg->uart.baud_rate = 115200;
+		cfg->uart.data_bits = 8;
+		cfg->uart.parity = parity_none;
+		cfg->uart.stop_bits = 1;
+
+		config_set_flag(config_flag_print_debug, true);
+
+		cfg->bridge.port = 23;
+		cfg->bridge.timeout = 0;
+		cfg->command.port = 24;
+		cfg->command.timeout = 0;
+
+		cfg->status_trigger.io = -1;
+		cfg->status_trigger.pin = -1;
+		cfg->assoc_trigger.io = -1;
+		cfg->assoc_trigger.pin = -1;
+
+		cfg->ntp.server = ip_addr("0.0.0.0");
+		cfg->ntp.timezone = 0;
+
+		cfg->display.flip_timeout = 4;
+		strlcpy(cfg->display.default_msg, "%%%%", sizeof(cfg->display.default_msg));
+
+		i2c_sensor_config_init(&cfg->i2c_sensors);
+
+		for(io = 0; io < io_id_size; io++)
+		{
+			for(pin = 0; pin < max_pins_per_io; pin++)
+			{
+				pin_config = &config.io_config[io][pin];
+
+				pin_config->mode = io_pin_disabled;
+				pin_config->llmode = io_pin_ll_disabled;
+				pin_config->flags.autostart = 0;
+				pin_config->flags.repeat = 0;
+				pin_config->flags.pullup = 0;
+				pin_config->flags.reset_on_read = 0;
+
+				// activate UART by default
+
+				if((io == io_id_gpio) && ((pin == 1) || (pin == 3))) // shamefully hardcoded :-(
+				{
+					pin_config->mode = io_pin_uart;
+					pin_config->llmode = io_pin_ll_uart;
+
+					if(pin == 3)
+						pin_config->flags.pullup = 1;
+				}
+			}
+		}
 	}
-	else
-		init = init_all;
 
 	cfg->client_wlan.ssid[sizeof(cfg->client_wlan.ssid) - 1] = '\0';
 	cfg->client_wlan.passwd[sizeof(cfg->client_wlan.passwd) - 1] = '\0';
+	cfg->ap_wlan.ssid[sizeof(cfg->ap_wlan.ssid) - 1] = '\0';
+	cfg->ap_wlan.passwd[sizeof(cfg->ap_wlan.passwd) - 1] = '\0';
 	cfg->display.default_msg[sizeof(cfg->display.default_msg) - 1] = '\0';
-
-	switch(init)
-	{
-		case(init_all):
-		{
-			cfg->flags = 0;
-			cfg->uart.baud_rate = 115200;
-			cfg->uart.data_bits = 8;
-			cfg->uart.parity = parity_none;
-			cfg->uart.stop_bits = 1;
-			cfg->flags = 0;
-			config_set_flag(config_flag_print_debug, true);
-		}
-
-		case(init_some): // fall through
-		{
-			cfg->magic = config_magic;
-			cfg->major_version = config_major_version;
-			cfg->minor_version = config_minor_version;
-			cfg->bridge.port = 23;
-			cfg->bridge.timeout = 0;
-			cfg->command.port = 24;
-			cfg->command.timeout = 0;
-			cfg->ntp.server = ip_addr("0.0.0.0");
-			cfg->ntp.timezone = 0;
-			cfg->display.flip_timeout = 4;
-			strlcpy(cfg->display.default_msg, "%%%%", sizeof(cfg->display.default_msg));
-			cfg->status_trigger.io = -1;
-			cfg->status_trigger.pin = -1;
-			cfg->assoc_trigger.io = -1;
-			cfg->assoc_trigger.pin = -1;
-			i2c_sensor_config_init(&cfg->i2c_sensors);
-
-			for(io = 0; io < io_id_size; io++)
-			{
-				for(pin = 0; pin < max_pins_per_io; pin++)
-				{
-					pin_config = &config.io_config[io][pin];
-
-					pin_config->mode = io_pin_disabled;
-					pin_config->llmode = io_pin_ll_disabled;
-					pin_config->flags.autostart = 0;
-					pin_config->flags.repeat = 0;
-					pin_config->flags.pullup = 0;
-					pin_config->flags.reset_on_read = 0;
-
-					ets_memset(pin_config, 0, sizeof(*pin_config));
-
-					// activate UART by default
-
-					if((io == io_id_gpio) && ((pin == 1) || (pin == 3))) // shamefully hardcoded :-(
-					{
-						pin_config->mode = io_pin_uart;
-						pin_config->llmode = io_pin_ll_uart;
-
-						if(pin == 3)
-							pin_config->flags.pullup = 1;
-					}
-				}
-			}
-
-			break;
-		}
-
-		case(init_none):
-		{
-			break;
-		}
-	}
 }
 
 irom void config_write(config_t *cfg)
@@ -217,8 +203,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 
 	string_format(dst, 
 			"> config magic: %04x\n"
-			"> config major version: %d\n"
-			"> config minor version: %d\n"
+			"> config version: %d\n"
 			"> wlan client ssid: %s\n"
 			"> wlan client passwd: %s\n"
 			"> bridge tcp port: %u\n"
@@ -233,8 +218,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> wlan association trigger gpio (-1 is disabled): %d/%d\n"
 			"> flags: ", 
 		cfg->magic,
-		cfg->major_version,
-		cfg->minor_version,
+		cfg->version,
 		cfg->client_wlan.ssid,
 		cfg->client_wlan.passwd,
 		cfg->bridge.port,

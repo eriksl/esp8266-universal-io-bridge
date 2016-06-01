@@ -10,9 +10,8 @@
 
 enum
 {
-	config_magic = 0x4afc0001,
-	config_major_version = 2,
-	config_minor_version = 7,
+	config_magic = 0x4afc0002,
+	config_version = 1,
 };
 
 typedef enum
@@ -57,8 +56,7 @@ typedef struct
 typedef struct
 {
 	uint32_t			magic;
-	uint16_t			major_version;
-	uint16_t			minor_version;
+	uint16_t			version;
 
 	config_ssid_t		client_wlan;
 
