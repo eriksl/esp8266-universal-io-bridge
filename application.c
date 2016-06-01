@@ -591,12 +591,12 @@ irom static app_action_t application_function_wlan_configure(const string_t *src
 
 	if((parse_string(1, src, &ssid) == parse_ok) && (parse_string(2, src, &passwd) == parse_ok))
 	{
-		strlcpy(config.ssid, string_to_const_ptr(&ssid), sizeof(config.ssid));
-		strlcpy(config.passwd, string_to_const_ptr(&passwd), sizeof(config.passwd));
+		strlcpy(config.client_wlan.ssid, string_to_const_ptr(&ssid), sizeof(config.client_wlan.ssid));
+		strlcpy(config.client_wlan.passwd, string_to_const_ptr(&passwd), sizeof(config.client_wlan.passwd));
 	}
 
 	string_format(dst, "wlan-configure: ssid: \"%s\", passwd: \"%s\"\n",
-			config.ssid, config.passwd);
+			config.client_wlan.ssid, config.client_wlan.passwd);
 
 	return(app_action_normal);
 }

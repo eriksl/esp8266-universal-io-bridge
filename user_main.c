@@ -582,7 +582,7 @@ irom static void user_init2(void)
 	ntp_init();
 	io_init();
 
-	config_wlan(config.ssid, config.passwd);
+	config_wlan(config.client_wlan.ssid, config.client_wlan.passwd);
 
 	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);
 	tcp_accept(&cmd,	&cmd_send_buffer,	config.command.port,	config.command.timeout,	tcp_cmd_connect_callback);

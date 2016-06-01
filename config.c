@@ -219,8 +219,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> config magic: %04x\n"
 			"> config major version: %d\n"
 			"> config minor version: %d\n"
-			"> wlan ssid: %s\n"
-			"> wlan passwd: %s\n"
+			"> wlan client ssid: %s\n"
+			"> wlan client passwd: %s\n"
 			"> bridge tcp port: %u\n"
 			"> bridge tcp timeout: %u\n"
 			"> command tcp port: %u\n"
@@ -235,8 +235,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->magic,
 		cfg->major_version,
 		cfg->minor_version,
-		cfg->ssid,
-		cfg->passwd,
+		cfg->client_wlan.ssid,
+		cfg->client_wlan.passwd,
 		cfg->bridge.port,
 		cfg->bridge.timeout,
 		cfg->command.port,

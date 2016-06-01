@@ -51,11 +51,18 @@ typedef struct
 
 typedef struct
 {
+	char ssid[32];
+	char passwd[32];
+} config_ssid_t;
+
+typedef struct
+{
 	uint32_t			magic;
 	uint16_t			major_version;
 	uint16_t			minor_version;
-	char				ssid[32];
-	char				passwd[32];
+
+	config_ssid_t		client_wlan;
+
 	uint32_t			flags;
 	uart_parameters_t	uart;
 
