@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 2,
-	config_minor_version = 5,
+	config_minor_version = 6,
 };
 
 typedef enum
@@ -64,6 +64,12 @@ typedef struct
 		int8_t	io;
 		int8_t	pin;
 	} status_trigger_io;
+
+	struct
+	{
+		int8_t	io;
+		int8_t	pin;
+	} assoc_trigger_io;
 
 	struct
 	{

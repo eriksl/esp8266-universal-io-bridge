@@ -160,6 +160,8 @@ irom void config_read(config_t *cfg)
 			strlcpy(cfg->display.default_msg, "%%%%", sizeof(cfg->display.default_msg));
 			cfg->status_trigger_io.io = -1;
 			cfg->status_trigger_io.pin = -1;
+			cfg->assoc_trigger_io.io = -1;
+			cfg->assoc_trigger_io.pin = -1;
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
 			for(io = 0; io < io_id_size; io++)
@@ -228,6 +230,7 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> display flip timeout: %u\n"
 			"> display default message: %s\n"
 			"> status trigger gpio (-1 is disabled): %d/%d\n"
+			"> wlan association trigger gpio (-1 is disabled): %d/%d\n"
 			"> flags: ", 
 		cfg->magic,
 		cfg->major_version,
@@ -244,7 +247,9 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->display.flip_timeout,
 		cfg->display.default_msg,
 		cfg->status_trigger_io.io,
-		cfg->status_trigger_io.pin);
+		cfg->status_trigger_io.pin,
+		cfg->assoc_trigger_io.io,
+		cfg->assoc_trigger_io.pin);
 
 	config_flags_to_string(dst, 0, 0, cfg->flags);
 

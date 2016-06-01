@@ -701,6 +701,29 @@ irom static app_action_t application_function_gpio_status_set(const string_t *sr
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_gpio_assoc_set(const string_t *src, string_t *dst)
+{
+	int io, pin;
+
+	if((parse_int(1, src, &io, 0) == parse_ok) && (parse_int(2, src, &pin, 0) == parse_ok))
+	{
+		if((io < -1) || (io > io_id_size))
+		{
+			string_format(dst, "wlan association trigger io %d/%d invalid\n", io, pin);
+			return(app_action_error);
+		}
+
+		config.assoc_trigger_io.io = io;
+		config.assoc_trigger_io.pin = pin;
+	}
+
+	string_format(dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
+			config.assoc_trigger_io.io,
+			config.assoc_trigger_io.pin);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -762,6 +785,11 @@ static const application_function_table_t application_function_table[] =
 		"ds", "display-set",
 		application_function_display_set,
 		"put content on display <slot> <timeout> <tag> <text>"
+	},
+	{
+		"gas", "gpio-association-set",
+		application_function_gpio_assoc_set,
+		"set gpio to trigger on wlan association"
 	},
 	{
 		"gss", "gpio-status-set",

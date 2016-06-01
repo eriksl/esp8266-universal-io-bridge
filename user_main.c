@@ -544,10 +544,40 @@ irom void user_init(void)
 	system_init_done_cb(user_init2);
 }
 
+irom static void wlan_event_handler(System_Event_t *event)
+{
+	int io;
+	int pin;
+
+	io = config.assoc_trigger_io.io;
+	pin = config.assoc_trigger_io.pin;
+
+	switch(event->event)
+	{
+		case(EVENT_STAMODE_CONNECTED):
+		{
+			if((io >= 0) && (pin >= 0))
+				io_write_pin((string_t *)0, io, pin, -1);
+
+			break;
+		}
+
+		case(EVENT_STAMODE_DISCONNECTED):
+		{
+			if((io >= 0) && (pin >= 0))
+				io_write_pin((string_t *)0, io, pin, 0);
+
+			break;
+		}
+	}
+}
+
 irom static void user_init2(void)
 {
 	string_new(static, data_send_buffer, 1024);
 	string_new(static, cmd_send_buffer, 4096 + 4); // need a few extra bytes to make up exactly 4096 bytes for OTA
+
+	wifi_set_event_handler_cb(wlan_event_handler);
 
 	ntp_init();
 	io_init();
