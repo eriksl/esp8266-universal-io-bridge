@@ -12,7 +12,7 @@ enum
 {
 	config_magic = 0x4afc0001,
 	config_major_version = 2,
-	config_minor_version = 6,
+	config_minor_version = 7,
 };
 
 typedef enum
@@ -39,6 +39,18 @@ typedef struct
 
 typedef struct
 {
+	uint16_t port;
+	uint16_t timeout;
+} config_tcp_t;
+
+typedef struct
+{
+	int8_t io;
+	int8_t pin;
+} config_io_t;
+
+typedef struct
+{
 	uint32_t			magic;
 	uint16_t			major_version;
 	uint16_t			minor_version;
@@ -47,29 +59,11 @@ typedef struct
 	uint32_t			flags;
 	uart_parameters_t	uart;
 
-	struct
-	{
-		uint16_t bridge;
-		uint16_t command;
-	} tcp_port;
+	config_tcp_t		bridge;
+	config_tcp_t		command;
 
-	struct
-	{
-		uint16_t bridge;
-		uint16_t command;
-	} tcp_timeout;
-
-	struct
-	{
-		int8_t	io;
-		int8_t	pin;
-	} status_trigger_io;
-
-	struct
-	{
-		int8_t	io;
-		int8_t	pin;
-	} assoc_trigger_io;
+	config_io_t			status_trigger;
+	config_io_t			assoc_trigger;
 
 	struct
 	{

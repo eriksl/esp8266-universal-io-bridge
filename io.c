@@ -603,8 +603,8 @@ irom void io_periodic(void)
 	int io, pin, status_io, status_pin, value;
 	io_flags_t flags = { .counter_triggered = 0 };
 
-	status_io = config.status_trigger_io.io;
-	status_pin = config.status_trigger_io.pin;
+	status_io = config.status_trigger.io;
+	status_pin = config.status_trigger.pin;
 
 	for(io = 0; io < io_id_size; io++)
 	{

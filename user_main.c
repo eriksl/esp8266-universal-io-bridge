@@ -549,8 +549,8 @@ irom static void wlan_event_handler(System_Event_t *event)
 	int io;
 	int pin;
 
-	io = config.assoc_trigger_io.io;
-	pin = config.assoc_trigger_io.pin;
+	io = config.assoc_trigger.io;
+	pin = config.assoc_trigger.pin;
 
 	switch(event->event)
 	{
@@ -584,8 +584,8 @@ irom static void user_init2(void)
 
 	config_wlan(config.ssid, config.passwd);
 
-	tcp_accept(&data,	&data_send_buffer,	config.tcp_port.bridge, 	config.tcp_timeout.bridge,	tcp_data_connect_callback);
-	tcp_accept(&cmd,	&cmd_send_buffer,	config.tcp_port.command,	config.tcp_timeout.command,	tcp_cmd_connect_callback);
+	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);
+	tcp_accept(&cmd,	&cmd_send_buffer,	config.command.port,	config.command.timeout,	tcp_cmd_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 

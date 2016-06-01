@@ -150,18 +150,18 @@ irom void config_read(config_t *cfg)
 			cfg->magic = config_magic;
 			cfg->major_version = config_major_version;
 			cfg->minor_version = config_minor_version;
-			cfg->tcp_port.bridge = 23;
-			cfg->tcp_port.command = 24;
-			cfg->tcp_timeout.bridge = 0;
-			cfg->tcp_timeout.command = 0;
+			cfg->bridge.port = 23;
+			cfg->bridge.timeout = 0;
+			cfg->command.port = 24;
+			cfg->command.timeout = 0;
 			cfg->ntp.server = ip_addr("0.0.0.0");
 			cfg->ntp.timezone = 0;
 			cfg->display.flip_timeout = 4;
 			strlcpy(cfg->display.default_msg, "%%%%", sizeof(cfg->display.default_msg));
-			cfg->status_trigger_io.io = -1;
-			cfg->status_trigger_io.pin = -1;
-			cfg->assoc_trigger_io.io = -1;
-			cfg->assoc_trigger_io.pin = -1;
+			cfg->status_trigger.io = -1;
+			cfg->status_trigger.pin = -1;
+			cfg->assoc_trigger.io = -1;
+			cfg->assoc_trigger.pin = -1;
 			i2c_sensor_config_init(&cfg->i2c_sensors);
 
 			for(io = 0; io < io_id_size; io++)
@@ -222,8 +222,8 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> wlan ssid: %s\n"
 			"> wlan passwd: %s\n"
 			"> bridge tcp port: %u\n"
-			"> command tcp port: %u\n"
 			"> bridge tcp timeout: %u\n"
+			"> command tcp port: %u\n"
 			"> command tcp timeout: %u\n"
 			"> ntp server: %s\n"
 			"> ntp time zone: GMT%c%u\n"
@@ -237,19 +237,19 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->minor_version,
 		cfg->ssid,
 		cfg->passwd,
-		cfg->tcp_port.bridge,
-		cfg->tcp_port.command,
-		cfg->tcp_timeout.bridge,
-		cfg->tcp_timeout.command,
+		cfg->bridge.port,
+		cfg->bridge.timeout,
+		cfg->command.port,
+		cfg->command.timeout,
 		string_to_ptr(&ntp_server),
 		cfg->ntp.timezone >= 0 ? '+' : '-',
 		cfg->ntp.timezone >= 0 ? cfg->ntp.timezone : 0 - cfg->ntp.timezone,
 		cfg->display.flip_timeout,
 		cfg->display.default_msg,
-		cfg->status_trigger_io.io,
-		cfg->status_trigger_io.pin,
-		cfg->assoc_trigger_io.io,
-		cfg->assoc_trigger_io.pin);
+		cfg->status_trigger.io,
+		cfg->status_trigger.pin,
+		cfg->assoc_trigger.io,
+		cfg->assoc_trigger.pin);
 
 	config_flags_to_string(dst, 0, 0, cfg->flags);
 

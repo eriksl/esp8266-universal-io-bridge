@@ -43,8 +43,8 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
 
-	if((config.status_trigger_io.io >= 0) && (config.status_trigger_io.pin >= 0))
-		io_write_pin((string_t *)0, config.status_trigger_io.io, config.status_trigger_io.pin, -1);
+	if((config.status_trigger.io >= 0) && (config.status_trigger.pin >= 0))
+		io_write_pin((string_t *)0, config.status_trigger.io, config.status_trigger.pin, -1);
 
 	if(parse_string(0, src, dst) != parse_ok)
 		return(app_action_empty);
@@ -126,10 +126,10 @@ irom static app_action_t application_function_bridge_tcp_port(const string_t *sr
 			return(app_action_error);
 		}
 
-		config.tcp_port.bridge = (uint16_t)tcp_port;
+		config.bridge.port = (uint16_t)tcp_port;
 	}
 
-	string_format(dst, "bridge-tcp-port: %d\n", config.tcp_port.bridge);
+	string_format(dst, "bridge-tcp-port: %d\n", config.bridge.port);
 
 	return(app_action_normal);
 }
@@ -146,10 +146,10 @@ irom static app_action_t application_function_bridge_tcp_timeout(const string_t 
 			return(app_action_error);
 		}
 
-		config.tcp_timeout.bridge = (uint16_t)tcp_timeout;
+		config.bridge.timeout = (uint16_t)tcp_timeout;
 	}
 
-	string_format(dst, "bridge-tcp-timeout: %d\n", config.tcp_timeout.bridge);
+	string_format(dst, "bridge-tcp-timeout: %d\n", config.bridge.timeout);
 
 	return(app_action_normal);
 }
@@ -166,10 +166,10 @@ irom static app_action_t application_function_command_tcp_port(const string_t *s
 			return(app_action_error);
 		}
 
-		config.tcp_port.command = (uint16_t)tcp_port;
+		config.command.port = (uint16_t)tcp_port;
 	}
 
-	string_format(dst, "command-tcp-port: %d\n", config.tcp_port.command);
+	string_format(dst, "command-tcp-port: %d\n", config.command.port);
 
 	return(app_action_normal);
 }
@@ -186,10 +186,10 @@ irom static app_action_t application_function_command_tcp_timeout(const string_t
 			return(app_action_error);
 		}
 
-		config.tcp_timeout.command = (uint16_t)tcp_timeout;
+		config.command.timeout = (uint16_t)tcp_timeout;
 	}
 
-	string_format(dst, "command-tcp-timeout: %d\n", config.tcp_timeout.command);
+	string_format(dst, "command-tcp-timeout: %d\n", config.command.timeout);
 
 	return(app_action_normal);
 }
@@ -690,13 +690,13 @@ irom static app_action_t application_function_gpio_status_set(const string_t *sr
 			return(app_action_error);
 		}
 
-		config.status_trigger_io.io = io;
-		config.status_trigger_io.pin = pin;
+		config.status_trigger.io = io;
+		config.status_trigger.pin = pin;
 	}
 
 	string_format(dst, "status trigger at io %d/%d (-1 is disabled)\n",
-			config.status_trigger_io.io,
-			config.status_trigger_io.pin);
+			config.status_trigger.io,
+			config.status_trigger.pin);
 
 	return(app_action_normal);
 }
@@ -713,13 +713,13 @@ irom static app_action_t application_function_gpio_assoc_set(const string_t *src
 			return(app_action_error);
 		}
 
-		config.assoc_trigger_io.io = io;
-		config.assoc_trigger_io.pin = pin;
+		config.assoc_trigger.io = io;
+		config.assoc_trigger.pin = pin;
 	}
 
 	string_format(dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
-			config.assoc_trigger_io.io,
-			config.assoc_trigger_io.pin);
+			config.assoc_trigger.io,
+			config.assoc_trigger.pin);
 
 	return(app_action_normal);
 }
