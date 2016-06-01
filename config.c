@@ -32,10 +32,6 @@ static config_flag_t config_flag[config_flag_size] =
 		"chs", "cpu-high-speed"
 	},
 	{
-		config_flag_phy_force,
-		"pf", "phy-force"
-	},
-	{
 		config_flag_wlan_power_save,
 		"wps", "wlan-power-save"
 	},

@@ -528,14 +528,6 @@ irom void user_init(void)
 	uart_init(&config.uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
 
-	if(config_get_flag(config_flag_phy_force))
-	{
-		//wifi_set_phy_mode(PHY_MODE_11G);
-		//wifi_set_user_fixed_rate(FIXED_RATE_MASK_STA, PHY_RATE_54);
-		//wifi_set_user_sup_rate(RATE_11G6M, RATE_11G36M);
-		//wifi_set_user_rate_limit(RC_LIMIT_11G, 0x00, RATE_11G_G6M, RATE_11G_G6M);
-	}
-
 	if(config_get_flag(config_flag_wlan_power_save))
 		wifi_set_sleep_type(MODEM_SLEEP_T);
 	else
