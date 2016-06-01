@@ -254,17 +254,17 @@ irom void string_append(string_t *dst, char c)
 		dst->buffer[dst->size - 1] = '\0';
 }
 
-irom attr_pure bool string_match(const string_t *s1, const char *s2)
+irom bool string_match(const string_t *s1, const char *s2)
 {
 	return(!ets_strcmp(s1->buffer, s2));
 }
 
-irom attr_pure bool string_match_string(const string_t *s1, const string_t *s2)
+irom bool string_match_string(const string_t *s1, const string_t *s2)
 {
 	return(string_match(s1, s2->buffer));
 }
 
-irom attr_pure bool string_nmatch(const string_t *s1, const char *s2, int n)
+irom bool string_nmatch(const string_t *s1, const char *s2, int n)
 {
 	return(!ets_strncmp(s1->buffer, s2, n));
 }
