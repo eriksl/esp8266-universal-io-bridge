@@ -132,6 +132,10 @@ irom void config_read(config_t *cfg)
 	else
 		init = init_all;
 
+	cfg->client_wlan.ssid[sizeof(cfg->client_wlan.ssid) - 1] = '\0';
+	cfg->client_wlan.passwd[sizeof(cfg->client_wlan.passwd) - 1] = '\0';
+	cfg->display.default_msg[sizeof(cfg->display.default_msg) - 1] = '\0';
+
 	switch(init)
 	{
 		case(init_all):
