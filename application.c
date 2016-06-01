@@ -637,7 +637,7 @@ irom static app_action_t application_function_wlan_scan(const string_t *src, str
 	return(app_action_normal);
 }
 
-irom attr_pure bool wlan_scan_active(void)
+irom attr_pure bool_t wlan_scan_active(void)
 {
 	return(wlan_scan_state != ws_inactive);
 }
