@@ -2,7 +2,6 @@
 
 #include "util.h"
 #include "application.h"
-#include "config.h"
 #include "io.h"
 #include "stats.h"
 #include "i2c.h"

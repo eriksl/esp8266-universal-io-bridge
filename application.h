@@ -2,7 +2,6 @@
 #define application_h
 
 #include "util.h"
-#include "config.h"
 
 #include <stdint.h>
 
