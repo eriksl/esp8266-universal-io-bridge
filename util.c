@@ -53,7 +53,7 @@ done:
 irom void string_set(string_t *dst, char *buffer, int size, int length)
 {
 	dst->buffer = buffer;
-	dst->size   = size;
+	dst->size   = size + 1;
 	dst->length = length;
 }
 
