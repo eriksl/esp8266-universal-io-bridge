@@ -238,12 +238,33 @@ irom static void tcp_cmd_sent_callback(void *arg)
 
 irom static void tcp_cmd_receive_callback(void *arg, char *buffer, unsigned short length)
 {
-	if(!cmd.receive_ready && (length > 1) && (buffer[length - 2] == '\r') && (buffer[length - 1] == '\n'))
+	if(cmd.receive_ready)
+		return;
+
+	if(length > 0)
 	{
-		string_set(&cmd.receive_buffer, buffer, length, length);
-		string_setlength(&cmd.receive_buffer, length - 2);
-		cmd.receive_ready = true;
+		if(buffer[length - 1] == '\n')
+		{
+			if((length > 1) && (buffer[length - 2] == '\r'))
+				length -= 2;
+			else
+				length--;
+		}
+		else
+		{
+			if(buffer[length - 1] == '\r')
+			{
+				if((length > 1) && (buffer[length - 2] == '\n'))
+					length -= 2;
+				else
+					length--;
+			}
+		}
 	}
+
+	buffer[length] = '\0';
+	string_set(&cmd.receive_buffer, buffer, length, length);
+	cmd.receive_ready = true;
 
 	system_os_post(background_task_id, 0, 0);
 }
