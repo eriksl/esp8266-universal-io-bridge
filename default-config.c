@@ -14,4 +14,6 @@ const config_t default_config_data =
 	.uart.parity = parity_none,
 	.uart.data_bits = 8,
 	.uart.baud_rate = 115200,
+	.command.timeout = 0,
+	.command.port = 24
 };
