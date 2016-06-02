@@ -35,10 +35,6 @@ static config_flag_t config_flag[config_flag_size] =
 		config_flag_wlan_power_save,
 		"wps", "wlan-power-save"
 	},
-	{
-		config_flag_wlan_sdk_connect,
-		"wsc", "wlan-sdk-connect"
-	},
 };
 
 irom static attr_pure config_flag_enum_t config_flag_to_id(const string_t *flag_name)
