@@ -9,6 +9,9 @@ const config_t default_config_data =
 {
 	.magic = config_magic,
 	.version = config_version,
+	.client_wlan.channel = 0,
+	.client_wlan.ssid = STRINGIFY(CONFIG_SSID),
+	.client_wlan.passwd = STRINGIFY(CONFIG_PASSWD),
 	.flags = 1 << config_flag_print_debug,
 	.uart.stop_bits = 1,
 	.uart.parity = parity_none,

@@ -177,6 +177,16 @@ irom void config_read(config_t *cfg)
 		}
 	}
 
+	// failsafe for corrupt / blank config
+
+	if((ets_strlen(cfg->ap_wlan.ssid) < 2) || (ets_strlen(cfg->ap_wlan.passwd) < 8) ||
+			(cfg->ap_wlan.channel < 1) || (cfg->ap_wlan.channel > 13))
+	{
+		strlcpy(cfg->ap_wlan.ssid, "esp", sizeof(cfg->ap_wlan.ssid));
+		strlcpy(cfg->ap_wlan.passwd, "espespesp", sizeof(cfg->ap_wlan.passwd));
+		cfg->ap_wlan.channel = 13;
+	}
+
 	cfg->client_wlan.ssid[sizeof(cfg->client_wlan.ssid) - 1] = '\0';
 	cfg->client_wlan.passwd[sizeof(cfg->client_wlan.passwd) - 1] = '\0';
 	cfg->ap_wlan.ssid[sizeof(cfg->ap_wlan.ssid) - 1] = '\0';
@@ -202,6 +212,10 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 			"> config version: %d\n"
 			"> wlan client ssid: %s\n"
 			"> wlan client passwd: %s\n"
+			"> wlan ap ssid: %s\n"
+			"> wlan ap passwd: %s\n"
+			"> wlan ap channel: %d\n"
+			"> wlan mode: %s mode\n"
 			"> bridge tcp port: %u\n"
 			"> bridge tcp timeout: %u\n"
 			"> command tcp port: %u\n"
@@ -217,6 +231,10 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 		cfg->version,
 		cfg->client_wlan.ssid,
 		cfg->client_wlan.passwd,
+		cfg->ap_wlan.ssid,
+		cfg->ap_wlan.passwd,
+		cfg->ap_wlan.channel,
+		cfg->wlan_mode == config_wlan_mode_client ? "client" : "ap",
 		cfg->bridge.port,
 		cfg->bridge.timeout,
 		cfg->command.port,

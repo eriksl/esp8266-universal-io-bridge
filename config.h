@@ -27,6 +27,14 @@ typedef enum
 
 assert_size(config_flag_enum_t, 4);
 
+typedef enum attr_packed
+{
+	config_wlan_mode_client,
+	config_wlan_mode_ap
+} config_wlan_mode_t;
+
+assert_size(config_wlan_mode_t, 1);
+
 typedef struct
 {
 	config_flag_enum_t id;
@@ -50,6 +58,7 @@ typedef struct
 {
 	char ssid[32];
 	char passwd[32];
+	uint8_t	channel;
 } config_ssid_t;
 
 typedef struct
@@ -58,6 +67,8 @@ typedef struct
 	uint16_t			version;
 
 	config_ssid_t		client_wlan;
+	config_ssid_t		ap_wlan;
+	config_wlan_mode_t	wlan_mode;
 
 	uint32_t			flags;
 	uart_parameters_t	uart;

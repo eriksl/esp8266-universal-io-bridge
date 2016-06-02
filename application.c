@@ -580,12 +580,44 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	wlan_scan_state = ws_finished;
 }
 
+string_new(static, ssid, 32);
+string_new(static, passwd, 32);
 
-irom static app_action_t application_function_wlan_configure(const string_t *src, string_t *dst)
+irom static app_action_t application_function_wlan_ap_configure(const string_t *src, string_t *dst)
 {
-	string_new(static, ssid, 32);
-	string_new(static, passwd, 32);
+	string_clear(&ssid);
+	string_clear(&passwd);
+	int channel;
 
+	if((parse_string(1, src, &ssid) == parse_ok) && (parse_string(2, src, &passwd) == parse_ok) &&
+			(parse_int(3, src, &channel, 0) == parse_ok))
+	{
+		if((channel < 1) || (channel > 13))
+		{
+			string_format(dst, "wlan-ap-configure: channel %d out of range (1-13)\n", channel);
+			return(app_action_error);
+		}
+
+		if(string_length(&passwd) < 8)
+		{
+			string_format(dst, "wlan-ap-configure: passwd \"%s\" too short (length must be >= 8)\n",
+					string_to_ptr(&passwd));
+			return(app_action_error);
+		}
+
+		strlcpy(config.ap_wlan.ssid, string_to_const_ptr(&ssid), sizeof(config.ap_wlan.ssid));
+		strlcpy(config.ap_wlan.passwd, string_to_const_ptr(&passwd), sizeof(config.ap_wlan.passwd));
+		config.ap_wlan.channel = channel;
+	}
+
+	string_format(dst, "wlan-ap-configure: ssid: \"%s\", passwd: \"%s\", channel: %d\n",
+			config.ap_wlan.ssid, config.ap_wlan.passwd, config.ap_wlan.channel);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_wlan_client_configure(const string_t *src, string_t *dst)
+{
 	string_clear(&ssid);
 	string_clear(&passwd);
 
@@ -595,11 +627,52 @@ irom static app_action_t application_function_wlan_configure(const string_t *src
 		strlcpy(config.client_wlan.passwd, string_to_const_ptr(&passwd), sizeof(config.client_wlan.passwd));
 	}
 
-	string_format(dst, "wlan-configure: ssid: \"%s\", passwd: \"%s\"\n",
+	string_format(dst, "wlan-client-configure: ssid: \"%s\", passwd: \"%s\"\n",
 			config.client_wlan.ssid, config.client_wlan.passwd);
 
 	return(app_action_normal);
 }
+
+irom static app_action_t application_function_wlan_mode(const string_t *src, string_t *dst)
+{
+	if(parse_string(1, src, dst) != parse_ok)
+	{
+		string_cat(dst, "wlan-mode: supply mode: client or ap\n");
+		return(app_action_error);
+	}
+
+	if(string_match(dst, "client"))
+	{
+		string_clear(dst);
+		config.wlan_mode = config_wlan_mode_client;
+
+		if(!wlan_init())
+		{
+			string_cat(dst, "wlan-mode: invalid mode\n");
+			return(app_action_error);
+		}
+
+		return(app_action_disconnect);
+	}
+
+	if(string_match(dst, "ap"))
+	{
+		string_clear(dst);
+		config.wlan_mode = config_wlan_mode_ap;
+
+		if(!wlan_init())
+		{
+			string_cat(dst, "wlan-mode: invalid mode\n");
+			return(app_action_error);
+		}
+
+		return(app_action_disconnect);
+	}
+
+	string_cat(dst, ": invalid wlan mode\n");
+	return(app_action_error);
+}
+
 
 irom static app_action_t application_function_wlan_list(const string_t *src, string_t *dst)
 {
@@ -949,14 +1022,24 @@ static const application_function_table_t application_function_table[] =
 		"set uart parity [none/even/odd]",
 	},
 	{
-		"wc", "wlan-configure",
-		application_function_wlan_configure,
-		"configure wlan, give ssid and passwd"
+		"wac", "wlan-ap-configure",
+		application_function_wlan_ap_configure,
+		"configure access point mode wlan params, supply ssid, passwd and channel"
+	},
+	{
+		"wcc", "wlan-client-configure",
+		application_function_wlan_client_configure,
+		"configure client mode wlan params, supply ssid and passwd"
 	},
 	{
 		"wl", "wlan-list",
 		application_function_wlan_list,
 		"retrieve results from wlan-scan"
+	},
+	{
+		"wm", "wlan-mode",
+		application_function_wlan_mode,
+		"set wlan mode: client or ap"
 	},
 	{
 		"ws", "wlan-scan",

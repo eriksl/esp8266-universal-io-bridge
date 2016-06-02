@@ -2,6 +2,7 @@
 #define user_main_h
 
 #include "queue.h"
+#include "config.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
@@ -16,4 +17,6 @@ enum
 extern queue_t data_send_queue;
 extern queue_t data_receive_queue;
 extern os_event_t background_task_queue[background_task_queue_length];
+
+bool_t wlan_init(void);
 #endif

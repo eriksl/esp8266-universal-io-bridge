@@ -128,32 +128,6 @@ irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
 	espconn_tcp_set_max_con_allow(&espsrv->parent_socket, 1);
 }
 
-irom static void config_wlan(const char *ssid, const char *passwd)
-{
-	struct station_config station_config;
-
-	if(config_get_flag(config_flag_print_debug))
-		dprintf("Configure wlan, set ssid=\"%s\", passwd=\"%s\"\r\n", ssid, passwd);
-
-	if(config_get_flag(config_flag_wlan_sdk_connect))
-		wifi_station_set_auto_connect(1);
-	else
-	{
-		wifi_station_set_auto_connect(0);
-		wifi_station_disconnect();
-	}
-
-	wifi_set_opmode(STATION_MODE);
-
-	ets_memset(&station_config, 0, sizeof(station_config));
-	strlcpy(station_config.ssid, ssid, sizeof(station_config.ssid));
-	strlcpy(station_config.password, passwd, sizeof(station_config.password));
-	station_config.bssid_set = 0;
-
-	wifi_station_set_config(&station_config);
-	wifi_station_connect();
-}
-
 irom static void tcp_data_sent_callback(void *arg)
 {
 	string_clear(data.send_buffer);
@@ -591,10 +565,9 @@ irom static void user_init2(void)
 
 	wifi_set_event_handler_cb(wlan_event_handler);
 
+	wlan_init();
 	ntp_init();
 	io_init();
-
-	config_wlan(config.client_wlan.ssid, config.client_wlan.passwd);
 
 	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);
 	tcp_accept(&cmd,	&cmd_send_buffer,	config.command.port,	config.command.timeout,	tcp_cmd_connect_callback);
@@ -611,4 +584,63 @@ irom static void user_init2(void)
 
 	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
 	os_timer_arm(&fast_timer, 10, 1); // fast system timer / 100 Hz / 10 ms
+}
+
+irom bool_t wlan_init(void)
+{
+	switch(config.wlan_mode)
+	{
+		case(config_wlan_mode_client):
+		{
+			struct station_config cconf;
+
+			ets_memset(&cconf, 0, sizeof(cconf));
+			strlcpy(cconf.ssid, config.client_wlan.ssid, sizeof(cconf.ssid));
+			strlcpy(cconf.password, config.client_wlan.passwd, sizeof(cconf.password));
+			cconf.bssid_set = 0;
+
+			if(config_get_flag(config_flag_print_debug))
+				dprintf("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
+
+			wifi_station_disconnect();
+			wifi_set_opmode_current(STATION_MODE);
+			wifi_station_set_auto_connect(0);
+			wifi_station_set_config_current(&cconf);
+			wifi_station_connect();
+
+			break;
+		}
+
+		case(config_wlan_mode_ap):
+		{
+			struct softap_config saconf;
+
+			ets_memset(&saconf, 0, sizeof(saconf));
+			strlcpy(saconf.ssid, config.ap_wlan.ssid, sizeof(saconf.ssid));
+			strlcpy(saconf.password, config.ap_wlan.passwd, sizeof(saconf.password));
+			saconf.ssid_len = ets_strlen(config.ap_wlan.ssid);
+			saconf.channel = config.ap_wlan.channel;
+			saconf.authmode = AUTH_WPA_WPA2_PSK;
+			saconf.ssid_hidden = 0;
+			saconf.max_connection = 1;
+			saconf.beacon_interval = 100;
+
+			if(config_get_flag(config_flag_print_debug))
+				dprintf("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
+						saconf.ssid, saconf.password, saconf.channel);
+
+			wifi_station_disconnect();
+			wifi_set_opmode_current(SOFTAP_MODE);
+			wifi_softap_set_config_current(&saconf);
+
+			break;
+		}
+
+		default:
+		{
+			return(false);
+		}
+	}
+
+	return(true);
 }
