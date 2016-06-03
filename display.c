@@ -261,7 +261,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 
 	if(parse_int(1, src, &value, 0) != parse_ok)
 	{
-		string_cat(dst, "display-brightness: usage: <brightess>=0,1,2,3,4\n");
+		string_cat(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);
 	}
 
