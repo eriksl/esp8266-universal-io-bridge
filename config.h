@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 
+#define DEFAULT_SSID "esp"
+#define DEFAULT_PASSWD "espespesp"
+
 enum
 {
 	config_magic = 0x4afc0002,

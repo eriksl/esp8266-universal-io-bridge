@@ -6,8 +6,6 @@ ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
 OTA_HOST			?= esp5
-CONFIG_SSID			?= ssid
-CONFIG_PASSWD		?= passwd
 
 # no user serviceable parts below
 
@@ -149,8 +147,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Winit-self -Wformat-nonliteral -Wcomment \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
 CFLAGS			:=  -Os -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -fno-builtin -D__ets__ -Wframe-larger-than=384 \
-					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX) \
-					-DCONFIG_SSID=$(CONFIG_SSID) -DCONFIG_PASSWD=$(CONFIG_PASSWD)
+					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -291,11 +288,6 @@ ota:					$(OTA_TARGET)
 
 push-ota:				$(FIRMWARE_OTA_IMG) free otapush
 						./otapush -s 10 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
-
-default-config:			$(CONFIG_DEFAULT_BIN)
-						$(VECHO) "FLASH DEFAULT CONFIG"
-						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(USER_CONFIG_SECTOR_HEX)000 $(CONFIG_DEFAULT_BIN)
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"

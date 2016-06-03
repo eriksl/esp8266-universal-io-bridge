@@ -480,6 +480,16 @@ irom static void background_task(os_event_t *events) // posted every ~100 ms = ~
 		return;
 	}
 
+	// fallback to config-ap-mode when not connected or no ip within 30 seconds
+
+	if((config.wlan_mode == config_wlan_mode_client) &&
+			(wifi_station_get_connect_status() != STATION_GOT_IP) &&
+			(stat_update_idle == 300))
+	{
+		config.wlan_mode = config_wlan_mode_ap;
+		wlan_init();
+	}
+
 	stat_update_idle++;
 }
 
@@ -521,6 +531,8 @@ irom void user_init(void)
 	config_read(&config);
 	uart_init(&config.uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
+
+	wifi_station_set_auto_connect(0);
 
 	if(config_get_flag(config_flag_wlan_power_save))
 		wifi_set_sleep_type(MODEM_SLEEP_T);
@@ -606,7 +618,6 @@ irom bool_t wlan_init(void)
 
 			wifi_station_disconnect();
 			wifi_set_opmode_current(STATION_MODE);
-			wifi_station_set_auto_connect(0);
 			wifi_station_set_config_current(&cconf);
 			wifi_station_connect();
 

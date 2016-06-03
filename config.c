@@ -114,11 +114,11 @@ irom void config_read(config_t *cfg)
 		cfg->magic = config_magic;
 		cfg->version = config_version;
 
-		strlcpy(cfg->client_wlan.ssid, "esp", sizeof(cfg->client_wlan.ssid));
-		strlcpy(cfg->client_wlan.passwd, "esp", sizeof(cfg->client_wlan.passwd));
+		strlcpy(cfg->client_wlan.ssid, DEFAULT_SSID, sizeof(cfg->client_wlan.ssid));
+		strlcpy(cfg->client_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->client_wlan.passwd));
 
-		strlcpy(cfg->ap_wlan.ssid, "esp", sizeof(cfg->ap_wlan.ssid));
-		strlcpy(cfg->ap_wlan.passwd, "esp", sizeof(cfg->ap_wlan.passwd));
+		strlcpy(cfg->ap_wlan.ssid, DEFAULT_SSID, sizeof(cfg->ap_wlan.ssid));
+		strlcpy(cfg->ap_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->ap_wlan.passwd));
 		cfg->ap_wlan.channel = '1';
 
 		cfg->wlan_mode = config_wlan_mode_client;
@@ -177,21 +177,27 @@ irom void config_read(config_t *cfg)
 		}
 	}
 
-	// failsafe for corrupt / blank config
-
-	if((ets_strlen(cfg->ap_wlan.ssid) < 2) || (ets_strlen(cfg->ap_wlan.passwd) < 8) ||
-			(cfg->ap_wlan.channel < 1) || (cfg->ap_wlan.channel > 13))
-	{
-		strlcpy(cfg->ap_wlan.ssid, "esp", sizeof(cfg->ap_wlan.ssid));
-		strlcpy(cfg->ap_wlan.passwd, "espespesp", sizeof(cfg->ap_wlan.passwd));
-		cfg->ap_wlan.channel = 13;
-	}
-
 	cfg->client_wlan.ssid[sizeof(cfg->client_wlan.ssid) - 1] = '\0';
 	cfg->client_wlan.passwd[sizeof(cfg->client_wlan.passwd) - 1] = '\0';
 	cfg->ap_wlan.ssid[sizeof(cfg->ap_wlan.ssid) - 1] = '\0';
 	cfg->ap_wlan.passwd[sizeof(cfg->ap_wlan.passwd) - 1] = '\0';
 	cfg->display.default_msg[sizeof(cfg->display.default_msg) - 1] = '\0';
+
+	// failsafe for corrupt / blank config
+
+	if((ets_strlen(cfg->client_wlan.ssid) < 2) || (ets_strlen(cfg->client_wlan.passwd) < 8))
+	{
+		strlcpy(cfg->client_wlan.ssid, DEFAULT_SSID, sizeof(cfg->client_wlan.ssid));
+		strlcpy(cfg->client_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->client_wlan.passwd));
+	}
+
+	if((ets_strlen(cfg->ap_wlan.ssid) < 2) || (ets_strlen(cfg->ap_wlan.passwd) < 8) ||
+			(cfg->ap_wlan.channel < 1) || (cfg->ap_wlan.channel > 13))
+	{
+		strlcpy(cfg->ap_wlan.ssid, DEFAULT_SSID, sizeof(cfg->ap_wlan.ssid));
+		strlcpy(cfg->ap_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->ap_wlan.passwd));
+		cfg->ap_wlan.channel = 13;
+	}
 }
 
 irom void config_write(config_t *cfg)
