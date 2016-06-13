@@ -479,7 +479,7 @@ irom bool_t display_lcd_show(void)
 			case(1):
 			{
 				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 8192;
+				bl = 1024;
 
 				break;
 			}
@@ -487,7 +487,7 @@ irom bool_t display_lcd_show(void)
 			case(2):
 			{
 				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 16384;
+				bl = 4096;
 
 				break;
 			}
@@ -495,7 +495,7 @@ irom bool_t display_lcd_show(void)
 			case(3):
 			{
 				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 32768;
+				bl = 16384;
 
 				break;
 			}
