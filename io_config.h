@@ -21,15 +21,34 @@ typedef enum attr_packed
 
 assert_size(io_id_t, 1);
 
+typedef struct
+{
+	int8_t io;
+	int8_t pin;
+} config_io_t;
+
+assert_size(config_io_t, 2);
+
 typedef enum attr_packed
 {
 	io_dir_none,
 	io_dir_down,
 	io_dir_up,
-	io_dir_toggle,
 } io_direction_t;
 
 assert_size(io_direction_t, 1);
+
+typedef enum attr_packed
+{
+	io_trigger_off,
+	io_trigger_on,
+	io_trigger_down,
+	io_trigger_up,
+	io_trigger_size,
+	io_trigger_error = io_trigger_size
+} io_trigger_t;
+
+assert_size(io_trigger_t, 1);
 
 typedef enum attr_packed
 {
@@ -43,6 +62,7 @@ typedef enum attr_packed
 	io_pin_i2c,
 	io_pin_uart,
 	io_pin_lcd,
+	io_pin_trigger,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -130,6 +150,12 @@ typedef struct
 		{
 			io_lcd_mode_t	pin_use;
 		} lcd;
+
+		struct
+		{
+			config_io_t		io;
+			io_trigger_t	trigger_mode;
+		} trigger;
 	} shared;
 } io_config_pin_entry_t;
 

@@ -123,6 +123,7 @@ static io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_i2c,				"i2c"		},
 	{ io_pin_uart,				"uart"		},
 	{ io_pin_lcd,				"lcd"		},
+	{ io_pin_trigger,			"trigger"	},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -274,6 +275,52 @@ irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 	string_cat(name, "error");
 }
 
+irom static io_trigger_t string_to_trigger_type(const string_t *string)
+{
+	if(string_match(string, "off"))
+		return(io_trigger_off);
+	if(string_match(string, "on"))
+		return(io_trigger_on);
+	if(string_match(string, "down"))
+		return(io_trigger_down);
+	if(string_match(string, "up"))
+		return(io_trigger_up);
+
+	return(io_trigger_error);
+}
+
+irom static void trigger_type_to_string(io_trigger_t trigger_type, string_t *string)
+{
+	switch(trigger_type)
+	{
+		case(io_trigger_off):
+		{
+			string_cat(string, "off");
+			break;
+		}
+		case(io_trigger_on):
+		{
+			string_cat(string, "on");
+			break;
+		}
+		case(io_trigger_down):
+		{
+			string_cat(string, "down");
+			break;
+		}
+		case(io_trigger_up):
+		{
+			string_cat(string, "up");
+			break;
+		}
+		default:
+		{
+			string_cat(string, "error");
+			break;
+		}
+	}
+}
+
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
 {
 	if(string_match(flag, "autostart"))
@@ -346,6 +393,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 		case(io_pin_i2c):
 		case(io_pin_uart):
 		case(io_pin_lcd):
+		case(io_pin_trigger):
 		{
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -369,6 +417,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 		case(io_pin_i2c):
 		case(io_pin_uart):
 		case(io_pin_error):
+		case(io_pin_trigger):
 		{
 			if(errormsg)
 				string_cat(errormsg, "cannot write to this pin");
@@ -379,34 +428,151 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 		case(io_pin_counter):
 		case(io_pin_output_digital):
 		case(io_pin_lcd):
+		case(io_pin_timer):
+		case(io_pin_output_analog):
 		{
 			if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
 
 			break;
 		}
+	}
+
+	return(io_ok);
+}
+
+irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
+{
+	io_error_t error;
+	int value = 0;
+
+	switch(pin_config->mode)
+	{
+		case(io_pin_disabled):
+		case(io_pin_input_digital):
+		case(io_pin_input_analog):
+		case(io_pin_i2c):
+		case(io_pin_uart):
+		case(io_pin_error):
+		{
+			if(errormsg)
+				string_cat(errormsg, "cannot trigger this pin");
+
+			return(io_error);
+		}
+
+		case(io_pin_output_digital):
+		case(io_pin_lcd):
+		{
+			switch(trigger_type)
+			{
+				case(io_trigger_down):
+				{
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, 0)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				case(io_trigger_up):
+				{
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, 1)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				default:
+				{
+					if(errormsg)
+						string_cat(errormsg, "invalid trigger type");
+
+					return(io_error);
+				}
+			}
+
+			break;
+		}
+
+		case(io_pin_counter):
+		{
+			switch(trigger_type)
+			{
+				case(io_trigger_down):
+				{
+					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
+						return(error);
+
+					value--;
+
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				case(io_trigger_up):
+				{
+					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
+						return(error);
+
+					value++;
+
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				default:
+				{
+					if(errormsg)
+						string_cat(errormsg, "invalid trigger type");
+
+					return(io_error);
+				}
+			}
+
+			break;
+		}
 
 		case(io_pin_timer):
 		{
-			if(value)
+			switch(trigger_type)
 			{
-				value = pin_config->direction == io_dir_up ? 0 : 1;
+				case(io_trigger_off):
+				{
+					value = pin_config->direction == io_dir_up ? 1 : 0;
 
-				if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
-					return(error);
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
 
-				pin_data->delay = pin_config->delay;
-				pin_data->direction = pin_config->direction;
-			}
-			else
-			{
-				value = pin_config->direction == io_dir_up ? 1 : 0;
+					pin_data->delay = 0;
+					pin_data->direction = io_dir_none;
 
-				if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
-					return(error);
+					break;
+				}
 
-				pin_data->delay = 0;
-				pin_data->direction = io_dir_none;
+				case(io_trigger_on):
+				{
+					value = pin_config->direction == io_dir_up ? 0 : 1;
+
+					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
+
+					pin_data->delay = pin_config->delay;
+					pin_data->direction = pin_config->direction;
+
+					break;
+				}
+
+				default:
+				{
+					if(errormsg)
+						string_cat(errormsg, "invalid trigger type");
+
+					return(io_error);
+				}
 			}
 
 			break;
@@ -414,23 +580,90 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 
 		case(io_pin_output_analog):
 		{
-			if(value >= 0)
+			switch(trigger_type)
 			{
-				if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
-					return(error);
+				case(io_trigger_off):
+				{
+					pin_data->delay = 0;
+					pin_data->direction = io_dir_none;
 
-				pin_data->delay = 0;
-				pin_data->direction = io_dir_none;
+					break;
+				}
+
+				case(io_trigger_on):
+				{
+					pin_data->delay = pin_config->delay;
+					pin_data->direction = io_dir_up;
+
+					break;
+				}
+
+				case(io_trigger_down):
+				{
+					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
+						return(error);
+
+					value /= (pin_config->delay / 10000.0) + 1;
+
+					if(value <= pin_config->shared.output_analog.lower_bound)
+					{
+						value = pin_config->shared.output_analog.lower_bound;
+
+						if(pin_config->flags.repeat && (pin_data->direction == io_dir_down))
+							pin_data->direction = io_dir_up;
+						else
+							pin_data->direction = io_dir_none;
+					}
+
+					if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				case(io_trigger_up):
+				{
+					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
+						return(error);
+
+					value *= (pin_config->delay / 10000.0) + 1;
+
+					if(value >= pin_config->shared.output_analog.upper_bound)
+					{
+						value = pin_config->shared.output_analog.upper_bound;
+
+						if(pin_data->direction == io_dir_up)
+							pin_data->direction = io_dir_down;
+					}
+
+					if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
+						return(error);
+
+					break;
+				}
+
+				default:
+				{
+					if(errormsg)
+						string_cat(errormsg, "invalid trigger type");
+
+					return(io_error);
+				}
 			}
-			else
+
+			break;
+		}
+
+		case(io_pin_trigger):
+		{
+			if((pin_config->shared.trigger.io.io >= 0) && (pin_config->shared.trigger.io.pin >= 0) &&
+					(pin_config->shared.trigger.trigger_mode != io_trigger_off))
 			{
-				value = pin_config->shared.output_analog.lower_bound;
-
-				if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
-					return(error);
-
-				pin_data->delay = pin_config->delay;
-				pin_data->direction = io_dir_up;
+				if(io_trigger_pin(errormsg,
+						pin_config->shared.trigger.io.io,
+						pin_config->shared.trigger.io.pin,
+						pin_config->shared.trigger.trigger_mode) != io_ok)
+					return(io_error);
 			}
 
 			break;
@@ -507,6 +740,36 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, int value)
 	return(io_write_pin_x(error, info, pin_data, pin_config, pin, value));
 }
 
+irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger_type)
+{
+	const io_info_entry_t *info;
+	io_data_entry_t *data;
+	io_config_pin_entry_t *pin_config;
+	io_data_pin_entry_t *pin_data;
+
+	if(io >= io_id_size)
+	{
+		if(error)
+			string_cat(error, "io out of range\n");
+		return(io_error);
+	}
+
+	info = &io_info[io];
+	data = &io_data[io];
+
+	if(pin >= info->pins)
+	{
+		if(error)
+			string_cat(error, "pin out of range\n");
+		return(io_error);
+	}
+
+	pin_config = &config.io_config[io][pin];
+	pin_data = &data->pin[pin];
+
+	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
+}
+
 irom void io_init(void)
 {
 	const io_info_entry_t *info;
@@ -548,6 +811,7 @@ irom void io_init(void)
 						case(io_pin_counter):
 						case(io_pin_input_analog):
 						case(io_pin_uart):
+						case(io_pin_trigger):
 						case(io_pin_error):
 						{
 							break;
@@ -556,18 +820,9 @@ irom void io_init(void)
 						case(io_pin_output_digital):
 						case(io_pin_lcd):
 						case(io_pin_timer):
-						{
-							io_write_pin_x((string_t *)0, info, pin_data, pin_config, pin, pin_config->flags.autostart);
-							break;
-						}
-
 						case(io_pin_output_analog):
 						{
-							if(pin_config->flags.autostart)
-								io_write_pin_x((string_t *)0, info, pin_data, pin_config, pin, -1);
-							else
-								io_write_pin_x((string_t *)0, info, pin_data, pin_config, pin, pin_config->shared.output_analog.lower_bound);
-
+							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, pin_config->flags.autostart ? io_trigger_on : io_trigger_off);
 							break;
 						}
 
@@ -600,8 +855,9 @@ irom void io_periodic(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin, status_io, status_pin, value;
+	int io, pin, status_io, status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
+	int value;
 
 	status_io = config.status_trigger.io;
 	status_pin = config.status_trigger.pin;
@@ -644,7 +900,6 @@ irom void io_periodic(void)
 						switch(pin_data->direction)
 						{
 							case(io_dir_none):
-							case(io_dir_toggle):
 							{
 								break;
 							}
@@ -676,41 +931,26 @@ irom void io_periodic(void)
 					break;
 				}
 
+				case(io_pin_trigger):
+				{
+					if((info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
+					{
+						io_trigger_pin((string_t *)0,
+								pin_config->shared.trigger.io.io,
+								pin_config->shared.trigger.io.pin,
+								pin_config->shared.trigger.trigger_mode);
+						info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+					}
+
+					break;
+				}
+
 				case(io_pin_output_analog):
 				{
 					if((pin_config->shared.output_analog.upper_bound > pin_config->shared.output_analog.lower_bound) &&
 							(pin_config->delay > 0) && (pin_data->direction != io_dir_none))
-					{
-						if(info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok)
-						{
-							if(pin_data->direction == io_dir_up) 
-							{
-								value *= (pin_config->delay / 10000.0) + 1;
-
-								if(value >= pin_config->shared.output_analog.upper_bound)
-								{
-									value = pin_config->shared.output_analog.upper_bound;
-									pin_data->direction = io_dir_down;
-								}
-							}
-							else
-							{
-								value /= (pin_config->delay / 10000.0) + 1;
-
-								if(value <= pin_config->shared.output_analog.lower_bound)
-								{
-									value = pin_config->shared.output_analog.lower_bound;
-
-									if(pin_config->flags.repeat)
-										pin_data->direction = io_dir_up;
-									else
-										pin_data->direction = io_dir_none;
-								}
-							}
-
-							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value);
-						}
-					}
+						io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
+								(pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
 
 					break;
 				}
@@ -719,7 +959,7 @@ irom void io_periodic(void)
 	}
 
 	if((flags.counter_triggered) && (status_io >= 0) && (status_pin >= 0))
-		io_write_pin((string_t *)0, status_io, status_pin, -1);
+		io_trigger_pin((string_t *)0, status_io, status_pin, io_trigger_on);
 }
 
 /* app commands */
@@ -821,6 +1061,62 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			pin_config->delay = debounce;
 
 			llmode = io_pin_ll_counter;
+
+			break;
+		}
+
+		case(io_pin_trigger):
+		{
+			int debounce, trigger_io, trigger_pin;
+			io_trigger_t trigger_type;
+
+			if(!info->caps.counter)
+			{
+				string_cat(dst, "trigger mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			if((parse_int(4, src, &debounce, 0) != parse_ok))
+			{
+				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
+				return(app_action_error);
+			}
+
+			if((parse_int(5, src, &trigger_io, 0) != parse_ok))
+			{
+				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
+				return(app_action_error);
+			}
+
+			if((parse_int(6, src, &trigger_pin, 0) != parse_ok))
+			{
+				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
+				return(app_action_error);
+			}
+
+			if((parse_string(7, src, dst) != parse_ok))
+			{
+				string_clear(dst);
+				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
+				return(app_action_error);
+			}
+
+			trigger_type = string_to_trigger_type(dst);
+
+			if(trigger_type == io_trigger_error)
+			{
+				string_clear(dst);
+				string_cat(dst, "trigger: <io> <pin> <action>\n");
+				return(app_action_error);
+			}
+
+			string_clear(dst);
+
+			llmode = io_pin_ll_counter;
+
+			pin_config->shared.trigger.io.io = trigger_io;
+			pin_config->shared.trigger.io.pin = trigger_pin;
+			pin_config->shared.trigger.trigger_mode = trigger_type;
 
 			break;
 		}
@@ -1213,6 +1509,60 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	return(app_action_normal);
 }
 
+irom app_action_t application_function_io_trigger(const string_t *src, string_t *dst)
+{
+	const io_info_entry_t *info;
+	int io, pin;
+	io_trigger_t trigger_type;
+
+	if(parse_int(1, src, &io, 0) != parse_ok)
+		goto usage;
+
+	if((io < 0) || (io >= io_id_size))
+	{
+		string_format(dst, "invalid io %d\n", io);
+		return(app_action_error);
+	}
+
+	info = &io_info[io];
+
+	if(parse_int(2, src, &pin, 0) != parse_ok)
+		goto usage;
+
+	if((pin < 0) || (pin >= info->pins))
+	{
+		string_cat(dst, "invalid pin\n");
+		return(app_action_error);
+	}
+
+	if(parse_string(3, src, dst) != parse_ok)
+		goto usage;
+
+	if((trigger_type = string_to_trigger_type(dst)) == io_trigger_error)
+		goto usage;
+
+	string_clear(dst);
+
+	string_cat(dst, "trigger ");
+	trigger_type_to_string(trigger_type, dst);
+	string_format(dst, " %u/%u: ", io, pin);
+
+	if(io_trigger_pin(dst, io, pin, trigger_type) != io_ok)
+	{
+		string_cat(dst, "\n");
+		return(app_action_error);
+	}
+
+	string_cat(dst, "ok\n");
+
+	return(app_action_normal);
+
+usage:
+	string_clear(dst);
+	string_cat(dst, "io-trigger <io> <pin> <action> (action = off/on/down/up)\n");
+	return(app_action_error);
+}
+
 irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, int value)
 {
 	const io_info_entry_t *info;
@@ -1306,6 +1656,8 @@ typedef enum
 	ds_id_disabled,
 	ds_id_input,
 	ds_id_counter,
+	ds_id_trigger_1,
+	ds_id_trigger_2,
 	ds_id_output,
 	ds_id_timer,
 	ds_id_analog_output,
@@ -1346,9 +1698,11 @@ static const roflash dump_string_t dump_strings =
 		"disabled",
 		"input, state: %s",
 		"counter, counter: %d, debounce: %d",
+		"trigger, counter: %d, debounce: %d, io: %d, pin: %d, trigger type: ",
+		"",
 		"output, state: %s",
 		"timer, config direction: %s, delay: %d ms, current direction: %s, delay: %d, state: %s",
-		"analog output, min/static: %d, max: %d, speed: %d, current direction: %s, value: %d",
+		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d",
 		"i2c/sda",
 		"i2c/scl, delay: %d",
 		"uart",
@@ -1374,6 +1728,8 @@ static const roflash dump_string_t dump_strings =
 		"<td>disabled</td>",
 		"<td>input</td><td>state: %s</td>",
 		"<td>counter</td><td><td>counter: %d</td><td>debounce: %d</td>",
+		"<td>trigger</td><td>counter: %d</td><td>debounce: %d</td><td>io: %d</td><td>pin: %d</td><td>trigger type: ",
+		"</td>",
 		"<td>output</td><td>state: %s</td>",
 		"<td>timer</td><td>config direction: %s, delay: %d ms</td><<td>current direction %s, delay: %d, state: %s</td>",
 		"<td>analog output</td><td>min/static: %d, max: %d, delay: %d, current direction: %s, value: %d",
@@ -1484,6 +1840,24 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 					break;
 				}
 
+				case(io_pin_trigger):
+				{
+					if(error == io_ok)
+					{
+						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->delay,
+								pin_config->shared.trigger.io.io,
+								pin_config->shared.trigger.io.pin);
+
+						trigger_type_to_string(pin_config->shared.trigger.trigger_mode, dst);
+
+						string_cat_ptr(dst, (*strings)[ds_id_trigger_2]);
+					}
+					else
+						string_cat_ptr(dst, (*strings)[ds_id_error]);
+
+					break;
+				}
+
 				case(io_pin_output_digital):
 				{
 					if(error == io_ok)
@@ -1516,7 +1890,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 								pin_config->shared.output_analog.lower_bound,
 								pin_config->shared.output_analog.upper_bound,
 								pin_config->delay,
-								pin_config->direction == io_dir_up ? "up" : (pin_config->direction == io_dir_down ? "down" : "none"),
+								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
 								value);
 					else
 						string_cat_ptr(dst, (*strings)[ds_id_error]);

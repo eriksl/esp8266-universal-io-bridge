@@ -556,7 +556,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
 			if((io >= 0) && (pin >= 0))
-				io_write_pin((string_t *)0, io, pin, -1);
+				io_trigger_pin((string_t *)0, io, pin, io_trigger_on);
 
 			break;
 		}
@@ -565,7 +565,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
 			if((io >= 0) && (pin >= 0))
-				io_write_pin((string_t *)0, io, pin, 0);
+				io_trigger_pin((string_t *)0, io, pin, io_trigger_off);
 
 			break;
 		}

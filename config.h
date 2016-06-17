@@ -53,12 +53,6 @@ typedef struct
 
 typedef struct
 {
-	int8_t io;
-	int8_t pin;
-} config_io_t;
-
-typedef struct
-{
 	char ssid[32];
 	char passwd[32];
 	uint8_t	channel;

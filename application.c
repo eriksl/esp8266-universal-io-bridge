@@ -44,7 +44,7 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 	const application_function_table_t *tableptr;
 
 	if((config.status_trigger.io >= 0) && (config.status_trigger.pin >= 0))
-		io_write_pin((string_t *)0, config.status_trigger.io, config.status_trigger.pin, -1);
+		io_trigger_pin((string_t *)0, config.status_trigger.io, config.status_trigger.pin, io_trigger_on);
 
 	if(parse_string(0, src, dst) != parse_ok)
 		return(app_action_empty);
@@ -898,6 +898,11 @@ static const application_function_table_t application_function_table[] =
 		"ir", "io-read",
 		application_function_io_read,
 		"read from i/o pin",
+	},
+	{
+		"it", "io-trigger",
+		application_function_io_trigger,
+		"trigger i/o pin",
 	},
 	{
 		"iw", "io-write",
