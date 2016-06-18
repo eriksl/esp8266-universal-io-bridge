@@ -580,6 +580,9 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 		case(io_pin_output_analog):
 		{
+			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
+				return(error);
+
 			switch(trigger_type)
 			{
 				case(io_trigger_off):
@@ -600,31 +603,29 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 				case(io_trigger_down):
 				{
-					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
-						return(error);
-
 					value /= (pin_config->speed / 10000.0) + 1;
 
 					if(value <= pin_config->shared.output_analog.lower_bound)
 					{
-						value = pin_config->shared.output_analog.lower_bound;
-
 						if(pin_config->flags.repeat && (pin_data->direction == io_dir_down))
 							pin_data->direction = io_dir_up;
 						else
+						{
+							value = 0;
 							pin_data->direction = io_dir_none;
+						}
 					}
-
-					if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
-						return(error);
 
 					break;
 				}
 
 				case(io_trigger_up):
 				{
-					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
-						return(error);
+					if(value < pin_config->shared.output_analog.lower_bound)
+						value = pin_config->shared.output_analog.lower_bound;
+
+					if(value == 0)
+						value = 1;
 
 					value *= (pin_config->speed / 10000.0) + 1;
 
@@ -635,9 +636,6 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 						if(pin_data->direction == io_dir_up)
 							pin_data->direction = io_dir_down;
 					}
-
-					if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
-						return(error);
 
 					break;
 				}
@@ -650,6 +648,9 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					return(io_error);
 				}
 			}
+
+			if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
+				return(error);
 
 			break;
 		}
@@ -822,7 +823,8 @@ irom void io_init(void)
 						case(io_pin_timer):
 						case(io_pin_output_analog):
 						{
-							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, pin_config->flags.autostart ? io_trigger_on : io_trigger_off);
+							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
+									pin_config->flags.autostart ? io_trigger_on : io_trigger_off);
 							break;
 						}
 

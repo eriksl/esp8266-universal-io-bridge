@@ -136,32 +136,19 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 		gpio_pin_info = &gpio_info_table[pin];
 		gpio_pin_data = &gpio_data[pin];
 
-		gpio_pin_data->counter.counter = 0;
-		gpio_pin_data->counter.debounce = 0;
-		gpio_pin_data->pwm.channel = -1;
-
-		switch(pin_config->llmode)
+		if(pin_config->llmode == io_pin_ll_output_analog)
 		{
-			case(io_pin_ll_output_analog):
+			gpio_pin_data->pwm.channel = -1;
+
+			if(pwmchannel < io_gpio_pwm_size)
 			{
-				if(pwmchannel < io_gpio_pwm_size)
-				{
-					pwm_io_info[pwmchannel][0] = gpio_pin_info->mux;
-					pwm_io_info[pwmchannel][1] = gpio_pin_info->func;
-					pwm_io_info[pwmchannel][2] = pin;
-					pwm_duty[pwmchannel] = pin_config->shared.output_analog.lower_bound;
+				pwm_io_info[pwmchannel][0] = gpio_pin_info->mux;
+				pwm_io_info[pwmchannel][1] = gpio_pin_info->func;
+				pwm_io_info[pwmchannel][2] = pin;
+				pwm_duty[pwmchannel] = 0;
 
-					gpio_pin_data->pwm.channel = pwmchannel++;
-				}
-
-				break;
+				gpio_pin_data->pwm.channel = pwmchannel++;
 			}
-
-			default:
-			{
-				break;
-			}
-
 		}
 	}
 
@@ -232,9 +219,6 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 	gpio_pin_data = &gpio_data[pin];
 
-	gpio_pin_data->counter.counter = 0;
-	gpio_pin_data->counter.debounce = 0;
-
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_input_digital):
@@ -248,7 +232,12 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 				PIN_PULLUP_DIS(gpio_info->mux);
 
 			if(pin_config->llmode == io_pin_ll_counter)
+			{
+				gpio_pin_data->counter.counter = 0;
+				gpio_pin_data->counter.debounce = 0;
+
 				pin_arm_counter(pin);
+			}
 
 			break;
 		}
@@ -261,14 +250,16 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_output_analog):
 		{
-			int value = pin_config->shared.output_analog.lower_bound; 
 			int channel = gpio_pin_data->pwm.channel;
 
 			gpio_output_set(0, 0, 1 << pin, 0);
 
-			pwm_duty[channel] = value;
-			pwm_set_duty(value, channel);
-			pwm_start();
+			if(channel >= 0)
+			{
+				pwm_duty[channel] = 0;
+				pwm_set_duty(0, channel);
+				pwm_start();
+			}
 
 			break;
 		}
@@ -321,9 +312,6 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
-	int channel;
-	int duty;
-	int freq;
 	gpio_data_pin_t *gpio_pin_data;
 
 	gpio_pin_data = &gpio_data[pin];
@@ -347,9 +335,19 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 			{
 				if(gpio_flags.pwm_subsystem_active)
 				{
-					channel = gpio_pin_data->pwm.channel;
-					duty = pwm_get_duty(channel);
-					freq = 1000000 / pwm_get_period();
+					int channel = gpio_pin_data->pwm.channel;
+					int duty, freq;
+
+					if(channel >= 0)
+					{
+						duty = pwm_get_duty(channel);
+						freq = 1000000 / pwm_get_period();
+					}
+					else
+					{
+						duty = -1;
+						freq = -1;
+					}
 
 					string_format(dst, "channel: %d, frequency: %d, duty: %d", channel, freq, duty);
 				}
@@ -379,7 +377,6 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
-	int channel;
 
 	if(!gpio_info_table[pin].valid)
 	{
@@ -410,7 +407,9 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 
 		case(io_pin_ll_output_analog):
 		{
-			if(gpio_flags.pwm_subsystem_active && ((channel = gpio_pin_data->pwm.channel) >= 0))
+			int channel = gpio_pin_data->pwm.channel;
+
+			if((channel >= 0) && gpio_flags.pwm_subsystem_active)
 				*value = pwm_get_duty(channel);
 			else
 				*value = 0;
@@ -465,9 +464,12 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 		{
 			int channel = gpio_pin_data->pwm.channel;
 
-			pwm_duty[channel] = value;
-			pwm_set_duty(value, channel);
-			pwm_start();
+			if(channel >= 0)
+			{
+				pwm_duty[channel] = value;
+				pwm_set_duty(value, channel);
+				pwm_start();
+			}
 
 			break;
 
