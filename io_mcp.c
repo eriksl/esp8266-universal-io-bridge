@@ -213,7 +213,7 @@ irom void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_en
 				if((intf[bank] & (1 << bankpin)) && !(intcap[bank] & (1 << bankpin))) // only count downward edge, counter is mostly pull-up
 				{
 					mcp_pin_data->counter++;
-					mcp_pin_data->debounce = pin_config->delay;
+					mcp_pin_data->debounce = pin_config->speed;
 					flags->counter_triggered = 1;
 				}
 			}

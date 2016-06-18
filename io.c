@@ -547,7 +547,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 						return(error);
 
-					pin_data->delay = 0;
+					pin_data->speed = 0;
 					pin_data->direction = io_dir_none;
 
 					break;
@@ -560,7 +560,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 						return(error);
 
-					pin_data->delay = pin_config->delay;
+					pin_data->speed = pin_config->speed;
 					pin_data->direction = pin_config->direction;
 
 					break;
@@ -584,7 +584,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 			{
 				case(io_trigger_off):
 				{
-					pin_data->delay = 0;
+					pin_data->speed = 0;
 					pin_data->direction = io_dir_none;
 
 					break;
@@ -592,7 +592,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 				case(io_trigger_on):
 				{
-					pin_data->delay = pin_config->delay;
+					pin_data->speed = pin_config->speed;
 					pin_data->direction = io_dir_up;
 
 					break;
@@ -603,7 +603,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
 						return(error);
 
-					value /= (pin_config->delay / 10000.0) + 1;
+					value /= (pin_config->speed / 10000.0) + 1;
 
 					if(value <= pin_config->shared.output_analog.lower_bound)
 					{
@@ -626,7 +626,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
 						return(error);
 
-					value *= (pin_config->delay / 10000.0) + 1;
+					value *= (pin_config->speed / 10000.0) + 1;
 
 					if(value >= pin_config->shared.output_analog.upper_bound)
 					{
@@ -779,7 +779,7 @@ irom void io_init(void)
 	int io, pin;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
-	int i2c_delay = -1;
+	int i2c_speed = -1;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -790,7 +790,7 @@ irom void io_init(void)
 		{
 			pin_data = &data->pin[pin];
 			pin_data->direction = io_dir_none;
-			pin_data->delay = 0;
+			pin_data->speed = 0;
 		}
 
 		if(info->init_fn(info) == io_ok)
@@ -834,11 +834,11 @@ irom void io_init(void)
 							if(pin_config->shared.i2c.pin_mode == io_i2c_scl)
 							{
 								i2c_scl = pin;
-								i2c_delay = pin_config->delay;
+								i2c_speed = pin_config->speed;
 							}
 
-							if((i2c_sda >= 0) && (i2c_scl >= 0) && (i2c_delay >= 0))
-								i2c_init(i2c_sda, i2c_scl, i2c_delay);
+							if((i2c_sda >= 0) && (i2c_scl >= 0) && (i2c_speed >= 0))
+								i2c_init(i2c_sda, i2c_scl, i2c_speed);
 
 							break;
 						}
@@ -895,7 +895,7 @@ irom void io_periodic(void)
 
 				case(io_pin_timer):
 				{
-					if((pin_data->direction != io_dir_none) && (pin_data->delay >= 10) && ((pin_data->delay -= 10) <= 0))
+					if((pin_data->direction != io_dir_none) && (pin_data->speed >= 10) && ((pin_data->speed -= 10) <= 0))
 					{
 						switch(pin_data->direction)
 						{
@@ -920,10 +920,10 @@ irom void io_periodic(void)
 						}
 
 						if(pin_config->flags.repeat)
-							pin_data->delay = pin_config->delay;
+							pin_data->speed = pin_config->speed;
 						else
 						{
-							pin_data->delay = 0;
+							pin_data->speed = 0;
 							pin_data->direction = io_dir_none;
 						}
 					}
@@ -948,7 +948,7 @@ irom void io_periodic(void)
 				case(io_pin_output_analog):
 				{
 					if((pin_config->shared.output_analog.upper_bound > pin_config->shared.output_analog.lower_bound) &&
-							(pin_config->delay > 0) && (pin_data->direction != io_dir_none))
+							(pin_config->speed > 0) && (pin_data->direction != io_dir_none))
 						io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
 								(pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
 
@@ -1058,7 +1058,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			pin_config->delay = debounce;
+			pin_config->speed = debounce;
 
 			llmode = io_pin_ll_counter;
 
@@ -1137,7 +1137,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		case(io_pin_timer):
 		{
 			io_direction_t direction;
-			int delay;
+			int speed;
 
 			if(!info->caps.output_digital)
 			{
@@ -1147,7 +1147,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if(parse_string(4, src, dst) != parse_ok)
 			{
-				string_copy(dst, "timer: <direction>:up/down <delay>:ms\n");
+				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
@@ -1163,20 +1163,20 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			string_clear(dst);
 
-			if((parse_int(5, src, &delay, 0) != parse_ok))
+			if((parse_int(5, src, &speed, 0) != parse_ok))
 			{
-				string_copy(dst, "timer: <direction>:up/down <delay>:ms\n");
+				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
-			if(delay < 10)
+			if(speed < 10)
 			{
-				string_cat(dst, "timer: delay too small: must be >= 10 ms\n");
+				string_cat(dst, "timer: speed too small: must be >= 10 ms\n");
 				return(app_action_error);
 			}
 
 			pin_config->direction = direction;
-			pin_config->delay = delay;
+			pin_config->speed = speed;
 
 			llmode = io_pin_ll_output_digital;
 
@@ -1241,7 +1241,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			pin_config->shared.output_analog.lower_bound = lower_bound;
 			pin_config->shared.output_analog.upper_bound = upper_bound;
-			pin_config->delay = speed;
+			pin_config->speed = speed;
 
 			llmode = io_pin_ll_output_analog;
 
@@ -1250,7 +1250,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 		case(io_pin_i2c):
 		{
-			int delay = 0;
+			int speed = 0;
 			io_i2c_t pin_mode;
 
 			if(!info->caps.i2c)
@@ -1275,14 +1275,14 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if(pin_mode == io_i2c_scl)
 			{
-				if(parse_int(5, src, &delay, 0) != parse_ok)
+				if(parse_int(5, src, &speed, 0) != parse_ok)
 				{
-					string_copy(dst, "i2c: scl <delay>\n");
+					string_copy(dst, "i2c: scl <speed>\n");
 					return(app_action_error);
 				}
 			}
 
-			pin_config->delay = delay;
+			pin_config->speed = speed;
 			pin_config->shared.i2c.pin_mode = pin_mode;
 
 			llmode = io_pin_ll_i2c;
@@ -1701,10 +1701,10 @@ static const roflash dump_string_t dump_strings =
 		"trigger, counter: %d, debounce: %d, io: %d, pin: %d, trigger type: ",
 		"",
 		"output, state: %s",
-		"timer, config direction: %s, delay: %d ms, current direction: %s, delay: %d, state: %s",
+		"timer, config direction: %s, speed: %d ms, current direction: %s, speed: %d, state: %s",
 		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d",
 		"i2c/sda",
-		"i2c/scl, delay: %d",
+		"i2c/scl, speed: %d",
 		"uart",
 		"lcd",
 		"unknown",
@@ -1731,10 +1731,10 @@ static const roflash dump_string_t dump_strings =
 		"<td>trigger</td><td>counter: %d</td><td>debounce: %d</td><td>io: %d</td><td>pin: %d</td><td>trigger type: ",
 		"</td>",
 		"<td>output</td><td>state: %s</td>",
-		"<td>timer</td><td>config direction: %s, delay: %d ms</td><<td>current direction %s, delay: %d, state: %s</td>",
-		"<td>analog output</td><td>min/static: %d, max: %d, delay: %d, current direction: %s, value: %d",
+		"<td>timer</td><td>config direction: %s, speed: %d ms</td><<td>current direction %s, speed: %d, state: %s</td>",
+		"<td>analog output</td><td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d",
 		"<td>i2c</td><td>sda</td>",
-		"<td>i2c</td><td>scl, delay: %d</td>",
+		"<td>i2c</td><td>scl, speed: %d</td>",
 		"<td>uart</td>",
 		"<td>lcd</td>",
 		"<td>unknown</td>",
@@ -1833,7 +1833,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 				case(io_pin_counter):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_counter], value, pin_config->delay);
+						string_format_ptr(dst, (*strings)[ds_id_counter], value, pin_config->speed);
 					else
 						string_cat_ptr(dst, (*strings)[ds_id_error]);
 
@@ -1844,7 +1844,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 				{
 					if(error == io_ok)
 					{
-						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->delay,
+						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->speed,
 								pin_config->shared.trigger.io.io,
 								pin_config->shared.trigger.io.pin);
 
@@ -1873,9 +1873,9 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 					if(error == io_ok)
 						string_format_ptr(dst, (*strings)[ds_id_timer],
 								pin_config->direction == io_dir_up ? "up" : (pin_config->direction == io_dir_down ? "down" : "none"),
-								pin_config->delay,
+								pin_config->speed,
 								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
-								pin_data->delay,
+								pin_data->speed,
 								onoff(value));
 					else
 						string_cat_ptr(dst, (*strings)[ds_id_error]);
@@ -1889,7 +1889,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 						string_format_ptr(dst, (*strings)[ds_id_analog_output],
 								pin_config->shared.output_analog.lower_bound,
 								pin_config->shared.output_analog.upper_bound,
-								pin_config->delay,
+								pin_config->speed,
 								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
 								value);
 					else
@@ -1903,7 +1903,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 					if(pin_config->shared.i2c.pin_mode == io_i2c_sda)
 						string_cat_ptr(dst, (*strings)[ds_id_i2c_sda]);
 					else
-						string_format_ptr(dst, (*strings)[ds_id_i2c_scl], pin_config->delay);
+						string_format_ptr(dst, (*strings)[ds_id_i2c_scl], pin_config->speed);
 
 					break;
 				}

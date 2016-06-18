@@ -109,7 +109,7 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 				if(gpio_pin_data->counter.debounce == 0)
 				{
 					gpio_pin_data->counter.counter++;
-					gpio_pin_data->counter.debounce = pin_config->delay;
+					gpio_pin_data->counter.debounce = pin_config->speed;
 					gpio_flags.counter_triggered = 1;
 				}
 			}

@@ -131,7 +131,7 @@ typedef struct
 	io_pin_ll_mode_t	llmode;
 	io_pin_flag_t		flags;
 	io_direction_t		direction;
-	uint32_t			delay;
+	uint32_t			speed;
 
 	union
 	{

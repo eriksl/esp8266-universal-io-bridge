@@ -28,7 +28,7 @@ assert_size(io_flags_t, 4);
 typedef struct
 {
 	io_direction_t	direction;
-	uint16_t		delay;
+	uint16_t		speed;
 } io_data_pin_entry_t;
 
 assert_size(io_data_pin_entry_t, 4);
