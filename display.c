@@ -33,7 +33,8 @@ typedef const struct
 	const char *	const name;
 	const char *	const type;
 	bool_t			(* const init_fn)(void);
-	bool_t			(* const set_fn)(int brightness, const char *tag, const char *text);
+	bool_t			(* const bright_fn)(int brightness);
+	bool_t			(* const set_fn)(const char *tag, const char *text);
 	bool_t			(* const show_fn)(void);
 } display_info_t;
 
@@ -41,7 +42,6 @@ typedef struct
 {
 	int	detected;
 	int	current_slot;
-	int	brightness;
 } display_data_t;
 
 typedef struct
@@ -56,12 +56,14 @@ static roflash display_info_t display_info[display_size] =
 	{
 		4, "saa1064", "4 digit led display",
 		display_saa1064_init,
+		display_saa1064_bright,
 		display_saa1064_set,
 		(void *)0,
 	},
 	{
 		80, "hd44780", "4x20 character LCD display",
 		display_lcd_init,
+		display_lcd_bright,
 		display_lcd_set,
 		display_lcd_show
 	}
@@ -112,10 +114,10 @@ irom static void display_update(bool_t advance)
 		string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
 		string_cat_ptr(&tag_text, display_slot[slot].tag);
 		string_format(&tag_text, " [%u]", slot);
-		display_info_entry->set_fn(display_data.brightness, string_to_ptr(&tag_text), display_text);
+		display_info_entry->set_fn(string_to_ptr(&tag_text), display_text);
 	}
 	else
-		display_info_entry->set_fn(display_data.brightness, (char *)0, display_text);
+		display_info_entry->set_fn((char *)0, display_text);
 }
 
 irom static void display_expire(void) // call one time per second
@@ -199,7 +201,6 @@ irom void display_init(void)
 	}
 
 	display_data.current_slot = 0;
-	display_data.brightness = 1;
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
@@ -207,30 +208,6 @@ irom void display_init(void)
 		display_slot[slot].tag[0] = '\0';
 		display_slot[slot].content[0] = '\0';
 	}
-}
-
-irom static bool_t display_set_brightness(int brightness)
-{
-	if(display_data.detected < 0)
-		return(false);
-
-	if((brightness < 0) || (brightness > 4))
-		return(false);
-
-	display_data.brightness = brightness;
-	display_update(false);
-
-	return(true);
-}
-
-irom static bool_t display_get_brightness(int *brightness)
-{
-	if(display_data.detected < 0)
-		return(false);
-
-	*brightness = display_data.brightness;
-
-	return(true);
 }
 
 irom static void display_dump(string_t *dst)
@@ -253,27 +230,6 @@ irom static void display_dump(string_t *dst)
 		string_format(dst, ">> %c slot %u: timeout %u, tag: \"%s\", text: \"%s\"\n",
 				slot == display_data.current_slot ? '+' : ' ',
 				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
-}
-
-irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
-{
-	int value;
-
-	if(parse_int(1, src, &value, 0) != parse_ok)
-	{
-		string_cat(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
-		return(app_action_error);
-	}
-
-	if(!display_set_brightness(value) || !display_get_brightness(&value))
-	{
-		string_format(dst, "display-brightness: no display or invalid brightness value: %d\n", value);
-		return(app_action_error);
-	}
-
-	string_format(dst, "display brightness: %u\n", value);
-
-	return(app_action_normal);
 }
 
 irom app_action_t application_function_display_dump(const string_t *src, string_t *dst)
@@ -321,6 +277,36 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 	}
 
 	string_format(dst, "display-flip-timeout: %u s\n", config.display.flip_timeout);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
+{
+	int value;
+	display_info_t *display_info_entry;
+
+	if(display_data.detected < 0)
+	{
+		string_cat(dst, "display_brightess: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(parse_int(1, src, &value, 0) != parse_ok)
+	{
+		string_cat(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
+		return(app_action_error);
+	}
+
+	if(!display_info_entry->bright_fn || !display_info_entry->bright_fn(value))
+	{
+		string_format(dst, "display-brightness: invalid brightness value: %d\n", value);
+		return(app_action_error);
+	}
+
+	string_format(dst, "display brightness: %u\n", value);
 
 	return(app_action_normal);
 }

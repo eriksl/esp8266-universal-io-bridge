@@ -7,7 +7,6 @@ enum
 {
 	buffer_rows = 4,
 	buffer_columns = 20,
-	buffer_status_rows = buffer_rows + 1,
 	udg_amount = 8,
 	udg_byte_amount = 8,
 	map_amount = 15,
@@ -36,7 +35,7 @@ typedef struct
 	struct
 	{
 		unsigned int dirty:1;
-	} row[buffer_status_rows];
+	} row[buffer_rows];
 } row_status_t;
 
 static const map_t map[map_amount] =
@@ -169,7 +168,6 @@ static const udg_t udg[udg_amount] =
 static row_status_t row_status;
 static bool_t inited = false;
 static bool_t nibble_mode;
-static int brightness = 0;
 static lcd_io_t lcd_io_pin[io_lcd_size];
 static uint8_t buffer[buffer_rows][buffer_columns];
 
@@ -346,21 +344,41 @@ irom bool_t display_lcd_init(void)
 		for(x = 0; x < buffer_columns; x++)
 			buffer[y][x] = ' ';
 
-	for(ix = 0; ix < buffer_status_rows; ix++)
+	for(ix = 0; ix < buffer_rows; ix++)
 		row_status.row[ix].dirty = 1;
+
+	return(display_lcd_bright(1));
+}
+
+typedef enum
+{
+	cmd_off_off_off = 0b00001000,	// display off, cursor off, blink off
+	cmd_on_off_off = 0b00001100,	// display on, cursor off, blink off
+} cmd_t;
+
+irom bool_t display_lcd_bright(int brightness)
+{
+	static const unsigned int bls[5] = { 0, 1024, 4096, 16384, 65535 };
+	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
+
+	if((brightness < 0) || (brightness > 4))
+		return(false);
+
+	if(!send_byte(cmds[brightness], false))
+		return(false);
+
+	set_pin(io_lcd_bl, bls[brightness]);		// backlight pin might be not configured, ignore error
 
 	return(true);
 }
 
-irom bool_t display_lcd_set(int brightness_in, const char *tag, const char *text)
+irom bool_t display_lcd_set(const char *tag, const char *text)
 {
 	unsigned int current, mapped, utf16;
 	int y, x, ix;
 
 	if(!inited)
 		return(false);
-
-	brightness = brightness_in;
 
 	for(y = 0; y < buffer_rows; y++)
 		for(x = 0; x < buffer_columns; x++)
@@ -449,7 +467,7 @@ irom bool_t display_lcd_set(int brightness_in, const char *tag, const char *text
 			buffer[y][x++] = (uint8_t)(current & 0xff);
 	}
 
-	for(ix = 0; ix < buffer_status_rows; ix++)
+	for(ix = 0; ix < buffer_rows; ix++)
 		row_status.row[ix].dirty = 1;
 
 	return(true);

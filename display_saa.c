@@ -94,6 +94,8 @@ static const uint8_t led_charrom[] =
 	0x40,		/*	95	_	*/
 };
 
+static int brightness = 1;
+
 static irom int led_render_char(int character)
 {
 	int add_dot = 0;
@@ -146,7 +148,17 @@ irom bool_t display_saa1064_init(void)
 	return(true);
 }
 
-irom bool_t display_saa1064_set(int brightness, const char *tag, const char *from)
+irom bool_t display_saa1064_bright(int bright_in)
+{
+	if((bright_in < 0) || (bright_in > 4))
+		return(false);
+
+	brightness = bright_in;
+
+	return(true);
+}
+
+irom bool_t display_saa1064_set(const char *tag, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
