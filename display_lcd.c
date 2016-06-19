@@ -475,131 +475,34 @@ irom bool_t display_lcd_set(const char *tag, const char *text)
 
 irom bool_t display_lcd_show(void)
 {
-	int cmd = -1;
-	int bl = 0;
-	int x;
+	static const uint8_t offset[4][2] =
+	{
+		{ 0,  0 },
+		{ 0,  64 },
+		{ 20,  0 },
+		{ 20, 64 }
+	};
+
+	int x, y;
 
 	if(!inited)
 		return(false);
 
-	if(row_status.row[0].dirty)
-	{
-		switch(brightness)
-		{
-			case(0):
-			{
-				cmd = 0b00001000;	// display off, cursor off, blink off
-				bl = 0;
+	for(y = 0; y < buffer_rows; y++)
+		if(row_status.row[y].dirty)
+			break;
 
-				break;
-			}
+	if(y >= buffer_rows)
+		return(false);
 
-			case(1):
-			{
-				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 1024;
+	if(!send_byte(0x80 + offset[y][0] + offset[y][1], false))
+		return(false);
 
-				break;
-			}
-
-			case(2):
-			{
-				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 4096;
-
-				break;
-			}
-
-			case(3):
-			{
-				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 16384;
-
-				break;
-			}
-
-			case(4):
-			{
-				cmd = 0b00001100;	// display on, cursor off, blink off
-				bl = 65535;
-
-				break;
-			}
-
-			default:
-			{
-				cmd = 0b00001000;	// display off, cursor off, blink off
-				bl = 0;
-
-				break;
-			}
-		}
-
-		if(!send_byte(cmd, false))
+	for(x = 0; x < buffer_columns; x++)
+		if(!send_byte(buffer[y][x], true))
 			return(false);
 
-		set_pin(io_lcd_bl, bl);		// backlight pin might be not configured, ignore error
+	row_status.row[y].dirty = 0;
 
-		row_status.row[0].dirty = 0;
-
-		return(true);
-	}
-
-	if(row_status.row[1].dirty)
-	{
-		if(!send_byte(0x80 + 0 + 0, false))
-			return(false);
-
-		for(x = 0; x < buffer_columns; x++)
-			if(!send_byte(buffer[0][x], true))
-				return(false);
-
-		row_status.row[1].dirty = 0;
-
-		return(true);
-	}
-
-	if(row_status.row[2].dirty)
-	{
-		if(!send_byte(0x80 + 0 + 64, false))
-			return(false);
-
-		for(x = 0; x < buffer_columns; x++)
-			if(!send_byte(buffer[1][x], true))
-				return(false);
-
-		row_status.row[2].dirty = 0;
-
-		return(true);
-	}
-
-	if(row_status.row[3].dirty)
-	{
-		if(!send_byte(0x80 + 20 + 0, false))
-			return(false);
-
-		for(x = 0; x < buffer_columns; x++)
-			if(!send_byte(buffer[2][x], true))
-				return(false);
-
-		row_status.row[3].dirty = 0;
-
-		return(true);
-	}
-
-	if(row_status.row[4].dirty)
-	{
-		if(!send_byte(0x80 + 20 + 64, false))
-			return(false);
-
-		for(x = 0; x < buffer_columns; x++)
-			if(!send_byte(buffer[3][x], true))
-				return(false);
-
-		row_status.row[4].dirty = 0;
-
-		return(true);
-	}
-
-	return(false);
+	return(true);
 }
