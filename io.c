@@ -1116,11 +1116,12 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			string_clear(dst);
 
-			llmode = io_pin_ll_counter;
-
+			pin_config->speed = debounce;
 			pin_config->shared.trigger.io.io = trigger_io;
 			pin_config->shared.trigger.io.pin = trigger_pin;
 			pin_config->shared.trigger.trigger_mode = trigger_type;
+
+			llmode = io_pin_ll_counter;
 
 			break;
 		}
