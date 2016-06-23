@@ -1035,7 +1035,31 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_lm75_0, 0x48,
-		"lm75/tmp275@0x48", "temperature", "C", 1,
+		"lm75/tmp275@0x48", "temperature", "C", 2,
+		sensor_lm75_init,
+		sensor_lm75_read
+	},
+	{
+		i2c_sensor_lm75_1, 0x49,
+		"lm75/tmp275@0x49", "temperature", "C", 2,
+		sensor_lm75_init,
+		sensor_lm75_read
+	},
+	{
+		i2c_sensor_lm75_2, 0x4a,
+		"lm75/tmp275@0x4a", "temperature", "C", 2,
+		sensor_lm75_init,
+		sensor_lm75_read
+	},
+	{
+		i2c_sensor_lm75_3, 0x4b,
+		"lm75/tmp275@0x4b", "temperature", "C", 2,
+		sensor_lm75_init,
+		sensor_lm75_read
+	},
+	{
+		i2c_sensor_lm75_7, 0x4f,
+		"lm75/tmp275@0x4f", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
@@ -1092,12 +1116,6 @@ static const device_table_entry_t device_table[] =
 		"am2321", "humidity", "%", 0,
 		sensor_am2321_hum_init,
 		sensor_am2321_hum_read
-	},
-	{
-		i2c_sensor_lm75_7, 0x4f,
-		"lm75/tmp275@0x4f", "temperature", "C", 1,
-		sensor_lm75_init,
-		sensor_lm75_read
 	},
 };
 

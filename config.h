@@ -14,7 +14,7 @@
 enum
 {
 	config_magic = 0x4afc0002,
-	config_version = 1,
+	config_version = 2,
 };
 
 typedef enum
