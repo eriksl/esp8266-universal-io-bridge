@@ -623,11 +623,13 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				{
 					if(value < pin_config->shared.output_analog.lower_bound)
 						value = pin_config->shared.output_analog.lower_bound;
+					else
+					{
+						if(value == 0)
+							value = 1;
 
-					if(value == 0)
-						value = 1;
-
-					value *= (pin_config->speed / 10000.0) + 1;
+						value *= (pin_config->speed / 10000.0) + 1;
+					}
 
 					if(value >= pin_config->shared.output_analog.upper_bound)
 					{
