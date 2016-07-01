@@ -1015,8 +1015,9 @@ irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entr
 	//	0x02	length
 
 	if((error = sensor_am2321_read_registers(entry->address, 0x08, 0x02, values)) != i2c_error_ok)
-		return(i2c_error_address_nak);
+		return(error);
 
+	// doesn't work on all models
 	//if((values[0] != 0x32) || (values[1] != 0x31))
 		//return(i2c_error_address_nak);
 
