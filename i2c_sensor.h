@@ -10,11 +10,11 @@ typedef enum
 {
 	i2c_sensor_digipicco_temperature,
 	i2c_sensor_digipicco_humidity,
-	i2c_sensor_ds1631_0,
 	i2c_sensor_lm75_0,
 	i2c_sensor_lm75_1,
 	i2c_sensor_lm75_2,
 	i2c_sensor_lm75_3,
+	i2c_sensor_ds1631_6,
 	i2c_sensor_lm75_7,
 	i2c_sensor_bmp085_temperature,
 	i2c_sensor_bmp085_airpressure,

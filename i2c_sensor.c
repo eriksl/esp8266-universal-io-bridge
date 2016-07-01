@@ -113,9 +113,6 @@ irom static i2c_error_t sensor_ds1631_read(const device_table_entry_t *entry, va
 	i2c_error_t error;
 	int raw;
 
-	if((entry->id == i2c_sensor_ds1631_0) && i2c_sensor_detected(i2c_sensor_lm75_0))
-		return(i2c_error_device_error_1);
-
 	// read temperature
 
 	if((error = i2c_send_1(entry->address, 0xaa)) != i2c_error_ok)
@@ -141,9 +138,6 @@ irom static i2c_error_t sensor_lm75_init(const device_table_entry_t *entry)
 {
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
-
-	if((entry->id == i2c_sensor_lm75_0) && i2c_sensor_detected(i2c_sensor_ds1631_0))
-		return(i2c_error_device_error_1);
 
 	// 0x01		select config register
 	// 0x60		set all defaults, operation is not shutdown
@@ -193,9 +187,6 @@ irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, valu
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	int raw;
-
-	if((entry->id == i2c_sensor_lm75_0) && i2c_sensor_detected(i2c_sensor_ds1631_0))
-		return(i2c_error_device_error_1);
 
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
@@ -1026,12 +1017,6 @@ static const device_table_entry_t device_table[] =
 		sensor_digipicco_hum_read
 	},
 	{
-		i2c_sensor_ds1631_0, 0x48,
-		"ds1621/ds1631/ds1731@0x48", "temperature", "C", 2,
-		sensor_ds1631_init,
-		sensor_ds1631_read
-	},
-	{
 		i2c_sensor_lm75_0, 0x48,
 		"lm75/tmp275@0x48", "temperature", "C", 2,
 		sensor_lm75_init,
@@ -1054,6 +1039,12 @@ static const device_table_entry_t device_table[] =
 		"lm75/tmp275@0x4b", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
+	},
+	{
+		i2c_sensor_ds1631_6, 0x4e,
+		"ds1621/ds1631/ds1731@0x4e", "temperature", "C", 2,
+		sensor_ds1631_init,
+		sensor_ds1631_read
 	},
 	{
 		i2c_sensor_lm75_7, 0x4f,
