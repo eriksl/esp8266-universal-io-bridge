@@ -681,12 +681,10 @@ irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
 		return(error);
 
-	// standard range / extended range
-
 	if(config_get_flag(config_flag_tsl_high_sens))
-		sens_command = 0x18;
+		sens_command = 0x18;	// standard range mode
 	else
-		sens_command = 0x1d;
+		sens_command = 0x1d;	// extended range mode
 
 	if((error = sensor_tsl2550_write_check(entry->address, sens_command, 0x1b)) != i2c_error_ok)
 		return(error);
