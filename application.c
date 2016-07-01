@@ -476,9 +476,9 @@ irom static app_action_t application_function_i2c_sensor_dump(const string_t *sr
 		switch(option)
 		{
 			case(2):
-				verbose = true;
-			case(1):
 				all = true;
+			case(1):
+				verbose = true;
 			default:
 				(void)0;
 		}
