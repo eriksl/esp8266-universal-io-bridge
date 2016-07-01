@@ -886,6 +886,12 @@ irom static i2c_error_t sensor_htu21_hum_read(const device_table_entry_t *entry,
 	value->raw = result;
 	value->cooked = ((value->raw * 125) / 65536) - 6;
 
+	if(value->cooked < 0)
+		value->cooked = 0;
+
+	if(value->cooked > 100)
+		value->cooked = 100;
+
 	return(i2c_error_ok);
 }
 
