@@ -947,12 +947,18 @@ irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, in
 	msleep(1);
 
 	if((error = i2c_send_3(address, 0x03, offset, length)) != i2c_error_ok)
+	{
+		i2c_reset();
 		return(error);
+	}
 
 	msleep(1);
 
 	if((error = i2c_receive(address, length + 4, i2cbuffer)) != i2c_error_ok)
+	{
+		i2c_reset();
 		return(error);
+	}
 
 	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
 		return(i2c_error_device_error_2);
