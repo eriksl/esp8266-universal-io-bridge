@@ -19,7 +19,7 @@ _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {
-	i2c_config_wait_idle_timeout = 32,
+	i2c_config_stretch_clock_timeout = 32,
 	i2c_config_scl_waiting_window = 4,
 } i2c_config_t;
 
@@ -145,7 +145,7 @@ iram static always_inline i2c_error_t wait_idle(void)
 {
 	int current;
 
-	for(current = i2c_config_wait_idle_timeout; current > 0; current--)
+	for(current = i2c_config_stretch_clock_timeout; current > 0; current--)
 	{
 		if(scl_is_set())
 			break;
@@ -462,7 +462,7 @@ irom i2c_error_t i2c_reset(void)
 	// if someone is holding the sda line, simulate clock cycles
 	// to make them release it
 
-	for(current = i2c_config_wait_idle_timeout; current > 0; current--)
+	for(current = i2c_config_stretch_clock_timeout; current > 0; current--)
 	{
 		if(sda_is_set())
 			break;
