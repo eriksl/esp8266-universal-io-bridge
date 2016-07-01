@@ -217,8 +217,7 @@ irom static noinline i2c_error_t send_stop(void)
 {
 	i2c_error_t error;
 
-	if(state != i2c_state_stop_send)
-		return(i2c_error_invalid_state_not_send_stop);
+	state = i2c_state_stop_send;
 
 	// at this point scl should be high and sda is unknown
 	// wait for scl to be released by all masters and slaves
@@ -261,6 +260,8 @@ irom static noinline i2c_error_t send_stop(void)
 
 	if(!sda_is_set())
 		return(i2c_error_sda_stuck);
+
+	state = i2c_state_idle;
 
 	return(i2c_error_ok);
 }
@@ -458,8 +459,6 @@ irom i2c_error_t i2c_reset(void)
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
 
-	state = i2c_state_stop_send;
-
 	send_stop();
 
 	// if someone is holding the sda line, simulate clock cycles
@@ -481,8 +480,6 @@ irom i2c_error_t i2c_reset(void)
 
 	if(!scl_is_set())
 		return(i2c_error_bus_lock);
-
-	state = i2c_state_idle;
 
 	return(i2c_error_ok);
 }
@@ -533,12 +530,8 @@ irom i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 			return(i2c_error_data_nak);
 	}
 
-	state = i2c_state_stop_send;
-
 	if((error = send_stop()) != i2c_error_ok)
 		return(error);
-
-	state = i2c_state_idle;
 
 	return(i2c_error_ok);
 }
@@ -572,12 +565,8 @@ irom i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 			return(error);
 	}
 
-	state = i2c_state_stop_send;
-
 	if((error = send_stop()) != i2c_error_ok)
 		return(error);
-
-	state = i2c_state_idle;
 
 	return(i2c_error_ok);
 }

@@ -967,8 +967,6 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 		sensor_am2321_cached_temperature.raw = (values[2] << 8) | values[3];
 		sensor_am2321_cached_temperature.cooked = sensor_am2321_cached_temperature.raw / 10.0;
 	}
-	else
-		i2c_reset();
 
 	if(request_humidity)
 		*value = sensor_am2321_cached_humidity;
@@ -1123,6 +1121,8 @@ irom void i2c_sensor_init(void)
 {
 	const device_table_entry_t *entry;
 	i2c_sensor_t current;
+
+	i2c_reset();
 
 	for(current = 0; current < i2c_sensor_size; current++)
 	{
