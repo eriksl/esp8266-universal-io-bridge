@@ -628,7 +628,10 @@ irom int dprintf(const char *fmt, ...)
 irom void msleep(int msec)
 {
 	while(msec-- > 0)
+	{
+		system_soft_wdt_feed();
 		os_delay_us(1000);
+	}
 }
 
 irom attr_pure ip_addr_t ip_addr(const char *src)
