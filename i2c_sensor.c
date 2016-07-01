@@ -889,6 +889,25 @@ irom static i2c_error_t sensor_htu21_hum_read(const device_table_entry_t *entry,
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_htu21_temp_init(const device_table_entry_t *entry)
+{
+	value_t value;
+	i2c_error_t error;
+
+	if((error = sensor_htu21_temp_read(entry, &value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_htu21_hum_init(const device_table_entry_t *entry)
+{
+	if(!i2c_sensor_detected(i2c_sensor_htu21_temperature))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
 irom attr_pure static uint16_t am2321_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit;
@@ -1095,13 +1114,13 @@ static const device_table_entry_t device_table[] =
 	{
 		i2c_sensor_htu21_temperature, 0x40,
 		"htu21", "temperature", "C", 1,
-		0,
+		sensor_htu21_temp_init,
 		sensor_htu21_temp_read
 	},
 	{
 		i2c_sensor_htu21_humidity, 0x40,
 		"htu21", "humidity", "%", 0,
-		0,
+		sensor_htu21_hum_init,
 		sensor_htu21_hum_read
 	},
 	{
