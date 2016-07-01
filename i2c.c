@@ -76,7 +76,10 @@ static roflash const char error_strings[i2c_error_size][32] =
 
 irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 {
-	string_cat(dst, ": i2c bus error: ");
+	if(error != i2c_error_ok)
+		string_cat(dst, ": i2c bus error: ");
+	else
+		string_cat(dst, ": ");
 
 	if(error < i2c_error_size)
 		string_cat_ptr(dst, error_strings[error]);
