@@ -833,31 +833,41 @@ irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sensor_htu21_read_temp(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uint8_t command, uint16_t *result)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
 	uint8_t crc1, crc2;
 
-	// temperature measurement "hold master" mode
-
-	if((error = i2c_send_1(entry->address, 0xe3)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, command)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 		return(error);
-
-	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
 
 	crc1 = i2cbuffer[2];
 	crc2 = htu21_crc(2, &i2cbuffer[0]);
 
 	if(crc1 != crc2)
-	{
-		value->cooked = -256;
-		return(i2c_error_ok);
-	}
+		return(i2c_error_device_error_1);
 
+	*result = ((uint16_t)i2cbuffer[0] << 8) | ((uint16_t)i2cbuffer[1] << 0);
+	*result &= 0xfffc; // mask out status bits in the 2 LSB
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t error;
+	uint16_t result;
+
+	// temperature measurement "hold master" mode -> 0xe3
+
+	if((error = sensor_htu21_read(entry, 0xe3, &result)) != i2c_error_ok)
+		return(error);
+
+	value->raw = result;
 	value->cooked = ((value->raw * 175.72) / 65536) - 46.85;
 
 	return(i2c_error_ok);
@@ -866,28 +876,14 @@ irom static i2c_error_t sensor_htu21_read_temp(const device_table_entry_t *entry
 irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
-	uint8_t	i2cbuffer[4];
-	uint8_t crc1, crc2;
+	uint16_t result;
 
-	// humidity measurement "hold master" mode
+	// humidity measurement "hold master" mode -> 0xe5
 
-	if((error = i2c_send_1(entry->address, 0xe5)) != i2c_error_ok)
+	if((error = sensor_htu21_read(entry, 0xe5, &result)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
-
-	crc1 = i2cbuffer[2];
-	crc2 = htu21_crc(2, &i2cbuffer[0]);
-
-	if(crc1 != crc2)
-	{
-		value->cooked = -1;
-		return(i2c_error_ok);
-	}
-
+	value->raw = result;
 	value->cooked = ((value->raw * 125) / 65536) - 6;
 
 	return(i2c_error_ok);
