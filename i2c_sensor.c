@@ -857,7 +857,7 @@ irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uin
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_htu21_temp_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -873,7 +873,7 @@ irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry,
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_read_hum(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_htu21_hum_read(const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -1096,13 +1096,13 @@ static const device_table_entry_t device_table[] =
 		i2c_sensor_htu21_temperature, 0x40,
 		"htu21", "temperature", "C", 1,
 		0,
-		sensor_htu21_read_temp
+		sensor_htu21_temp_read
 	},
 	{
 		i2c_sensor_htu21_humidity, 0x40,
 		"htu21", "humidity", "%", 0,
 		0,
-		sensor_htu21_read_hum
+		sensor_htu21_hum_read
 	},
 	{
 		i2c_sensor_am2321_temperature, 0x5c,
