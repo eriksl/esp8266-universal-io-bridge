@@ -44,9 +44,6 @@ irom static i2c_error_t sensor_digipicco_temp_init(const device_table_entry_t *e
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
 
-	if((error = i2c_send(entry->address, 1, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
 	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
