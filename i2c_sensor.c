@@ -996,6 +996,16 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_am2321_temp_read(const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_am2321_read(entry->address, value, false));
+}
+
+irom static i2c_error_t sensor_am2321_hum_read(const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_am2321_read(entry->address, value, true));
+}
+
 irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entry)
 {
 	i2c_error_t	error;
@@ -1013,22 +1023,12 @@ irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entr
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_temp_read(const device_table_entry_t *entry, value_t *value)
-{
-	return(sensor_am2321_read(entry->address, value, false));
-}
-
 irom static i2c_error_t sensor_am2321_hum_init(const device_table_entry_t *entry)
 {
 	if(!i2c_sensor_detected(i2c_sensor_am2321_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_am2321_hum_read(const device_table_entry_t *entry, value_t *value)
-{
-	return(sensor_am2321_read(entry->address, value, true));
 }
 
 static const device_table_entry_t device_table[] =
