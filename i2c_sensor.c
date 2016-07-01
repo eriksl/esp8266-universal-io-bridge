@@ -362,6 +362,25 @@ irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *te
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_bmp085_init_temp(const device_table_entry_t *entry)
+{
+	double temp, temp_raw, pressure, pressure_raw;
+	i2c_error_t error;
+
+	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_bmp085_init_pressure(const device_table_entry_t *entry)
+{
+	if(!i2c_sensor_detected(i2c_sensor_bmp085_temperature))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
 irom static i2c_error_t sensor_bmp085_read_temp(const device_table_entry_t *entry, value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
@@ -1055,13 +1074,13 @@ static const device_table_entry_t device_table[] =
 	{
 		i2c_sensor_bmp085_temperature, 0x77,
 		"bmp085", "temperature", "C", 1,
-		0,
+		sensor_bmp085_init_temp,
 		sensor_bmp085_read_temp
 	},
 	{
 		i2c_sensor_bmp085_airpressure, 0x77,
 		"bmp085", "pressure", "hPa", 0,
-		0,
+		sensor_bmp085_init_pressure,
 		sensor_bmp085_read_pressure
 	},
 	{
