@@ -84,9 +84,13 @@ irom void stats_generate(string_t *dst)
 
 	const struct rst_info *rst_info;
 	struct station_config sc_default, sc_current;
-	int system_time;
+	uint32_t system_time, system_time_sec, system_time_usec;
 
 	system_time = system_get_time();
+	system_time_sec = system_time / 1000000U;
+	system_time_usec = system_time % 1000000U;
+	system_time_usec /= 100000;
+
 	rst_info = system_get_rst_info();
 
 	wifi_station_get_config_default(&sc_default);
@@ -101,7 +105,7 @@ irom void stats_generate(string_t *dst)
 			"> reset cause: %s\n"
 			">\n"
 			"> heap free: %u bytes\n"
-			"> system clock: %u.%06u s\n"
+			"> system clock: %u.%u s\n"
 			"> uptime: %u %02d:%02d:%02d\n"
 			"> real time: %u %02d:%02d:%02d\n"
 			">\n"
@@ -134,8 +138,7 @@ irom void stats_generate(string_t *dst)
 			flash_map[system_get_flash_size_map()],
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
-			system_time / 1000000,
-			system_time % 1000000,
+			system_time_sec, system_time_usec,
 			ut_days, ut_hours, ut_mins, ut_secs,
 			rt_days, rt_hours, rt_mins, rt_secs,
 			USER_CONFIG_SECTOR * 0x1000,
