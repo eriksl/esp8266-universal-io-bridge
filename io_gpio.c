@@ -77,12 +77,12 @@ static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 
 static uint32_t pwm_duty[io_gpio_pwm_size];
 
-irom static inline void pin_arm_counter(int pin)
+iram static void pin_arm_counter(int pin, bool_t enable)
 {
 	// no use in specifying POSEDGE or NEGEDGE here (bummer),
 	// they act exactly like ANYEDGE, I assume that's an SDK bug
 
-	gpio_pin_intr_state_set(pin, GPIO_PIN_INTR_ANYEDGE);
+	gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_ANYEDGE : GPIO_PIN_INTR_DISABLE);
 }
 
 iram static void pc_int_handler(uint32_t pc, void *arg)
@@ -92,31 +92,39 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 	int pin;
 	int pinvalues;
 
+	ETS_GPIO_INTR_DISABLE();
+
 	pinvalues = gpio_input_get();
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		pin_config = &config.io_config[io_id_gpio][pin];
-
-		if((pc & (1 << pin)) && (pin_config->llmode == io_pin_ll_counter))
+		if(pc & (1 << pin))
 		{
-			gpio_pin_data = &gpio_data[pin];
+			pin_config = &config.io_config[io_id_gpio][pin];
 
-			if(pinvalues & (1 << pin)) // only count downward edge, counter is commonly pull-up
-				gpio_pin_data->counter.debounce = 1; // workaround to ingore pcint but have it re-armed
-			else
+			if(pin_config->llmode == io_pin_ll_counter)
 			{
+				gpio_pin_data = &gpio_data[pin];
+
 				if(gpio_pin_data->counter.debounce == 0)
 				{
-					gpio_pin_data->counter.counter++;
+					if(pinvalues & (1 << pin))
+					{
+						gpio_pin_data->counter.counter++;
+						gpio_flags.counter_triggered = 1;
+					}
+
 					gpio_pin_data->counter.debounce = pin_config->speed;
-					gpio_flags.counter_triggered = 1;
 				}
+
+				pin_arm_counter(pin, false);
 			}
 		}
 	}
 
 	gpio_intr_ack(pc);
+
+	ETS_GPIO_INTR_ENABLE();
 }
 
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
@@ -185,7 +193,7 @@ irom void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 				gpio_pin_data->counter.debounce = 0;
 
 			if(gpio_pin_data->counter.debounce == 0)
-				pin_arm_counter(pin);
+				pin_arm_counter(pin, true);
 		}
 	}
 
@@ -236,7 +244,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 				gpio_pin_data->counter.counter = 0;
 				gpio_pin_data->counter.debounce = 0;
 
-				pin_arm_counter(pin);
+				pin_arm_counter(pin, true);
 			}
 
 			break;
