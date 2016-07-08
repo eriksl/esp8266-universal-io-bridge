@@ -98,6 +98,7 @@ irom void stats_generate(string_t *dst)
 
 	string_format(dst,
 			"> firmware version date: %s\n"
+			"> SDK version: %s\n"
 			"> system id: %u\n"
 			"> spi flash id: %u\n"
 			"> cpu frequency: %u MHz\n"
@@ -132,6 +133,7 @@ irom void stats_generate(string_t *dst)
 			"> channel: %u\n"
 			"> signal strength: %d dB\n",
 			__DATE__ " " __TIME__,
+			system_get_sdk_version(),
 			system_get_chip_id(),
 			spi_flash_get_id(),
 			system_get_cpu_freq(),
