@@ -110,8 +110,10 @@ irom void stats_generate(string_t *dst)
 			"> uptime: %u %02d:%02d:%02d\n"
 			"> real time: %u %02d:%02d:%02d\n"
 			">\n"
-			"> config is at %x\n"
-			"> size of config: %u\n"
+			"> config magic: %x\n"
+			"> version: %x\n"
+			"> address: %x\n"
+			"> size: %u\n"
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
@@ -143,6 +145,8 @@ irom void stats_generate(string_t *dst)
 			system_time_sec, system_time_usec,
 			ut_days, ut_hours, ut_mins, ut_secs,
 			rt_days, rt_hours, rt_mins, rt_secs,
+			config.magic,
+			config.version,
 			USER_CONFIG_SECTOR * 0x1000,
 			sizeof(config_t),
 			stat_uart_rx_interrupts,
