@@ -173,7 +173,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	io_config_pin_entry_t *pin_config;
 	gpio_data_pin_t *gpio_pin_data;
@@ -382,7 +382,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	return(io_ok);
 }
 
-irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -436,7 +436,7 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
+iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 

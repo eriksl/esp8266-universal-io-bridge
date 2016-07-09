@@ -26,7 +26,7 @@ iram attr_pure int queue_lf(const queue_t *queue)
 	return(queue->lf);
 }
 
-irom void queue_flush(queue_t *queue)
+iram void queue_flush(queue_t *queue)
 {
 	queue->in = 0;
 	queue->out = 0;

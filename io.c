@@ -853,7 +853,7 @@ irom void io_init(void)
 	}
 }
 
-irom void io_periodic(void)
+iram void io_periodic(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
