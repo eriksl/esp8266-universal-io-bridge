@@ -1,6 +1,7 @@
 #include "display.h"
 #include "display_saa.h"
 #include "display_lcd.h"
+#include "display_orbital.h"
 
 #include "util.h"
 #include "stats.h"
@@ -19,8 +20,9 @@ assert_size(display_slot_enum_t, 4);
 
 typedef enum
 {
-	display_saa1064,
-	display_lcd,
+	display_saa1064 = 0,
+	display_lcd = 1,
+	display_orbital = 2,
 	display_error,
 	display_size = display_error
 } display_id_t;
@@ -66,6 +68,13 @@ static roflash display_info_t display_info[display_size] =
 		display_lcd_bright,
 		display_lcd_set,
 		display_lcd_show
+	},
+	{
+		80, "matrix orbital", "4x20 character VFD display",
+		display_orbital_init,
+		display_orbital_bright,
+		display_orbital_set,
+		display_orbital_show
 	}
 };
 

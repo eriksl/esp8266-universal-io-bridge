@@ -65,4 +65,5 @@ void		i2c_error_format_string(string_t *dst, i2c_error_t error);
 i2c_error_t		i2c_send_1(int address, int byte0);
 i2c_error_t		i2c_send_2(int address, int byte0, int byte1);
 i2c_error_t		i2c_send_3(int address, int byte0, int byte1, int byte2);
+i2c_error_t		i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3);
 #endif

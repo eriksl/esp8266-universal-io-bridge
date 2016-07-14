@@ -600,3 +600,15 @@ iram i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 
 	return(i2c_send(address, 3, bytes));
 }
+
+irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
+{
+	uint8_t bytes[4];
+
+	bytes[0] = byte0;
+	bytes[1] = byte1;
+	bytes[2] = byte2;
+	bytes[3] = byte3;
+
+	return(i2c_send(address, 4, bytes));
+}
