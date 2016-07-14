@@ -119,7 +119,7 @@ irom void config_read(config_t *cfg)
 
 		strlcpy(cfg->ap_wlan.ssid, DEFAULT_SSID, sizeof(cfg->ap_wlan.ssid));
 		strlcpy(cfg->ap_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->ap_wlan.passwd));
-		cfg->ap_wlan.channel = '1';
+		cfg->ap_wlan.channel = 1;
 
 		cfg->wlan_mode = config_wlan_mode_client;
 
