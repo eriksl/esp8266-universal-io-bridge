@@ -571,7 +571,7 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_send_1(int address, int byte0)
+irom i2c_error_t i2c_send_1(int address, int byte0)
 {
 	uint8_t bytes[1];
 
@@ -580,7 +580,7 @@ iram i2c_error_t i2c_send_1(int address, int byte0)
 	return(i2c_send(address, 1, bytes));
 }
 
-iram i2c_error_t i2c_send_2(int address, int byte0, int byte1)
+irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2];
 
@@ -590,7 +590,7 @@ iram i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 	return(i2c_send(address, 2, bytes));
 }
 
-iram i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
+irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3];
 
