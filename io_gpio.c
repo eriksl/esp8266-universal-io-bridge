@@ -108,7 +108,7 @@ iram static void pc_int_handler(uint32_t pc, void *arg)
 
 				if(gpio_pin_data->counter.debounce == 0)
 				{
-					if(pinvalues & (1 << pin))
+					if(!(pinvalues & (1 << pin)))
 					{
 						gpio_pin_data->counter.counter++;
 						gpio_flags.counter_triggered = 1;
