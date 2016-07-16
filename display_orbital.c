@@ -18,15 +18,6 @@ irom bool_t display_orbital_init(void)
 				return(false);
 	}
 
-	if(i2c_send_2(0x28, 0xfe, 0x44) != i2c_error_ok) // line wrap off
-		return(false);
-
-	if(i2c_send_2(0x28, 0xfe, 0x52) != i2c_error_ok) // scroll off
-		return(false);
-
-	if(i2c_send_2(0x28, 0xfe, 0x54) != i2c_error_ok) // cursor off
-		return(false);
-
 	inited = true;
 
 	for(y = 0; y < display_common_buffer_rows; y++)
@@ -127,6 +118,15 @@ irom bool_t display_orbital_show(void)
 			break;
 
 	if(y >= display_common_buffer_rows)
+		return(false);
+
+	if(i2c_send_2(0x28, 0xfe, 0x44) != i2c_error_ok) // line wrap off
+		return(false);
+
+	if(i2c_send_2(0x28, 0xfe, 0x52) != i2c_error_ok) // scroll off
+		return(false);
+
+	if(i2c_send_2(0x28, 0xfe, 0x54) != i2c_error_ok) // cursor off
 		return(false);
 
 	if(i2c_send_4(0x28, 0xfe, 0x47, 1, y + 1) != i2c_error_ok)
