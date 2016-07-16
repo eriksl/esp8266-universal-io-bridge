@@ -2,6 +2,7 @@
 
 #include "util.h"
 #include "config.h"
+#include "time.h"
 
 #include <c_types.h>
 #include <user_interface.h>
@@ -29,12 +30,6 @@ int	ut_hours;
 int	ut_mins;
 int	ut_secs;
 int	ut_tens;
-
-int	rt_days;
-int	rt_hours;
-int	rt_mins;
-int	rt_secs;
-int	rt_tens;
 
 static const char *flash_map[] =
 {
@@ -82,9 +77,11 @@ irom void stats_generate(string_t *dst)
 	rboot_config rcfg;
 #endif
 
-	const struct rst_info *rst_info;
-	struct station_config sc_default, sc_current;
-	uint32_t system_time, system_time_sec, system_time_usec;
+	static int days, hours, minutes, seconds, tens;
+	static bool_t time_in_sync;
+	static const struct rst_info *rst_info;
+	static struct station_config sc_default, sc_current;
+	static uint32_t system_time, system_time_sec, system_time_usec;
 
 	system_time = system_get_time();
 	system_time_sec = system_time / 1000000U;
@@ -95,6 +92,8 @@ irom void stats_generate(string_t *dst)
 
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
+
+	time_in_sync = real_time_get(&days, &hours, &minutes, &seconds, &tens);
 
 	string_format(dst,
 			"> firmware version date: %s\n"
@@ -107,8 +106,9 @@ irom void stats_generate(string_t *dst)
 			">\n"
 			"> heap free: %u bytes\n"
 			"> system clock: %u.%u s\n"
-			"> uptime: %u %02d:%02d:%02d\n"
-			"> real time: %u %02d:%02d:%02d\n"
+			"> uptime: %u %02u:%02u:%02u.%02u\n"
+			"> real time: %u %02u:%02u:%02u.%02u\n"
+			"> time synchronised to ntp: %s\n"
 			">\n"
 			"> config magic: %x\n"
 			"> version: %x\n"
@@ -143,8 +143,9 @@ irom void stats_generate(string_t *dst)
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
 			system_time_sec, system_time_usec,
-			ut_days, ut_hours, ut_mins, ut_secs,
-			rt_days, rt_hours, rt_mins, rt_secs,
+			ut_days, ut_hours, ut_mins, ut_secs, ut_tens,
+			days, hours, minutes, seconds, tens,
+			yesno(time_in_sync),
 			config.magic,
 			config.version,
 			USER_CONFIG_SECTOR * 0x1000,

@@ -25,12 +25,6 @@ extern int ut_mins;
 extern int ut_secs;
 extern int ut_tens;
 
-extern int rt_days;
-extern int rt_hours;
-extern int rt_mins;
-extern int rt_secs;
-extern int rt_tens;
-
 void stats_generate(string_t *);
 
 #endif

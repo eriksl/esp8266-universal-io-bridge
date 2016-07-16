@@ -6,6 +6,7 @@
 #include "util.h"
 #include "stats.h"
 #include "config.h"
+#include "time.h"
 
 #include <user_interface.h>
 
@@ -318,7 +319,7 @@ irom bool_t display_common_set(const char *tag, const char *text)
 irom static void display_update(bool_t advance)
 {
 	const char *display_text;
-	int slot;
+	int slot, hour, minute;
 	display_info_t *display_info_entry;
 	string_new(static, tag_text, 32);
 	string_new(static, info_text, 64);
@@ -343,18 +344,20 @@ irom static void display_update(bool_t advance)
 	display_data.current_slot = slot;
 	display_text = display_slot[slot].content;
 
+	real_time_get(0, &hour, &minute, 0, 0);
+
 	if(!ets_strcmp(display_text, "%%%%"))
 	{
 		string_clear(&info_text);
 		string_format(&info_text, "%02u.%02u %s %s",
-				rt_hours, rt_mins, display_info_entry->name, display_info_entry->type);
+				hour, minute, display_info_entry->name, display_info_entry->type);
 		display_text = string_to_ptr(&info_text);
 	}
 
 	if(ets_strcmp(display_slot[slot].tag, "-"))
 	{
 		string_clear(&tag_text);
-		string_format(&tag_text, "%02u:%02u ", rt_hours, rt_mins);
+		string_format(&tag_text, "%02u:%02u ", hour, minute);
 		string_cat_ptr(&tag_text, display_slot[slot].tag);
 		string_format(&tag_text, " [%u]", slot);
 		display_info_entry->set_fn(string_to_ptr(&tag_text), display_text);

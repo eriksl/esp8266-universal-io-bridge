@@ -10,6 +10,7 @@
 #include "display.h"
 #include "http.h"
 #include "io.h"
+#include "time.h"
 
 #if IMAGE_OTA == 1
 #include "ota.h"
@@ -527,17 +528,15 @@ irom static app_action_t application_function_unset(const string_t *src, string_
 
 irom static app_action_t application_function_rtc_set(const string_t *src, string_t *dst)
 {
-	int hours, minutes;
+	int days, hours, minutes, seconds, tens;
 
 	if((parse_int(1, src, &hours, 0) == parse_ok) &&
-		(parse_int(2, src, &minutes, 0) == parse_ok))
-	{
-		rt_hours = hours;
-		rt_mins = minutes;
-		rt_secs = 0;
-	}
+			(parse_int(2, src, &minutes, 0) == parse_ok))
+		real_time_set(hours, minutes);
 
-	string_format(dst, "rtc: %02u:%02u\n", rt_hours, rt_mins);
+	real_time_get(&days, &hours, &minutes, &seconds, &tens);
+
+	string_format(dst, "rtc: %d %02u:%02u:%02u.%02d\n", days, hours, minutes, seconds, tens);
 
 	return(app_action_normal);
 }

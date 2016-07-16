@@ -6,9 +6,9 @@
 #include "stats.h"
 #include "i2c.h"
 #include "display.h"
+#include "time.h"
 
 #include <stdlib.h>
-#include <sntp.h>
 #include <espconn.h>
 
 #include <rboot-api.h>
@@ -59,54 +59,6 @@ static espsrv_t cmd;
 static espsrv_t data;
 
 irom static void user_init2(void);
-
-irom static void ntp_init(void)
-{
-	if(ip_addr_valid(config.ntp.server))
-	{
-		sntp_stop();
-		sntp_setserver(0, &config.ntp.server);
-		sntp_set_timezone(config.ntp.timezone);
-		sntp_init();
-	}
-}
-
-irom static bool ntp_periodic(void)
-{
-	static int delay = 0;
-	static bool_t initial_burst = true;
-	struct tm *tm;
-	time_t ticks;
-
-	delay++;
-
-	if(delay < 10) // always check once a second or less
-		return(false);
-
-	if(!initial_burst && (delay < 6000)) // after initial burst only check every 10 minutes
-		return(false);
-
-	delay = 0;
-
-	if(!ip_addr_valid(config.ntp.server))
-		return(false);
-
-	ticks = sntp_get_current_timestamp();
-
-	if(ticks > 0)
-	{
-		initial_burst = false;
-
-		tm = sntp_localtime(&ticks);
-
-		rt_hours = tm->tm_hour;
-		rt_mins  = tm->tm_min;
-
-		ntp_init();	// FIXME SDK bug, stop and start ntp to get continuous updating
-	}
-
-	return(true);
-}
 
 irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
 		int port, int timeout, void (*connect_callback)(struct espconn *))
@@ -303,28 +255,7 @@ irom static void background_task_update_clocks(void)
 		}
 	}
 
-	// realtime clock
-
-	if(++rt_tens > 9)
-	{
-		rt_tens = 0;
-
-		if(++rt_secs > 59)
-		{
-			rt_secs = 0;
-
-			if(++rt_mins > 59)
-			{
-				rt_mins = 0;
-
-				if(++rt_hours > 23)
-				{
-					rt_hours = 0;
-					rt_days++;
-				}
-			}
-		}
-	}
+	real_time_tick();
 }
 
 iram static bool_t background_task_update_uart(void)
@@ -466,7 +397,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 		return;
 	}
 
-	if(ntp_periodic())
+	if(ip_addr_valid(config.ntp.server) && ntp_periodic())
 	{
 		stat_update_ntp++;
 		system_os_post(background_task_id, 0, 0);
@@ -580,7 +511,10 @@ irom static void user_init2(void)
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	wlan_init();
-	ntp_init();
+
+	if(ip_addr_valid(config.ntp.server))
+		ntp_init();
+
 	io_init();
 
 	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);
