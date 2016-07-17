@@ -25,12 +25,6 @@ int stat_update_display;
 int stat_update_ntp;
 int stat_update_idle;
 
-int	ut_days;
-int	ut_hours;
-int	ut_mins;
-int	ut_secs;
-int	ut_tens;
-
 static const char *flash_map[] =
 {
 	"4 Mb map 256/256",
@@ -77,23 +71,25 @@ irom void stats_generate(string_t *dst)
 	rboot_config rcfg;
 #endif
 
-	static int days, hours, minutes, seconds, tens;
-	static bool_t time_in_sync;
-	static const struct rst_info *rst_info;
+	const struct rst_info *rst_info;
 	static struct station_config sc_default, sc_current;
-	static uint32_t system_time, system_time_sec, system_time_usec;
+	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
+	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
+	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
+	unsigned int ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps;
+	unsigned int Y, M, D, h, m, s;
+	const char *time_source;
 
-	system_time = system_get_time();
-	system_time_sec = system_time / 1000000U;
-	system_time_usec = system_time % 1000000U;
-	system_time_usec /= 100000;
+	time_system_get(&system_secs, &system_msecs, &system_raw1, &system_raw2, &system_base, &system_wraps);
+	time_rtc_get(&rtc_secs, &rtc_msecs, &rtc_raw1, &rtc_raw2, &rtc_base, &rtc_wraps);
+	time_timer_get(&timer_secs, &timer_msecs, &timer_raw1, &timer_raw2, &timer_base, &timer_wraps);
+	time_ntp_get(&ntp_secs, &ntp_msecs, &ntp_raw1, &ntp_raw2, &ntp_base, &ntp_wraps);
+	time_source = time_get(&h, &m, &s, &Y, &M, &D);
 
 	rst_info = system_get_rst_info();
 
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
-
-	time_in_sync = real_time_get(&days, &hours, &minutes, &seconds, &tens);
 
 	string_format(dst,
 			"> firmware version date: %s\n"
@@ -105,10 +101,11 @@ irom void stats_generate(string_t *dst)
 			"> reset cause: %s\n"
 			">\n"
 			"> heap free: %u bytes\n"
-			"> system clock: %u.%u s\n"
-			"> uptime: %u %02u:%02u:%02u.%02u\n"
-			"> real time: %u %02u:%02u:%02u.%02u\n"
-			"> time synchronised to ntp: %s\n"
+			"> system: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> rtc: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> timer: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> ntp: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
+			"> time: %04u/%02u/%02u %02u:%02u:%02u, source: %s\n"
 			">\n"
 			"> config magic: %x\n"
 			"> version: %x\n"
@@ -142,10 +139,11 @@ irom void stats_generate(string_t *dst)
 			flash_map[system_get_flash_size_map()],
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
-			system_time_sec, system_time_usec,
-			ut_days, ut_hours, ut_mins, ut_secs, ut_tens,
-			days, hours, minutes, seconds, tens,
-			yesno(time_in_sync),
+			system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps, system_secs - ntp_secs,
+			rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps, rtc_secs - ntp_secs,
+			timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,
+			ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps,
+			Y, M, D, h, m, s, time_source,
 			config.magic,
 			config.version,
 			USER_CONFIG_SECTOR * 0x1000,

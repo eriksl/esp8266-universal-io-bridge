@@ -526,17 +526,23 @@ irom static app_action_t application_function_unset(const string_t *src, string_
 	return(set_unset_flag(src, dst, false));
 }
 
-irom static app_action_t application_function_rtc_set(const string_t *src, string_t *dst)
+irom static app_action_t application_function_time_set(const string_t *src, string_t *dst)
 {
-	int days, hours, minutes, seconds, tens;
+	int Y, M, D, h, m, s;
+	const char *source;
 
-	if((parse_int(1, src, &hours, 0) == parse_ok) &&
-			(parse_int(2, src, &minutes, 0) == parse_ok))
-		real_time_set(hours, minutes);
+	if((parse_int(1, src, &h, 0) == parse_ok) &&
+			(parse_int(2, src, &m, 0) == parse_ok))
+	{
+		if(parse_int(3, src, &s, 0) != parse_ok)
+			s = 0;
 
-	real_time_get(&days, &hours, &minutes, &seconds, &tens);
+		time_set_hms(h, m, s);
+	}
 
-	string_format(dst, "rtc: %d %02u:%02u:%02u.%02d\n", days, hours, minutes, seconds, tens);
+	source = time_get(&h, &m, &s, &Y, &M, &D);
+
+	string_format(dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
 
 	return(app_action_normal);
 }
@@ -986,11 +992,6 @@ static const application_function_table_t application_function_table[] =
 		"reset",
 	},
 	{
-		"rs", "rtc-set",
-		application_function_rtc_set,
-		"set rtc [h m]",
-	},
-	{
 		"s", "set",
 		application_function_set,
 		"set an option",
@@ -1004,6 +1005,11 @@ static const application_function_table_t application_function_table[] =
 		"S", "stats",
 		application_function_stats,
 		"statistics",
+	},
+	{
+		"ts", "time-set",
+		application_function_time_set,
+		"set time base [h m]",
 	},
 	{
 		"ub", "uart-baud",

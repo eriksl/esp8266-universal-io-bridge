@@ -230,34 +230,6 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	}
 }
 
-irom static void background_task_update_clocks(void)
-{
-	// uptime clock
-
-	if(++ut_tens > 9)
-	{
-		ut_tens = 0;
-
-		if(++ut_secs > 59)
-		{
-			ut_secs = 0;
-
-			if(++ut_mins > 59)
-			{
-				ut_mins = 0;
-
-				if(++ut_hours > 23)
-				{
-					ut_hours = 0;
-					ut_days++;
-				}
-			}
-		}
-	}
-
-	real_time_tick();
-}
-
 iram static bool_t background_task_update_uart(void)
 {
 	// send data in the uart receive fifo to tcp
@@ -374,8 +346,6 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 {
 	stat_slow_timer++;
 
-	background_task_update_clocks();
-
 	if(background_task_update_uart())
 	{
 		stat_update_uart++;
@@ -393,13 +363,6 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 	if(background_task_command_handler())
 	{
 		stat_update_command++;
-		system_os_post(background_task_id, 0, 0);
-		return;
-	}
-
-	if(ip_addr_valid(config.ntp.server) && ntp_periodic())
-	{
-		stat_update_ntp++;
 		system_os_post(background_task_id, 0, 0);
 		return;
 	}
@@ -440,6 +403,8 @@ iram static void slow_timer_callback(void *arg)
 	(void)arg;
 
 	// run background task every ~100 ms = ~10 Hz
+
+	time_periodic();
 
 	system_os_post(background_task_id, 0, 0);
 }
@@ -511,10 +476,7 @@ irom static void user_init2(void)
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	wlan_init();
-
-	if(ip_addr_valid(config.ntp.server))
-		ntp_init();
-
+	time_init();
 	io_init();
 
 	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);

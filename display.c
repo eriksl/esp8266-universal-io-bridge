@@ -344,7 +344,7 @@ irom static void display_update(bool_t advance)
 	display_data.current_slot = slot;
 	display_text = display_slot[slot].content;
 
-	real_time_get(0, &hour, &minute, 0, 0);
+	time_get(&hour, &minute, 0, 0, 0, 0);
 
 	if(!ets_strcmp(display_text, "%%%%"))
 	{

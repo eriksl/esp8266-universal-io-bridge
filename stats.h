@@ -19,12 +19,6 @@ extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;
 
-extern int ut_days;
-extern int ut_hours;
-extern int ut_mins;
-extern int ut_secs;
-extern int ut_tens;
-
 void stats_generate(string_t *);
 
 #endif
