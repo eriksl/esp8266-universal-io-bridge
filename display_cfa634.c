@@ -133,71 +133,18 @@ irom bool_t display_cfa634_init(void)
 
 attr_const irom bool_t display_cfa634_bright(int brightness)
 {
-#if 0
-	switch(brightness)
-	{
-		case(0):
-		{
-			if(i2c_send_2(0x28, 0xfe, 0x46) != i2c_error_ok)
-				return(false);
+	static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
-				return(false);
+	if((brightness < 0) || (brightness > 4))
+		return(false);
 
-			break;
-		}
+	queue_push(&data_send_queue, 15); // set contrast
+	queue_push(&data_send_queue, values[brightness]);
 
-		case(1):
-		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
-				return(false);
+	uart_start_transmit(!queue_empty(&data_send_queue));
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
-				return(false);
+	msleep(10);
 
-			break;
-		}
-
-		case(2):
-		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
-				return(false);
-
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x02) != i2c_error_ok)
-				return(false);
-
-			break;
-		}
-
-		case(3):
-		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
-				return(false);
-
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x01) != i2c_error_ok)
-				return(false);
-
-			break;
-		}
-
-		case(4):
-		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
-				return(false);
-
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x00) != i2c_error_ok)
-				return(false);
-
-			break;
-		}
-
-		default:
-		{
-			return(false);
-		}
-	}
-
-#endif
 	return(true);
 }
 
@@ -247,9 +194,11 @@ irom bool_t display_cfa634_show(void)
 		queue_push(&data_send_queue, c);
 	}
 
+	display_common_row_status.row[y].dirty = 0;
+
 	uart_start_transmit(!queue_empty(&data_send_queue));
 
-	display_common_row_status.row[y].dirty = 0;
+	msleep(10);
 
 	return(true);
 }
