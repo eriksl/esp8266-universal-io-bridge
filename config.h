@@ -25,6 +25,7 @@ typedef enum
 	config_flag_bh_high_sens,
 	config_flag_cpu_high_speed,
 	config_flag_wlan_power_save,
+	config_flag_enable_cfa634,
 	config_flag_size
 } config_flag_enum_t;
 

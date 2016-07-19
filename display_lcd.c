@@ -175,8 +175,8 @@ irom bool_t display_lcd_init(void)
 	if(!send_byte(0b01000000, false))			// start writing to CGRAM @ 0
 		return(false);
 
-	for(ix = 0; ix < display_common_udg_amount; ix++)
-		for(byte = 0; byte < display_common_udg_byte_amount; byte++)
+	for(ix = 0; ix < display_common_udg_size; ix++)
+		for(byte = 0; byte < display_common_udg_byte_size; byte++)
 			if(!send_byte(display_common_udg[ix].pattern[byte], true))
 				return(false);
 
@@ -219,7 +219,9 @@ irom bool_t display_lcd_set(const char *tag, const char *text)
 	if(!inited)
 		return(false);
 
-	return(display_common_set(tag, text));
+	return(display_common_set(tag, text,
+				display_common_map_size, display_common_map,
+				display_common_udg_size, display_common_udg));
 }
 
 irom bool_t display_lcd_show(void)

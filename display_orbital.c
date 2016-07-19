@@ -8,12 +8,12 @@ irom bool_t display_orbital_init(void)
 {
 	unsigned int ix, byte, x, y;
 
-	for(ix = 0; ix < display_common_udg_amount; ix++)
+	for(ix = 0; ix < display_common_udg_size; ix++)
 	{
 		if(i2c_send_3(0x28, 0xfe, 0x4e, ix) != i2c_error_ok)
 			return(false);
 
-		for(byte = 0; byte < display_common_udg_byte_amount; byte++)
+		for(byte = 0; byte < display_common_udg_byte_size; byte++)
 			if(i2c_send_1(0x28, display_common_udg[ix].pattern[byte]) != i2c_error_ok)
 				return(false);
 	}
@@ -103,7 +103,9 @@ irom bool_t display_orbital_set(const char *tag, const char *text)
 	if(!inited)
 		return(false);
 
-	return(display_common_set(tag, text));
+	return(display_common_set(tag, text,
+				display_common_map_size, display_common_map,
+				display_common_udg_size, display_common_udg));
 }
 
 irom bool_t display_orbital_show(void)

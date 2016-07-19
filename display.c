@@ -2,6 +2,7 @@
 #include "display_saa.h"
 #include "display_lcd.h"
 #include "display_orbital.h"
+#include "display_cfa634.h"
 
 #include "util.h"
 #include "stats.h"
@@ -24,6 +25,7 @@ typedef enum
 	display_saa1064 = 0,
 	display_lcd = 1,
 	display_orbital = 2,
+	display_cfa634 = 3,
 	display_error,
 	display_size = display_error
 } display_id_t;
@@ -54,13 +56,7 @@ typedef struct
 	char	content[display_slot_content_size];
 } display_slot_t;
 
-typedef struct
-{
-	uint16_t utf16;
-	uint8_t to;
-} display_common_map_t;
-
-const display_common_map_t display_common_map[display_common_map_amount] =
+const display_map_t display_common_map[display_common_map_size] =
 {
 	{	0x00b0, 0xdf },	// °
 	{	0x03b1, 0xe0 },	// α
@@ -79,7 +75,7 @@ const display_common_map_t display_common_map[display_common_map_amount] =
 	{	0x03c0, 0xf7 },	// π
 };
 
-const display_common_udg_t display_common_udg[display_common_udg_amount] =
+const display_udg_t display_common_udg[display_common_udg_size] =
 {
 	{
 		0x00e9,		// é	0
@@ -209,6 +205,13 @@ static roflash display_info_t display_info[display_size] =
 		display_orbital_bright,
 		display_orbital_set,
 		display_orbital_show
+	},
+	{
+		80, "cfa634", "4x20 character serial LCD display",
+		display_cfa634_init,
+		display_cfa634_bright,
+		display_cfa634_set,
+		display_cfa634_show
 	}
 };
 
@@ -218,7 +221,10 @@ uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
-irom bool_t display_common_set(const char *tag, const char *text)
+
+irom bool_t display_common_set(const char *tag, const char *text,
+	int map_size, const display_map_t *map,
+	int udg_size, const display_udg_t *udg)
 {
 	unsigned int current, mapped, utf16;
 	int y, x, ix;
@@ -252,18 +258,18 @@ irom bool_t display_common_set(const char *tag, const char *text)
 			{
 				utf16 |= current & 0x3f;
 
-				for(ix = 0; ix < display_common_map_amount; ix++)
+				for(ix = 0; ix < map_size; ix++)
 				{
-					if(display_common_map[ix].utf16 == utf16)
+					if(map[ix].utf16 == utf16)
 					{
-						mapped = display_common_map[ix].to;
+						mapped = map[ix].to;
 						break;
 					}
 				}
 
-				for(ix = 0; ix < display_common_udg_amount; ix++)
+				for(ix = 0; ix < udg_size; ix++)
 				{
-					if((display_common_udg[ix].utf16 == utf16))
+					if((udg[ix].utf16 == utf16))
 					{
 						mapped = ix;
 						break;
@@ -304,6 +310,15 @@ irom bool_t display_common_set(const char *tag, const char *text)
 
 			if((current < ' ') || (current >= 0x80))
 				current = ' ';
+
+			for(ix = 0; ix < map_size; ix++)
+			{
+				if(map[ix].utf16 == current)
+				{
+					current = map[ix].to;
+					break;
+				}
+			}
 		}
 
 		if((y < display_common_buffer_rows) && (x < display_common_buffer_columns))
