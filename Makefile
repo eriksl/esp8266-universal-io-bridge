@@ -146,13 +146,13 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
 					-Winit-self -Wformat-nonliteral -Wcomment \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
-CFLAGS			:=  -Os -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections -fno-builtin -D__ets__ -Wframe-larger-than=384 \
-					-DICACHE_FLASH -DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
+CFLAGS			:=  -Os -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=384 -DICACHE_FLASH \
+						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
 					-isystem$(SDKROOT)/sdk/include -I$(RBOOT)/appcode -I$(RBOOT) -I.
-LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
+LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lpwm -lcrypto
 
 OBJS			:= application.o config.o display.o display_lcd.o display_orbital.o display_saa.o http.o \
@@ -234,7 +234,7 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 
 $(ELF_PLAIN):			$(OBJS) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(OBJS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(OBJS) -lgcc -Wl,--end-group -o $@
 
 $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
@@ -242,7 +242,7 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 
 $(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(OTA_OBJ) $(OBJS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(OTA_OBJ) $(OBJS) -lgcc -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
