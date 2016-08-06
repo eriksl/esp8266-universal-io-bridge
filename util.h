@@ -66,8 +66,8 @@ struct tm
 };
 
 void ets_isr_attach(int, void *, void *);
-void ets_isr_mask(unsigned intr);
-void ets_isr_unmask(unsigned intr);
+void ets_isr_mask(unsigned int);
+void ets_isr_unmask(unsigned int);
 void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
 void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
