@@ -5,7 +5,7 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
-OTA_HOST			?= esp2
+OTA_HOST			?= esp1
 
 # no user serviceable parts below
 
