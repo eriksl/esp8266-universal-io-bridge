@@ -265,7 +265,7 @@ irom static bool_t background_task_longop_handler(void)
 	if(bg_action.init_i2c_sensors)
 	{
 		uint32_t now = system_get_time();
-		i2c_sensor_init();
+		i2c_sensor_init_all();
 		bg_action.init_i2c_sensors = 0;
 		stat_i2c_init_time_us = system_get_time() - now;
 		return(true);

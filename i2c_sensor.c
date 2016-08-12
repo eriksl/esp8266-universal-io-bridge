@@ -1141,30 +1141,38 @@ static const device_table_entry_t device_table[] =
 	},
 };
 
-irom void i2c_sensor_init(void)
+irom i2c_error_t i2c_sensor_init(i2c_sensor_t sensor)
 {
 	const device_table_entry_t *entry;
+	i2c_error_t error;
+
+	entry = &device_table[sensor];
+
+	if(entry->init_fn)
+	{
+		if((error = entry->init_fn(entry)) == i2c_error_ok)
+			device_data[entry->id].detected = true;
+		else
+		{
+			device_data[entry->id].detected = false;
+			return(error);
+		}
+	}
+	else
+	{
+		device_data[entry->id].detected = false;
+		return(i2c_error_device_error_5);
+	}
+
+	return(i2c_error_ok);
+}
+
+irom void i2c_sensor_init_all(void)
+{
 	i2c_sensor_t current;
 
-	i2c_reset();
-
 	for(current = 0; current < i2c_sensor_size; current++)
-	{
-		entry = &device_table[current];
-
-		if(entry->init_fn)
-		{
-			if(entry->init_fn(entry) == i2c_error_ok)
-				device_data[entry->id].detected = true;
-			else
-			{
-				device_data[entry->id].detected = false;
-				i2c_reset();
-			}
-		}
-		else
-			device_data[entry->id].detected = false;
-	}
+		i2c_sensor_init(current);
 }
 
 irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)

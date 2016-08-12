@@ -376,19 +376,29 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_reset(const string_t *src, string_t *dst)
+irom static app_action_t application_function_i2c_sensor_init(const string_t *src, string_t *dst)
 {
+	int intin;
 	i2c_error_t error;
+	i2c_sensor_t sensor;
 
-	if((error = i2c_reset()) != i2c_error_ok)
+	if((parse_int(1, src, &intin, 0)) != parse_ok)
 	{
-		string_cat(dst, "i2c-reset: ");
+		string_cat(dst, "> invalid i2c sensor\n");
+		return(app_action_error);
+	}
+
+	sensor = (i2c_sensor_t)intin;
+
+	if((error = i2c_sensor_init(sensor)) != i2c_error_ok)
+	{
+		string_format(dst, "sensor init %d", sensor);
 		i2c_error_format_string(dst, error);
 		string_cat(dst, "\n");
 		return(app_action_error);
 	}
 
-	string_cat(dst, "i2c_reset: ok\n");
+	string_format(dst, "init sensor %d ok\n", sensor);
 
 	return(app_action_normal);
 }
@@ -916,6 +926,11 @@ static const application_function_table_t application_function_table[] =
 		"icf", "io-clear-flag",
 		application_function_io_clear_flag,
 		"clear i/o pin flag",
+	},
+	{
+		"isi", "i2c-sensor-init",
+		application_function_i2c_sensor_init,
+		"(re-)init i2c sensor",
 	},
 	{
 		"isr", "i2c-sensor-read",
