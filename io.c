@@ -782,7 +782,6 @@ irom void io_init(void)
 	int io, pin;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
-	int i2c_speed = -1;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -836,13 +835,10 @@ irom void io_init(void)
 								i2c_sda = pin;
 
 							if(pin_config->shared.i2c.pin_mode == io_i2c_scl)
-							{
 								i2c_scl = pin;
-								i2c_speed = pin_config->speed;
-							}
 
-							if((i2c_sda >= 0) && (i2c_scl >= 0) && (i2c_speed >= 0))
-								i2c_init(i2c_sda, i2c_scl, i2c_speed);
+							if((i2c_sda >= 0) && (i2c_scl >= 0))
+								i2c_init(i2c_sda, i2c_scl);
 
 							break;
 						}
@@ -1255,7 +1251,6 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 		case(io_pin_i2c):
 		{
-			int speed = 0;
 			io_i2c_t pin_mode;
 
 			if(!info->caps.i2c)
@@ -1278,16 +1273,6 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			string_clear(dst);
 
-			if(pin_mode == io_i2c_scl)
-			{
-				if(parse_int(5, src, &speed, 0) != parse_ok)
-				{
-					string_copy(dst, "i2c: scl <speed>\n");
-					return(app_action_error);
-				}
-			}
-
-			pin_config->speed = speed;
 			pin_config->shared.i2c.pin_mode = pin_mode;
 
 			llmode = io_pin_ll_i2c;
@@ -1709,7 +1694,7 @@ static const roflash dump_string_t dump_strings =
 		"timer, config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
 		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d",
 		"i2c/sda",
-		"i2c/scl, speed: %d",
+		"i2c/scl",
 		"uart",
 		"lcd",
 		"unknown",
@@ -1908,7 +1893,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 					if(pin_config->shared.i2c.pin_mode == io_i2c_sda)
 						string_cat_ptr(dst, (*strings)[ds_id_i2c_sda]);
 					else
-						string_format_ptr(dst, (*strings)[ds_id_i2c_scl], pin_config->speed);
+						string_cat_ptr(dst, (*strings)[ds_id_i2c_scl]);
 
 					break;
 				}

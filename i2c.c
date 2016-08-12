@@ -2,12 +2,17 @@
 
 #include "util.h"
 
+#include <user_interface.h>
 #include <gpio.h>
 
-static uint32_t sda_mask;
-static uint32_t scl_mask;
-static int transaction_bit_delay;
+#include "config.h"
+#include "util.h"
+
+static int sda_pin;
+static int scl_pin;
+static int i2c_bus_speed_delay;
 static i2c_state_t state = i2c_state_invalid;
+static i2c_state_t error_state = i2c_state_invalid;
 
 typedef enum
 {
@@ -19,8 +24,7 @@ _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {
-	i2c_config_stretch_clock_timeout = 10000,
-	i2c_config_scl_waiting_window = 4,
+	i2c_config_stretch_clock_timeout = 100,
 } i2c_config_t;
 
 struct
@@ -37,16 +41,14 @@ static roflash const char state_strings[i2c_state_size][32] =
 	"idle",
 	"send header",
 	"send start",
-	"wait for bus to quiesce",
-	"wait for bus to keep quiet",
 	"send address",
-	"address receive ack",
-	"address received ack",
+	"address receive ACK/NAK",
+	"address received ACK/NAK",
 	"send data",
-	"send data receive ack",
-	"send data ack received",
+	"send data receive ACK/NAK",
+	"send data ACK/NAK received",
 	"receive data",
-	"receive data send ack",
+	"receive data send ACK/NAK",
 	"send stop"
 };
 
@@ -57,16 +59,13 @@ static roflash const char error_strings[i2c_error_size][32] =
 	"state not idle",
 	"state idle",
 	"state not send header",
-	"state not send start",
 	"state not send address or data",
-	"state not receive ack",
-	"state not send ack",
-	"state not send stop",
+	"state not receive ACK/NAK",
+	"state not send ACK/NAK",
 	"bus locked",
 	"sda stuck",
 	"address NAK",
 	"data NAK",
-	"receive error",
 	"device specific error 1",
 	"device specific error 2",
 	"device specific error 3",
@@ -88,69 +87,69 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 
 	string_cat(dst, " (in bus state: ");
 
-	if(state < i2c_state_size)
-		string_cat_ptr(dst, state_strings[state]);
+	if(error_state < i2c_state_size)
+		string_cat_ptr(dst, state_strings[error_state]);
 	else
-		string_format(dst, "<unknown state %d>", state);
+		string_format(dst, "<unknown state %d>", error_state);
 
 	string_cat(dst, ")");
 }
 
 iram static inline void delay(void)
 {
-	int delay = transaction_bit_delay;
+	int delay = i2c_bus_speed_delay;
 
 	while(delay-- > 0)
 		asm("nop");
 }
 
-iram static inline void set_io(uint32_t clear, uint32_t set)
+iram static inline void sda_low(void)
 {
-	gpio_output_set(set, clear, 0, 0);
+	gpio_output_set(0, 1 << sda_pin, 0, 0);
 }
 
-iram static inline uint32_t get_io(void)
+iram static inline void sda_high(void)
 {
-	return(gpio_input_get() & (sda_mask | scl_mask));
+	gpio_output_set(1 << sda_pin, 0, 0, 0);
 }
 
-iram static inline void clear_sda(void)
+iram static inline void scl_low(void)
 {
-	set_io(sda_mask, 0);
+	gpio_output_set(0, 1 << scl_pin, 0, 0);
 }
 
-iram static inline void set_sda(void)
+iram static inline void scl_high(void)
 {
-	set_io(0, sda_mask);
+	gpio_output_set(1 << scl_pin, 0, 0, 0);
 }
 
-iram static inline void clear_scl(void)
+iram static inline bool_t sda_is_low(void)
 {
-	set_io(scl_mask, 0);
+	return(!(gpio_input_get() & (1 << sda_pin))); // FIXME
 }
 
-iram static inline void set_scl(void)
+iram static inline bool_t sda_is_high(void)
 {
-	set_io(0, scl_mask);
+	return(!!(gpio_input_get() & (1 << sda_pin))); // FIXME
 }
 
-iram static inline bool_t sda_is_set(void)
+iram static inline bool_t scl_is_low(void)
 {
-	return(!!(get_io() & sda_mask));
+	return(!(gpio_input_get() & (1 << scl_pin))); // FIXME
 }
 
-iram static inline bool_t scl_is_set(void)
+iram static inline bool_t scl_is_high(void)
 {
-	return(!!(get_io() & scl_mask));
+	return(!!(gpio_input_get() & (1 << scl_pin))); // FIXME
 }
 
-iram static inline i2c_error_t wait_idle(void)
+iram static inline i2c_error_t wait_for_scl(void)
 {
 	int current;
 
 	for(current = i2c_config_stretch_clock_timeout; current > 0; current--)
 	{
-		if(scl_is_set())
+		if(scl_is_high())
 			break;
 
 		delay();
@@ -164,50 +163,22 @@ iram static inline i2c_error_t wait_idle(void)
 
 iram static noinline i2c_error_t send_start(void)
 {
-	i2c_error_t error;
-	int current;
+	state = i2c_state_start_send;
 
-	if(state != i2c_state_start_send)
-		return(i2c_error_invalid_state_not_send_start);
-
-	// wait for scl and sda to be released by all masters and slaves
-	
-	state = i2c_state_bus_wait_1;
-
-	if((error = wait_idle()) != i2c_error_ok)
-		return(error);
-
-	// set sda to high
-
-	clear_scl();
-	delay();
-
-	if(scl_is_set())
+	if(scl_is_low())
 		return(i2c_error_bus_lock);
 
-	set_sda();
-	delay();
-
-	if(!sda_is_set())
+	if(sda_is_low())
 		return(i2c_error_sda_stuck);
 
-	set_scl();
-	delay();
+	// start condition
 
-	state = i2c_state_bus_wait_2;
+	sda_low();
 
-	// demand bus is idle for a minimum window
+	if(scl_is_low())
+		return(i2c_error_bus_lock);
 
-	for(current = i2c_config_scl_waiting_window; current > 0; current--)
-		if(!scl_is_set() || !sda_is_set())
-			return(i2c_error_bus_lock);
-
-	// generate start condition by leaving scl high and pulling sda low
-
-	clear_sda();
-	delay();
-
-	if(sda_is_set())
+	if(sda_is_high())
 		return(i2c_error_sda_stuck);
 
 	return(i2c_error_ok);
@@ -215,50 +186,26 @@ iram static noinline i2c_error_t send_start(void)
 
 iram static noinline i2c_error_t send_stop(void)
 {
-	i2c_error_t error;
-
 	state = i2c_state_stop_send;
 
-	// at this point scl should be high and sda is unknown
-	// wait for scl to be released by all masters and slaves
-	
-	if((error = wait_idle()) != i2c_error_ok)
-		return(error);
+	// at this point sda is unknown and scl should be off
 
-	delay();
-
-	// set sda to low
-
-	clear_scl();
-	delay();
-
-	if(scl_is_set())
+	if(scl_is_low())
 		return(i2c_error_bus_lock);
 
-	clear_sda();
+	delay();
+	scl_low();
+	sda_low();
+	delay();
+	scl_high();
+	delay();
+	sda_high();
 	delay();
 
-	if(sda_is_set())
-		return(i2c_error_sda_stuck);
-
-	set_scl();
-	delay();
-
-	if(sda_is_set())
-		return(i2c_error_sda_stuck);
-
-	if(!scl_is_set())
+	if(scl_is_low())
 		return(i2c_error_bus_lock);
 
-	// now generate the stop condition by leaving scl high and setting sda high
-
-	set_sda();
-	delay();
-
-	if(!scl_is_set())
-		return(i2c_error_bus_lock);
-
-	if(!sda_is_set())
+	if(sda_is_low())
 		return(i2c_error_sda_stuck);
 
 	state = i2c_state_idle;
@@ -266,45 +213,66 @@ iram static noinline i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
+irom static void i2c_reset(void)
+{
+	i2c_error_t error;
+	int try;
+
+	if(!i2c_flags.init_done)
+		return;
+
+	if(state != i2c_state_idle)
+		error_state = state;
+
+	for(try = 16; try > 0; try--)
+	{
+		if((error = send_stop()) == i2c_error_ok)
+			break;
+
+		delay();
+		delay();
+		delay();
+		delay();
+		delay();
+	}
+
+	state = i2c_state_idle;
+}
+
 iram static noinline i2c_error_t send_bit(bool_t bit)
 {
 	i2c_error_t error;
 
-	// at this point scl should be high and sda will be unknown
+	// at this point scl should be off and sda will be unknown
 	// wait for scl to be released by slave (clock stretching)
-	
-	if((error = wait_idle()) != i2c_error_ok)
-		return(error);
-	
-	clear_scl();
-	delay();
 
-	if(scl_is_set())
-		return(i2c_error_bus_lock);
+	if((error = wait_for_scl()) != i2c_error_ok)
+		return(error);
+
+	delay();
+	scl_low();
+	delay();
 
 	if(bit)
 	{
-		set_sda();
-		delay();
+		sda_high();
 
-		if(!sda_is_set())
+		if(sda_is_low())
 			return(i2c_error_sda_stuck);
 	}
 	else
 	{
-		clear_sda();
-		delay();
+		sda_low();
 
-		if(sda_is_set())
+		if(sda_is_high())
 			return(i2c_error_sda_stuck);
 	}
 
-	set_scl();
-	delay();
+	scl_high();
 
 	// take care of clock stretching
 
-	if((error = wait_idle()) != i2c_error_ok)
+	if((error = wait_for_scl()) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -334,37 +302,30 @@ iram static noinline i2c_error_t receive_bit(bool_t *bit)
 
 	// at this point scl should be high and sda is unknown,
 	// but should be high before reading
-	
+
 	if(state == i2c_state_idle)
 		return(i2c_error_invalid_state_idle);
 
 	// wait for scl to be released by slave (clock stretching)
-	
-	if((error = wait_idle()) != i2c_error_ok)
-		return(error);
-	
-	// make sure sda is high (open) so slave can pull it
-	// do it while clock is pulled
-	
-	clear_scl();
-	set_sda();
 
-	// wait for slave to pull/release sda
+	if((error = wait_for_scl()) != i2c_error_ok)
+		return(error);
+
+	// make sure sda is off so slave can pull it
+	// do it while clock is pulled
 
 	delay();
-
-	// release clock again
-
-	set_scl();
+	scl_low();
+	sda_high();
+	delay();
+	scl_high();
 
 	// take care of clock stretching
 
-	if((error = wait_idle()) != i2c_error_ok)
+	if((error = wait_for_scl()) != i2c_error_ok)
 		return(error);
 
-	delay();
-
-	*bit = sda_is_set() ? 1 : 0;
+	*bit = sda_is_high() ? 1 : 0;
 
 	return(i2c_error_ok);
 }
@@ -429,8 +390,6 @@ iram static noinline i2c_error_t send_header(int address, i2c_direction_t direct
 	address <<= 1;
 	address |= direction == i2c_direction_receive ? 0x01 : 0x00;
 
-	state = i2c_state_start_send;
-
 	if((error = send_start()) != i2c_error_ok)
 		return(error);
 
@@ -452,47 +411,27 @@ iram static noinline i2c_error_t send_header(int address, i2c_direction_t direct
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t i2c_reset(void)
+irom void i2c_init(int sda_in, int scl_in)
 {
-	int current;
-
-	if(!i2c_flags.init_done)
-		return(i2c_error_no_init);
-
-	send_stop();
-
-	// if someone is holding the sda line, simulate clock cycles
-	// to make them release it
-
-	for(current = i2c_config_stretch_clock_timeout; current > 0; current--)
-	{
-		if(sda_is_set())
-			break;
-
-		clear_scl();
-		delay();
-		set_scl();
-		delay();
-	}
-
-	if(!sda_is_set())
-		return(i2c_error_sda_stuck);
-
-	if(!scl_is_set())
-		return(i2c_error_bus_lock);
-
-	return(i2c_error_ok);
-}
-
-irom i2c_error_t i2c_init(int sda_pin, int scl_pin, int i2c_delay)
-{
-	sda_mask = 1 << sda_pin;
-	scl_mask = 1 << scl_pin;
-	transaction_bit_delay = i2c_delay;
+	sda_pin = sda_in;
+	scl_pin = scl_in;
 
 	i2c_flags.init_done = 1;
 
-	return(i2c_reset());
+	i2c_reset();
+}
+
+irom noinline static void i2c_prepare_transaction(void)
+{
+	if(config_get_flag(config_flag_i2c_highspeed))
+		i2c_bus_speed_delay = 0;
+	else
+	{
+		if(system_get_cpu_freq() == 80)
+			i2c_bus_speed_delay = 40;
+		else
+			i2c_bus_speed_delay = 120;
+	}
 }
 
 iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
@@ -505,35 +444,47 @@ iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 		return(i2c_error_no_init);
 
 	if(state != i2c_state_idle)
-		return(i2c_error_invalid_state_not_idle);
+	{
+		error = i2c_error_invalid_state_not_idle;
+		goto bail;
+	}
+
+	i2c_prepare_transaction();
 
 	state = i2c_state_header_send;
 
 	if((error = send_header(address, i2c_direction_send)) != i2c_error_ok)
-		return(error);
+		goto bail;
 
 	for(current = 0; current < length; current++)
 	{
 		state = i2c_state_data_send_data;
 
 		if((error = send_byte(bytes[current])) != i2c_error_ok)
-			return(error);
+			goto bail;
 
 		state = i2c_state_data_send_ack_receive;
 
 		if((error = receive_ack(&ack)) != i2c_error_ok)
-			return(error);
+			goto bail;
 
 		state = i2c_state_data_send_ack_received;
 
 		if(!ack)
-			return(i2c_error_data_nak);
+		{
+			error = i2c_error_data_nak;
+			goto bail;
+		}
 	}
 
 	if((error = send_stop()) != i2c_error_ok)
-		return(error);
+		goto bail;
 
 	return(i2c_error_ok);
+
+bail:
+	i2c_reset();
+	return(error);
 }
 
 iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
@@ -545,30 +496,39 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 		return(i2c_error_no_init);
 
 	if(state != i2c_state_idle)
-		return(i2c_error_invalid_state_not_idle);
+	{
+		error = i2c_error_invalid_state_not_idle;
+		goto bail;
+	}
+
+	i2c_prepare_transaction();
 
 	state = i2c_state_header_send;
 
 	if((error = send_header(address, i2c_direction_receive)) != i2c_error_ok)
-		return(error);
+		goto bail;
 
 	for(current = 0; current < length; current++)
 	{
 		state = i2c_state_data_receive_data;
 
 		if((error = receive_byte(&bytes[current])) != i2c_error_ok)
-			return(error);
+			goto bail;
 
 		state = i2c_state_data_receive_ack_send;
 
 		if((error = send_ack((current + 1) < length)) != i2c_error_ok)
-			return(error);
+			goto bail;
 	}
 
 	if((error = send_stop()) != i2c_error_ok)
-		return(error);
+		goto bail;
 
 	return(i2c_error_ok);
+
+bail:
+	i2c_reset();
+	return(error);
 }
 
 irom i2c_error_t i2c_send_1(int address, int byte0)

@@ -11,8 +11,6 @@ typedef enum
 	i2c_state_idle,
 	i2c_state_header_send,
 	i2c_state_start_send,
-	i2c_state_bus_wait_1,
-	i2c_state_bus_wait_2,
 	i2c_state_address_send,
 	i2c_state_address_ack_receive,
 	i2c_state_address_ack_received,
@@ -35,16 +33,13 @@ typedef enum
 	i2c_error_invalid_state_not_idle,
 	i2c_error_invalid_state_idle,
 	i2c_error_invalid_state_not_send_header,
-	i2c_error_invalid_state_not_send_start,
 	i2c_error_invalid_state_not_send_address_or_data,
 	i2c_error_invalid_state_not_receive_ack,
 	i2c_error_invalid_state_not_send_ack,
-	i2c_error_invalid_state_not_send_stop,
 	i2c_error_bus_lock,
 	i2c_error_sda_stuck,
 	i2c_error_address_nak,
 	i2c_error_data_nak,
-	i2c_error_receive_error,
 	i2c_error_device_error_1,
 	i2c_error_device_error_2,
 	i2c_error_device_error_3,
@@ -56,8 +51,7 @@ typedef enum
 
 _Static_assert(sizeof(i2c_error_t) == 4, "sizeof(i2c_error_t) != 4");
 
-i2c_error_t	i2c_init(int sda_index, int scl_index, int bit_delay);
-i2c_error_t	i2c_reset(void);
+void		i2c_init(int sda_index, int scl_index);
 i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
 i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
 void		i2c_error_format_string(string_t *dst, i2c_error_t error);

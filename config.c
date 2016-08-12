@@ -39,6 +39,10 @@ static config_flag_t config_flag[config_flag_size] =
 		config_flag_enable_cfa634,
 		"ec4", "enable-cfa634"
 	},
+	{
+		config_flag_i2c_highspeed,
+		"ih", "i2c-highspeed",
+	},
 };
 
 irom static attr_pure config_flag_enum_t config_flag_to_id(const string_t *flag_name)

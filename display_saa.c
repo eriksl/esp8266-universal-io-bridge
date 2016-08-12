@@ -128,22 +128,13 @@ irom bool_t display_saa1064_init(void)
 	uint8_t i2cdata;
 
 	if(i2c_receive(0x38, 1, &i2cdata) != i2c_error_ok)
-	{
-		i2c_reset();
 		return(false);
-	}
 
 	if((i2cdata & 0x7f) != 0x00)
-	{
-		i2c_reset();
 		return(false);
-	}
 
 	if(i2c_send_2(0x38, 0x00, 0x07) != i2c_error_ok)
-	{
-		i2c_reset();
 		return(false);
-	}
 
 	return(true);
 }
@@ -191,10 +182,7 @@ irom bool_t display_saa1064_set(const char *tag, const char *from)
 		i2cdata[5 - current] = led_render_char(text[current]); // reverse digit's position
 
 	if(i2c_send(0x38, 6, i2cdata) != i2c_error_ok)
-	{
-		i2c_reset();
 		return(false);
-	}
 
 	return(true);
 }

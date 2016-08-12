@@ -327,7 +327,6 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 		string_cat(dst, "i2c_read");
 		i2c_error_format_string(dst, error);
 		string_cat(dst, "\n");
-		i2c_reset();
 		return(app_action_error);
 	}
 
@@ -369,7 +368,6 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 		string_cat(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
 		string_cat(dst, "\n");
-		i2c_reset();
 		return(app_action_error);
 	}
 
@@ -883,11 +881,6 @@ static const application_function_table_t application_function_table[] =
 		"i2r", "i2c-read",
 		application_function_i2c_read,
 		"read data from i2c slave",
-	},
-	{
-		"i2rst", "i2c-reset",
-		application_function_i2c_reset,
-		"i2c interface reset",
 	},
 	{
 		"i2w", "i2c-write",
