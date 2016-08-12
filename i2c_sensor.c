@@ -311,7 +311,12 @@ irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *te
 #endif
 
 	x1 = (((uint32_t)ut - (uint32_t)ac6) * (uint32_t)ac5) >> 15;
+
+	if((x1 + (int32_t)md) == 0)
+		return(i2c_error_device_error_1);
+
 	x2 = ((int32_t)mc << 11) / (x1 + (int32_t)md);
+
 	b5 = x1 + x2;
 
 	*temp_raw	= ut;
@@ -326,10 +331,8 @@ irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *te
 
 	if((error = bmp085_read_long(address, 0xf6, &up)) != i2c_error_ok) // select result 0xf6+0xf7+f8
 		return(error);
-#if 0
-			up	= 23843;
-#endif
 
+	//up	= 23843;
 	up = up >> (8 - oss);
 
 	b6	= b5 - 4000;
@@ -342,6 +345,9 @@ irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *te
 	x3	= (x1 + x2 + 2) >> 2;
 	b4	= ((uint32_t)ac4 * (uint32_t)(x3 + 32768)) >> 15;
 	b7	= (uint32_t)(((uint32_t)up - b3) * (50000 >> oss));
+
+	if(b4 == 0)
+		return(i2c_error_device_error_2);
 
 	if(b7 & 0x80000000)
 		p = (b7 / b4) << 1;
