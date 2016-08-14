@@ -194,8 +194,6 @@ linkdebug:		$(LINKMAP)
 				$(Q) echo "IRAM:"
 				$(call link_debug,$<,text,32,40100000)
 
-
-
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
 display.o:			$(HEADERS)
@@ -206,19 +204,19 @@ display_saa.o:		$(HEADERS)
 http.o:				$(HEADERS)
 i2c.o:				$(HEADERS)
 i2c_sensor.o:		$(HEADERS)
+io_aux.o:			$(HEADERS)
 io.o:				$(HEADERS)
 io_gpio.o:			$(HEADERS)
+io_mcp.o:			$(HEADERS)
+io_pcf.o:			$(HEADERS)
 ota.o:				$(HEADERS)
 otapush.o:			$(HEADERS)
-queue.c:			$(HEADERS)
-rboot-config.o:		$(HEADERS)
+queue.o:			queue.h
 stats.o:			$(HEADERS) always
 time.o:				$(HEADERS)
 uart.o:				$(HEADERS)
 user_main.o:		$(HEADERS)
 util.o:				$(HEADERS)
-rboot-api.o:		$(HEADERS)
-rboot-bigflash.o:	$(HEADERS)
 $(LINKMAP):			$(ELF_OTA)
 
 $(ESPTOOL2_BIN):
@@ -317,8 +315,12 @@ wipe-config:
 						$(Q) $(CC) $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.i:					%.c
-						$(VECHO) "CC $<"
+						$(VECHO) "CC -E $<"
 						$(Q) $(CC) -E $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
+
+%.s:					%.c
+						$(VECHO) "CC -S $<"
+						$(Q) $(CC) -S $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.o:					%.ci
 						$(VECHO) "CCI $<"
