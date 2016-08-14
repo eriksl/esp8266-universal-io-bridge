@@ -53,6 +53,7 @@ static struct
 	unsigned int counter_triggered:1;
 } gpio_flags;
 
+static uint32_t gpio_pc_pins_previous;
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
@@ -76,56 +77,6 @@ static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 };
 
 static uint32_t pwm_duty[io_gpio_pwm_size];
-
-iram static void pin_arm_counter(int pin, bool_t enable)
-{
-	// no use in specifying POSEDGE or NEGEDGE here (bummer),
-	// they act exactly like ANYEDGE, I assume that's an SDK bug
-
-	gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_ANYEDGE : GPIO_PIN_INTR_DISABLE);
-}
-
-iram static void pc_int_handler(uint32_t pc, void *arg)
-{
-	io_config_pin_entry_t *pin_config;
-	gpio_data_pin_t *gpio_pin_data;
-	int pin;
-	int pinvalues;
-
-	ETS_GPIO_INTR_DISABLE();
-
-	pinvalues = gpio_input_get();
-
-	for(pin = 0; pin < io_gpio_pin_size; pin++)
-	{
-		if(pc & (1 << pin))
-		{
-			pin_config = &config.io_config[io_id_gpio][pin];
-
-			if(pin_config->llmode == io_pin_ll_counter)
-			{
-				gpio_pin_data = &gpio_data[pin];
-
-				if(gpio_pin_data->counter.debounce == 0)
-				{
-					if(!(pinvalues & (1 << pin)))
-					{
-						gpio_pin_data->counter.counter++;
-						gpio_flags.counter_triggered = 1;
-					}
-
-					gpio_pin_data->counter.debounce = pin_config->speed;
-				}
-
-				pin_arm_counter(pin, false);
-			}
-		}
-	}
-
-	gpio_intr_ack(pc);
-
-	ETS_GPIO_INTR_ENABLE();
-}
 
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
@@ -160,7 +111,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 		}
 	}
 
-	gpio_intr_handler_register(pc_int_handler, 0);
+	gpio_pc_pins_previous = gpio_input_get();
 
 	if(pwmchannel > 0)
 	{
@@ -177,31 +128,39 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 {
 	io_config_pin_entry_t *pin_config;
 	gpio_data_pin_t *gpio_pin_data;
-
 	int pin;
+	uint32_t gpio_pc_pins_current;
+
+	gpio_pc_pins_current = gpio_input_get();
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
 		pin_config = &config.io_config[io][pin];
-		gpio_pin_data = &gpio_data[pin];
 
-		if((pin_config->llmode == io_pin_ll_counter) && (gpio_pin_data->counter.debounce != 0))
+		if(pin_config->llmode == io_pin_ll_counter)
 		{
-			if(gpio_pin_data->counter.debounce >= 10)
-				gpio_pin_data->counter.debounce -= 10; // 10 ms per tick
-			else
-				gpio_pin_data->counter.debounce = 0;
+			gpio_pin_data = &gpio_data[pin];
 
-			if(gpio_pin_data->counter.debounce == 0)
-				pin_arm_counter(pin, true);
+			if((gpio_pin_data->counter.debounce == 0))
+			{
+				if((gpio_pc_pins_previous & (1 << pin)) && !(gpio_pc_pins_current & (1 << pin)))
+				{
+					gpio_pin_data->counter.counter++;
+					gpio_pin_data->counter.debounce = pin_config->speed;
+					flags->counter_triggered = 1;
+				}
+			}
+			else
+			{
+				if(gpio_pin_data->counter.debounce >= 10)
+					gpio_pin_data->counter.debounce -= 10; // 10 ms per tick
+				else
+					gpio_pin_data->counter.debounce = 0;
+			}
 		}
 	}
 
-	if(gpio_flags.counter_triggered)
-	{
-		gpio_flags.counter_triggered = 0;
-		flags->counter_triggered = 1;
-	}
+	gpio_pc_pins_previous = gpio_pc_pins_current;
 }
 
 irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -243,8 +202,6 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			{
 				gpio_pin_data->counter.counter = 0;
 				gpio_pin_data->counter.debounce = 0;
-
-				pin_arm_counter(pin, true);
 			}
 
 			break;
