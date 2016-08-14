@@ -3,10 +3,10 @@
 #include "util.h"
 
 #include <user_interface.h>
-#include <gpio.h>
 
 #include "config.h"
 #include "util.h"
+#include "io_gpio.h"
 
 static int sda_pin;
 static int scl_pin;
@@ -105,42 +105,42 @@ iram static inline void delay(void)
 
 iram static inline void sda_low(void)
 {
-	gpio_output_set(0, 1 << sda_pin, 0, 0);
+	gpio_set(sda_pin, 0);
 }
 
 iram static inline void sda_high(void)
 {
-	gpio_output_set(1 << sda_pin, 0, 0, 0);
+	gpio_set(sda_pin, 1);
 }
 
 iram static inline void scl_low(void)
 {
-	gpio_output_set(0, 1 << scl_pin, 0, 0);
+	gpio_set(scl_pin, 0);
 }
 
 iram static inline void scl_high(void)
 {
-	gpio_output_set(1 << scl_pin, 0, 0, 0);
+	gpio_set(scl_pin, 1);
 }
 
 iram static inline bool_t sda_is_low(void)
 {
-	return(!(gpio_input_get() & (1 << sda_pin))); // FIXME
+	return(!gpio_get(sda_pin));
 }
 
 iram static inline bool_t sda_is_high(void)
 {
-	return(!!(gpio_input_get() & (1 << sda_pin))); // FIXME
+	return(gpio_get(sda_pin));
 }
 
 iram static inline bool_t scl_is_low(void)
 {
-	return(!(gpio_input_get() & (1 << scl_pin))); // FIXME
+	return(!gpio_get(scl_pin));
 }
 
 iram static inline bool_t scl_is_high(void)
 {
-	return(!!(gpio_input_get() & (1 << scl_pin))); // FIXME
+	return(gpio_get(scl_pin));
 }
 
 iram static inline i2c_error_t wait_for_scl(void)

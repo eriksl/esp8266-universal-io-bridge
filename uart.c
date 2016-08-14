@@ -4,6 +4,7 @@
 #include "user_main.h"
 #include "stats.h"
 #include "util.h"
+#include "io_gpio.h"
 
 #include <os_type.h>
 #include <ets_sys.h>
@@ -60,12 +61,12 @@ irom void uart_parameters_to_string(string_t *dst, const uart_parameters_t *para
 
 iram static int uart_rx_fifo_length(void)
 {
-	return((READ_PERI_REG(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
+	return((read_peri_reg(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
 iram static int uart_tx_fifo_length(void)
 {
-	return((READ_PERI_REG(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
+	return((read_peri_reg(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
 iram static void uart_callback(void *p)
@@ -76,7 +77,7 @@ iram static void uart_callback(void *p)
 
 	// receive fifo "timeout" or "full" -> data available
 
-	if(READ_PERI_REG(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
+	if(read_peri_reg(UART_INT_ST(0)) & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST))
 	{
 		stat_uart_rx_interrupts++;
 
@@ -85,7 +86,7 @@ iram static void uart_callback(void *p)
 
 		while(uart_rx_fifo_length() > 0)
 		{
-			data = READ_PERI_REG(UART_FIFO(0));
+			data = read_peri_reg(UART_FIFO(0));
 
 			if(!queue_full(&data_receive_queue))
 				queue_push(&data_receive_queue, data);
@@ -96,19 +97,19 @@ iram static void uart_callback(void *p)
 
 	// receive transmit fifo "empty", room for new data in the fifo
 
-	if(READ_PERI_REG(UART_INT_ST(0)) & UART_TXFIFO_EMPTY_INT_ST)
+	if(read_peri_reg(UART_INT_ST(0)) & UART_TXFIFO_EMPTY_INT_ST)
 	{
 		stat_uart_tx_interrupts++;
 
 		while(!queue_empty(&data_send_queue) && (uart_tx_fifo_length() < 64))
-			WRITE_PERI_REG(UART_FIFO(0), queue_pop(&data_send_queue));
+			write_peri_reg(UART_FIFO(0), queue_pop(&data_send_queue));
 
 		uart_start_transmit(!queue_empty(&data_send_queue));
 	}
 
 	// acknowledge all uart interrupts
 
-	WRITE_PERI_REG(UART_INT_CLR(0), 0xffff);
+	write_peri_reg(UART_INT_CLR(0), 0xffff);
 	ETS_UART_INTR_ENABLE();
 }
 
@@ -119,13 +120,9 @@ irom void uart_init(const uart_parameters_t *params)
 	uart_parity_t parity;
 
 	ETS_UART_INTR_DISABLE();
-
 	ETS_UART_INTR_ATTACH(uart_callback,  0);
 
-	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
-	pin_func_select(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
-
-	WRITE_PERI_REG(UART_CLKDIV(0), UART_CLK_FREQ / params->baud_rate);
+	write_peri_reg(UART_CLKDIV(0), UART_CLK_FREQ / params->baud_rate);
 
 	data_bits = params->data_bits - 5;
 
@@ -141,13 +138,13 @@ irom void uart_init(const uart_parameters_t *params)
 	else
 		parity = 0;
 
-	WRITE_PERI_REG(UART_CONF0(0),
+	write_peri_reg(UART_CONF0(0),
 			((data_bits & UART_BIT_NUM) << UART_BIT_NUM_S) |
 			((stop_bits & UART_STOP_BIT_NUM) << UART_STOP_BIT_NUM_S) |
 			parity);
 
-	SET_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
-	CLEAR_PERI_REG_MASK(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
+	set_peri_reg_mask(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
+	clear_peri_reg_mask(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 
 	// Set receive fifo "timeout" threshold.
 	// when no data comes in for this amount of bytes' times and the fifo
@@ -163,13 +160,13 @@ irom void uart_init(const uart_parameters_t *params)
 	// something in it that should be written to the uart's fifo, see
 	// uart_start_transmit().
 
-	WRITE_PERI_REG(UART_CONF1(0),
+	write_peri_reg(UART_CONF1(0),
 			(( 2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) | UART_RX_TOUT_EN |
 			((16 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
 			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
-	WRITE_PERI_REG(UART_INT_CLR(0), 0xffff);
-	WRITE_PERI_REG(UART_INT_ENA(0), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
+	write_peri_reg(UART_INT_CLR(0), 0xffff);
+	write_peri_reg(UART_INT_ENA(0), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
 
 	ETS_UART_INTR_ENABLE();
 }
@@ -177,7 +174,7 @@ irom void uart_init(const uart_parameters_t *params)
 iram void uart_start_transmit(char c)
 {
 	if(c)
-		SET_PERI_REG_MASK(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);
+		set_peri_reg_mask(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);
 	else
-		CLEAR_PERI_REG_MASK(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);
+		clear_peri_reg_mask(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);
 }

@@ -180,6 +180,5 @@ int dprintf(const char *fmt, ...);
 void msleep(int);
 ip_addr_t ip_addr(const char *);
 bool ip_addr_valid(ip_addr_t);
-void pin_func_select(uint32_t pin_name, uint32_t pin_func);
 
 #endif

@@ -682,16 +682,3 @@ irom attr_pure bool ip_addr_valid(ip_addr_t ip_addr)
 
 	return(false);
 }
-
-irom void pin_func_select(uint32_t pin_name, uint32_t pin_func)
-{
-	uint32_t pin_value;
-
-	pin_value = READ_PERI_REG(pin_name);
-	pin_value &= ~(PERIPHS_IO_MUX_FUNC << PERIPHS_IO_MUX_FUNC_S);
-	pin_value |= (pin_func & (1 << 2)) << (PERIPHS_IO_MUX_FUNC_S + 2);
-	pin_value |= (pin_func & (1 << 1)) << (PERIPHS_IO_MUX_FUNC_S + 0);
-	pin_value |= (pin_func & (1 << 0)) << (PERIPHS_IO_MUX_FUNC_S + 0);
-
-	WRITE_PERI_REG(pin_name, pin_value);
-}

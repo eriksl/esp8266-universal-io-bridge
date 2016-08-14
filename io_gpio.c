@@ -5,11 +5,17 @@
 
 #include <user_interface.h>
 #include <osapi.h>
-#include <gpio.h>
 #include <pwm.h>
 #include <ets_sys.h>
 
 #include <stdlib.h>
+
+// missing from eagle_soc.h
+
+#define FUNC_GPIO6                          3
+#define FUNC_GPIO7                          3
+#define FUNC_GPIO8                          3
+#define FUNC_GPIO11                         3
 
 enum
 {
@@ -58,25 +64,117 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ true, 	PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0, io_uart_none, -1		},
-	{ true,		PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1, io_uart_tx, FUNC_U0TXD,	},
-	{ true,		PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2, io_uart_none, -1,		},
-	{ true,		PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3, io_uart_rx, FUNC_U0RXD	},
-	{ true,		PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4, io_uart_none, -1		},
-	{ true,		PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5, io_uart_none, -1		},
-	{ false,	0, 0, io_uart_none, -1 },
-	{ false,	0, 0, io_uart_none, -1 },
-	{ false,	0, 0, io_uart_none, -1 },
-	{ false,	0, 0, io_uart_none, -1 },
-	{ false,	0, 0, io_uart_none, -1 },
-	{ false,	0, 0, io_uart_none, -1 },
-	{ true,		PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12, io_uart_none, -1 },
-	{ true,		PERIPHS_IO_MUX_MTCK_U, FUNC_GPIO13, io_uart_none, -1 },
-	{ true,		PERIPHS_IO_MUX_MTMS_U, FUNC_GPIO14, io_uart_none, -1 },
-	{ true,		PERIPHS_IO_MUX_MTDO_U, FUNC_GPIO15, io_uart_none, -1 },
+	{ true, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,	},
+	{ true,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_none,	-1,			},
+	{ true,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD	},
+	{ true,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	-1			},
+	{ false,	PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	-1			},
+	{ true,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	-1			},
 };
 
 static uint32_t pwm_duty[io_gpio_pwm_size];
+
+// set GPIO direction
+
+irom static void gpio_direction_clear_mask(uint32_t mask)
+{
+	gpio_reg_write(GPIO_ENABLE_W1TC_ADDRESS, mask);
+}
+
+irom static void gpio_direction_set_mask(uint32_t mask)
+{
+	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
+}
+
+irom static void gpio_direction(int io, int onoff)
+{
+	if(onoff)
+		gpio_direction_set_mask(1 << io);
+	else
+		gpio_direction_clear_mask(1 << io);
+}
+
+// disable / enable pullup
+
+irom static bool_t gpio_pullup(int pin, int onoff)
+{
+	uint32_t value;
+	gpio_info_t *gpio_pin_info;
+
+	if(pin > 15)
+		return(false);
+
+	gpio_pin_info = &gpio_info_table[pin];
+
+	if(!gpio_pin_info->valid)
+		return(false);
+
+	value = read_peri_reg(gpio_pin_info->mux);
+
+	if(onoff)
+		value |= PERIPHS_IO_MUX_PULLUP;
+	else
+		value &= ~(PERIPHS_IO_MUX_PULLUP);
+
+	write_peri_reg(gpio_pin_info->mux, value);
+
+	return(true);
+}
+
+// clear / set open drain mode
+
+irom static void gpio_open_drain(int io, int onoff)
+{
+	uint32_t pinaddr;
+	uint32_t value;
+
+	pinaddr	= gpio_pin_addr(GPIO_ID_PIN(io));
+	value	= gpio_reg_read(pinaddr);
+
+	if(onoff)
+		value |= GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE);
+	else
+		value &= ~(GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE));
+
+	gpio_reg_write(pinaddr, value);
+}
+
+// select pin function
+
+irom static bool_t gpio_func_select(int pin, int func)
+{
+	gpio_info_t *gpio_pin_info;
+	uint32_t value;
+
+	if(pin > 15)
+		return(false);
+
+	gpio_pin_info = &gpio_info_table[pin];
+
+	if(!gpio_pin_info->valid)
+		return(false);
+
+	value = read_peri_reg(gpio_pin_info->mux);
+
+	value &= ~(PERIPHS_IO_MUX_FUNC << PERIPHS_IO_MUX_FUNC_S);
+	value |= (func & (1 << 2)) << (PERIPHS_IO_MUX_FUNC_S + 2);
+	value |= (func & (1 << 1)) << (PERIPHS_IO_MUX_FUNC_S + 0);
+	value |= (func & (1 << 0)) << (PERIPHS_IO_MUX_FUNC_S + 0);
+
+	write_peri_reg(gpio_pin_info->mux, value);
+
+	return(true);
+}
 
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
@@ -87,31 +185,33 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	int pwmchannel = 0;
 	uint32_t pwm_io_info[io_gpio_pwm_size][3];
 
-	gpio_init();
-
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		pin_config = &config.io_config[io_id_gpio][pin];
 		gpio_pin_info = &gpio_info_table[pin];
-		gpio_pin_data = &gpio_data[pin];
 
-		if(pin_config->llmode == io_pin_ll_output_analog)
+		if(gpio_pin_info->valid)
 		{
-			gpio_pin_data->pwm.channel = -1;
+			pin_config = &config.io_config[io_id_gpio][pin];
+			gpio_pin_data = &gpio_data[pin];
 
-			if(pwmchannel < io_gpio_pwm_size)
+			if(pin_config->llmode == io_pin_ll_output_analog)
 			{
-				pwm_io_info[pwmchannel][0] = gpio_pin_info->mux;
-				pwm_io_info[pwmchannel][1] = gpio_pin_info->func;
-				pwm_io_info[pwmchannel][2] = pin;
-				pwm_duty[pwmchannel] = 0;
+				gpio_pin_data->pwm.channel = -1;
 
-				gpio_pin_data->pwm.channel = pwmchannel++;
+				if(pwmchannel < io_gpio_pwm_size)
+				{
+					pwm_io_info[pwmchannel][0] = gpio_pin_info->mux;
+					pwm_io_info[pwmchannel][1] = gpio_pin_info->func;
+					pwm_io_info[pwmchannel][2] = pin;
+					pwm_duty[pwmchannel] = 0;
+
+					gpio_pin_data->pwm.channel = pwmchannel++;
+				}
 			}
 		}
 	}
 
-	gpio_pc_pins_previous = gpio_input_get();
+	gpio_pc_pins_previous = gpio_get_mask();
 
 	if(pwmchannel > 0)
 	{
@@ -131,7 +231,7 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 	int pin;
 	uint32_t gpio_pc_pins_current;
 
-	gpio_pc_pins_current = gpio_input_get();
+	gpio_pc_pins_current = gpio_get_mask();
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
@@ -182,7 +282,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		return(io_error);
 	}
 
-	pin_func_select(gpio_info->mux, gpio_info->func);
+	gpio_func_select(pin, gpio_info->func);
 
 	gpio_pin_data = &gpio_data[pin];
 
@@ -191,12 +291,8 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		case(io_pin_ll_input_digital):
 		case(io_pin_ll_counter):
 		{
-			gpio_output_set(0, 0, 0, 1 << pin);
-
-			if(pin_config->flags.pullup)
-				PIN_PULLUP_EN(gpio_info->mux);
-			else
-				PIN_PULLUP_DIS(gpio_info->mux);
+			gpio_direction(pin, 0);
+			gpio_pullup(pin, pin_config->flags.pullup);
 
 			if(pin_config->llmode == io_pin_ll_counter)
 			{
@@ -209,7 +305,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_output_digital):
 		{
-			gpio_output_set(0, 0, 1 << pin, 0);
+			gpio_direction(pin, 1);
 			break;
 		}
 
@@ -217,7 +313,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			int channel = gpio_pin_data->pwm.channel;
 
-			gpio_output_set(0, 0, 1 << pin, 0);
+			gpio_direction(pin, 1);
 
 			if(channel >= 0)
 			{
@@ -231,13 +327,11 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_i2c):
 		{
-			uint32_t pinaddr = GPIO_PIN_ADDR(GPIO_ID_PIN(pin));
-
-			gpio_output_set(0, 0, 0, 1 << pin);		// set to input
-			PIN_PULLUP_DIS(gpio_info->mux);			// disable pullup
-			gpio_output_set(0, 0, 1 << pin, 0);		// set to output
-			GPIO_REG_WRITE(pinaddr, GPIO_REG_READ(pinaddr) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE)); // set to open drain
-			gpio_output_set(1 << pin, 0, 0, 0);		// set idle = high
+			gpio_direction(pin, 0);
+			gpio_pullup(pin, 0);
+			gpio_direction(pin, 1);
+			gpio_open_drain(pin, 1);
+			gpio_set(pin, 1);
 
 			break;
 		}
@@ -251,12 +345,8 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 				return(io_error);
 			}
 
-			pin_func_select(gpio_info->mux, gpio_info->uart_func);
-
-			if(pin_config->flags.pullup)
-				PIN_PULLUP_EN(gpio_info->mux);
-			else
-				PIN_PULLUP_DIS(gpio_info->mux);
+			gpio_func_select(pin, gpio_info->uart_func);
+			gpio_pullup(pin, pin_config->flags.pullup);
 
 			break;
 		}
@@ -290,8 +380,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 			case(io_pin_ll_counter):
 			{
 				string_format(dst, "current state: %s, debounce delay: %d",
-						onoff(gpio_input_get() & 1 << pin),
-						gpio_pin_data->counter.debounce);
+						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce);
 
 				break;
 			}
@@ -358,7 +447,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 		case(io_pin_ll_output_digital):
 		case(io_pin_ll_i2c):
 		{
-			*value = !!(gpio_input_get() & 1 << pin);
+			*value = gpio_get(pin);
 
 			break;
 		}
@@ -417,10 +506,7 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 		case(io_pin_ll_output_digital):
 		case(io_pin_ll_i2c):
 		{
-			if(value)
-				gpio_output_set(1 << pin, 0, 0, 0);
-			else
-				gpio_output_set(0, 1 << pin, 0, 0);
+			gpio_set(pin, value);
 
 			break;
 		}
