@@ -153,7 +153,7 @@ CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
 					-isystem$(SDKROOT)/sdk/include -I$(RBOOT)/appcode -I$(RBOOT) -I.
 LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
-SDKLIBS			:= -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto -ldriver
+SDKLIBS			:= -lgcc -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_pcf.o queue.o \
