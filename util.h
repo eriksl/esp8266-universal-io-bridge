@@ -71,6 +71,7 @@ void ets_isr_unmask(unsigned int);
 void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
 void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
+void NmiTimSetFunc(void *);
 void ets_delay_us(uint16_t);
 int ets_memcmp(const void *, const void *, size_t);
 size_t ets_strlen(const char *);
