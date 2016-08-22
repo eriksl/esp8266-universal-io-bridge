@@ -37,7 +37,7 @@ static config_flag_t config_flag[config_flag_size] =
 	},
 	{
 		config_flag_enable_cfa634,
-		"ec4", "enable-cfa634"
+		"ec", "enable-cfa634"
 	},
 	{
 		config_flag_i2c_highspeed,
