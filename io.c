@@ -658,7 +658,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				}
 			}
 
-			if((error = info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, value)) != io_ok)
+			if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
 
 			break;
