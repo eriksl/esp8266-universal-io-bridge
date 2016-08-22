@@ -444,7 +444,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
-	int value = 0;
+	int value = 0, old_value;
 
 	switch(pin_config->mode)
 	{
@@ -603,7 +603,12 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 				case(io_trigger_down):
 				{
+					old_value = value;
+
 					value /= (pin_config->speed / 10000.0) + 1;
+
+					if((old_value == value) && (value > 0))
+						value--;
 
 					if(value <= pin_config->shared.output_analog.lower_bound)
 					{
@@ -625,10 +630,12 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 						value = pin_config->shared.output_analog.lower_bound;
 					else
 					{
-						if(value == 0)
-							value = 1;
+						old_value = value;
 
 						value *= (pin_config->speed / 10000.0) + 1;
+
+						if(old_value == value)
+							value++;
 					}
 
 					if(value >= pin_config->shared.output_analog.upper_bound)
