@@ -99,6 +99,8 @@ struct tm *sntp_localtime(const time_t *);
 #define memset #error use ets_memset
 #define memcmp #error use ets_memcmp
 //size_t strlcpy(char *, const char *, size_t);
+//void *memchr(const void *s, int c, size_t n);
+
 
 // undocumented functions from ROM
 
