@@ -12,9 +12,7 @@
 #include "io.h"
 #include "time.h"
 
-#if IMAGE_OTA == 1
 #include "ota.h"
-#endif
 
 #include <user_interface.h>
 #include <c_types.h>
@@ -708,13 +706,11 @@ irom static app_action_t application_function_wlan_scan(const string_t *src, str
 		return(app_action_error);
 	}
 
-#if IMAGE_OTA == 1
-	if(ota_active())
+	if(ota_is_active())
 	{
 		string_cat(dst, "wlan-scan: ota active\n");
 		return(app_action_error);
 	}
-#endif
 
 	wlan_scan_state = ws_scanning;
 	wifi_station_scan(0, wlan_scan_done_callback);
@@ -962,19 +958,23 @@ static const application_function_table_t application_function_table[] =
 		application_function_help,
 		"help [command]",
 	},
-#if IMAGE_OTA == 1
+	{
+		"or", "ota-read",
+		application_function_ota_read,
+		"ota-read length start chunk-size",
+	},
+	{
+		"od", "ota-receive-data",
+		application_function_ota_receive,
+		"ota-receive-data",
+	},
 	{
 		"ow", "ota-write",
 		application_function_ota_write,
-		"ota-write file_length",
+		"ota-write length [start]",
 	},
 	{
-		"ov", "ota-verify",
-		application_function_ota_verify,
-		"ota-verify file_length",
-	},
-	{
-		"os", "ota-send",
+		"os", "ota-send-data",
 		application_function_ota_send,
 		"ota-send chunk_length data",
 	},
@@ -988,7 +988,6 @@ static const application_function_table_t application_function_table[] =
 		application_function_ota_commit,
 		"ota-commit",
 	},
-#endif
 	{
 		"q", "quit",
 		application_function_quit,

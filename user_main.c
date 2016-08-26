@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <espconn.h>
 
+#if IMAGE_OTA == 1
 #include <rboot-api.h>
+#endif
 
 typedef enum
 {
@@ -316,17 +318,17 @@ irom static bool_t background_task_command_handler(void)
 				bg_action.reset = 1;
 				break;
 			}
-#if IMAGE_OTA == 1
 			case(app_action_ota_commit):
 			{
+#if IMAGE_OTA == 1
 				rboot_config rcfg = rboot_get_config();
 				string_format(cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
 				bg_action.disconnect = 1;
 				bg_action.reset = 1;
+#endif
 
 				break;
 			}
-#endif
 		}
 
 		cmd.receive_ready = false;

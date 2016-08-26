@@ -160,9 +160,9 @@ LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
-						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_pcf.o queue.o \
+						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_pcf.o ota.o queue.o \
 						stats.o time.o uart.o user_main.o util.o
-OTA_OBJ			:= rboot-bigflash.o rboot-api.o ota.o
+OTA_OBJ			:= rboot-bigflash.o rboot-api.o
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_config.h io_gpio.h \
 						io_aux.h io_mcp.h io_pcf.h io_shared.h ota.h queue.h stats.h uart.h user_config.h \
@@ -296,10 +296,13 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(SYSTEM_OFFSET_OTA) $(SYSTEM_FILE) \
 							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE)
 
-ota:					$(OTA_TARGET)
+ota:					$(FIRMWARE_OTA_IMG) free otapush
+						./otapush write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
-push-ota:				$(FIRMWARE_OTA_IMG) free otapush
-						./otapush -s 10 $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+ota-default:
+						./otapush write $(OTA_HOST) $(RF_FILE) $(RF_OFFSET_OTA)
+						./otapush write $(OTA_HOST) $(SYSTEM_FILE) $(SYSTEM_OFFSET_OTA)
+						./otapush write $(OTA_HOST) $(RFCAL_FILE) $(RFCAL_OFFSET_OTA)
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
