@@ -729,6 +729,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	gpio_data_pin_t *gpio_pin_data;
+	int saved_value;
 
 	if(!gpio_info_table[pin].valid)
 	{
@@ -759,8 +760,11 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 		{
 			if((value >= 0) && (gpio_pin_data->pwm.duty != (unsigned int)value))
 			{
+				saved_value = value;
 				gpio_pin_data->pwm.duty = value;
-				pwm_go();
+
+				if(!pwm_go())
+					gpio_pin_data->pwm.duty = saved_value;
 			}
 
 			break;
