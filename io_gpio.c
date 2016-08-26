@@ -285,7 +285,7 @@ iram static void pwm_isr(void)
 		else
 			if(delay < 24)
 				if(io_gpio_flags.pwm_cpu_high_speed)
-					for(delay = ((delay - 2) * 6) + 6; delay > 0; delay--)
+					for(delay = ((delay - 2) * 6) + 5; delay > 0; delay--)
 						asm volatile("nop");
 				else
 					for(delay = ((delay - 2) * 3) + 2; delay > 0; delay--)
@@ -293,9 +293,9 @@ iram static void pwm_isr(void)
 			else
 			{
 				if(io_gpio_flags.pwm_cpu_high_speed)
-					delay -= 9;
+					delay -= 7;
 				else
-					delay -= 18;
+					delay -= 14;
 
 				pwm_timer_reload(delay);
 
