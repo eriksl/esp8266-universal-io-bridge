@@ -1,0 +1,32 @@
+non-OTA (512 kbyte, 4 Mbit, 1 slot)
+
+	07f000	-	07ffff	unused?														01000	1 sector
+	07e000	-	07efff	default system parameter values, blank.bin					01000	1 sector
+	07d000	-	07dfff	unused?														01000	1 sector
+	07c000	-	07cfff	default RF parameter values, default.bin					01000	1 sector
+	07b000	-	07bfff	RF calibration storage										01000	1 sector
+	07a000	-	07afff	user config													01000	1 sector
+	010000	-	079fff	irom contents												6a000	424 kbyte
+	000000	-	00ffff	iram contents												10000	64 kbyte
+
+OTA (2048 kbyte, 16 mbit, 2 identical slots)
+
+	1ff000	-	1fffff	unused?														01000	1 sector
+	1fe000	-	1fefff	default system parameter values, blank.bin					01000	1 sector
+	1fd000	-	1fdfff	unused?														01000	1 sector
+	1fc000	-	1fcfff	default RF parameter values, default.bin					01000	1 sector
+	1fb000	-	1fbfff	unused (mirror RF calibration storage in slot 0)			01000	1 sector
+	1fa000	-	1fafff	unused (mirror user config in slot 0)						01000	1 sector
+	102000	-	1f9fff	ota image slot 1											f8000	992 kbyte
+	101000	-	101fff	unused (mirror rboot config in slot 0)						01000	1 sector
+	100000	-	100fff	unused (mirror ota boot in slot 0)							01000	1 sector
+
+	0ff000	-	0fffff	unused (mirror unused? in slot 1)							01000	1 sector
+	0fe000	-	0fdfff	unused (mirror default system parameter values in slot 1)	01000	1 sector
+	0fd000	-	0fdfff	unused (mirror unused? in slot 1)							01000	1 sector
+	0fc000	-	0fcfff	unused (mirror default RF parameters value in slot 1)		01000	1 sector
+	0fb000	-	0fbfff	RF calibration storage										01000	1 sector
+	0fa000	-	0fafff	user config													01000	1 sector
+	002000	-	0f9fff	ota image slot 0											f8000	992 kbyte
+	001000	-	001fff	rboot config												01000	1 sector
+	000000	-	000fff	ota boot													01000	1 sector
