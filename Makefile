@@ -59,12 +59,17 @@ link_debug		= $(Q) perl -e '\
 
 CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
 OBJCOPY						:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
-DEFAULT_BIN_OFFSET_PLAIN	:= 0x07c000
-DEFAULT_BIN_OFFSET_OTA		:= 0x1fc000
-DEFAULT_BIN_FILE			:= $(SDKROOT)/sdk/bin/esp_init_data_default.bin
-BLANK_BIN_OFFSET_PLAIN		:= 0x07e000
-BLANK_BIN_OFFSET_OTA		:= 0x1fe000
-BLANK_BIN_FILE				:= $(SDKROOT)/sdk/bin/blank.bin
+USER_CONFIG_SECTOR_PLAIN	:= 0x7a
+USER_CONFIG_SECTOR_OTA		:= 0xfa
+RFCAL_OFFSET_PLAIN			:= 0x7b000
+RFCAL_OFFSET_OTA			:= 0xfb000
+RFCAL_FILE					:= $(SDKROOT)/sdk/bin/blank.bin
+RF_OFFSET_PLAIN				:= 0x07c000
+RF_OFFSET_OTA				:= 0x1fc000
+RF_FILE						:= $(SDKROOT)/sdk/bin/esp_init_data_default.bin
+SYSTEM_OFFSET_PLAIN			:= 0x07e000
+SYSTEM_OFFSET_OTA			:= 0x1fe000
+SYSTEM_FILE					:= $(SDKROOT)/sdk/bin/blank.bin
 LDSCRIPT_TEMPLATE			:= loadscript-template
 LDSCRIPT					:= loadscript
 ELF_PLAIN					:= espiobridge-plain.o
@@ -111,13 +116,13 @@ ifeq ($(IMAGE),plain)
 	FLASH_SIZE_ESPTOOL := 4m
 	FLASH_SIZE_KBYTES := 512
 	RBOOT_SPI_SIZE := 512K
-	USER_CONFIG_SECTOR := 7a
+	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_PLAIN)
+	RFCAL_ADDRESS=$(RFCAL_OFFSET_PLAIN)
 	LD_ADDRESS := 0x40210000
 	LD_LENGTH := 0x79000
 	ELF := $(ELF_PLAIN)
 	ALL_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
 	FLASH_TARGET := flash-plain
-	OTA_TARGET :=
 endif
 
 ifeq ($(IMAGE),ota)
@@ -125,16 +130,14 @@ ifeq ($(IMAGE),ota)
 	FLASH_SIZE_ESPTOOL := 16m
 	FLASH_SIZE_KBYTES := 2048
 	RBOOT_SPI_SIZE := 2M
-	USER_CONFIG_SECTOR := fa
+	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_OTA)
+	RFCAL_ADDRESS=$(RFCAL_OFFSET_OTA)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
 	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush
 	FLASH_TARGET := flash-ota
-	OTA_TARGET := push-ota
 endif
-
-USER_CONFIG_SECTOR_HEX := 0x$(USER_CONFIG_SECTOR)
 
 WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign \
 					-Wno-unused-parameter -Wsuggest-attribute=const -Wsuggest-attribute=pure \
@@ -146,8 +149,9 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
 					-Winit-self -Wformat-nonliteral -Wcomment \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
-CFLAGS			:=  -O3 -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=400 -DICACHE_FLASH \
-						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR_HEX)
+CFLAGS			:=  -Os -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=400 -DICACHE_FLASH \
+						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
+						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -168,7 +172,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota
 
 all:			$(ALL_TARGETS) free
-				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR_HEX)"
+				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
 				$(VECHO) "CLEAN"
@@ -278,8 +282,9 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
 							$(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM) \
-							$(BLANK_BIN_OFFSET_PLAIN) $(BLANK_BIN_FILE) \
-							$(DEFAULT_BIN_OFFSET_PLAIN) $(DEFAULT_BIN_FILE)
+							$(RF_OFFSET_PLAIN) $(RF_FILE) \
+							$(SYSTEM_OFFSET_PLAIN) $(SYSTEM_FILE) \
+							$(RFCAL_OFFSET_PLAIN) $(RFCAL_FILE) \
 
 flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 						$(VECHO) "FLASH RBOOT"
@@ -287,8 +292,9 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
 							$(OFFSET_OTA_RBOOT_CFG) $(CONFIG_RBOOT_BIN) \
 							$(OFFSET_OTA_IMG_0) $(FIRMWARE_OTA_IMG) \
-							$(BLANK_BIN_OFFSET_OTA) $(BLANK_BIN_FILE) \
-							$(DEFAULT_BIN_OFFSET_OTA) $(DEFAULT_BIN_FILE)
+							$(RF_OFFSET_OTA) $(RF_FILE) \
+							$(SYSTEM_OFFSET_OTA) $(SYSTEM_FILE) \
+							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE)
 
 ota:					$(OTA_TARGET)
 
@@ -297,18 +303,18 @@ push-ota:				$(FIRMWARE_OTA_IMG) free otapush
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
-						$(Q) $(ESPTOOL) read_flash $(USER_CONFIG_SECTOR_HEX)000 0x1000 $(CONFIG_BACKUP_BIN)
+						$(Q) $(ESPTOOL) read_flash $(USER_CONFIG_SECTOR)000 0x1000 $(CONFIG_BACKUP_BIN)
 
 restore-config:
 						$(VECHO) "RESTORE CONFIG"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(USER_CONFIG_SECTOR_HEX)000 $(CONFIG_BACKUP_BIN)
+							$(USER_CONFIG_SECTOR)000 $(CONFIG_BACKUP_BIN)
 
 wipe-config:
 						$(VECHO) "WIPE CONFIG"
 						dd if=/dev/zero of=wipe-config.bin bs=4096 count=1
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(USER_CONFIG_SECTOR_HEX)000 wipe-config.bin
+							$(USER_CONFIG_SECTOR)000 wipe-config.bin
 						rm wipe-config.bin
 
 %.o:					%.c

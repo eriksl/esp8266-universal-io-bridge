@@ -409,7 +409,14 @@ irom static void slow_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-irom void user_init(void);
+uint32_t user_rf_cal_sector_set(void);
+
+iram attr_const uint32_t user_rf_cal_sector_set(void)
+{
+	return(RFCAL_ADDRESS / 0x1000);
+}
+
+void user_init(void);
 
 irom void user_init(void)
 {
