@@ -16,7 +16,7 @@ int stat_uart_tx_interrupts;
 int stat_fast_timer;
 int stat_slow_timer;
 int stat_timer_interrupts;
-int stat_pwm_interrupts;
+int stat_pwm_timer_interrupts;
 int stat_i2c_init_time_us;
 int stat_display_init_time_us;
 
@@ -118,8 +118,7 @@ irom void stats_generate(string_t *dst)
 			"> int uart tx: %u\n"
 			"> fast timer fired: %u\n"
 			"> slow timer fired: %u\n"
-			"> timer int fired: %u\n"
-			"> pwm int fired: %u\n"
+			"> pwm timer int fired: %u\n"
 			"> uart updated: %u\n"
 			"> longops processed: %u\n"
 			"> commands processed: %u\n"
@@ -156,8 +155,7 @@ irom void stats_generate(string_t *dst)
 			stat_uart_tx_interrupts,
 			stat_fast_timer,
 			stat_slow_timer,
-			stat_timer_interrupts,
-			stat_pwm_interrupts,
+			stat_pwm_timer_interrupts,
 			stat_update_uart,
 			stat_update_longop,
 			stat_update_command,

@@ -214,7 +214,6 @@ typedef struct
 
 typedef struct
 {
-	unsigned int	pwm_isr_enabled:1;
 	unsigned int	pwm_swap_phase_set:1;
 	unsigned int	pwm_cpu_high_speed:1;
 } io_gpio_flags_t;
@@ -225,19 +224,32 @@ static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
 
+iram static inline bool_t pwm_isr_enabled(void)
+{
+	return(gpio_interrupts_enabled() & (1 << ETS_FRC_TIMER1_INUM));
+}
+
+iram static inline void pwm_isr_enable(bool_t onoff)
+{
+	if(onoff)
+		ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
+	else
+		ets_isr_mask(1 << ETS_FRC_TIMER1_INUM);
+}
+
+iram static inline void pwm_timer_reload(uint32_t value)
+{
+	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
+}
+
 iram static void pwm_isr(void)
 {
-	static unsigned int		phase, delay;
-	static pwm_phases_t *	phase_data;
+	static unsigned int	phase, delay;
+	static pwm_phases_t *phase_data;
 
-	stat_timer_interrupts++;
-
-	if(!io_gpio_flags.pwm_isr_enabled)
-		return;
+	stat_pwm_timer_interrupts++;
 
 	phase_data = &pwm_phase[pwm_current_phase_set];
-
-	stat_pwm_interrupts++;
 
 	for(;;)
 	{
@@ -255,8 +267,8 @@ iram static void pwm_isr(void)
 
 			if(phase_data->size < 2)
 			{
-				io_gpio_flags.pwm_isr_enabled = 0;
-				break;
+				pwm_isr_enable(false);
+				return;
 			}
 
 			gpio_set_mask(phase_data->phase[phase].mask);
@@ -285,7 +297,7 @@ iram static void pwm_isr(void)
 				else
 					delay -= 18;
 
-				write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, delay);
+				pwm_timer_reload(delay);
 
 				return;
 			}
@@ -306,7 +318,7 @@ irom static bool_t pwm_go(void)
 
 	new_set = pwm_current_phase_set;
 
-	if(io_gpio_flags.pwm_isr_enabled)
+	if(pwm_isr_enabled())
 		new_set = new_set ? 0 : 1;
 
 	io_gpio_flags.pwm_cpu_high_speed = system_get_cpu_freq() > 80;
@@ -439,10 +451,10 @@ irom static bool_t pwm_go(void)
 	}
 #endif
 
-	if(!io_gpio_flags.pwm_isr_enabled) // ISR will turn itself off immediately when no phases present
+	if(!pwm_isr_enabled()) // ISR will turn itself off immediately when no phases present
 	{
-		io_gpio_flags.pwm_isr_enabled = 1;
-		write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, 32);
+		pwm_isr_enable(true);
+		pwm_timer_reload(32);
 	}
 	else
 		io_gpio_flags.pwm_swap_phase_set = 1;
@@ -458,18 +470,15 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 
 	pwm_current_phase_set = 0;
 	pwm_period = 65536; // FIXME
-	io_gpio_flags.pwm_isr_enabled = 0;
 	io_gpio_flags.pwm_swap_phase_set = 0;
 
 	pwm_phase[0].size = 0;
 	pwm_phase[1].size = 0;
 
-	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_CTRL_ADDRESS, FRC1_ENABLE_TIMER | FRC1_DIVIDE_BY_16 | FRC1_EDGE_INT);
-	//ets_isr_attach(ETS_FRC_TIMER1_INUM, pwm_isr, 0);
-	NmiTimSetFunc(pwm_isr);
+	pwm_isr_enable(false);
+	ets_isr_attach(ETS_FRC_TIMER1_INUM, pwm_isr, 0);
 	set_peri_reg_mask(EDGE_INT_ENABLE_REG, BIT1);
-	ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
-	clear_peri_reg_mask(PERIPHS_TIMER_BASEDDR + FRC1_INT_ADDRESS, FRC1_INT_CLR_MASK);
+	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_CTRL_ADDRESS, FRC1_ENABLE_TIMER | FRC1_DIVIDE_BY_16 | FRC1_EDGE_INT);
 
 	return(io_ok);
 }
@@ -640,7 +649,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				dutypctfraction = duty * 10000 / (pwm_period - 1);
 				dutypctfraction -= dutypct * 100;
 
-				if(!io_gpio_flags.pwm_isr_enabled)
+				if(!pwm_isr_enabled())
 					frequency = 0;
 
 				string_format(dst, "frequency: %u Hz, duty: %u (%u.%u %%)",

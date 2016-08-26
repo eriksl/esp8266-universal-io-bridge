@@ -18,6 +18,13 @@ io_error_t	io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data
 
 // generic
 
+iram static inline uint32_t gpio_interrupts_enabled(void)
+{
+    uint32_t enabled;
+    __asm__ __volatile__("esync; rsr %0,intenable":"=a" (enabled));
+    return enabled;
+}
+
 iram static inline uint32_t gpio_pin_addr(int pin)
 {
 	return(GPIO_PIN0_ADDRESS + (pin * 4));

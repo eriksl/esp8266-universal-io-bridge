@@ -9,8 +9,7 @@ extern int stat_uart_rx_interrupts;
 extern int stat_uart_tx_interrupts;
 extern int stat_fast_timer;
 extern int stat_slow_timer;
-extern int stat_timer_interrupts;
-extern int stat_pwm_interrupts;
+extern int stat_pwm_timer_interrupts;
 extern int stat_i2c_init_time_us;
 extern int stat_display_init_time_us;
 
