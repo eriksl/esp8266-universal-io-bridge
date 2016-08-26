@@ -21,13 +21,6 @@ extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;
 
-extern int debug_a;
-extern int debug_b;
-extern int debug_c;
-extern int debug_d;
-extern int debug_e;
-extern int debug_f;
-
 void stats_generate(string_t *);
 
 #endif

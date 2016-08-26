@@ -248,7 +248,6 @@ iram static void pwm_isr(void)
 		{
 			if(io_gpio_flags.pwm_swap_phase_set)
 			{
-				debug_d++;
 				pwm_current_phase_set = pwm_current_phase_set ? 0 : 1;
 				io_gpio_flags.pwm_swap_phase_set = 0;
 				phase_data = &pwm_phase[pwm_current_phase_set];
@@ -256,7 +255,6 @@ iram static void pwm_isr(void)
 
 			if(phase_data->size < 2)
 			{
-				debug_b++;
 				io_gpio_flags.pwm_isr_enabled = 0;
 				break;
 			}
@@ -304,12 +302,7 @@ irom static bool_t pwm_go(void)
 	unsigned int duty, delta, new_set;
 
 	if(io_gpio_flags.pwm_swap_phase_set)
-	{
-		debug_e++;
 		return(false);
-	}
-
-	debug_f++;
 
 	new_set = pwm_current_phase_set;
 
@@ -448,15 +441,11 @@ irom static bool_t pwm_go(void)
 
 	if(!io_gpio_flags.pwm_isr_enabled) // ISR will turn itself off immediately when no phases present
 	{
-		debug_a++;
 		io_gpio_flags.pwm_isr_enabled = 1;
 		write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, 32);
 	}
 	else
-	{
-		debug_c++;
 		io_gpio_flags.pwm_swap_phase_set = 1;
-	}
 
 	return(true);
 }

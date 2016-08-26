@@ -27,13 +27,6 @@ int stat_update_display;
 int stat_update_ntp;
 int stat_update_idle;
 
-int debug_a;
-int debug_b;
-int debug_c;
-int debug_d;
-int debug_e;
-int debug_f;
-
 static const char *flash_map[] =
 {
 	"4 Mb map 256/256",
@@ -121,12 +114,6 @@ irom void stats_generate(string_t *dst)
 			"> address: %x\n"
 			"> size: %u\n"
 			">\n"
-			"> debug a: %u\n"
-			"> debug b: %u\n"
-			"> debug c: %u\n"
-			"> debug d: %u\n"
-			"> debug e: %u\n"
-			"> debug f: %u\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
 			"> fast timer fired: %u\n"
@@ -165,12 +152,6 @@ irom void stats_generate(string_t *dst)
 			config.version,
 			USER_CONFIG_SECTOR * 0x1000,
 			sizeof(config_t),
-			debug_a,
-			debug_b,
-			debug_c,
-			debug_d,
-			debug_e,
-			debug_f,
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
 			stat_fast_timer,
