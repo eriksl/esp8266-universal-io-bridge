@@ -80,7 +80,7 @@ irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
 	espconn_tcp_set_max_con_allow(&espsrv->parent_socket, 1);
 }
 
-iram static void tcp_data_sent_callback(void *arg)
+irom static void tcp_data_sent_callback(void *arg)
 {
 	string_clear(data.send_buffer);
 	data.send_busy = false;
@@ -90,7 +90,7 @@ iram static void tcp_data_sent_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-iram static void tcp_data_receive_callback(void *arg, char *buffer, unsigned short length)
+irom static void tcp_data_receive_callback(void *arg, char *buffer, unsigned short length)
 {
 	int current, byte;
 	bool_t strip_telnet;
@@ -157,12 +157,12 @@ irom static void tcp_data_connect_callback(struct espconn *new_connection)
 	}
 }
 
-iram static void tcp_cmd_sent_callback(void *arg)
+irom static void tcp_cmd_sent_callback(void *arg)
 {
 	cmd.send_busy = false;
 }
 
-iram static void tcp_cmd_receive_callback(void *arg, char *buffer, unsigned short length)
+irom static void tcp_cmd_receive_callback(void *arg, char *buffer, unsigned short length)
 {
 	if(cmd.receive_ready)
 		return;
@@ -230,7 +230,7 @@ irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
 	}
 }
 
-iram static bool_t background_task_update_uart(void)
+irom static bool_t background_task_update_uart(void)
 {
 	// send data in the uart receive fifo to tcp
 
@@ -342,7 +342,7 @@ irom static bool_t background_task_command_handler(void)
 	return(false);
 }
 
-iram static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
+irom static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
 
@@ -398,7 +398,7 @@ iram static void fast_timer_callback(void *arg)
 	io_periodic();
 }
 
-iram static void slow_timer_callback(void *arg)
+irom static void slow_timer_callback(void *arg)
 {
 	(void)arg;
 

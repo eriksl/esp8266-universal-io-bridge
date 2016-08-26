@@ -312,7 +312,7 @@ irom void string_replace(string_t *dst, int offset, char c)
 	}
 }
 
-void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
+irom void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
 {
 	const char *from;
 	char *to;
