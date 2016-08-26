@@ -94,7 +94,3 @@ iram static inline void gpio_set(int io, int onoff)
 }
 
 #endif
-
-#ifdef _GPIO_H_
-#pragma error "don't include SDK gpio.h!"
-#endif
