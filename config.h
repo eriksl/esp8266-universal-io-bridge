@@ -69,6 +69,16 @@ typedef struct
 	config_ssid_t		ap_wlan;
 	config_wlan_mode_t	wlan_mode;
 
+	struct
+	{
+		uint8_t	period;
+	} pwm;
+
+	struct
+	{
+		uint16_t padding;
+	} padding;
+
 	uint32_t			flags;
 	uart_parameters_t	uart;
 
@@ -93,6 +103,8 @@ typedef struct
 	i2c_sensor_config_t	i2c_sensors;
 	io_config_t			io_config;
 } config_t;
+
+_Static_assert(offsetof(config_t, flags) == 140, "offset");
 
 extern config_t config;
 

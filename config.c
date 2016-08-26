@@ -206,6 +206,9 @@ irom void config_read(config_t *cfg)
 		strlcpy(cfg->ap_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->ap_wlan.passwd));
 		cfg->ap_wlan.channel = 13;
 	}
+
+	if((cfg->pwm.period < 8) || (cfg->pwm.period > 16))
+		cfg->pwm.period = 8;
 }
 
 irom void config_write(config_t *cfg)

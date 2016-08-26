@@ -242,6 +242,39 @@ iram static inline void pwm_timer_reload(uint32_t value)
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
 }
 
+irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
+{
+	int new_pwm_period;
+
+	if(parse_int(1, src, &new_pwm_period, 0) == parse_ok)
+	{
+		switch(new_pwm_period)
+		{
+			case(256):		new_pwm_period = 8;		break;
+			case(512):		new_pwm_period = 9;		break;
+			case(1024):		new_pwm_period = 10;	break;
+			case(2048):		new_pwm_period = 11;	break;
+			case(4096):		new_pwm_period = 12;	break;
+			case(8192):		new_pwm_period = 13;	break;
+			case(16384):	new_pwm_period = 14;	break;
+			case(32768):	new_pwm_period = 15;	break;
+			case(65536):	new_pwm_period = 16;	break;
+
+			default:
+			{
+				string_format(dst, "pwm-period: invalid period: %d (must be 256-65536 and ^2)\n", new_pwm_period);
+				return(app_action_error);
+			}
+		}
+
+		config.pwm.period = (uint8_t)new_pwm_period;
+	}
+
+	string_format(dst, "pwm_period: %d\n", 1 << config.pwm.period);
+
+	return(app_action_normal);
+}
+
 iram static void pwm_isr(void)
 {
 	static unsigned int	phase, delay;
@@ -469,7 +502,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	gpio_pc_pins_previous = gpio_get_mask(); // init pin change notification
 
 	pwm_current_phase_set = 0;
-	pwm_period = 65536; // FIXME
+	pwm_period = 1 << config.pwm.period;
 	io_gpio_flags.pwm_swap_phase_set = 0;
 
 	pwm_phase[0].size = 0;

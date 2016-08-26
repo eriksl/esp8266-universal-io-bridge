@@ -10,6 +10,7 @@
 #include "display.h"
 #include "http.h"
 #include "io.h"
+#include "io_gpio.h"
 #include "time.h"
 
 #include "ota.h"
@@ -917,6 +918,11 @@ static const application_function_table_t application_function_table[] =
 		"isf", "io-set-flag",
 		application_function_io_set_flag,
 		"set i/o pin flag",
+	},
+	{
+		"pp", "pwm-period",
+		application_function_pwm_period,
+		"set pwm period (rate = 200 ns / period)",
 	},
 	{
 		"icf", "io-clear-flag",
