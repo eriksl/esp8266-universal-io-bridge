@@ -383,7 +383,7 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 	double			duration, rate;
 	int				slot, sector;
 	uint32_t		crc;
-	int				done, length, written, skipped, attempt;
+	int				done, length, written, skipped, attempt, compatibility = 0;
 
 	if((file_fd = open(filename, O_RDONLY, 0)) < 0)
 	{
@@ -468,7 +468,11 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 			if(attempt > 0)
 				fprintf(stderr, "retry, attempt: %d\n", attempt);
 
-			snprintf(cmdbuf, sizeof(cmdbuf), "ota-send-data %lu %u ", bufread, crc);
+			if(!compatibility)
+				snprintf(cmdbuf, sizeof(cmdbuf), "ota-send-data %lu %u ", bufread, crc);
+			else
+				snprintf(cmdbuf, sizeof(cmdbuf), "os %lu %u ", bufread, crc);
+
 			length = strlen(cmdbuf);
 			memcpy(cmdbuf + length, readbuffer, bufread);
 			length += bufread;
@@ -492,6 +496,18 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 			if(strncmp(buffer, "ACK ", 4))
 			{
 				fprintf(stderr, "\nsend: %s\n", buffer);
+
+				if(compatibility)
+				{
+					fprintf(stderr, "switching to normal mode\n");
+					compatibility = 0;
+				}
+				else
+				{
+					fprintf(stderr, "switching to compatibility mode\n");
+					compatibility = 1;
+				}
+
 				continue;
 			}
 
