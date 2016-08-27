@@ -789,7 +789,10 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 		case(io_pin_ll_output_analog):
 		{
-			if((value >= 0) && (gpio_pin_data->pwm.duty != (unsigned int)value))
+			if(value < 0)
+				value = 0;
+
+			if(gpio_pin_data->pwm.duty != (unsigned int)value)
 			{
 				saved_value = value;
 				gpio_pin_data->pwm.duty = value;
