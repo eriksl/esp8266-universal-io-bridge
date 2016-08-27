@@ -84,6 +84,8 @@ typedef union
 static uint32_t gpio_pc_pins_previous;
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 static unsigned int pwm_period;
+static uint32_t pwm_static_set_mask;
+static uint32_t pwm_static_clear_mask;
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
@@ -293,6 +295,10 @@ iram static void pwm_isr(void)
 		{
 			if(io_gpio_flags.pwm_swap_phase_set)
 			{
+				gpio_set_mask(pwm_static_set_mask);
+				gpio_clear_mask(pwm_static_clear_mask);
+				pwm_static_set_mask = 0;
+				pwm_static_clear_mask = 0;
 				pwm_current_phase_set = pwm_current_phase_set ? 0 : 1;
 				io_gpio_flags.pwm_swap_phase_set = 0;
 				phase_data = &pwm_phase[pwm_current_phase_set];
@@ -389,10 +395,20 @@ irom static bool_t pwm_go(void)
 			continue;
 
 		if(pin1_data->pwm.duty == 0)
-			gpio_set(pin1, 0);
+		{
+			if(new_set == pwm_current_phase_set)
+				gpio_set(pin1, 0);
+			else
+				pwm_static_clear_mask |= 1 << pin1;
+		}
 		else
 			if((pin1_data->pwm.duty + 1) >= pwm_period)
-				gpio_set(pin1, 1);
+			{
+				if(new_set == pwm_current_phase_set)
+					gpio_set(pin1, 1);
+				else
+					pwm_static_set_mask |= 1 << pin1;
+			}
 			else
 				if(pwm_head < 0)
 				{
