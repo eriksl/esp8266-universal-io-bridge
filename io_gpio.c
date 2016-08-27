@@ -354,7 +354,7 @@ irom static bool_t pwm_go(void)
 	if(pwm_isr_enabled())
 		new_set = new_set ? 0 : 1;
 
-	io_gpio_flags.pwm_cpu_high_speed = system_get_cpu_freq() > 80;
+	io_gpio_flags.pwm_cpu_high_speed = config_get_flag(config_flag_cpu_high_speed);
 
 	pwm_head = -1;
 
