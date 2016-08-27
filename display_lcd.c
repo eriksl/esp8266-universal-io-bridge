@@ -202,6 +202,7 @@ irom bool_t display_lcd_bright(int brightness)
 {
 	static const unsigned int bls[5] = { 0, 1024, 4096, 16384, 65535 };
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
+	unsigned int pwm;
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
@@ -209,7 +210,9 @@ irom bool_t display_lcd_bright(int brightness)
 	if(!send_byte(cmds[brightness], false))
 		return(false);
 
-	set_pin(io_lcd_bl, bls[brightness]);		// backlight pin might be not configured, ignore error
+	pwm = bls[brightness] / (1 << (16 - config.pwm.period));
+
+	set_pin(io_lcd_bl, pwm); // backlight pin might be not configured, ignore error
 
 	return(true);
 }

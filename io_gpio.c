@@ -685,8 +685,8 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				if(!pwm_isr_enabled())
 					frequency = 0;
 
-				string_format(dst, "frequency: %u Hz, duty: %u (%u.%u %%)",
-						frequency, duty, dutypct, dutypctfraction);
+				string_format(dst, "frequency: %u Hz, duty: %u (%u.%u %%), state: %s",
+						frequency, duty, dutypct, dutypctfraction, onoff(gpio_get(pin)));
 
 				break;
 			}
