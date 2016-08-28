@@ -146,7 +146,7 @@ irom static i2c_error_t sensor_lm75_init(const device_table_entry_t *entry)
 	if((error = i2c_receive(entry->address, 1, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	if(i2cbuffer[0] != 0x60)
+	if((i2cbuffer[0] != 0x60 /* most */) && (i2cbuffer[0] != 0x00 /* lm75bd */))
 		return(i2c_error_device_error_1);
 
 	// 0x03	select overtemperature register
@@ -184,6 +184,11 @@ irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, valu
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 	int raw;
+
+	i2cbuffer[0] = 0;
+
+	if((error = i2c_send(entry->address, 1, i2cbuffer)) != i2c_error_ok)
+		return(error);
 
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
