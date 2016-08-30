@@ -338,12 +338,12 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	string_cat(dst, "\n");
 
-	clocks = (size + 1) * 20U;
-	spent = (stop - start) * 1000U;
+	clocks = (size + 1) * 9 + 4;
+	spent = (stop - start) * 1000;
 
-	string_format(dst, "> transferred %u bytes in %u scl clocks\n", size + 1U, clocks);
+	string_format(dst, "> transferred %u bytes in %u scl clocks\n", size + 1, clocks);
 	string_format(dst, "> time spent: %u microseconds, makes %u kHz i2c bus\n",
-			spent / 1000U, 1000000U / (spent / clocks));
+			spent / 1000, 1000000 / (spent / clocks));
 
 	return(app_action_normal);
 }
