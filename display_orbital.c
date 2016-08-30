@@ -8,6 +8,16 @@ irom bool_t display_orbital_init(void)
 {
 	unsigned int ix, byte, x, y;
 
+	for(ix = 4; ix > 0; ix--)
+	{
+		if(i2c_send_1(0x28, 0x21) == i2c_error_ok)
+			break;
+		msleep(25);
+	}
+
+	if(ix == 0)
+		return(false);
+
 	for(ix = 0; ix < display_common_udg_size; ix++)
 	{
 		if(i2c_send_3(0x28, 0xfe, 0x4e, ix) != i2c_error_ok)
