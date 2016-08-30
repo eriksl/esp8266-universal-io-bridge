@@ -165,6 +165,9 @@ iram static noinline i2c_error_t send_start(void)
 {
 	state = i2c_state_start_send;
 
+	delay();
+	delay();
+
 	if(scl_is_low())
 		return(i2c_error_bus_lock);
 
@@ -174,6 +177,9 @@ iram static noinline i2c_error_t send_start(void)
 	// start condition
 
 	sda_low();
+
+	delay();
+	delay();
 
 	if(scl_is_low())
 		return(i2c_error_bus_lock);
@@ -194,12 +200,18 @@ iram static noinline i2c_error_t send_stop(void)
 		return(i2c_error_bus_lock);
 
 	delay();
+	delay();
 	scl_low();
+	delay();
+	delay();
 	sda_low();
+	delay();
 	delay();
 	scl_high();
 	delay();
+	delay();
 	sda_high();
+	delay();
 	delay();
 
 	if(scl_is_low())
@@ -217,6 +229,7 @@ irom static void i2c_reset(void)
 {
 	i2c_error_t error;
 	int try;
+	int delaycounter;
 
 	if(!i2c_flags.init_done)
 		return;
@@ -226,14 +239,11 @@ irom static void i2c_reset(void)
 
 	for(try = 16; try > 0; try--)
 	{
+		for(delaycounter = 8; delaycounter > 0; delaycounter--)
+			delay();
+
 		if((error = send_stop()) == i2c_error_ok)
 			break;
-
-		delay();
-		delay();
-		delay();
-		delay();
-		delay();
 	}
 
 	state = i2c_state_idle;
@@ -249,13 +259,14 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 	if((error = wait_for_scl()) != i2c_error_ok)
 		return(error);
 
-	delay();
 	scl_low();
 	delay();
 
 	if(bit)
 	{
 		sda_high();
+
+		delay();
 
 		if(sda_is_low())
 			return(i2c_error_sda_stuck);
@@ -264,11 +275,16 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 	{
 		sda_low();
 
+		delay();
+
 		if(sda_is_high())
 			return(i2c_error_sda_stuck);
 	}
 
 	scl_high();
+
+	delay();
+	delay();
 
 	// take care of clock stretching
 
@@ -314,11 +330,13 @@ iram static noinline i2c_error_t receive_bit(bool_t *bit)
 	// make sure sda is off so slave can pull it
 	// do it while clock is pulled
 
-	delay();
 	scl_low();
+	delay();
 	sda_high();
 	delay();
 	scl_high();
+	delay();
+	delay();
 
 	// take care of clock stretching
 
@@ -418,20 +436,17 @@ irom void i2c_init(int sda_in, int scl_in)
 
 	i2c_flags.init_done = 1;
 
-	i2c_reset();
-}
-
-irom noinline static void i2c_prepare_transaction(void)
-{
 	if(config_get_flag(config_flag_i2c_highspeed))
-		i2c_bus_speed_delay = 0;
+		i2c_bus_speed_delay = 2;
 	else
 	{
-		if(system_get_cpu_freq() == 80)
-			i2c_bus_speed_delay = 40;
+		if(config_get_flag(config_flag_cpu_high_speed))
+			i2c_bus_speed_delay = 66;
 		else
-			i2c_bus_speed_delay = 120;
+			i2c_bus_speed_delay = 24;
 	}
+
+	i2c_reset();
 }
 
 iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
@@ -448,8 +463,6 @@ iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 		error = i2c_error_invalid_state_not_idle;
 		goto bail;
 	}
-
-	i2c_prepare_transaction();
 
 	state = i2c_state_header_send;
 
@@ -500,8 +513,6 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 		error = i2c_error_invalid_state_not_idle;
 		goto bail;
 	}
-
-	i2c_prepare_transaction();
 
 	state = i2c_state_header_send;
 
