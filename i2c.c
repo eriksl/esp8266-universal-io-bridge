@@ -24,7 +24,7 @@ _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
 {
-	i2c_config_stretch_clock_timeout = 6000,
+	i2c_config_stretch_clock_timeout = 20000,
 } i2c_config_t;
 
 struct
