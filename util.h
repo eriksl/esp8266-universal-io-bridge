@@ -102,17 +102,17 @@ char *ets_strcpy(char *, const char *);
 #define vPortFree #pragma error dont use vPortFree
 struct tm *sntp_localtime(const time_t *);
 
-#define strcpy #error strcpy unsafe
-#define strncpy #error strncpy unsafe
-#define strcat #error strcat unsafe
-#define strncat #error strncat unsafe
+#define strcpy #pragma error strcpy unsafe
+#define strncpy #pragma error strncpy unsafe
+#define strcat #pragma error strcat unsafe
+#define strncat #pragma error strncat unsafe
 
-#define strlen #error use ets_strlen
-#define strcmp #error use ets_strcmp
-#define strncmp #error use ets_strncmp
-//#define memcpy #error use ets_memcpy
-#define memset #error use ets_memset
-#define memcmp #error use ets_memcmp
+#define strlen #pragma error use ets_strlen
+#define strcmp #pragma error use ets_strcmp
+#define strncmp #pragma error use ets_strncmp
+#define memcpy #pragma error use ets_memcpy
+#define memset #pragma error use ets_memset
+#define memcmp #pragma error use ets_memcmp
 //size_t strlcpy(char *, const char *, size_t);
 //void *memchr(const void *s, int c, size_t n);
 
