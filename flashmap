@@ -11,9 +11,9 @@ non-OTA (512 kbyte, 4 Mbit, 1 slot)
 
 OTA (2048 kbyte, 16 mbit, 2 identical slots)
 
-	1ff000	-	1fffff	unused?														01000	1 sector
+	1ff000	-	1fffff	used by system												01000	1 sector
 	1fe000	-	1fefff	default system parameter values, blank.bin					01000	1 sector
-	1fd000	-	1fdfff	unused?														01000	1 sector
+	1fd000	-	1fdfff	used by system												01000	1 sector
 	1fc000	-	1fcfff	default RF parameter values, default.bin					01000	1 sector
 	1fb000	-	1fbfff	unused (mirror RF calibration storage in slot 0)			01000	1 sector
 	1fa000	-	1fafff	unused (mirror user config in slot 0)						01000	1 sector
