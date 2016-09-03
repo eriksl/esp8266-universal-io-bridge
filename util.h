@@ -152,6 +152,8 @@ const char * string_to_const_ptr(const string_t *string);
 void string_set(string_t *string, char *buffer, int size, int length);
 
 void string_format_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
+void string_format_data(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+
 void string_cat_ptr(string_t *, const char *);
 
 #define string_format(dst, fmt, ...) \
@@ -185,7 +187,10 @@ void string_setlength(string_t *dst, int length);
 void string_append(string_t *dst, char c);
 bool_t string_match(const string_t *, const char *);
 bool_t string_match_string(const string_t *, const string_t *);
+bool_t string_nmatch_string(const string_t *, const string_t *, int);
+bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int);
 bool_t string_nmatch(const string_t *, const char *, int);
+bool_t string_memcmp(const string_t *, const void *, int);
 char string_index(const string_t *, int index);
 int string_sep(const string_t *, int offset, int occurence, char c);
 int string_find(const string_t *, int offset, char c);

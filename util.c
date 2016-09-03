@@ -92,6 +92,20 @@ irom void string_format_ptr(string_t *dst, const char *fmt_flash, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
+irom void string_format_data(string_t *dst, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
+	va_end(ap);
+
+	if(dst->length > (dst->size - 1))
+		dst->length = dst->size - 1;
+
+	dst->buffer[dst->length] = '\0';
+}
+
 irom void string_cat_strptr(string_t *dst, const char *src)
 {
 	if(dst->length < dst->size)
@@ -272,7 +286,23 @@ irom bool_t string_match(const string_t *s1, const char *s2)
 
 irom bool_t string_match_string(const string_t *s1, const string_t *s2)
 {
+	if(s1->length != s2->length)
+		return(false);
+
 	return(string_match(s1, s2->buffer));
+}
+
+irom bool_t string_memcmp(const string_t *s1, const void *s2, int n)
+{
+	return(!ets_memcmp(s1->buffer, s2, n));
+}
+
+irom bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int n)
+{
+	if((n > s1->length) || (n > s2->length))
+		return(false);
+
+	return(string_memcmp(s1, s2->buffer, n));
 }
 
 irom bool_t string_nmatch(const string_t *s1, const char *s2, int n)
