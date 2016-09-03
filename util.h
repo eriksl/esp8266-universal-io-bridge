@@ -96,10 +96,10 @@ void *ets_memcpy(void *, const void *, size_t);
 void *ets_memset(void *, int, size_t);
 char *ets_strcpy(char *, const char *);
 
-void *pvPortMalloc(size_t size, const char *file, unsigned int line);
-void *pvPortZalloc(size_t size, const char *file, unsigned int line);
-void *pvPortRealloc(void *ptr, size_t size, const char *file, unsigned int line);
-void vPortFree(void *ptr, const char *file, int line);
+#define pvPortMalloc #pragma error dont use pvPortMalloc
+#define pvPortZalloc #pragma error dont use pvPortZalloc
+#define pvPortRealloc #pragma error dont use pvPortRealloc
+#define vPortFree #pragma error dont use vPortFree
 struct tm *sntp_localtime(const time_t *);
 
 #define strcpy #error strcpy unsafe
