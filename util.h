@@ -100,6 +100,16 @@ char *ets_strcpy(char *, const char *);
 #define pvPortZalloc #pragma error dont use pvPortZalloc
 #define pvPortRealloc #pragma error dont use pvPortRealloc
 #define vPortFree #pragma error dont use vPortFree
+
+// other convenience functions
+
+void reset(void);
+const char *yesno(bool_t value);
+const char *onoff(bool_t value);
+int dprintf(const char *fmt, ...);
+void msleep(int);
+ip_addr_t ip_addr(const char *);
+bool_t ip_addr_valid(ip_addr_t);
 struct tm *sntp_localtime(const time_t *);
 
 #define strcpy #pragma error strcpy unsafe
@@ -188,15 +198,4 @@ uint32_t string_crc32(const string_t *src, int offset, int length);
 parse_error_t parse_string(int index, const string_t *in, string_t *out);
 parse_error_t parse_int(int index, const string_t *src, int *dst, int base);
 parse_error_t parse_float(int index, const string_t *, double *);
-
-// other convenience functions
-
-void reset(void);
-const char *yesno(bool_t value);
-const char *onoff(bool_t value);
-int dprintf(const char *fmt, ...);
-void msleep(int);
-ip_addr_t ip_addr(const char *);
-bool ip_addr_valid(ip_addr_t);
-
 #endif
