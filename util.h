@@ -68,7 +68,7 @@ struct tm
 void ets_isr_attach(int, void *, void *);
 void ets_isr_mask(unsigned int);
 void ets_isr_unmask(unsigned int);
-void ets_timer_arm_new(ETSTimer *, uint32_t, bool, int);
+void ets_timer_arm_new(ETSTimer *, uint32_t, bool_t, int);
 void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 void NmiTimSetFunc(void *);
@@ -154,13 +154,13 @@ void string_ip(string_t *dst, ip_addr_t);
 int string_double(string_t *dst, double value, int precision, double top_decimal);
 static inline int string_length(const string_t *dst) { return(dst->length); }
 static inline int string_size(const string_t *dst) { return(dst->size - 1); }
-static inline bool string_space(const string_t *dst) { return(string_length(dst) < string_size(dst)); }
+static inline bool_t string_space(const string_t *dst) { return(string_length(dst) < string_size(dst)); }
 static inline void string_clear(string_t *dst) { dst->length = 0; };
 void string_setlength(string_t *dst, int length);
 void string_append(string_t *dst, char c);
-bool string_match(const string_t *, const char *);
-bool string_match_string(const string_t *, const string_t *);
-bool string_nmatch(const string_t *, const char *, int);
+bool_t string_match(const string_t *, const char *);
+bool_t string_match_string(const string_t *, const string_t *);
+bool_t string_nmatch(const string_t *, const char *, int);
 char string_index(const string_t *, int index);
 int string_sep(const string_t *, int offset, int occurence, char c);
 int string_find(const string_t *, int offset, char c);

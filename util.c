@@ -271,17 +271,17 @@ irom void string_append(string_t *dst, char c)
 		dst->buffer[dst->size - 1] = '\0';
 }
 
-irom bool string_match(const string_t *s1, const char *s2)
+irom bool_t string_match(const string_t *s1, const char *s2)
 {
 	return(!ets_strcmp(s1->buffer, s2));
 }
 
-irom bool string_match_string(const string_t *s1, const string_t *s2)
+irom bool_t string_match_string(const string_t *s1, const string_t *s2)
 {
 	return(string_match(s1, s2->buffer));
 }
 
-irom bool string_nmatch(const string_t *s1, const char *s2, int n)
+irom bool_t string_nmatch(const string_t *s1, const char *s2, int n)
 {
 	return(!ets_strncmp(s1->buffer, s2, n));
 }
@@ -449,7 +449,7 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst)
 
 irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base)
 {
-	bool negative, valid;
+	bool_t negative, valid;
 	int value;
 	int offset;
 	char current;
@@ -532,8 +532,8 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst)
 {
 	int offset;
 	int decimal;
-	bool negative;
-	bool valid;
+	bool_t negative;
+	bool_t valid;
 	double result;
 	char current;
 
@@ -679,7 +679,7 @@ irom attr_pure ip_addr_t ip_addr(const char *src)
 	return(ip_addr_to_bytes.ip_addr);
 }
 
-irom attr_pure bool ip_addr_valid(ip_addr_t ip_addr)
+irom attr_pure bool_t ip_addr_valid(ip_addr_t ip_addr)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
 
