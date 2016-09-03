@@ -5,6 +5,7 @@
 #include "io_mcp.h"
 #include "io_pcf.h"
 #include "io.h"
+#include "i2c.h"
 #include "config.h"
 
 io_info_t io_info =
