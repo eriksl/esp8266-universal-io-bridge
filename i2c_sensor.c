@@ -28,7 +28,7 @@ typedef struct device_table_entry_T
 
 device_data_t device_data[i2c_sensor_size];
 
-irom void i2c_sensor_config_init(i2c_sensor_config_t *dst)
+irom void i2c_sensor_config_init(i2c_sensors_config_t *dst)
 {
 	int current;
 

@@ -1,9 +1,9 @@
 #ifndef config_h
 #define config_h
 
+#include "i2c_sensor_config.h"
 #include "uart.h"
 #include "util.h"
-#include "i2c_sensor.h"
 #include "io_config.h"
 
 #include <stdint.h>
@@ -100,8 +100,8 @@ typedef struct
 		char		default_msg[32];
 	} display;
 
-	i2c_sensor_config_t	i2c_sensors;
-	io_config_t			io_config;
+	i2c_sensors_config_t	i2c_sensors;
+	io_config_t				io_config;
 } config_t;
 
 _Static_assert(offsetof(config_t, flags) == 140, "offset");
