@@ -1,6 +1,17 @@
 #ifndef util_h
 #define util_h
 
+// ugly kludge for incorrectly declared spi_flash_* functions */
+#include <c_types.h>
+#undef spi_flash_write
+#define spi_flash_read _spi_flash_read
+#define spi_flash_write _spi_flash_write
+#include <spi_flash.h>
+#undef spi_flash_read
+#undef spi_flash_write
+SpiFlashOpResult spi_flash_read(uint32_t src, void *dst, uint32_t size);
+SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uint32_t size);
+
 #include <sys/types.h>
 #include <stdarg.h>
 #include <stdint.h>
