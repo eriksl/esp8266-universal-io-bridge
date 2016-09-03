@@ -15,8 +15,6 @@ SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uint32_t size);
 #include <sys/types.h>
 #include <stdarg.h>
 #include <stdint.h>
-
-#include <c_types.h>
 #include <osapi.h>
 #include <ets_sys.h>
 #include <ip_addr.h>
