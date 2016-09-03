@@ -48,6 +48,12 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 #define attr_packed __attribute__ ((__packed__))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 
+typedef union
+{
+	ip_addr_t	ip_addr;
+	uint8_t		byte[3];
+} ip_addr_to_bytes_t;
+
 typedef struct
 {
 	int size;

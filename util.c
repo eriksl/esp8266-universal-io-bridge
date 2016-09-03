@@ -167,12 +167,6 @@ irom void *memchr(const void *s, int c, size_t n)
 	return(0);
 }
 
-typedef union
-{
-	ip_addr_t	ip_addr;
-	uint8_t		byte[3];
-} ip_addr_to_bytes_t;
-
 irom void string_ip(string_t *dst, ip_addr_t addr)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
