@@ -2,12 +2,33 @@
 
 #include "util.h"
 #include "io.h"
+#include "i2c_sensor.h"
+#include "ota.h"
 
 #include <ets_sys.h>
 #include <c_types.h>
 #include <spi_flash.h>
 
+enum
+{
+	config_entries_size = 100,
+	config_entry_id_size = 28,
+	config_entry_string_size = 32
+};
+
+typedef struct
+{
+	char	id[config_entry_id_size];
+	char	string_value[config_entry_string_size];
+	int		int_value;
+} config_entry_t;
+
+assert_size(config_entry_t, 64);
+
 config_t config;
+
+static unsigned int config_entries_length = 0;
+static config_entry_t config_entries[config_entries_size];
 
 static config_flag_t config_flag[config_flag_size] =
 {
@@ -219,7 +240,7 @@ irom void config_write(config_t *cfg)
 
 irom void config_dump(string_t *dst, const config_t *cfg)
 {
-	string_new(static, ntp_server, 32);
+	string_new(, ntp_server, 32);
 
 	string_clear(&ntp_server);
 	string_ip(&ntp_server, cfg->ntp.server);
@@ -272,4 +293,388 @@ irom void config_dump(string_t *dst, const config_t *cfg)
 	uart_parameters_to_string(dst, &cfg->uart);
 	string_cat(dst, "\n> gpios:\n");
 	io_config_dump(dst, cfg, -1, -1, false);
+}
+
+// NEW config
+
+irom static string_t *expand_varid(const char *id, int index1, int index2)
+{
+	string_new(static, varid, 64);
+
+	string_clear(&varid);
+	string_format_data(&varid, id, index1, index2);
+
+	return(&varid);
+}
+
+irom static config_entry_t *find_config_entry(const char *id, int index1, int index2)
+{
+	config_entry_t *config_entry;
+	const string_t *varid;
+	unsigned int ix;
+
+	varid = expand_varid(id, index1, index2);
+
+	for(ix = 0; ix < config_entries_length; ix++)
+	{
+		config_entry = &config_entries[ix];
+
+		if(string_match(varid, config_entry->id))
+			return(config_entry);
+	}
+
+	return((config_entry_t *)0);
+}
+
+irom bool_t config_get_string(const char *id, int index1, int index2, string_t *value)
+{
+	config_entry_t *config_entry;
+
+	if(!(config_entry = find_config_entry(id, index1, index2)))
+		return(false);
+
+	string_format(value, "%s", config_entry->string_value);
+
+	return(true);
+}
+
+irom bool_t config_get_int(const char *id, int index1, int index2, int *value)
+{
+	config_entry_t *config_entry;
+
+	if(!(config_entry = find_config_entry(id, index1, index2)))
+		return(false);
+
+	*value = config_entry->int_value;
+
+	return(true);
+}
+
+irom bool_t config_set_string(const char *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
+{
+	string_t string;
+	string_t *varid;
+	config_entry_t *config_current;
+	unsigned int ix;
+
+	if(value_offset >= string_length(value))
+		value_offset = string_length(value) - 1;
+
+	if(value_offset < 0)
+		value_offset = 0;
+
+	if(value_length < 0)
+		value_length = string_length(value) - value_offset;
+
+	if((value_offset + value_length) > string_length(value))
+		value_length = string_length(value) - value_offset;
+
+	if(value_length >= config_entry_string_size)
+		value_length = config_entry_string_size - 1;
+
+	if(value_length < 0)
+		value_length = 0;
+
+	if(!(config_current = find_config_entry(id, index1, index2)))
+	{
+		for(ix = 0; ix < config_entries_length; ix++)
+		{
+			config_current = &config_entries[ix];
+
+			if(!config_current->id[0])
+				break;
+		}
+
+		if(ix >= config_entries_length)
+		{
+			if((config_entries_length + 1) >= config_entries_size)
+				return(false);
+
+			config_current = &config_entries[config_entries_length++];
+		}
+
+		varid = expand_varid(id, index1, index2);
+		strlcpy(config_current->id, string_to_const_ptr(varid), config_entry_string_size);
+	}
+
+	strlcpy(config_current->string_value, string_to_const_ptr(value) + value_offset, value_length + 1);
+
+	string = string_from_ptr(value_length, config_current->string_value);
+	if(parse_int(0, &string, &config_current->int_value, 0) != parse_ok)
+		config_current->int_value = 0;
+
+	return(true);
+}
+
+irom bool_t config_set_int(const char *id, int index1, int index2, int value)
+{
+	string_new(, string, 16);
+
+	string_clear(&string);
+	string_format(&string, "%d", value);
+
+	return(config_set_string(id, index1, index2, &string, 0, -1));
+}
+
+irom bool_t config_delete(const char *id, int index1, int index2)
+{
+	const char *varidptr;
+	config_entry_t *config_current;
+	unsigned int ix;
+	unsigned int amount;
+
+	varidptr = string_to_const_ptr(expand_varid(id, index1, index2));
+
+	for(ix = 0, amount = 0; ix < config_entries_length; ix++)
+	{
+		config_current = &config_entries[ix];
+
+		if(!ets_strcmp(config_current->id, varidptr))
+		{
+			amount++;
+			config_current->id[0] = '\0';
+			config_current->string_value[0] = '\0';
+			config_current->int_value = '0';
+		}
+	}
+
+	return(amount > 0);
+}
+
+irom bool_t config_export(const config_t *cfg, string_t *sector)
+{
+	const ip_addr_to_bytes_t *ntp_server = (const ip_addr_to_bytes_t *)&cfg->ntp.server;
+
+	string_format(sector, 
+			"%%%04x%%\n"
+			"version=%d\n"
+			"wlan.client.ssid=%s\n"
+			"wlan.client.passwd=%s\n"
+			"wlan.ap.ssid=%s\n"
+			"wlan.ap.passwd=%s\n"
+			"wlan.ap.channel=%d\n"
+			"wlan.mode=%d\n"
+			"bridge.tcp.port=%u\n"
+			"bridge.tcp.timeout=%u\n"
+			"cmd.tcp.port=%u\n"
+			"cmd.tcp.timeout=%u\n"
+			"ntp.srv.0=%u\n"
+			"ntp.srv.1=%u\n"
+			"ntp.srv.2=%u\n"
+			"ntp.srv.3=%u\n"
+			"ntp.tz=%u\n"
+			"display.flip.timeout=%u\n"
+			"display.default.message=%s\n"
+			"trigger.status.io=%d\n"
+			"trigger.status.pin=%d\n"
+			"trigger.assoc.io=%d\n"
+			"trigger.assoc.pin=%d\n"
+			"flags=0x%04x\n"
+			"uart.baud=%u\n"
+			"uart.databits=%u\n"
+			"uart.parity=%u\n"
+			"uart.stopbits=%u\n"
+			"pwm.period=%u\n",
+		cfg->magic,
+		cfg->version,
+		cfg->client_wlan.ssid,
+		cfg->client_wlan.passwd,
+		cfg->ap_wlan.ssid,
+		cfg->ap_wlan.passwd,
+		cfg->ap_wlan.channel,
+		cfg->wlan_mode,
+		cfg->bridge.port,
+		cfg->bridge.timeout,
+		cfg->command.port,
+		cfg->command.timeout,
+		ntp_server->byte[0],
+		ntp_server->byte[1],
+		ntp_server->byte[2],
+		ntp_server->byte[3],
+		cfg->ntp.timezone,
+		cfg->display.flip_timeout,
+		cfg->display.default_msg,
+		cfg->status_trigger.io,
+		cfg->status_trigger.pin,
+		cfg->assoc_trigger.io,
+		cfg->assoc_trigger.pin,
+		cfg->flags,
+		cfg->uart.baud_rate,
+		cfg->uart.data_bits,
+		cfg->uart.parity,
+		cfg->uart.stop_bits,
+		cfg->pwm.period);
+
+	i2c_sensor_export(cfg, sector);
+
+	io_config_export(cfg, sector);
+
+	string_append(sector, '\n');
+
+	if(string_length(sector) > (4096 - 32))
+		return(false);
+
+	while(string_length(sector) < SPI_FLASH_SEC_SIZE)
+		string_append(sector, '.');
+
+	return(true);
+}
+
+irom bool_t config_write_text(const string_t *sector)
+{
+	if(ota_is_active())
+		return(false);
+
+	if(wlan_scan_active())
+		return(false);
+
+	if(spi_flash_erase_sector(0xfd /* FIXME */) != SPI_FLASH_RESULT_OK)
+		return(false);
+
+	if(spi_flash_write(0xfd /* FIXME */ * SPI_FLASH_SEC_SIZE, string_to_const_ptr(sector), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		return(false);
+
+	if(spi_flash_read(0xfd /* FIXME */ * SPI_FLASH_SEC_SIZE, string_to_ptr(&buffer_4k), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		return(false);
+
+	string_setlength(&buffer_4k, SPI_FLASH_SEC_SIZE);
+
+	if(!string_match_string_raw(sector, &buffer_4k, SPI_FLASH_SEC_SIZE))
+		return(false);
+
+	return(true);
+}
+
+irom bool_t config_read_text(string_t *sector)
+{
+	if(spi_flash_read(0xfd /* FIXME */ * SPI_FLASH_SEC_SIZE, string_to_ptr(sector), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		return(false);
+
+	string_setlength(sector, SPI_FLASH_SEC_SIZE);
+
+	return(true);
+}
+
+typedef enum
+{
+	state_parse_id,
+	state_parse_value,
+	state_parse_eol,
+} state_parse_t;
+
+irom bool_t config_import(const string_t *sector)
+{
+	string_new(, string, 64);
+	int current_index, id_index, id_length, value_index, value_length;
+	char current;
+	state_parse_t parse_state;
+
+	string_clear(&string);
+	string_format(&string, "%%%04x%%\n", config_magic);
+
+	current_index = string_length(&string);
+
+	if(!string_match_string_raw(sector, &string, current_index))
+		return(false);
+
+	id_index = current_index;
+	id_length = 0;
+	value_index = 0;
+	value_length = 0;
+
+	config_entries_length = 0;
+
+	for(parse_state = state_parse_id; current_index < SPI_FLASH_SEC_SIZE; current_index++)
+	{
+		current = string_index(sector, current_index);
+
+		if(current == '\0')
+			goto done;
+
+		if(current == '\r')
+			continue;
+
+		switch(parse_state)
+		{
+			case(state_parse_id):
+			{
+				if(current == '=')
+				{
+					id_length = current_index - id_index;
+
+					value_index = current_index + 1;
+					value_length = 0;
+
+					parse_state = state_parse_value;
+					continue;
+				}
+
+				if(current == '\n')
+				{
+					parse_state = state_parse_eol;
+					continue;
+				}
+
+				break;
+			}
+
+			case(state_parse_value):
+			{
+				if(current == '\n')
+				{
+					if((id_index > 0) && (id_length > 0) && (value_index > 0))
+					{
+						value_length = current_index - value_index;
+
+						string_clear(&string);
+						string_splice(&string, sector, id_index, id_length);
+
+						config_set_string(string_to_const_ptr(&string), -1, -1, sector, value_index, value_length);
+					}
+
+					parse_state = state_parse_eol;
+					continue;
+				}
+
+				break;
+			}
+
+			case(state_parse_eol):
+			{
+				if(current == '\n')
+					goto done;
+
+				id_index = current_index;
+				parse_state = state_parse_id;
+
+				break;
+			}
+
+			default:
+			{
+				return(false);
+			}
+		}
+	}
+
+done:
+	return(true);
+}
+
+irom void config_dump_text(string_t *dst)
+{
+	config_entry_t *config_current;
+	unsigned int ix;
+
+	string_format(dst, "items: %u, free slots: %u\n", config_entries_length, config_entries_size - config_entries_length);
+
+	for(ix = 0; ix < config_entries_length; ix++)
+	{
+		config_current = &config_entries[ix];
+
+		if(!config_current->id[0])
+			continue;
+
+		string_format(dst, "%s=%s (%d)\n", config_current->id, config_current->string_value, config_current->int_value);
+	}
 }

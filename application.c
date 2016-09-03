@@ -71,6 +71,53 @@ irom static app_action_t application_function_current_config_dump(const string_t
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_config_read_text(const string_t *src, string_t *dst)
+{
+	bool_t result;
+
+	result = config_read_text(dst);
+
+	if(result)
+		result = config_import(dst);
+
+	if(string_length(dst) > (4096 - 32))
+		string_setlength(dst, (4096 - 32));
+
+	if(result)
+		string_cat(dst, "\n> success");
+	else
+		string_cat(dst, "\n> failed");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_dump_text(const string_t *src, string_t *dst)
+{
+	config_dump_text(dst);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_write_text(const string_t *src, string_t *dst)
+{
+	bool_t result;
+
+	result = config_export(&config, dst);
+
+	if(result)
+		result = config_write_text(dst);
+
+	if(string_length(dst) > (4096 - 32))
+		string_setlength(dst, (4096 - 32));
+
+	if(result)
+		string_cat(dst, "\n> success");
+	else
+		string_cat(dst, "\n> failed");
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_config_dump(const string_t *src, string_t *dst)
 {
 	static config_t tmpconfig;
@@ -83,6 +130,140 @@ irom static app_action_t application_function_config_write(const string_t *src, 
 {
 	config_write(&config);
 	string_cat(dst, "config write done\n");
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_query_int(const string_t *src, string_t *dst)
+{
+	int index1, index2;
+	int value;
+
+	string_clear(dst);
+
+	if(parse_string(1, src, dst) != parse_ok)
+		return(app_action_error);
+
+	if(parse_int(2, src, &index1, 0) != parse_ok)
+		index1 = -1;
+	else
+		if(parse_int(3, src, &index2, 0) != parse_ok)
+			index2 = -1;
+
+	if(!config_get_int(string_to_const_ptr(dst), index1, index2, &value))
+	{
+		string_clear(dst);
+		string_cat(dst, "ERROR\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "=%d OK\n", value);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_query_string(const string_t *src, string_t *dst)
+{
+	string_new(, varid, 64);
+	int index1, index2;
+
+	if(parse_string(1, src, &varid) != parse_ok)
+	{
+		string_clear(dst);
+		string_cat(dst, "missing variable name\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &index1, 0) != parse_ok)
+		index1 = -1;
+	else
+		if(parse_int(3, src, &index2, 0) != parse_ok)
+			index2 = -1;
+
+	string_clear(dst);
+	string_cat_strptr(dst, string_to_const_ptr(&varid));
+	string_cat(dst, "=");
+
+	if(!config_get_string(string_to_const_ptr(&varid), index1, index2, dst))
+	{
+		string_clear(dst);
+		string_cat(dst, "ERROR\n");
+		return(app_action_error);
+	}
+
+	string_cat(dst, " OK\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_set_text(const string_t *src, string_t *dst)
+{
+	int index1, index2, offset;
+	string_new(, varid, 64);
+
+	if(parse_string(1, src, &varid) != parse_ok)
+	{
+		string_cat(dst, "missing variable name\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &index1, 0) != parse_ok)
+	{
+		string_cat(dst, "missing index1\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(3, src, &index2, 0) != parse_ok)
+	{
+		string_cat(dst, "missing index2\n");
+		return(app_action_error);
+	}
+
+	if((offset = string_sep(src, 0, 4, ' ')) < 0)
+	{
+		string_cat(dst, "missing variable value\n");
+		return(app_action_error);
+	}
+
+	dprintf("set offset: %d", offset);
+
+	if(!config_set_string(string_to_const_ptr(&varid), index1, index2, src, offset, -1))
+	{
+		string_cat(dst, "ERROR\n");
+		return(app_action_error);
+	}
+
+	string_cat(dst, "OK\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_config_delete_text(const string_t *src, string_t *dst)
+{
+	int index1, index2;
+	string_new(, varid, 64);
+
+	if(parse_string(1, src, &varid) != parse_ok)
+	{
+		string_clear(dst);
+		string_cat(dst, "missing variable name\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &index1, 0) != parse_ok)
+		index1 = -1;
+
+	if(parse_int(3, src, &index2, 0) != parse_ok)
+		index2 = -1;
+
+	if(!config_delete(string_to_const_ptr(&varid), index1, index2))
+	{
+		string_clear(dst);
+		string_cat(dst, "ERROR\n");
+		return(app_action_error);
+	}
+
+	string_cat(dst, "OK\n");
+
 	return(app_action_normal);
 }
 
@@ -838,6 +1019,41 @@ static const application_function_table_t application_function_table[] =
 		"cd", "config-dump",
 		application_function_config_dump,
 		"dump config contents (stored in flash)"
+	},
+	{
+		"crt", "config-read-text",
+		application_function_config_read_text,
+		"read ascii-based config"
+	},
+	{
+		"cdt", "config-dump-text",
+		application_function_config_dump_text,
+		"dump ascii-based config"
+	},
+	{
+		"cwt", "config-write-text",
+		application_function_config_write_text,
+		"write ascii-based config"
+	},
+	{
+		"cqs", "config-query-string",
+		application_function_config_query_string,
+		"query config string"
+	},
+	{
+		"cqi", "config-query-int",
+		application_function_config_query_int,
+		"query config int"
+	},
+	{
+		"cst", "config-set-text",
+		application_function_config_set_text,
+		"set config entry"
+	},
+	{
+		"cdet", "config-delete-text",
+		application_function_config_delete_text,
+		"delete config entry"
 	},
 	{
 		"cw", "config-write",

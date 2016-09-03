@@ -1948,3 +1948,94 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 
 	string_cat_ptr(dst, (*strings)[ds_id_footer]);
 }
+
+irom void io_config_export(const config_t *cfg, string_t *dst)
+{
+	const io_info_entry_t *info;
+	const io_config_pin_entry_t *pin_config;
+	int io, pin;
+	io_pin_flag_to_int_t io_pin_flag_to_int;
+
+	for(io = 0; io < io_id_size; io++)
+	{
+		info = &io_info[io];
+
+		for(pin = 0; pin < info->pins; pin++)
+		{
+			pin_config = &cfg->io_config[io][pin];
+
+			if(pin_config->mode == io_pin_disabled)
+				continue;
+
+			string_format(dst, "io.%02u.%02u.mode=%u\n", io, pin, pin_config->mode);
+			string_format(dst, "io.%02u.%02u.llmode=%u\n", io, pin, pin_config->llmode);
+
+			io_pin_flag_to_int.io_pin_flags = pin_config->flags;
+
+			if(io_pin_flag_to_int.intvalue > 0)
+				string_format(dst, "io.%02u.%02u.flags=0x%04x\n", io, pin, io_pin_flag_to_int.intvalue);
+
+			switch(pin_config->mode)
+			{
+				case(io_pin_disabled):
+				case(io_pin_input_digital):
+				case(io_pin_output_digital):
+				case(io_pin_uart):
+				case(io_pin_input_analog):
+				case(io_pin_error):
+				{
+					break;
+				}
+
+				case(io_pin_counter):
+				{
+					string_format(dst, "io.%02u.%02u.counter.speed:%u\n", io, pin, pin_config->speed);
+
+					break;
+				}
+
+				case(io_pin_trigger):
+				{
+					string_format(dst, "io.%02u.%02u.trigger.debounce=%u\n", io, pin, pin_config->speed);
+					string_format(dst, "io.%02u.%02u.trigger.io=%u\n", io, pin, pin_config->shared.trigger.io.io);
+					string_format(dst, "io.%02u.%02u.trigger.pin=%u\n", io, pin, pin_config->shared.trigger.io.pin);
+					string_format(dst, "io.%02u.%02u.trigger.mode=%u\n", io, pin, pin_config->shared.trigger.trigger_mode);
+
+					break;
+				}
+
+				case(io_pin_timer):
+				{
+					string_format(dst, "io.%02u.%02u.timer.delay=%u\n", io, pin, pin_config->speed);
+					string_format(dst, "io.%02u.%02u.timer.dir=%u\n", io, pin, pin_config->direction);
+
+					break;
+				}
+
+				case(io_pin_output_analog):
+				{
+					string_format(dst, "io.%02u.%02u.outputa.speed=%u\n", io, pin, pin_config->speed);
+					string_format(dst, "io.%02u.%02u.outputa.lower=%u\n", io, pin, pin_config->shared.output_analog.lower_bound);
+					string_format(dst, "io.%02u.%02u.outputa.upper=%u\n", io, pin, pin_config->shared.output_analog.upper_bound);
+
+					break;
+				}
+
+				case(io_pin_i2c):
+				{
+					string_format(dst, "io.%02u.%02u.i2c.mode=%u\n", io, pin, pin_config->shared.i2c.pin_mode);
+
+					break;
+				}
+
+				case(io_pin_lcd):
+				{
+					string_format(dst, "io.%02u.%02u.lcd.use=%u\n", io, pin, pin_config->shared.lcd.pin_use);
+
+					break;
+				}
+			}
+
+		}
+	}
+}

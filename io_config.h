@@ -77,6 +77,12 @@ typedef struct
 	unsigned int reset_on_read:1;
 } io_pin_flag_t;
 
+typedef union
+{
+	io_pin_flag_t	io_pin_flags;
+	uint32_t		intvalue;
+} io_pin_flag_to_int_t;
+
 assert_size(io_pin_flag_t, 4);
 
 typedef enum attr_packed

@@ -1286,3 +1286,25 @@ irom bool_t i2c_sensor_setcal(i2c_sensor_t sensor, float factor, float offset)
 
 	return(false);
 }
+
+irom void i2c_sensor_export(const config_t *cfg, string_t *dst)
+{
+	unsigned int ix;
+	const i2c_sensor_config_t *i2c_sensor_config;
+
+	for(ix = 0; ix < i2c_sensor_size; ix++)
+	{
+		i2c_sensor_config = &cfg->i2c_sensors.sensor[ix];
+		int factor;
+		int offset;
+
+		factor = (int)(i2c_sensor_config->calibration.factor * 1000);
+		offset = (int)(i2c_sensor_config->calibration.offset * 1000);
+
+		if((factor != 1000) || (offset != 0))
+		{
+			string_format(dst, "i2c_sensor.%02u.%02u.cal.factor=%d\n", 0, ix, factor);
+			string_format(dst, "i2c_sensor.%02u.%02u.cal.offset=%d\n", 0, ix, offset);
+		}
+	}
+}

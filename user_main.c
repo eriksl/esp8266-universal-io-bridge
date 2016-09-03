@@ -7,6 +7,7 @@
 #include "i2c.h"
 #include "display.h"
 #include "time.h"
+#include "i2c_sensor.h"
 
 #include <stdlib.h>
 #include <espconn.h>
@@ -434,6 +435,10 @@ irom void user_init(void)
 	bg_action.init_displays = 1;
 
 	config_read(&config);
+
+	if(config_read_text(&buffer_4k))
+		config_import(&buffer_4k);
+
 	uart_init(&config.uart);
 	system_set_os_print(config_get_flag(config_flag_print_debug));
 
