@@ -173,7 +173,7 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 
 	spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, write_buffer_length);
 
-	if(ets_memcmp(write_buffer, verify_buffer, write_buffer_length))
+	if(memcmp(write_buffer, verify_buffer, write_buffer_length))
 	{
 		spi_flash_erase_sector(flash_sector);
 		spi_flash_write(flash_sector * 0x1000, (void *)write_buffer, write_buffer_length);
@@ -185,7 +185,7 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 	spi_flash_read(flash_sector * 0x1000, (void *)verify_buffer, write_buffer_length);
 	MD5Update(&md5, verify_buffer, write_buffer_length);
 
-	if(ets_memcmp(write_buffer, verify_buffer, write_buffer_length))
+	if(memcmp(write_buffer, verify_buffer, write_buffer_length))
 	{
 		string_copy(dst, "ota-write: verify mismatch\n");
 		return(app_action_error);

@@ -59,7 +59,7 @@ irom void string_set(string_t *dst, char *buffer, int size, int length)
 
 irom string_t string_from_ptr(size_t size, char *buffer)
 {
-	string_t string = { size, ets_strlen(buffer), buffer };
+	string_t string = { size, strlen(buffer), buffer };
 
 	return(string);
 }
@@ -131,7 +131,7 @@ irom int string_copy_string(string_t *dst, string_t *src)
 	else
 		length = string_length(src);
 
-	ets_memcpy(dst->buffer, src->buffer, length);
+	memcpy(dst->buffer, src->buffer, length);
 
 	dst->length = length;
 	dst->buffer[dst->length] = '\0';
@@ -147,7 +147,7 @@ irom size_t strlcpy(char *dst, const char *src, size_t siz)
 	size_t n = siz;
 
 	if (n == 0)
-		return(ets_strlen(s));
+		return(strlen(s));
 
 	while (*s != '\0')
 	{
@@ -281,7 +281,7 @@ irom void string_append(string_t *dst, char c)
 
 irom bool_t string_match(const string_t *s1, const char *s2)
 {
-	return(!ets_strcmp(s1->buffer, s2));
+	return(!strcmp(s1->buffer, s2));
 }
 
 irom bool_t string_match_string(const string_t *s1, const string_t *s2)
@@ -294,7 +294,7 @@ irom bool_t string_match_string(const string_t *s1, const string_t *s2)
 
 irom bool_t string_memcmp(const string_t *s1, const void *s2, int n)
 {
-	return(!ets_memcmp(s1->buffer, s2, n));
+	return(!memcmp(s1->buffer, s2, n));
 }
 
 irom bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int n)
@@ -307,7 +307,7 @@ irom bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int 
 
 irom bool_t string_nmatch(const string_t *s1, const char *s2, int n)
 {
-	return(!ets_strncmp(s1->buffer, s2, n));
+	return(!strncmp(s1->buffer, s2, n));
 }
 
 irom attr_pure char string_index(const string_t *s, int index)
@@ -370,7 +370,7 @@ irom void string_splice(string_t *dst, const string_t *src, int src_offset, int 
 	from = string_to_const_ptr(src);
 	to = string_to_ptr(dst);
 
-	ets_memcpy(to + string_length(dst), from + src_offset, length); 
+	memcpy(to + string_length(dst), from + src_offset, length);
 
 	string_setlength(dst, string_length(dst) + length);
 }

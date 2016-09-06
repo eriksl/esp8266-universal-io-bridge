@@ -361,7 +361,7 @@ irom static void display_update(bool_t advance)
 
 	time_get(&hour, &minute, 0, 0, 0, 0);
 
-	if(!ets_strcmp(display_text, "%%%%"))
+	if(!strcmp(display_text, "%%%%"))
 	{
 		string_clear(&info_text);
 		string_format(&info_text, "%02u.%02u %s %s",
@@ -369,7 +369,7 @@ irom static void display_update(bool_t advance)
 		display_text = string_to_ptr(&info_text);
 	}
 
-	if(ets_strcmp(display_slot[slot].tag, "-"))
+	if(strcmp(display_slot[slot].tag, "-"))
 	{
 		string_clear(&tag_text);
 		string_format(&tag_text, "%02u:%02u ", hour, minute);

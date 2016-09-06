@@ -68,8 +68,8 @@ irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
 {
 	espsrv->send_buffer = send_buffer;
 
-	ets_memset(&espsrv->tcp_config, 0, sizeof(espsrv->tcp_config));
-	ets_memset(&espsrv->parent_socket, 0, sizeof(espsrv->parent_socket));
+	memset(&espsrv->tcp_config, 0, sizeof(espsrv->tcp_config));
+	memset(&espsrv->parent_socket, 0, sizeof(espsrv->parent_socket));
 	espsrv->child_socket = (struct espconn *)0;
 
 	espsrv->tcp_config.local_port = port;
@@ -518,7 +518,7 @@ irom bool_t wlan_init(void)
 		{
 			struct station_config cconf;
 
-			ets_memset(&cconf, 0, sizeof(cconf));
+			memset(&cconf, 0, sizeof(cconf));
 			strlcpy(cconf.ssid, config.client_wlan.ssid, sizeof(cconf.ssid));
 			strlcpy(cconf.password, config.client_wlan.passwd, sizeof(cconf.password));
 			cconf.bssid_set = 0;
@@ -538,10 +538,10 @@ irom bool_t wlan_init(void)
 		{
 			struct softap_config saconf;
 
-			ets_memset(&saconf, 0, sizeof(saconf));
+			memset(&saconf, 0, sizeof(saconf));
 			strlcpy(saconf.ssid, config.ap_wlan.ssid, sizeof(saconf.ssid));
 			strlcpy(saconf.password, config.ap_wlan.passwd, sizeof(saconf.password));
-			saconf.ssid_len = ets_strlen(config.ap_wlan.ssid);
+			saconf.ssid_len = strlen(config.ap_wlan.ssid);
 			saconf.channel = config.ap_wlan.channel;
 			saconf.authmode = AUTH_WPA_WPA2_PSK;
 			saconf.ssid_hidden = 0;

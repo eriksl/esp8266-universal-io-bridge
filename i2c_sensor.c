@@ -977,7 +977,7 @@ irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, in
 	if(crc1 != crc2)
 		return(i2c_error_device_error_3);
 
-	ets_memcpy(values, &i2cbuffer[2], length);
+	memcpy(values, &i2cbuffer[2], length);
 
 	return(i2c_error_ok);
 }

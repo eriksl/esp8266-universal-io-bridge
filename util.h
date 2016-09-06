@@ -88,13 +88,6 @@ void ets_timer_disarm(ETSTimer *);
 void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
 void NmiTimSetFunc(void *);
 void ets_delay_us(uint16_t);
-int ets_memcmp(const void *, const void *, size_t);
-size_t ets_strlen(const char *);
-int ets_strcmp(const char *, const char *);
-int ets_strncmp(const char *, const char *, size_t);
-void *ets_memcpy(void *, const void *, size_t);
-void *ets_memset(void *, int, size_t);
-char *ets_strcpy(char *, const char *);
 
 #define pvPortMalloc #pragma error dont use pvPortMalloc
 #define pvPortZalloc #pragma error dont use pvPortZalloc
@@ -116,16 +109,6 @@ struct tm *sntp_localtime(const time_t *);
 #define strncpy #pragma error strncpy unsafe
 #define strcat #pragma error strcat unsafe
 #define strncat #pragma error strncat unsafe
-
-#define strlen #pragma error use ets_strlen
-#define strcmp #pragma error use ets_strcmp
-#define strncmp #pragma error use ets_strncmp
-#define memcpy #pragma error use ets_memcpy
-#define memset #pragma error use ets_memset
-#define memcmp #pragma error use ets_memcmp
-//size_t strlcpy(char *, const char *, size_t);
-//void *memchr(const void *s, int c, size_t n);
-
 
 // undocumented functions from ROM
 

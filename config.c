@@ -138,7 +138,7 @@ irom void config_read(config_t *cfg)
 
 	if((cfg->magic != config_magic) || (cfg->version != config_version)) // init config to default
 	{
-		ets_memset(cfg, 0, sizeof(*cfg));
+		memset(cfg, 0, sizeof(*cfg));
 
 		cfg->magic = config_magic;
 		cfg->version = config_version;
@@ -214,13 +214,13 @@ irom void config_read(config_t *cfg)
 
 	// failsafe for corrupt / blank config
 
-	if((ets_strlen(cfg->client_wlan.ssid) < 2) || (ets_strlen(cfg->client_wlan.passwd) < 8))
+	if((strlen(cfg->client_wlan.ssid) < 2) || (strlen(cfg->client_wlan.passwd) < 8))
 	{
 		strlcpy(cfg->client_wlan.ssid, DEFAULT_SSID, sizeof(cfg->client_wlan.ssid));
 		strlcpy(cfg->client_wlan.passwd, DEFAULT_PASSWD, sizeof(cfg->client_wlan.passwd));
 	}
 
-	if((ets_strlen(cfg->ap_wlan.ssid) < 2) || (ets_strlen(cfg->ap_wlan.passwd) < 8) ||
+	if((strlen(cfg->ap_wlan.ssid) < 2) || (strlen(cfg->ap_wlan.passwd) < 8) ||
 			(cfg->ap_wlan.channel < 1) || (cfg->ap_wlan.channel > 13))
 	{
 		strlcpy(cfg->ap_wlan.ssid, DEFAULT_SSID, sizeof(cfg->ap_wlan.ssid));
