@@ -12,10 +12,14 @@
 
 // missing from eagle_soc.h
 
-#define FUNC_GPIO6                          3
-#define FUNC_GPIO7                          3
-#define FUNC_GPIO8                          3
-#define FUNC_GPIO11                         3
+enum
+{
+	FUNC_U0RXD = 0,
+	FUNC_GPIO6 = 3,
+	FUNC_GPIO7 = 3,
+	FUNC_GPIO8 = 3,
+	FUNC_GPIO11 = 3
+};
 
 // from SDK hw_timer.c
 

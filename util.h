@@ -61,10 +61,6 @@ typedef struct
 
 extern string_t buffer_4k;
 
-// defines missing
-
-#define FUNC_U0RXD 0
-
 // prototypes missing
 
 struct tm
