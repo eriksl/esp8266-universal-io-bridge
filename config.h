@@ -118,11 +118,11 @@ void	config_read(config_t *);
 void	config_write(config_t *);
 void	config_dump(string_t *, const config_t *cfg);
 
-bool_t	config_get_string(const char *id, int index1, int index2, string_t *value);
-bool_t	config_get_int(const char *id, int index1, int index2, int *value);
-bool_t	config_set_string(const char *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
-bool_t	config_set_int(const char *id, int index1, int index2, int value);
-bool_t	config_delete(const char *id, int index1, int index2);
+bool_t			config_get_string(const char *id, int index1, int index2, string_t *value);
+bool_t			config_get_int(const char *id, int index1, int index2, int *value);
+bool_t			config_set_string(const char *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
+bool_t			config_set_int(const char *id, int index1, int index2, int value);
+unsigned int	config_delete(const char *id, int index1, int index2, bool_t wildcard);
 
 bool_t	config_export(const config_t *cfg, string_t *sector);
 bool_t	config_write_text(const string_t *sector);

@@ -416,20 +416,22 @@ irom bool_t config_set_int(const char *id, int index1, int index2, int value)
 	return(config_set_string(id, index1, index2, &string, 0, -1));
 }
 
-irom bool_t config_delete(const char *id, int index1, int index2)
+irom unsigned int config_delete(const char *id, int index1, int index2, bool_t wildcard)
 {
 	const char *varidptr;
 	config_entry_t *config_current;
 	unsigned int ix;
-	unsigned int amount;
+	unsigned int amount, length;
 
 	varidptr = string_to_const_ptr(expand_varid(id, index1, index2));
+	length = strlen(varidptr);
 
 	for(ix = 0, amount = 0; ix < config_entries_length; ix++)
 	{
 		config_current = &config_entries[ix];
 
-		if(!ets_strcmp(config_current->id, varidptr))
+		if((wildcard && !strncmp(config_current->id, varidptr, length)) ||
+			(!wildcard && !strcmp(config_current->id, varidptr)))
 		{
 			amount++;
 			config_current->id[0] = '\0';
@@ -438,7 +440,7 @@ irom bool_t config_delete(const char *id, int index1, int index2)
 		}
 	}
 
-	return(amount > 0);
+	return(amount);
 }
 
 irom bool_t config_export(const config_t *cfg, string_t *sector)
@@ -664,9 +666,7 @@ done:
 irom void config_dump_text(string_t *dst)
 {
 	config_entry_t *config_current;
-	unsigned int ix;
-
-	string_format(dst, "items: %u, free slots: %u\n", config_entries_length, config_entries_size - config_entries_length);
+	unsigned int ix, in_use = 0;
 
 	for(ix = 0; ix < config_entries_length; ix++)
 	{
@@ -675,6 +675,10 @@ irom void config_dump_text(string_t *dst)
 		if(!config_current->id[0])
 			continue;
 
+		in_use++;
+
 		string_format(dst, "%s=%s (%d)\n", config_current->id, config_current->string_value, config_current->int_value);
 	}
+
+	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
 }

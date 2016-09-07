@@ -239,7 +239,7 @@ irom static app_action_t application_function_config_set_text(const string_t *sr
 
 irom static app_action_t application_function_config_delete_text(const string_t *src, string_t *dst)
 {
-	int index1, index2;
+	int index1, index2, wildcard;
 	string_new(, varid, 64);
 
 	if(parse_string(1, src, &varid) != parse_ok)
@@ -255,14 +255,12 @@ irom static app_action_t application_function_config_delete_text(const string_t 
 	if(parse_int(3, src, &index2, 0) != parse_ok)
 		index2 = -1;
 
-	if(!config_delete(string_to_const_ptr(&varid), index1, index2))
-	{
-		string_clear(dst);
-		string_cat(dst, "ERROR\n");
-		return(app_action_error);
-	}
+	if(parse_int(4, src, &wildcard, 0) != parse_ok)
+		wildcard = 0;
 
-	string_cat(dst, "OK\n");
+	index1 = config_delete(string_to_const_ptr(&varid), index1, index2, wildcard != 0);
+
+	string_format(dst, "%u config entries deleted\n", index1);
 
 	return(app_action_normal);
 }
