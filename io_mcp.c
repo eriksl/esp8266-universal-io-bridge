@@ -1,5 +1,4 @@
 #include "io_mcp.h"
-#include "io_config.h"
 #include "i2c.h"
 #include "util.h"
 
@@ -185,7 +184,7 @@ irom void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_en
 		bankpin = pin & 0x07;
 
 		mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
-		pin_config = &config.io_config[io][pin];
+		pin_config = &io_config[io][pin];
 
 		if(pin_config->llmode == io_pin_ll_counter)
 		{

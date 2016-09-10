@@ -436,11 +436,11 @@ irom void i2c_init(int sda_in, int scl_in)
 
 	i2c_flags.init_done = 1;
 
-	if(config_get_flag(config_flag_i2c_highspeed))
+	if(config_flags_get().flag.i2c_high_speed)
 		i2c_bus_speed_delay = 2;
 	else
 	{
-		if(config_get_flag(config_flag_cpu_high_speed))
+		if(config_flags_get().flag.cpu_high_speed)
 			i2c_bus_speed_delay = 66;
 		else
 			i2c_bus_speed_delay = 24;

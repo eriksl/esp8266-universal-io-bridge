@@ -23,6 +23,7 @@ void	time_timer_get(unsigned int *secs, unsigned int *msecs,
 
 // ntp clock
 
+void		time_ntp_init(void);
 void		time_ntp_get(unsigned int *secs, unsigned int *msecs,
 				unsigned int *raw, unsigned int *raw2,
 				unsigned int *base, unsigned int *wraps);

@@ -1,5 +1,4 @@
 #include "io_aux.h"
-#include "io_config.h"
 
 #include "util.h"
 

@@ -2,7 +2,7 @@
 #define io_pcf_h
 
 #include "util.h"
-#include "io_shared.h"
+#include "io.h"
 
 #include <stdint.h>
 

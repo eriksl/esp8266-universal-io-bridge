@@ -384,6 +384,7 @@ irom static void display_update(bool_t advance)
 irom static void display_expire(void) // call one time per second
 {
 	int active_slots, slot;
+	string_new(, default_message, 64);
 
 	if(display_data.detected < 0)
 		return;
@@ -407,7 +408,12 @@ irom static void display_expire(void) // call one time per second
 	{
 		display_slot[0].timeout = 1;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
-		strlcpy(display_slot[0].content, config.display.default_msg, display_slot_content_size - 1);
+		
+		string_clear(&default_message);
+
+		config_get_string("display.defaultmsg", 0, 0, &default_message);
+
+		strlcpy(display_slot[0].content, string_to_const_ptr(&default_message), display_slot_content_size - 1);
 	}
 }
 
@@ -415,7 +421,7 @@ irom bool display_periodic(void) // gets called 10 times per second
 {
 	static int last_update = 0;
 	static int expire_counter = 0;
-	int now;
+	int now, flip_timeout;
 	display_info_t *display_info_entry;
 
 	if(display_data.detected < 0)
@@ -425,16 +431,19 @@ irom bool display_periodic(void) // gets called 10 times per second
 
 	display_info_entry = &display_info[display_data.detected];
 
-	if(++expire_counter > 10) // expire once a second
+	if(++expire_counter > 10) // expire and update once a second
 	{
 		expire_counter = 0;
 		display_expire();
-	}
 
-	if((last_update > now) || ((last_update + config.display.flip_timeout) < now))
-	{
-		last_update = now;
-		display_update(true);
+		if(!config_get_int("display.fliptimeout", 0, 0, &flip_timeout))
+			flip_timeout = 4;
+
+		if((last_update > now) || ((last_update + flip_timeout) < now))
+		{
+			last_update = now;
+			display_update(true);
+		}
 	}
 
 	if(display_info_entry->show_fn)
@@ -502,22 +511,28 @@ irom app_action_t application_function_display_dump(const string_t *src, string_
 
 irom app_action_t application_function_display_default_message(const string_t *src, string_t *dst)
 {
-	const char *text;
-	int ws;
+	int ix;
 
-	text = string_to_const_ptr(src);
-
-	for(ws = 1; ws > 0; text++)
+	if(((ix = string_sep(src, 0, 1, ' ')) > 0) &&
+			!config_set_string("display.defaultmsg", -1, -1, src, ix, string_length(src) - ix - 1))
 	{
-		if(*text == '\0')
-			break;
-
-		if(*text == ' ')
-			ws--;
+		string_cat(dst, "> cannot set config\n");
+		return(app_action_error);
 	}
 
-	strlcpy(config.display.default_msg, text, sizeof(config.display.default_msg) - 1);
-	string_format(dst, "set default display message to \"%s\"\n", config.display.default_msg);
+	string_clear(dst);
+
+	if(config_get_string("display.defaultmsg", -1, -1, dst) && string_match(dst, "%%%%"))
+		config_delete("display.defaultmsg", -1, -1, false);
+
+	string_clear(dst);
+	string_cat(dst, "set default display message to \"");
+
+	if(!config_get_string("display.defaultmsg", -1, -1, dst))
+		string_cat(dst, "%%%%");
+
+	string_cat(dst, "\"\n");
+
 
 	return(app_action_normal);
 }
@@ -530,14 +545,24 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
-			string_format(dst, "display-flip-timeout: invalid timeout: %u\n", timeout);
+			string_format(dst, "> invalid timeout: %u\n", timeout);
 			return(app_action_error);
 		}
 
-		config.display.flip_timeout = (uint16_t)timeout;
+		if(timeout == 4)
+			config_delete("display.fliptimeout", -1, -1, false);
+		else
+			if(!config_set_int("display.fliptimeout", -1, -1, timeout))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "display-flip-timeout: %u s\n", config.display.flip_timeout);
+	if(!config_get_int("display.fliptimeout", -1, -1, &timeout))
+		timeout = 4;
+
+	string_format(dst, "> timeout: %u s\n", timeout);
 
 	return(app_action_normal);
 }

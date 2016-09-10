@@ -28,17 +28,6 @@ typedef struct device_table_entry_T
 
 device_data_t device_data[i2c_sensor_size];
 
-irom void i2c_sensor_config_init(i2c_sensors_config_t *dst)
-{
-	int current;
-
-	for(current = 0; current < i2c_sensor_size; current++)
-	{
-		dst->sensor[current].calibration.factor = 1;
-		dst->sensor[current].calibration.offset = 0;
-	}
-}
-
 irom static i2c_error_t sensor_digipicco_temp_init(const device_table_entry_t *entry)
 {
 	i2c_error_t error;
@@ -536,7 +525,8 @@ irom static i2c_error_t sensor_tsl2560_init(const device_table_entry_t *entry)
 	if(regval != 0x04)
 		return(i2c_error_device_error_3);
 
-	if(config_get_flag(config_flag_tsl_high_sens))
+
+	if(config_flags_get().flag.tsl_high_sens)
 		regval = 0b00010010; // 400 ms sampling window, gain is high, 16x
 	else
 		regval = 0b00000010; // 400 ms sampling window, gain is high, 1x
@@ -573,7 +563,7 @@ irom static i2c_error_t sensor_tsl2560_read(const device_table_entry_t *entry, v
 		return(i2c_error_ok);
 	}
 
-	if(config_get_flag(config_flag_tsl_high_sens))
+	if(config_flags_get().flag.tsl_high_sens)
 	{
 		// high sensitivity = 400 ms integration time, scaling factor = 1
 		// analogue amplification = 16x, scaling factor = 1
@@ -689,7 +679,7 @@ irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
 		return(error);
 
-	if(config_get_flag(config_flag_tsl_high_sens))
+	if(config_flags_get().flag.tsl_high_sens)
 		sens_command = 0x18;	// standard range mode
 	else
 		sens_command = 0x1d;	// extended range mode
@@ -750,7 +740,7 @@ error:
 	if(value->cooked < 0)
 		value->cooked = 0;
 
-	if(!config_get_flag(config_flag_tsl_high_sens))
+	if(!config_flags_get().flag.tsl_high_sens)
 		value->cooked *= 5;
 
 	return(i2c_error_ok);
@@ -780,7 +770,7 @@ irom static i2c_error_t sensor_bh1750_init(const device_table_entry_t *entry)
 	// lux-per-count is 0.93 for low sensibility mode (window = 31)
 	// lux-per-count is 0.11 for high sensibility mode (window = 254)
 
-	if(config_get_flag(config_flag_bh_high_sens))
+	if(config_flags_get().flag.bh_high_sens)
 		timing = 254;
 	else
 		timing = 31;
@@ -811,7 +801,7 @@ irom static i2c_error_t sensor_bh1750_read(const device_table_entry_t *entry, va
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	if(config_get_flag(config_flag_bh_high_sens))
+	if(config_flags_get().flag.bh_high_sens)
 		luxpercount = 0.11;
 	else
 		luxpercount = 0.93;
@@ -1192,7 +1182,7 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 	i2c_error_t error;
 	value_t value;
 	int current;
-	float factor, offset;
+	int int_factor, int_offset;
 	double extracooked;
 
 	for(current = 0; current < i2c_sensor_size; current++)
@@ -1215,10 +1205,13 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 
 	if((error = entry->read_fn(entry, &value)) == i2c_error_ok)
 	{
-		if(i2c_sensor_getcal(sensor, &factor, &offset))
-			extracooked = (value.cooked * factor) + offset;
-		else
-			extracooked = value.cooked;
+		if(!config_get_int("i2s.u.factor", sensor, 0, &int_factor))
+			int_factor = 1000;
+
+		if(!config_get_int("i2s.u.offset", sensor, 0, &int_offset))
+			int_offset = 0;
+
+		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
 
 		string_cat(dst, "[");
 		string_double(dst, extracooked, entry->precision, 1e10);
@@ -1246,10 +1239,16 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 
 	if(verbose)
 	{
+		if(!config_get_int("i2s.%u.factor", sensor, 0, &int_factor))
+			int_factor = 1000;
+
+		if(!config_get_int("i2s.%u.offset", sensor, 0, &int_offset))
+			int_offset = 0;
+
 		string_cat(dst, ", calibration: factor=");
-		string_double(dst, config.i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10);
+		string_double(dst, int_factor / 1000.0, 4, 1e10);
 		string_cat(dst, ", offset=");
-		string_double(dst, config.i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10);
+		string_double(dst, int_offset / 1000.0, 4, 1e10);
 	}
 
 	return(true);
@@ -1261,50 +1260,4 @@ irom attr_pure bool_t i2c_sensor_detected(i2c_sensor_t sensor)
 		return(false);
 
 	return(device_data[sensor].detected);
-}
-
-irom bool_t i2c_sensor_getcal(i2c_sensor_t sensor, float *factor, float *offset)
-{
-	if(sensor < i2c_sensor_size)
-	{
-		*factor = config.i2c_sensors.sensor[sensor].calibration.factor;
-		*offset = config.i2c_sensors.sensor[sensor].calibration.offset;
-		return(true);
-	}
-
-	return(false);
-}
-
-irom bool_t i2c_sensor_setcal(i2c_sensor_t sensor, float factor, float offset)
-{
-	if(sensor < i2c_sensor_size)
-	{
-		config.i2c_sensors.sensor[sensor].calibration.factor = factor;
-		config.i2c_sensors.sensor[sensor].calibration.offset = offset;
-		return(true);
-	}
-
-	return(false);
-}
-
-irom void i2c_sensor_export(const config_t *cfg, string_t *dst)
-{
-	unsigned int ix;
-	const i2c_sensor_config_t *i2c_sensor_config;
-
-	for(ix = 0; ix < i2c_sensor_size; ix++)
-	{
-		i2c_sensor_config = &cfg->i2c_sensors.sensor[ix];
-		int factor;
-		int offset;
-
-		factor = (int)(i2c_sensor_config->calibration.factor * 1000);
-		offset = (int)(i2c_sensor_config->calibration.offset * 1000);
-
-		if((factor != 1000) || (offset != 0))
-		{
-			string_format(dst, "i2c_sensor.%02u.%02u.cal.factor=%d\n", 0, ix, factor);
-			string_format(dst, "i2c_sensor.%02u.%02u.cal.offset=%d\n", 0, ix, offset);
-		}
-	}
 }

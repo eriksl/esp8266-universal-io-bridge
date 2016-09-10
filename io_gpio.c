@@ -1,5 +1,4 @@
 #include "io_gpio.h"
-#include "io_config.h"
 
 #include "stats.h"
 #include "util.h"
@@ -87,7 +86,6 @@ typedef union
 
 static uint32_t gpio_pc_pins_previous;
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
-static unsigned int pwm_period;
 static uint32_t pwm_static_set_mask;
 static uint32_t pwm_static_clear_mask;
 
@@ -248,39 +246,6 @@ iram static inline void pwm_timer_reload(uint32_t value)
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
 }
 
-irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
-{
-	int new_pwm_period;
-
-	if(parse_int(1, src, &new_pwm_period, 0) == parse_ok)
-	{
-		switch(new_pwm_period)
-		{
-			case(256):		new_pwm_period = 8;		break;
-			case(512):		new_pwm_period = 9;		break;
-			case(1024):		new_pwm_period = 10;	break;
-			case(2048):		new_pwm_period = 11;	break;
-			case(4096):		new_pwm_period = 12;	break;
-			case(8192):		new_pwm_period = 13;	break;
-			case(16384):	new_pwm_period = 14;	break;
-			case(32768):	new_pwm_period = 15;	break;
-			case(65536):	new_pwm_period = 16;	break;
-
-			default:
-			{
-				string_format(dst, "pwm-period: invalid period: %d (must be 256-65536 and ^2)\n", new_pwm_period);
-				return(app_action_error);
-			}
-		}
-
-		config.pwm.period = (uint8_t)new_pwm_period;
-	}
-
-	string_format(dst, "pwm_period: %d\n", 1 << config.pwm.period);
-
-	return(app_action_normal);
-}
-
 iram static void pwm_isr(void)
 {
 	static unsigned int	phase, delay;
@@ -354,7 +319,10 @@ irom static bool_t pwm_go(void)
 	gpio_data_pin_t *pin1_data, *pin2_data, *pin3_data;
 	int pin1, pin2, pin3;
 	pwm_phases_t *phase_data;
-	unsigned int duty, delta, new_set;
+	unsigned int duty, delta, new_set, pwm_period;
+
+	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+		pwm_period = 65536;
 
 	if(io_gpio_flags.pwm_swap_phase_set)
 		return(false);
@@ -364,7 +332,7 @@ irom static bool_t pwm_go(void)
 	if(pwm_isr_enabled())
 		new_set = new_set ? 0 : 1;
 
-	io_gpio_flags.pwm_cpu_high_speed = config_get_flag(config_flag_cpu_high_speed);
+	io_gpio_flags.pwm_cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
 	pwm_head = -1;
 
@@ -372,7 +340,7 @@ irom static bool_t pwm_go(void)
 
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
-		pin1_config	= &config.io_config[io_id_gpio][pin1];
+		pin1_config	= &io_config[io_id_gpio][pin1];
 		pin1_info	= &gpio_info_table[pin1];
 		pin1_data	= &gpio_data[pin1];
 
@@ -392,7 +360,7 @@ irom static bool_t pwm_go(void)
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
 		pin1_info	= &gpio_info_table[pin1];
-		pin1_config	= &config.io_config[io_id_gpio][pin1];
+		pin1_config	= &io_config[io_id_gpio][pin1];
 		pin1_data	= &gpio_data[pin1];
 
 		if(!pin1_info->valid || (pin1_config->llmode != io_pin_ll_output_analog))
@@ -522,7 +490,6 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	gpio_pc_pins_previous = gpio_get_mask(); // init pin change notification
 
 	pwm_current_phase_set = 0;
-	pwm_period = 1 << config.pwm.period;
 	io_gpio_flags.pwm_swap_phase_set = 0;
 
 	pwm_phase[0].size = 0;
@@ -547,7 +514,7 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		pin_config = &config.io_config[io][pin];
+		pin_config = &io_config[io][pin];
 
 		if(pin_config->llmode == io_pin_ll_counter)
 		{
@@ -674,6 +641,10 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_data_pin_t *gpio_pin_data;
+	unsigned int pwm_period;
+
+	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+		pwm_period = 65536;
 
 	gpio_pin_data = &gpio_data[pin];
 
@@ -834,4 +805,29 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 	}
 
 	return(io_ok);
+}
+
+irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
+{
+	int new_pwm_period;
+
+	if(parse_int(1, src, &new_pwm_period, 0) == parse_ok)
+	{
+		if((new_pwm_period < 256) || (new_pwm_period > 65536))
+		{
+			string_format(dst, "pwm-period: invalid period: %d (must be 256-65536)\n", new_pwm_period);
+			return(app_action_error);
+		}
+
+		config_set_int("pwm.period", -1, -1, new_pwm_period);
+
+		pwm_go();
+	}
+
+	if(!config_get_int("pwm.period", -1, -1, &new_pwm_period))
+		new_pwm_period = 65536;
+
+	string_format(dst, "pwm_period: %d\n", new_pwm_period);
+
+	return(app_action_normal);
 }

@@ -49,7 +49,7 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 typedef union
 {
 	ip_addr_t	ip_addr;
-	uint8_t		byte[3];
+	uint8_t		byte[4];
 } ip_addr_to_bytes_t;
 
 typedef struct
@@ -98,7 +98,6 @@ const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
 void msleep(int);
 ip_addr_t ip_addr(const char *);
-bool_t ip_addr_valid(ip_addr_t);
 struct tm *sntp_localtime(const time_t *);
 
 #define strcpy #pragma error strcpy unsafe

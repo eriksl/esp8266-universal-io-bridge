@@ -42,9 +42,14 @@ static wlan_scan_state_t wlan_scan_state = ws_inactive;
 irom app_action_t application_content(const string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
+	int status_io, status_pin;
 
-	if((config.status_trigger.io >= 0) && (config.status_trigger.pin >= 0))
-		io_trigger_pin((string_t *)0, config.status_trigger.io, config.status_trigger.pin, io_trigger_on);
+	if(config_get_int("trigger.status.io", -1, -1, &status_io) &&
+			config_get_int("trigger.status.pin", -1, -1, &status_pin) &&
+			(status_io != -1) && (status_pin != -1))
+	{
+		io_trigger_pin((string_t *)0, status_io, status_pin, io_trigger_on);
+	}
 
 	if(parse_string(0, src, dst) != parse_ok)
 		return(app_action_empty);
@@ -64,72 +69,23 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 	return(app_action_error);
 }
 
-irom static app_action_t application_function_current_config_dump(const string_t *src, string_t *dst)
-{
-	config_dump(dst, &config);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_config_read_text(const string_t *src, string_t *dst)
-{
-	bool_t result;
-
-	result = config_read_text(dst);
-
-	if(result)
-		result = config_import(dst);
-
-	if(string_length(dst) > (4096 - 32))
-		string_setlength(dst, (4096 - 32));
-
-	if(result)
-		string_cat(dst, "\n> success");
-	else
-		string_cat(dst, "\n> failed");
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_config_dump_text(const string_t *src, string_t *dst)
-{
-	config_dump_text(dst);
-
-	return(app_action_normal);
-}
-
-irom static app_action_t application_function_config_write_text(const string_t *src, string_t *dst)
-{
-	bool_t result;
-
-	result = config_export(&config, dst);
-
-	if(result)
-		result = config_write_text(dst);
-
-	if(string_length(dst) > (4096 - 32))
-		string_setlength(dst, (4096 - 32));
-
-	if(result)
-		string_cat(dst, "\n> success");
-	else
-		string_cat(dst, "\n> failed");
-
-	return(app_action_normal);
-}
-
 irom static app_action_t application_function_config_dump(const string_t *src, string_t *dst)
 {
-	static config_t tmpconfig;
-	config_read(&tmpconfig);
-	config_dump(dst, &tmpconfig);
+	config_dump(dst);
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_config_write(const string_t *src, string_t *dst)
 {
-	config_write(&config);
-	string_cat(dst, "config write done\n");
+	unsigned int size;
+
+	if((size = config_write()) == 0)
+	{
+		string_cat(dst, "> failed\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "> config write done, space used: %u, free: %u\n", size, SPI_FLASH_SEC_SIZE - size);
 	return(app_action_normal);
 }
 
@@ -195,7 +151,7 @@ irom static app_action_t application_function_config_query_string(const string_t
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_set_text(const string_t *src, string_t *dst)
+irom static app_action_t application_function_config_set(const string_t *src, string_t *dst)
 {
 	int index1, index2, offset;
 	string_new(, varid, 64);
@@ -237,7 +193,7 @@ irom static app_action_t application_function_config_set_text(const string_t *sr
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_delete_text(const string_t *src, string_t *dst)
+irom static app_action_t application_function_config_delete(const string_t *src, string_t *dst)
 {
 	int index1, index2, wildcard;
 	string_new(, varid, 64);
@@ -299,16 +255,26 @@ irom static app_action_t application_function_bridge_tcp_port(const string_t *sr
 
 	if(parse_int(1, src, &tcp_port, 0) == parse_ok)
 	{
-		if((tcp_port < 1) || (tcp_port > 65535))
+		if((tcp_port < 0) || (tcp_port > 65535))
 		{
-			string_format(dst, "bridge-tcp-port: invalid port %d\n", tcp_port);
+			string_format(dst, "> invalid port %d\n", tcp_port);
 			return(app_action_error);
 		}
 
-		config.bridge.port = (uint16_t)tcp_port;
+		if(tcp_port == 0)
+			config_delete("tcp.bridge.port", -1, -1, false);
+		else
+			if(!config_set_int("tcp.bridge.port", -1, -1, tcp_port))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "bridge-tcp-port: %d\n", config.bridge.port);
+	if(!config_get_int("tcp.bridge.port", -1, -1, &tcp_port))
+		tcp_port = 0;
+
+	string_format(dst, "> port: %d\n", tcp_port);
 
 	return(app_action_normal);
 }
@@ -321,14 +287,24 @@ irom static app_action_t application_function_bridge_tcp_timeout(const string_t 
 	{
 		if((tcp_timeout < 0) || (tcp_timeout > 65535))
 		{
-			string_format(dst, "bridge-tcp-timeout: invalid timeout: %d\n", tcp_timeout);
+			string_format(dst, "> invalid timeout: %d\n", tcp_timeout);
 			return(app_action_error);
 		}
 
-		config.bridge.timeout = (uint16_t)tcp_timeout;
+		if(tcp_timeout == 90)
+			config_delete("tcp.bridge.timeout", -1, -1, false);
+		else
+			if(!config_set_int("tcp.bridge.timeout", -1, -1, tcp_timeout))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "bridge-tcp-timeout: %d\n", config.bridge.timeout);
+	if(!config_get_int("tcp.bridge.timeout", -1, -1, &tcp_timeout))
+		tcp_timeout = 90;
+
+	string_format(dst, "> timeout: %d\n", tcp_timeout);
 
 	return(app_action_normal);
 }
@@ -341,14 +317,24 @@ irom static app_action_t application_function_command_tcp_port(const string_t *s
 	{
 		if((tcp_port < 1) || (tcp_port > 65535))
 		{
-			string_format(dst, "command-tcp-port: invalid port %d\n", tcp_port);
+			string_format(dst, "> invalid port %d\n", tcp_port);
 			return(app_action_error);
 		}
 
-		config.command.port = (uint16_t)tcp_port;
+		if(tcp_port == 24)
+			config_delete("tcp.cmd.port", -1, -1, false);
+		else
+			if(!config_set_int("tcp.cmd.port", -1, -1, tcp_port))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "command-tcp-port: %d\n", config.command.port);
+	if(!config_get_int("tcp.cmd.port", -1, -1, &tcp_port))
+		tcp_port = 24;
+
+	string_format(dst, "> port: %d\n", tcp_port);
 
 	return(app_action_normal);
 }
@@ -361,14 +347,24 @@ irom static app_action_t application_function_command_tcp_timeout(const string_t
 	{
 		if((tcp_timeout < 0) || (tcp_timeout > 65535))
 		{
-			string_format(dst, "command-tcp-timeout: invalid timeout: %d\n", tcp_timeout);
+			string_format(dst, "> invalid timeout: %d\n", tcp_timeout);
 			return(app_action_error);
 		}
 
-		config.command.timeout = (uint16_t)tcp_timeout;
+		if(tcp_timeout == 90)
+			config_delete("tcp.cmd.timeout", -1, -1, false);
+		else
+			if(!config_set_int("tcp.cmd.timeout", -1, -1, tcp_timeout))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "command-tcp-timeout: %d\n", config.command.timeout);
+	if(!config_get_int("tcp.cmd.timeout", -1, -1, &tcp_timeout))
+		tcp_timeout = 90;
+
+	string_format(dst, "> timeout: %d\n", tcp_timeout);
 
 	return(app_action_normal);
 }
@@ -381,14 +377,24 @@ irom static app_action_t application_function_uart_baud_rate(const string_t *src
 	{
 		if((baud_rate < 150) || (baud_rate > 1000000))
 		{
-			string_format(dst, "uart-baud: invalid baud rate: %d\n", baud_rate);
+			string_format(dst, "> invalid baud rate: %d\n", baud_rate);
 			return(app_action_error);
 		}
 
-		config.uart.baud_rate = baud_rate;
+		if(baud_rate == 9600)
+			config_delete("uart.baud", -1, -1, false);
+		else
+			if(!config_set_int("uart.baud", -1, -1, baud_rate))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "uart-baud: %d\n", config.uart.baud_rate);
+	if(!config_get_int("uart.baud", -1, -1, &baud_rate))
+		baud_rate = 9600;
+
+	string_format(dst, "> baudrate: %d\n", baud_rate);
 
 	return(app_action_normal);
 }
@@ -401,14 +407,24 @@ irom static app_action_t application_function_uart_data_bits(const string_t *src
 	{
 		if((data_bits < 5) || (data_bits > 8))
 		{
-			string_format(dst, "uart-data: invalid data bits: %d\n", data_bits);
+			string_format(dst, "> invalid data bits: %d\n", data_bits);
 			return(app_action_error);
 		}
 
-		config.uart.data_bits = data_bits;
+		if(data_bits == 8)
+			config_delete("uart.bits", -1, -1, false);
+		else
+			if(!config_set_int("uart.bits", -1, -1, data_bits))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "uart-data: %d\n", config.uart.data_bits);
+	if(!config_get_int("uart.bits", -1, -1, &data_bits))
+		data_bits = 8;
+
+	string_format(dst, "data bits: %d\n", data_bits);
 
 	return(app_action_normal);
 }
@@ -421,14 +437,24 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 	{
 		if((stop_bits < 1) || (stop_bits > 2))
 		{
-			string_format(dst, "uart-stop: stop bits out of range: %d\n", stop_bits);
+			string_format(dst, "> stop bits out of range: %d\n", stop_bits);
 			return(app_action_error);
 		}
 
-		config.uart.stop_bits = stop_bits;
+		if(stop_bits == 1)
+			config_delete("uart.stop", -1, -1, false);
+		else
+			if(!config_set_int("uart.stop", -1, -1, stop_bits))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
-	string_format(dst, "uart-stop: %d\n", config.uart.stop_bits);
+	if(!config_get_int("uart.stop", -1, -1, &stop_bits))
+		stop_bits = 1;
+
+	string_format(dst, "> stop bits: %d\n", stop_bits);
 
 	return(app_action_normal);
 }
@@ -436,6 +462,7 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 irom static app_action_t application_function_uart_parity(const string_t *src, string_t *dst)
 {
 	uart_parity_t parity;
+	int parity_int;
 
 	if(parse_string(1, src, dst) == parse_ok)
 	{
@@ -447,11 +474,27 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 			return(app_action_error);
 		}
 
-		config.uart.parity = parity;
+		if(parity == parity_none)
+			config_delete("uart.parity", -1, -1, false);
+		else
+		{
+			parity_int = (int)parity;
+
+			if(!config_set_int("uart.parity", -1, -1, parity_int))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+		}
 	}
 
-	string_copy(dst, "uart-parity: ");
-	uart_parity_to_string(dst, config.uart.parity);
+	if(config_get_int("uart.parity", -1, -1, &parity_int))
+		parity = (uart_parity_t)parity_int;
+	else
+		parity = parity_none;
+
+	string_copy(dst, "parity: ");
+	uart_parity_to_string(dst, parity);
 	string_cat(dst, "\n");
 
 	return(app_action_normal);
@@ -610,16 +653,14 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 {
 	int intin;
 	i2c_sensor_t sensor;
-	double factor;
-	double offset;
+	double factor, offset;
+	int int_factor, int_offset;
 
 	if(parse_int(1, src, &intin, 0) != parse_ok)
 	{
 		string_cat(dst, "> invalid i2c sensor\n");
 		return(app_action_error);
 	}
-
-	sensor = (i2c_sensor_t)intin;
 
 	if(parse_float(2, src, &factor) != parse_ok)
 	{
@@ -633,16 +674,45 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 		return(app_action_error);
 	}
 
-	if(!i2c_sensor_setcal(sensor, factor, offset))
+	if(intin >= i2c_sensor_size)
 	{
-		string_format(dst, "> invalid i2c sensor: %d\n", (int)sensor);
+		string_format(dst, "> invalid i2c sensor: %d\n", intin);
 		return(app_action_error);
 	}
 
+	sensor = (i2c_sensor_t)intin;
+
+	int_factor = (int)(factor * 1000.0);
+	int_offset = (int)(offset * 1000.0);
+
+	if(int_factor == 1000)
+		config_delete("i2s.%u.factor", sensor, 0, false);
+	else
+		if(!config_set_int("i2s.%u.factor", sensor, 0, int_factor))
+		{
+			string_cat(dst, "> cannot set factor\n");
+			return(app_action_error);
+		}
+
+	if(int_offset == 0)
+		config_delete("i2s.%u.offset", sensor, 0, false);
+	else
+		if(!config_set_int("i2s.%u.offset", sensor, 0, int_offset))
+		{
+			string_cat(dst, "> cannot set offset\n");
+			return(app_action_error);
+		}
+
+	if(!config_get_int("i2s.%u.factor", sensor, 0, &int_factor))
+		int_factor = 1;
+
+	if(!config_get_int("i2s.%u.factor", sensor, 0, &int_offset))
+		int_offset = 0;
+
 	string_format(dst, "> i2c sensor %d calibration set to factor ", (int)sensor);
-	string_double(dst, config.i2c_sensors.sensor[sensor].calibration.factor, 4, 1e10);
+	string_double(dst, int_factor / 1000.0, 4, 1e10);
 	string_cat(dst, ", offset: ");
-	string_double(dst, config.i2c_sensors.sensor[sensor].calibration.offset, 4, 1e10);
+	string_double(dst, int_offset / 1000.0, 4, 1e10);
 	string_cat(dst, "\n");
 
 	return(app_action_normal);
@@ -686,18 +756,20 @@ irom static app_action_t application_function_i2c_sensor_dump(const string_t *sr
 	return(app_action_normal);
 }
 
-irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool_t value)
+irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool_t add)
 {
 	if(parse_string(1, src, dst) == parse_ok)
 	{
-		if(!config_set_flag_by_name(dst, value))
+		if(!config_flags_change(dst, add))
 		{
-			string_copy(dst, "> unknown flag\n");
+			string_cat(dst, ": unknown flag\n");
 			return(app_action_error);
 		}
 	}
 
-	config_flags_to_string(dst, "flags: ", "\n", config.flags);
+	string_cat(dst, "flags:");
+	config_flags_to_string(dst);
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -771,13 +843,10 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 	wlan_scan_state = ws_finished;
 }
 
-string_new(static, ssid, 32);
-string_new(static, passwd, 32);
-
 irom static app_action_t application_function_wlan_ap_configure(const string_t *src, string_t *dst)
 {
-	string_clear(&ssid);
-	string_clear(&passwd);
+	string_new(, ssid, 64);
+	string_new(, passwd, 64);
 	int channel;
 
 	if((parse_string(1, src, &ssid) == parse_ok) && (parse_string(2, src, &passwd) == parse_ok) &&
@@ -785,85 +854,194 @@ irom static app_action_t application_function_wlan_ap_configure(const string_t *
 	{
 		if((channel < 1) || (channel > 13))
 		{
-			string_format(dst, "wlan-ap-configure: channel %d out of range (1-13)\n", channel);
+			string_format(dst, "> channel %d out of range (1-13)\n", channel);
 			return(app_action_error);
 		}
 
 		if(string_length(&passwd) < 8)
 		{
-			string_format(dst, "wlan-ap-configure: passwd \"%s\" too short (length must be >= 8)\n",
+			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n",
 					string_to_ptr(&passwd));
 			return(app_action_error);
 		}
 
-		strlcpy(config.ap_wlan.ssid, string_to_const_ptr(&ssid), sizeof(config.ap_wlan.ssid));
-		strlcpy(config.ap_wlan.passwd, string_to_const_ptr(&passwd), sizeof(config.ap_wlan.passwd));
-		config.ap_wlan.channel = channel;
+		if(!config_set_string("wlan.ap.ssid", -1, -1, &ssid, -1, -1))
+		{
+			string_cat(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
+
+		if(!config_set_string("wlan.ap.passwd", -1, -1, &passwd, -1, -1))
+		{
+			string_cat(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
+
+		if(!config_set_int("wlan.ap.channel", -1, -1, channel))
+		{
+			string_cat(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
 	}
 
-	string_format(dst, "wlan-ap-configure: ssid: \"%s\", passwd: \"%s\", channel: %d\n",
-			config.ap_wlan.ssid, config.ap_wlan.passwd, config.ap_wlan.channel);
+	string_clear(&ssid);
+	string_clear(&passwd);
+
+	if(!config_get_string("wlan.ap.ssid", -1, -1, &ssid))
+	{
+		string_clear(&ssid);
+		string_cat(&ssid, "<empty>");
+	}
+
+	if(!config_get_string("wlan.ap.passwd", -1, -1, &passwd))
+	{
+		string_clear(&passwd);
+		string_cat(&passwd, "<empty>");
+	}
+
+	if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
+		channel = 0;
+
+	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %d\n",
+			string_to_const_ptr(&ssid),
+			string_to_const_ptr(&passwd),
+			channel);
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_wlan_client_configure(const string_t *src, string_t *dst)
 {
-	string_clear(&ssid);
-	string_clear(&passwd);
+	string_new(, ssid, 64);
+	string_new(, passwd, 64);
 
 	if((parse_string(1, src, &ssid) == parse_ok) && (parse_string(2, src, &passwd) == parse_ok))
 	{
-		strlcpy(config.client_wlan.ssid, string_to_const_ptr(&ssid), sizeof(config.client_wlan.ssid));
-		strlcpy(config.client_wlan.passwd, string_to_const_ptr(&passwd), sizeof(config.client_wlan.passwd));
+		if(string_length(&passwd) < 8)
+		{
+			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_ptr(&passwd));
+			return(app_action_error);
+		}
+
+		if(!config_set_string("wlan.client.ssid", -1, -1, &ssid, -1, -1))
+		{
+			string_cat(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
+
+		if(!config_set_string("wlan.client.passwd", -1, -1, &passwd, -1, -1))
+		{
+			string_cat(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
 	}
 
-	string_format(dst, "wlan-client-configure: ssid: \"%s\", passwd: \"%s\"\n",
-			config.client_wlan.ssid, config.client_wlan.passwd);
+	string_clear(&ssid);
+	string_clear(&passwd);
+
+	if(!config_get_string("wlan.client.ssid", -1, -1, &ssid))
+	{
+		string_clear(&ssid);
+		string_cat(&ssid, "<empty>");
+	}
+
+	if(!config_get_string("wlan.client.passwd", -1, -1, &passwd))
+	{
+		string_clear(&passwd);
+		string_cat(&passwd, "<empty>");
+	}
+
+	string_format(dst, "> ssid: \"%s\", passwd: \"%s\"\n",
+			string_to_const_ptr(&ssid),
+			string_to_const_ptr(&passwd));
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_wlan_mode(const string_t *src, string_t *dst)
 {
-	if(parse_string(1, src, dst) != parse_ok)
+	unsigned int int_mode;
+	config_wlan_mode_t mode;
+
+	if(parse_string(1, src, dst) == parse_ok)
 	{
-		string_cat(dst, "wlan-mode: supply mode: client or ap\n");
+		if(string_match(dst, "client"))
+		{
+			string_clear(dst);
+
+			if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_client))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+
+			if(!wlan_init())
+			{
+				string_cat(dst, "> cannot init\n");
+				return(app_action_error);
+			}
+
+			return(app_action_disconnect);
+		}
+
+		if(string_match(dst, "ap"))
+		{
+			string_clear(dst);
+
+			if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_ap))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+
+			if(!wlan_init())
+			{
+				string_cat(dst, "> cannot init\n");
+				return(app_action_error);
+			}
+
+			return(app_action_disconnect);
+		}
+
+		string_cat(dst, ": invalid wlan mode\n");
 		return(app_action_error);
 	}
 
-	if(string_match(dst, "client"))
+	string_clear(dst);
+	string_cat(dst, "> current mode: ");
+
+	if(config_get_int("wlan.mode", -1, -1, &int_mode))
 	{
-		string_clear(dst);
-		config.wlan_mode = config_wlan_mode_client;
+		mode = (config_wlan_mode_t)int_mode;
 
-		if(!wlan_init())
+		switch(mode)
 		{
-			string_cat(dst, "wlan-mode: invalid mode\n");
-			return(app_action_error);
+			case(config_wlan_mode_client):
+			{
+				string_cat(dst, "client mode");
+				break;
+			}
+
+			case(config_wlan_mode_ap):
+			{
+				string_cat(dst, "ap mode");
+				break;
+			}
+
+			default:
+			{
+				string_cat(dst, "unknown mode");
+				break;
+			}
 		}
-
-		return(app_action_disconnect);
 	}
+	else
+		string_cat(dst, "mode unset");
 
-	if(string_match(dst, "ap"))
-	{
-		string_clear(dst);
-		config.wlan_mode = config_wlan_mode_ap;
+	string_cat(dst, "\n");
 
-		if(!wlan_init())
-		{
-			string_cat(dst, "wlan-mode: invalid mode\n");
-			return(app_action_error);
-		}
-
-		return(app_action_disconnect);
-	}
-
-	string_cat(dst, ": invalid wlan mode\n");
-	return(app_action_error);
+	return(app_action_normal);
 }
-
 
 irom static app_action_t application_function_wlan_list(const string_t *src, string_t *dst)
 {
@@ -925,16 +1103,38 @@ irom static app_action_t application_function_ntp_dump(const string_t *src, stri
 
 irom static app_action_t application_function_ntp_set(const string_t *src, string_t *dst)
 {
-	int timezone;
 	string_new(static, ip, 32);
+
+	int					timezone, ix;
+	ip_addr_to_bytes_t	a2b;
 
 	if((parse_string(1, src, &ip) == parse_ok) && (parse_int(2, src, &timezone, 0) == parse_ok))
 	{
-		config.ntp.server = ip_addr(string_to_ptr(&ip));
-		config.ntp.timezone = timezone;
+		a2b.ip_addr = ip_addr(string_to_const_ptr(&ip));
 
-		sntp_setserver(0, &config.ntp.server);
-		sntp_set_timezone(config.ntp.timezone);
+		if((a2b.byte[0] == 0) && (a2b.byte[1] == 0) && (a2b.byte[2] == 0) && (a2b.byte[3] == 0))
+			for(ix = 0; ix < 4; ix++)
+				config_delete("ntp.server.%u", ix, -1, false);
+		else
+			for(ix = 0; ix < 4; ix++)
+				if(!config_set_int("ntp.server.%u", ix, -1, a2b.byte[ix]))
+				{
+					string_clear(dst);
+					string_cat(dst, "cannot set config\n");
+					return(app_action_error);
+				}
+
+		if(timezone == 0)
+			config_delete("ntp.tz", -1, -1, false);
+		else
+			if(!config_set_int("ntp.tz", -1, -1, timezone))
+			{
+				string_clear(dst);
+				string_cat(dst, "cannot set config\n");
+				return(app_action_error);
+			}
+
+		time_ntp_init();
 	}
 
 	return(application_function_ntp_dump(src, dst));
@@ -942,46 +1142,76 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 
 irom static app_action_t application_function_gpio_status_set(const string_t *src, string_t *dst)
 {
-	int io, pin;
+	int trigger_io, trigger_pin;
 
-	if((parse_int(1, src, &io, 0) == parse_ok) && (parse_int(2, src, &pin, 0) == parse_ok))
+	if((parse_int(1, src, &trigger_io, 0) == parse_ok) && (parse_int(2, src, &trigger_pin, 0) == parse_ok))
 	{
-		if((io < -1) || (io > io_id_size))
+		if((trigger_io < -1) || (trigger_io > io_id_size))
 		{
-			string_format(dst, "status trigger io %d/%d invalid\n", io, pin);
+			string_format(dst, "status trigger io %d/%d invalid\n", trigger_io, trigger_pin);
 			return(app_action_error);
 		}
 
-		config.status_trigger.io = io;
-		config.status_trigger.pin = pin;
+		if((trigger_io < 0) || (trigger_pin < 0))
+		{
+			config_delete("trigger.status.io", -1, -1, false);
+			config_delete("trigger.status.pin", -1, -1, false);
+		}
+		else
+			if(!config_set_int("trigger.status.io", -1, -1, trigger_io) ||
+					!config_set_int("trigger.status.pin", -1, -1, trigger_pin))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
+	if(!config_get_int("trigger.status.io", -1, -1, &trigger_io))
+		trigger_io = -1;
+
+	if(!config_get_int("trigger.status.pin", -1, -1, &trigger_pin))
+		trigger_pin = -1;
+
 	string_format(dst, "status trigger at io %d/%d (-1 is disabled)\n",
-			config.status_trigger.io,
-			config.status_trigger.pin);
+			trigger_io, trigger_pin);
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_gpio_assoc_set(const string_t *src, string_t *dst)
 {
-	int io, pin;
+	int trigger_io, trigger_pin;
 
-	if((parse_int(1, src, &io, 0) == parse_ok) && (parse_int(2, src, &pin, 0) == parse_ok))
+	if((parse_int(1, src, &trigger_io, 0) == parse_ok) && (parse_int(2, src, &trigger_pin, 0) == parse_ok))
 	{
-		if((io < -1) || (io > io_id_size))
+		if((trigger_io < -1) || (trigger_io > io_id_size))
 		{
-			string_format(dst, "wlan association trigger io %d/%d invalid\n", io, pin);
+			string_format(dst, "association trigger io %d/%d invalid\n", trigger_io, trigger_pin);
 			return(app_action_error);
 		}
 
-		config.assoc_trigger.io = io;
-		config.assoc_trigger.pin = pin;
+		if((trigger_io < 0) || (trigger_pin < 0))
+		{
+			config_delete("trigger.assoc.io", -1, -1, false);
+			config_delete("trigger.assoc.pin", -1, -1, false);
+		}
+		else
+			if(!config_set_int("trigger.assoc.io", -1, -1, trigger_io) ||
+					!config_set_int("trigger.assoc.pin", -1, -1, trigger_pin))
+			{
+				string_cat(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
 	}
 
+	if(!config_get_int("trigger.assoc.io", -1, -1, &trigger_io))
+		trigger_io = -1;
+
+	if(!config_get_int("trigger.assoc.pin", -1, -1, &trigger_pin))
+		trigger_pin = -1;
+
 	string_format(dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
-			config.assoc_trigger.io,
-			config.assoc_trigger.pin);
+			trigger_io, trigger_pin);
 
 	return(app_action_normal);
 }
@@ -1009,29 +1239,9 @@ static const application_function_table_t application_function_table[] =
 		"set command tcp timeout (default 0)"
 	},
 	{
-		"ccd", "current-config-dump",
-		application_function_current_config_dump,
-		"dump current config contents"
-	},
-	{
 		"cd", "config-dump",
 		application_function_config_dump,
 		"dump config contents (stored in flash)"
-	},
-	{
-		"crt", "config-read-text",
-		application_function_config_read_text,
-		"read ascii-based config"
-	},
-	{
-		"cdt", "config-dump-text",
-		application_function_config_dump_text,
-		"dump ascii-based config"
-	},
-	{
-		"cwt", "config-write-text",
-		application_function_config_write_text,
-		"write ascii-based config"
 	},
 	{
 		"cqs", "config-query-string",
@@ -1044,13 +1254,13 @@ static const application_function_table_t application_function_table[] =
 		"query config int"
 	},
 	{
-		"cst", "config-set-text",
-		application_function_config_set_text,
+		"cs", "config-set",
+		application_function_config_set,
 		"set config entry"
 	},
 	{
-		"cdet", "config-delete-text",
-		application_function_config_delete_text,
+		"cde", "config-delete",
+		application_function_config_delete,
 		"delete config entry"
 	},
 	{

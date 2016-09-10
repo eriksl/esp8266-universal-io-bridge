@@ -92,7 +92,7 @@ irom bool_t display_lcd_init(void)
 	{
 		for(pin = 0; pin < max_pins_per_io; pin++)
 		{
-			pin_config = &config.io_config[io][pin];
+			pin_config = &io_config[io][pin];
 
 			if(pin_config->mode == io_pin_lcd)
 			{
@@ -202,7 +202,7 @@ irom bool_t display_lcd_bright(int brightness)
 {
 	static const unsigned int bls[5] = { 0, 1024, 4096, 16384, 65535 };
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
-	unsigned int pwm;
+	unsigned int pwm, pwm_period;
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
@@ -210,7 +210,10 @@ irom bool_t display_lcd_bright(int brightness)
 	if(!send_byte(cmds[brightness], false))
 		return(false);
 
-	pwm = bls[brightness] / (1 << (16 - config.pwm.period));
+	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+		pwm_period = 65536;
+
+	pwm = bls[brightness] / (65536 / pwm_period);
 
 	set_pin(io_lcd_bl, pwm); // backlight pin might be not configured, ignore error
 

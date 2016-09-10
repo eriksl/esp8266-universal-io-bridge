@@ -147,7 +147,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Wlogical-op -Wmissing-field-initializers -Wpacked -Wredundant-decls \
 					-Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code \
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
-					-Winit-self -Wformat-nonliteral -Wcomment \
+					-Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
 CFLAGS			:=  -Os -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=400 -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
@@ -164,8 +164,8 @@ OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o displa
 						stats.o time.o uart.o user_main.o util.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
-						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_config.h io_gpio.h \
-						io_aux.h io_mcp.h io_pcf.h io_shared.h ota.h queue.h stats.h uart.h user_config.h \
+						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
+						io_aux.h io_mcp.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
 						user_main.h util.h
 
 .PRECIOUS:		*.c *.h

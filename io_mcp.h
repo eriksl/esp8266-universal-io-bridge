@@ -1,8 +1,8 @@
 #ifndef io_mcp_h
 #define io_mcp_h
 
+#include "io.h"
 #include "util.h"
-#include "io_shared.h"
 
 #include <stdint.h>
 

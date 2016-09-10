@@ -6,6 +6,13 @@
 #include <user_interface.h>
 #include <sntp.h>
 
+typedef struct
+{
+	unsigned int ntp_server_valid:1;
+} time_flags_t;
+
+static time_flags_t time_flags;
+
 // system
 
 static unsigned int system_last_us;
@@ -181,12 +188,37 @@ irom void time_timer_get(unsigned int *s, unsigned int *ms,
 // ntp
 
 static unsigned int ntp_base_s = 0;
+static ip_addr_to_bytes_t ntp_server;
+static int ntp_timezone;
 
-irom static void ntp_init(void)
+irom void time_ntp_init(void)
 {
+	int ix;
+	int byte;
+
 	sntp_stop();
-	sntp_setserver(0, &config.ntp.server);
-	sntp_set_timezone(config.ntp.timezone);
+
+	for(ix = 0; ix < 4; ix++)
+		if(!config_get_int("ntp.server.%u", ix, 0, &byte))
+			break;
+		else
+			ntp_server.byte[ix] = (uint8_t)byte;
+
+	if(ix >= 4)
+		time_flags.ntp_server_valid = 1;
+	else
+	{
+		time_flags.ntp_server_valid = 0;
+
+		for(ix = 0; ix < 4; ix++)
+			ntp_server.byte[ix] = 0;
+	}
+
+	if(!config_get_int("ntp.tz", -1, -1, &ntp_timezone))
+		ntp_timezone = 0;
+
+	sntp_setserver(0, &ntp_server.ip_addr);
+	sntp_set_timezone(ntp_timezone);
 	sntp_init();
 }
 
@@ -196,7 +228,7 @@ irom static void ntp_periodic(void)
 	static bool_t initial_burst = true;
 	time_t ntp_s;
 
-	if(!ip_addr_valid(config.ntp.server))
+	if(!time_flags.ntp_server_valid)
 		return;
 
 	delay++;
@@ -213,7 +245,8 @@ irom static void ntp_periodic(void)
 	{
 		initial_burst = false;
 		stat_update_ntp++;
-		ntp_init(); // FIXME SDK bug, stop and start ntp to get continuous updating
+		sntp_stop();
+		sntp_init(); // FIXME SDK bug, stop and start ntp to get continuous updating
 	}
 
 	if(ntp_base_s == 0)
@@ -261,7 +294,7 @@ irom void time_init(void)
 	system_init();
 	rtc_init();
 	timer_init();
-	ntp_init();
+	time_ntp_init();
 }
 
 irom void time_periodic(void)

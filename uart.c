@@ -113,35 +113,33 @@ iram static void uart_callback(void *p)
 	ETS_UART_INTR_ENABLE();
 }
 
-irom void uart_init(const uart_parameters_t *params)
+irom void uart_init(int baud, int data_bits, int stop_bits, uart_parity_t parity)
 {
-	int data_bits;
-	int stop_bits;
-	uart_parity_t parity;
+	int data_mask, stop_mask, parity_mask;
 
 	ETS_UART_INTR_DISABLE();
 	ETS_UART_INTR_ATTACH(uart_callback,  0);
 
-	write_peri_reg(UART_CLKDIV(0), UART_CLK_FREQ / params->baud_rate);
+	write_peri_reg(UART_CLKDIV(0), UART_CLK_FREQ / baud);
 
-	data_bits = params->data_bits - 5;
+	data_mask = data_bits - 5;
 
-	if(params->stop_bits == 2)
-		stop_bits = 0x03;
+	if(stop_bits == 2)
+		stop_mask = 0x03;
 	else
-		stop_bits = 0x01;
+		stop_mask = 0x01;
 
-	if(params->parity == parity_odd)
-		parity = UART_PARITY_EN | UART_PARITY;
-	else if(params->parity == parity_even)
-		parity = UART_PARITY_EN;
-	else
-		parity = 0;
+	switch(parity)
+	{
+		case(parity_odd): parity_mask = UART_PARITY_EN | UART_PARITY; break;
+		case(parity_even): parity_mask = UART_PARITY_EN; break;
+		default: parity_mask = 0; break;
+	}
 
 	write_peri_reg(UART_CONF0(0),
-			((data_bits & UART_BIT_NUM) << UART_BIT_NUM_S) |
-			((stop_bits & UART_STOP_BIT_NUM) << UART_STOP_BIT_NUM_S) |
-			parity);
+			((data_mask & UART_BIT_NUM) << UART_BIT_NUM_S) |
+			((stop_mask & UART_STOP_BIT_NUM) << UART_STOP_BIT_NUM_S) |
+			parity_mask);
 
 	set_peri_reg_mask(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	clear_peri_reg_mask(UART_CONF0(0), UART_RXFIFO_RST | UART_TXFIFO_RST);

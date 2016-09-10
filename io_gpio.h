@@ -1,8 +1,8 @@
 #ifndef io_gpio_h
 #define io_gpio_h
 
+#include "io.h"
 #include "util.h"
-#include "io_shared.h"
 
 #include <stdint.h>
 #include <eagle_soc.h>

@@ -109,10 +109,7 @@ irom void stats_generate(string_t *dst)
 			"> ntp: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
 			"> time: %04u/%02u/%02u %02u:%02u:%02u, source: %s\n"
 			">\n"
-			"> config magic: %x\n"
-			"> version: %x\n"
 			"> address: %x\n"
-			"> size: %u\n"
 			">\n"
 			"> int uart rx: %u\n"
 			"> int uart tx: %u\n"
@@ -147,10 +144,7 @@ irom void stats_generate(string_t *dst)
 			timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,
 			ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps,
 			Y, M, D, h, m, s, time_source,
-			config.magic,
-			config.version,
 			USER_CONFIG_SECTOR * 0x1000,
-			sizeof(config_t),
 			stat_uart_rx_interrupts,
 			stat_uart_tx_interrupts,
 			stat_fast_timer,

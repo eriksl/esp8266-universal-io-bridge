@@ -1,5 +1,4 @@
 #include "io_pcf.h"
-#include "io_config.h"
 #include "i2c.h"
 #include "util.h"
 

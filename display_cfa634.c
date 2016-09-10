@@ -1,6 +1,7 @@
 #include "display.h"
 #include "display_cfa634.h"
 #include "config.h"
+#include "io.h"
 #include "uart.h"
 #include "queue.h"
 #include "user_main.h"
@@ -99,11 +100,11 @@ irom bool_t display_cfa634_init(void)
 {
 	unsigned int ix, byte, x, y;
 
-	if(!config_get_flag(config_flag_enable_cfa634))
+	if(!config_flags_get().flag.enable_cfa634)
 		return(false);
 
-	if((config.io_config[0][1].mode != io_pin_uart) ||
-			(config.io_config[0][3].mode != io_pin_uart))
+	if((io_config[0][1].mode != io_pin_uart) ||
+			(io_config[0][3].mode != io_pin_uart))
 		return(false);
 
 	for(ix = 0; ix < (sizeof(cfa634_udg) / sizeof(*cfa634_udg)); ix++)

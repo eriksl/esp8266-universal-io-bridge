@@ -99,7 +99,7 @@ irom static void tcp_data_receive_callback(void *arg, char *buffer, unsigned sho
 	bool_t strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
 
-	strip_telnet = config_get_flag(config_flag_strip_telnet);
+	strip_telnet = config_flags_get().flag.strip_telnet;
 	telnet_strip_state = ts_copy;
 
 	for(current = 0; (current < length) && !queue_full(&data_send_queue); current++)
@@ -348,6 +348,8 @@ irom static bool_t background_task_command_handler(void)
 irom static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
+	config_wlan_mode_t wlan_mode;
+	int wlan_mode_int;
 
 	if(background_task_update_uart())
 	{
@@ -379,12 +381,20 @@ irom static void background_task(os_event_t *events) // posted every ~100 ms = ~
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
-	if((config.wlan_mode == config_wlan_mode_client) &&
-			(wifi_station_get_connect_status() != STATION_GOT_IP) &&
-			(stat_update_idle == 300))
+	if((wifi_station_get_connect_status() != STATION_GOT_IP) && (stat_update_idle == 300))
 	{
-		config.wlan_mode = config_wlan_mode_ap;
-		wlan_init();
+		if(config_get_int("wlan.mode", -1, -1, &wlan_mode_int))
+			wlan_mode = (config_wlan_mode_t)wlan_mode_int;
+		else
+			wlan_mode = config_wlan_mode_client;
+
+		if(wlan_mode == config_wlan_mode_client) 
+		{
+			wlan_mode_int = (int)config_wlan_mode_ap;
+			config_set_int("wlan.mode", -1, -1, wlan_mode_int);
+			config_get_int("wlan.mode", -1, -1, &wlan_mode_int);
+			wlan_init();
+		}
 	}
 
 	stat_update_idle++;
@@ -425,6 +435,10 @@ irom void user_init(void)
 {
 	static char data_send_queue_buffer[1024];
 	static char data_receive_queue_buffer[1024];
+	bool_t config_read_status;
+
+	int uart_baud, uart_data, uart_stop, uart_parity_int;
+	uart_parity_t uart_parity;
 
 	queue_new(&data_send_queue, sizeof(data_send_queue_buffer), data_send_queue_buffer);
 	queue_new(&data_receive_queue, sizeof(data_receive_queue_buffer), data_receive_queue_buffer);
@@ -434,17 +448,31 @@ irom void user_init(void)
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
 
-	config_read(&config);
+	config_read_status = config_read();
 
-	if(config_read_text(&buffer_4k))
-		config_import(&buffer_4k);
+	if(!config_get_int("uart.baud", -1, -1, &uart_baud))
+		uart_baud = 9600;
 
-	uart_init(&config.uart);
-	system_set_os_print(config_get_flag(config_flag_print_debug));
+	if(!config_get_int("uart.data", -1, -1, &uart_data))
+		uart_data = 8;
+
+	if(!config_get_int("uart.stop", -1, -1, &uart_stop))
+		uart_stop = 1;
+
+	if(config_get_int("uart.parity", -1, -1, &uart_parity_int))
+		uart_parity = (uart_parity_t)uart_parity_int;
+	else
+		uart_parity = parity_none;
+
+	uart_init(uart_baud, uart_data, uart_stop, uart_parity);
+	system_set_os_print(config_flags_get().flag.print_debug);
+
+	if(!config_read_status)
+		dprintf("config invalid");
 
 	wifi_station_set_auto_connect(0);
 
-	if(config_get_flag(config_flag_wlan_power_save))
+	if(config_flags_get().flag.wlan_power_save)
 		wifi_set_sleep_type(MODEM_SLEEP_T);
 	else
 		wifi_set_sleep_type(NONE_SLEEP_T);
@@ -454,30 +482,29 @@ irom void user_init(void)
 
 irom static void wlan_event_handler(System_Event_t *event)
 {
-	int io;
-	int pin;
+	int trigger_io, trigger_pin;
 
-	io = config.assoc_trigger.io;
-	pin = config.assoc_trigger.pin;
-
-	switch(event->event)
+	if(config_get_int("trigger.assoc.io", -1, -1, &trigger_io) &&
+			config_get_int("trigger.assoc.pin", -1, -1, &trigger_pin) &&
+			(trigger_io >= 0) && (trigger_pin >= 0))
 	{
-		case(EVENT_STAMODE_GOT_IP):
-		case(EVENT_SOFTAPMODE_STACONNECTED):
+		switch(event->event)
 		{
-			if((io >= 0) && (pin >= 0))
-				io_trigger_pin((string_t *)0, io, pin, io_trigger_on);
+			case(EVENT_STAMODE_GOT_IP):
+			case(EVENT_SOFTAPMODE_STACONNECTED):
+			{
+				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
 
-			break;
-		}
+				break;
+			}
 
-		case(EVENT_STAMODE_DISCONNECTED):
-		case(EVENT_SOFTAPMODE_STADISCONNECTED):
-		{
-			if((io >= 0) && (pin >= 0))
-				io_trigger_pin((string_t *)0, io, pin, io_trigger_off);
+			case(EVENT_STAMODE_DISCONNECTED):
+			case(EVENT_SOFTAPMODE_STADISCONNECTED):
+			{
+				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_off);
 
-			break;
+				break;
+			}
 		}
 	}
 }
@@ -487,18 +514,33 @@ irom static void user_init2(void)
 	string_new(static, data_send_buffer, 1024);
 	string_new(static, cmd_send_buffer, 4096 + 4); // need a few extra bytes to make up exactly 4096 bytes for OTA
 
+	int tcp_bridge_port, tcp_bridge_timeout;
+	int tcp_cmd_port, tcp_cmd_timeout;
+
+	if(!config_get_int("tcp.bridge.port", -1, -1, &tcp_bridge_port))
+		tcp_bridge_port = 0;
+
+	if(!config_get_int("tcp.bridge.timeout", -1, -1, &tcp_bridge_timeout))
+		tcp_bridge_timeout = 90;
+
+	if(!config_get_int("tcp.cmd.port", -1, -1, &tcp_cmd_port))
+		tcp_cmd_port = 24;
+
+	if(!config_get_int("tcp.cmd.timeout", -1, -1, &tcp_cmd_timeout))
+		tcp_cmd_timeout = 90;
+
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	wlan_init();
 	time_init();
 	io_init();
 
-	tcp_accept(&data,	&data_send_buffer,	config.bridge.port, 	config.bridge.timeout,	tcp_data_connect_callback);
-	tcp_accept(&cmd,	&cmd_send_buffer,	config.command.port,	config.command.timeout,	tcp_cmd_connect_callback);
+	tcp_accept(&data,	&data_send_buffer,	tcp_bridge_port,	tcp_bridge_timeout,	tcp_data_connect_callback);
+	tcp_accept(&cmd,	&cmd_send_buffer,	tcp_cmd_port,		tcp_cmd_timeout,	tcp_cmd_connect_callback);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
-	if(config_get_flag(config_flag_cpu_high_speed))
+	if(config_flags_get().flag.cpu_high_speed)
 		system_update_cpu_freq(160);
 	else
 		system_update_cpu_freq(80);
@@ -512,18 +554,41 @@ irom static void user_init2(void)
 
 irom bool_t wlan_init(void)
 {
-	switch(config.wlan_mode)
+	int wlan_mode_int;
+	config_wlan_mode_t wlan_mode;
+	string_new(, ssid, 64);
+	string_new(, passwd, 64);
+	int channel;
+
+	if(config_get_int("wlan.mode", -1, -1, &wlan_mode_int))
+		wlan_mode = (config_wlan_mode_t)wlan_mode_int;
+	else
+		wlan_mode = config_wlan_mode_client;
+
+	switch(wlan_mode)
 	{
 		case(config_wlan_mode_client):
 		{
 			struct station_config cconf;
 
+			if(!config_get_string("wlan.client.ssid", -1, -1, &ssid))
+			{
+				string_clear(&ssid);
+				string_cat(&ssid, "esp");
+			}
+
+			if(!config_get_string("wlan.client.passwd", -1, -1, &passwd))
+			{
+				string_clear(&passwd);
+				string_cat(&passwd, "espespesp");
+			}
+
 			memset(&cconf, 0, sizeof(cconf));
-			strlcpy(cconf.ssid, config.client_wlan.ssid, sizeof(cconf.ssid));
-			strlcpy(cconf.password, config.client_wlan.passwd, sizeof(cconf.password));
+			strlcpy(cconf.ssid, string_to_const_ptr(&ssid), sizeof(cconf.ssid));
+			strlcpy(cconf.password, string_to_const_ptr(&passwd), sizeof(cconf.password));
 			cconf.bssid_set = 0;
 
-			if(config_get_flag(config_flag_print_debug))
+			if(config_flags_get().flag.print_debug)
 				dprintf("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
 
 			wifi_station_disconnect();
@@ -538,17 +603,32 @@ irom bool_t wlan_init(void)
 		{
 			struct softap_config saconf;
 
+			if(!config_get_string("wlan.ap.ssid", -1, -1, &ssid))
+			{
+				string_clear(&ssid);
+				string_cat(&ssid, "esp");
+			}
+
+			if(!config_get_string("wlan.ap.passwd", -1, -1, &passwd))
+			{
+				string_clear(&passwd);
+				string_cat(&passwd, "espespesp");
+			}
+
+			if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
+				channel = 1;
+
 			memset(&saconf, 0, sizeof(saconf));
-			strlcpy(saconf.ssid, config.ap_wlan.ssid, sizeof(saconf.ssid));
-			strlcpy(saconf.password, config.ap_wlan.passwd, sizeof(saconf.password));
-			saconf.ssid_len = strlen(config.ap_wlan.ssid);
-			saconf.channel = config.ap_wlan.channel;
+			strlcpy(saconf.ssid, string_to_const_ptr(&ssid), sizeof(saconf.ssid));
+			strlcpy(saconf.password, string_to_const_ptr(&passwd), sizeof(saconf.password));
+			saconf.ssid_len = string_length(&ssid);
+			saconf.channel = channel;
 			saconf.authmode = AUTH_WPA_WPA2_PSK;
 			saconf.ssid_hidden = 0;
 			saconf.max_connection = 1;
 			saconf.beacon_interval = 100;
 
-			if(config_get_flag(config_flag_print_debug))
+			if(config_flags_get().flag.print_debug)
 				dprintf("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
 						saconf.ssid, saconf.password, saconf.channel);
 

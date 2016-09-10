@@ -702,24 +702,3 @@ irom attr_pure ip_addr_t ip_addr(const char *src)
 
 	return(ip_addr_to_bytes.ip_addr);
 }
-
-irom attr_pure bool_t ip_addr_valid(ip_addr_t ip_addr)
-{
-	ip_addr_to_bytes_t ip_addr_to_bytes;
-
-	ip_addr_to_bytes.ip_addr = ip_addr;
-
-	if(ip_addr_to_bytes.byte[0])
-		return(true);
-
-	if(ip_addr_to_bytes.byte[1])
-		return(true);
-
-	if(ip_addr_to_bytes.byte[2])
-		return(true);
-
-	if(ip_addr_to_bytes.byte[3])
-		return(true);
-
-	return(false);
-}

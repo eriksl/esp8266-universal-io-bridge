@@ -27,7 +27,7 @@ void			uart_parity_to_string(string_t *dst, uart_parity_t);
 char			uart_parity_to_char(uart_parity_t);
 uart_parity_t	uart_string_to_parity(const string_t *src);
 void			uart_parameters_to_string(string_t *dst, const uart_parameters_t *);
-void			uart_init(const uart_parameters_t *);
+void			uart_init(int baud, int data_bits, int stop_bits, uart_parity_t parity);
 void			uart_start_transmit(char);
 
 #endif

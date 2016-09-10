@@ -1,5 +1,3 @@
-#include "io_config.h"
-#include "io_shared.h"
 #include "io_gpio.h"
 #include "io_aux.h"
 #include "io_mcp.h"
@@ -7,6 +5,8 @@
 #include "io.h"
 #include "i2c.h"
 #include "config.h"
+
+io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
 io_info_t io_info =
 {
@@ -709,7 +709,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 		return(io_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
 	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
@@ -745,7 +745,7 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, int value)
 		return(io_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
 	return(io_write_pin_x(error, info, pin_data, pin_config, pin, value));
@@ -775,7 +775,7 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 		return(io_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
@@ -787,7 +787,8 @@ irom void io_init(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin;
+	io_pin_flag_to_int_t flags;
+	int io, pin, mode, llmode;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
 
@@ -801,6 +802,220 @@ irom void io_init(void)
 			pin_data = &data->pin[pin];
 			pin_data->direction = io_dir_none;
 			pin_data->speed = 0;
+
+			pin_config = &io_config[io][pin];
+
+			if(!config_get_int("io.%u.%u.mode", io, pin, &mode))
+			{
+				pin_config->mode = io_pin_disabled;
+				pin_config->llmode = io_pin_ll_disabled;
+				continue;
+			}
+
+			if(!config_get_int("io.%u.%u.llmode", io, pin, &llmode))
+			{
+				pin_config->mode = io_pin_disabled;
+				pin_config->llmode = io_pin_ll_disabled;
+				continue;
+			}
+
+			if(!config_get_int("io.%u.%u.flags", io, pin, &flags.intvalue))
+				flags.intvalue = 0;
+
+			pin_config->flags = flags.io_pin_flags;
+
+			pin_config->mode = mode;
+			pin_config->llmode = llmode;
+
+			switch(mode)
+			{
+				case(io_pin_disabled):
+				case(io_pin_error):
+				case(io_pin_input_digital):
+				case(io_pin_output_digital):
+				case(io_pin_input_analog):
+				case(io_pin_uart):
+				{
+					break;
+				}
+
+				case(io_pin_counter):
+				{
+					int debounce;
+
+					if(!config_get_int("io.%u.%u.counter.debounce", io, pin, &debounce))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->speed = debounce;
+
+					break;
+				}
+
+				case(io_pin_trigger):
+				{
+					int debounce, trigger_io, trigger_pin, trigger_type;
+
+					if(!info->caps.counter)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.trigger.debounce", io, pin, &debounce))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.trigger.io", io, pin, &trigger_io))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.trigger.pin", io, pin, &trigger_pin))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.trigger.type", io, pin, &trigger_type))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->speed = debounce;
+					pin_config->shared.trigger.io.io = trigger_io;
+					pin_config->shared.trigger.io.pin = trigger_pin;
+					pin_config->shared.trigger.trigger_mode = trigger_type;
+
+					break;
+				}
+
+
+				case(io_pin_timer):
+				{
+					int direction, speed;
+
+					if(!info->caps.output_digital)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.timer.delay", io, pin, &speed))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.timer.direction", io, pin, &direction))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->speed = speed;
+					pin_config->direction = direction;
+
+					break;
+				}
+
+
+				case(io_pin_output_analog):
+				{
+					int speed, lower_bound, upper_bound;
+
+					if(!info->caps.output_analog)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.outputa.speed", io, pin, &speed))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.outputa.lower", io, pin, &lower_bound))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.outputa.upper", io, pin, &upper_bound))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->shared.output_analog.lower_bound = lower_bound;
+					pin_config->shared.output_analog.upper_bound = upper_bound;
+					pin_config->speed = speed;
+
+					llmode = io_pin_ll_output_analog;
+
+					break;
+				}
+
+				case(io_pin_i2c):
+				{
+					int pin_mode;
+
+					if(!info->caps.i2c)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int("io.%u.%u.i2c.pinmode", io, pin, &pin_mode))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->shared.i2c.pin_mode = pin_mode;
+
+					break;
+				}
+
+
+				case(io_pin_lcd):
+				{
+					int pin_mode;
+
+					if(!config_get_int("io.%u.%u.lcd.pin", io, pin, &pin_mode))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->shared.lcd.pin_use = pin_mode;
+
+					break;
+				}
+			}
 		}
 
 		if(info->init_fn(info) == io_ok)
@@ -809,7 +1024,7 @@ irom void io_init(void)
 
 			for(pin = 0; pin < info->pins; pin++)
 			{
-				pin_config = &config.io_config[io][pin];
+				pin_config = &io_config[io][pin];
 				pin_data = &data->pin[pin];
 
 				if(info->init_pin_mode_fn((string_t *)0, info, pin_data, pin_config, pin) == io_ok)
@@ -863,12 +1078,10 @@ iram void io_periodic(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin, status_io, status_pin;
+	int io, pin;
+	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
 	int value;
-
-	status_io = config.status_trigger.io;
-	status_pin = config.status_trigger.pin;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -883,7 +1096,7 @@ iram void io_periodic(void)
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
-			pin_config = &config.io_config[io][pin];
+			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
 			switch(pin_config->mode)
@@ -966,8 +1179,13 @@ iram void io_periodic(void)
 		}
 	}
 
-	if((flags.counter_triggered) && (status_io >= 0) && (status_pin >= 0))
-		io_trigger_pin((string_t *)0, status_io, status_pin, io_trigger_on);
+	if(flags.counter_triggered &&
+			config_get_int("trigger.status.io", -1, -1, &trigger_status_io) &&
+			config_get_int("trigger.status.pin", -1, -1, &trigger_status_pin) &&
+			(trigger_status_io >= 0) && (trigger_status_pin >= 0))
+	{
+		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
+	}
 }
 
 /* app commands */
@@ -984,7 +1202,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 	if(parse_int(1, src, &io, 0) != parse_ok)
 	{
-		io_config_dump(dst, &config, -1, -1, false);
+		io_config_dump(dst, -1, -1, false);
 		return(app_action_normal);
 	}
 
@@ -1005,7 +1223,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 	if(parse_int(2, src, &pin, 0) != parse_ok)
 	{
-		io_config_dump(dst, &config, io, -1, false);
+		io_config_dump(dst, io, -1, false);
 		return(app_action_normal);
 	}
 
@@ -1015,13 +1233,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
 	if(parse_string(3, src, dst) != parse_ok)
 	{
 		string_clear(dst);
-		io_config_dump(dst, &config, io, pin, false);
+		io_config_dump(dst, io, pin, false);
 		return(app_action_normal);
 	}
 
@@ -1047,6 +1265,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			llmode = io_pin_ll_input_digital;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_input_digital);
+
 			break;
 		}
 
@@ -1067,8 +1289,12 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			}
 
 			pin_config->speed = debounce;
-
 			llmode = io_pin_ll_counter;
+
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_counter);
+			config_set_int("io.%u.%u.counter.debounce", io, pin, debounce);
 
 			break;
 		}
@@ -1127,6 +1353,14 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			llmode = io_pin_ll_counter;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_counter);
+			config_set_int("io.%u.%u.trigger.debounce", io, pin, debounce);
+			config_set_int("io.%u.%u.trigger.io", io, pin, trigger_io);
+			config_set_int("io.%u.%u.trigger.pin", io, pin, trigger_pin);
+			config_set_int("io.%u.%u.trigger.type", io, pin, trigger_type);
+
 			break;
 		}
 
@@ -1139,6 +1373,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			}
 
 			llmode = io_pin_ll_output_digital;
+
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_output_digital);
 
 			break;
 		}
@@ -1189,6 +1427,12 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			llmode = io_pin_ll_output_digital;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_output_digital);
+			config_set_int("io.%u.%u.timer.direction", io, pin, direction);
+			config_set_int("io.%u.%u.timer.delay", io, pin, speed);
+
 			break;
 		}
 
@@ -1201,6 +1445,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			}
 
 			llmode = io_pin_ll_input_analog;
+
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_input_analog);
 
 			break;
 		}
@@ -1254,6 +1502,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			llmode = io_pin_ll_output_analog;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_output_analog);
+			config_set_int("io.%u.%u.outputa.lower", io, pin, lower_bound);
+			config_set_int("io.%u.%u.outputa.upper", io, pin, upper_bound);
+			config_set_int("io.%u.%u.outputa.speed", io, pin, speed);
+
 			break;
 		}
 
@@ -1285,6 +1540,11 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			llmode = io_pin_ll_i2c;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_i2c);
+			config_set_int("io.%u.%u.i2c.pinmode", io, pin, pin_mode);
+
 			break;
 		}
 
@@ -1297,6 +1557,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			}
 
 			llmode = io_pin_ll_uart;
+
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_uart);
 
 			break;
 		}
@@ -1345,12 +1609,19 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			pin_config->shared.lcd.pin_use = pin_mode;
 
+			config_delete("io.%u.%u.", io, pin, true);
+			config_set_int("io.%u.%u.mode", io, pin, mode);
+			config_set_int("io.%u.%u.llmode", io, pin, llmode);
+			config_set_int("io.%u.%u.lcd.pin", io, pin, pin_mode);
+
 			break;
 		}
 
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
+
+			config_delete("io.%u.%u.", io, pin, true);
 
 			break;
 		}
@@ -1380,7 +1651,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	io_config_dump(dst, &config, io, pin, false);
+	io_config_dump(dst, io, pin, false);
 
 	return(app_action_normal);
 }
@@ -1417,7 +1688,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 
 	io_string_from_mode(dst, pin_config->mode);
 
@@ -1475,7 +1746,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 
 	value = 0;
 	parse_int(3, src, &value, 0);
@@ -1569,6 +1840,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	io_config_pin_entry_t *pin_config;
 	int io, pin;
 	io_pin_flag_t saved_flags;
+	io_pin_flag_to_int_t io_pin_flag_to_int;
 
 	if(parse_int(1, src, &io, 0) != parse_ok)
 	{
@@ -1598,7 +1870,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	}
 
 	pin_data = &data->pin[pin];
-	pin_config = &config.io_config[io][pin];
+	pin_config = &io_config[io][pin];
 
 	saved_flags = pin_config->flags;
 
@@ -1621,6 +1893,9 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 		string_copy(dst, "cannot enable this flag\n");
 		return(app_action_error);
 	}
+
+	io_pin_flag_to_int.io_pin_flags = pin_config->flags;
+	config_set_int("io.%u.%u.flags", io, pin, io_pin_flag_to_int.intvalue);
 
 	string_clear(dst);
 	string_format(dst, "flags for pin %d/%d:", io, pin);
@@ -1747,7 +2022,7 @@ static const roflash dump_string_t dump_strings =
 	}
 };
 
-irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_id, bool html)
+irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1789,7 +2064,7 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 			if((pin_id >= 0) && (pin_id != pin))
 				continue;
 
-			pin_config = &cfg->io_config[io][pin];
+			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
 			string_cat_ptr(dst, (*strings)[ds_id_preline]);
@@ -1947,95 +2222,4 @@ irom void io_config_dump(string_t *dst, const config_t *cfg, int io_id, int pin_
 	}
 
 	string_cat_ptr(dst, (*strings)[ds_id_footer]);
-}
-
-irom void io_config_export(const config_t *cfg, string_t *dst)
-{
-	const io_info_entry_t *info;
-	const io_config_pin_entry_t *pin_config;
-	int io, pin;
-	io_pin_flag_to_int_t io_pin_flag_to_int;
-
-	for(io = 0; io < io_id_size; io++)
-	{
-		info = &io_info[io];
-
-		for(pin = 0; pin < info->pins; pin++)
-		{
-			pin_config = &cfg->io_config[io][pin];
-
-			if(pin_config->mode == io_pin_disabled)
-				continue;
-
-			string_format(dst, "io.%02u.%02u.mode=%u\n", io, pin, pin_config->mode);
-			string_format(dst, "io.%02u.%02u.llmode=%u\n", io, pin, pin_config->llmode);
-
-			io_pin_flag_to_int.io_pin_flags = pin_config->flags;
-
-			if(io_pin_flag_to_int.intvalue > 0)
-				string_format(dst, "io.%02u.%02u.flags=0x%04x\n", io, pin, io_pin_flag_to_int.intvalue);
-
-			switch(pin_config->mode)
-			{
-				case(io_pin_disabled):
-				case(io_pin_input_digital):
-				case(io_pin_output_digital):
-				case(io_pin_uart):
-				case(io_pin_input_analog):
-				case(io_pin_error):
-				{
-					break;
-				}
-
-				case(io_pin_counter):
-				{
-					string_format(dst, "io.%02u.%02u.counter.speed:%u\n", io, pin, pin_config->speed);
-
-					break;
-				}
-
-				case(io_pin_trigger):
-				{
-					string_format(dst, "io.%02u.%02u.trigger.debounce=%u\n", io, pin, pin_config->speed);
-					string_format(dst, "io.%02u.%02u.trigger.io=%u\n", io, pin, pin_config->shared.trigger.io.io);
-					string_format(dst, "io.%02u.%02u.trigger.pin=%u\n", io, pin, pin_config->shared.trigger.io.pin);
-					string_format(dst, "io.%02u.%02u.trigger.mode=%u\n", io, pin, pin_config->shared.trigger.trigger_mode);
-
-					break;
-				}
-
-				case(io_pin_timer):
-				{
-					string_format(dst, "io.%02u.%02u.timer.delay=%u\n", io, pin, pin_config->speed);
-					string_format(dst, "io.%02u.%02u.timer.dir=%u\n", io, pin, pin_config->direction);
-
-					break;
-				}
-
-				case(io_pin_output_analog):
-				{
-					string_format(dst, "io.%02u.%02u.outputa.speed=%u\n", io, pin, pin_config->speed);
-					string_format(dst, "io.%02u.%02u.outputa.lower=%u\n", io, pin, pin_config->shared.output_analog.lower_bound);
-					string_format(dst, "io.%02u.%02u.outputa.upper=%u\n", io, pin, pin_config->shared.output_analog.upper_bound);
-
-					break;
-				}
-
-				case(io_pin_i2c):
-				{
-					string_format(dst, "io.%02u.%02u.i2c.mode=%u\n", io, pin, pin_config->shared.i2c.pin_mode);
-
-					break;
-				}
-
-				case(io_pin_lcd):
-				{
-					string_format(dst, "io.%02u.%02u.lcd.use=%u\n", io, pin, pin_config->shared.lcd.pin_use);
-
-					break;
-				}
-			}
-
-		}
-	}
 }
