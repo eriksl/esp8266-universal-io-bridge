@@ -3,6 +3,7 @@
 #include "util.h"
 #include "config.h"
 #include "time.h"
+#include "i2c.h"
 
 #include <c_types.h>
 #include <user_interface.h>
@@ -75,6 +76,7 @@ irom void stats_generate(string_t *dst)
 
 	const struct rst_info *rst_info;
 	static struct station_config sc_default, sc_current;
+	static i2c_info_t i2c_info;
 	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
 	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
 	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
@@ -92,6 +94,8 @@ irom void stats_generate(string_t *dst)
 
 	wifi_station_get_config_default(&sc_default);
 	wifi_station_get_config(&sc_current);
+
+	i2c_get_info(&i2c_info);
 
 	string_format(dst,
 			"> firmware version date: %s\n"
@@ -130,7 +134,11 @@ irom void stats_generate(string_t *dst)
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
-			"> signal strength: %d dB\n",
+			"> signal strength: %d dB\n"
+			">\n"
+			"> i2c multiplexer found: %s\n"
+			"> i2c buses: %u\n"
+			"> i2c clock delay: %u\n",
 			__DATE__ " " __TIME__,
 			system_get_sdk_version(),
 			system_get_chip_id(),
@@ -163,7 +171,10 @@ irom void stats_generate(string_t *dst)
 			phy[wifi_get_phy_mode()],
 			slp[wifi_get_sleep_type()],
 			wifi_get_channel(),
-			wifi_station_get_rssi());
+			wifi_station_get_rssi(),
+			yesno(i2c_info.multiplexer),
+			i2c_info.buses,
+			i2c_info.delay);
 
 #if IMAGE_OTA == 1
 	rcfg = rboot_get_config();

@@ -5,6 +5,11 @@
 
 #include <stdint.h>
 
+enum
+{
+	i2c_busses = 5 // 0 -> 1, 1 -> 2, ... and non-multiplexed bus = 0
+};
+
 typedef enum
 {
 	i2c_state_invalid = 0,
@@ -45,19 +50,31 @@ typedef enum
 	i2c_error_device_error_3,
 	i2c_error_device_error_4,
 	i2c_error_device_error_5,
+	i2c_error_invalid_bus,
 	i2c_error_error,
 	i2c_error_size = i2c_error_error
 } i2c_error_t;
 
-_Static_assert(sizeof(i2c_error_t) == 4, "sizeof(i2c_error_t) != 4");
+assert_size(i2c_error_t, 4);
+
+typedef struct attr_packed
+{
+	unsigned int multiplexer:1;
+	unsigned int buses:7;
+	unsigned int delay:8;
+} i2c_info_t;
+
+assert_size(i2c_info_t, 2);
 
 void		i2c_init(int sda_index, int scl_index);
 i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
-i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
 void		i2c_error_format_string(string_t *dst, i2c_error_t error);
+i2c_error_t	i2c_select_bus(unsigned int bus);
+void		i2c_get_info(i2c_info_t *);
 
-i2c_error_t		i2c_send_1(int address, int byte0);
-i2c_error_t		i2c_send_2(int address, int byte0, int byte1);
-i2c_error_t		i2c_send_3(int address, int byte0, int byte1, int byte2);
-i2c_error_t		i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3);
+i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
+i2c_error_t	i2c_send_1(int address, int byte0);
+i2c_error_t	i2c_send_2(int address, int byte0, int byte1);
+i2c_error_t	i2c_send_3(int address, int byte0, int byte1, int byte2);
+i2c_error_t	i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3);
 #endif

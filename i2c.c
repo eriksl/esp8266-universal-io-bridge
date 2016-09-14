@@ -24,9 +24,11 @@ typedef enum
 struct
 {
 	unsigned int init_done:1;
+	unsigned int multiplexer:1;
 } i2c_flags =
 {
-	.init_done = 0
+	.init_done = 0,
+	.multiplexer = 0
 };
 
 static roflash const char state_strings[i2c_state_size][32] =
@@ -65,6 +67,7 @@ static roflash const char error_strings[i2c_error_size][32] =
 	"device specific error 3",
 	"device specific error 4",
 	"device specific error 5",
+	"invalid bus",
 };
 
 static int sda_pin;
@@ -431,6 +434,8 @@ iram static noinline i2c_error_t send_header(int address, i2c_direction_t direct
 
 irom void i2c_init(int sda_in, int scl_in)
 {
+	uint8_t byte;
+
 	sda_pin = sda_in;
 	scl_pin = scl_in;
 
@@ -447,6 +452,12 @@ irom void i2c_init(int sda_in, int scl_in)
 	}
 
 	i2c_reset();
+
+	if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
+	{
+		i2c_flags.multiplexer = 1;
+		i2c_select_bus(0);
+	}
 }
 
 iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
@@ -582,4 +593,25 @@ irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int by
 	bytes[3] = byte3;
 
 	return(i2c_send(address, 4, bytes));
+}
+
+irom i2c_error_t i2c_select_bus(unsigned int bus)
+{
+	if(!i2c_flags.multiplexer)
+		return((bus == 0) ? i2c_error_ok : i2c_error_invalid_bus);
+
+	if(bus >= i2c_busses)
+		return(i2c_error_invalid_bus);
+
+	bus = 1 << bus;
+	bus >>= 1;
+
+	return(i2c_send_1(0x70, bus));
+}
+
+irom void i2c_get_info(i2c_info_t *i2c_info)
+{
+	i2c_info->multiplexer = i2c_flags.multiplexer ? 1 : 0;
+	i2c_info->buses = i2c_flags.multiplexer ? i2c_busses : 1;
+	i2c_info->delay = i2c_bus_speed_delay;
 }

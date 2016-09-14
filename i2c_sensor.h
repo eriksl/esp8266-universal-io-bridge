@@ -32,9 +32,9 @@ typedef enum attr_packed
 
 assert_size(i2c_sensor_t, 1);
 
-i2c_error_t	i2c_sensor_init(i2c_sensor_t);
+i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
 void		i2c_sensor_init_all(void);
-bool		i2c_sensor_read(string_t *, i2c_sensor_t, bool_t verbose);
-bool_t		i2c_sensor_detected(i2c_sensor_t);
+bool_t		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool_t verbose);
+bool_t		i2c_sensor_detected(int bus, i2c_sensor_t);
 
 #endif

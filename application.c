@@ -599,48 +599,66 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 
 irom static app_action_t application_function_i2c_sensor_init(const string_t *src, string_t *dst)
 {
-	int intin;
+	int intin, bus;
 	i2c_error_t error;
 	i2c_sensor_t sensor;
 
 	if((parse_int(1, src, &intin, 0)) != parse_ok)
 	{
-		string_cat(dst, "> invalid i2c sensor\n");
+		string_format(dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
 	}
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((error = i2c_sensor_init(sensor)) != i2c_error_ok)
+	if((parse_int(2, src, &bus, 0)) != parse_ok)
+		bus = 0;
+
+	if(bus >= i2c_busses)
 	{
-		string_format(dst, "sensor init %d", sensor);
+		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
+		return(app_action_error);
+	}
+
+	if((error = i2c_sensor_init(bus, sensor)) != i2c_error_ok)
+	{
+		string_format(dst, "sensor init %d:%d", bus, sensor);
 		i2c_error_format_string(dst, error);
 		string_cat(dst, "\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "init sensor %d ok\n", sensor);
+	string_format(dst, "init sensor %u/%u ok\n", bus, sensor);
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_i2c_sensor_read(const string_t *src, string_t *dst)
 {
-	int intin;
+	int intin, bus;
 	i2c_sensor_t sensor;
 
 	if((parse_int(1, src, &intin, 0)) != parse_ok)
 	{
-		string_cat(dst, "> invalid i2c sensor\n");
+		string_format(dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
 	}
 
 	sensor = (i2c_sensor_t)intin;
 
-	if(!i2c_sensor_read(dst, sensor, true))
+	if((parse_int(2, src, &bus, 0)) != parse_ok)
+		bus = 0;
+
+	if(bus >= i2c_busses)
+	{
+		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
+		return(app_action_error);
+	}
+
+	if(!i2c_sensor_read(dst, bus, sensor, true))
 	{
 		string_clear(dst);
-		string_format(dst, "> invalid i2c sensor: %d\n", (int)sensor);
+		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, (int)sensor);
 		return(app_action_error);
 	}
 
@@ -651,65 +669,64 @@ irom static app_action_t application_function_i2c_sensor_read(const string_t *sr
 
 irom static app_action_t application_function_i2c_sensor_calibrate(const string_t *src, string_t *dst)
 {
-	int intin;
+	unsigned int intin, bus;
 	i2c_sensor_t sensor;
 	double factor, offset;
 	int int_factor, int_offset;
 
-	if(parse_int(1, src, &intin, 0) != parse_ok)
+	if(parse_int(1, src, &bus, 0) != parse_ok)
 	{
-		string_cat(dst, "> invalid i2c sensor\n");
+		string_format(dst, "> invalid i2c bus: %u\n", bus);
 		return(app_action_error);
 	}
 
-	if(parse_float(2, src, &factor) != parse_ok)
+	if(parse_int(2, src, &intin, 0) != parse_ok)
 	{
-		string_cat(dst, "> invalid factor\n");
+		string_format(dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
 	}
 
-	if(parse_float(3, src, &offset) != parse_ok)
+	if(bus >= i2c_busses)
 	{
-		string_cat(dst, "> invalid offset\n");
+		string_format(dst, "> invalid i2c bus: %u\n", bus);
 		return(app_action_error);
 	}
 
 	if(intin >= i2c_sensor_size)
 	{
-		string_format(dst, "> invalid i2c sensor: %d\n", intin);
+		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
 		return(app_action_error);
 	}
 
 	sensor = (i2c_sensor_t)intin;
 
-	int_factor = (int)(factor * 1000.0);
-	int_offset = (int)(offset * 1000.0);
+	if((parse_float(3, src, &factor) == parse_ok) && (parse_float(4, src, &offset) != parse_ok))
+	{
+		int_factor = (int)(factor * 1000.0);
+		int_offset = (int)(offset * 1000.0);
 
-	if(int_factor == 1000)
-		config_delete("i2s.%u.factor", sensor, 0, false);
-	else
-		if(!config_set_int("i2s.%u.factor", sensor, 0, int_factor))
+		config_delete("i2s.%u.%u.", bus, sensor, true);
+
+		if((int_factor != 1000) && !config_set_int("i2s.%u.%u.factor", bus, sensor, int_factor))
 		{
 			string_cat(dst, "> cannot set factor\n");
 			return(app_action_error);
 		}
 
-	if(int_offset == 0)
-		config_delete("i2s.%u.offset", sensor, 0, false);
-	else
-		if(!config_set_int("i2s.%u.offset", sensor, 0, int_offset))
+		if((int_offset != 0) && !config_set_int("i2s.%u.%u.offset", bus, sensor, int_offset))
 		{
 			string_cat(dst, "> cannot set offset\n");
 			return(app_action_error);
 		}
+	}
 
-	if(!config_get_int("i2s.%u.factor", sensor, 0, &int_factor))
-		int_factor = 1;
+	if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
+		int_factor = 1000;
 
-	if(!config_get_int("i2s.%u.factor", sensor, 0, &int_offset))
+	if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_offset))
 		int_offset = 0;
 
-	string_format(dst, "> i2c sensor %d calibration set to factor ", (int)sensor);
+	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, (int)sensor);
 	string_double(dst, int_factor / 1000.0, 4, 1e10);
 	string_cat(dst, ", offset: ");
 	string_double(dst, int_offset / 1000.0, 4, 1e10);
@@ -721,7 +738,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 irom static app_action_t application_function_i2c_sensor_dump(const string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
-	int option;
+	int option, bus;
 	bool_t all, verbose;
 	int original_length = string_length(dst);
 
@@ -741,14 +758,15 @@ irom static app_action_t application_function_i2c_sensor_dump(const string_t *sr
 		}
 	}
 
-	for(sensor = 0; sensor < i2c_sensor_size; sensor++)
-	{
-		if(all || i2c_sensor_detected(sensor))
+	for(bus = 0; bus < i2c_busses; bus++)
+		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
 		{
-			i2c_sensor_read(dst, sensor, verbose);
-			string_cat(dst, "\n");
+			if(all || i2c_sensor_detected(bus, sensor))
+			{
+				i2c_sensor_read(dst, bus, sensor, verbose);
+				string_cat(dst, "\n");
+			}
 		}
-	}
 
 	if(string_length(dst) == original_length)
 		string_cat(dst, "> no sensors detected\n");

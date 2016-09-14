@@ -9,10 +9,12 @@ typedef struct
 	double cooked;
 } value_t;
 
-typedef struct
+typedef struct attr_packed
 {
-	unsigned int detected:1;
+	uint32_t detected;
 } device_data_t;
+
+assert_size(device_data_t, 4);
 
 typedef struct device_table_entry_T
 {
@@ -22,13 +24,13 @@ typedef struct device_table_entry_T
 	const char *type;
 	const char *unity;
 	uint8_t precision;
-	i2c_error_t (* const init_fn)(const struct device_table_entry_T *);
-	i2c_error_t (* const read_fn)(const struct device_table_entry_T *, value_t *);
+	i2c_error_t (* const init_fn)(int bus, const struct device_table_entry_T *);
+	i2c_error_t (* const read_fn)(int bus, const struct device_table_entry_T *, value_t *);
 } device_table_entry_t;
 
 device_data_t device_data[i2c_sensor_size];
 
-irom static i2c_error_t sensor_digipicco_temp_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_digipicco_temp_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
@@ -39,7 +41,7 @@ irom static i2c_error_t sensor_digipicco_temp_init(const device_table_entry_t *e
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_temp_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_digipicco_temp_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -53,15 +55,15 @@ irom static i2c_error_t sensor_digipicco_temp_read(const device_table_entry_t *e
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_hum_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_digipicco_hum_init(int bus, const device_table_entry_t *entry)
 {
-	if(!i2c_sensor_detected(i2c_sensor_digipicco_temperature))
+	if(!i2c_sensor_detected(bus, i2c_sensor_digipicco_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_hum_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_digipicco_hum_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -75,7 +77,7 @@ irom static i2c_error_t sensor_digipicco_hum_read(const device_table_entry_t *en
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_ds1631_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 
@@ -93,7 +95,7 @@ irom static i2c_error_t sensor_ds1631_init(const device_table_entry_t *entry)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_ds1631_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -120,7 +122,7 @@ irom static i2c_error_t sensor_ds1631_read(const device_table_entry_t *entry, va
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_lm75_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *entry)
 {
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
@@ -168,7 +170,7 @@ irom static i2c_error_t sensor_lm75_init(const device_table_entry_t *entry)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_lm75_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_lm75_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -359,7 +361,7 @@ irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *te
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_init_temp(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_bmp085_init_temp(int bus, const device_table_entry_t *entry)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -370,15 +372,15 @@ irom static i2c_error_t sensor_bmp085_init_temp(const device_table_entry_t *entr
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_init_pressure(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_bmp085_init_pressure(int bus, const device_table_entry_t *entry)
 {
-	if(!i2c_sensor_detected(i2c_sensor_bmp085_temperature))
+	if(!i2c_sensor_detected(bus, i2c_sensor_bmp085_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_temp(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_bmp085_read_temp(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -392,7 +394,7 @@ irom static i2c_error_t sensor_bmp085_read_temp(const device_table_entry_t *entr
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_pressure(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_bmp085_read_pressure(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
@@ -484,12 +486,12 @@ irom static i2c_error_t tsl2560_read_block(int address, int reg, uint8_t *values
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2560_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_tsl2560_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t regval;
 
-	if(i2c_sensor_detected(i2c_sensor_tsl2550))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
 	if((error = tsl2560_write_check(entry->address, 0x00, 0x00)) != i2c_error_ok) // power down
@@ -537,7 +539,7 @@ irom static i2c_error_t sensor_tsl2560_init(const device_table_entry_t *entry)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2560_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_tsl2560_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	uint8_t	i2cbuffer[4];
 	i2c_error_t	error;
@@ -546,7 +548,7 @@ irom static i2c_error_t sensor_tsl2560_read(const device_table_entry_t *entry, v
 	const tsl2560_lookup_t *tsl2560_entry;
 	int current;
 
-	if(i2c_sensor_detected(i2c_sensor_tsl2550))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
 	if((error = tsl2560_read_block(entry->address, 0x0c, i2cbuffer)) != i2c_error_ok)
@@ -666,12 +668,12 @@ irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int comp
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_tsl2550_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	int sens_command;
 
-	if(i2c_sensor_detected(i2c_sensor_tsl2560))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560))
 		return(i2c_error_device_error_1);
 
 	// tsl2550 power up
@@ -690,13 +692,13 @@ irom static i2c_error_t sensor_tsl2550_init(const device_table_entry_t *entry)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_tsl2550_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t	error;
 	uint8_t		ch0, ch1;
 	int			attempt, ratio;
 
-	if(i2c_sensor_detected(i2c_sensor_tsl2560))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560))
 		return(i2c_error_device_error_1);
 
 	error = i2c_error_ok;
@@ -746,7 +748,7 @@ error:
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bh1750_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_bh1750_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	int timing;
@@ -792,7 +794,7 @@ irom static i2c_error_t sensor_bh1750_init(const device_table_entry_t *entry)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bh1750_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_bh1750_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
@@ -858,7 +860,7 @@ irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uin
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_temp_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_htu21_temp_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -874,7 +876,7 @@ irom static i2c_error_t sensor_htu21_temp_read(const device_table_entry_t *entry
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_hum_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_htu21_hum_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -896,20 +898,20 @@ irom static i2c_error_t sensor_htu21_hum_read(const device_table_entry_t *entry,
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_temp_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_htu21_temp_init(int bus, const device_table_entry_t *entry)
 {
 	value_t value;
 	i2c_error_t error;
 
-	if((error = sensor_htu21_temp_read(entry, &value)) != i2c_error_ok)
+	if((error = sensor_htu21_temp_read(bus, entry, &value)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_hum_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_htu21_hum_init(int bus, const device_table_entry_t *entry)
 {
-	if(!i2c_sensor_detected(i2c_sensor_htu21_temperature))
+	if(!i2c_sensor_detected(bus, i2c_sensor_htu21_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
@@ -1000,17 +1002,17 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_temp_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_am2321_temp_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	return(sensor_am2321_read(entry->address, value, false));
 }
 
-irom static i2c_error_t sensor_am2321_hum_read(const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_am2321_hum_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
 	return(sensor_am2321_read(entry->address, value, true));
 }
 
-irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_am2321_temp_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t	error;
 	uint8_t		values[2];
@@ -1028,9 +1030,9 @@ irom static i2c_error_t sensor_am2321_temp_init(const device_table_entry_t *entr
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_hum_init(const device_table_entry_t *entry)
+irom static i2c_error_t sensor_am2321_hum_init(int bus, const device_table_entry_t *entry)
 {
-	if(!i2c_sensor_detected(i2c_sensor_am2321_temperature))
+	if(!i2c_sensor_detected(bus, i2c_sensor_am2321_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
@@ -1142,41 +1144,50 @@ static const device_table_entry_t device_table[] =
 	},
 };
 
-irom i2c_error_t i2c_sensor_init(i2c_sensor_t sensor)
+irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 {
 	const device_table_entry_t *entry;
 	i2c_error_t error;
 
 	entry = &device_table[sensor];
 
-	if(entry->init_fn)
+	if(!entry->init_fn)
 	{
-		if((error = entry->init_fn(entry)) == i2c_error_ok)
-			device_data[entry->id].detected = true;
-		else
-		{
-			device_data[entry->id].detected = false;
-			return(error);
-		}
-	}
-	else
-	{
-		device_data[entry->id].detected = false;
+		device_data[entry->id].detected &= ~(1 << bus);
 		return(i2c_error_device_error_5);
 	}
 
+	if((error = i2c_select_bus(bus)) != i2c_error_ok)
+	{
+		device_data[entry->id].detected &= ~(1 << bus);
+		i2c_select_bus(0);
+		return(error);
+	}
+
+	if((error = entry->init_fn(bus, entry)) != i2c_error_ok)
+	{
+		device_data[entry->id].detected &= ~(1 << bus);
+		i2c_select_bus(0);
+		return(error);
+	}
+
+	device_data[entry->id].detected |= 1 << bus;
+	i2c_select_bus(0);
 	return(i2c_error_ok);
 }
 
 irom void i2c_sensor_init_all(void)
 {
+	int bus;
 	i2c_sensor_t current;
 
-	for(current = 0; current < i2c_sensor_size; current++)
-		i2c_sensor_init(current);
+	for(bus = 0; bus < i2c_busses; bus++)
+		for(current = 0; current < i2c_sensor_size; current++)
+			if((bus == 0) || !(device_data[current].detected & (1 << 0)))
+				i2c_sensor_init(bus, current);
 }
 
-irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
+irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t verbose)
 {
 	const device_table_entry_t *entry;
 	i2c_error_t error;
@@ -1195,20 +1206,27 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 
 	if(current >= i2c_sensor_size)
 	{
-		string_format(dst, "i2c sensor read: sensor #%d unknown\n", sensor);
+		string_format(dst, "i2c sensor read: sensor #%u unknown\n", sensor);
+		return(false);
+	}
+
+	if((error = i2c_select_bus(bus)) != i2c_error_ok)
+	{
+		string_format(dst, "i2c sensor read: select bus #%u error\n", bus);
+		i2c_select_bus(0);
 		return(false);
 	}
 
 	error = i2c_error_ok;
 
-	string_format(dst, "%s sensor %d:%s, %s: ", device_data[sensor].detected ? "+" : " ", sensor, entry->name, entry->type);
+	string_format(dst, "%s sensor %u/%u: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->name, entry->type);
 
-	if((error = entry->read_fn(entry, &value)) == i2c_error_ok)
+	if((error = entry->read_fn(bus, entry, &value)) == i2c_error_ok)
 	{
-		if(!config_get_int("i2s.u.factor", sensor, 0, &int_factor))
+		if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
 			int_factor = 1000;
 
-		if(!config_get_int("i2s.u.offset", sensor, 0, &int_offset))
+		if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
 			int_offset = 0;
 
 		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
@@ -1239,10 +1257,10 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 
 	if(verbose)
 	{
-		if(!config_get_int("i2s.%u.factor", sensor, 0, &int_factor))
+		if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
 			int_factor = 1000;
 
-		if(!config_get_int("i2s.%u.offset", sensor, 0, &int_offset))
+		if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
 			int_offset = 0;
 
 		string_cat(dst, ", calibration: factor=");
@@ -1251,13 +1269,14 @@ irom bool i2c_sensor_read(string_t *dst, i2c_sensor_t sensor, bool_t verbose)
 		string_double(dst, int_offset / 1000.0, 4, 1e10);
 	}
 
+	i2c_select_bus(0);
 	return(true);
 }
 
-irom attr_pure bool_t i2c_sensor_detected(i2c_sensor_t sensor)
+irom attr_pure bool_t i2c_sensor_detected(int bus, i2c_sensor_t sensor)
 {
 	if(sensor > i2c_sensor_size)
 		return(false);
 
-	return(device_data[sensor].detected);
+	return(!!(device_data[sensor].detected & (1 << bus)));
 }

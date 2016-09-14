@@ -95,6 +95,7 @@ static const uint8_t led_charrom[] =
 };
 
 static int brightness = 1;
+static int i2c_bus = -1;
 
 static irom int led_render_char(int character)
 {
@@ -126,21 +127,41 @@ static irom int led_render_char(int character)
 irom bool_t display_saa1064_init(void)
 {
 	uint8_t i2cdata;
+	int bus;
 
-	if(i2c_receive(0x38, 1, &i2cdata) != i2c_error_ok)
-		return(false);
+	for(bus = 0; bus < i2c_busses; bus++)
+	{
+		if(i2c_select_bus(bus) != i2c_error_ok)
+			continue;
 
-	if((i2cdata & 0x7f) != 0x00)
-		return(false);
+		if(i2c_receive(0x38, 1, &i2cdata) != i2c_error_ok)
+			continue;
 
-	if(i2c_send_2(0x38, 0x00, 0x07) != i2c_error_ok)
-		return(false);
+		if(i2c_receive(0x39, 1, &i2cdata) == i2c_error_ok)	// try to detect veml6070
+		{													// which uses both 0x38 and 0x39 addresses
+			i2c_receive(0x38, 1, &i2cdata);
+			continue;
+		}
 
-	return(true);
+		if((i2cdata & 0x7f) != 0x00)
+			continue;
+
+		if(i2c_send_2(0x38, 0x00, 0x07) != i2c_error_ok)
+			continue;
+
+		i2c_bus = bus;
+		return(true);
+	}
+
+	i2c_select_bus(0);
+	return(false);
 }
 
 irom bool_t display_saa1064_bright(int bright_in)
 {
+	if(i2c_bus < 0)
+		return(false);
+
 	if((bright_in < 0) || (bright_in > 4))
 		return(false);
 
@@ -159,6 +180,9 @@ irom bool_t display_saa1064_set(const char *tag, const char *from)
 	uint8_t text[4];
 	uint8_t i2cdata[6];
 	int current;
+
+	if(i2c_bus < 0)
+		return(false);
 
 	strlcpy(text,  "    ", sizeof(text));
 
