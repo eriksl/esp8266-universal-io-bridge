@@ -24,7 +24,7 @@ typedef enum
 	i2c_state_size = i2c_state_error
 } i2c_state_t;
 
-_Static_assert(sizeof(i2c_state_t) == 4, "sizeof(i2c_state_t) != 4");
+assert_size(i2c_state_t, 4);
 
 typedef enum
 {

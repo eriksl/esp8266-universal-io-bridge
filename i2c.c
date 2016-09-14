@@ -8,12 +8,6 @@
 #include "util.h"
 #include "io_gpio.h"
 
-static int sda_pin;
-static int scl_pin;
-static int i2c_bus_speed_delay;
-static i2c_state_t state = i2c_state_invalid;
-static i2c_state_t error_state = i2c_state_invalid;
-
 typedef enum
 {
 	i2c_direction_receive,
@@ -72,6 +66,12 @@ static roflash const char error_strings[i2c_error_size][32] =
 	"device specific error 4",
 	"device specific error 5",
 };
+
+static int sda_pin;
+static int scl_pin;
+static int i2c_bus_speed_delay;
+static i2c_state_t state = i2c_state_invalid;
+static i2c_state_t error_state = i2c_state_invalid;
 
 irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 {

@@ -30,7 +30,7 @@ typedef enum attr_packed
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
 
-_Static_assert(sizeof(i2c_sensor_t) == 1, "sizeof(i2c_sensor_t) != 1");
+assert_size(i2c_sensor_t, 1);
 
 i2c_error_t	i2c_sensor_init(i2c_sensor_t);
 void		i2c_sensor_init_all(void);
