@@ -551,6 +551,10 @@ irom static i2c_error_t sensor_tsl2560_read(int bus, const device_table_entry_t 
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
+	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
+			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
+		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
+
 	if((error = tsl2560_read_block(entry->address, 0x0c, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
@@ -672,11 +676,16 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const device_table_entry_t 
 {
 	i2c_error_t error;
 	int sens_command;
+	uint8_t	i2cbuffer[2];
 
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560))
 		return(i2c_error_device_error_1);
 
 	// tsl2550 power up
+
+	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
+			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
+		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
 
 	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
 		return(error);
@@ -1038,6 +1047,56 @@ irom static i2c_error_t sensor_am2321_hum_init(int bus, const device_table_entry
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t veml6070_read(unsigned int *rv)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[2];
+
+	if((error = i2c_receive(0x39, 1, &i2cbuffer[0])) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(0x38, 1, &i2cbuffer[1])) != i2c_error_ok)
+		return(error);
+
+	*rv = (i2cbuffer[0] << 8) | (i2cbuffer[1]);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_veml6070_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t error;
+	unsigned int rv;
+
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550)) // 0x39
+		return(i2c_error_device_error_1);
+
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560)) // 0x39
+		return(i2c_error_device_error_1);
+
+	if((error = veml6070_read(&rv)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send_1(0x38, 0x0e)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_veml6070_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	unsigned int rv;
+	i2c_error_t error;
+
+	if((error = veml6070_read(&rv)) != i2c_error_ok)
+		return(error);
+
+	value->raw = rv;
+	value->cooked = rv;
+
+	return(i2c_error_ok);
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -1141,6 +1200,12 @@ static const device_table_entry_t device_table[] =
 		"am2321", "humidity", "%", 0,
 		sensor_am2321_hum_init,
 		sensor_am2321_hum_read
+	},
+	{
+		i2c_sensor_veml6070, 0x38,
+		"veml6070", "UV", "", 0,
+		sensor_veml6070_init,
+		sensor_veml6070_read
 	},
 };
 

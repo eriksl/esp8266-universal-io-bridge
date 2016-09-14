@@ -26,6 +26,7 @@ typedef enum attr_packed
 	i2c_sensor_htu21_humidity,
 	i2c_sensor_am2321_temperature,
 	i2c_sensor_am2321_humidity,
+	i2c_sensor_veml6070,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
