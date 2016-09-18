@@ -1092,7 +1092,7 @@ irom static i2c_error_t sensor_veml6070_read(int bus, const device_table_entry_t
 		return(error);
 
 	value->raw = rv;
-	value->cooked = rv;
+	value->cooked = rv * 10.0 / 2000.0; // FIXME
 
 	return(i2c_error_ok);
 }
