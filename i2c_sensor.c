@@ -1214,6 +1214,9 @@ irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	const device_table_entry_t *entry;
 	i2c_error_t error;
 
+	if(sensor >= i2c_sensor_size)
+		return(i2c_error_device_error_4);
+
 	entry = &device_table[sensor];
 
 	if(!entry->init_fn)
