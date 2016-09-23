@@ -30,6 +30,9 @@ typedef enum attr_packed
 	i2c_sensor_si114x_visible_light,
 	i2c_sensor_si114x_infrared,
 	i2c_sensor_si114x_ultraviolet,
+	i2c_sensor_bme280_temperature,
+	i2c_sensor_bme280_humidity,
+	i2c_sensor_bme280_airpressure,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;

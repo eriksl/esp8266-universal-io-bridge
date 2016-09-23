@@ -1522,6 +1522,276 @@ irom static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const device_tab
 	return(i2c_error_ok);
 }
 
+static struct
+{
+	uint16_t	dig_T1;		//	88/89
+	int16_t		dig_T2;		//	8a/8b
+	int16_t		dig_T3;		//	8c/8d
+	uint16_t	dig_P1;		//	8e/8f
+	int16_t		dig_P2;		//	90/91
+	int16_t		dig_P3;		//	92/93
+	int16_t		dig_P4;		//	94/95
+	int16_t		dig_P5;		//	96/97
+	int16_t		dig_P6;		//	98/99
+	int16_t		dig_P7;		//	9a/9b
+	int16_t		dig_P8;		//	9c/9d
+	int16_t		dig_P9;		//	9e/9f
+	uint8_t		dig_H1;		//	a1
+	uint16_t	dig_H2;		//	e1/e2
+	uint8_t		dig_H3;		//	e3
+	int16_t		dig_H4;		//	e4/e5[3:0]
+	int16_t		dig_H5;		//	e5[7:4]/e6
+	int8_t		dig_H6;		//	e7
+} bme280;
+
+irom static i2c_error_t bme280_read_register_1(int address, int reg, uint8_t *value)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(address, 1, value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t bme280_read_register_2(int address, int reg, uint16_t *value)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(address, 2, (uint8_t *)value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t bme280_read(int address, value_t *rv_temperature, value_t *rv_pressure, value_t *rv_humidity)
+{
+	i2c_error_t		error;
+	uint8_t 		i2c_buffer[8];
+	int32_t			t_fine;
+	uint32_t		adc_T, adc_P, adc_H;
+	double			var1, var2;
+	double			temperature, pressure, humidity;
+
+	// retrieve all ADC values in one go to make use of the register shadowing feature
+
+	if((error = i2c_send_1(address, 0xf7)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(address, 8, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_P	= ((i2c_buffer[0] << 16) | 	(i2c_buffer[1] << 8) | (i2c_buffer[2] << 0)) >> 4;
+	adc_T	= ((i2c_buffer[3] << 16) |	(i2c_buffer[4] << 8) | (i2c_buffer[5] << 0)) >> 4;
+	adc_H	= (							(i2c_buffer[6] << 8) | (i2c_buffer[7] << 0)) >> 0;
+
+	var1 = (adc_T / 16384.0 - bme280.dig_T1 / 1024.0) * bme280.dig_T2;
+	var2 = ((adc_T / 131072.0 - bme280.dig_T1 / 8192.0) * (adc_T / 131072.0 - bme280.dig_T1 / 8192.0)) * bme280.dig_T3;
+
+	t_fine = (int32_t)(var1 + var2);
+
+	temperature = (var1 + var2) / 5120.0;
+
+	var1 = (t_fine / 2.0) - 64000.0;
+	var2 = var1 * var1 * bme280.dig_P6 / 32768.0;
+	var2 = var2 + var1 * bme280.dig_P5 * 2.0;
+	var2 = (var2 / 4.0) + (bme280.dig_P4 * 65536.0);
+	var1 = (bme280.dig_P3 * var1 * var1 / 524288.0 + bme280.dig_P2 * var1) / 524288.0;
+	var1 = (1.0 + var1 / 32768.0) * bme280.dig_P1;
+
+	if(var1 < 0.0001)
+		pressure = 0;
+	else
+	{
+		pressure = 1048576.0 - adc_P;
+		pressure = (pressure - (var2 / 4096.0)) * 6250.0 / var1;
+		var1 = bme280.dig_P9 * pressure * pressure / 2147483648.0;
+		var2 = pressure * bme280.dig_P8 / 32768.0;
+		pressure = pressure + (var1 + var2 + bme280.dig_P7) / 16.0;
+		pressure /= 100.0;
+	}
+
+	humidity = (t_fine - 76800.0);
+	humidity = (adc_H - (bme280.dig_H4 * 64.0 + bme280.dig_H5 / 16384.0 * humidity)) * (bme280.dig_H2 / 65536.0 * (1.0 + bme280.dig_H6 / 67108864.0 * humidity * (1.0 + bme280.dig_H3 / 67108864.0 * humidity)));
+	humidity = humidity * (1.0 - bme280.dig_H1 * humidity / 524288.0);
+
+	if (humidity > 100.0)
+		humidity = 100.0;
+
+	if (humidity < 0.0)
+		humidity = 0.0;
+
+	if(rv_temperature)
+	{
+		rv_temperature->raw = adc_T;
+		rv_temperature->cooked = temperature;
+	}
+
+	if(rv_pressure)
+	{
+		rv_pressure->raw = adc_P;
+		rv_pressure->cooked = pressure;
+	}
+
+	if(rv_humidity)
+	{
+		rv_humidity->raw = adc_H;
+		rv_humidity->cooked = humidity;
+	}
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_bme280_temperature_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[1];
+	uint8_t		e4, e5, e6;
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send_1(entry->address, 0xd0)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != 0x56) && (i2c_buffer[0] != 0x57) && (i2c_buffer[0] != 0x58) && (i2c_buffer[0] != 0x60))
+		return(i2c_error_device_error_1);
+
+	/* set device to sleep mode, so we can write configuration registers */
+
+	// crtl_meas	0xf4		configure oversampling		0b00000000		temperature sampling is skipped
+	// 														0b00000000		pressure sampling is skipped
+	// 														0b00000000		device in sleep mode
+
+	/* read calibration data */
+
+	if((error = bme280_read_register_2(entry->address, 0x88, &bme280.dig_T1)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x8a, &bme280.dig_T2)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x8c, &bme280.dig_T3)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x8e, &bme280.dig_P1)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x90, &bme280.dig_P2)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x92, &bme280.dig_P3)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x94, &bme280.dig_P4)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x96, &bme280.dig_P5)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x98, &bme280.dig_P6)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x9a, &bme280.dig_P7)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x9c, &bme280.dig_P8)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0x9e, &bme280.dig_P9)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_1(entry->address, 0xa1, &bme280.dig_H1)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_2(entry->address, 0xe1, &bme280.dig_H2)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_1(entry->address, 0xe3, &bme280.dig_H3)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_1(entry->address, 0xe4, &e4)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_1(entry->address, 0xe5, &e5)) != i2c_error_ok)
+		return(error);
+
+	if((error = bme280_read_register_1(entry->address, 0xe6, &e6)) != i2c_error_ok)
+		return(error);
+
+	bme280.dig_H4 = (e4 << 4) | ((e5 & 0x0f) >> 0);
+	bme280.dig_H5 = (e6 << 4) | ((e5 & 0xf0) >> 4);
+
+	if((error = bme280_read_register_1(entry->address, 0xe7, &bme280.dig_H6)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send_2(entry->address, 0xf4, 0x00)) != i2c_error_ok)
+		return(error);
+
+	// crtl_hum		0xf2		humidity oversampling		0b00000101		humidity oversampling = 16
+
+	if((error = i2c_send_2(entry->address, 0xf2, 0x05)) != i2c_error_ok)
+		return(error);
+
+	// config		0xf5		device config				0b00000000		standby = 0.5 ms
+	// 														0b00010000		filter range = 16
+	// 														0b00000000		disable SPI interface
+
+	if((error = i2c_send_2(entry->address, 0xf5, 0x10)) != i2c_error_ok)
+		return(error);
+
+	/* now start sampling in normal mode */
+
+	// crtl_meas	0xf4		configure oversampling		0b10100000		temperature oversampling = 16
+	// 														0b00010100		pressure oversampling = 16
+	// 														0b00000011		device normal acquisition mode
+
+	if((error = i2c_send_2(entry->address, 0xf4, 0xb7)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_bme280_temperature_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(bme280_read(entry->address, value, 0, 0));
+}
+
+irom static i2c_error_t sensor_bme280_humidity_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_bme280_temperature))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_bme280_humidity_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(bme280_read(entry->address, 0, 0, value));
+}
+
+irom static i2c_error_t sensor_bme280_airpressure_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_bme280_temperature))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_bme280_airpressure_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(bme280_read(entry->address, 0, value, 0));
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -1649,6 +1919,24 @@ static const device_table_entry_t device_table[] =
 		"si114x", "uv", "", 1,
 		sensor_si114x_ultraviolet_init,
 		sensor_si114x_ultraviolet_read,
+	},
+	{
+		i2c_sensor_bme280_temperature, 0x76,
+		"bmp280/bme280", "temperature", "C", 2,
+		sensor_bme280_temperature_init,
+		sensor_bme280_temperature_read,
+	},
+	{
+		i2c_sensor_bme280_humidity, 0x76,
+		"bmp280/bme280", "humidity", "%", 1,
+		sensor_bme280_humidity_init,
+		sensor_bme280_humidity_read,
+	},
+	{
+		i2c_sensor_bme280_airpressure, 0x76,
+		"bmp280/bme280", "pressure", "hPa", 2,
+		sensor_bme280_airpressure_init,
+		sensor_bme280_airpressure_read,
 	},
 };
 
