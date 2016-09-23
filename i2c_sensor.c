@@ -1731,7 +1731,7 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	error = i2c_error_ok;
 
-	string_format(dst, "%s sensor %u/%u: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->name, entry->type);
+	string_format(dst, "%s sensor %u/%02u: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value)) == i2c_error_ok)
 	{
