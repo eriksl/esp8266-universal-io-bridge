@@ -1538,37 +1538,37 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_lm75_0, 0x48,
-		"lm75 compatible@0x48", "temperature", "C", 2,
+		"lm75 compatible #0", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_1, 0x49,
-		"lm75 compatible@0x49", "temperature", "C", 2,
+		"lm75 compatible #1", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_2, 0x4a,
-		"lm75 compatible@0x4a", "temperature", "C", 2,
+		"lm75 compatible #2", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_3, 0x4b,
-		"lm75 compatible@0x4b", "temperature", "C", 2,
+		"lm75 compatible #3", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_ds1631_6, 0x4e,
-		"ds1621/ds1631/ds1731@0x4e", "temperature", "C", 2,
+		"ds1621/ds1631/ds1731", "temperature", "C", 2,
 		sensor_ds1631_init,
 		sensor_ds1631_read
 	},
 	{
 		i2c_sensor_lm75_7, 0x4f,
-		"lm75 compatible@0x4f", "temperature", "C", 2,
+		"lm75 compatible #7", "temperature", "C", 2,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
@@ -1731,7 +1731,7 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	error = i2c_error_ok;
 
-	string_format(dst, "%s sensor %u/%02u: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->name, entry->type);
+	string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->address, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value)) == i2c_error_ok)
 	{
