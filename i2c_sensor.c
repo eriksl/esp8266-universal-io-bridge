@@ -197,17 +197,31 @@ irom static i2c_error_t sensor_lm75_read(int bus, const device_table_entry_t *en
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t bmp085_write(int address, int reg, int value)
+static struct
+{
+	int16_t		ac1;
+	int16_t		ac2;
+	int16_t		ac3;
+	uint16_t	ac4;
+	uint16_t	ac5;
+	uint16_t	ac6;
+	int16_t		b1;
+	int16_t		b2;
+	int16_t		mc;
+	int16_t		md;
+} bmp085;
+
+irom static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int value)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_2(address, reg, value)) != i2c_error_ok)
+	if((error = i2c_send_2(address, reg, (uint8_t)value)) != i2c_error_ok)
 		return(error);
 
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read(int address, int reg, uint16_t *value)
+irom static i2c_error_t bmp085_read_reg_2(int address, int reg, uint16_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
@@ -218,12 +232,12 @@ irom static i2c_error_t bmp085_read(int address, int reg, uint16_t *value)
 	if((error = i2c_receive(address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	*value = ((uint16_t)(i2cbuffer[0] << 8)) | (uint16_t)i2cbuffer[1];
+	*value = (i2cbuffer[0] << 8) | (i2cbuffer[1] << 0);
 
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read_long(int address, int reg, uint32_t *value)
+irom static i2c_error_t bmp085_read_reg_3(int address, int reg, uint32_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
@@ -234,142 +248,140 @@ irom static i2c_error_t bmp085_read_long(int address, int reg, uint32_t *value)
 	if((error = i2c_receive(address, 3, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	*value = ((uint32_t)i2cbuffer[0] << 16) | ((uint32_t)i2cbuffer[1] << 8) | (uint32_t)i2cbuffer[2];
+	*value = (i2cbuffer[0] << 16) | (i2cbuffer[1] << 8) | (i2cbuffer[2] << 0);
 
 	return(0);
 }
 
-irom static i2c_error_t sensor_read_bmp085(int address, double *temp, double *temp_raw, double *pressure, double *pressure_raw)
+irom static i2c_error_t bmp085_read(int address, value_t *rv_temperature, value_t *rv_airpressure)
 {
-	int16_t		ac1, ac2, ac3;
-	uint16_t	ac4, ac5, ac6;
-	int16_t		b1, b2;
-	int16_t		mc, md;
 	uint16_t	ut;
-	uint32_t	up;
-	int32_t		b3, b4, b5, b6;
-	uint32_t	b7;
-	int32_t		x1, x2, x3, p;
+	uint32_t	up = 0;
+	int32_t		p;
+	int32_t		x1, x2, x3;
+	uint32_t	b4, b7;
+	int32_t		b3, b5, b6;
 	uint8_t		oss = 3;
 	i2c_error_t	error;
 
-	if((error = bmp085_read(address, 0xaa, (uint16_t *)&ac1)) != i2c_error_ok)
-		return(error);
+	/* set cmd = 0x2e = start temperature measurement */
 
-	if((error = bmp085_read(address, 0xac, (uint16_t *)&ac2)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xae, (uint16_t *)&ac3)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xb0, &ac4)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xb2, &ac5)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xb4, &ac6)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xb6, (uint16_t *)&b1)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xb8, (uint16_t *)&b2)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xbc, (uint16_t *)&mc)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(address, 0xbe, (uint16_t *)&md)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_write(address, 0xf4, 0x2e)) != i2c_error_ok) // set cmd = 0x2e = start temperature measurement
+	if((error = bmp085_write_reg_1(address, 0xf4, 0x2e)) != i2c_error_ok)
 		return(error);
 
 	msleep(5);
 
-	if((error = bmp085_read(address, 0xf6, &ut)) != i2c_error_ok) // select result 0xf6+0xf7
+	/* fetch result from 0xf6,0xf7 */
+
+	if((error = bmp085_read_reg_2(address, 0xf6, &ut)) != i2c_error_ok)
 		return(error);
 
-#if 0
-			ac1	= 408;
-			ac2	= -72;
-			ac3	= -14383;
-			ac4	= 32741;
-			ac5 = 32757;
-			ac6 = 23153;
-			b1	= 6190;
-			b2	= 4;
-			mc	= -8711;
-			md	= 2868;
+	x1 = ((ut - bmp085.ac6) * bmp085.ac5) / (1 << 15);
 
-			ut = 27898;
-#endif
-
-	x1 = (((uint32_t)ut - (uint32_t)ac6) * (uint32_t)ac5) >> 15;
-
-	if((x1 + (int32_t)md) == 0)
+	if((x1 + bmp085.md) == 0)
 		return(i2c_error_device_error_1);
 
-	x2 = ((int32_t)mc << 11) / (x1 + (int32_t)md);
+	x2 = (bmp085.mc * (1 << 11)) / (x1 + bmp085.md);
 
 	b5 = x1 + x2;
 
-	*temp_raw	= ut;
-	*temp		= ((((double)b5 + 8) / 16) / 10);
+	if(rv_temperature)
+	{
+		rv_temperature->raw		= ut;
+		rv_temperature->cooked	= ((b5 + 8.0) / 16) / 10;
+	}
 
-	if((error = bmp085_write(address, 0xf4, 0x34 | (oss << 6))) != i2c_error_ok) // set cmd = 0x34 = start air pressure measurement
+	/* set cmd = 0x34 = start air pressure measurement */
+
+	if((error = bmp085_write_reg_1(address, 0xf4, 0x34 | (oss << 6))) != i2c_error_ok)
 		return(error);
 
-	msleep(20);
+	msleep(25);
 
-	up = 0;
+	/* fetch result from 0xf6,0xf7,0xf8 */
 
-	if((error = bmp085_read_long(address, 0xf6, &up)) != i2c_error_ok) // select result 0xf6+0xf7+f8
+	if((error = bmp085_read_reg_3(address, 0xf6, &up)) != i2c_error_ok)
 		return(error);
 
-	//up	= 23843;
 	up = up >> (8 - oss);
 
 	b6	= b5 - 4000;
-	x1	= ((int32_t)b2 * ((b6 * b6) >> 12)) >> 11;
-	x2	= ((int32_t)ac2 * b6) >> 11;
+	x1	= (bmp085.b2 * ((b6 * b6) / (1 << 12))) / (1 << 11);
+	x2	= (bmp085.ac2 * b6) / (1 << 11);
 	x3	= x1 + x2;
-	b3	= ((((int32_t)ac1 * 4 + x3) << oss) + 2) / 4;
-	x1	= ((int32_t)ac3 * b6) >> 13;
-	x2	= ((int32_t)b1 * ((b6 * b6) >> 12)) >> 16;
-	x3	= (x1 + x2 + 2) >> 2;
-	b4	= ((uint32_t)ac4 * (uint32_t)(x3 + 32768)) >> 15;
-	b7	= (uint32_t)(((uint32_t)up - b3) * (50000 >> oss));
+	b3	= (((bmp085.ac1 * 4 + x3) << oss) + 2) / 4;
+	x1	= (bmp085.ac3 * b6) / (1 << 13);
+	x2	= (bmp085.b1 * ((b6 * b6) / (1 << 12))) / (1 << 16);
+	x3	= (x1 + x2 + 2) / (1 << 2);
+	b4	= (bmp085.ac4 * (x3 + 32768)) / (1 << 15);
+	b7	= (up - b3) * (50000 >> oss);
 
 	if(b4 == 0)
 		return(i2c_error_device_error_2);
 
 	if(b7 & 0x80000000)
-		p = (b7 / b4) << 1;
+		p = ((b7 * 2) / b4) << 1;
 	else
-		p = (b7 << 1) / b4;
+		p = (b7 / b4) * 2;
 
-	x1	= (p >> 8) * (p >> 8);
-	x1	= (x1 * 3038UL) >> 16;
-	x2	= (p * -7357) >> 16;
-	p	= p + ((x1 + x2 + 3791L) >> 4);
+	x1	= p / (1 << 8);
+	x1	= x1 * x1;
+	x1	= (x1 * 3038) / (1 << 16);
+	x2	= (-7357 * p) / (1 << 16);
+	p	= p + ((x1 + x2 + 3791) / (1 << 4));
 
-	*pressure_raw	= up;
-	*pressure		= p / 100.0;
+	if(rv_airpressure)
+	{
+		rv_airpressure->raw = up;
+		rv_airpressure->cooked = p / 100.0;
+	}
 
 	return(i2c_error_ok);
 }
 
 irom static i2c_error_t sensor_bmp085_init_temp(int bus, const device_table_entry_t *entry)
 {
-	double temp, temp_raw, pressure, pressure_raw;
 	i2c_error_t error;
 
-	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
+	if((error = bmp085_read_reg_2(entry->address, 0xaa, &bmp085.ac1)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xac, &bmp085.ac2)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xae, &bmp085.ac3)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xb0, &bmp085.ac4)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xb2, &bmp085.ac5)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xb4, &bmp085.ac6)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xb6, &bmp085.b1)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xb8, &bmp085.b2)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xbc, &bmp085.mc)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read_reg_2(entry->address, 0xbe, &bmp085.md)) != i2c_error_ok)
+		return(error);
+
+	if((error = bmp085_read(entry->address, 0, 0)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_bmp085_read_temp(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(bmp085_read(entry->address, value, 0));
 }
 
 irom static i2c_error_t sensor_bmp085_init_pressure(int bus, const device_table_entry_t *entry)
@@ -380,32 +392,9 @@ irom static i2c_error_t sensor_bmp085_init_pressure(int bus, const device_table_
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_temp(int bus, const device_table_entry_t *entry, value_t *value)
-{
-	double temp, temp_raw, pressure, pressure_raw;
-	i2c_error_t error;
-
-	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
-		return(error);
-
-	value->raw = temp_raw;
-	value->cooked = temp;
-
-	return(i2c_error_ok);
-}
-
 irom static i2c_error_t sensor_bmp085_read_pressure(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	double temp, temp_raw, pressure, pressure_raw;
-	i2c_error_t error;
-
-	if((error = sensor_read_bmp085(entry->address, &temp, &temp_raw, &pressure, &pressure_raw)) != i2c_error_ok)
-		return(error);
-
-	value->raw = pressure_raw;
-	value->cooked = pressure;
-
-	return(i2c_error_ok);
+	return(bmp085_read(entry->address, 0, value));
 }
 
 typedef struct
