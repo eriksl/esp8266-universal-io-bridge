@@ -1574,13 +1574,13 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_bmp085_temperature, 0x77,
-		"bmp085/bmp180", "temperature", "C", 1,
+		"bmp085/bmp180", "temperature", "C", 2,
 		sensor_bmp085_init_temp,
 		sensor_bmp085_read_temp
 	},
 	{
 		i2c_sensor_bmp085_airpressure, 0x77,
-		"bmp085/bmp180", "pressure", "hPa", 0,
+		"bmp085/bmp180", "pressure", "hPa", 2,
 		sensor_bmp085_init_pressure,
 		sensor_bmp085_read_pressure
 	},
