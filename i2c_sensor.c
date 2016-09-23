@@ -1723,7 +1723,8 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	if((error = i2c_select_bus(bus)) != i2c_error_ok)
 	{
-		string_format(dst, "i2c sensor read: select bus #%u error\n", bus);
+		string_format(dst, "i2c sensor read: select bus #%u error", bus);
+		i2c_error_format_string(dst, error);
 		i2c_select_bus(0);
 		return(false);
 	}
