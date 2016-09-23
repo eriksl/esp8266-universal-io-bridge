@@ -1586,19 +1586,19 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2560, 0x39,
-		"tsl2560/tsl2561", "light", "Lux", 2,
+		"tsl2560/tsl2561", "light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
 	{
 		i2c_sensor_tsl2550, 0x39,
-		"tsl2550", "light", "Lux", 2,
+		"tsl2550", "light", "", 2,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
 	{
 		i2c_sensor_bh1750, 0x23,
-		"bh1750", "light", "Lux", 2,
+		"bh1750", "light", "", 2,
 		sensor_bh1750_init,
 		sensor_bh1750_read
 	},
@@ -1634,7 +1634,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_si114x_visible_light, 0x60,
-		"si114x", "light", "lx", 1,
+		"si114x", "light", "", 1,
 		sensor_si114x_visible_light_init,
 		sensor_si114x_visible_light_read,
 	},
@@ -1746,6 +1746,8 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 		string_cat(dst, "[");
 		string_double(dst, extracooked, entry->precision, 1e10);
 		string_cat(dst, "]");
+
+		string_format(dst, " %s", entry->unity);
 
 		if(verbose)
 		{
