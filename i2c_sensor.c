@@ -1858,13 +1858,13 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2560, 0x39,
-		"tsl2560/tsl2561", "light", "", 2,
+		"tsl2560/tsl2561", "visible light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
 	{
 		i2c_sensor_tsl2550, 0x39,
-		"tsl2550", "light", "", 2,
+		"tsl2550", "visible light", "", 2,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
@@ -1900,25 +1900,25 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_veml6070, 0x38,
-		"veml6070", "UV", "", 0,
+		"veml6070", "ultraviolet light", "", 0,
 		sensor_veml6070_init,
 		sensor_veml6070_read
 	},
 	{
 		i2c_sensor_si114x_visible_light, 0x60,
-		"si114x", "light", "", 1,
+		"si114x", "visible light", "", 1,
 		sensor_si114x_visible_light_init,
 		sensor_si114x_visible_light_read,
 	},
 	{
 		i2c_sensor_si114x_infrared, 0x60,
-		"si114x", "ir", "", 1,
+		"si114x", "infrared light", "", 1,
 		sensor_si114x_infrared_init,
 		sensor_si114x_infrared_read,
 	},
 	{
 		i2c_sensor_si114x_ultraviolet, 0x60,
-		"si114x", "uv", "", 1,
+		"si114x", "ultraviolet light", "", 1,
 		sensor_si114x_ultraviolet_init,
 		sensor_si114x_ultraviolet_read,
 	},
