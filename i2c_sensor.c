@@ -940,6 +940,7 @@ irom attr_pure static uint16_t am2321_crc(int length, const uint8_t *data)
 
 irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, int length, uint8_t *values)
 {
+	unsigned int attempt;
 	i2c_error_t	error;
 	uint8_t		i2cbuffer[32];
 	uint16_t	crc1, crc2;
@@ -948,14 +949,26 @@ irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, in
 
 	i2c_send_1(address, 0);
 
-	msleep(1);
+	for(attempt = 32; attempt > 0; attempt--)
+	{
+		msleep(1);
 
-	if((error = i2c_send_3(address, 0x03, offset, length)) != i2c_error_ok)
+		if((error = i2c_send_3(address, 0x03, offset, length)) == i2c_error_ok)
+			break;
+	}
+
+	if(attempt == 0)
 		return(error);
 
-	msleep(1);
+	for(attempt = 32; attempt > 0; attempt--)
+	{
+		msleep(1);
 
-	if((error = i2c_receive(address, length + 4, i2cbuffer)) != i2c_error_ok)
+		if((error = i2c_receive(address, length + 4, i2cbuffer)) == i2c_error_ok)
+			break;
+	}
+
+	if(attempt == 0)
 		return(error);
 
 	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
