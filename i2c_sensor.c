@@ -480,7 +480,7 @@ irom static i2c_error_t sensor_tsl2560_init(int bus, const device_table_entry_t 
 	i2c_error_t error;
 	uint8_t regval;
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
+	if((entry->address == 0x39) && i2c_sensor_detected(bus, i2c_sensor_tsl2550))
 		return(i2c_error_device_error_1);
 
 	if((error = tsl2560_write_check(entry->address, 0x00, 0x00)) != i2c_error_ok) // power down
@@ -667,7 +667,7 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const device_table_entry_t 
 	int sens_command;
 	uint8_t	i2cbuffer[2];
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0))
 		return(i2c_error_device_error_1);
 
 	// tsl2550 power up
@@ -696,7 +696,7 @@ irom static i2c_error_t sensor_tsl2550_read(int bus, const device_table_entry_t 
 	uint8_t		ch0, ch1;
 	int			attempt, ratio;
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0))
 		return(i2c_error_device_error_1);
 
 	error = i2c_error_ok;
@@ -1073,7 +1073,7 @@ irom static i2c_error_t sensor_veml6070_init(int bus, const device_table_entry_t
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550)) // 0x39
 		return(i2c_error_device_error_1);
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560)) // 0x39
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0)) // 0x39
 		return(i2c_error_device_error_1);
 
 	if((error = veml6070_read(&rv)) != i2c_error_ok)
@@ -1857,7 +1857,7 @@ static const device_table_entry_t device_table[] =
 		sensor_bmp085_read_pressure
 	},
 	{
-		i2c_sensor_tsl2560, 0x39,
+		i2c_sensor_tsl2560_0, 0x39,
 		"tsl2560/tsl2561", "visible light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
@@ -1939,6 +1939,12 @@ static const device_table_entry_t device_table[] =
 		"bmp280/bme280", "pressure", "hPa", 2,
 		sensor_bme280_airpressure_init,
 		sensor_bme280_airpressure_read,
+	},
+	{
+		i2c_sensor_tsl2560_1, 0x29,
+		"tsl2560/tsl2561_1", "visible light", "", 2,
+		sensor_tsl2560_init,
+		sensor_tsl2560_read,
 	},
 };
 
