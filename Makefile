@@ -1,6 +1,6 @@
 SPI_FLASH_MODE		?= qio
 IMAGE				?= ota
-SDKROOT				?= /nfs/src/esp/opensdk
+SDKROOT				?= /home/erik/src/esp/opensdk
 ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
