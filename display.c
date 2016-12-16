@@ -334,7 +334,7 @@ irom bool_t display_common_set(const char *tag, const char *text,
 irom static void display_update(bool_t advance)
 {
 	const char *display_text;
-	int slot, hour, minute;
+	int slot, hour, minute, month, day;
 	display_info_t *display_info_entry;
 	string_new(static, tag_text, 32);
 	string_new(static, info_text, 64);
@@ -359,7 +359,7 @@ irom static void display_update(bool_t advance)
 	display_data.current_slot = slot;
 	display_text = display_slot[slot].content;
 
-	time_get(&hour, &minute, 0, 0, 0, 0);
+	time_get(&hour, &minute, 0, 0, &month, &day);
 
 	if(!strcmp(display_text, "%%%%"))
 	{
@@ -372,9 +372,8 @@ irom static void display_update(bool_t advance)
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
 		string_clear(&tag_text);
-		string_format(&tag_text, "%02u:%02u ", hour, minute);
+		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
 		string_cat_ptr(&tag_text, display_slot[slot].tag);
-		string_format(&tag_text, " [%u]", slot);
 		display_info_entry->set_fn(string_to_ptr(&tag_text), display_text);
 	}
 	else
@@ -411,7 +410,11 @@ irom static void display_expire(void) // call one time per second
 		
 		string_clear(&default_message);
 
-		config_get_string("display.defaultmsg", 0, 0, &default_message);
+		if(!config_get_string("display.defaultmsg", 0, 0, &default_message))
+		{
+			string_clear(&default_message);
+			string_cat(&default_message, "%%%%");
+		}
 
 		strlcpy(display_slot[0].content, string_to_const_ptr(&default_message), display_slot_content_size - 1);
 	}

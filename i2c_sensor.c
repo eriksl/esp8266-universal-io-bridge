@@ -172,27 +172,20 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 
 irom static i2c_error_t sensor_lm75_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	uint8_t i2cbuffer[2];
+	uint8_t i2c_buffer[2];
 	i2c_error_t error;
-	int raw;
 
-	i2cbuffer[0] = 0;
-
-	if((error = i2c_send(entry->address, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send_1(entry->address, 0)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw = raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+	value->cooked = value->raw / 256;
 
-	if(raw & 0x8000)
-	{
-		raw &= ~0x8000;
-		value->cooked = (double)raw / -256;
-	}
-	else
-		value->cooked = (double)raw / 256;
+	if(value->cooked > 127)
+		value->cooked -= 256;
 
 	return(i2c_error_ok);
 }
@@ -852,7 +845,7 @@ irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uin
 	if(crc1 != crc2)
 		return(i2c_error_device_error_1);
 
-	*result = ((uint16_t)i2cbuffer[0] << 8) | ((uint16_t)i2cbuffer[1] << 0);
+	*result = (i2cbuffer[0] << 8) | (i2cbuffer[1] << 0);
 	*result &= 0xfffc; // mask out status bits in the 2 LSB
 
 	return(i2c_error_ok);
@@ -878,14 +871,18 @@ irom static i2c_error_t sensor_htu21_hum_read(int bus, const device_table_entry_
 {
 	i2c_error_t error;
 	uint16_t result;
+	value_t temperature;
+
+	if((error = sensor_htu21_temp_read(bus, entry, &temperature)) != i2c_error_ok)
+		return(error);
 
 	// humidity measurement "hold master" mode -> 0xe5
 
 	if((error = sensor_htu21_read(entry, 0xe5, &result)) != i2c_error_ok)
 		return(error);
 
-	value->raw = result;
-	value->cooked = ((value->raw * 125) / 65536) - 6;
+	value->raw = (((double)result * 125) / 65536) - 6;
+	value->cooked = value->raw + ((25 - temperature.cooked) * -0.10); // FIXME, TempCoeff guessed
 
 	if(value->cooked < 0)
 		value->cooked = 0;
@@ -992,6 +989,7 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
+	int32_t		raw_temp;
 
 	//	0x00	start address: humidity (16 bits), temperature (16 bits)
 	//	0x04	length
@@ -1001,7 +999,18 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 		sensor_am2321_cached_humidity.raw = (values[0] << 8) | values[1];
 		sensor_am2321_cached_humidity.cooked = sensor_am2321_cached_humidity.raw / 10.0;
 
-		sensor_am2321_cached_temperature.raw = (values[2] << 8) | values[3];
+		if(sensor_am2321_cached_humidity.cooked > 100)
+			sensor_am2321_cached_humidity.cooked = 100;
+
+		raw_temp = (values[2] << 8) | values[3];
+
+		if(raw_temp & 0x8000)
+		{
+			raw_temp &= 0x7fff;
+			raw_temp = 0 - raw_temp;
+		}
+
+		sensor_am2321_cached_temperature.raw = raw_temp;
 		sensor_am2321_cached_temperature.cooked = sensor_am2321_cached_temperature.raw / 10.0;
 	}
 
@@ -1469,7 +1478,6 @@ irom static i2c_error_t sensor_si114x_visible_light_read(int bus, const device_t
 		return(error);
 
 	value->raw = value->cooked = (high << 8) | low;
-	value->cooked /= 0.282; // lx per ADC count for sunlight
 
 	return(i2c_error_ok);
 }
@@ -1494,7 +1502,6 @@ irom static i2c_error_t sensor_si114x_infrared_read(int bus, const device_table_
 		return(error);
 
 	value->raw = value->cooked = (high << 8) | low;
-	value->cooked /= 2.44; // lx per ADC count for sunlight
 
 	return(i2c_error_ok);
 }
@@ -1519,7 +1526,7 @@ irom static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const device_tab
 		return(error);
 
 	value->raw = value->cooked = (high << 8) | low;
-	value->cooked *= 0.01;
+	value->cooked /= 100;
 
 	return(i2c_error_ok);
 }
@@ -1798,7 +1805,7 @@ static const device_table_entry_t device_table[] =
 {
 	{
 		i2c_sensor_digipicco_temperature, 0x78,
-		"digipicco", "temperature", "C", 1,
+		"digipicco", "temperature", "C", 2,
 		sensor_digipicco_temp_init,
 		sensor_digipicco_temp_read
 	},
@@ -1858,7 +1865,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2560_0, 0x39,
-		"tsl2560/tsl2561", "visible light", "", 2,
+		"tsl2560/tsl2561 #0", "visible light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},
@@ -1876,7 +1883,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_htu21_temperature, 0x40,
-		"htu21", "temperature", "C", 1,
+		"htu21", "temperature", "C", 2,
 		sensor_htu21_temp_init,
 		sensor_htu21_temp_read
 	},
@@ -1888,7 +1895,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_am2321_temperature, 0x5c,
-		"am2321", "temperature", "C", 1,
+		"am2321", "temperature", "C", 2,
 		sensor_am2321_temp_init,
 		sensor_am2321_temp_read
 	},
@@ -1942,7 +1949,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_tsl2560_1, 0x29,
-		"tsl2560/tsl2561_1", "visible light", "", 2,
+		"tsl2560/tsl2561 #1", "visible light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
 	},

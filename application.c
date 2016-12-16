@@ -676,13 +676,13 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	if(parse_int(1, src, &bus, 0) != parse_ok)
 	{
-		string_format(dst, "> invalid i2c bus: %u\n", bus);
+		string_cat(dst, "> missing i2c bus\n");
 		return(app_action_error);
 	}
 
 	if(parse_int(2, src, &intin, 0) != parse_ok)
 	{
-		string_format(dst, "> invalid i2c sensor: %u\n", intin);
+		string_cat(dst, "> missing i2c sensor\n");
 		return(app_action_error);
 	}
 
@@ -700,7 +700,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_float(3, src, &factor) == parse_ok) && (parse_float(4, src, &offset) != parse_ok))
+	if((parse_float(3, src, &factor) == parse_ok) && (parse_float(4, src, &offset) == parse_ok))
 	{
 		int_factor = (int)(factor * 1000.0);
 		int_offset = (int)(offset * 1000.0);
@@ -723,7 +723,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 	if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
 		int_factor = 1000;
 
-	if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_offset))
+	if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
 		int_offset = 0;
 
 	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, (int)sensor);
@@ -1125,6 +1125,8 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 
 	int					timezone, ix;
 	ip_addr_to_bytes_t	a2b;
+
+	string_clear(&ip);
 
 	if((parse_string(1, src, &ip) == parse_ok) && (parse_int(2, src, &timezone, 0) == parse_ok))
 	{

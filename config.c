@@ -9,7 +9,7 @@
 #include <c_types.h>
 #include <spi_flash.h>
 
-#define CONFIG_MAGIC "%4afc0002%\n"
+#define CONFIG_MAGIC "%4afc0002%"
 
 enum
 {

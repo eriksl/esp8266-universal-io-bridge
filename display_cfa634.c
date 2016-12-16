@@ -103,8 +103,7 @@ irom bool_t display_cfa634_init(void)
 	if(!config_flags_get().flag.enable_cfa634)
 		return(false);
 
-	if((io_config[0][1].mode != io_pin_uart) ||
-			(io_config[0][3].mode != io_pin_uart))
+	if(io_config[0][1].mode != io_pin_uart)
 		return(false);
 
 	for(ix = 0; ix < (sizeof(cfa634_udg) / sizeof(*cfa634_udg)); ix++)
