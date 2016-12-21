@@ -23,7 +23,8 @@ int stat_display_init_time_us;
 
 int stat_update_uart;
 int stat_update_longop;
-int stat_update_command;
+int stat_update_command_udp;
+int stat_update_command_tcp;
 int stat_update_display;
 int stat_update_ntp;
 int stat_update_idle;
@@ -122,7 +123,8 @@ irom void stats_generate(string_t *dst)
 			"> pwm timer int fired: %u\n"
 			"> uart updated: %u\n"
 			"> longops processed: %u\n"
-			"> commands processed: %u\n"
+			"> commands/udp processed: %u\n"
+			"> commands/tcp processed: %u\n"
 			"> display updated: %u\n"
 			"> ntp updated: %u\n"
 			"> background idle: %u\n"
@@ -160,7 +162,8 @@ irom void stats_generate(string_t *dst)
 			stat_pwm_timer_interrupts,
 			stat_update_uart,
 			stat_update_longop,
-			stat_update_command,
+			stat_update_command_udp,
+			stat_update_command_tcp,
 			stat_update_display,
 			stat_update_ntp,
 			stat_update_idle,

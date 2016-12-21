@@ -88,8 +88,8 @@ iram static void uart_callback(void *p)
 		{
 			data = read_peri_reg(UART_FIFO(0));
 
-			if(!queue_full(&data_receive_queue))
-				queue_push(&data_receive_queue, data);
+			if(!queue_full(&uart_receive_queue))
+				queue_push(&uart_receive_queue, data);
 		}
 
 		system_os_post(background_task_id, 0, 0);
@@ -101,10 +101,10 @@ iram static void uart_callback(void *p)
 	{
 		stat_uart_tx_interrupts++;
 
-		while(!queue_empty(&data_send_queue) && (uart_tx_fifo_length() < 64))
-			write_peri_reg(UART_FIFO(0), queue_pop(&data_send_queue));
+		while(!queue_empty(&uart_send_queue) && (uart_tx_fifo_length() < 64))
+			write_peri_reg(UART_FIFO(0), queue_pop(&uart_send_queue));
 
-		uart_start_transmit(!queue_empty(&data_send_queue));
+		uart_start_transmit(!queue_empty(&uart_send_queue));
 	}
 
 	// acknowledge all uart interrupts

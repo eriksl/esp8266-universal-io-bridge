@@ -655,13 +655,13 @@ irom int dprintf(const char *fmt, ...)
 	va_end(ap);
 
 	for(current = 0; current < n; current++)
-		if(!queue_full(&data_send_queue))
-			queue_push(&data_send_queue, dram_buffer[current]);
+		if(!queue_full(&uart_send_queue))
+			queue_push(&uart_send_queue, dram_buffer[current]);
 
-	queue_push(&data_send_queue, '\r');
-	queue_push(&data_send_queue, '\n');
+	queue_push(&uart_send_queue, '\r');
+	queue_push(&uart_send_queue, '\n');
 
-	uart_start_transmit(!queue_empty(&data_send_queue));
+	uart_start_transmit(!queue_empty(&uart_send_queue));
 
 	return(n);
 }

@@ -110,13 +110,13 @@ irom bool_t display_cfa634_init(void)
 	{
 		msleep(10);
 
-		queue_push(&data_send_queue, 25);	// send UDG
-		queue_push(&data_send_queue, ix);
+		queue_push(&uart_send_queue, 25);	// send UDG
+		queue_push(&uart_send_queue, ix);
 
 		for(byte = 0; byte < display_common_udg_byte_size; byte++)
-			queue_push(&data_send_queue, display_common_udg[ix].pattern[byte]);
+			queue_push(&uart_send_queue, display_common_udg[ix].pattern[byte]);
 
-		uart_start_transmit(!queue_empty(&data_send_queue));
+		uart_start_transmit(!queue_empty(&uart_send_queue));
 	}
 
 	inited = true;
@@ -138,10 +138,10 @@ attr_const irom bool_t display_cfa634_bright(int brightness)
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	queue_push(&data_send_queue, 15); // set contrast
-	queue_push(&data_send_queue, values[brightness]);
+	queue_push(&uart_send_queue, 15); // set contrast
+	queue_push(&uart_send_queue, values[brightness]);
 
-	uart_start_transmit(!queue_empty(&data_send_queue));
+	uart_start_transmit(!queue_empty(&uart_send_queue));
 
 	msleep(10);
 
@@ -173,13 +173,13 @@ irom bool_t display_cfa634_show(void)
 	if(y >= display_common_buffer_rows)
 		return(false);
 
-	queue_push(&data_send_queue, 3);	// restore blanked display
-	queue_push(&data_send_queue, 20);	// scroll off
-	queue_push(&data_send_queue, 24);	// wrap off
+	queue_push(&uart_send_queue, 3);	// restore blanked display
+	queue_push(&uart_send_queue, 20);	// scroll off
+	queue_push(&uart_send_queue, 24);	// wrap off
 
-	queue_push(&data_send_queue, 17);	// goto column,row
-	queue_push(&data_send_queue, 0);
-	queue_push(&data_send_queue, y);
+	queue_push(&uart_send_queue, 17);	// goto column,row
+	queue_push(&uart_send_queue, 0);
+	queue_push(&uart_send_queue, y);
 
 	for(x = 0; x < display_common_buffer_columns; x++)
 	{
@@ -187,16 +187,16 @@ irom bool_t display_cfa634_show(void)
 
 		if((c < 32) || ((c > 128) && (c < 136)))
 		{
-			queue_push(&data_send_queue, 30);	// send data directly to LCD controller
-			queue_push(&data_send_queue, 1);
+			queue_push(&uart_send_queue, 30);	// send data directly to LCD controller
+			queue_push(&uart_send_queue, 1);
 		}
 
-		queue_push(&data_send_queue, c);
+		queue_push(&uart_send_queue, c);
 	}
 
 	display_common_row_status.row[y].dirty = 0;
 
-	uart_start_transmit(!queue_empty(&data_send_queue));
+	uart_start_transmit(!queue_empty(&uart_send_queue));
 
 	msleep(10);
 

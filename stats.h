@@ -15,7 +15,8 @@ extern int stat_display_init_time_us;
 
 extern int stat_update_uart;
 extern int stat_update_longop;
-extern int stat_update_command;
+extern int stat_update_command_udp;
+extern int stat_update_command_tcp;
 extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;

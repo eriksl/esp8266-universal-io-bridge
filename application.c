@@ -249,122 +249,122 @@ irom static app_action_t application_function_stats(const string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_tcp_port(const string_t *src, string_t *dst)
+irom static app_action_t application_function_bridge_port(const string_t *src, string_t *dst)
 {
-	int tcp_port;
+	int port;
 
-	if(parse_int(1, src, &tcp_port, 0) == parse_ok)
+	if(parse_int(1, src, &port, 0) == parse_ok)
 	{
-		if((tcp_port < 0) || (tcp_port > 65535))
+		if((port < 0) || (port > 65535))
 		{
-			string_format(dst, "> invalid port %d\n", tcp_port);
+			string_format(dst, "> invalid port %d\n", port);
 			return(app_action_error);
 		}
 
-		if(tcp_port == 0)
-			config_delete("tcp.bridge.port", -1, -1, false);
+		if(port == 0)
+			config_delete("bridge.port", -1, -1, false);
 		else
-			if(!config_set_int("tcp.bridge.port", -1, -1, tcp_port))
+			if(!config_set_int("bridge.port", -1, -1, port))
 			{
 				string_cat(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int("tcp.bridge.port", -1, -1, &tcp_port))
-		tcp_port = 0;
+	if(!config_get_int("bridge.port", -1, -1, &port))
+		port = 0;
 
-	string_format(dst, "> port: %d\n", tcp_port);
+	string_format(dst, "> port: %d\n", port);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_tcp_timeout(const string_t *src, string_t *dst)
+irom static app_action_t application_function_bridge_timeout(const string_t *src, string_t *dst)
 {
-	int tcp_timeout;
+	int timeout;
 
-	if(parse_int(1, src, &tcp_timeout, 0) == parse_ok)
+	if(parse_int(1, src, &timeout, 0) == parse_ok)
 	{
-		if((tcp_timeout < 0) || (tcp_timeout > 65535))
+		if((timeout < 0) || (timeout > 65535))
 		{
-			string_format(dst, "> invalid timeout: %d\n", tcp_timeout);
+			string_format(dst, "> invalid timeout: %d\n", timeout);
 			return(app_action_error);
 		}
 
-		if(tcp_timeout == 90)
-			config_delete("tcp.bridge.timeout", -1, -1, false);
+		if(timeout == 90)
+			config_delete("bridge.timeout", -1, -1, false);
 		else
-			if(!config_set_int("tcp.bridge.timeout", -1, -1, tcp_timeout))
+			if(!config_set_int("bridge.timeout", -1, -1, timeout))
 			{
 				string_cat(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int("tcp.bridge.timeout", -1, -1, &tcp_timeout))
-		tcp_timeout = 90;
+	if(!config_get_int("bridge.timeout", -1, -1, &timeout))
+		timeout = 90;
 
-	string_format(dst, "> timeout: %d\n", tcp_timeout);
+	string_format(dst, "> timeout: %d\n", timeout);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_command_tcp_port(const string_t *src, string_t *dst)
+irom static app_action_t application_function_command_port(const string_t *src, string_t *dst)
 {
-	int tcp_port;
+	int port;
 
-	if(parse_int(1, src, &tcp_port, 0) == parse_ok)
+	if(parse_int(1, src, &port, 0) == parse_ok)
 	{
-		if((tcp_port < 1) || (tcp_port > 65535))
+		if((port < 1) || (port > 65535))
 		{
-			string_format(dst, "> invalid port %d\n", tcp_port);
+			string_format(dst, "> invalid port %d\n", port);
 			return(app_action_error);
 		}
 
-		if(tcp_port == 24)
-			config_delete("tcp.cmd.port", -1, -1, false);
+		if(port == 24)
+			config_delete("cmd.port", -1, -1, false);
 		else
-			if(!config_set_int("tcp.cmd.port", -1, -1, tcp_port))
+			if(!config_set_int("cmd.port", -1, -1, port))
 			{
 				string_cat(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int("tcp.cmd.port", -1, -1, &tcp_port))
-		tcp_port = 24;
+	if(!config_get_int("cmd.port", -1, -1, &port))
+		port = 24;
 
-	string_format(dst, "> port: %d\n", tcp_port);
+	string_format(dst, "> port: %d\n", port);
 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_command_tcp_timeout(const string_t *src, string_t *dst)
+irom static app_action_t application_function_command_timeout(const string_t *src, string_t *dst)
 {
-	int tcp_timeout;
+	int timeout;
 
-	if(parse_int(1, src, &tcp_timeout, 0) == parse_ok)
+	if(parse_int(1, src, &timeout, 0) == parse_ok)
 	{
-		if((tcp_timeout < 0) || (tcp_timeout > 65535))
+		if((timeout < 0) || (timeout > 65535))
 		{
-			string_format(dst, "> invalid timeout: %d\n", tcp_timeout);
+			string_format(dst, "> invalid timeout: %d\n", timeout);
 			return(app_action_error);
 		}
 
-		if(tcp_timeout == 90)
-			config_delete("tcp.cmd.timeout", -1, -1, false);
+		if(timeout == 90)
+			config_delete("cmd.timeout", -1, -1, false);
 		else
-			if(!config_set_int("tcp.cmd.timeout", -1, -1, tcp_timeout))
+			if(!config_set_int("cmd.timeout", -1, -1, timeout))
 			{
 				string_cat(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int("tcp.cmd.timeout", -1, -1, &tcp_timeout))
-		tcp_timeout = 90;
+	if(!config_get_int("cmd.timeout", -1, -1, &timeout))
+		timeout = 90;
 
-	string_format(dst, "> timeout: %d\n", tcp_timeout);
+	string_format(dst, "> timeout: %d\n", timeout);
 
 	return(app_action_normal);
 }
@@ -1239,24 +1239,24 @@ irom static app_action_t application_function_gpio_assoc_set(const string_t *src
 static const application_function_table_t application_function_table[] =
 {
 	{
-		"btp", "bridge-tcp-port",
-		application_function_bridge_tcp_port,
-		"set uart tcp bridge tcp port (default 23)"
+		"bp", "bridge-port",
+		application_function_bridge_port,
+		"set uart bridge tcp/udp port (default 23)"
 	},
 	{
-		"btt", "bridge-tcp-timeout",
-		application_function_bridge_tcp_timeout,
-		"set uart tcp bridge tcp timeout (default 0)"
+		"bt", "bridge-timeout",
+		application_function_bridge_timeout,
+		"set uart bridge tcp connection timeout (default 0)"
 	},
 	{
-		"ctp", "command-tcp-port",
-		application_function_command_tcp_port,
-		"set command tcp port (default 24)"
+		"cp", "command-port",
+		application_function_command_port,
+		"set command tcp/udp port (default 24)"
 	},
 	{
-		"ctt", "command-tcp-timeout",
-		application_function_command_tcp_timeout,
-		"set command tcp timeout (default 0)"
+		"ct", "command-timeout",
+		application_function_command_timeout,
+		"set command tcp connection timeout (default 0)"
 	},
 	{
 		"cd", "config-dump",

@@ -19,7 +19,7 @@ enum
 
 static void crc32_init(void);
 static uint32_t crc32(int length, const char *src);
-static unsigned int verbose, timeout, dontcommit, chunk_size;
+static unsigned int verbose, timeout, dontcommit, chunk_size, udp;
 
 static void usage(void)
 {
@@ -31,6 +31,7 @@ static void usage(void)
 	fprintf(stderr, "-p|--port             set command port (default 24)\n");
 	fprintf(stderr, "-s|--chunk-size       set chunk size (256 / 512 or 1024 bytes, default is 1024 bytes)\n");
 	fprintf(stderr, "-t|--timeout ms       set communication timeout (default = 30000 = 30s)\n");
+	fprintf(stderr, "-u|--udp              use udp instead of tcp\n");
 	fprintf(stderr, "-V|--verify           verify (instead of write)\n");
 	fprintf(stderr, "-v|--verbose          verbose\n");
 }
@@ -72,7 +73,7 @@ static int resolve(const char * hostname, int port, struct sockaddr_in6 *saddr)
 	memset(&hints, 0, sizeof(hints));
 
 	hints.ai_family		=	AF_INET6;
-	hints.ai_socktype	=	SOCK_STREAM;
+	hints.ai_socktype	=	udp ? SOCK_DGRAM : SOCK_STREAM;
 	hints.ai_flags		=	AI_NUMERICSERV | AI_V4MAPPED;
 
 	if((s = getaddrinfo(hostname, service, &hints, &res)))
@@ -626,13 +627,14 @@ typedef enum
 
 int main(int argc, char * const *argv)
 {
-	static const char *shortopts = "np:s:t:v";
+	static const char *shortopts = "np:s:t:uv";
 	static const struct option longopts[] =
 	{
 		{ "dont-commmit",	no_argument,		0, 'c' },
 		{ "port",			required_argument,	0, 'p' },
 		{ "chunk-size",		required_argument,	0, 's' },
 		{ "timeout",		required_argument,	0, 't' },
+		{ "udp",			no_argument,		0, 'u' },
 		{ "verbose",		no_argument,		0, 'v' },
 		{ 0, 0, 0, 0 }
 	};
@@ -650,6 +652,7 @@ int main(int argc, char * const *argv)
 	chunk_size = 1024;
 	timeout = 30000;
 	verbose = 0;
+	udp = 0;
 
 	while((arg = getopt_long(argc, argv, shortopts, longopts, 0)) != -1)
 	{
@@ -676,6 +679,12 @@ int main(int argc, char * const *argv)
 			case('t'):
 			{
 				timeout = atoi(optarg);
+				break;
+			}
+
+			case('u'):
+			{
+				udp = 1;
 				break;
 			}
 
@@ -722,7 +731,7 @@ int main(int argc, char * const *argv)
 		return(-1);
 	}
 
-	if((socket_fd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
+	if((socket_fd = socket(AF_INET6, udp ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 	{
 		fprintf(stderr, "socket failed: %m\n");
 		goto error;

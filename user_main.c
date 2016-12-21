@@ -8,9 +8,7 @@
 #include "display.h"
 #include "time.h"
 #include "i2c_sensor.h"
-
-#include <stdlib.h>
-#include <espconn.h>
+#include "socket.h"
 
 #if IMAGE_OTA == 1
 #include <rboot-api.h>
@@ -23,235 +21,58 @@ typedef enum
 	ts_data,
 } telnet_strip_state_t;
 
-typedef struct
+typedef enum
 {
-	esp_tcp tcp_config;
-	struct espconn parent_socket;
-	struct espconn *child_socket;
-	string_t receive_buffer;
-	string_t *send_buffer;
-	bool_t receive_ready;
-	bool_t send_busy;
-} espsrv_t;
+	reset_state_inactive,
+	reset_state_send_reply,
+	reset_state_request_tcp_disconnect,
+	reset_state_wait_tcp_disconnect,
+	reset_state_wait,
+	reset_state_go,
+	reset_state_waiting
+} reset_state_t;
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
-queue_t data_send_queue;
-queue_t data_receive_queue;
-
 os_event_t background_task_queue[background_task_queue_length];
+
+static socket_t socket_cmd;
+static socket_t socket_uart;
 
 static ETSTimer fast_timer;
 static ETSTimer slow_timer;
 
+static reset_state_t reset_state = reset_state_inactive;
 static struct
 {
 	unsigned int disconnect:1;
-	unsigned int reset:1;
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
 } bg_action =
 {
 	.disconnect = 0,
-	.reset = 0,
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
 };
 
-static espsrv_t cmd;
-static espsrv_t data;
+queue_t uart_send_queue;
+queue_t uart_receive_queue;
 
 irom static void user_init2(void);
-
-irom static void tcp_accept(espsrv_t *espsrv, string_t *send_buffer,
-		int port, int timeout, void (*connect_callback)(struct espconn *))
-{
-	espsrv->send_buffer = send_buffer;
-
-	memset(&espsrv->tcp_config, 0, sizeof(espsrv->tcp_config));
-	memset(&espsrv->parent_socket, 0, sizeof(espsrv->parent_socket));
-	espsrv->child_socket = (struct espconn *)0;
-
-	espsrv->tcp_config.local_port = port;
-	espsrv->parent_socket.proto.tcp = &espsrv->tcp_config;
-	espsrv->parent_socket.type = ESPCONN_TCP;
-	espsrv->parent_socket.state = ESPCONN_NONE;
-
-	espconn_regist_connectcb(&espsrv->parent_socket, (espconn_connect_callback)connect_callback);
-	espconn_accept(&espsrv->parent_socket);
-	espconn_regist_time(&espsrv->parent_socket, timeout, 0);
-	espconn_tcp_set_max_con_allow(&espsrv->parent_socket, 1);
-}
-
-irom static void tcp_data_sent_callback(void *arg)
-{
-	string_clear(data.send_buffer);
-	data.send_busy = false;
-
-	// retry to send data still in the fifo
-
-	system_os_post(background_task_id, 0, 0);
-}
-
-irom static void tcp_data_receive_callback(void *arg, char *buffer, unsigned short length)
-{
-	int current, byte;
-	bool_t strip_telnet;
-	telnet_strip_state_t telnet_strip_state;
-
-	strip_telnet = config_flags_get().flag.strip_telnet;
-	telnet_strip_state = ts_copy;
-
-	for(current = 0; (current < length) && !queue_full(&data_send_queue); current++)
-	{
-		byte = buffer[current];
-
-		switch(telnet_strip_state)
-		{
-			case(ts_copy):
-			{
-				if(strip_telnet && (byte == 0xff))
-					telnet_strip_state = ts_dodont;
-				else
-					queue_push(&data_send_queue, (char)byte);
-
-				break;
-			}
-
-			case(ts_dodont):
-			{
-				telnet_strip_state = ts_data;
-				break;
-			}
-
-			case(ts_data):
-			{
-				telnet_strip_state = ts_copy;
-				break;
-			}
-		}
-	}
-
-	uart_start_transmit(!queue_empty(&data_send_queue));
-}
-
-irom static void tcp_data_disconnect_callback(void *arg)
-{
-	data.child_socket = 0;
-}
-
-irom static void tcp_data_connect_callback(struct espconn *new_connection)
-{
-	if(data.child_socket)
-		espconn_disconnect(new_connection); // not allowed but won't occur anyway
-	else
-	{
-		data.child_socket = new_connection;
-		data.send_busy = false;
-
-		espconn_regist_recvcb(data.child_socket, tcp_data_receive_callback);
-		espconn_regist_sentcb(data.child_socket, tcp_data_sent_callback);
-		espconn_regist_disconcb(data.child_socket, tcp_data_disconnect_callback);
-
-		espconn_set_opt(data.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
-
-		queue_flush(&data_send_queue);
-		queue_flush(&data_receive_queue);
-	}
-}
-
-irom static void tcp_cmd_sent_callback(void *arg)
-{
-	cmd.send_busy = false;
-}
-
-irom static void tcp_cmd_receive_callback(void *arg, char *buffer, unsigned short length)
-{
-	if(cmd.receive_ready)
-		return;
-
-	if(length > 0)
-	{
-		if(buffer[length - 1] == '\n')
-		{
-			if((length > 1) && (buffer[length - 2] == '\r'))
-				length -= 2;
-			else
-				length--;
-		}
-		else
-		{
-			if(buffer[length - 1] == '\r')
-			{
-				if((length > 1) && (buffer[length - 2] == '\n'))
-					length -= 2;
-				else
-					length--;
-			}
-		}
-	}
-
-	buffer[length] = '\0';
-	string_set(&cmd.receive_buffer, buffer, length, length);
-	cmd.receive_ready = true;
-
-	system_os_post(background_task_id, 0, 0);
-}
-
-irom static void tcp_cmd_reconnect_callback(void *arg, int8_t err)
-{
-	cmd.send_busy = false;
-}
-
-irom static void tcp_cmd_disconnect_callback(void *arg)
-{
-	cmd.send_busy = false;
-	cmd.receive_ready = false;
-	cmd.child_socket = 0;
-
-	if(bg_action.reset)
-	{
-		msleep(10);
-		reset();
-	}
-}
-
-irom static void tcp_cmd_connect_callback(struct espconn *new_connection)
-{
-	if(cmd.child_socket)
-		espconn_disconnect(new_connection); // not allowed but won't occur anyway
-	else
-	{
-		cmd.child_socket = new_connection;
-
-		espconn_regist_recvcb(cmd.child_socket, tcp_cmd_receive_callback);
-		espconn_regist_sentcb(cmd.child_socket, tcp_cmd_sent_callback);
-		espconn_regist_reconcb(cmd.child_socket, tcp_cmd_reconnect_callback);
-		espconn_regist_disconcb(cmd.child_socket, tcp_cmd_disconnect_callback);
-
-		espconn_set_opt(cmd.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
-	}
-}
-
 irom static bool_t background_task_update_uart(void)
 {
 	// send data in the uart receive fifo to tcp
+	// if there is still data in uart receive fifo that can't be
+	// sent to tcp yet, callback_sent will call us when it can
 
-	if(!queue_empty(&data_receive_queue) && !data.send_busy && string_space(data.send_buffer))
+	while(!queue_empty(&uart_receive_queue) && string_space(socket_uart.send_buffer))
+		string_append(socket_uart.send_buffer, queue_pop(&uart_receive_queue));
+
+	if(string_length(socket_uart.send_buffer) > 0)
 	{
-		// data available and can be sent now
-
-		while(!queue_empty(&data_receive_queue) && string_space(data.send_buffer))
-			string_append(data.send_buffer, queue_pop(&data_receive_queue));
-
-		if(string_length(data.send_buffer) > 0)
-			data.send_busy = espconn_send(data.child_socket, string_to_ptr(data.send_buffer), string_length(data.send_buffer)) == 0;
-
+		socket_send(&socket_uart, string_to_ptr(socket_uart.send_buffer), string_length(socket_uart.send_buffer));
 		return(true);
 	}
-
-	// if there is still data in uart receive fifo that can't be
-	// sent to tcp yet, tcp_sent_callback will call us when it can
 
 	return(false);
 }
@@ -260,7 +81,8 @@ irom static bool_t background_task_longop_handler(void)
 {
 	if(bg_action.disconnect)
 	{
-		espconn_disconnect(cmd.child_socket);
+		if(socket_cmd.tcp.child_socket != (struct espconn *)0)
+			espconn_disconnect(socket_cmd.tcp.child_socket);
 		bg_action.disconnect = 0;
 		return(true);
 	}
@@ -288,61 +110,52 @@ irom static bool_t background_task_longop_handler(void)
 
 irom static bool_t background_task_command_handler(void)
 {
-	string_clear(cmd.send_buffer);
+	if(!socket_cmd.receive_ready)
+		return(false);
 
-	if(cmd.receive_ready)
+	socket_cmd.receive_ready = false;
+
+	switch(application_content(&socket_cmd.receive_buffer, socket_cmd.send_buffer))
 	{
-		switch(application_content(&cmd.receive_buffer, cmd.send_buffer))
+		case(app_action_normal):
+		case(app_action_error):
+		case(app_action_http_ok):
 		{
-			case(app_action_normal):
-			case(app_action_error):
-			case(app_action_http_ok):
-			{
-				/* no special action for now */
-				break;
-			}
-			case(app_action_empty):
-			{
-				string_copy(cmd.send_buffer, "> empty command\n");
-				break;
-			}
-			case(app_action_disconnect):
-			{
-				string_copy(cmd.send_buffer, "> disconnect\n");
-				bg_action.disconnect = 1;
-				break;
-			}
-			case(app_action_reset):
-			{
-				string_copy(cmd.send_buffer, "> reset\n");
-				bg_action.disconnect = 1;
-				bg_action.reset = 1;
-				break;
-			}
-			case(app_action_ota_commit):
-			{
-#if IMAGE_OTA == 1
-				rboot_config rcfg = rboot_get_config();
-				string_format(cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
-				bg_action.disconnect = 1;
-				bg_action.reset = 1;
-#endif
-
-				break;
-			}
+			/* no special action for now */
+			break;
 		}
-
-		cmd.receive_ready = false;
+		case(app_action_empty):
+		{
+			string_copy(socket_cmd.send_buffer, "> empty command\n");
+			break;
+		}
+		case(app_action_disconnect):
+		{
+			string_copy(socket_cmd.send_buffer, "> disconnect\n");
+			bg_action.disconnect = 1;
+			break;
+		}
+		case(app_action_reset):
+		{
+			string_copy(socket_cmd.send_buffer, "> reset\n");
+			reset_state = reset_state_send_reply;
+			break;
+		}
+		case(app_action_ota_commit):
+		{
+#if IMAGE_OTA == 1
+			rboot_config rcfg = rboot_get_config();
+			string_format(socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
+			dprintf("* state inactive -> send_reply");
+			reset_state = reset_state_send_reply;
+#endif
+			break;
+		}
 	}
 
-	if(string_length(cmd.send_buffer) > 0)
-	{
-		cmd.send_busy =
-				espconn_send(cmd.child_socket, string_to_ptr(cmd.send_buffer), string_length(cmd.send_buffer)) == 0;
-		return(true);
-	}
+	socket_send(&socket_cmd, string_to_ptr(socket_cmd.send_buffer), string_length(socket_cmd.send_buffer));
 
-	return(false);
+	return(true);
 }
 
 irom static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
@@ -350,6 +163,30 @@ irom static void background_task(os_event_t *events) // posted every ~100 ms = ~
 	stat_slow_timer++;
 	config_wlan_mode_t wlan_mode;
 	int wlan_mode_int;
+
+	switch(reset_state)
+	{
+		case(reset_state_request_tcp_disconnect):
+		{
+			if(socket_cmd.tcp.child_socket != (struct espconn *)0)
+				espconn_disconnect(socket_cmd.tcp.child_socket);
+			reset_state = reset_state_wait_tcp_disconnect;
+			break;
+		}
+		case(reset_state_wait):
+		{
+			reset_state = reset_state_go;
+			msleep(100);
+			break;
+		}
+		case(reset_state_go):
+		{
+			reset_state = reset_state_waiting;
+			reset();
+			return;
+		}
+		default: break;
+	}
 
 	if(background_task_update_uart())
 	{
@@ -367,7 +204,11 @@ irom static void background_task(os_event_t *events) // posted every ~100 ms = ~
 
 	if(background_task_command_handler())
 	{
-		stat_update_command++;
+		if(socket_cmd.remote.proto == proto_tcp)
+			stat_update_command_tcp++;
+		else
+			stat_update_command_udp++;
+
 		system_os_post(background_task_id, 0, 0);
 		return;
 	}
@@ -433,17 +274,16 @@ void user_init(void);
 
 irom void user_init(void)
 {
-	static char data_send_queue_buffer[1024];
-	static char data_receive_queue_buffer[1024];
+	static char uart_send_queue_buffer[1024];
+	static char uart_receive_queue_buffer[1024];
 	bool_t config_read_status;
 
 	int uart_baud, uart_data, uart_stop, uart_parity_int;
 	uart_parity_t uart_parity;
 
-	queue_new(&data_send_queue, sizeof(data_send_queue_buffer), data_send_queue_buffer);
-	queue_new(&data_receive_queue, sizeof(data_receive_queue_buffer), data_receive_queue_buffer);
+	queue_new(&uart_send_queue, sizeof(uart_send_queue_buffer), uart_send_queue_buffer);
+	queue_new(&uart_receive_queue, sizeof(uart_receive_queue_buffer), uart_receive_queue_buffer);
 
-	bg_action.reset = 0;
 	bg_action.disconnect = 0;
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
@@ -468,7 +308,7 @@ irom void user_init(void)
 	system_set_os_print(config_flags_get().flag.print_debug);
 
 	if(!config_read_status)
-		dprintf("config invalid");
+		dprintf("* config invalid");
 
 	wifi_station_set_auto_connect(0);
 
@@ -509,25 +349,140 @@ irom static void wlan_event_handler(System_Event_t *event)
 	}
 }
 
+irom static void callback_received_cmd(socket_t *socket, int length, char *buffer)
+{
+	if(socket->receive_ready)
+		return;
+
+	if(length > 0)
+	{
+		if(buffer[length - 1] == '\n')
+		{
+			if((length > 1) && (buffer[length - 2] == '\r'))
+				length -= 2;
+			else
+				length--;
+		}
+		else
+		{
+			if(buffer[length - 1] == '\r')
+			{
+				if((length > 1) && (buffer[length - 2] == '\n'))
+					length -= 2;
+				else
+					length--;
+			}
+		}
+	}
+
+	buffer[length] = '\0';
+	string_set(&socket->receive_buffer, buffer, length, length);
+	socket->receive_ready = true;
+
+	system_os_post(background_task_id, 0, 0);
+}
+
+irom static void callback_received_uart(socket_t *socket, int length, char *buffer)
+{
+	int current, byte;
+	bool_t strip_telnet;
+	telnet_strip_state_t telnet_strip_state;
+
+	strip_telnet = config_flags_get().flag.strip_telnet;
+	telnet_strip_state = ts_copy;
+
+	for(current = 0; (current < length) && !queue_full(&uart_send_queue); current++)
+	{
+		byte = buffer[current];
+
+		switch(telnet_strip_state)
+		{
+			case(ts_copy):
+			{
+				if(strip_telnet && (byte == 0xff))
+					telnet_strip_state = ts_dodont;
+				else
+					queue_push(&uart_send_queue, (char)byte);
+
+				break;
+			}
+			case(ts_dodont):
+			{
+				telnet_strip_state = ts_data;
+				break;
+			}
+			case(ts_data):
+			{
+				telnet_strip_state = ts_copy;
+				break;
+			}
+		}
+	}
+
+	uart_start_transmit(!queue_empty(&uart_send_queue));
+
+}
+
+irom static void callback_sent_cmd(socket_t *socket)
+{
+	if(reset_state == reset_state_send_reply)
+	{
+		if(socket->remote.proto == proto_udp)
+			reset_state = reset_state_wait;
+		else
+			reset_state = reset_state_request_tcp_disconnect;
+	}
+
+	socket->receive_ready = false;
+}
+
+irom static void callback_sent_uart(socket_t *socket)
+{
+	if(!queue_empty(&uart_receive_queue))
+		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo
+}
+
+irom static void callback_error_cmd(socket_t *socket, int error)
+{
+	if(reset_state != reset_state_inactive)
+		reset_state = reset_state_go;
+
+	socket->receive_ready = false;
+}
+
+irom static void callback_disconnect_cmd(socket_t *socket)
+{
+	if((reset_state == reset_state_request_tcp_disconnect) || (reset_state == reset_state_wait_tcp_disconnect))
+		reset_state = reset_state_wait;
+
+	socket->receive_ready = false;
+}
+
+irom static void callback_accept_uart(socket_t *socket)
+{
+	queue_flush(&uart_send_queue);
+	queue_flush(&uart_receive_queue);
+}
+
 irom static void user_init2(void)
 {
-	string_new(static, data_send_buffer, 1024);
-	string_new(static, cmd_send_buffer, 4096 + 4); // need a few extra bytes to make up exactly 4096 bytes for OTA
+	string_new(static, send_buffer_uart, 1024);
+	string_new(static, send_buffer_cmd, 4096 + 8); // need a few extra bytes to make up exactly 4096 bytes for OTA
 
-	int tcp_bridge_port, tcp_bridge_timeout;
-	int tcp_cmd_port, tcp_cmd_timeout;
+	int uart_port, uart_timeout;
+	int cmd_port, cmd_timeout;
 
-	if(!config_get_int("tcp.bridge.port", -1, -1, &tcp_bridge_port))
-		tcp_bridge_port = 0;
+	if(!config_get_int("bridge.port", -1, -1, &uart_port))
+		uart_port = 0;
 
-	if(!config_get_int("tcp.bridge.timeout", -1, -1, &tcp_bridge_timeout))
-		tcp_bridge_timeout = 90;
+	if(!config_get_int("bridge.timeout", -1, -1, &uart_timeout))
+		uart_timeout = 90;
 
-	if(!config_get_int("tcp.cmd.port", -1, -1, &tcp_cmd_port))
-		tcp_cmd_port = 24;
+	if(!config_get_int("cmd.port", -1, -1, &cmd_port))
+		cmd_port = 24;
 
-	if(!config_get_int("tcp.cmd.timeout", -1, -1, &tcp_cmd_timeout))
-		tcp_cmd_timeout = 90;
+	if(!config_get_int("cmd.timeout", -1, -1, &cmd_timeout))
+		cmd_timeout = 90;
 
 	wifi_set_event_handler_cb(wlan_event_handler);
 
@@ -535,8 +490,12 @@ irom static void user_init2(void)
 	time_init();
 	io_init();
 
-	tcp_accept(&data,	&data_send_buffer,	tcp_bridge_port,	tcp_bridge_timeout,	tcp_data_connect_callback);
-	tcp_accept(&cmd,	&cmd_send_buffer,	tcp_cmd_port,		tcp_cmd_timeout,	tcp_cmd_connect_callback);
+	socket_create(true, true, &socket_cmd,	&send_buffer_cmd,	cmd_port,	cmd_timeout,
+			callback_received_cmd,	callback_sent_cmd,	callback_error_cmd,	callback_disconnect_cmd, (void *)0);
+
+	if(uart_port > 0)
+		socket_create(true, true, &socket_uart,	&send_buffer_uart,	uart_port,	uart_timeout,
+				callback_received_uart,	callback_sent_uart,	(void *)0, (void *)0, callback_accept_uart);
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 

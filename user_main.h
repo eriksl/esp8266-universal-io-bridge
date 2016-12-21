@@ -14,8 +14,8 @@ enum
 	background_task_queue_length	= 64,
 };
 
-extern queue_t data_send_queue;
-extern queue_t data_receive_queue;
+extern queue_t uart_send_queue;
+extern queue_t uart_receive_queue;
 extern os_event_t background_task_queue[background_task_queue_length];
 
 bool_t wlan_init(void);
