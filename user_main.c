@@ -146,7 +146,6 @@ irom static bool_t background_task_command_handler(void)
 #if IMAGE_OTA == 1
 			rboot_config rcfg = rboot_get_config();
 			string_format(socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
-			dprintf("* state inactive -> send_reply");
 			reset_state = reset_state_send_reply;
 #endif
 			break;
@@ -276,7 +275,6 @@ irom void user_init(void)
 {
 	static char uart_send_queue_buffer[1024];
 	static char uart_receive_queue_buffer[1024];
-	bool_t config_read_status;
 
 	int uart_baud, uart_data, uart_stop, uart_parity_int;
 	uart_parity_t uart_parity;
@@ -288,7 +286,7 @@ irom void user_init(void)
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
 
-	config_read_status = config_read();
+	config_read();
 
 	if(!config_get_int("uart.baud", -1, -1, &uart_baud))
 		uart_baud = 9600;
@@ -306,9 +304,6 @@ irom void user_init(void)
 
 	uart_init(uart_baud, uart_data, uart_stop, uart_parity);
 	system_set_os_print(config_flags_get().flag.print_debug);
-
-	if(!config_read_status)
-		dprintf("* config invalid");
 
 	wifi_station_set_auto_connect(0);
 
