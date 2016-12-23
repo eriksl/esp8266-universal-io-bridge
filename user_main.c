@@ -281,6 +281,8 @@ irom void user_init(void)
 	int uart_baud, uart_data, uart_stop, uart_parity_int;
 	uart_parity_t uart_parity;
 
+	system_set_os_print(0);
+
 	queue_new(&uart_send_queue, sizeof(uart_send_queue_buffer), uart_send_queue_buffer);
 	queue_new(&uart_receive_queue, sizeof(uart_receive_queue_buffer), uart_receive_queue_buffer);
 
