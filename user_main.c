@@ -481,6 +481,11 @@ irom static void user_init2(void)
 	if(!config_get_int("cmd.timeout", -1, -1, &cmd_timeout))
 		cmd_timeout = 90;
 
+	if(config_flags_get().flag.cpu_high_speed)
+		system_update_cpu_freq(160);
+	else
+		system_update_cpu_freq(80);
+
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	wlan_init();
@@ -498,10 +503,6 @@ irom static void user_init2(void)
 		uart_bridge_active = true;
 	}
 
-	if(config_flags_get().flag.cpu_high_speed)
-		system_update_cpu_freq(160);
-	else
-		system_update_cpu_freq(80);
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
