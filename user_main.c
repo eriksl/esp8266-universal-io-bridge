@@ -494,13 +494,13 @@ irom static void user_init2(void)
 	time_init();
 	io_init();
 
-	socket_create(true, true, &socket_cmd,	&send_buffer_cmd,	cmd_port,	cmd_timeout,
-			callback_received_cmd,	callback_sent_cmd,	callback_error_cmd,	callback_disconnect_cmd, (void *)0);
+	socket_create(true, true, &socket_cmd, &send_buffer_cmd, cmd_port, cmd_timeout,
+			callback_received_cmd, callback_sent_cmd, callback_error_cmd, callback_disconnect_cmd, (void *)0);
 
 	if(uart_port > 0)
 	{
 		socket_create(true, true, &socket_uart,	&send_buffer_uart,	uart_port,	uart_timeout,
-				callback_received_uart,	callback_sent_uart,	(void *)0, (void *)0, callback_accept_uart);
+				callback_received_uart, callback_sent_uart, (void *)0, (void *)0, callback_accept_uart);
 
 		uart_bridge_active = true;
 	}
