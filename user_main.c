@@ -36,6 +36,8 @@ _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) !=
 
 os_event_t background_task_queue[background_task_queue_length];
 
+static bool_t	uart_bridge_active = false;
+
 static socket_t socket_cmd;
 static socket_t socket_uart;
 
@@ -59,7 +61,7 @@ queue_t uart_send_queue;
 queue_t uart_receive_queue;
 
 irom static void user_init2(void);
-irom static bool_t background_task_update_uart(void)
+irom static bool_t background_task_bridge_uart(void)
 {
 	// send data in the uart receive fifo to tcp
 	// if there is still data in uart receive fifo that can't be
@@ -187,7 +189,7 @@ irom static void background_task(os_event_t *events) // posted every ~100 ms = ~
 		default: break;
 	}
 
-	if(background_task_update_uart())
+	if(uart_bridge_active && background_task_bridge_uart())
 	{
 		stat_update_uart++;
 		system_os_post(background_task_id, 0, 0);
@@ -489,15 +491,18 @@ irom static void user_init2(void)
 			callback_received_cmd,	callback_sent_cmd,	callback_error_cmd,	callback_disconnect_cmd, (void *)0);
 
 	if(uart_port > 0)
+	{
 		socket_create(true, true, &socket_uart,	&send_buffer_uart,	uart_port,	uart_timeout,
 				callback_received_uart,	callback_sent_uart,	(void *)0, (void *)0, callback_accept_uart);
 
-	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+		uart_bridge_active = true;
+	}
 
 	if(config_flags_get().flag.cpu_high_speed)
 		system_update_cpu_freq(160);
 	else
 		system_update_cpu_freq(80);
+	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms
