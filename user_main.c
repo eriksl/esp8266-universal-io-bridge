@@ -322,30 +322,53 @@ irom void user_init(void)
 irom static void wlan_event_handler(System_Event_t *event)
 {
 	int trigger_io, trigger_pin;
+	io_trigger_t trigger = io_trigger_none;
+	struct ip_info info;
+	ip_addr_to_bytes_t local_ip;
+	ip_addr_to_bytes_t mc_ip;
 
-	if(config_get_int("trigger.assoc.io", -1, -1, &trigger_io) &&
-			config_get_int("trigger.assoc.pin", -1, -1, &trigger_pin) &&
-			(trigger_io >= 0) && (trigger_pin >= 0))
+	switch(event->event)
 	{
-		switch(event->event)
+		case(EVENT_STAMODE_GOT_IP):
 		{
-			case(EVENT_STAMODE_GOT_IP):
-			case(EVENT_SOFTAPMODE_STACONNECTED):
-			{
-				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
+			wifi_get_ip_info(STATION_IF, &info);
+			local_ip.ip_addr = info.ip;
+			mc_ip.byte[0] = 239;
+			mc_ip.byte[1] = 255;
+			mc_ip.byte[2] = 255;
+			mc_ip.byte[3] = 254;
+			espconn_igmp_join(&local_ip.ip_addr, &mc_ip.ip_addr);
 
-				break;
-			}
+			dprintf("* join mc from %d.%d.%d.%d",
+					local_ip.byte[0],
+					local_ip.byte[1],
+					local_ip.byte[2],
+					local_ip.byte[3]);
 
-			case(EVENT_STAMODE_DISCONNECTED):
-			case(EVENT_SOFTAPMODE_STADISCONNECTED):
-			{
-				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_off);
+			// fall through
+		}
+		case(EVENT_SOFTAPMODE_STACONNECTED):
+		{
+			trigger = io_trigger_on;
+			break;
+		}
 
-				break;
-			}
+		case(EVENT_STAMODE_DISCONNECTED):
+		{
+			// fall through
+		}
+		case(EVENT_SOFTAPMODE_STADISCONNECTED):
+		{
+			trigger = io_trigger_off;
+			break;
 		}
 	}
+
+	if((trigger != io_trigger_none) &&
+			(config_get_int("trigger.assoc.io", -1, -1, &trigger_io) &&
+			config_get_int("trigger.assoc.pin", -1, -1, &trigger_pin) &&
+			(trigger_io >= 0) && (trigger_pin >= 0)))
+		io_trigger_pin((string_t *)0, trigger_io, trigger_pin, trigger);
 }
 
 irom static void callback_received_cmd(socket_t *socket, int length, char *buffer)

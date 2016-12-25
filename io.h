@@ -46,6 +46,7 @@ assert_size(io_direction_t, 1);
 
 typedef enum attr_packed
 {
+	io_trigger_none,
 	io_trigger_off,
 	io_trigger_on,
 	io_trigger_down,
