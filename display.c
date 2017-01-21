@@ -394,10 +394,12 @@ irom static void display_expire(void) // call one time per second
 	{
 		if(display_slot[slot].timeout == 1)
 		{
-			display_slot[slot].timeout = 0;
 			display_slot[slot].tag[0] = '\0';
 			display_slot[slot].content[0] = '\0';
 		}
+
+		if(display_slot[slot].timeout > 0)
+			display_slot[slot].timeout--;
 
 		if(display_slot[slot].content[0])
 			active_slots++;
