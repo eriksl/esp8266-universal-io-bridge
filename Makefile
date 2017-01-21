@@ -149,7 +149,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign 
 					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
 					-Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
-CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=400 -DICACHE_FLASH \
+CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=450 -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
 						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
