@@ -804,16 +804,21 @@ irom static app_action_t application_function_unset(const string_t *src, string_
 
 irom static app_action_t application_function_time_set(const string_t *src, string_t *dst)
 {
-	int Y, M, D, h, m, s;
+	unsigned int Y, M, D, h, m, s;
 	const char *source;
 
-	if((parse_int(1, src, &h, 0) == parse_ok) &&
-			(parse_int(2, src, &m, 0) == parse_ok))
+	if((parse_int(1, src, &h, 0) == parse_ok) && (parse_int(2, src, &m, 0) == parse_ok))
 	{
 		if(parse_int(3, src, &s, 0) != parse_ok)
 			s = 0;
 
-		time_set_hms(h, m, s);
+		if((h > 10512000) && (s == 0)) // unix timestamp supplied
+		{
+			h += m * 60 * 60;
+			time_set_stamp(h); // timestamp,timezone_offset
+		}
+		else
+			time_set_hms(h, m, s);
 	}
 
 	source = time_get(&h, &m, &s, &Y, &M, &D);
@@ -1466,7 +1471,7 @@ static const application_function_table_t application_function_table[] =
 	{
 		"ts", "time-set",
 		application_function_time_set,
-		"set time base [h m]",
+		"set time base [h m (s)] or [unix timestamp tz_offset]",
 	},
 	{
 		"ub", "uart-baud",
