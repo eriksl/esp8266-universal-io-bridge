@@ -3,6 +3,12 @@
 
 #include <util.h>
 
+// uptime
+
+void	time_uptime_get(unsigned int *secs, unsigned int *msecs,
+			unsigned int *raw1, unsigned int *raw2,
+			unsigned int *base, unsigned int *wraps);
+
 // system clock (system_get_time())
 
 void	time_system_get(unsigned int *secs, unsigned int *msecs,
@@ -33,7 +39,7 @@ void		time_ntp_get(unsigned int *secs, unsigned int *msecs,
 void		time_init(void);
 void		time_periodic(void);
 void		time_set_hms(unsigned int h, unsigned int m, unsigned int s);
-void		time_set(unsigned int base);
+void		time_set_stamp(unsigned int base);
 const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 				unsigned int *Y, unsigned int *M, unsigned int *D);
 

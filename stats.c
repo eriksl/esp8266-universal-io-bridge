@@ -78,6 +78,7 @@ irom void stats_generate(string_t *dst)
 	const struct rst_info *rst_info;
 	static struct station_config sc_default, sc_current;
 	static i2c_info_t i2c_info;
+	unsigned int uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps;
 	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
 	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
 	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
@@ -85,6 +86,7 @@ irom void stats_generate(string_t *dst)
 	unsigned int Y, M, D, h, m, s;
 	const char *time_source;
 
+	time_uptime_get(&uptime_secs, &uptime_msecs, &uptime_raw1, &uptime_raw2, &uptime_base, &uptime_wraps);
 	time_system_get(&system_secs, &system_msecs, &system_raw1, &system_raw2, &system_base, &system_wraps);
 	time_rtc_get(&rtc_secs, &rtc_msecs, &rtc_raw1, &rtc_raw2, &rtc_base, &rtc_wraps);
 	time_timer_get(&timer_secs, &timer_msecs, &timer_raw1, &timer_raw2, &timer_base, &timer_wraps);
@@ -108,6 +110,7 @@ irom void stats_generate(string_t *dst)
 			"> reset cause: %s\n"
 			">\n"
 			"> heap free: %u bytes\n"
+			"> uptime: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
 			"> system: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
 			"> rtc: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
 			"> timer: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
@@ -149,6 +152,7 @@ irom void stats_generate(string_t *dst)
 			flash_map[system_get_flash_size_map()],
 			reset_map[rst_info->reason],
 			system_get_free_heap_size(),
+			uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps,
 			system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps, system_secs - ntp_secs,
 			rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps, rtc_secs - ntp_secs,
 			timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,

@@ -13,6 +13,57 @@ typedef struct
 
 static time_flags_t time_flags;
 
+// uptime
+
+static unsigned int uptime_last_us;
+static unsigned int uptime_base_us;
+static unsigned int uptime_wraps;
+
+irom static void uptime_init(void)
+{
+	uptime_last_us = 0;
+	uptime_wraps = 0;
+
+	uptime_base_us = system_get_time();
+}
+
+irom static void uptime_periodic(void)
+{
+	unsigned int uptime_now = system_get_time();
+
+	if(uptime_now < uptime_last_us)
+		uptime_wraps++;
+
+	uptime_last_us = uptime_now;
+}
+
+irom void time_uptime_get(unsigned int *s, unsigned int *ms,
+		unsigned int *raw1, unsigned int *raw2,
+		unsigned int *base, unsigned int *wraps)
+{
+	uint64_t uptime_us;
+
+	uptime_us = (((uint64_t)system_get_time()) | ((uint64_t)uptime_wraps << 32)) - uptime_base_us;
+
+	if(s)
+		*s = uptime_us / 1000000;
+
+	if(ms)
+		*ms = (uptime_us % 1000000) / 1000;
+
+	if(raw1)
+		*raw1 = uptime_us >> 32;
+
+	if(raw2)
+		*raw2 = uptime_us & 0xffffffff;
+
+	if(base)
+		*base = uptime_base_us;
+
+	if(wraps)
+		*wraps = 0;
+}
+
 // system
 
 static unsigned int system_last_us;
@@ -291,6 +342,7 @@ irom void time_init(void)
 {
 	time_base_s = 0;
 
+	uptime_init();
 	system_init();
 	rtc_init();
 	timer_init();
@@ -299,15 +351,16 @@ irom void time_init(void)
 
 irom void time_periodic(void)
 {
+	uptime_periodic();
 	system_periodic();
 	rtc_periodic();
 	timer_periodic();
 	ntp_periodic();
 }
 
-irom void time_set(unsigned int base)
+irom void time_set_stamp(unsigned int stamp)
 {
-	time_base_s = base;
+	time_base_s = stamp;
 	system_init();
 	rtc_init();
 	timer_init();
@@ -315,7 +368,7 @@ irom void time_set(unsigned int base)
 
 irom void time_set_hms(unsigned int h, unsigned int m, unsigned int s)
 {
-	time_set((h * 3600) + (m * 60) + s);
+	time_set_stamp((h * 3600) + (m * 60) + s);
 }
 
 irom const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
