@@ -640,7 +640,19 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	if(slot > display_slot_amount)
+	if(slot < 0)
+	{
+		for(slot = 0; slot < display_slot_amount; slot++)
+		{
+			display_slot[slot].tag[0] = '\0';
+			display_slot[slot].content[0] = '\0';
+			display_slot[slot].timeout = 0;
+		}
+
+		slot = 0;
+	}
+
+	if(slot >= display_slot_amount)
 	{
 		string_clear(dst);
 		string_format(dst, "display-set: slot #%d out of limits\n", slot);
