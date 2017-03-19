@@ -50,7 +50,9 @@ static const char *reset_map[] =
 	"software watchdog",
 	"user reset",
 	"deep sleep awake",
-	"unknown"
+	"external system reset",
+	"unknown1"
+	"unknown2"
 };
 
 static const char *phy[] = {
