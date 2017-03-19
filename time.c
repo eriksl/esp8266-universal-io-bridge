@@ -270,7 +270,9 @@ irom void time_ntp_init(void)
 
 	sntp_setserver(0, &ntp_server.ip_addr);
 	sntp_set_timezone(ntp_timezone);
-	sntp_init();
+
+	if(time_flags.ntp_server_valid)
+		sntp_init();
 }
 
 irom static void ntp_periodic(void)
@@ -308,30 +310,52 @@ irom void time_ntp_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
-	time_t current = sntp_get_current_timestamp();
+	time_t current;
 
-	if(s)
+	if(!time_flags.ntp_server_valid)
 	{
-		if(current > 0)
-			*s = current - ntp_base_s;
-		else
-			*s = 0;
+		if(ms)
+			*ms = 0;
+
+		if(raw1)
+			*raw1 = 0;
+
+		if(raw2)
+			*raw2 = 0;
+
+		if(base)
+			*base = 0;
+
+		if(wraps)
+			*wraps = 0;
 	}
+	else
+	{
+		current = sntp_get_current_timestamp();
 
-	if(ms)
-		*ms = 0;
+		if(s)
+		{
+			if(current > 0)
+				*s = current - ntp_base_s;
+			else
+				*s = 0;
+		}
 
-	if(raw1)
-		*raw1 = current;
+		if(ms)
+			*ms = 0;
 
-	if(raw2)
-		*raw2 = 0;
+		if(raw1)
+			*raw1 = current;
 
-	if(base)
-		*base = ntp_base_s;
+		if(raw2)
+			*raw2 = 0;
 
-	if(wraps)
-		*wraps = 0;
+		if(base)
+			*base = ntp_base_s;
+
+		if(wraps)
+			*wraps = 0;
+	}
 }
 
 // generic interface
