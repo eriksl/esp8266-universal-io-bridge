@@ -163,7 +163,7 @@ irom static void gpio_open_drain(int pin, int onoff)
 	uint32_t pinaddr;
 	uint32_t value;
 
-	pinaddr	= gpio_pin_addr(GPIO_ID_PIN(pin));
+	pinaddr	= gpio_pin_addr(pin);
 	value	= gpio_reg_read(pinaddr);
 
 	if(onoff)
