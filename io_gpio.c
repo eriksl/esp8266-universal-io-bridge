@@ -163,6 +163,9 @@ irom static void gpio_open_drain(int pin, int onoff)
 	uint32_t pinaddr;
 	uint32_t value;
 
+	if(pin >= io_gpio_pin_size)
+		return;
+
 	pinaddr	= gpio_pin_addr(pin);
 	value	= gpio_reg_read(pinaddr);
 
@@ -253,7 +256,7 @@ iram static void pwm_isr(void)
 
 	stat_pwm_timer_interrupts++;
 
-	phase_data = &pwm_phase[pwm_current_phase_set];
+	phase_data = &pwm_phase[pwm_current_phase_set & 0x01];
 
 	for(;;)
 	{
@@ -268,7 +271,7 @@ iram static void pwm_isr(void)
 				gpio_clear_mask(pwm_static_clear_mask);
 				pwm_static_set_mask = 0;
 				pwm_static_clear_mask = 0;
-				pwm_current_phase_set = pwm_current_phase_set ? 0 : 1;
+				pwm_current_phase_set = (pwm_current_phase_set + 1) & 0x01;
 				io_gpio_flags.pwm_swap_phase_set = 0;
 				phase_data = &pwm_phase[pwm_current_phase_set];
 			}
@@ -330,7 +333,7 @@ irom static bool_t pwm_go(void)
 	new_set = pwm_current_phase_set;
 
 	if(pwm_isr_enabled())
-		new_set = new_set ? 0 : 1;
+		new_set = (new_set + 1) & 0x01;
 
 	io_gpio_flags.pwm_cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
@@ -544,8 +547,17 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 
 irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
-	gpio_info_t *gpio_info = &gpio_info_table[pin];
+	gpio_info_t *gpio_info;
 	gpio_data_pin_t *gpio_pin_data;
+
+	if((pin < 0) || (pin >= io_gpio_pin_size))
+	{
+		if(error_message)
+			string_format(error_message, "pin %d invalid\n", pin);
+		return(io_error);
+	}
+
+	gpio_info = &gpio_info_table[pin];
 
 	if(!gpio_info->valid)
 	{
@@ -642,6 +654,9 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 {
 	gpio_data_pin_t *gpio_pin_data;
 	unsigned int pwm_period;
+
+	if((pin < 0) || (pin >= io_gpio_pin_size))
+		return(io_error);
 
 	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
 		pwm_period = 65536;

@@ -29,7 +29,7 @@ iram static inline uint32_t gpio_interrupts_enabled(void)
 
 iram static inline uint32_t gpio_pin_addr(int pin)
 {
-	return(GPIO_PIN0_ADDRESS + (pin * 4));
+	return(GPIO_PIN0_ADDRESS + (pin << 2));
 }
 
 // read / write registers
