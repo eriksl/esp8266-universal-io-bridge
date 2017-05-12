@@ -158,12 +158,12 @@ irom static bool_t gpio_pullup(int pin, int onoff)
 
 // clear / set open drain mode
 
-irom static void gpio_open_drain(int io, int onoff)
+irom static void gpio_open_drain(int pin, int onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
 
-	pinaddr	= gpio_pin_addr(GPIO_ID_PIN(io));
+	pinaddr	= gpio_pin_addr(GPIO_ID_PIN(pin));
 	value	= gpio_reg_read(pinaddr);
 
 	if(onoff)
