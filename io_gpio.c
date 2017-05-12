@@ -136,7 +136,7 @@ irom static bool_t gpio_pullup(int pin, int onoff)
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
 
-	if(pin > 15)
+	if(pin >= io_gpio_pin_size)
 		return(false);
 
 	gpio_pin_info = &gpio_info_table[pin];
@@ -181,7 +181,7 @@ irom static bool_t gpio_func_select(int pin, int func)
 	gpio_info_t *gpio_pin_info;
 	uint32_t value;
 
-	if(pin > 15)
+	if(pin >= io_gpio_pin_size)
 		return(false);
 
 	gpio_pin_info = &gpio_info_table[pin];
