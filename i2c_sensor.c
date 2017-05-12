@@ -1801,6 +1801,98 @@ irom static i2c_error_t sensor_bme280_airpressure_read(int bus, const device_tab
 	return(bme280_read(entry->address, 0, value, 0));
 }
 
+irom static i2c_error_t sensor_max44009_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[2];
+
+	if(i2c_sensor_detected(bus, i2c_sensor_lm75_2))
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send_2(entry->address, 0x00, 0xff)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != 0x00)
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send_2(entry->address, 0x01, 0xff)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != 0x01)
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send_2(entry->address, 0x01, 0x00)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != 0x00)
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send_2(entry->address, 0x02, 0b10000000)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] & 0b11110000) != 0b10000000)
+		return(i2c_error_device_error_3);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_max44009_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[2];
+	int			values[2];
+	int			tries;
+	int			exponent, mantissa;
+
+	for(tries = 8, values[0] = 0x7ffffffe, values[1] = 0x7fffffff; (tries > 0) && (values[0] != values[1]); tries--, values[1] = values[0])
+	{
+		if((error = i2c_send_1(entry->address, 0x03)) != i2c_error_ok)
+			return(error);
+
+		if((error = i2c_receive(entry->address, 1, &i2c_buffer[0])) != i2c_error_ok)
+			return(error);
+
+		if((error = i2c_send_1(entry->address, 0x04)) != i2c_error_ok)
+			return(error);
+
+		if((error = i2c_receive(entry->address, 1, &i2c_buffer[1])) != i2c_error_ok)
+			return(error);
+
+		exponent =	(i2c_buffer[0] & 0xf0) >> 4;
+		mantissa =	(i2c_buffer[0] & 0x0f) << 4;
+		mantissa |=	(i2c_buffer[1] & 0x0f) << 0;
+
+		values[0] = (exponent << 16) | mantissa;
+	}
+
+	if(tries <= 0)
+		return(i2c_error_device_error_1);
+
+	exponent = (values[0] & 0xffff0000) >> 16;
+	mantissa = (values[0] & 0x0000ffff) >> 0;
+
+	value->raw = (exponent * 10000) + mantissa;
+
+	if(exponent == 0b1111)
+		return(i2c_error_device_error_2);
+
+	value->cooked = (1 << exponent) * mantissa * 0.045;
+
+	return(i2c_error_ok);
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -1952,6 +2044,12 @@ static const device_table_entry_t device_table[] =
 		"tsl2560/tsl2561 #1", "visible light", "", 2,
 		sensor_tsl2560_init,
 		sensor_tsl2560_read,
+	},
+	{
+		i2c_sensor_max44009_0, 0x4a,
+		"max44009 #0", "visible light", "", 2,
+		sensor_max44009_init,
+		sensor_max44009_read,
 	},
 };
 
