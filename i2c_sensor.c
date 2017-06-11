@@ -1085,10 +1085,16 @@ irom static i2c_error_t sensor_veml6070_init(int bus, const device_table_entry_t
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0)) // 0x39
 		return(i2c_error_device_error_1);
 
+	if((error = i2c_send_1(0x38, 0b00000110)) != i2c_error_ok) // recommended initial value
+		return(error);
+
 	if((error = veml6070_read(&rv)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_1(0x38, 0x0e)) != i2c_error_ok)
+	if((error = i2c_send_1(0x38, 0b00001100)) != i2c_error_ok)
+		return(error);
+
+	if((error = veml6070_read(&rv)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -1103,7 +1109,7 @@ irom static i2c_error_t sensor_veml6070_read(int bus, const device_table_entry_t
 		return(error);
 
 	value->raw = rv;
-	value->cooked = rv * 10.0 / 2000.0; // FIXME
+	value->cooked = rv / 17.6; // FIXME
 
 	return(i2c_error_ok);
 }
@@ -1999,7 +2005,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_veml6070, 0x38,
-		"veml6070", "ultraviolet light", "", 0,
+		"veml6070", "ultraviolet light", "", 1,
 		sensor_veml6070_init,
 		sensor_veml6070_read
 	},
