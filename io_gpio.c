@@ -544,7 +544,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	gpio_init();
 
 	pwm_isr_enable(false);
-	ets_isr_attach(ETS_FRC_TIMER1_INUM, pwm_isr, 0);
+	NmiTimSetFunc(pwm_isr);
 	set_peri_reg_mask(EDGE_INT_ENABLE_REG, BIT1);
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_CTRL_ADDRESS, FRC1_ENABLE_TIMER | FRC1_DIVIDE_BY_16 | FRC1_EDGE_INT);
 
