@@ -84,7 +84,6 @@ typedef union
 	} pwm;
 } gpio_data_pin_t;
 
-static uint32_t gpio_pc_pins_previous;
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 static uint32_t pwm_static_set_mask;
 static uint32_t pwm_static_clear_mask;
@@ -223,6 +222,7 @@ typedef struct
 {
 	unsigned int	pwm_swap_phase_set:1;
 	unsigned int	pwm_cpu_high_speed:1;
+	unsigned int	counter_triggered:1;
 } io_gpio_flags_t;
 
 static unsigned int		pwm_current_phase_set;
@@ -249,7 +249,7 @@ iram static inline void pwm_timer_reload(uint32_t value)
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
 }
 
-iram static void pwm_isr(void)
+iram static void pwm_isr(void *arg)
 {
 	static unsigned int	phase, delay;
 	static pwm_phases_t *phase_data;
@@ -486,22 +486,70 @@ irom static bool_t pwm_go(void)
 	return(true);
 }
 
+iram inline static void pin_arm_counter(int pin, bool_t enable)
+{
+	gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_NEGEDGE : GPIO_PIN_INTR_DISABLE);
+}
+
+iram static void pc_int_isr(void *arg)
+{
+	io_config_pin_entry_t *pin_config;
+	gpio_data_pin_t *gpio_pin_data;
+	int pin;
+	uint32_t pin_status;
+
+	ets_isr_mask(1 << ETS_GPIO_INUM);
+	pin_status = gpio_reg_read(GPIO_STATUS_ADDRESS);
+	gpio_reg_write(GPIO_STATUS_W1TC_ADDRESS, pin_status);
+
+	stat_pc_interrupts++;
+
+	for(pin = 0; pin < io_gpio_pin_size; pin++)
+	{
+		if(!(pin_status & (1 << pin)))
+			continue;
+
+		pin_config = &io_config[0][pin];
+
+		if(pin_config->llmode == io_pin_ll_counter)
+		{
+			gpio_pin_data = &gpio_data[pin];
+
+			gpio_pin_data->counter.counter++;
+			io_gpio_flags.counter_triggered = 1;
+
+			// debouncing requested
+			if(pin_config->speed != 0)
+			{
+				pin_arm_counter(pin, false);
+				gpio_pin_data->counter.debounce = pin_config->speed;
+			}
+		}
+	}
+
+	ets_isr_unmask(1 << ETS_GPIO_INUM);
+	return;
+}
+
 // other
 
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
-	gpio_pc_pins_previous = gpio_get_mask(); // init pin change notification
-
 	pwm_current_phase_set = 0;
 	io_gpio_flags.pwm_swap_phase_set = 0;
 
 	pwm_phase[0].size = 0;
 	pwm_phase[1].size = 0;
 
+	gpio_init();
+
 	pwm_isr_enable(false);
 	ets_isr_attach(ETS_FRC_TIMER1_INUM, pwm_isr, 0);
 	set_peri_reg_mask(EDGE_INT_ENABLE_REG, BIT1);
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_CTRL_ADDRESS, FRC1_ENABLE_TIMER | FRC1_DIVIDE_BY_16 | FRC1_EDGE_INT);
+
+	ets_isr_attach(ETS_GPIO_INUM, pc_int_isr, 0);
+	ets_isr_unmask(1 << ETS_GPIO_INUM);
 
 	return(io_ok);
 }
@@ -509,11 +557,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	io_config_pin_entry_t *pin_config;
-	gpio_data_pin_t *gpio_pin_data;
 	int pin;
-	uint32_t gpio_pc_pins_current;
-
-	gpio_pc_pins_current = gpio_get_mask();
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
@@ -521,28 +565,27 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 
 		if(pin_config->llmode == io_pin_ll_counter)
 		{
-			gpio_pin_data = &gpio_data[pin];
+			gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
 
-			if((gpio_pin_data->counter.debounce == 0))
+			// debouncing on input requested && debouncing period active
+			if((pin_config->speed != 0) && (gpio_pin_data->counter.debounce != 0))
 			{
-				if((gpio_pc_pins_previous & (1 << pin)) && !(gpio_pc_pins_current & (1 << pin)))
-				{
-					gpio_pin_data->counter.counter++;
-					gpio_pin_data->counter.debounce = pin_config->speed;
-					flags->counter_triggered = 1;
-				}
-			}
-			else
-			{
-				if(gpio_pin_data->counter.debounce >= 10)
+				if(gpio_pin_data->counter.debounce > 10)
 					gpio_pin_data->counter.debounce -= 10; // 10 ms per tick
 				else
+				{
 					gpio_pin_data->counter.debounce = 0;
+					pin_arm_counter(pin, true);
+				}
 			}
 		}
 	}
 
-	gpio_pc_pins_previous = gpio_pc_pins_current;
+	if(io_gpio_flags.counter_triggered)
+	{
+		io_gpio_flags.counter_triggered = 0;
+		flags->counter_triggered = 1;
+	}
 }
 
 irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -565,6 +608,8 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			string_cat(error_message, "io invalid\n");
 		return(io_error);
 	}
+
+	pin_arm_counter(pin, false);
 
 	if(pin_config->llmode == io_pin_ll_disabled)
 	{
@@ -589,6 +634,8 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			{
 				gpio_pin_data->counter.counter = 0;
 				gpio_pin_data->counter.debounce = 0;
+
+				pin_arm_counter(pin, true);
 			}
 
 			break;
