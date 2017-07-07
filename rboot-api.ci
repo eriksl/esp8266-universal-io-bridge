@@ -5,22 +5,11 @@
 #define RBOOT_API_INCLUDED
 
 #include <stdint.h>
+#include <c_types.h>
+#include <mem.h>
+#include <ets_sys.h>
 
-typedef uint8_t uint8;
-typedef uint32_t uint32;
-
-#include "util.h"
-
-#undef pvPortMalloc
-#undef pvPortZalloc
-#undef pvPortRealloc
-#undef vPortFree
 #undef memcpy
-
-void *pvPortMalloc(size_t size, const char *file, unsigned int line);
-void *pvPortZalloc(size_t size, const char *file, unsigned int line);
-void *pvPortRealloc(void *ptr, size_t size, const char *file, unsigned int line);
-void vPortFree(void *ptr, const char *file, int line);
 
 #define IRAM_CACHE_ATTR irom
 

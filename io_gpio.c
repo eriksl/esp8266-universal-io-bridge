@@ -249,7 +249,7 @@ iram static inline void pwm_timer_reload(uint32_t value)
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
 }
 
-iram static void pwm_isr(void *arg)
+iram static void pwm_isr(void)
 {
 	static unsigned int	phase, delay;
 	static pwm_phases_t *phase_data;

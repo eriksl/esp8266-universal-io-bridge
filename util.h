@@ -3,6 +3,7 @@
 
 // ugly kludge for incorrectly declared spi_flash_* functions */
 #include <c_types.h>
+
 #undef spi_flash_write
 #define spi_flash_read _spi_flash_read
 #define spi_flash_write _spi_flash_write
@@ -76,19 +77,25 @@ struct tm
   int	tm_isdst;
 };
 
-void ets_isr_attach(int, void *, void *);
 void ets_isr_mask(unsigned int);
 void ets_isr_unmask(unsigned int);
-void ets_timer_arm_new(ETSTimer *, uint32_t, bool_t, int);
-void ets_timer_disarm(ETSTimer *);
-void ets_timer_setfn(ETSTimer *, ETSTimerFunc *, void *);
-void NmiTimSetFunc(void *);
-void ets_delay_us(uint16_t);
 
-#define pvPortMalloc #pragma error dont use pvPortMalloc
-#define pvPortZalloc #pragma error dont use pvPortZalloc
-#define pvPortRealloc #pragma error dont use pvPortRealloc
-#define vPortFree #pragma error dont use vPortFree
+#undef pvPortMalloc
+#undef pvPortZalloc
+#undef pvPortRealloc
+#undef vPortFree
+
+#include <mem.h>
+
+#undef pvPortMalloc
+#undef pvPortZalloc
+#undef pvPortRealloc
+#undef vPortFree
+
+#define pvPortMalloc #error dont use pvPortMalloc
+#define pvPortZalloc #error dont use pvPortZalloc
+#define pvPortRealloc #error dont use pvPortRealloc
+#define vPortFree #error dont use vPortFree
 
 // other convenience functions
 
