@@ -60,6 +60,11 @@ static struct
 queue_t uart_send_queue;
 queue_t uart_receive_queue;
 
+irom attr_const void user_spi_flash_dio_to_qio_pre_init(void);
+irom attr_const void user_spi_flash_dio_to_qio_pre_init(void)
+{
+}
+
 irom static void user_init2(void);
 irom static bool_t background_task_bridge_uart(void)
 {
