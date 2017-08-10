@@ -15,7 +15,8 @@ typedef enum
 
 enum
 {
-	max_pins_per_io = 16
+	max_pins_per_io = 16,
+	max_triggers_per_pin = 2
 };
 
 enum
@@ -209,8 +210,8 @@ typedef struct
 		struct
 		{
 			config_io_t		io;
-			io_trigger_t	trigger_mode;
-		} trigger;
+			io_trigger_t	action;
+		} trigger[max_triggers_per_pin];
 	} shared;
 } io_config_pin_entry_t;
 

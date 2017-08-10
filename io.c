@@ -479,7 +479,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
-	int value = 0, old_value;
+	int value = 0, old_value, trigger;
 
 	switch(pin_config->mode)
 	{
@@ -733,14 +733,18 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 		case(io_pin_trigger):
 		{
-			if((pin_config->shared.trigger.io.io >= 0) && (pin_config->shared.trigger.io.pin >= 0) &&
-					(pin_config->shared.trigger.trigger_mode != io_trigger_off))
+			for(trigger = 0; trigger < 2; trigger++)
 			{
-				if(io_trigger_pin(errormsg,
-						pin_config->shared.trigger.io.io,
-						pin_config->shared.trigger.io.pin,
-						pin_config->shared.trigger.trigger_mode) != io_ok)
-					return(io_error);
+				if((pin_config->shared.trigger[trigger].io.io >= 0) &&
+						(pin_config->shared.trigger[trigger].io.pin >= 0) &&
+						(pin_config->shared.trigger[trigger].action != io_trigger_off))
+				{
+					if(io_trigger_pin(errormsg,
+							pin_config->shared.trigger[trigger].io.io,
+							pin_config->shared.trigger[trigger].io.pin,
+							pin_config->shared.trigger[trigger].action) != io_ok)
+						return(io_error);
+				}
 			}
 
 			break;
@@ -857,6 +861,7 @@ irom void io_init(void)
 	int io, pin, mode, llmode;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
+	int trigger;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -940,35 +945,44 @@ irom void io_init(void)
 						continue;
 					}
 
-					if(!config_get_int("io.%u.%u.trigger.io", io, pin, &trigger_io))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
-
-					if(!config_get_int("io.%u.%u.trigger.pin", io, pin, &trigger_pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
-
-					if(!config_get_int("io.%u.%u.trigger.type", io, pin, &trigger_type))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
-
 					pin_config->speed = debounce;
-					pin_config->shared.trigger.io.io = trigger_io;
-					pin_config->shared.trigger.io.pin = trigger_pin;
-					pin_config->shared.trigger.trigger_mode = trigger_type;
+
+					for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
+					{
+						pin_config->shared.trigger[trigger].io.io = -1;
+						pin_config->shared.trigger[trigger].io.pin = -1;
+						pin_config->shared.trigger[trigger].action = io_trigger_none;
+					}
+
+					if(config_get_int("io.%u.%u.trigger.io", io, pin, &trigger_io) &&
+						config_get_int("io.%u.%u.trigger.pin", io, pin, &trigger_pin) &&
+						config_get_int("io.%u.%u.trigger.type", io, pin, &trigger_type))
+					{
+						pin_config->shared.trigger[0].io.io = trigger_io;
+						pin_config->shared.trigger[0].io.pin = trigger_pin;
+						pin_config->shared.trigger[0].action = trigger_type;
+					}
+
+					if(config_get_int("io.%u.%u.trigger.0.io", io, pin, &trigger_io) &&
+						config_get_int("io.%u.%u.trigger.0.pin", io, pin, &trigger_pin) &&
+						config_get_int("io.%u.%u.trigger.0.type", io, pin, &trigger_type))
+					{
+						pin_config->shared.trigger[0].io.io = trigger_io;
+						pin_config->shared.trigger[0].io.pin = trigger_pin;
+						pin_config->shared.trigger[0].action = trigger_type;
+					}
+
+					if(config_get_int("io.%u.%u.trigger.1.io", io, pin, &trigger_io) &&
+						config_get_int("io.%u.%u.trigger.1.pin", io, pin, &trigger_pin) &&
+						config_get_int("io.%u.%u.trigger.1.type", io, pin, &trigger_type))
+					{
+						pin_config->shared.trigger[1].io.io = trigger_io;
+						pin_config->shared.trigger[1].io.pin = trigger_pin;
+						pin_config->shared.trigger[1].action = trigger_type;
+					}
 
 					break;
 				}
-
 
 				case(io_pin_timer):
 				{
@@ -1149,6 +1163,7 @@ iram void io_periodic(void)
 	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
 	int value;
+	int trigger;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -1223,10 +1238,12 @@ iram void io_periodic(void)
 				{
 					if((info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
 					{
-						io_trigger_pin((string_t *)0,
-								pin_config->shared.trigger.io.io,
-								pin_config->shared.trigger.io.pin,
-								pin_config->shared.trigger.trigger_mode);
+						for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
+							io_trigger_pin((string_t *)0,
+									pin_config->shared.trigger[trigger].io.io,
+									pin_config->shared.trigger[trigger].io.pin,
+									pin_config->shared.trigger[trigger].action);
+
 						info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
 					}
 
@@ -1379,54 +1396,92 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if((parse_int(4, src, &debounce, 0) != parse_ok))
 			{
-				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
+				iomode_trigger_usage(dst);
 				return(app_action_error);
 			}
 
-			if((parse_int(5, src, &trigger_io, 0) != parse_ok))
-			{
-				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
-				return(app_action_error);
-			}
+			pin_config->speed = debounce;
 
-			if((parse_int(6, src, &trigger_pin, 0) != parse_ok))
-			{
-				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
-				return(app_action_error);
-			}
-
-			if((parse_string(7, src, dst) != parse_ok))
+			if((parse_string(5, src, dst) != parse_ok))
 			{
 				string_clear(dst);
-				string_cat(dst, "trigger: <debounce ms> <io> <pin> <action>\n");
-				return(app_action_error);
-			}
-
-			trigger_type = string_to_trigger_type(dst);
-
-			if(trigger_type == io_trigger_error)
-			{
-				string_clear(dst);
-				string_cat(dst, "trigger: <io> <pin> <action>\n");
+				iomode_trigger_usage(dst);
 				return(app_action_error);
 			}
 
 			string_clear(dst);
 
-			pin_config->speed = debounce;
-			pin_config->shared.trigger.io.io = trigger_io;
-			pin_config->shared.trigger.io.pin = trigger_pin;
-			pin_config->shared.trigger.trigger_mode = trigger_type;
+			if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+			{
+				string_clear(dst);
+				iomode_trigger_usage(dst);
+				return(app_action_error);
+			}
 
+			if((parse_int(6, src, &trigger_io, 0) != parse_ok))
+			{
+				iomode_trigger_usage(dst);
+				return(app_action_error);
+			}
+
+			if((parse_int(7, src, &trigger_pin, 0) != parse_ok))
+			{
+				iomode_trigger_usage(dst);
+				return(app_action_error);
+			}
+
+			pin_config->shared.trigger[0].io.io = trigger_io;
+			pin_config->shared.trigger[0].io.pin = trigger_pin;
+			pin_config->shared.trigger[0].action = trigger_type;
+
+			pin_config->shared.trigger[1].io.io = -1;
+			pin_config->shared.trigger[1].io.pin = -1;
+			pin_config->shared.trigger[1].action = io_trigger_none;
+
+			if((parse_string(8, src, dst) != parse_ok))
+			{
+				string_clear(dst);
+				goto skip;
+			}
+
+			string_clear(dst);
+
+			if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+			{
+				string_clear(dst);
+				goto skip;
+			}
+
+			if((parse_int(9, src, &trigger_io, 0) != parse_ok))
+				goto skip;
+
+			if((parse_int(10, src, &trigger_pin, 0) != parse_ok))
+				goto skip;
+
+			pin_config->shared.trigger[1].io.io = trigger_io;
+			pin_config->shared.trigger[1].io.pin = trigger_pin;
+			pin_config->shared.trigger[1].action = trigger_type;
+
+skip:
 			llmode = io_pin_ll_counter;
 
 			config_delete("io.%u.%u.", io, pin, true);
 			config_set_int("io.%u.%u.mode", io, pin, mode);
 			config_set_int("io.%u.%u.llmode", io, pin, io_pin_ll_counter);
 			config_set_int("io.%u.%u.trigger.debounce", io, pin, debounce);
-			config_set_int("io.%u.%u.trigger.io", io, pin, trigger_io);
-			config_set_int("io.%u.%u.trigger.pin", io, pin, trigger_pin);
-			config_set_int("io.%u.%u.trigger.type", io, pin, trigger_type);
+
+			config_set_int("io.%u.%u.trigger.0.io", io, pin, pin_config->shared.trigger[0].io.io);
+			config_set_int("io.%u.%u.trigger.0.pin", io, pin, pin_config->shared.trigger[0].io.pin);
+			config_set_int("io.%u.%u.trigger.0.type", io, pin, pin_config->shared.trigger[0].action);
+
+			if((pin_config->shared.trigger[1].io.io >= 0) &&
+				(pin_config->shared.trigger[1].io.pin >= 0) &&
+				(pin_config->shared.trigger[1].action != io_trigger_none))
+			{
+				config_set_int("io.%u.%u.trigger.1.io", io, pin, pin_config->shared.trigger[1].io.io);
+				config_set_int("io.%u.%u.trigger.1.pin", io, pin, pin_config->shared.trigger[1].io.pin);
+				config_set_int("io.%u.%u.trigger.1.type", io, pin, pin_config->shared.trigger[1].action);
+			}
 
 			break;
 		}
@@ -2198,13 +2253,21 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				{
 					if(error == io_ok)
 					{
-						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->speed,
-								pin_config->shared.trigger.io.io,
-								pin_config->shared.trigger.io.pin);
+						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->speed);
+						string_format_ptr(dst, (*strings)[ds_id_trigger_2], 0,
+								pin_config->shared.trigger[0].io.io,
+								pin_config->shared.trigger[0].io.pin);
+						trigger_action_to_string(dst, pin_config->shared.trigger[0].action);
 
-						trigger_type_to_string(pin_config->shared.trigger.trigger_mode, dst);
-
-						string_cat_ptr(dst, (*strings)[ds_id_trigger_2]);
+						if(pin_config->shared.trigger[1].action != io_trigger_none)
+						{
+							string_cat(dst, "\n");
+							string_format_ptr(dst, (*strings)[ds_id_trigger_2], 1,
+									pin_config->shared.trigger[1].io.io,
+									pin_config->shared.trigger[1].io.pin);
+							trigger_action_to_string(dst, pin_config->shared.trigger[1].action);
+						}
+						string_cat_ptr(dst, (*strings)[ds_id_trigger_3]);
 					}
 					else
 						string_cat_ptr(dst, (*strings)[ds_id_error]);
