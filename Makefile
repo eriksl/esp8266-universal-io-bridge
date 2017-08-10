@@ -139,17 +139,20 @@ ifeq ($(IMAGE),ota)
 	FLASH_TARGET := flash-ota
 endif
 
-WARNINGS		:= -Wall -Wextra -Werror -Wformat=2 -Wuninitialized -Wno-pointer-sign \
-					-Wno-unused-parameter -Wsuggest-attribute=const -Wsuggest-attribute=pure \
-					-Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement -Wundef \
-					-Wshadow -Wpointer-arith -Wbad-function-cast \
-					-Wcast-qual -Wwrite-strings -Wsequence-point -Wclobbered \
-					-Wlogical-op -Wmissing-field-initializers -Wpacked -Wredundant-decls \
-					-Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization -Wunreachable-code \
-					-Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses -Wimplicit \
-					-Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
-					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align -Wno-format-security -Wno-format-nonliteral
-CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -D__ets__ -Wframe-larger-than=450 -DICACHE_FLASH \
+WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitialized \
+					-Wno-pointer-sign -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement \
+					-Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wwrite-strings \
+					-Wsequence-point -Wclobbered -Wlogical-op -Wmissing-field-initializers -Wpacked \
+					-Wredundant-decls -Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization \
+					-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
+					-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
+					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align \
+					-Wno-format-security -Wno-format-nonliteral \
+					-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
+					-Wsuggest-attribute=const -Wsuggest-attribute=pure
+
+CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks \
+						-D__ets__ -Wframe-larger-than=450 -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
 						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
