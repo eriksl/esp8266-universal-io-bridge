@@ -172,7 +172,27 @@ iram static noinline i2c_error_t send_start(void)
 	delay();
 
 	if(scl_is_low())
+	{
+		scl_high();
+		delay();
+		delay();
+	}
+
+	if(scl_is_low())
 		return(i2c_error_bus_lock);
+
+	if(sda_is_low())
+	{
+		scl_low();
+		delay();
+		delay();
+		sda_high();
+		delay();
+		delay();
+		scl_high();
+		delay();
+		delay();
+	}
 
 	if(sda_is_low())
 		return(i2c_error_sda_stuck);
