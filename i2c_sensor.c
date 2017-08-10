@@ -1899,6 +1899,85 @@ irom static i2c_error_t sensor_max44009_read(int bus, const device_table_entry_t
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_veml6075_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[2];
+
+	if((error = i2c_send_receive(entry->address, 0x0c, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != 0x26) || (i2c_buffer[1] != 0x00))
+		return(i2c_error_device_error_1);
+
+	if(i2c_send_2(entry->address, 0x00 /* conf */, 0x01 /* shutdown */) != i2c_error_ok)
+		return(i2c_error_device_error_2);
+
+	if(i2c_send_2(entry->address, 0x00 /* conf */, 0b01000000) != i2c_error_ok)
+		return(i2c_error_device_error_3);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_veml6075_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	static const double a = 2.22;
+	static const double b = 1.33;
+	static const double c = 2.95;
+	static const double d = 1.74;
+	static const double k1 = 1;
+	static const double k2 = 1;
+	static const double uvar = 0.001461;
+	static const double uvbr = 0.002591;
+
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[2];
+	int			uva_data;
+	int 		uvb_data;
+	double		uv_comp1_data;
+	double		uv_comp2_data;
+	double		uva, uvb;
+	double		uvia, uvib, uvi;
+
+	if((error = i2c_send_receive(entry->address, 0x07, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	uva_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	if((error = i2c_send_receive(entry->address, 0x09, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	uvb_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	if((error = i2c_send_receive(entry->address, 0x0a, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	uv_comp1_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	if((error = i2c_send_receive(entry->address, 0x0b, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	uv_comp2_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	uva	= uva_data - (a * uv_comp1_data) - (b * uv_comp2_data);
+	uvb	= uvb_data - (c * uv_comp1_data) - (d * uv_comp2_data);
+
+	if(uva < 0)
+		uva = 0;
+
+	if(uvb < 0)
+		uvb = 0;
+
+	uvia	= uva * k1 * uvar;
+	uvib	= uvb * k2 * uvbr;
+	uvi		= (uvia + uvib) / 2;
+
+	value->raw = (unsigned int)uva * 10000 + (unsigned int)uvb;
+	value->cooked = uvi;
+
+	return(i2c_error_ok);
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -2056,6 +2135,12 @@ static const device_table_entry_t device_table[] =
 		"max44009 #0", "visible light", "", 2,
 		sensor_max44009_init,
 		sensor_max44009_read,
+	},
+	{
+		i2c_sensor_veml6075, 0x10,
+		"veml6075", "uv light", "", 2,
+		sensor_veml6075_init,
+		sensor_veml6075_read,
 	},
 };
 
