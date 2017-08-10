@@ -51,6 +51,9 @@ typedef enum attr_packed
 	io_trigger_on,
 	io_trigger_down,
 	io_trigger_up,
+	io_trigger_toggle,
+	io_trigger_stop,
+	io_trigger_start,
 	io_trigger_size,
 	io_trigger_error = io_trigger_size
 } io_trigger_t;
@@ -163,8 +166,9 @@ assert_size(io_flags_t, 4);
 
 typedef struct
 {
-	io_direction_t	direction;
 	uint16_t		speed;
+	io_direction_t	direction;
+	int				saved_value;
 } io_data_pin_entry_t;
 
 typedef struct

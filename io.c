@@ -286,6 +286,12 @@ irom static io_trigger_t string_to_trigger_type(const string_t *string)
 		return(io_trigger_down);
 	if(string_match(string, "up"))
 		return(io_trigger_up);
+	if(string_match(string, "toggle"))
+		return(io_trigger_toggle);
+	if(string_match(string, "stop"))
+		return(io_trigger_stop);
+	if(string_match(string, "start"))
+		return(io_trigger_start);
 
 	return(io_trigger_error);
 }
@@ -312,6 +318,21 @@ irom static void trigger_type_to_string(io_trigger_t trigger_type, string_t *str
 		case(io_trigger_up):
 		{
 			string_cat(string, "up");
+			break;
+		}
+		case(io_trigger_toggle):
+		{
+			string_cat(string, "toggle");
+			break;
+		}
+		case(io_trigger_stop):
+		{
+			string_cat(string, "stop");
+			break;
+		}
+		case(io_trigger_start):
+		{
+			string_cat(string, "start");
 			break;
 		}
 		default:
@@ -584,20 +605,52 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
 				return(error);
 
+			if(trigger_type == io_trigger_toggle)
+			{
+				if(value == 0)
+					trigger_type = io_trigger_on;
+				else
+					trigger_type = io_trigger_off;
+			}
+
 			switch(trigger_type)
 			{
 				case(io_trigger_off):
 				{
-					pin_data->speed = 0;
 					pin_data->direction = io_dir_none;
+					pin_data->speed = 0;
+					pin_data->saved_value = value;
+					value = 0;
 
 					break;
 				}
 
 				case(io_trigger_on):
 				{
-					pin_data->speed = pin_config->speed;
+					if(pin_data->saved_value > 0)
+						value = pin_data->saved_value;
+					else
+						value = pin_config->shared.output_analog.upper_bound;
+
+					pin_data->saved_value = 0;
+
+					break;
+				}
+
+				case(io_trigger_stop):
+				{
+					pin_data->direction = io_dir_none;
+					pin_data->speed = 0;
+
+					break;
+				}
+
+				case(io_trigger_start):
+				{
 					pin_data->direction = io_dir_up;
+					pin_data->speed = pin_config->speed;
+					value = pin_data->saved_value;
+					pin_data->saved_value = 0;
 
 					break;
 				}
@@ -802,6 +855,7 @@ irom void io_init(void)
 			pin_data = &data->pin[pin];
 			pin_data->direction = io_dir_none;
 			pin_data->speed = 0;
+			pin_data->saved_value = 0;
 
 			pin_config = &io_config[io][pin];
 
@@ -1828,7 +1882,7 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 
 usage:
 	string_clear(dst);
-	string_cat(dst, "io-trigger <io> <pin> <action> (action = off/on/down/up)\n");
+	string_cat(dst, "io-trigger <io> <pin> <action> (action = off/on/down/up/toggle/stop/start)\n");
 	return(app_action_error);
 }
 
@@ -1975,7 +2029,7 @@ static const roflash dump_string_t dump_strings =
 		"",
 		"output, state: %s",
 		"timer, config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
-		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d",
+		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d, saved value: %d",
 		"i2c/sda",
 		"i2c/scl",
 		"uart",
@@ -2005,7 +2059,7 @@ static const roflash dump_string_t dump_strings =
 		"</td>",
 		"<td>output</td><td>state: %s</td>",
 		"<td>timer</td><td>config direction: %s, speed: %d ms</td><<td>current direction %s, delay: %d ms, state: %s</td>",
-		"<td>analog output</td><td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d",
+		"<td>analog output</td><td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d, saved value: %d",
 		"<td>i2c</td><td>sda</td>",
 		"<td>i2c</td><td>scl, speed: %d</td>",
 		"<td>uart</td>",
@@ -2017,7 +2071,7 @@ static const roflash dump_string_t dump_strings =
 		"<table border=\"1\"><tr><th>index</th><th>name</th><th>mode</th><th colspan=\"8\"></th></tr>",
 		"</table>\n",
 		"<tr>",
-		"</trd>\n",
+		"</tr>\n",
 		"<td>error</td>",
 	}
 };
@@ -2164,7 +2218,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 								pin_config->shared.output_analog.upper_bound,
 								pin_config->speed,
 								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
-								value);
+								value, pin_data->saved_value);
 					else
 						string_cat_ptr(dst, (*strings)[ds_id_error]);
 
