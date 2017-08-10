@@ -460,7 +460,7 @@ irom void i2c_init(int sda_in, int scl_in)
 	}
 }
 
-iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
+iram i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -501,7 +501,7 @@ iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 		}
 	}
 
-	if((error = send_stop()) != i2c_error_ok)
+	if(sendstop && (error = send_stop()) != i2c_error_ok)
 		goto bail;
 
 	return(i2c_error_ok);
@@ -519,7 +519,8 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
 
-	if(state != i2c_state_idle)
+	// state can be idle (normal) or active (repeated start)
+	if((state != i2c_state_idle) && (state != i2c_state_data_send_ack_received))
 	{
 		error = i2c_error_invalid_state_not_idle;
 		goto bail;
@@ -559,7 +560,7 @@ irom i2c_error_t i2c_send_1(int address, int byte0)
 
 	bytes[0] = byte0;
 
-	return(i2c_send(address, 1, bytes));
+	return(i2c_send(address, true, 1, bytes));
 }
 
 irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
@@ -569,7 +570,7 @@ irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 	bytes[0] = byte0;
 	bytes[1] = byte1;
 
-	return(i2c_send(address, 2, bytes));
+	return(i2c_send(address, true, 2, bytes));
 }
 
 irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
@@ -580,7 +581,7 @@ irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 	bytes[1] = byte1;
 	bytes[2] = byte2;
 
-	return(i2c_send(address, 3, bytes));
+	return(i2c_send(address, true, 3, bytes));
 }
 
 irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
@@ -592,7 +593,20 @@ irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int by
 	bytes[2] = byte2;
 	bytes[3] = byte3;
 
-	return(i2c_send(address, 4, bytes));
+	return(i2c_send(address, true, 4, bytes));
+}
+
+irom i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_t *receivebytes)
+{
+	uint8_t sendbytes[1];
+	i2c_error_t rv;
+
+	sendbytes[0] = sendbyte0 & 0xff;
+
+	if((rv = (i2c_send(address, false, 1, sendbytes))) != i2c_error_ok)
+		return(rv);
+
+	return(i2c_receive(address, length, receivebytes));
 }
 
 irom i2c_error_t i2c_select_bus(unsigned int bus)

@@ -584,7 +584,7 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 		bytes[current] = (uint8_t)(out & 0xff);
 	}
 
-	if((error = i2c_send(i2c_address, current, bytes)) != i2c_error_ok)
+	if((error = i2c_send(i2c_address, true, current, bytes)) != i2c_error_ok)
 	{
 		string_cat(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
@@ -593,6 +593,51 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 	}
 
 	string_format(dst, "i2c_write: written %d bytes to %02x\n", current, i2c_address);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_i2c_write_read(const string_t *src, string_t *dst)
+{
+	i2c_error_t error;
+	uint8_t sendbytes[1];
+	uint8_t receivebytes[32];
+	int amount, current, out;
+
+	if(parse_int(1, src, &out, 16) != parse_ok)
+	{
+		string_cat(dst, "usage: i2wr <send byte> <amount to read>\n");
+		return(app_action_error);
+	}
+
+	sendbytes[0] = (uint8_t)(out & 0xff);
+
+	if(parse_int(2, src, &amount, 0) != parse_ok)
+	{
+		string_cat(dst, "usage: i2wr <send byte> <amount to read>\n");
+		return(app_action_error);
+	}
+
+	if((amount < 0) || (amount >= (int)sizeof(receivebytes)))
+	{
+		string_format(dst, "i2wr: max read %d bytes\n", sizeof(receivebytes));
+		return(app_action_error);
+	}
+
+	if((error = i2c_send_receive(i2c_address, sendbytes[0], amount, receivebytes)) != i2c_error_ok)
+	{
+		string_cat(dst, "i2wr");
+		i2c_error_format_string(dst, error);
+		string_cat(dst, "\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "> i2wr: read %d bytes from %02x:", amount, i2c_address);
+
+	for(current = 0; current < amount; current++)
+		string_format(dst, " %02x", receivebytes[current]);
+
+	string_cat(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -1342,6 +1387,11 @@ static const application_function_table_t application_function_table[] =
 		"i2w", "i2c-write",
 		application_function_i2c_write,
 		"write data to i2c slave",
+	},
+	{
+		"i2wr", "i2c-write-read",
+		application_function_i2c_write_read,
+		"write data to i2c slave and read back data",
 	},
 	{
 		"im", "io-mode",

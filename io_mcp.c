@@ -49,7 +49,7 @@ irom static io_error_t read_register(string_t *error_message, int address, int r
 
 	i2cbuffer[0] = reg;
 
-	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send(address, true, 1, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -78,7 +78,7 @@ irom static io_error_t write_register(string_t *error_message, int address, int 
 	i2cbuffer[0] = reg;
 	i2cbuffer[1] = value;
 
-	if((error = i2c_send(address, 2, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send(address, true, 2, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -96,7 +96,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 
 	i2cbuffer[0] = reg;
 
-	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send(address, true, 1, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -115,7 +115,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 	i2cbuffer[1] &= ~clearmask;
 	i2cbuffer[1] |= setmask;
 
-	if((error = i2c_send(address, 2, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send(address, true, 2, &i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
