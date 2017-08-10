@@ -276,71 +276,84 @@ irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 	string_cat(name, "error");
 }
 
-irom static io_trigger_t string_to_trigger_type(const string_t *string)
+typedef struct
 {
-	if(string_match(string, "off"))
-		return(io_trigger_off);
-	if(string_match(string, "on"))
-		return(io_trigger_on);
-	if(string_match(string, "down"))
-		return(io_trigger_down);
-	if(string_match(string, "up"))
-		return(io_trigger_up);
-	if(string_match(string, "toggle"))
-		return(io_trigger_toggle);
-	if(string_match(string, "stop"))
-		return(io_trigger_stop);
-	if(string_match(string, "start"))
-		return(io_trigger_start);
+	io_trigger_t	id;
+	const char		*name;
+} io_trigger_action_t;
+
+static io_trigger_action_t io_trigger_action[io_trigger_size] =
+{
+	{ io_trigger_none,		"none"		},
+	{ io_trigger_off,		"off"		},
+	{ io_trigger_on,		"on"		},
+	{ io_trigger_down,		"down"		},
+	{ io_trigger_up,		"up"		},
+	{ io_trigger_toggle,	"toggle"	},
+	{ io_trigger_stop,		"stop"		},
+	{ io_trigger_start,		"start"		},
+};
+
+irom static io_trigger_t string_to_trigger_action(const string_t *src)
+{
+	int ix;
+	const io_trigger_action_t *entry;
+
+	for(ix = 0; ix < io_trigger_size; ix++)
+	{
+		entry = &io_trigger_action[ix];
+
+		if(string_match(src, entry->name))
+			return(entry->id);
+	}
 
 	return(io_trigger_error);
 }
 
-irom static void trigger_type_to_string(io_trigger_t trigger_type, string_t *string)
+irom static void trigger_actions_to_string(string_t *dst)
+
 {
-	switch(trigger_type)
+	int ix;
+	const io_trigger_action_t *entry;
+
+	for(ix = 0; ix < io_trigger_size; ix++)
 	{
-		case(io_trigger_off):
+		entry = &io_trigger_action[ix];
+		string_format(dst, "%s", entry->name);
+	}
+}
+
+irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
+{
+	int ix;
+	const io_trigger_action_t *entry;
+
+	for(ix = 0; ix < io_trigger_size; ix++)
+	{
+		entry = &io_trigger_action[ix];
+
+		if(entry->id == id)
 		{
-			string_cat(string, "off");
-			break;
-		}
-		case(io_trigger_on):
-		{
-			string_cat(string, "on");
-			break;
-		}
-		case(io_trigger_down):
-		{
-			string_cat(string, "down");
-			break;
-		}
-		case(io_trigger_up):
-		{
-			string_cat(string, "up");
-			break;
-		}
-		case(io_trigger_toggle):
-		{
-			string_cat(string, "toggle");
-			break;
-		}
-		case(io_trigger_stop):
-		{
-			string_cat(string, "stop");
-			break;
-		}
-		case(io_trigger_start):
-		{
-			string_cat(string, "start");
-			break;
-		}
-		default:
-		{
-			string_cat(string, "error");
-			break;
+			string_format(name, "%s", entry->name);
+			return;
 		}
 	}
+
+	string_cat(name, "error");
+}
+
+irom static void trigger_usage(string_t *dst)
+{
+	string_cat(dst, "usage: io-trigger <io> <pin> <action>\n");
+	string_cat(dst, "action: ");
+	trigger_actions_to_string(dst);
+}
+
+irom static void iomode_trigger_usage(string_t *dst)
+{
+	string_cat(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
+	string_cat(dst, "action: ");
+	trigger_actions_to_string(dst);
 }
 
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
@@ -1839,7 +1852,11 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	io_trigger_t trigger_type;
 
 	if(parse_int(1, src, &io, 0) != parse_ok)
-		goto usage;
+	{
+		string_clear(dst);
+		trigger_usage(dst);
+		return(app_action_normal);
+	}
 
 	if((io < 0) || (io >= io_id_size))
 	{
@@ -1850,7 +1867,11 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	info = &io_info[io];
 
 	if(parse_int(2, src, &pin, 0) != parse_ok)
-		goto usage;
+	{
+		string_clear(dst);
+		trigger_usage(dst);
+		return(app_action_normal);
+	}
 
 	if((pin < 0) || (pin >= info->pins))
 	{
@@ -1859,15 +1880,23 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	}
 
 	if(parse_string(3, src, dst) != parse_ok)
-		goto usage;
+	{
+		string_clear(dst);
+		trigger_usage(dst);
+		return(app_action_normal);
+	}
 
-	if((trigger_type = string_to_trigger_type(dst)) == io_trigger_error)
-		goto usage;
+	if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+	{
+		string_clear(dst);
+		trigger_usage(dst);
+		return(app_action_normal);
+	}
 
 	string_clear(dst);
 
 	string_cat(dst, "trigger ");
-	trigger_type_to_string(trigger_type, dst);
+	trigger_action_to_string(dst, trigger_type);
 	string_format(dst, " %u/%u: ", io, pin);
 
 	if(io_trigger_pin(dst, io, pin, trigger_type) != io_ok)
@@ -1879,11 +1908,6 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	string_cat(dst, "ok\n");
 
 	return(app_action_normal);
-
-usage:
-	string_clear(dst);
-	string_cat(dst, "io-trigger <io> <pin> <action> (action = off/on/down/up/toggle/stop/start)\n");
-	return(app_action_error);
 }
 
 irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, int value)
@@ -1985,6 +2009,7 @@ typedef enum
 	ds_id_counter,
 	ds_id_trigger_1,
 	ds_id_trigger_2,
+	ds_id_trigger_3,
 	ds_id_output,
 	ds_id_timer,
 	ds_id_analog_output,
@@ -2025,8 +2050,9 @@ static const roflash dump_string_t dump_strings =
 		"disabled",
 		"input, state: %s",
 		"counter, counter: %d, debounce: %d",
-		"trigger, counter: %d, debounce: %d, io: %d, pin: %d, trigger type: ",
-		"",
+		"trigger, counter: %d, debounce: %d\n",
+		"            action #%d: %d, io: %d, pin: %d, action: ",
+		"\n           ",
 		"output, state: %s",
 		"timer, config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
 		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d, saved value: %d",
@@ -2055,7 +2081,8 @@ static const roflash dump_string_t dump_strings =
 		"<td>disabled</td>",
 		"<td>input</td><td>state: %s</td>",
 		"<td>counter</td><td><td>counter: %d</td><td>debounce: %d</td>",
-		"<td>trigger</td><td>counter: %d</td><td>debounce: %d</td><td>io: %d</td><td>pin: %d</td><td>trigger type: ",
+		"<td>trigger</td><td>counter: %d</td><td>debounce: %d</td>",
+		"<td>action #%d</td><td>io: %d</td><td>pin: %d</td><td>trigger action: ",
 		"</td>",
 		"<td>output</td><td>state: %s</td>",
 		"<td>timer</td><td>config direction: %s, speed: %d ms</td><<td>current direction %s, delay: %d ms, state: %s</td>",
