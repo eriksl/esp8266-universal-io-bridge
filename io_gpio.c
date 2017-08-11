@@ -322,7 +322,7 @@ irom static bool_t pwm_go(void)
 	gpio_data_pin_t *pin1_data, *pin2_data, *pin3_data;
 	int pin1, pin2, pin3;
 	pwm_phases_t *phase_data;
-	unsigned int duty, delta, new_set, pwm_period;
+	unsigned int duty, delta, new_phase_set, pwm_period;
 
 	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
 		pwm_period = 65536;
@@ -431,7 +431,7 @@ irom static bool_t pwm_go(void)
 				}
 	}
 
-	phase_data = &pwm_phase[new_set];
+	phase_data = &pwm_phase[new_phase_set];
 
 	phase_data->phase[0].duty = 0;
 	phase_data->phase[0].delay = 0;
