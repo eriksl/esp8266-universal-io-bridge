@@ -85,8 +85,6 @@ typedef union
 } gpio_data_pin_t;
 
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
-static uint32_t pwm_static_set_mask;
-static uint32_t pwm_static_clear_mask;
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
@@ -215,12 +213,15 @@ typedef struct
 typedef struct
 {
 	unsigned int	size;
+	uint32_t		init_set_mask;
+	uint32_t		init_clear_mask;
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
 
 typedef struct
 {
-	unsigned int	pwm_swap_phase_set:1;
+	unsigned int	pwm_reset_phase_set:1;
+	unsigned int	pwm_next_phase_set:1;
 	unsigned int	pwm_cpu_high_speed:1;
 	unsigned int	counter_triggered:1;
 } io_gpio_flags_t;
@@ -244,9 +245,14 @@ iram static inline void pwm_isr_enable(bool_t onoff)
 		ets_isr_mask(1 << ETS_FRC_TIMER1_INUM);
 }
 
-iram static inline void pwm_timer_reload(uint32_t value)
+iram static inline void pwm_timer_set(uint32_t value)
 {
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
+}
+
+iram static inline uint32_t pwm_timer_get(void)
+{
+	return(read_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_COUNT_ADDRESS));
 }
 
 iram static void pwm_isr(void)
@@ -265,15 +271,16 @@ iram static void pwm_isr(void)
 
 		if(phase == 0)
 		{
-			if(io_gpio_flags.pwm_swap_phase_set)
-			{
-				gpio_set_mask(pwm_static_set_mask);
-				gpio_clear_mask(pwm_static_clear_mask);
-				pwm_static_set_mask = 0;
-				pwm_static_clear_mask = 0;
+			if(io_gpio_flags.pwm_next_phase_set)
 				pwm_current_phase_set = (pwm_current_phase_set + 1) & 0x01;
-				io_gpio_flags.pwm_swap_phase_set = 0;
+
+			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
+			{
 				phase_data = &pwm_phase[pwm_current_phase_set];
+				gpio_set_mask(phase_data->init_set_mask);
+				gpio_clear_mask(phase_data->init_clear_mask);
+				io_gpio_flags.pwm_reset_phase_set = 0;
+				io_gpio_flags.pwm_next_phase_set = 0;
 			}
 
 			if(phase_data->size < 2)
@@ -308,14 +315,14 @@ iram static void pwm_isr(void)
 				else
 					delay -= 14;
 
-				pwm_timer_reload(delay);
+				pwm_timer_set(delay);
 
 				return;
 			}
 	}
 }
 
-irom static bool_t pwm_go(void)
+irom static void pwm_go(void)
 {
 	io_config_pin_entry_t *pin1_config;
 	gpio_info_t *pin1_info;
@@ -323,17 +330,32 @@ irom static bool_t pwm_go(void)
 	int pin1, pin2, pin3;
 	pwm_phases_t *phase_data;
 	unsigned int duty, delta, new_phase_set, pwm_period;
+	uint32_t timer_value;
+	bool_t isr_enabled;
 
 	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
 		pwm_period = 65536;
 
-	if(io_gpio_flags.pwm_swap_phase_set)
-		return(false);
+	isr_enabled = pwm_isr_enabled();
+	pwm_isr_enable(false);
+	timer_value = pwm_timer_get();
 
-	new_set = pwm_current_phase_set;
+	if(timer_value < 32)
+		timer_value = 32;
 
-	if(pwm_isr_enabled())
-		new_set = (new_set + 1) & 0x01;
+	if(timer_value > pwm_period)
+		timer_value = pwm_period;
+
+	// if next set is already active or ISR is off, suspend ISR and re-configure current set
+
+	if(io_gpio_flags.pwm_next_phase_set || !isr_enabled)
+		new_phase_set = pwm_current_phase_set;
+	else // configure new set, release ISR using current set
+	{
+		new_phase_set = (pwm_current_phase_set + 1) & 0x01;
+		pwm_timer_set(timer_value);
+		pwm_isr_enable(true);
+	}
 
 	io_gpio_flags.pwm_cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
@@ -360,6 +382,10 @@ irom static bool_t pwm_go(void)
 
 	// create linked list
 
+	phase_data = &pwm_phase[new_phase_set];
+	phase_data->init_clear_mask = 0;
+	phase_data->init_set_mask = 0;
+
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
 		pin1_info	= &gpio_info_table[pin1];
@@ -370,20 +396,10 @@ irom static bool_t pwm_go(void)
 			continue;
 
 		if(pin1_data->pwm.duty == 0)
-		{
-			if(new_set == pwm_current_phase_set)
-				gpio_set(pin1, 0);
-			else
-				pwm_static_clear_mask |= 1 << pin1;
-		}
+			phase_data->init_clear_mask |= 1 << pin1;
 		else
 			if((pin1_data->pwm.duty + 1) >= pwm_period)
-			{
-				if(new_set == pwm_current_phase_set)
-					gpio_set(pin1, 1);
-				else
-					pwm_static_set_mask |= 1 << pin1;
-			}
+				phase_data->init_set_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
 				{
@@ -431,8 +447,6 @@ irom static bool_t pwm_go(void)
 				}
 	}
 
-	phase_data = &pwm_phase[new_phase_set];
-
 	phase_data->phase[0].duty = 0;
 	phase_data->phase[0].delay = 0;
 	phase_data->phase[0].mask = 0x0000;
@@ -475,15 +489,18 @@ irom static bool_t pwm_go(void)
 	}
 #endif
 
-	if(!pwm_isr_enabled()) // ISR will turn itself off immediately when no phases present
+	if(new_phase_set == pwm_current_phase_set)
 	{
+		io_gpio_flags.pwm_reset_phase_set = 1;
+		io_gpio_flags.pwm_next_phase_set = 0;
+		pwm_timer_set(timer_value);
 		pwm_isr_enable(true);
-		pwm_timer_reload(32);
 	}
 	else
-		io_gpio_flags.pwm_swap_phase_set = 1;
-
-	return(true);
+	{
+		io_gpio_flags.pwm_reset_phase_set = 0;
+		io_gpio_flags.pwm_next_phase_set = 1;
+	}
 }
 
 iram inline static void pin_arm_counter(int pin, bool_t enable)
@@ -536,7 +553,8 @@ iram static void pc_int_isr(void *arg)
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	pwm_current_phase_set = 0;
-	io_gpio_flags.pwm_swap_phase_set = 0;
+	io_gpio_flags.pwm_reset_phase_set = 0;
+	io_gpio_flags.pwm_next_phase_set = 0;
 
 	pwm_phase[0].size = 0;
 	pwm_phase[1].size = 0;
@@ -813,7 +831,6 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	gpio_data_pin_t *gpio_pin_data;
-	int saved_value;
 
 	if(!gpio_info_table[pin].valid)
 	{
@@ -847,11 +864,8 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 			if(gpio_pin_data->pwm.duty != (unsigned int)value)
 			{
-				saved_value = value;
 				gpio_pin_data->pwm.duty = value;
-
-				if(!pwm_go())
-					gpio_pin_data->pwm.duty = saved_value;
+				pwm_go();
 			}
 
 			break;
