@@ -636,7 +636,10 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				{
 					pin_data->direction = io_dir_none;
 					pin_data->speed = 0;
-					pin_data->saved_value = value;
+
+					if(value > 0)
+						pin_data->saved_value = value;
+
 					value = 0;
 
 					break;
@@ -644,12 +647,15 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 				case(io_trigger_on):
 				{
-					if(pin_data->saved_value > 0)
-						value = pin_data->saved_value;
-					else
-						value = pin_config->shared.output_analog.upper_bound;
+					if(value == 0)
+					{
+						if(pin_data->saved_value > 0)
+							value = pin_data->saved_value;
+						else
+							value = pin_config->shared.output_analog.upper_bound;
 
-					pin_data->saved_value = 0;
+						pin_data->saved_value = 0;
+					}
 
 					break;
 				}
