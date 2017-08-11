@@ -319,6 +319,10 @@ irom static void trigger_actions_to_string(string_t *dst)
 	for(ix = 0; ix < io_trigger_size; ix++)
 	{
 		entry = &io_trigger_action[ix];
+
+		if(ix > 0)
+			string_cat(dst, ", ");
+
 		string_format(dst, "%s", entry->name);
 	}
 }
@@ -345,14 +349,14 @@ irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
 irom static void trigger_usage(string_t *dst)
 {
 	string_cat(dst, "usage: io-trigger <io> <pin> <action>\n");
-	string_cat(dst, "action: ");
+	string_cat(dst, "    action: ");
 	trigger_actions_to_string(dst);
 }
 
 irom static void iomode_trigger_usage(string_t *dst)
 {
 	string_cat(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
-	string_cat(dst, "action: ");
+	string_cat(dst, "    action: ");
 	trigger_actions_to_string(dst);
 }
 
@@ -2106,7 +2110,7 @@ static const roflash dump_string_t dump_strings =
 		"input, state: %s",
 		"counter, counter: %d, debounce: %d",
 		"trigger, counter: %d, debounce: %d\n",
-		"            action #%d: %d, io: %d, pin: %d, action: ",
+		"            action #%d: io: %d, pin: %d, action: ",
 		"\n           ",
 		"output, state: %s",
 		"timer, config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
