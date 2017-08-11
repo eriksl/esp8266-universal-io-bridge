@@ -1136,10 +1136,19 @@ irom void io_init(void)
 						case(io_pin_output_digital):
 						case(io_pin_lcd):
 						case(io_pin_timer):
-						case(io_pin_output_analog):
 						{
+							// FIXME: add auto-on flag
 							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
 									pin_config->flags.autostart ? io_trigger_on : io_trigger_off);
+
+							break;
+						}
+
+						case(io_pin_output_analog):
+						{
+							// FIXME: add auto-on flag
+							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
+									pin_config->flags.autostart ? io_trigger_start : io_trigger_stop);
 							break;
 						}
 
