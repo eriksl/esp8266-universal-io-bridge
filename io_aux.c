@@ -1,24 +1,76 @@
 #include "io_aux.h"
 
+#include "io_gpio.h"
 #include "util.h"
 
 #include <user_interface.h>
 
 #include <stdlib.h>
 
-irom static void setclear_perireg(uint32_t reg, uint32_t clear, uint32_t set)
+typedef union
 {
-	uint32_t tmp;
+	struct
+	{
+		unsigned int counter;
+		unsigned int debounce;
+		unsigned int last_value;
+	} counter;
+} io_aux_data_pin_t;
 
-	tmp = READ_PERI_REG(reg);
-	tmp &= (uint32_t)~clear;
-	tmp |= set;
-    WRITE_PERI_REG(reg, tmp);
-}
+static io_aux_data_pin_t aux_pin_data[io_aux_pin_size];
 
 irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 {
+	int pin;
+
+	for(pin = io_aux_pin_rtc; pin < io_aux_pin_size; pin++)
+	{
+		aux_pin_data[pin].counter.counter = 0;
+		aux_pin_data[pin].counter.debounce = 0;
+		aux_pin_data[pin].counter.last_value = 0;
+	}
+
 	return(io_ok);
+}
+
+iram void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+{
+	int pin;
+
+	for(pin = io_aux_pin_rtc; pin < io_aux_pin_size; pin++)
+	{
+		io_config_pin_entry_t *pin_config = &io_config[io][pin];
+
+		if(pin_config->llmode == io_pin_ll_counter)
+		{
+			io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
+
+			// debouncing on input requested && debouncing period active
+			if((pin_config->speed != 0) && (io_aux_data_pin->counter.debounce != 0))
+			{
+				if(io_aux_data_pin->counter.debounce > 10)
+					io_aux_data_pin->counter.debounce -= 10; // 10 ms per tick
+				else
+					io_aux_data_pin->counter.debounce = 0;
+			}
+			else
+			{
+				unsigned int pin_value = !!(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01);
+
+				if(pin_value != io_aux_data_pin->counter.last_value)
+				{
+					io_aux_data_pin->counter.last_value = pin_value;
+					io_aux_data_pin->counter.debounce = pin_config->speed;
+
+					if(!pin_value)
+					{
+						io_aux_data_pin->counter.counter++;
+						flags->counter_triggered = 1;
+					}
+				}
+			}
+		}
+	}
 }
 
 irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -35,19 +87,20 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 				}
 
 				case(io_pin_ll_input_digital):
+				case(io_pin_ll_counter):
 				{
-					setclear_perireg(PAD_XPD_DCDC_CONF, 0x43, 0x01);
-					setclear_perireg(RTC_GPIO_CONF, 0x01, 0x00);
-					setclear_perireg(RTC_GPIO_ENABLE, 0x01, 0x00);
+					clear_set_peri_reg_mask(PAD_XPD_DCDC_CONF, 0x43, 0x01);
+					clear_set_peri_reg_mask(RTC_GPIO_CONF, 0x01, 0x00);
+					clear_set_peri_reg_mask(RTC_GPIO_ENABLE, 0x01, 0x00);
 
 					break;
 				}
 
 				case(io_pin_ll_output_digital):
 				{
-					setclear_perireg(PAD_XPD_DCDC_CONF, 0x43, 0x01);
-					setclear_perireg(RTC_GPIO_CONF, 0x01, 0x00);
-					setclear_perireg(RTC_GPIO_ENABLE, 0x01, 0x01);
+					clear_set_peri_reg_mask(PAD_XPD_DCDC_CONF, 0x43, 0x01);
+					clear_set_peri_reg_mask(RTC_GPIO_CONF, 0x01, 0x00);
+					clear_set_peri_reg_mask(RTC_GPIO_ENABLE, 0x01, 0x01);
 
 					break;
 				}
@@ -59,7 +112,6 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 
 					return(io_error);
 				}
-
 			}
 
 			break;
@@ -106,22 +158,38 @@ irom io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T 
 		case(io_aux_pin_rtc):
 		{
 			string_cat(dst, "builtin rtc gpio");
-
 			break;
 		}
 
 		case(io_aux_pin_adc):
 		{
 			string_cat(dst, "builtin adc input");
-
 			break;
 		}
 
 		default:
 		{
 			string_cat(dst, "invalid mode for this io\n");
-
 			return(io_error);
+		}
+	}
+
+	switch(pin_config->llmode)
+	{
+		case(io_pin_ll_counter):
+		{
+			io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
+
+			string_format(dst, ", current state: %s, prev state: %s, debounce delay: %u ms",
+					onoff(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01),
+					onoff(io_aux_data_pin->counter.last_value),
+					io_aux_data_pin->counter.debounce);
+			break;
+		}
+
+		default:
+		{
+			break;
 		}
 	}
 
@@ -139,8 +207,14 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 				case(io_pin_ll_input_digital):
 				case(io_pin_ll_output_digital):
 				{
-					*value = !!(READ_PERI_REG(RTC_GPIO_IN_DATA) & 0x01);
+					*value = !!(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01);
+					break;
+				}
 
+				case(io_pin_ll_counter):
+				{
+					io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
+					*value = io_aux_data_pin->counter.counter;
 					break;
 				}
 
@@ -148,7 +222,6 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 				{
 					if(error_message)
 						string_cat(error_message, "invalid mode for this pin\n");
-
 					return(io_error);
 				}
 
@@ -205,14 +278,19 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 				{
 					if(error_message)
 						string_cat(error_message, "cannot write to input\n");
-
 					return(io_error);
 				}
 
 				case(io_pin_ll_output_digital):
 				{
-					setclear_perireg(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
+					clear_set_peri_reg_mask(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
+					break;
+				}
 
+				case(io_pin_ll_counter):
+				{
+					io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
+					io_aux_data_pin->counter.counter = value;
 					break;
 				}
 

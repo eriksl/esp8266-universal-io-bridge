@@ -42,6 +42,7 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 #define roflash __attribute__((section(".flash.rodata"))) __attribute__((aligned(sizeof(char*))))
 #define noinline __attribute__ ((noinline))
 #define always_inline inline __attribute__((always_inline))
+#define attr_used __attribute__ ((unused))
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))
 #define attr_packed __attribute__ ((__packed__))

@@ -40,7 +40,7 @@ io_info_t io_info =
 		2,
 		{
 			.input_digital = 1,
-			.counter = 0,
+			.counter = 1,
 			.output_digital = 1,
 			.input_analog = 1,
 			.output_analog = 0,
@@ -50,7 +50,7 @@ io_info_t io_info =
 		},
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
-		(void *)0,
+		io_aux_periodic,
 		io_aux_init_pin_mode,
 		io_aux_get_pin_info,
 		io_aux_read_pin,

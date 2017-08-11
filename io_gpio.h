@@ -58,6 +58,12 @@ iram static inline void set_peri_reg_mask(volatile uint32_t addr, uint32_t mask)
 	write_peri_reg(addr, read_peri_reg(addr) | mask);
 }
 
+iram attr_used static void clear_set_peri_reg_mask(uint32_t addr, uint32_t clearmask, uint32_t setmask)
+{
+	clear_peri_reg_mask(addr, clearmask);
+	set_peri_reg_mask(addr, setmask);
+}
+
 // read write GPIO registers
 
 iram static inline uint32_t gpio_reg_read(int reg)
