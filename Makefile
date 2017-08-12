@@ -152,7 +152,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 					-Wsuggest-attribute=const -Wsuggest-attribute=pure
 
 CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks \
-						-D__ets__ -Wframe-larger-than=450 -DICACHE_FLASH \
+						-D__ets__ -Wframe-larger-than=192 -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
 						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto

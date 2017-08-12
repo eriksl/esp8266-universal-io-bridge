@@ -551,9 +551,10 @@ irom bool_t wlan_init(void)
 {
 	int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;
-	string_new(, ssid, 64);
-	string_new(, passwd, 64);
+	string_new(, config_string, 64);
 	int channel;
+	struct station_config cconf;
+	struct softap_config saconf;
 
 	if(config_get_int("wlan.mode", -1, -1, &wlan_mode_int))
 		wlan_mode = (config_wlan_mode_t)wlan_mode_int;
@@ -564,24 +565,22 @@ irom bool_t wlan_init(void)
 	{
 		case(config_wlan_mode_client):
 		{
-			struct station_config cconf;
-
-			if(!config_get_string("wlan.client.ssid", -1, -1, &ssid))
-			{
-				string_clear(&ssid);
-				string_cat(&ssid, "esp");
-			}
-
-			if(!config_get_string("wlan.client.passwd", -1, -1, &passwd))
-			{
-				string_clear(&passwd);
-				string_cat(&passwd, "espespesp");
-			}
-
 			memset(&cconf, 0, sizeof(cconf));
-			strlcpy(cconf.ssid, string_to_const_ptr(&ssid), sizeof(cconf.ssid));
-			strlcpy(cconf.password, string_to_const_ptr(&passwd), sizeof(cconf.password));
 			cconf.bssid_set = 0;
+
+			string_clear(&config_string);
+
+			if(config_get_string("wlan.client.ssid", -1, -1, &config_string))
+				strlcpy(cconf.ssid, string_to_const_ptr(&config_string), sizeof(cconf.ssid));
+			else
+				strlcpy(cconf.ssid, "esp", sizeof(cconf.ssid));
+
+			string_clear(&config_string);
+
+			if(config_get_string("wlan.client.passwd", -1, -1, &config_string))
+				strlcpy(cconf.password, string_to_const_ptr(&config_string), sizeof(cconf.password));
+			else
+				strlcpy(cconf.password, "espespesp", sizeof(cconf.password));
 
 			if(config_flags_get().flag.print_debug)
 				dprintf("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
@@ -596,27 +595,22 @@ irom bool_t wlan_init(void)
 
 		case(config_wlan_mode_ap):
 		{
-			struct softap_config saconf;
+			memset(&saconf, 0, sizeof(saconf));
 
-			if(!config_get_string("wlan.ap.ssid", -1, -1, &ssid))
-			{
-				string_clear(&ssid);
-				string_cat(&ssid, "esp");
-			}
+			if(config_get_string("wlan.ap.ssid", -1, -1, &config_string))
+				strlcpy(saconf.ssid, string_to_const_ptr(&config_string), sizeof(saconf.ssid));
+			else
+				strlcpy(saconf.ssid, "esp", sizeof(saconf.ssid));
 
-			if(!config_get_string("wlan.ap.passwd", -1, -1, &passwd))
-			{
-				string_clear(&passwd);
-				string_cat(&passwd, "espespesp");
-			}
+			if(config_get_string("wlan.ap.passwd", -1, -1, &config_string))
+				strlcpy(saconf.password, string_to_const_ptr(&config_string), sizeof(saconf.password));
+			else
+				strlcpy(saconf.password, "espespesp", sizeof(saconf.password));
 
 			if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
 				channel = 1;
 
-			memset(&saconf, 0, sizeof(saconf));
-			strlcpy(saconf.ssid, string_to_const_ptr(&ssid), sizeof(saconf.ssid));
-			strlcpy(saconf.password, string_to_const_ptr(&passwd), sizeof(saconf.password));
-			saconf.ssid_len = string_length(&ssid);
+			saconf.ssid_len = strlen(saconf.ssid);
 			saconf.channel = channel;
 			saconf.authmode = AUTH_WPA_WPA2_PSK;
 			saconf.ssid_hidden = 0;
