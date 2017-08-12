@@ -22,6 +22,9 @@ extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;
 
-void stats_generate(string_t *);
-
+void stats_firmware(string_t *dst);
+void stats_time(string_t *dst);
+void stats_counters(string_t *dst);
+void stats_i2c(string_t *dst);
+void stats_wlan(string_t *dst);
 #endif

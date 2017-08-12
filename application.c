@@ -243,9 +243,33 @@ irom static app_action_t application_function_reset(const string_t *src, string_
 	return(app_action_reset);
 }
 
-irom static app_action_t application_function_stats(const string_t *src, string_t *dst)
+irom static app_action_t application_function_stats_firmware(const string_t *src, string_t *dst)
 {
-	stats_generate(dst);
+	stats_firmware(dst);
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_stats_time(const string_t *src, string_t *dst)
+{
+	stats_time(dst);
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_stats_counters(const string_t *src, string_t *dst)
+{
+	stats_counters(dst);
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_stats_i2c(const string_t *src, string_t *dst)
+{
+	stats_i2c(dst);
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_stats_wlan(const string_t *src, string_t *dst)
+{
+	stats_wlan(dst);
 	return(app_action_normal);
 }
 
@@ -837,12 +861,12 @@ irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_set(const string_t *src, string_t *dst)
+irom static app_action_t application_function_flag_set(const string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, true));
 }
 
-irom static app_action_t application_function_unset(const string_t *src, string_t *dst)
+irom static app_action_t application_function_flag_unset(const string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, false));
 }
@@ -1364,6 +1388,16 @@ static const application_function_table_t application_function_table[] =
 		"put content on display <slot> <timeout> <tag> <text>"
 	},
 	{
+		"fs", "flag-set",
+		application_function_flag_set,
+		"set a flag",
+	},
+	{
+		"fu", "flag-unset",
+		application_function_flag_unset,
+		"unset a flag",
+	},
+	{
 		"gas", "gpio-association-set",
 		application_function_gpio_assoc_set,
 		"set gpio to trigger on wlan association"
@@ -1504,19 +1538,29 @@ static const application_function_table_t application_function_table[] =
 		"reset",
 	},
 	{
-		"s", "set",
-		application_function_set,
-		"set an option",
-	},
-	{
-		"u", "unset",
-		application_function_unset,
-		"unset an option",
-	},
-	{
-		"S", "stats",
-		application_function_stats,
+		"s", "stats",
+		application_function_stats_firmware,
 		"statistics",
+	},
+	{
+		"sc", "stats-counters",
+		application_function_stats_counters,
+		"stats (counters)",
+	},
+	{
+		"si", "stats-i2c",
+		application_function_stats_i2c,
+		"stats (i2c)",
+	},
+	{
+		"st", "stats-time",
+		application_function_stats_time,
+		"stats (time)",
+	},
+	{
+		"sw", "stats-wlan",
+		application_function_stats_wlan,
+		"stats (wlan)",
 	},
 	{
 		"ts", "time-set",

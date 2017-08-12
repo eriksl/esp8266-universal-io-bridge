@@ -72,36 +72,14 @@ static const char *slp[] =
 	"unknown"
 };
 
-irom void stats_generate(string_t *dst)
+irom void stats_firmware(string_t *dst)
 {
 #if IMAGE_OTA == 1
 	rboot_config rcfg;
 #endif
-
 	const struct rst_info *rst_info;
-	static struct station_config sc_default, sc_current;
-	static i2c_info_t i2c_info;
-	unsigned int uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps;
-	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
-	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
-	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
-	unsigned int ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps;
-	unsigned int Y, M, D, h, m, s;
-	const char *time_source;
-
-	time_uptime_get(&uptime_secs, &uptime_msecs, &uptime_raw1, &uptime_raw2, &uptime_base, &uptime_wraps);
-	time_system_get(&system_secs, &system_msecs, &system_raw1, &system_raw2, &system_base, &system_wraps);
-	time_rtc_get(&rtc_secs, &rtc_msecs, &rtc_raw1, &rtc_raw2, &rtc_base, &rtc_wraps);
-	time_timer_get(&timer_secs, &timer_msecs, &timer_raw1, &timer_raw2, &timer_base, &timer_wraps);
-	time_ntp_get(&ntp_secs, &ntp_msecs, &ntp_raw1, &ntp_raw2, &ntp_base, &ntp_wraps);
-	time_source = time_get(&h, &m, &s, &Y, &M, &D);
 
 	rst_info = system_get_rst_info();
-
-	wifi_station_get_config_default(&sc_default);
-	wifi_station_get_config(&sc_current);
-
-	i2c_get_info(&i2c_info);
 
 	string_format(dst,
 			"> firmware version date: %s\n"
@@ -111,82 +89,19 @@ irom void stats_generate(string_t *dst)
 			"> cpu frequency: %u MHz\n"
 			"> flash map: %s\n"
 			"> reset cause: %s\n"
-			">\n"
 			"> heap free: %u bytes\n"
-			"> uptime: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
-			"> system: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> rtc: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> timer: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> ntp: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
-			"> time: %04u/%02u/%02u %02u:%02u:%02u, source: %s\n"
-			">\n"
-			"> address: %x\n"
-			">\n"
-			"> int uart rx: %u\n"
-			"> int uart tx: %u\n"
-			"> fast timer fired: %u\n"
-			"> slow timer fired: %u\n"
-			"> pwm timer int fired: %u\n"
-			"> pc int fired: %u\n"
-			"> uart updated: %u\n"
-			"> longops processed: %u\n"
-			"> commands/udp processed: %u\n"
-			"> commands/tcp processed: %u\n"
-			"> display updated: %u\n"
-			"> ntp updated: %u\n"
-			"> background idle: %u\n"
-			"> i2c initialisation time: %u us\n"
-			"> display initialisation time: %u us\n"
-			">\n"
-			"> default ssid: %s, passwd: %s\n"
-			"> current ssid: %s, passwd: %s\n"
-			"> phy mode: %s\n"
-			"> sleep mode: %s\n"
-			"> channel: %u\n"
-			"> signal strength: %d dB\n"
-			">\n"
-			"> i2c multiplexer found: %s\n"
-			"> i2c buses: %u\n"
-			"> i2c clock delay: %u\n",
-			__DATE__ " " __TIME__,
-			system_get_sdk_version(),
-			system_get_chip_id(),
-			spi_flash_get_id(),
-			system_get_cpu_freq(),
-			flash_map[system_get_flash_size_map()],
-			reset_map[rst_info->reason],
-			system_get_free_heap_size(),
-			uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps,
-			system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps, system_secs - ntp_secs,
-			rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps, rtc_secs - ntp_secs,
-			timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,
-			ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps,
-			Y, M, D, h, m, s, time_source,
-			USER_CONFIG_SECTOR * 0x1000,
-			stat_uart_rx_interrupts,
-			stat_uart_tx_interrupts,
-			stat_fast_timer,
-			stat_slow_timer,
-			stat_pwm_timer_interrupts,
-			stat_pc_interrupts,
-			stat_update_uart,
-			stat_update_longop,
-			stat_update_command_udp,
-			stat_update_command_tcp,
-			stat_update_display,
-			stat_update_ntp,
-			stat_update_idle,
-			stat_i2c_init_time_us,
-			stat_display_init_time_us,
-			sc_default.ssid, sc_default.password,
-			sc_current.ssid, sc_current.password,
-			phy[wifi_get_phy_mode()],
-			slp[wifi_get_sleep_type()],
-			wifi_get_channel(),
-			wifi_station_get_rssi(),
-			yesno(i2c_info.multiplexer),
-			i2c_info.buses,
-			i2c_info.delay);
+			"> config sector address: %x\n"
+			"> rf calibration sector address: %x\n",
+				__DATE__ " " __TIME__,
+				system_get_sdk_version(),
+				system_get_chip_id(),
+				spi_flash_get_id(),
+				system_get_cpu_freq(),
+				flash_map[system_get_flash_size_map()],
+				reset_map[rst_info->reason],
+				system_get_free_heap_size(),
+				USER_CONFIG_SECTOR * 0x1000,
+				RFCAL_ADDRESS);
 
 #if IMAGE_OTA == 1
 	rcfg = rboot_get_config();
@@ -211,4 +126,115 @@ irom void stats_generate(string_t *dst)
 #else
 	string_cat(dst, ">\n> No OTA image\n");
 #endif
+}
+
+irom void stats_time(string_t *dst)
+{
+	unsigned int uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps;
+	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
+	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
+	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
+	unsigned int ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps;
+	unsigned int Y, M, D, h, m, s;
+	const char *time_source;
+
+	time_uptime_get(&uptime_secs, &uptime_msecs, &uptime_raw1, &uptime_raw2, &uptime_base, &uptime_wraps);
+	time_system_get(&system_secs, &system_msecs, &system_raw1, &system_raw2, &system_base, &system_wraps);
+	time_rtc_get(&rtc_secs, &rtc_msecs, &rtc_raw1, &rtc_raw2, &rtc_base, &rtc_wraps);
+	time_timer_get(&timer_secs, &timer_msecs, &timer_raw1, &timer_raw2, &timer_base, &timer_wraps);
+	time_ntp_get(&ntp_secs, &ntp_msecs, &ntp_raw1, &ntp_raw2, &ntp_base, &ntp_wraps);
+	time_source = time_get(&h, &m, &s, &Y, &M, &D);
+
+	string_format(dst,
+			"> uptime: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
+			"> system: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> rtc: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> timer: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
+			"> ntp: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
+			"> time: %04u/%02u/%02u %02u:%02u:%02u, source: %s\n",
+				uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps,
+				system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps, system_secs - ntp_secs,
+				rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps, rtc_secs - ntp_secs,
+				timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,
+				ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps,
+				Y, M, D, h, m, s, time_source);
+}
+
+irom void stats_counters(string_t *dst)
+{
+	string_format(dst,
+			"> user_spi_flash_dio_to_qio_pre_init called: %s\n"
+			"> user_rf_cal_sector_set called: %s\n"
+			"> user_rf_pre_init called: %s\n"
+			"> int uart rx: %u\n"
+			"> int uart tx: %u\n"
+			"> fast timer fired: %u\n"
+			"> slow timer fired: %u\n"
+			"> pwm timer int fired: %u\n"
+			"> pc int fired: %u\n"
+			"> uart updated: %u\n"
+			"> longops processed: %u\n"
+			"> commands/udp processed: %u\n"
+			"> commands/tcp processed: %u\n"
+			"> display updated: %u\n"
+			"> ntp updated: %u\n"
+			"> background idle: %u\n",
+				yesno(stat_called.user_spi_flash_dio_to_qio_pre_init),
+				yesno(stat_called.user_rf_cal_sector_set),
+				yesno(stat_called.user_rf_pre_init),
+				stat_uart_rx_interrupts,
+				stat_uart_tx_interrupts,
+				stat_fast_timer,
+				stat_slow_timer,
+				stat_pwm_timer_interrupts,
+				stat_pc_interrupts,
+				stat_update_uart,
+				stat_update_longop,
+				stat_update_command_udp,
+				stat_update_command_tcp,
+				stat_update_display,
+				stat_update_ntp,
+				stat_update_idle);
+}
+
+// si
+irom void stats_i2c(string_t *dst)
+{
+	i2c_info_t i2c_info;
+
+	i2c_get_info(&i2c_info);
+
+	string_format(dst,
+			"> i2c clock delay: %u\n"
+			"> display initialisation time: %u us\n"
+			"> i2c initialisation time: %u us\n"
+			"> i2c multiplexer found: %s\n"
+			"> i2c buses: %u\n",
+				i2c_info.delay,
+				stat_display_init_time_us,
+				stat_i2c_init_time_us,
+				yesno(i2c_info.multiplexer),
+				i2c_info.buses);
+}
+
+irom void stats_wlan(string_t *dst)
+{
+	struct station_config sc_default, sc_current;
+
+	wifi_station_get_config_default(&sc_default);
+	wifi_station_get_config(&sc_current);
+
+	string_format(dst,
+			"> default ssid: \"%s\", passwd: \"%s\"\n"
+			"> current ssid: \"%s\", passwd: \"%s\"\n"
+			"> phy mode: %s\n"
+			"> sleep mode: %s\n"
+			"> channel: %u\n"
+			"> signal strength: %d dB\n",
+				sc_default.ssid, sc_default.password,
+				sc_current.ssid, sc_current.password,
+				phy[wifi_get_phy_mode()],
+				slp[wifi_get_sleep_type()],
+				wifi_get_channel(),
+				wifi_station_get_rssi());
 }
