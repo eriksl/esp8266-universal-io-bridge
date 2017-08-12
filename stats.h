@@ -2,8 +2,16 @@
 #define stats_h
 
 #include <stdint.h>
-#include "c_types.h"
 #include "util.h"
+
+typedef struct
+{
+	unsigned int user_spi_flash_dio_to_qio_pre_init:1;
+	unsigned int user_rf_cal_sector_set:1;
+	unsigned int user_rf_pre_init:1;
+} stat_called_t;
+
+extern stat_called_t stat_called;
 
 extern int stat_uart_rx_interrupts;
 extern int stat_uart_tx_interrupts;

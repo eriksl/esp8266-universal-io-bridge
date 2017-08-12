@@ -60,9 +60,23 @@ static struct
 queue_t uart_send_queue;
 queue_t uart_receive_queue;
 
-irom attr_const void user_spi_flash_dio_to_qio_pre_init(void);
-irom attr_const void user_spi_flash_dio_to_qio_pre_init(void)
+iram attr_const void user_spi_flash_dio_to_qio_pre_init(void);
+iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
 {
+	stat_called.user_spi_flash_dio_to_qio_pre_init = 1;
+}
+
+iram attr_const uint32_t user_rf_cal_sector_set(void);
+iram attr_const uint32_t user_rf_cal_sector_set(void)
+{
+	stat_called.user_rf_cal_sector_set = 1;
+	return(RFCAL_ADDRESS / 0x1000);
+}
+
+iram void user_rf_pre_init(void);
+iram void user_rf_pre_init(void)
+{
+	stat_called.user_rf_pre_init = 1;
 }
 
 irom static void user_init2(void);
@@ -269,15 +283,7 @@ irom static void slow_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-uint32_t user_rf_cal_sector_set(void);
-
-iram attr_const uint32_t user_rf_cal_sector_set(void)
-{
-	return(RFCAL_ADDRESS / 0x1000);
-}
-
-void user_init(void);
-
+irom void user_init(void);
 irom void user_init(void)
 {
 	static char uart_send_queue_buffer[1024];

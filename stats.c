@@ -12,6 +12,13 @@
 #include <rboot-api.h>
 #endif
 
+stat_called_t stat_called =
+{
+	.user_spi_flash_dio_to_qio_pre_init = 0,
+	.user_rf_cal_sector_set = 0,
+	.user_rf_pre_init = 0
+};
+
 int stat_uart_rx_interrupts;
 int stat_uart_tx_interrupts;
 int stat_fast_timer;
