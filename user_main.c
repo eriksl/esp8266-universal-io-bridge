@@ -447,7 +447,6 @@ irom static void callback_received_uart(socket_t *socket, int length, char *buff
 	}
 
 	uart_start_transmit(!queue_empty(&uart_send_queue));
-
 }
 
 irom static void callback_sent_cmd(socket_t *socket)
