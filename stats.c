@@ -204,7 +204,6 @@ irom void stats_counters(string_t *dst)
 				stat_update_idle);
 }
 
-// si
 irom void stats_i2c(string_t *dst)
 {
 	i2c_info_t i2c_info;
