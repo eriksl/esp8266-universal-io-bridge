@@ -193,6 +193,23 @@ irom void string_ip(string_t *dst, ip_addr_t addr)
 		ip_addr_to_bytes.byte[3]);
 }
 
+irom void string_mac(string_t *dst, uint8 addr[6])
+{
+	int ix;
+	mac_addr_to_bytes_t mac_addr_to_bytes;
+
+	for(ix = 0; ix < 6; ix++)
+		mac_addr_to_bytes.mac_addr[ix] = addr[ix];
+
+	string_format(dst, "%02x:%02x:%02x:%02x:%02x:%02x",
+		mac_addr_to_bytes.byte[0],
+		mac_addr_to_bytes.byte[1],
+		mac_addr_to_bytes.byte[2],
+		mac_addr_to_bytes.byte[3],
+		mac_addr_to_bytes.byte[4],
+		mac_addr_to_bytes.byte[5]);
+}
+
 irom int string_double(string_t *dst, double value, int precision, double top_decimal)
 {
 	double compare;

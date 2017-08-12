@@ -76,6 +76,8 @@ iram attr_const uint32_t user_rf_cal_sector_set(void)
 iram void user_rf_pre_init(void);
 iram void user_rf_pre_init(void)
 {
+	system_phy_set_powerup_option(3); // do full calibration
+
 	stat_called.user_rf_pre_init = 1;
 }
 

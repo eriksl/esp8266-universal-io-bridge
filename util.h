@@ -48,6 +48,14 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 #define attr_packed __attribute__ ((__packed__))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 
+typedef uint8_t mac_addr_t[6];
+
+typedef union
+{
+	uint8 		mac_addr[6];
+	uint8_t		byte[6];
+} mac_addr_to_bytes_t;
+
 typedef union
 {
 	ip_addr_t	ip_addr;
@@ -164,6 +172,7 @@ do { \
 void string_cat_strptr(string_t *dst, const char *src);
 int string_copy_string(string_t *dst, string_t *src);
 void string_ip(string_t *dst, ip_addr_t);
+void string_mac(string_t *dst, uint8 mac_addr[6]);
 int string_double(string_t *dst, double value, int precision, double top_decimal);
 static inline int string_length(const string_t *dst) { return(dst->length); }
 static inline int string_size(const string_t *dst) { return(dst->size - 1); }

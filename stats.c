@@ -225,22 +225,68 @@ irom void stats_i2c(string_t *dst)
 
 irom void stats_wlan(string_t *dst)
 {
-	struct station_config sc_default, sc_current;
+	uint8 mac_addr[6];
+	struct ip_info ip_addr_info;
+	struct station_config config;
 
-	wifi_station_get_config_default(&sc_default);
-	wifi_station_get_config(&sc_current);
+	wifi_station_get_config_default(&config);
+
+	string_format(dst, "> default ssid: \"%s\", passwd: \"%s\"\n",
+			config.ssid, config.password);
+
+	wifi_station_get_config(&config);
+
+	string_format(dst, "> current ssid: \"%s\", passwd: \"%s\"\n",
+			config.ssid, config.password);
 
 	string_format(dst,
-			"> default ssid: \"%s\", passwd: \"%s\"\n"
-			"> current ssid: \"%s\", passwd: \"%s\"\n"
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
-			"> signal strength: %d dB\n",
-				sc_default.ssid, sc_default.password,
-				sc_current.ssid, sc_current.password,
+			"> signal strength: %d dB\n"
+			">\n",
 				phy[wifi_get_phy_mode()],
 				slp[wifi_get_sleep_type()],
 				wifi_get_channel(),
 				wifi_station_get_rssi());
+
+	wifi_get_ip_info(SOFTAP_IF, &ip_addr_info);
+
+	string_cat(dst, "> ap mac address: ");
+	wifi_get_macaddr(SOFTAP_IF, mac_addr);
+	string_mac(dst, mac_addr);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> ap ip address: ");
+	string_ip(dst, ip_addr_info.ip);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> ap gateway: ");
+	string_ip(dst, ip_addr_info.gw);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> ap ip netmask: ");
+	string_ip(dst, ip_addr_info.netmask);
+	string_cat(dst, "\n");
+
+	string_cat(dst, ">\n");
+
+	wifi_get_ip_info(STATION_IF, &ip_addr_info);
+
+	string_cat(dst, "> station mac address: ");
+	wifi_get_macaddr(STATION_IF, mac_addr);
+	string_mac(dst, mac_addr);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> station ip address: ");
+	string_ip(dst, ip_addr_info.ip);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> station gateway: ");
+	string_ip(dst, ip_addr_info.gw);
+	string_cat(dst, "\n");
+
+	string_cat(dst, "> station ip netmask: ");
+	string_ip(dst, ip_addr_info.netmask);
+	string_cat(dst, "\n");
 }
