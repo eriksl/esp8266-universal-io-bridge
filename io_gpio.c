@@ -706,7 +706,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			if(error_message)
 			{
 				string_format(error_message, "gpio %d invalid mode: ", pin);
-				io_string_from_ll_mode(error_message, pin_config->llmode);
+				io_string_from_ll_mode(error_message, pin_config->llmode, 0);
 			}
 			return(io_error);
 		}
@@ -738,6 +738,14 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 			{
 				string_format(dst, "current state: %s, debounce delay: %d",
 						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce);
+
+				break;
+			}
+
+			case(io_pin_ll_i2c):
+			{
+				string_format(dst, "current state: %s",
+						onoff(gpio_get(pin)));
 
 				break;
 			}

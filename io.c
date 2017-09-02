@@ -114,17 +114,17 @@ typedef struct
 
 static io_mode_trait_t io_mode_traits[io_pin_size] =
 {
-	{ io_pin_disabled,			"disabled"	},
-	{ io_pin_input_digital,		"inputd"	},
-	{ io_pin_counter,			"counter"	},
-	{ io_pin_output_digital,	"outputd"	},
-	{ io_pin_timer,				"timer"		},
-	{ io_pin_input_analog,		"inputa"	},
-	{ io_pin_output_analog,		"outputa"	},
-	{ io_pin_i2c,				"i2c"		},
-	{ io_pin_uart,				"uart"		},
-	{ io_pin_lcd,				"lcd"		},
-	{ io_pin_trigger,			"trigger"	},
+	{ io_pin_disabled,			"disabled"			},
+	{ io_pin_input_digital,		"digital input"		},
+	{ io_pin_counter,			"counter"			},
+	{ io_pin_output_digital,	"digital output"	},
+	{ io_pin_timer,				"timer"				},
+	{ io_pin_input_analog,		"analog input"		},
+	{ io_pin_output_analog,		"analog output"		},
+	{ io_pin_i2c,				"i2c"				},
+	{ io_pin_uart,				"uart"				},
+	{ io_pin_lcd,				"lcd"				},
+	{ io_pin_trigger,			"trigger"			},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -143,7 +143,7 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 	return(io_pin_error);
 }
 
-irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode)
+irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad)
 {
 	int ix;
 	const io_mode_trait_t *entry;
@@ -154,7 +154,14 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode)
 
 		if(entry->mode == mode)
 		{
-			string_format(name, "%s", entry->name);
+			if(pad > 0)
+				string_format(name, "%14s", entry->name);
+			else
+				if(pad < 0)
+					string_format(name, "%-14s", entry->name);
+				else
+					string_format(name, "%s", entry->name);
+
 			return;
 		}
 	}
@@ -170,17 +177,17 @@ typedef struct
 
 static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 {
-	{ io_pin_ll_disabled,			"disabled"	},
-	{ io_pin_ll_input_digital,		"d-input"	},
-	{ io_pin_ll_counter,			"counter"	},
-	{ io_pin_ll_output_digital,		"d-output"	},
-	{ io_pin_ll_input_analog,		"a-input"	},
-	{ io_pin_ll_output_analog,		"a-output"	},
-	{ io_pin_ll_i2c,				"i2c"		},
-	{ io_pin_ll_uart,				"uart"		},
+	{ io_pin_ll_disabled,			"disabled"			},
+	{ io_pin_ll_input_digital,		"digital input"		},
+	{ io_pin_ll_counter,			"counter"			},
+	{ io_pin_ll_output_digital,		"digital output"	},
+	{ io_pin_ll_input_analog,		"analog input"		},
+	{ io_pin_ll_output_analog,		"analog output"		},
+	{ io_pin_ll_i2c,				"i2c"				},
+	{ io_pin_ll_uart,				"uart"				},
 };
 
-irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode)
+irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 {
 	int ix;
 	const io_ll_mode_trait_t *entry;
@@ -191,7 +198,13 @@ irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode)
 
 		if(entry->mode == mode)
 		{
-			string_format(name, "%s", entry->name);
+			if(pad > 0)
+				string_format(name, "%14s", entry->name);
+			else
+				if(pad < 0)
+					string_format(name, "%-14s", entry->name);
+				else
+					string_format(name, "%s", entry->name);
 			return;
 		}
 	}
@@ -382,30 +395,38 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 
 	if(pin_config->flags.autostart)
 	{
+		if(!none)
+			string_cat(flags, "/");
 		none = false;
-		string_cat(flags, " autostart");
+		string_cat(flags, "autostart");
 	}
 
 	if(pin_config->flags.repeat)
 	{
+		if(!none)
+			string_cat(flags, "/");
 		none = false;
-		string_cat(flags, " repeat");
+		string_cat(flags, "repeat");
 	}
 
 	if(pin_config->flags.pullup)
 	{
+		if(!none)
+			string_cat(flags, "/");
 		none = false;
-		string_cat(flags, " pullup");
+		string_cat(flags, "pullup");
 	}
 
 	if(pin_config->flags.reset_on_read)
 	{
+		if(!none)
+			string_cat(flags, "/");
 		none = false;
-		string_cat(flags, " reset-on-read");
+		string_cat(flags, "reset-on-read");
 	}
 
 	if(none)
-		string_cat(flags, " <none>");
+		string_cat(flags, "none");
 }
 
 irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
@@ -1836,7 +1857,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	pin_config = &io_config[io][pin];
 
-	io_string_from_mode(dst, pin_config->mode);
+	io_string_from_mode(dst, pin_config->mode, 0);
 
 	if(pin_config->mode == io_pin_i2c)
 	{
@@ -1897,7 +1918,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	value = 0;
 	parse_int(3, src, &value, 0);
 
-	io_string_from_mode(dst, pin_config->mode);
+	io_string_from_mode(dst, pin_config->mode, 0);
 
 	if(pin_config->mode == io_pin_lcd)
 	{
@@ -2079,10 +2100,12 @@ irom app_action_t application_function_io_clear_flag(const string_t *src, string
 typedef enum
 {
 	ds_id_io,
-	ds_id_pin,
+	ds_id_pin_1,
+	ds_id_pin_2,
 	ds_id_flags_1,
 	ds_id_flags_2,
-	ds_id_mode,
+	ds_id_mode_1,
+	ds_id_mode_2,
 	ds_id_disabled,
 	ds_id_input,
 	ds_id_counter,
@@ -2100,10 +2123,11 @@ typedef enum
 	ds_id_not_detected,
 	ds_id_info_1,
 	ds_id_info_2,
-	ds_id_header,
-	ds_id_footer,
-	ds_id_preline,
-	ds_id_postline,
+	ds_id_pins_header,
+	ds_id_hw_1,
+	ds_id_hw_2,
+	ds_id_table_start,
+	ds_id_table_end,
 	ds_id_error,
 
 	ds_id_length,
@@ -2121,22 +2145,24 @@ static const roflash dump_string_t dump_strings =
 {
 	.plain =
 	{
-		"io[%d]: %s@%x",
-		"  pin: %2d",
-		" flags:",
-		", ",
+		"io[%d]: %s@%02x\n",
+		"  pin: %2d, ",
+		"\n",
+		" flags: [",
+		"], ",
 		"mode: ",
-		"disabled",
-		"input, state: %s",
-		"counter, counter: %d, debounce: %d",
+		"",
+		"",
+		"state: %s",
+		"counter: %d, debounce: %d",
 		"trigger, counter: %d, debounce: %d\n",
-		"            action #%d: io: %d, pin: %d, action: ",
-		"\n           ",
+		"             action #%d: io: %d, pin: %d, action: ",
+		", ",
 		"output, state: %s",
-		"timer, config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
+		"config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
 		"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d, saved value: %d",
-		"i2c/sda",
-		"i2c/scl",
+		"sda",
+		"scl",
 		"uart",
 		"lcd",
 		"unknown",
@@ -2144,40 +2170,44 @@ static const roflash dump_string_t dump_strings =
 		", info: ",
 		"",
 		"",
+		" [hw: ",
+		"]",
 		"",
 		"",
-		"\n",
 		"error",
 	},
 
 	.html =
 	{
-		"<td>io[%d]</td><td>%s@%x</td>",
-		"<td></td><td>%d</td>",
+		"<tr><th colspan=\"6\" align=\"center\">IO %d: %s@%02x</th></tr>\n",
+		"<tr><td align=\"center\">%d</td>",
+		"</tr>\n",
 		"<td>",
 		"</td>",
-		"",
-		"<td>disabled</td>",
-		"<td>input</td><td>state: %s</td>",
-		"<td>counter</td><td><td>counter: %d</td><td>debounce: %d</td>",
-		"<td>trigger</td><td>counter: %d</td><td>debounce: %d</td>",
-		"<td>action #%d</td><td>io: %d</td><td>pin: %d</td><td>trigger action: ",
+		"<td>",
+		"</td>",
+		"<td></td>",
+		"<td>state: %s</td>",
+		"<td><td>counter: %d</td><td>debounce: %d</td>",
+		"<td>counter: %d, debounce: %d, ",
+		"action: #%d, io: %d, pin: %d, trigger action: ",
 		"</td>",
 		"<td>output</td><td>state: %s</td>",
-		"<td>timer</td><td>config direction: %s, speed: %d ms</td><<td>current direction %s, delay: %d ms, state: %s</td>",
-		"<td>analog output</td><td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d, saved value: %d",
-		"<td>i2c</td><td>sda</td>",
-		"<td>i2c</td><td>scl, speed: %d</td>",
+		"<td>config direction: %s, speed: %d ms, current direction %s, delay: %d ms, state: %s</td>",
+		"<td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d, saved value: %d",
+		"<td>sda</td>",
+		"<td>scl</td>",
 		"<td>uart</td>",
 		"<td>lcd</td>",
 		"<td>unknown</td>",
-		"<td>not found</td>",
+		"<tr><td colspan=\"6\">not connected</td></tr>\n",
 		"<td>",
 		"</td>",
-		"<table border=\"1\"><tr><th>index</th><th>name</th><th>mode</th><th colspan=\"8\"></th></tr>",
+		"<tr><th>pin</th><th>mode</th><th>hw mode</th><th>flags</th><th>pin info</th><th>extra info</th></tr>\n",
+		"<td>",
+		"</td>",
+		"<table border=\"1\" cellpadding=\"1\" cellspacing=\"1\">\n",
 		"</table>\n",
-		"<tr>",
-		"</tr>\n",
 		"<td>error</td>",
 	}
 };
@@ -2197,7 +2227,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 	else
 		strings = &dump_strings.plain;
 
-	string_cat_ptr(dst, (*strings)[ds_id_header]);
+	string_cat_ptr(dst, (*strings)[ds_id_table_start]);
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -2207,17 +2237,15 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 		info = &io_info[io];
 		data = &io_data[io];
 
-		string_cat_ptr(dst, (*strings)[ds_id_preline]);
 		string_format_ptr(dst, (*strings)[ds_id_io], io, info->name, info->address);
-		string_cat_ptr(dst, (*strings)[ds_id_postline]);
 
 		if(!data->detected)
 		{
-			string_cat_ptr(dst, (*strings)[ds_id_preline]);
 			string_cat_ptr(dst, (*strings)[ds_id_not_detected]);
-			string_cat_ptr(dst, (*strings)[ds_id_postline]);
 			continue;
 		}
+
+		string_cat_ptr(dst, (*strings)[ds_id_pins_header]);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -2227,14 +2255,19 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
-			string_cat_ptr(dst, (*strings)[ds_id_preline]);
-			string_format_ptr(dst, (*strings)[ds_id_pin], pin);
+			string_format_ptr(dst, (*strings)[ds_id_pin_1], pin);
+
+			string_cat_ptr(dst, (*strings)[ds_id_mode_1]);
+			io_string_from_mode(dst, pin_config->mode, -1);
+			string_cat_ptr(dst, (*strings)[ds_id_mode_2]);
+
+			string_cat_ptr(dst, (*strings)[ds_id_hw_1]);
+			io_string_from_ll_mode(dst, pin_config->llmode, -1);
+			string_cat_ptr(dst, (*strings)[ds_id_hw_2]); 
 
 			string_cat_ptr(dst, (*strings)[ds_id_flags_1]);
 			pin_string_from_flags(dst, pin_config);
 			string_cat_ptr(dst, (*strings)[ds_id_flags_2]);
-
-			string_cat_ptr(dst, (*strings)[ds_id_mode]);
 
 			if((pin_config->mode != io_pin_disabled) && (pin_config->mode != io_pin_i2c) && (pin_config->mode != io_pin_uart))
 				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
@@ -2365,7 +2398,6 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 					break;
 				}
 
-
 				default:
 				{
 					string_cat_ptr(dst, (*strings)[ds_id_unknown]);
@@ -2374,20 +2406,14 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				}
 			}
 
-			string_cat(dst, " [hw: ");
-			io_string_from_ll_mode(dst, pin_config->llmode);
-			string_cat(dst, "]");
-
+			string_cat_ptr(dst, (*strings)[ds_id_info_1]);
 			if(info->get_pin_info_fn)
-			{
-				string_cat_ptr(dst, (*strings)[ds_id_info_1]);
 				info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
-				string_cat_ptr(dst, (*strings)[ds_id_info_2]);
-			}
+			string_cat_ptr(dst, (*strings)[ds_id_info_2]);
 
-			string_cat_ptr(dst, (*strings)[ds_id_postline]);
+			string_format_ptr(dst, (*strings)[ds_id_pin_2], pin);
 		}
 	}
 
-	string_cat_ptr(dst, (*strings)[ds_id_footer]);
+	string_cat_ptr(dst, (*strings)[ds_id_table_end]);
 }

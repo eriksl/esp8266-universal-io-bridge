@@ -191,6 +191,7 @@ int string_sep(const string_t *, int offset, int occurence, char c);
 int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
 void string_splice(string_t *dst, const string_t *src, int src_offset, int length);
+void string_pad(string_t *dst, int length, char c);
 void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);

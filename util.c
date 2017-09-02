@@ -392,6 +392,12 @@ irom void string_splice(string_t *dst, const string_t *src, int src_offset, int 
 	string_setlength(dst, string_length(dst) + length);
 }
 
+irom void string_pad(string_t *dst, int length, char c)
+{
+	while(string_length(dst) < length)
+		string_append(dst, c);
+}
+
 irom void string_bin_to_hex(string_t *dst, const char *src, int length)
 {
 	int offset;

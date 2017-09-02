@@ -116,9 +116,6 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 irom static app_action_t root_handler(const string_t *src, string_t *dst)
 {
-	string_cat(dst, "<p>\n");
-	string_cat_strptr(dst, sntp_get_real_time(sntp_get_current_timestamp()));
-	string_cat(dst, "</p>\n");
 	io_config_dump(dst, -1, -1, true);
 
 	return(app_action_http_ok);
