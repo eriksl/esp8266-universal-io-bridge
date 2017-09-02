@@ -2,6 +2,7 @@
 #include "util.h"
 #include "config.h"
 #include "io.h"
+#include "stats.h"
 
 #include <sntp.h>
 
@@ -48,6 +49,16 @@ roflash static const char html_footer[] =
 {
 	"</body>\n"
 	"</html>\n"
+};
+
+roflash static const char html_table_start[] =
+{
+	"<table cellpadding=\"1\" cellspacing=\"1\" border=\"1\">\n"
+};
+
+roflash static const char html_table_end[] =
+{
+	"</table>\n"
 };
 
 irom static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
@@ -119,7 +130,77 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	return(action);
 }
 
-irom static app_action_t root_handler(const string_t *src, string_t *dst)
+irom static app_action_t handler_root(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><th colspan=\"1\">ESP8266 Universal I/O bridge</th></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"info_fw\">Information about the firmware</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"info_i2c\">Information about i2c</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"info_time\">Information about time keeping</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"info_wlan\">Information about wlan</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"info_stats\">Statistics</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"io\">List all I/O's</a></td></tr>\n");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_info_fw(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><td><pre>");
+	stats_firmware(dst);
+	string_cat(dst, "</pre></td></tr>");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><td><pre>");
+	stats_i2c(dst);
+	string_cat(dst, "</pre></td></tr>");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_info_time(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><td><pre>");
+	stats_time(dst);
+	string_cat(dst, "</pre></td></tr>");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_info_stats(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><td><pre>");
+	stats_counters(dst);
+	string_cat(dst, "</pre></td></tr>");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
+{
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><td><pre>");
+	stats_wlan(dst);
+	string_cat(dst, "</pre></td></tr>");
+	string_cat_ptr(dst, html_table_end);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_io(const string_t *src, string_t *dst)
 {
 	io_config_dump(dst, -1, -1, true);
 
@@ -130,7 +211,31 @@ static const http_handler_t handlers[] =
 {
 	{
 		"/",
-		root_handler
+		handler_root
+	},
+	{
+		"/info_fw",
+		handler_info_fw
+	},
+	{
+		"/info_i2c",
+		handler_info_i2c
+	},
+	{
+		"/info_stats",
+		handler_info_stats
+	},
+	{
+		"/info_time",
+		handler_info_time
+	},
+	{
+		"/info_wlan",
+		handler_info_wlan
+	},
+	{
+		"/io",
+		handler_io
 	},
 	{
 		(const char *)0,
