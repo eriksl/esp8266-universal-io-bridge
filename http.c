@@ -6,6 +6,12 @@
 
 #include <sntp.h>
 
+typedef struct
+{
+	const char *action;
+	app_action_t (*handler)(const string_t *src, string_t *dst);
+} http_handler_t;
+
 static const http_handler_t handlers[];
 
 roflash static const char http_header_pre[] =
