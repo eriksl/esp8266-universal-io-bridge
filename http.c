@@ -118,29 +118,44 @@ irom static app_action_t http_error(string_t *dst, const char *error_string, con
 
 irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
 {
-	string_new(static, location, 32);
+	string_new(auto, url, 32);
+	string_new(auto, afterslash, 32);
+	string_new(auto, action, 32);
 	int ix, length;
 	const http_handler_t *handler;
-	app_action_t action;
+	app_action_t error;
 
-	string_clear(&location);
+	string_clear(&url);
+	string_clear(&afterslash);
 
-	if((parse_string(1, src, &location)) != parse_ok)
-		return(http_error(dst, "400 Bad Request", 0));
+	if((parse_string(1, src, &url, ' ')) != parse_ok)
+		return(http_error(dst, "400 Bad Request 1", "no url"));
 
-	for(handler = &handlers[0]; handler->location && handler->handler; handler++)
-		if(string_match(&location, handler->location))
+	if(string_index(&url, 0) != '/')
+		return(http_error(dst, "400 Bad Request 2", string_to_const_ptr(&url)));
+
+	if(!string_match(&url, "/") && (parse_string(1, &url, &afterslash, '/') != parse_ok))
+		return(http_error(dst, "400 Bad Request 3", string_to_const_ptr(&afterslash)));
+
+	if((parse_string(0, &afterslash, &action, '?')) != parse_ok)
+	{
+		string_clear(&action);
+		string_copy_string(&action, &afterslash);
+	}
+
+	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
+		if(string_match(&action, handler->action))
 			break;
 
-	if(!handler->location || !handler->handler)
-		return(http_error(dst, "404 Not Found", string_to_const_ptr(&location)));
+	if(!handler->action || !handler->handler)
+		return(http_error(dst, "404 Not Found", string_to_const_ptr(&action)));
 
 	string_clear(dst);
 	string_cat_ptr(dst, http_header_pre);
 	string_cat_ptr(dst, http_header_ok);
 	string_cat_ptr(dst, html_header);
 
-	if((action = handler->handler(&location, dst)) == app_action_http_ok)
+	if((error = handler->handler(&afterslash, dst)) == app_action_http_ok)
 	{
 		string_cat_ptr(dst, html_footer);
 
@@ -158,10 +173,10 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 		length %= 10;
 		string_replace(dst, ix + 3, (length / 1) + '0');
 
-		action = app_action_normal;
+		error = app_action_normal;
 	}
 
-	return(action);
+	return(error);
 }
 
 irom static app_action_t handler_root(const string_t *src, string_t *dst)
@@ -244,31 +259,31 @@ irom static app_action_t handler_io(const string_t *src, string_t *dst)
 static const http_handler_t handlers[] =
 {
 	{
-		"/",
+		"",
 		handler_root
 	},
 	{
-		"/info_fw",
+		"info_fw",
 		handler_info_fw
 	},
 	{
-		"/info_i2c",
+		"info_i2c",
 		handler_info_i2c
 	},
 	{
-		"/info_stats",
+		"info_stats",
 		handler_info_stats
 	},
 	{
-		"/info_time",
+		"info_time",
 		handler_info_time
 	},
 	{
-		"/info_wlan",
+		"info_wlan",
 		handler_info_wlan
 	},
 	{
-		"/io",
+		"io",
 		handler_io
 	},
 	{
