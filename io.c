@@ -883,6 +883,80 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
 }
 
+irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, int *low, int *high, int *step, int *current)
+{
+	io_error_t error;
+	const io_info_entry_t *info;
+	io_data_entry_t *data;
+	io_config_pin_entry_t *pin_config;
+	io_data_pin_entry_t *pin_data;
+	int pwm_period;
+
+	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+		pwm_period = 65536;
+
+	if(io >= io_id_size)
+	{
+		if(errormsg)
+			string_cat(errormsg, "io out of range\n");
+		return(io_error);
+	}
+
+	info = &io_info[io];
+	data = &io_data[io];
+
+	if(pin >= info->pins)
+	{
+		if(errormsg)
+			string_cat(errormsg, "pin out of range\n");
+		return(io_error);
+	}
+
+	pin_config = &io_config[io][pin];
+	pin_data = &data->pin[pin];
+
+	*pinmode = pin_config->mode;
+
+	switch(pin_config->mode)
+	{
+		case(io_pin_disabled):
+		case(io_pin_error):
+		case(io_pin_trigger):
+		{
+			if(errormsg)
+				string_cat(errormsg, "pin disabled");
+			return(io_error);
+		}
+
+		case(io_pin_output_analog):
+		{
+			*low		= pin_config->shared.output_analog.lower_bound;
+			*high		= pin_config->shared.output_analog.upper_bound;
+			*step		= pin_config->speed;
+
+			if(*low > pwm_period)
+				*low = 0;
+
+			if(*high > pwm_period)
+				*high = pwm_period - 1;
+
+			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, current)) != io_ok)
+				return(error);
+
+			break;
+		}
+
+		default:
+		{
+			if(errormsg)
+				string_cat(errormsg, "no info for this type");
+			return(io_error);
+		}
+	}
+
+	return(io_ok);
+}
+
 irom void io_init(void)
 {
 	const io_info_entry_t *info;

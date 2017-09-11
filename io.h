@@ -241,6 +241,7 @@ void		io_periodic(void);
 io_error_t	io_read_pin(string_t *, int, int, int *);
 io_error_t	io_write_pin(string_t *, int, int, int);
 io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);
+io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, int *low, int *high, int *step, int *current);
 void		io_config_dump(string_t *dst, int io_id, int pin_id, bool html);
 void		io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
