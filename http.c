@@ -43,7 +43,7 @@ roflash static const char http_header_error[] =
 
 roflash static const char html_header[] =
 {
-	"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3c.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+	"<!DOCTYPE html>\n"
 	"<html>\n"
 	"<head>\n"
 	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\n"
