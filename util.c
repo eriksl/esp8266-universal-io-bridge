@@ -122,7 +122,7 @@ irom void string_cat_ptr(string_t *dst, const char *src)
 		dst->buffer[dst->size - 1] = '\0';
 }
 
-irom int string_copy_string(string_t *dst, string_t *src)
+irom int string_copy_string(string_t *dst, const string_t *src)
 {
 	int length;
 
