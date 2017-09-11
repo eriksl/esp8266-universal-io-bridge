@@ -342,7 +342,7 @@ irom attr_pure int string_sep(const string_t *src, int offset, int occurrence, c
 			occurrence--;
 
 	if((offset >= string_size(src)) || (offset >= string_length(src)))
-		return(-1);
+		offset = -1;
 
 	return(offset);
 }
