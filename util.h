@@ -187,7 +187,7 @@ bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int);
 bool_t string_nmatch(const string_t *, const char *, int);
 bool_t string_memcmp(const string_t *, const void *, int);
 char string_index(const string_t *, int index);
-int string_sep(const string_t *, int offset, int occurence, char c);
+int string_sep(const string_t *, int offset, int occurrence, char c);
 int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
 void string_splice(string_t *dst, const string_t *src, int src_offset, int length);

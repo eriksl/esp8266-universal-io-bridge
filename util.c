@@ -335,11 +335,11 @@ irom attr_pure char string_index(const string_t *s, int index)
 		return('\0');
 }
 
-irom attr_pure int string_sep(const string_t *src, int offset, int occurence, char c)
+irom attr_pure int string_sep(const string_t *src, int offset, int occurrence, char c)
 {
-	for(; (offset < string_length(src)) && (occurence > 0); offset++)
+	for(; (offset < string_length(src)) && (occurrence > 0); offset++)
 		if(string_index(src, offset) == c)
-			occurence--;
+			occurrence--;
 
 	if((offset >= string_size(src)) || (offset >= string_length(src)))
 		return(-1);
