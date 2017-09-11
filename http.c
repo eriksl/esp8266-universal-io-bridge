@@ -45,11 +45,27 @@ roflash static const char html_header[] =
 {
 	"<!DOCTYPE html>\n"
 	"<html>\n"
-	"<head>\n"
-	"<meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\n"
-	"<title>Universal I/O bridge</title>\n"
-	"</head>\n"
-	"<body>\n"
+	"	<head>\n"
+	"		<title>Universal I/O bridge</title>\n"
+	"		<style>\n"
+	"			.range {\n"
+	"				transform: scale(8,6);\n"
+	"				transform-origin: left top;\n"
+	"				width: 12.2%;\n"
+	"				margin: 0px 0px 110px 0px;\n"
+	"				border: solid 0px white;\n"
+	"			}\n"
+	"			.form\n"
+	"			{\n"
+	"				border: solid 4px blue;\n"
+	"				margin: 0px 0px 20px 0px;\n"
+	"			}\n"
+	"			.div {\n"
+	"				font-size: 31pt;\n"
+	"			}\n"
+	"		</style>\n"
+	"	</head>\n"
+	"	<body>\n"
 };
 
 roflash static const char html_p1[] =
@@ -82,6 +98,33 @@ roflash static const char html_table_end[] =
 {
 	"</table>\n"
 };
+
+irom static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
+{
+	string_new(auto, id, 32);
+	int pwm_period;
+
+	string_clear(&id);
+	string_format(&id, "range_%d_%d", io, pin);
+
+	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+		pwm_period = 65536;
+
+	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_const_ptr(&id), "set");
+	string_cat(dst,		"	<div class=\"div\">\n");
+	string_format(dst,	"		%d/%d range: %d-%d/%d current: %d\n", io, pin, low, high, step, current);
+	string_cat(dst,		"	</div>\n");
+	string_format(dst,	"	<input name=\"io\" type=\"hidden\" value=\"%d\" />\n", io);
+	string_format(dst,	"	<input name=\"pin\" type=\"hidden\" value=\"%d\" />\n", pin);
+	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%d\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_const_ptr(&id));
+	string_cat(dst,		"	<script type=\"text/javascript\">\n");
+	string_format(dst,	"	function changed_%s(value)\n", string_to_const_ptr(&id));
+	string_cat(dst,		"	{\n");
+	string_format(dst,	"		document.getElementById(\"form_%s\").submit();\n", string_to_const_ptr(&id));
+	string_cat(dst,		"	}\n");
+	string_cat(dst,		"	</script>\n");
+	string_cat(dst,		"</form>\n");
+}
 
 irom static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
 {
@@ -188,9 +231,90 @@ irom static app_action_t handler_root(const string_t *src, string_t *dst)
 	string_cat(dst, "<tr><td><a href=\"info_time\">Information about time keeping</a></td></tr>\n");
 	string_cat(dst, "<tr><td><a href=\"info_wlan\">Information about wlan</a></td></tr>\n");
 	string_cat(dst, "<tr><td><a href=\"info_stats\">Statistics</a></td></tr>\n");
+	string_cat(dst, "<tr><td><a href=\"controls\">Control outputs</a></td></tr>\n");
 	string_cat(dst, "<tr><td><a href=\"io\">List all I/O's</a></td></tr>\n");
 	string_cat_ptr(dst, html_table_end);
 
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_controls(const string_t *src, string_t *dst)
+{
+	int				io, pin;
+	int				low, high, step, current;
+	io_pin_mode_t	mode;
+
+	for(io = 0; io < io_id_size; io++)
+		for(pin = 0; pin < max_pins_per_io; pin++)
+			if(io_traits(0, io, pin, &mode, &low, &high, &step, &current) == io_ok)
+				if(high > 0)
+					http_range_form(dst, io, pin, low, high, step, current);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_set(const string_t *src, string_t *dst)
+{
+	string_new(auto, getparam, 32);
+	string_new(auto, param1, 16);
+	string_new(auto, param2, 16);
+	string_new(auto, param3, 16);
+
+	int io, pin, value;
+	io_error_t error;
+
+	string_clear(&getparam);
+	string_clear(&param1);
+	string_clear(&param2);
+	string_clear(&param3);
+
+	if(parse_string(1, src, &getparam, '?') != parse_ok)
+		goto error;
+
+	if(parse_string(0, &getparam, &param1, '&') != parse_ok)
+		goto error;
+
+	if(parse_string(1, &getparam, &param2, '&') != parse_ok)
+		goto error;
+
+	if(parse_string(2, &getparam, &param3, '&') != parse_ok)
+		goto error;
+
+	if(!string_nmatch(&param1, "io=", 3))
+		goto error;
+
+	if(!string_nmatch(&param2, "pin=", 4))
+		goto error;
+
+	if(!string_nmatch(&param3, "value=", 6))
+		goto error;
+
+	if(parse_int(1, &param1, &io, 10, '=') != parse_ok)
+		goto error;
+
+	if(parse_int(1, &param2, &pin, 10, '=') != parse_ok)
+		goto error;
+
+	if(parse_int(1, &param3, &value, 10, '=') != parse_ok)
+		goto error;
+
+	error = io_write_pin(dst, io, pin, value);
+
+	if(error == io_ok)
+		string_cat(dst, "<script>location.replace(\"/controls\");</script>\n");
+	else
+	{
+		string_format(dst, "<tr><td>%s: io=%d pin=%d value=%d</td></tr>\n<tr><td>",
+				string_to_const_ptr(&getparam), io, pin, value);
+		string_cat(dst, "</td></tr>\n");
+	}
+
+	return(app_action_http_ok);
+
+error:
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><th>parameter error</h1></th></tr>\n");
+	string_cat_ptr(dst, html_table_end);
 	return(app_action_http_ok);
 }
 
@@ -268,6 +392,10 @@ static const http_handler_t handlers[] =
 		handler_root
 	},
 	{
+		"controls",
+		handler_controls
+	},
+	{
 		"favicon.ico",
 		handler_favicon
 	},
@@ -294,6 +422,10 @@ static const http_handler_t handlers[] =
 	{
 		"io",
 		handler_io
+	},
+	{
+		"set",
+		handler_set
 	},
 	{
 		(const char *)0,
