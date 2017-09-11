@@ -366,11 +366,12 @@ irom static void trigger_usage(string_t *dst)
 	trigger_actions_to_string(dst);
 }
 
-irom static void iomode_trigger_usage(string_t *dst)
+irom static void iomode_trigger_usage(string_t *dst, const char *info)
 {
 	string_cat(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
 	string_cat(dst, "    action: ");
 	trigger_actions_to_string(dst);
+	string_format(dst, "\nerror: %s\n", info);
 }
 
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
@@ -1441,7 +1442,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
 			{
-				iomode_trigger_usage(dst);
+				iomode_trigger_usage(dst, "debounce");
 				return(app_action_error);
 			}
 
@@ -1450,28 +1451,26 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			if((parse_string(5, src, dst, ' ') != parse_ok))
 			{
 				string_clear(dst);
-				iomode_trigger_usage(dst);
+				iomode_trigger_usage(dst, "action 1");
 				return(app_action_error);
 			}
-
-			string_clear(dst);
 
 			if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
 			{
 				string_clear(dst);
-				iomode_trigger_usage(dst);
+				iomode_trigger_usage(dst, "action 2");
 				return(app_action_error);
 			}
 
 			if((parse_int(6, src, &trigger_io, 0, ' ') != parse_ok))
 			{
-				iomode_trigger_usage(dst);
+				iomode_trigger_usage(dst, "io");
 				return(app_action_error);
 			}
 
 			if((parse_int(7, src, &trigger_pin, 0, ' ') != parse_ok))
 			{
-				iomode_trigger_usage(dst);
+				iomode_trigger_usage(dst, "pin");
 				return(app_action_error);
 			}
 
