@@ -50,6 +50,22 @@ done:
 	return(to);
 }
 
+irom void string_setlength(string_t *dst, int length)
+{
+	if((length + 1) > dst->size)
+		dst->length = dst->size - 1;
+	else
+	{
+		dst->length = length;
+		dst->buffer[dst->length] = '\0';
+	}
+}
+
+irom void string_clear(string_t *dst)
+{
+	string_setlength(dst, 0);
+};
+
 irom void string_set(string_t *dst, char *buffer, int size, int length)
 {
 	dst->buffer = buffer;
@@ -273,16 +289,6 @@ irom int string_double(string_t *dst, double value, int precision, double top_de
 		string_append(dst, '0');
 
 	return(string_length(dst) - original_length);
-}
-
-irom void string_setlength(string_t *dst, int length)
-{
-	if((length + 1) > dst->size)
-		dst->length = dst->size - 1;
-	else
-		dst->length = length;
-
-	dst->buffer[dst->length] = '\0';
 }
 
 irom void string_append(string_t *dst, char c)

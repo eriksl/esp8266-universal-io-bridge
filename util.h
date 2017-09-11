@@ -177,7 +177,7 @@ int string_double(string_t *dst, double value, int precision, double top_decimal
 static inline int string_length(const string_t *dst) { return(dst->length); }
 static inline int string_size(const string_t *dst) { return(dst->size - 1); }
 static inline bool_t string_space(const string_t *dst) { return(string_length(dst) < string_size(dst)); }
-static inline void string_clear(string_t *dst) { dst->length = 0; };
+void string_clear(string_t *dst);
 void string_setlength(string_t *dst, int length);
 void string_append(string_t *dst, char c);
 bool_t string_match(const string_t *, const char *);
