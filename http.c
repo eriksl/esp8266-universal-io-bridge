@@ -36,6 +36,7 @@ roflash static const char http_header_ok[] =
 roflash static const char http_header_error[] =
 {
 	"Content-Type: text/html; charset=UTF-8\r\n"
+	"Content-Length: %d\r\n"
 	"Connection: close\r\n"
 	"\r\n"
 };
@@ -51,9 +52,24 @@ roflash static const char html_header[] =
 	"<body>\n"
 };
 
+roflash static const char html_p1[] =
+{
+	"<p>"
+};
+
+roflash static const char html_p2[] =
+{
+	"</p>"
+};
+
+roflash static const char html_eol[] =
+{
+	"\n"
+};
+
 roflash static const char html_footer[] =
 {
-	"</body>\n"
+	"	</body>\n"
 	"</html>\n"
 };
 
@@ -69,20 +85,32 @@ roflash static const char html_table_end[] =
 
 irom static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
 {
+	static const char delim[] = ": ";
+	int content_length = sizeof(html_header) - 1 + sizeof(html_p1) - 1 +
+			strlen(error_string) +
+			sizeof(html_p2) - 1 + sizeof(html_eol) - 1 + sizeof(html_footer) - 1;
+
+	if(info)
+		content_length += sizeof(delim) - 1 + strlen(info) + sizeof(html_eol) - 1;
+
 	string_cat_ptr(dst, http_header_pre);
 	string_cat_strptr(dst, error_string);
 	string_cat_ptr(dst, http_eol);
-	string_cat_ptr(dst, http_header_error);
+	string_format_ptr(dst, http_header_error, content_length);
+
 	string_cat_ptr(dst, html_header);
+	string_cat_ptr(dst, html_p1);
 	string_cat_strptr(dst, error_string);
 
 	if(info)
 	{
-		string_cat(dst, ": ");
+		string_cat_strptr(dst, delim);
 		string_cat_strptr(dst, info);
+		string_cat_ptr(dst, html_eol);
 	}
 
-	string_cat_ptr(dst, "\n");
+	string_cat_ptr(dst, html_eol);
+	string_cat_ptr(dst, html_p2);
 	string_cat_ptr(dst, html_footer);
 
 	return(app_action_error);
