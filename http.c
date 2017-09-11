@@ -194,6 +194,11 @@ irom static app_action_t handler_root(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
+irom static app_action_t handler_favicon(const string_t *src, string_t *dst)
+{
+	return(app_action_http_ok);
+}
+
 irom static app_action_t handler_info_fw(const string_t *src, string_t *dst)
 {
 	string_cat_ptr(dst, html_table_start);
@@ -261,6 +266,10 @@ static const http_handler_t handlers[] =
 	{
 		"",
 		handler_root
+	},
+	{
+		"favicon.ico",
+		handler_favicon
 	},
 	{
 		"info_fw",
