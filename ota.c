@@ -64,13 +64,13 @@ irom app_action_t application_function_ota_receive(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &address, 0) != parse_ok)
+	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "ota-read: address required\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &chunk_size, 0) != parse_ok)
+	if(parse_int(2, src, &chunk_size, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "ota-read: chunk size required\n");
 		return(app_action_error);
@@ -109,13 +109,13 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &remote_file_length, 0) != parse_ok)
+	if(parse_int(1, src, &remote_file_length, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "ota-write: invalid/missing file length\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &flash_start_address, 0) != parse_ok)
+	if(parse_int(2, src, &flash_start_address, 0, ' ') != parse_ok)
 		flash_start_address = -1;
 
 	if(flash_start_address == -1)
@@ -213,14 +213,14 @@ irom app_action_t application_function_ota_send(const string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &remote_chunk_length, 0) != parse_ok)
+	if(parse_int(1, src, &remote_chunk_length, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "ota-send: missing chunk length\n");
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &remote_crc, 0) != parse_ok)
+	if(parse_int(2, src, &remote_crc, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "ota-send: missing crc\n");
 		ota_state = ota_inactive;
@@ -293,7 +293,7 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 		{
 			string_clear(&remote_md5_string);
 
-			if((parse_string(1, src, &remote_md5_string)) != parse_ok)
+			if((parse_string(1, src, &remote_md5_string, ' ')) != parse_ok)
 			{
 				string_copy(dst, "ota-finish: missing md5sum string\n");
 				ota_state = ota_inactive;

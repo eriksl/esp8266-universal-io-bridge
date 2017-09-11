@@ -895,7 +895,7 @@ irom app_action_t application_function_pwm_period(const string_t *src, string_t 
 {
 	int new_pwm_period;
 
-	if(parse_int(1, src, &new_pwm_period, 0) == parse_ok)
+	if(parse_int(1, src, &new_pwm_period, 0, ' ') == parse_ok)
 	{
 		if((new_pwm_period < 256) || (new_pwm_period > 65536))
 		{

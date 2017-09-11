@@ -260,7 +260,7 @@ irom bool_t config_set_string(const char *id, int index1, int index2, const stri
 
 	string = string_from_ptr(value_length + 1, config_current->string_value);
 
-	if(parse_int(0, &string, &config_current->int_value, 0) != parse_ok)
+	if(parse_int(0, &string, &config_current->int_value, 0, ' ') != parse_ok)
 		config_current->int_value = -1;
 
 	return(true);

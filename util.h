@@ -196,7 +196,7 @@ void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);
 
-parse_error_t parse_string(int index, const string_t *in, string_t *out);
-parse_error_t parse_int(int index, const string_t *src, int *dst, int base);
-parse_error_t parse_float(int index, const string_t *, double *);
+parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
+parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delim);
+parse_error_t parse_float(int index, const string_t *, double *, char delim);
 #endif

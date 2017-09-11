@@ -546,7 +546,7 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 {
 	int timeout;
 
-	if(parse_int(1, src, &timeout, 0) == parse_ok)
+	if(parse_int(1, src, &timeout, 0, ' ') == parse_ok)
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
@@ -585,7 +585,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 
 	display_info_entry = &display_info[display_data.detected];
 
-	if(parse_int(1, src, &value, 0) != parse_ok)
+	if(parse_int(1, src, &value, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);
@@ -613,9 +613,9 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	if((parse_int(1, src, &slot, 0) != parse_ok) ||
-		(parse_int(2, src, &timeout, 0) != parse_ok) ||
-		(parse_string(3, src, dst) != parse_ok))
+	if((parse_int(1, src, &slot, 0, ' ') != parse_ok) ||
+		(parse_int(2, src, &timeout, 0, ' ') != parse_ok) ||
+		(parse_string(3, src, dst, ' ') != parse_ok))
 	{
 		string_clear(dst);
 		string_cat(dst, "display-set: usage: slot timeout tag text\n");

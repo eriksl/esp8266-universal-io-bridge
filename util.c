@@ -472,19 +472,19 @@ irom attr_pure uint32_t string_crc32(const string_t *src, int offset, int length
 	return(remainder ^ 0xffffffff);
 }
 
-irom parse_error_t parse_string(int index, const string_t *src, string_t *dst)
+irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, char delimiter)
 {
 	uint8_t current;
 	int offset;
 
-	if((offset = string_sep(src, 0, index, ' ')) < 0)
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
 	for(; offset < string_length(src); offset++)
 	{
 		current = string_index(src, offset);
 
-		if(current == ' ')
+		if(current == delimiter)
 			break;
 
 		if((current > ' ') && (current <= '~'))
@@ -494,7 +494,7 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst)
 	return(parse_ok);
 }
 
-irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base)
+irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter)
 {
 	bool_t negative, valid;
 	int value;
@@ -505,7 +505,7 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base)
 	value = 0;
 	valid = false;
 
-	if((offset = string_sep(src, 0, index, ' ')) < 0)
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
 	if(base == 0)
@@ -554,7 +554,7 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base)
 			}
 			else
 			{
-				if((current != '\0') && (current != ' ') && (current != '\n') && (current != '\r'))
+				if((current != '\0') && (current != delimiter) && (current != '\n') && (current != '\r'))
 					valid = false;
 
 				break;
@@ -575,7 +575,7 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base)
 	return(parse_ok);
 }
 
-irom parse_error_t parse_float(int index, const string_t *src, double *dst)
+irom parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter)
 {
 	int offset;
 	int decimal;
@@ -590,7 +590,7 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst)
 	result = 0;
 	decimal = 0;
 
-	if((offset = string_sep(src, 0, index, ' ')) < 0)
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
 	if((offset < string_length(src)) && (string_index(src, offset) == '-'))

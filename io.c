@@ -1329,7 +1329,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	io_pin_ll_mode_t		llmode;
 	int io, pin;
 
-	if(parse_int(1, src, &io, 0) != parse_ok)
+	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
 		io_config_dump(dst, -1, -1, false);
 		return(app_action_normal);
@@ -1350,7 +1350,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &pin, 0) != parse_ok)
+	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		io_config_dump(dst, io, -1, false);
 		return(app_action_normal);
@@ -1365,7 +1365,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
-	if(parse_string(3, src, dst) != parse_ok)
+	if(parse_string(3, src, dst, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		io_config_dump(dst, io, pin, false);
@@ -1411,7 +1411,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			int debounce;
 
-			if((parse_int(4, src, &debounce, 0) != parse_ok))
+			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
 			{
 				string_cat(dst, "counter: <debounce ms>\n");
 				return(app_action_error);
@@ -1439,7 +1439,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			if((parse_int(4, src, &debounce, 0) != parse_ok))
+			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst);
 				return(app_action_error);
@@ -1447,7 +1447,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			pin_config->speed = debounce;
 
-			if((parse_string(5, src, dst) != parse_ok))
+			if((parse_string(5, src, dst, ' ') != parse_ok))
 			{
 				string_clear(dst);
 				iomode_trigger_usage(dst);
@@ -1463,13 +1463,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			if((parse_int(6, src, &trigger_io, 0) != parse_ok))
+			if((parse_int(6, src, &trigger_io, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst);
 				return(app_action_error);
 			}
 
-			if((parse_int(7, src, &trigger_pin, 0) != parse_ok))
+			if((parse_int(7, src, &trigger_pin, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst);
 				return(app_action_error);
@@ -1483,7 +1483,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 			pin_config->shared.trigger[1].io.pin = -1;
 			pin_config->shared.trigger[1].action = io_trigger_none;
 
-			if((parse_string(8, src, dst) != parse_ok))
+			if((parse_string(8, src, dst, ' ') != parse_ok))
 			{
 				string_clear(dst);
 				goto skip;
@@ -1497,10 +1497,10 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				goto skip;
 			}
 
-			if((parse_int(9, src, &trigger_io, 0) != parse_ok))
+			if((parse_int(9, src, &trigger_io, 0, ' ') != parse_ok))
 				goto skip;
 
-			if((parse_int(10, src, &trigger_pin, 0) != parse_ok))
+			if((parse_int(10, src, &trigger_pin, 0, ' ') != parse_ok))
 				goto skip;
 
 			pin_config->shared.trigger[1].io.io = trigger_io;
@@ -1559,7 +1559,7 @@ skip:
 				return(app_action_error);
 			}
 
-			if(parse_string(4, src, dst) != parse_ok)
+			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
 				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
@@ -1577,7 +1577,7 @@ skip:
 
 			string_clear(dst);
 
-			if((parse_int(5, src, &speed, 0) != parse_ok))
+			if((parse_int(5, src, &speed, 0, ' ') != parse_ok))
 			{
 				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
@@ -1632,9 +1632,9 @@ skip:
 				return(app_action_error);
 			}
 
-			parse_int(4, src, &lower_bound, 0);
-			parse_int(5, src, &upper_bound, 0);
-			parse_int(6, src, &speed, 0);
+			parse_int(4, src, &lower_bound, 0, ' ');
+			parse_int(5, src, &upper_bound, 0, ' ');
+			parse_int(6, src, &speed, 0, ' ');
 
 			if((lower_bound < 0) || (lower_bound > 65535))
 			{
@@ -1689,7 +1689,7 @@ skip:
 				return(app_action_error);
 			}
 
-			if(parse_string(4, src, dst) != parse_ok)
+			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
 				string_copy(dst, "i2c: <pin mode>=sda|scl\n");
 				return(app_action_error);
@@ -1736,7 +1736,7 @@ skip:
 		{
 			io_lcd_mode_t pin_mode;
 
-			if(parse_string(4, src, dst) != parse_ok)
+			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
 				string_copy(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
@@ -1829,7 +1829,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 	io_config_pin_entry_t *pin_config;
 	int io, pin, value;
 
-	if(parse_int(1, src, &io, 0) != parse_ok)
+	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "io-read: <io> <pin>\n");
 		return(app_action_error);
@@ -1843,7 +1843,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0) != parse_ok)
+	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "get: <io> <pin>\n");
 		return(app_action_error);
@@ -1887,7 +1887,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	io_config_pin_entry_t *pin_config;
 	int io, pin, value;
 
-	if(parse_int(1, src, &io, 0) != parse_ok)
+	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
@@ -1901,7 +1901,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0) != parse_ok)
+	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
@@ -1916,7 +1916,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	pin_config = &io_config[io][pin];
 
 	value = 0;
-	parse_int(3, src, &value, 0);
+	parse_int(3, src, &value, 0, ' ');
 
 	io_string_from_mode(dst, pin_config->mode, 0);
 
@@ -1951,7 +1951,7 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	int io, pin;
 	io_trigger_t trigger_type;
 
-	if(parse_int(1, src, &io, 0) != parse_ok)
+	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		trigger_usage(dst);
@@ -1966,7 +1966,7 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0) != parse_ok)
+	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		trigger_usage(dst);
@@ -1979,7 +1979,7 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 		return(app_action_error);
 	}
 
-	if(parse_string(3, src, dst) != parse_ok)
+	if(parse_string(3, src, dst, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		trigger_usage(dst);
@@ -2020,7 +2020,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	io_pin_flag_t saved_flags;
 	io_pin_flag_to_int_t io_pin_flag_to_int;
 
-	if(parse_int(1, src, &io, 0) != parse_ok)
+	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
@@ -2035,7 +2035,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	info = &io_info[io];
 	data = &io_data[io];
 
-	if(parse_int(2, src, &pin, 0) != parse_ok)
+	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_cat(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
@@ -2052,7 +2052,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	saved_flags = pin_config->flags;
 
-	if((parse_string(3, src, dst) == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
+	if((parse_string(3, src, dst, ' ') == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
 	{
 		string_copy(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
