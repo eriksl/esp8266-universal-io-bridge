@@ -8,6 +8,7 @@
 
 typedef struct
 {
+	const char *description;
 	const char *action;
 	app_action_t (*handler)(const string_t *src, string_t *dst);
 } http_handler_t;
@@ -81,6 +82,13 @@ roflash static const char html_p2[] =
 roflash static const char html_eol[] =
 {
 	"\n"
+};
+
+roflash static const char html_link_home[] =
+{
+	"<p>\n"
+	"	<a href=\"/\">Home</a>\n"
+	"</p>\n"
 };
 
 roflash static const char html_footer[] =
@@ -200,6 +208,7 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 	if((error = handler->handler(&afterslash, dst)) == app_action_http_ok)
 	{
+		string_cat_ptr(dst, html_link_home);
 		string_cat_ptr(dst, html_footer);
 
 		if((length = string_length(dst) - (sizeof(http_header_pre) - 1) - (sizeof(http_header_ok) - 1)) <= 0)
@@ -224,15 +233,14 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 
 irom static app_action_t handler_root(const string_t *src, string_t *dst)
 {
+	const http_handler_t *handler;
+
 	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><th colspan=\"1\">ESP8266 Universal I/O bridge</th></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"info_fw\">Information about the firmware</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"info_i2c\">Information about i2c</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"info_time\">Information about time keeping</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"info_wlan\">Information about wlan</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"info_stats\">Statistics</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"controls\">Control outputs</a></td></tr>\n");
-	string_cat(dst, "<tr><td><a href=\"io\">List all I/O's</a></td></tr>\n");
+	string_cat(dst, "<tr><th colspan=\"2\">ESP8266 Universal I/O bridge</th></tr>\n");
+
+	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
+		string_format(dst, "<tr><td>%s</td><td><a href=\"/%s\">/%s</a></td></tr>\n", handler->description, handler->action, handler->action);
+
 	string_cat_ptr(dst, html_table_end);
 
 	return(app_action_http_ok);
@@ -388,46 +396,62 @@ irom static app_action_t handler_io(const string_t *src, string_t *dst)
 static const http_handler_t handlers[] =
 {
 	{
+		"Home",
 		"",
 		handler_root
 	},
 	{
-		"controls",
-		handler_controls
-	},
-	{
-		"favicon.ico",
-		handler_favicon
-	},
-	{
+		"Information about the firmware",
 		"info_fw",
 		handler_info_fw
 	},
 	{
+		"Information about the i2c bus",
 		"info_i2c",
 		handler_info_i2c
 	},
 	{
-		"info_stats",
-		handler_info_stats
-	},
-	{
+		"Information about time keeping",
 		"info_time",
 		handler_info_time
 	},
 	{
+		"Information about wlan",
 		"info_wlan",
 		handler_info_wlan
 	},
 	{
+		"Statistics",
+		"info_stats",
+		handler_info_stats
+	},
+	{
+		"List all I/O's",
 		"io",
 		handler_io
 	},
 	{
+		"Control outputs",
+		"controls",
+		handler_controls
+	},
+	{
+		"List all sensors",
+		"sensors",
+		handler_sensors,
+	},
+	{
+		"Set an I/O",
 		"set",
 		handler_set
 	},
 	{
+		"Favicon (dummy)",
+		"favicon.ico",
+		handler_favicon
+	},
+	{
+		(const char *)0,
 		(const char *)0,
 		(app_action_t (*)(const string_t *, string_t *))0
 	}
