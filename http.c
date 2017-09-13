@@ -3,6 +3,7 @@
 #include "config.h"
 #include "io.h"
 #include "stats.h"
+#include "i2c_sensor.h"
 
 #include <sntp.h>
 
@@ -389,6 +390,33 @@ irom static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
 irom static app_action_t handler_io(const string_t *src, string_t *dst)
 {
 	io_config_dump(dst, -1, -1, true);
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
+{
+	i2c_sensor_t sensor;
+	int bus;
+	int detected = 0;
+
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst, "<tr><th>bus</th><th>sensor</th><th>address</th><th>name</th><th>type</th><th>value</th></tr>\n");
+
+	for(bus = 0; bus < i2c_busses; bus++)
+		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
+			if(i2c_sensor_detected(bus, sensor))
+			{
+				string_cat(dst, "<tr><td>");
+				i2c_sensor_read(dst, bus, sensor, false, true);
+				string_cat(dst, "</td></tr>\n");
+				detected++;
+			}
+
+	if(detected < 1)
+		string_cat(dst, "<tr><td colspan=\"6\">no sensors detected</td></tr>\n");
+
+	string_cat_ptr(dst, html_table_end);
 
 	return(app_action_http_ok);
 }

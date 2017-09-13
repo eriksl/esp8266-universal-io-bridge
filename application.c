@@ -724,7 +724,7 @@ irom static app_action_t application_function_i2c_sensor_read(const string_t *sr
 		return(app_action_error);
 	}
 
-	if(!i2c_sensor_read(dst, bus, sensor, true))
+	if(!i2c_sensor_read(dst, bus, sensor, true, false))
 	{
 		string_clear(dst);
 		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, (int)sensor);
@@ -832,7 +832,7 @@ irom static app_action_t application_function_i2c_sensor_dump(const string_t *sr
 		{
 			if(all || i2c_sensor_detected(bus, sensor))
 			{
-				i2c_sensor_read(dst, bus, sensor, verbose);
+				i2c_sensor_read(dst, bus, sensor, verbose, false);
 				string_cat(dst, "\n");
 			}
 		}

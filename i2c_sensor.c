@@ -2190,7 +2190,7 @@ irom void i2c_sensor_init_all(void)
 				i2c_sensor_init(bus, current);
 }
 
-irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t verbose)
+irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t verbose, bool_t html)
 {
 	const device_table_entry_t *entry;
 	i2c_error_t error;
@@ -2223,7 +2223,10 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	error = i2c_error_ok;
 
-	string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->address, entry->name, entry->type);
+	if(html)
+		string_format(dst, "%u</td><td align=\"right\">%u</td><td align=\"right\">0x%02x</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
+	else
+		string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].detected ? "+" : " ", bus, sensor, entry->address, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value)) == i2c_error_ok)
 	{
@@ -2235,11 +2238,20 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
 
-		string_cat(dst, "[");
-		string_double(dst, extracooked, entry->precision, 1e10);
-		string_cat(dst, "]");
-
-		string_format(dst, " %s", entry->unity);
+		if(html)
+		{
+			string_cat(dst, "<td align=\"right\">");
+			string_double(dst, extracooked, entry->precision, 1e10);
+			string_cat(dst, " ");
+			string_format(dst, "%s", entry->unity);
+		}
+		else
+		{
+			string_cat(dst, "[");
+			string_double(dst, extracooked, entry->precision, 1e10);
+			string_cat(dst, "]");
+			string_format(dst, " %s", entry->unity);
+		}
 
 		if(verbose)
 		{
