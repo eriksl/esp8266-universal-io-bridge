@@ -170,9 +170,9 @@ irom static app_action_t http_error(string_t *dst, const char *error_string, con
 
 irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
 {
-	string_new(auto, url, 32);
-	string_new(auto, afterslash, 32);
-	string_new(auto, action, 32);
+	string_new(auto, url, 64);
+	string_new(auto, afterslash, 64);
+	string_new(auto, action, 64);
 	int ix, length;
 	const http_handler_t *handler;
 	app_action_t error;
@@ -207,27 +207,24 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	string_cat_ptr(dst, http_header_ok);
 	string_cat_ptr(dst, html_header);
 
-	if((error = handler->handler(&afterslash, dst)) == app_action_http_ok)
-	{
-		string_cat_ptr(dst, html_link_home);
-		string_cat_ptr(dst, html_footer);
+	error = handler->handler(&afterslash, dst);
 
-		if((length = string_length(dst) - (sizeof(http_header_pre) - 1) - (sizeof(http_header_ok) - 1)) <= 0)
-			return(http_error(dst, "500 Internal Server Error", 0));
+	string_cat_ptr(dst, html_link_home);
+	string_cat_ptr(dst, html_footer);
 
-		if((ix = string_find(dst, 0, '@')) <= 0)
-			return(http_error(dst, "501 Not Implemented", 0));
+	if((length = string_length(dst) - (sizeof(http_header_pre) - 1) - (sizeof(http_header_ok) - 1)) <= 0)
+		return(http_error(dst, "500 Internal Server Error", 0));
 
-		string_replace(dst, ix + 0, (length / 1000) + '0');
-		length %= 1000;
-		string_replace(dst, ix + 1, (length / 100) + '0');
-		length %= 100;
-		string_replace(dst, ix + 2, (length / 10) + '0');
-		length %= 10;
-		string_replace(dst, ix + 3, (length / 1) + '0');
+	if((ix = string_find(dst, 0, '@')) <= 0)
+		return(http_error(dst, "501 Not Implemented", 0));
 
-		error = app_action_normal;
-	}
+	string_replace(dst, ix + 0, (length / 1000) + '0');
+	length %= 1000;
+	string_replace(dst, ix + 1, (length / 100) + '0');
+	length %= 100;
+	string_replace(dst, ix + 2, (length / 10) + '0');
+	length %= 10;
+	string_replace(dst, ix + 3, (length / 1) + '0');
 
 	return(error);
 }
@@ -240,7 +237,8 @@ irom static app_action_t handler_root(const string_t *src, string_t *dst)
 	string_cat(dst, "<tr><th colspan=\"2\">ESP8266 Universal I/O bridge</th></tr>\n");
 
 	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
-		string_format(dst, "<tr><td>%s</td><td><a href=\"/%s\">/%s</a></td></tr>\n", handler->description, handler->action, handler->action);
+		if(handler->description)
+			string_format(dst, "<tr><td>%s</td><td><a href=\"/%s\">/%s</a></td></tr>\n", handler->description, handler->action, handler->action);
 
 	string_cat_ptr(dst, html_table_end);
 
@@ -421,6 +419,92 @@ irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
+irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *dst)
+{
+	string_cat(dst, "<p>Reset WLAN configuration.</p>\n");
+	string_cat(dst, "<p>Type the SSID (network name) and password and click \"set\".</p>\n");
+	string_cat(dst, "<form action=\"/resetwlan\" method=\"get\">\n");
+	string_cat(dst, "	<input type=\"text\" name=\"ssid\">\n");
+	string_cat(dst, "	<input type=\"text\" name=\"password\">\n");
+	string_cat(dst, "	<input type=\"submit\" value=\"set\">\n");
+	string_cat(dst, "</form>\n");
+
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
+{
+	string_new(auto, getparam, 64);
+	string_new(auto, param1, 32);
+	string_new(auto, param2, 32);
+	string_new(auto, ssid, 32);
+	string_new(auto, passwd, 32);
+
+	string_clear(&getparam);
+	string_clear(&param1);
+	string_clear(&param2);
+	string_clear(&ssid);
+	string_clear(&passwd);
+
+	if(parse_string(1, src, &getparam, '?') != parse_ok)
+		goto parameter_error;
+
+	if(parse_string(0, &getparam, &param1, '&') != parse_ok)
+		goto parameter_error;
+
+	if(parse_string(1, &getparam, &param2, '&') != parse_ok)
+		goto parameter_error;
+
+	if(!string_nmatch(&param1, "ssid=", 5))
+		goto parameter_error;
+
+	if(!string_nmatch(&param2, "password=", 9))
+		goto parameter_error;
+
+	if(parse_string(1, &param1, &ssid, '=') != parse_ok)
+		goto parameter_error;
+
+	if(parse_string(1, &param2, &passwd, '=') != parse_ok)
+		goto parameter_error;
+
+	if((string_length(&ssid) < 4) || (string_length(&passwd) < 8))
+		goto parameter_error;
+
+	if(!config_set_string("wlan.client.ssid", -1, -1, &ssid, -1, -1))
+		goto config_error;
+
+	if(!config_set_string("wlan.client.passwd", -1, -1, &passwd, -1, -1))
+		goto config_error;
+
+	if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_client))
+		goto config_error;
+
+	if(config_write() == 0)
+		goto config_error;
+
+	string_cat_ptr(dst, html_table_start);
+	string_cat(dst,		"<p>SSID and password set.</p>\n");
+	string_cat(dst,		"<tr><th>SSID</th><th>password</th></tr>\n");
+	string_format(dst,	"<tr><td>%s</td><td>%s</td></tr>\n", string_to_const_ptr(&ssid), string_to_const_ptr(&passwd));
+	string_cat_ptr(dst, html_table_end);
+	string_cat(dst,		"<p>Now <a href=\"/reset\">reset</a> to activate WLAN settings.</p>\n");
+
+	return(app_action_http_ok);
+
+parameter_error:
+	string_cat(dst, "<h1>Parameter error</h1>\n");
+	return(app_action_http_ok);
+
+config_error:
+	string_cat(dst, "<h1>Can't write config</h1>\n");
+	return(app_action_http_ok);
+}
+
+irom static app_action_t handler_reset(const string_t *src, string_t *dst)
+{
+	return(app_action_reset);
+}
+
 static const http_handler_t handlers[] =
 {
 	{
@@ -444,7 +528,7 @@ static const http_handler_t handlers[] =
 		handler_info_time
 	},
 	{
-		"Information about wlan",
+		"Information about WLAN",
 		"info_wlan",
 		handler_info_wlan
 	},
@@ -474,7 +558,22 @@ static const http_handler_t handlers[] =
 		handler_set
 	},
 	{
-		"Favicon (dummy)",
+		"Reset WLAN configuration",
+		"resetwlanscreen",
+		handler_resetwlanscreen,
+	},
+	{
+		(const char *)0,
+		"resetwlan",
+		handler_resetwlan
+	},
+	{
+		"Reset",
+		"reset",
+		handler_reset
+	},
+	{
+		(const char *)0,
 		"favicon.ico",
 		handler_favicon
 	},
