@@ -79,12 +79,41 @@ static const char *slp[] =
 	"unknown"
 };
 
+typedef struct
+{
+	unsigned int id;
+	const char *name;
+} manufacturer_t;
+
+static const manufacturer_t manufacturers[] =
+{
+	{	0xc8,	"GigaDevice"	},
+	{	0xe0,	"Berg Micro"	},
+	{	0xef,	"Winbond"		},
+	{	0,		(const char *)0	}
+};
+
+irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
+{
+	const manufacturer_t *manufacturer;
+
+	for(manufacturer = manufacturers; manufacturer->id && manufacturer->name; manufacturer++)
+		if(manufacturer->id == id)
+			return(manufacturer->name);
+
+	return("unknown");
+}
+
 irom void stats_firmware(string_t *dst)
 {
 #if IMAGE_OTA == 1
 	rboot_config rcfg;
 #endif
 	const struct rst_info *rst_info;
+	uint32_t flash_id = spi_flash_get_id();
+	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
+	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
+	unsigned int flash_size				= (flash_id & 0x00ff0000) >> 16;
 
 	rst_info = system_get_rst_info();
 
@@ -92,7 +121,7 @@ irom void stats_firmware(string_t *dst)
 			"> firmware version date: %s\n"
 			"> SDK version: %s\n"
 			"> system id: %u\n"
-			"> spi flash id: %u\n"
+			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
 			"> cpu frequency: %u MHz\n"
 			"> flash map: %s\n"
 			"> reset cause: %s\n"
@@ -102,7 +131,7 @@ irom void stats_firmware(string_t *dst)
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
-				spi_flash_get_id(),
+				flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
 				flash_map[system_get_flash_size_map()],
 				reset_map[rst_info->reason],
