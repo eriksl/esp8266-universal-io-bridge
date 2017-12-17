@@ -137,7 +137,7 @@ void MD5Final(unsigned char hash[], MD5_CTX *mdContext);
 // string handling
 
 #define string_new(_linkage, _name, _size) \
-	_linkage char _ ## _name ## _buf[_size]; \
+	_linkage char _ ## _name ## _buf[_size] = { 0 }; \
 	_linkage string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
 string_t string_from_ptr(size_t size, char *buffer);

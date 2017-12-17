@@ -272,11 +272,9 @@ irom app_action_t application_function_ota_send(const string_t *src, string_t *d
 irom app_action_t application_function_ota_finish(const string_t *src, string_t *dst)
 {
 	static uint8_t md5_result[16];
-	string_new(static, local_md5_string, 34);
-	string_new(static, remote_md5_string, 34);
+	string_new(, local_md5_string, 34);
+	string_new(, remote_md5_string, 34);
 	app_action_t action;
-
-	string_clear(&local_md5_string);
 
 	if(ota_state == ota_reading)
 	{
@@ -291,8 +289,6 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 	else
 		if(ota_state == ota_writing)
 		{
-			string_clear(&remote_md5_string);
-
 			if((parse_string(1, src, &remote_md5_string, ' ')) != parse_ok)
 			{
 				string_copy(dst, "ota-finish: missing md5sum string\n");

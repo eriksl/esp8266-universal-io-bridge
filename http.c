@@ -110,10 +110,9 @@ roflash static const char html_table_end[] =
 
 irom static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
 {
-	string_new(auto, id, 32);
+	string_new(, id, 32);
 	int pwm_period;
 
-	string_clear(&id);
 	string_format(&id, "range_%d_%d", io, pin);
 
 	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
@@ -170,15 +169,12 @@ irom static app_action_t http_error(string_t *dst, const char *error_string, con
 
 irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
 {
-	string_new(auto, url, 64);
-	string_new(auto, afterslash, 64);
-	string_new(auto, action, 64);
+	string_new(, url, 64);
+	string_new(, afterslash, 64);
+	string_new(, action, 64);
 	int ix, length;
 	const http_handler_t *handler;
 	app_action_t error;
-
-	string_clear(&url);
-	string_clear(&afterslash);
 
 	if((parse_string(1, src, &url, ' ')) != parse_ok)
 		return(http_error(dst, "400 Bad Request 1", "no url"));
@@ -262,18 +258,13 @@ irom static app_action_t handler_controls(const string_t *src, string_t *dst)
 
 irom static app_action_t handler_set(const string_t *src, string_t *dst)
 {
-	string_new(auto, getparam, 32);
-	string_new(auto, param1, 16);
-	string_new(auto, param2, 16);
-	string_new(auto, param3, 16);
+	string_new(, getparam, 32);
+	string_new(, param1, 16);
+	string_new(, param2, 16);
+	string_new(, param3, 16);
 
 	int io, pin, value;
 	io_error_t error;
-
-	string_clear(&getparam);
-	string_clear(&param1);
-	string_clear(&param2);
-	string_clear(&param3);
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
 		goto error;
@@ -434,17 +425,11 @@ irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *
 
 irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 {
-	string_new(auto, getparam, 64);
-	string_new(auto, param1, 32);
-	string_new(auto, param2, 32);
-	string_new(auto, ssid, 32);
-	string_new(auto, passwd, 32);
-
-	string_clear(&getparam);
-	string_clear(&param1);
-	string_clear(&param2);
-	string_clear(&ssid);
-	string_clear(&passwd);
+	string_new(, getparam, 64);
+	string_new(, param1, 32);
+	string_new(, param2, 32);
+	string_new(, ssid, 32);
+	string_new(, passwd, 32);
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
 		goto parameter_error;

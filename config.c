@@ -323,7 +323,6 @@ irom bool_t config_read(void)
 
 	string_setlength(&buffer_4k, SPI_FLASH_SEC_SIZE);
 
-	string_clear(&string);
 	string_cat(&string, CONFIG_MAGIC);
 	string_cat(&string, "\n");
 

@@ -1195,12 +1195,10 @@ irom static app_action_t application_function_ntp_dump(const string_t *src, stri
 
 irom static app_action_t application_function_ntp_set(const string_t *src, string_t *dst)
 {
-	string_new(static, ip, 32);
+	string_new(, ip, 32);
 
 	int					timezone, ix;
 	ip_addr_to_bytes_t	a2b;
-
-	string_clear(&ip);
 
 	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_int(2, src, &timezone, 0, ' ') == parse_ok))
 	{

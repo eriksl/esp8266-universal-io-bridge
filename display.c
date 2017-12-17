@@ -336,8 +336,8 @@ irom static void display_update(bool_t advance)
 	const char *display_text;
 	int slot, hour, minute, month, day;
 	display_info_t *display_info_entry;
-	string_new(static, tag_text, 32);
-	string_new(static, info_text, 64);
+	string_new(, tag_text, 32);
+	string_new(, info_text, 64);
 
 	if(display_data.detected < 0)
 		return;
@@ -363,7 +363,6 @@ irom static void display_update(bool_t advance)
 
 	if(!strcmp(display_text, "%%%%"))
 	{
-		string_clear(&info_text);
 		string_format(&info_text, "%02u.%02u %s %s",
 				hour, minute, display_info_entry->name, display_info_entry->type);
 		display_text = string_to_ptr(&info_text);
@@ -371,7 +370,6 @@ irom static void display_update(bool_t advance)
 
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
-		string_clear(&tag_text);
 		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
 		string_cat_ptr(&tag_text, display_slot[slot].tag);
 		display_info_entry->set_fn(string_to_ptr(&tag_text), display_text);
@@ -410,8 +408,6 @@ irom static void display_expire(void) // call one time per second
 		display_slot[0].timeout = 1;
 		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
 		
-		string_clear(&default_message);
-
 		if(!config_get_string("display.defaultmsg", 0, 0, &default_message))
 		{
 			string_clear(&default_message);
