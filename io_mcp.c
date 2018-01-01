@@ -27,6 +27,18 @@ enum
 	_OLAT = 0x14,
 };
 
+enum
+{
+	UNUSED = 0,
+	INTPOL,
+	ODR,
+	HAEN,
+	DISSLW,
+	SEQOP,
+	MIRROR,
+	BANK
+};
+
 static int IODIR(int s)		{ return(_IODIR + s);	}
 static int IPOL(int s)		{ return(_IPOL + s);	}
 static int GPINTEN(int s)	{ return(_GPINTEN + s);	}
@@ -134,7 +146,7 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
 	int pin;
-	int iocon_value = 0;
+	int iocon_value = (1 << DISSLW) | (1 << INTPOL);
 	uint8_t i2c_buffer[0x01];
 	mcp_data_pin_t *mcp_pin_data;
 
