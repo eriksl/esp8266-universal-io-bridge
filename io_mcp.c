@@ -38,6 +38,13 @@ static int INTF(int s)		{ return(_INTF + s);	}
 static int INTCAP(int s)	{ return(_INTCAP + s);	}
 static int GPIO(int s)		{ return(_GPIO + s);	}
 static int OLAT(int s)		{ return(_OLAT + s);	}
+
+static int instance_index(const struct io_info_entry_T *info)
+{
+	return(info->instance - io_mcp_instance_first);
+}
+
+static uint8_t pin_output_cache[io_mcp_instance_size][2];
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
 irom static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
@@ -140,19 +147,15 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	if(i2c_buffer[0] != iocon_value)
 		return(io_error);
 
-	for(instance = 0; instance < io_mcp_instance_size; instance++)
+	for(pin = 0; pin < 16; pin++)
 	{
-		for(pin = 0; pin < 16; pin++)
-		{
-			mcp_pin_data = &mcp_data_pin_table[instance][pin];
-
-			mcp_pin_data->counter = 0;
-			mcp_pin_data->debounce = 0;
-		}
+		mcp_pin_data = &mcp_data_pin_table[info->instance - io_mcp_instance_first][pin];
+		mcp_pin_data->counter = 0;
+		mcp_pin_data->debounce = 0;
 	}
 
-	pin_output_cache[0] = 0;
-	pin_output_cache[1] = 0;
+	pin_output_cache[instance_index(info)][0] = 0;
+	pin_output_cache[instance_index(info)][1] = 0;
 
 	return(io_ok);
 }
@@ -315,7 +318,7 @@ irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T 
 				return(io_error);
 
 			olat = tv & (1 << bankpin);
-			cached = pin_output_cache[bank] & (1 << bankpin);
+			cached = pin_output_cache[instance_index(info)][bank] & (1 << bankpin);
 
 			string_format(dst, "current latch: %s, io: %s, cache: %s", onoff(io), onoff(olat), onoff(cached));
 
@@ -383,15 +386,16 @@ irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_e
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
 	if(value)
-		pin_output_cache[bank] |= 1 << bankpin;
+		pin_output_cache[instance_index(info)][bank] |= 1 << bankpin;
 	else
-		pin_output_cache[bank] &= ~(1 << bankpin);
+		pin_output_cache[instance_index(info)][bank] &= ~(1 << bankpin);
 
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_output_digital):
 		{
-			if(write_register(error_message, info->address, GPIO(bank), pin_output_cache[bank]) != io_ok)
+			if(write_register(error_message, info->address, GPIO(bank),
+						pin_output_cache[instance_index(info)][bank]) != io_ok)
 				return(io_error);
 
 			break;
