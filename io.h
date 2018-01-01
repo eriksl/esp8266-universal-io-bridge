@@ -24,6 +24,7 @@ enum
 	io_id_gpio = 0,
 	io_id_aux,
 	io_id_mcp_20,
+	io_id_mcp_21,
 	io_id_pcf_3a,
 	io_id_size,
 };

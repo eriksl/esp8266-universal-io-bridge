@@ -71,7 +71,7 @@ io_info_t io_info =
 			.uart = 0,
 			.pullup = 1,
 		},
-		"MCP23017 I2C I/O expander",
+		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
 		io_mcp_periodic,
 		io_mcp_init_pin_mode,
@@ -80,7 +80,30 @@ io_info_t io_info =
 		io_mcp_write_pin,
 	},
 	{
-		/* io_id_pcf_3a = 3 */
+		/* io_id_mcp_21 = 3 */
+		0x21,
+		io_mcp_instance_21,
+		16,
+		{
+			.input_digital = 1,
+			.counter = 1,
+			.output_digital = 1,
+			.input_analog = 0,
+			.output_analog = 0,
+			.i2c = 0,
+			.uart = 0,
+			.pullup = 1,
+		},
+		"MCP23017 I2C I/O expander #2",
+		io_mcp_init,
+		io_mcp_periodic,
+		io_mcp_init_pin_mode,
+		io_mcp_get_pin_info,
+		io_mcp_read_pin,
+		io_mcp_write_pin,
+	},
+	{
+		/* io_id_pcf_3a = 4 */
 		0x3a,
 		io_pcf_instance_3a,
 		8,
