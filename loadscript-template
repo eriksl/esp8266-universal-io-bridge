@@ -17,7 +17,6 @@ PHDRS
   irom0_0_phdr PT_LOAD;
 }
 
-
 /*  Default entry point:  */
 ENTRY(call_user_start)
 EXTERN(_DebugExceptionVector)
@@ -46,7 +45,6 @@ PROVIDE(_memmap_cacheattr_reset = _memmap_cacheattr_wb_trapnull);
 
 SECTIONS
 {
-
   .dport0.rodata : ALIGN(4)
   {
     _dport0_rodata_start = ABSOLUTE(.);
