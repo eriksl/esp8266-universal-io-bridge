@@ -27,19 +27,17 @@ enum
 	_OLAT = 0x14,
 };
 
-#define IODIR(s)	(_IODIR + s)
-#define	IPOL(s)		(_IPOL + s)
-#define GPINTEN(s)	(_GPINTEN + s)
-#define DEFVAL(s)	(_DEFVAL + s)
-#define INTCON(s)	(_INTCON + s)
-#define IOCON(s)	(_IOCON + s)
-#define GPPU(s)		(_GPPU + s)
-#define INTF(s)		(_INTF + s)
-#define INTCAP(s)	(_INTCAP + s)
-#define GPIO(s)		(_GPIO + s)
-#define OLAT(s)		(_OLAT + s)
-
-static uint8_t pin_output_cache[2];
+static int IODIR(int s)		{ return(_IODIR + s);	}
+static int IPOL(int s)		{ return(_IPOL + s);	}
+static int GPINTEN(int s)	{ return(_GPINTEN + s);	}
+static int DEFVAL(int s)	{ return(_DEFVAL + s);	}
+static int INTCON(int s)	{ return(_INTCON + s);	}
+static int IOCON(int s)		{ return(_IOCON + s);	}
+static int GPPU(int s)		{ return(_GPPU + s);	}
+static int INTF(int s)		{ return(_INTF + s);	}
+static int INTCAP(int s)	{ return(_INTCAP + s);	}
+static int GPIO(int s)		{ return(_GPIO + s);	}
+static int OLAT(int s)		{ return(_OLAT + s);	}
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
 irom static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
