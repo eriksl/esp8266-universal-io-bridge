@@ -731,3 +731,22 @@ irom attr_pure ip_addr_t ip_addr(const char *src)
 
 	return(ip_addr_to_bytes.ip_addr);
 }
+
+#ifdef isxdigit
+undef isxdigit
+#endif
+
+irom attr_const int isxdigit(int c);
+irom attr_const int isxdigit(int c)
+{
+	if((c >= '0' && (c <= '9')))
+		return(1);
+
+	if((c >= 'a' && (c <= 'f')))
+		return(1);
+
+	if((c >= 'A' && (c <= 'F')))
+		return(1);
+
+	return(0);
+}
