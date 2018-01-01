@@ -241,7 +241,7 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 
 $(ELF_PLAIN):			$(OBJS) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(OBJS) -lgcc -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) -lgcc -Wl,--end-group -o $@
 
 $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
@@ -249,7 +249,7 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 
 $(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(OTA_OBJ) $(OBJS) -lgcc -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) -lgcc -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
