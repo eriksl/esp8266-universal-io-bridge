@@ -128,24 +128,19 @@ irom static io_error_t clear_set_register(string_t *error_message, int address, 
 
 irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
-	int ix;
-	int instance, pin;
-	uint8_t i2cbuffer[0x16];
+	int pin;
+	int iocon_value = 0;
+	uint8_t i2c_buffer[0x01];
 	mcp_data_pin_t *mcp_pin_data;
 
-	if(i2c_send_1(info->address, IODIR(0)) != i2c_error_ok)
+	if(i2c_send_2(info->address, IOCON(0), iocon_value) != i2c_error_ok)
 		return(io_error);
 
-	if(i2c_receive(info->address, sizeof(i2cbuffer), i2cbuffer) != i2c_error_ok)
+	if(i2c_send_receive(info->address, IOCON(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
 		return(io_error);
 
-	for(ix = DEFVAL(0); ix < 0x0b; ix++)
-		if(i2cbuffer[ix] != 0x00)
-			return(io_error);
-
-	for(ix = 0x0e; ix < 0x0f; ix++)
-		if(i2cbuffer[ix] != 0x00)
-			return(io_error);
+	if(i2c_buffer[0] != iocon_value)
+		return(io_error);
 
 	for(instance = 0; instance < io_mcp_instance_size; instance++)
 	{
