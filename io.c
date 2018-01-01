@@ -109,22 +109,23 @@ static io_data_t io_data;
 typedef struct
 {
 	io_pin_mode_t	mode;
-	const char		*name;
+	const char		*short_name;
+	const char		*long_name;
 } io_mode_trait_t;
 
 static io_mode_trait_t io_mode_traits[io_pin_size] =
 {
-	{ io_pin_disabled,			"disabled"			},
-	{ io_pin_input_digital,		"digital input"		},
-	{ io_pin_counter,			"counter"			},
-	{ io_pin_output_digital,	"digital output"	},
-	{ io_pin_timer,				"timer"				},
-	{ io_pin_input_analog,		"analog input"		},
-	{ io_pin_output_analog,		"analog output"		},
-	{ io_pin_i2c,				"i2c"				},
-	{ io_pin_uart,				"uart"				},
-	{ io_pin_lcd,				"lcd"				},
-	{ io_pin_trigger,			"trigger"			},
+	{ io_pin_disabled,			"disabled",		"disabled"				},
+	{ io_pin_input_digital,		"dinput",		"digital input"			},
+	{ io_pin_counter,			"counter",		"counter"				},
+	{ io_pin_output_digital,	"doutput",		"digital output"		},
+	{ io_pin_timer,				"timer",		"timer (blink)"			},
+	{ io_pin_input_analog,		"ainput",		"analog input (adc)"	},
+	{ io_pin_output_analog,		"aoutput",		"analog output (pwm)"	},
+	{ io_pin_i2c,				"i2c",			"i2c"					},
+	{ io_pin_uart,				"uart",			"uart"					},
+	{ io_pin_lcd,				"lcd",			"lcd"					},
+	{ io_pin_trigger,			"trigger",		"trigger"				},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -136,7 +137,7 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 	{
 		entry = &io_mode_traits[ix];
 
-		if(string_match(src, entry->name))
+		if(string_match(src, entry->short_name))
 			return(entry->mode);
 	}
 
@@ -155,12 +156,12 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 		if(entry->mode == mode)
 		{
 			if(pad > 0)
-				string_format(name, "%14s", entry->name);
+				string_format(name, "%14s", entry->long_name);
 			else
 				if(pad < 0)
-					string_format(name, "%-14s", entry->name);
+					string_format(name, "%-14s", entry->long_name);
 				else
-					string_format(name, "%s", entry->name);
+					string_format(name, "%s", entry->long_name);
 
 			return;
 		}
