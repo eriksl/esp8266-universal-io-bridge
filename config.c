@@ -35,21 +35,14 @@ static struct
 	.using_logbuffer = 0
 };
 
+config_flags_t flags_cache;
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
 
-irom config_flags_t config_flags_get(void)
+irom static bool_t config_flags_set(config_flags_t flags)
 {
-	config_flags_t flags;
+	flags_cache.intval = flags.intval;
 
-	if(!config_get_int("flags", -1, -1, &flags.intval))
-		flags.intval = 0;
-
-	return(flags);
-}
-
-irom bool_t config_flags_set(config_flags_t flags)
-{
 	return(config_set_int("flags", -1, -1, flags.intval));
 }
 
@@ -428,6 +421,13 @@ error:
 	string_clear(&logbuffer);
 	config_flags.using_logbuffer = 0;
 	return(false);
+	if(!config_get_int("flags", -1, -1, &flags_cache.intval))
+	{
+		flags_cache.intval = 0;
+		flags_cache.flag.log_to_uart = 1;
+		flags_cache.flag.log_to_buffer = 1;
+		config_set_int("flags", -1, -1, flags_cache.intval);
+	}
 }
 
 irom unsigned int config_write(void)

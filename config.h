@@ -29,8 +29,6 @@ typedef union
 	uint32_t intval;
 } config_flags_t;
 
-config_flags_t	config_flags_get(void);
-bool_t			config_flags_set(config_flags_t);
 void			config_flags_to_string(string_t *);
 bool_t			config_flags_change(const string_t *, bool_t add);
 
@@ -45,5 +43,12 @@ unsigned int	config_write(void);
 void			config_dump(string_t *);
 
 bool_t			config_uses_logbuffer(void);
+
+extern config_flags_t flags_cache;
+
+irom static inline attr_used config_flags_t config_flags_get(void)
+{
+	return(flags_cache);
+}
 
 #endif
