@@ -708,10 +708,32 @@ irom int log(const char *fmt, ...)
 	n = ets_vsnprintf(dram_buffer, sizeof(dram_buffer), fmt, ap);
 	va_end(ap);
 
-	for(current = 0; current < n; current++)
-		string_append(&logbuffer, dram_buffer[current]);
+	if(flags_cache.flag.log_to_uart)
+	{
+		for(current = 0; current < n; current++)
+			queue_push(&uart_send_queue, dram_buffer[current]);
+		uart_start_transmit(1);
+	}
+
+	if(flags_cache.flag.log_to_buffer)
+		string_cat_ptr(&logbuffer, dram_buffer);
 
 	return(n);
+}
+
+iram void logchar(char c)
+{
+	if(ota_is_active() || config_uses_logbuffer())
+		return;
+
+	if(flags_cache.flag.log_to_uart)
+	{
+		queue_push(&uart_send_queue, c);
+		uart_start_transmit(1);
+	}
+
+	if(flags_cache.flag.log_to_buffer)
+		string_append(&logbuffer, c);
 }
 
 irom void msleep(int msec)

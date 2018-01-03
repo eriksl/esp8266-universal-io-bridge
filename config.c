@@ -55,10 +55,10 @@ irom void config_flags_to_string(string_t *dst)
 	else
 		string_cat(dst, " no-strip-telnet");
 
-	if(flags.flag.print_debug)
-		string_cat(dst, " print-debug");
+	if(flags.flag.log_to_uart)
+		string_cat(dst, " log-to-uart");
 	else
-		string_cat(dst, " no-print-debug");
+		string_cat(dst, " no-log-to-uart");
 
 	if(flags.flag.tsl_high_sens)
 		string_cat(dst, " tsl-high-sens");
@@ -89,6 +89,11 @@ irom void config_flags_to_string(string_t *dst)
 		string_cat(dst, " i2c-high_speed");
 	else
 		string_cat(dst, " no-i2c-high_speed");
+
+	if(flags.flag.log_to_buffer)
+		string_cat(dst, " log-to-buffer");
+	else
+		string_cat(dst, " no-log-to-buffer");
 }
 
 irom bool_t config_flags_change(const string_t *flag, bool_t add)
@@ -102,9 +107,9 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 		rv = true;
 	}
 
-	if(string_match(flag, "print-debug") || string_match(flag, " pd"))
+	if(string_match(flag, "log-to-uart") || string_match(flag, " lu"))
 	{
-		flags.flag.print_debug = add ? 1 : 0;
+		flags.flag.log_to_uart = add ? 1 : 0;
 		rv = true;
 	}
 
@@ -141,6 +146,12 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 	if(string_match(flag, "i2c-high-speed") || string_match(flag, "ih"))
 	{
 		flags.flag.i2c_high_speed = add ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match(flag, "log-to-buffer") || string_match(flag, " lb"))
+	{
+		flags.flag.log_to_buffer = add ? 1 : 0;
 		rv = true;
 	}
 
@@ -522,7 +533,7 @@ irom void config_dump(string_t *dst)
 	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
 }
 
-irom attr_pure bool_t config_uses_logbuffer(void)
+iram attr_pure bool_t config_uses_logbuffer(void)
 {
 	return(config_flags.using_logbuffer != 0);
 }

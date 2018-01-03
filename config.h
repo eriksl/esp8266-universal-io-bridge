@@ -17,13 +17,14 @@ typedef union
 	struct
 	{
 		unsigned int strip_telnet:1;
-		unsigned int print_debug:1;
+		unsigned int log_to_uart:1;
 		unsigned int tsl_high_sens:1;
 		unsigned int bh_high_sens:1;
 		unsigned int cpu_high_speed:1;
 		unsigned int wlan_power_save:1;
 		unsigned int enable_cfa634:1;
 		unsigned int i2c_high_speed:1;
+		unsigned int log_to_buffer:1;
 	} flag;
 
 	uint32_t intval;

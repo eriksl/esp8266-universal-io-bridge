@@ -320,7 +320,8 @@ irom void user_init(void)
 		uart_parity = parity_none;
 
 	uart_init(uart_baud, uart_data, uart_stop, uart_parity);
-	system_set_os_print(config_flags_get().flag.print_debug);
+	os_install_putc1(&logchar);
+	system_set_os_print(1);
 
 	wifi_station_set_auto_connect(0);
 
@@ -584,8 +585,7 @@ irom bool_t wlan_init(void)
 			else
 				strlcpy(cconf.password, "espespesp", sizeof(cconf.password));
 
-			if(config_flags_get().flag.print_debug)
-				dprintf("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
+			log("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
 
 			wifi_station_disconnect();
 			wifi_set_opmode_current(STATION_MODE);
@@ -619,9 +619,8 @@ irom bool_t wlan_init(void)
 			saconf.max_connection = 1;
 			saconf.beacon_interval = 100;
 
-			if(config_flags_get().flag.print_debug)
-				dprintf("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
-						saconf.ssid, saconf.password, saconf.channel);
+			log("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
+					saconf.ssid, saconf.password, saconf.channel);
 
 			wifi_station_disconnect();
 			wifi_set_opmode_current(SOFTAP_MODE);

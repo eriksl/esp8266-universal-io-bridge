@@ -113,6 +113,7 @@ const char *yesno(bool_t value);
 const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
 int log(const char *fmt, ...);
+void logchar(char c);
 void msleep(int);
 ip_addr_t ip_addr(const char *);
 struct tm *sntp_localtime(const time_t *);
