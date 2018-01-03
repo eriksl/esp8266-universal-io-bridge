@@ -44,4 +44,6 @@ bool_t			config_read(void);
 unsigned int	config_write(void);
 void			config_dump(string_t *);
 
+bool_t			config_uses_logbuffer(void);
+
 #endif

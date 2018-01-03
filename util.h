@@ -69,7 +69,7 @@ typedef struct
 	char *buffer;
 } string_t;
 
-extern string_t buffer_4k;
+extern string_t logbuffer;
 
 // prototypes missing
 
@@ -112,6 +112,7 @@ void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
+int log(const char *fmt, ...);
 void msleep(int);
 ip_addr_t ip_addr(const char *);
 struct tm *sntp_localtime(const time_t *);

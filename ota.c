@@ -1,5 +1,6 @@
 #include "ota.h"
 #include "util.h"
+#include "config.h"
 
 #if IMAGE_OTA == 1
 #include <rboot-api.h>
@@ -29,15 +30,15 @@ irom attr_pure bool_t ota_is_active(void)
 
 irom app_action_t application_function_ota_read(const string_t *src, string_t *dst)
 {
-	if(string_size(&buffer_4k) < 0x1000)
+	if(string_size(&logbuffer) < 0x1000)
 	{
-		string_format(dst, "ota-read: string read buffer too small: %d\n", string_size(&buffer_4k));
+		string_format(dst, "ota-read: string read buffer too small: %d\n", string_size(&logbuffer));
 		return(app_action_error);
 	}
 
-	if(wlan_scan_is_active())
+	if(config_uses_logbuffer())
 	{
-		string_cat(dst, "ota-read: wlan scan active\n");
+		string_cat(dst, "ota-read: string read buffer in use\n");
 		return(app_action_error);
 	}
 
@@ -53,7 +54,7 @@ irom app_action_t application_function_ota_read(const string_t *src, string_t *d
 
 irom app_action_t application_function_ota_receive(const string_t *src, string_t *dst)
 {
-	char *read_buffer = string_to_ptr(&buffer_4k);
+	char *read_buffer = string_to_ptr(&logbuffer);
 	unsigned int address;
 	uint32_t crc;
 
@@ -85,27 +86,27 @@ irom app_action_t application_function_ota_receive(const string_t *src, string_t
 	spi_flash_read(address, (void *)read_buffer, chunk_size);
 
 	string_clear(dst);
-	string_setlength(&buffer_4k, chunk_size);
-	crc = string_crc32(&buffer_4k, 0, chunk_size);
+	string_setlength(&logbuffer, chunk_size);
+	crc = string_crc32(&logbuffer, 0, chunk_size);
 	MD5Update(&md5, read_buffer, chunk_size);
 	data_transferred += chunk_size;
 	string_format(dst, "DATA %u %u %u @", chunk_size, data_transferred, crc);
-	string_splice(dst, &buffer_4k, 0, chunk_size);
+	string_splice(dst, &logbuffer, 0, chunk_size);
 
 	return(app_action_normal);
 }
 
 irom app_action_t application_function_ota_write(const string_t *src, string_t *dst)
 {
-	if(string_size(&buffer_4k) < 0x1000)
+	if(string_size(&logbuffer) < 0x1000)
 	{
-		string_format(dst, "ota-write: string write buffer too small: %d\n", string_size(&buffer_4k));
+		string_format(dst, "ota-write: string write buffer too small: %d\n", string_size(&logbuffer));
 		return(app_action_error);
 	}
 
-	if(wlan_scan_is_active())
+	if(config_uses_logbuffer())
 	{
-		string_cat(dst, "ota-write: wlan scan active\n");
+		string_cat(dst, "ota-write: string write buffer in use\n");
 		return(app_action_error);
 	}
 
@@ -151,7 +152,7 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 	flash_sectors_skipped = 0;
 	flash_sector = flash_start_address / 0x1000;
 
-	string_clear(&buffer_4k);
+	string_clear(&logbuffer);
 	string_crc32_init();
 	MD5Init(&md5);
 
@@ -162,8 +163,8 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 {
 	char *verify_buffer = string_to_ptr(dst);
-	char *write_buffer = string_to_ptr(&buffer_4k);
-	int write_buffer_length = string_length(&buffer_4k);
+	char *write_buffer = string_to_ptr(&logbuffer);
+	int write_buffer_length = string_length(&logbuffer);
 
 	if(string_size(dst) < 0x1000)
 	{
@@ -194,7 +195,7 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 	flash_sector++;
 	data_transferred += write_buffer_length;
 
-	string_clear(&buffer_4k);
+	string_clear(&logbuffer);
 	string_clear(dst);
 
 	return(app_action_normal);
@@ -248,16 +249,16 @@ irom app_action_t application_function_ota_send(const string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	string_splice(&buffer_4k, src, chunk_offset, chunk_length);
+	string_splice(&logbuffer, src, chunk_offset, chunk_length);
 
-	if(string_length(&buffer_4k) > 0x1000)
+	if(string_length(&logbuffer) > 0x1000)
 	{
-		string_format(dst, "ota-send: unaligned %u\n", string_length(&buffer_4k));
+		string_format(dst, "ota-send: unaligned %u\n", string_length(&logbuffer));
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if((string_length(&buffer_4k) == 0x1000) &&
+	if((string_length(&logbuffer) == 0x1000) &&
 			((action = flash_write_verify(src, dst)) != app_action_normal))
 	{
 		ota_state = ota_inactive;
@@ -296,7 +297,7 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 				return(app_action_error);
 			}
 
-			if((string_length(&buffer_4k) > 0) &&
+			if((string_length(&logbuffer) > 0) &&
 					((action = flash_write_verify(src, dst)) != app_action_normal))
 			{
 				ota_state = ota_inactive;

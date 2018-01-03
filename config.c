@@ -27,6 +27,14 @@ typedef struct
 
 assert_size(config_entry_t, 64);
 
+static struct
+{
+	unsigned int using_logbuffer:1;
+} config_flags =
+{
+	.using_logbuffer = 0
+};
+
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
 
@@ -309,27 +317,27 @@ irom bool_t config_read(void)
 	char current;
 	state_parse_t parse_state;
 
+	config_flags.using_logbuffer = 1;
+	string_clear(&logbuffer);
+
 	if(ota_is_active())
-		return(false);
+		goto error;
 
-	if(wlan_scan_is_active())
-		return(false);
+	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
+		goto error;
 
-	if(string_size(&buffer_4k) < SPI_FLASH_SEC_SIZE)
-		return(false);
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		goto error;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&buffer_4k), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(false);
-
-	string_setlength(&buffer_4k, SPI_FLASH_SEC_SIZE);
+	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
 
 	string_cat(&string, CONFIG_MAGIC);
 	string_cat(&string, "\n");
 
 	current_index = string_length(&string);
 
-	if(!string_match_string_raw(&buffer_4k, &string, current_index))
-		return(false);
+	if(!string_match_string_raw(&logbuffer, &string, current_index))
+		goto error;
 
 	id_index = current_index;
 	id_length = 0;
@@ -340,7 +348,7 @@ irom bool_t config_read(void)
 
 	for(parse_state = state_parse_id; current_index < SPI_FLASH_SEC_SIZE; current_index++)
 	{
-		current = string_index(&buffer_4k, current_index);
+		current = string_index(&logbuffer, current_index);
 
 		if(current == '\0')
 			goto done;
@@ -381,9 +389,9 @@ irom bool_t config_read(void)
 						value_length = current_index - value_index;
 
 						string_clear(&string);
-						string_splice(&string, &buffer_4k, id_index, id_length);
+						string_splice(&string, &logbuffer, id_index, id_length);
 
-						config_set_string(string_to_const_ptr(&string), -1, -1, &buffer_4k, value_index, value_length);
+						config_set_string(string_to_const_ptr(&string), -1, -1, &logbuffer, value_index, value_length);
 					}
 
 					parse_state = state_parse_eol;
@@ -406,13 +414,20 @@ irom bool_t config_read(void)
 
 			default:
 			{
-				return(false);
+				goto error;
 			}
 		}
 	}
 
 done:
+	string_clear(&logbuffer);
+	config_flags.using_logbuffer = 0;
 	return(true);
+
+error:
+	string_clear(&logbuffer);
+	config_flags.using_logbuffer = 0;
+	return(false);
 }
 
 irom unsigned int config_write(void)
@@ -421,18 +436,18 @@ irom unsigned int config_write(void)
 	unsigned int ix, length;
 	uint32_t crc1, crc2;
 
+	config_flags.using_logbuffer = 1;
+	string_clear(&logbuffer);
+
 	if(ota_is_active())
-		return(0);
+		goto error;
 
-	if(wlan_scan_is_active())
-		return(0);
+	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
+		goto error;
 
-	if(string_size(&buffer_4k) < SPI_FLASH_SEC_SIZE)
-		return(0);
-
-	string_clear(&buffer_4k);
-	string_cat(&buffer_4k, CONFIG_MAGIC);
-	string_cat(&buffer_4k, "\n");
+	string_clear(&logbuffer);
+	string_cat(&logbuffer, CONFIG_MAGIC);
+	string_cat(&logbuffer, "\n");
 
 	for(ix = 0; ix < config_entries_length; ix++)
 	{
@@ -441,39 +456,46 @@ irom unsigned int config_write(void)
 		if(!entry->id[0])
 			continue;
 
-		string_format(&buffer_4k, "%s=%s\n", entry->id, entry->string_value);
+		string_format(&logbuffer, "%s=%s\n", entry->id, entry->string_value);
 	}
 
-	string_cat(&buffer_4k, "\n");
+	string_cat(&logbuffer, "\n");
 
-	length = string_length(&buffer_4k);
+	length = string_length(&logbuffer);
 
 	if(length > (4096 - 32))
-		return(0);
+		goto error;
 
-	while(string_length(&buffer_4k) < SPI_FLASH_SEC_SIZE)
-		string_append(&buffer_4k, '.');
+	while(string_length(&logbuffer) < SPI_FLASH_SEC_SIZE)
+		string_append(&logbuffer, '.');
 
 	string_crc32_init();
-	crc1 = string_crc32(&buffer_4k, 0, SPI_FLASH_SEC_SIZE);
+	crc1 = string_crc32(&logbuffer, 0, SPI_FLASH_SEC_SIZE);
 
 	if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
-		return(0);
+		goto error;
 
-	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_const_ptr(&buffer_4k), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(0);
+	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_const_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		goto error;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&buffer_4k), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(0);
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		goto error;
 
-	string_setlength(&buffer_4k, SPI_FLASH_SEC_SIZE);
+	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
 
-	crc2 = string_crc32(&buffer_4k, 0, SPI_FLASH_SEC_SIZE);
+	crc2 = string_crc32(&logbuffer, 0, SPI_FLASH_SEC_SIZE);
 
 	if(crc1 != crc2)
-		return(0);
+		goto error;
 
+	string_clear(&logbuffer);
+	config_flags.using_logbuffer = 0;
 	return(length);
+
+error:
+	string_clear(&logbuffer);
+	config_flags.using_logbuffer = 0;
+	return(0);
 }
 
 irom void config_dump(string_t *dst)
@@ -494,4 +516,9 @@ irom void config_dump(string_t *dst)
 	}
 
 	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
+}
+
+irom attr_pure bool_t config_uses_logbuffer(void)
+{
+	return(config_flags.using_logbuffer != 0);
 }

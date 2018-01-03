@@ -3,6 +3,7 @@
 #include "user_main.h"
 #include "queue.h"
 #include "uart.h"
+#include "ota.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -12,7 +13,7 @@
 #include <user_interface.h>
 
 static char dram_buffer[1024];
-string_new(, buffer_4k, 4096 + 4);
+string_new(, logbuffer, 4096 + 4);
 
 int ets_vsnprintf(char *, size_t, const char *, va_list);
 
@@ -691,6 +692,24 @@ irom int dprintf(const char *fmt, ...)
 	queue_push(&uart_send_queue, '\n');
 
 	uart_start_transmit(!queue_empty(&uart_send_queue));
+
+	return(n);
+}
+
+irom int log(const char *fmt, ...)
+{
+	va_list ap;
+	int current, n;
+
+	if(ota_is_active() || config_uses_logbuffer())
+		return(0);
+
+	va_start(ap, fmt);
+	n = ets_vsnprintf(dram_buffer, sizeof(dram_buffer), fmt, ap);
+	va_end(ap);
+
+	for(current = 0; current < n; current++)
+		string_append(&logbuffer, dram_buffer[current]);
 
 	return(n);
 }

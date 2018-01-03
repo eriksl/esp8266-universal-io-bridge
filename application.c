@@ -1,5 +1,4 @@
 #include "application.h"
-
 #include "stats.h"
 #include "util.h"
 #include "user_main.h"
@@ -12,7 +11,6 @@
 #include "io.h"
 #include "io_gpio.h"
 #include "time.h"
-
 #include "ota.h"
 
 #include <user_interface.h>
@@ -20,13 +18,6 @@
 #include <sntp.h>
 
 #include <stdlib.h>
-
-typedef enum
-{
-	ws_inactive,
-	ws_scanning,
-	ws_finished,
-} wlan_scan_state_t;
 
 typedef struct
 {
@@ -37,7 +28,6 @@ typedef struct
 } application_function_table_t;
 
 static const application_function_table_t application_function_table[];
-static wlan_scan_state_t wlan_scan_state = ws_inactive;
 
 irom app_action_t application_content(const string_t *src, string_t *dst)
 {
@@ -919,20 +909,17 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 		"WPA PSK + WPA2 PSK"
 	};
 
-	string_clear(&buffer_4k);
-	string_format(&buffer_4k, "wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
-	string_format(&buffer_4k, "> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
+	log("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
+	log("> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
-		string_format(&buffer_4k, "> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
+		log("> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
 				bss->ssid,
 				bss->channel,
 				bss->rssi,
 				bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid auth>",
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
-
-	wlan_scan_state = ws_finished;
 }
 
 irom static app_action_t application_function_wlan_ap_configure(const string_t *src, string_t *dst)
@@ -1135,43 +1122,34 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_wlan_list(const string_t *src, string_t *dst)
+irom static app_action_t application_function_log_display(const string_t *src, string_t *dst)
 {
-	if(wlan_scan_state != ws_finished)
-	{
-		string_cat(dst, "wlan scan: no results (yet)\n");
-		return(app_action_normal);
-	}
+	if(string_length(&logbuffer) == 0)
+		string_cat(dst, "<log empty>\n");
+	else
+		string_copy_string(dst, &logbuffer);
 
-	string_copy_string(dst, &buffer_4k);
-	wlan_scan_state = ws_inactive;
 	return(app_action_normal);
+}
+
+irom static app_action_t application_function_log_clear(const string_t *src, string_t *dst)
+{
+	string_clear(&logbuffer);
+	return(application_function_log_display(src, dst));
 }
 
 irom static app_action_t application_function_wlan_scan(const string_t *src, string_t *dst)
 {
-	if(wlan_scan_state != ws_inactive)
+	if(ota_is_active() || config_uses_logbuffer())
 	{
-		string_cat(dst, "wlan-scan: already scanning\n");
+		string_cat(dst, "wlan-scan: output buffer is in use\n");
 		return(app_action_error);
 	}
 
-	if(ota_is_active())
-	{
-		string_cat(dst, "wlan-scan: ota active\n");
-		return(app_action_error);
-	}
-
-	wlan_scan_state = ws_scanning;
 	wifi_station_scan(0, wlan_scan_done_callback);
-	string_cat(dst, "wlan scan started, use wlan-list to retrieve the results\n");
+	string_cat(dst, "wlan scan started, use log-display to retrieve the results\n");
 
 	return(app_action_normal);
-}
-
-irom attr_pure bool_t wlan_scan_is_active(void)
-{
-	return(wlan_scan_state != ws_inactive);
 }
 
 irom static app_action_t application_function_ntp_dump(const string_t *src, string_t *dst)
@@ -1481,6 +1459,16 @@ static const application_function_table_t application_function_table[] =
 		"dump all i2c sensors",
 	},
 	{
+		"l", "log-display",
+		application_function_log_display,
+		"display log"
+	},
+	{
+		"lc", "log-clear",
+		application_function_log_clear,
+		"clear the log"
+	},
+	{
 		"nd", "ntp-dump",
 		application_function_ntp_dump,
 		"dump ntp information",
@@ -1594,11 +1582,6 @@ static const application_function_table_t application_function_table[] =
 		"wcc", "wlan-client-configure",
 		application_function_wlan_client_configure,
 		"configure client mode wlan params, supply ssid and passwd"
-	},
-	{
-		"wl", "wlan-list",
-		application_function_wlan_list,
-		"retrieve results from wlan-scan"
 	},
 	{
 		"wm", "wlan-mode",
