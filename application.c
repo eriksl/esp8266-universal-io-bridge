@@ -844,6 +844,7 @@ irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool
 		}
 	}
 
+	string_clear(dst);
 	string_cat(dst, "flags:");
 	config_flags_to_string(dst);
 	string_cat(dst, "\n");
