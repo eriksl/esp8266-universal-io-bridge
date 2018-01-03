@@ -309,18 +309,19 @@ irom bool_t config_read(void)
 	int current_index, id_index, id_length, value_index, value_length;
 	char current;
 	state_parse_t parse_state;
+	bool_t rv = false;
 
 	config_flags.using_logbuffer = 1;
 	string_clear(&logbuffer);
 
 	if(ota_is_active())
-		goto error;
+		goto done;
 
 	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
-		goto error;
+		goto done;
 
 	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto error;
+		goto done;
 
 	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
 
@@ -330,7 +331,7 @@ irom bool_t config_read(void)
 	current_index = string_length(&string);
 
 	if(!string_match_string_raw(&logbuffer, &string, current_index))
-		goto error;
+		goto done;
 
 	id_index = current_index;
 	id_length = 0;
@@ -344,7 +345,10 @@ irom bool_t config_read(void)
 		current = string_index(&logbuffer, current_index);
 
 		if(current == '\0')
+		{
+			rv = true;
 			goto done;
+		}
 
 		if(current == '\r')
 			continue;
@@ -397,7 +401,10 @@ irom bool_t config_read(void)
 			case(state_parse_eol):
 			{
 				if(current == '\n')
+				{
+					rv = true;
 					goto done;
+				}
 
 				id_index = current_index;
 				parse_state = state_parse_id;
@@ -407,7 +414,7 @@ irom bool_t config_read(void)
 
 			default:
 			{
-				goto error;
+				goto done;
 			}
 		}
 	}
@@ -415,12 +422,7 @@ irom bool_t config_read(void)
 done:
 	string_clear(&logbuffer);
 	config_flags.using_logbuffer = 0;
-	return(true);
 
-error:
-	string_clear(&logbuffer);
-	config_flags.using_logbuffer = 0;
-	return(false);
 	if(!config_get_int("flags", -1, -1, &flags_cache.intval))
 	{
 		flags_cache.intval = 0;
@@ -428,13 +430,16 @@ error:
 		flags_cache.flag.log_to_buffer = 1;
 		config_set_int("flags", -1, -1, flags_cache.intval);
 	}
+
+	return(rv);
 }
 
 irom unsigned int config_write(void)
 {
 	config_entry_t *entry;
-	unsigned int ix, length;
+	unsigned int ix, length = 0;
 	uint32_t crc1, crc2;
+	bool_t rv = false;
 
 	config_flags.using_logbuffer = 1;
 	string_clear(&logbuffer);
@@ -488,14 +493,13 @@ irom unsigned int config_write(void)
 	if(crc1 != crc2)
 		goto error;
 
-	string_clear(&logbuffer);
-	config_flags.using_logbuffer = 0;
-	return(length);
+	rv = true;
 
 error:
 	string_clear(&logbuffer);
 	config_flags.using_logbuffer = 0;
-	return(0);
+
+	return(rv ? length : 0);
 }
 
 irom void config_dump(string_t *dst)
