@@ -35,7 +35,7 @@ irom app_action_t application_function_ota_read(const string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	if(wlan_scan_active())
+	if(wlan_scan_is_active())
 	{
 		string_cat(dst, "ota-read: wlan scan active\n");
 		return(app_action_error);
@@ -103,7 +103,7 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	if(wlan_scan_active())
+	if(wlan_scan_is_active())
 	{
 		string_cat(dst, "ota-write: wlan scan active\n");
 		return(app_action_error);

@@ -312,7 +312,7 @@ irom bool_t config_read(void)
 	if(ota_is_active())
 		return(false);
 
-	if(wlan_scan_active())
+	if(wlan_scan_is_active())
 		return(false);
 
 	if(string_size(&buffer_4k) < SPI_FLASH_SEC_SIZE)
@@ -424,7 +424,7 @@ irom unsigned int config_write(void)
 	if(ota_is_active())
 		return(0);
 
-	if(wlan_scan_active())
+	if(wlan_scan_is_active())
 		return(0);
 
 	if(string_size(&buffer_4k) < SPI_FLASH_SEC_SIZE)
