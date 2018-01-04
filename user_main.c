@@ -77,6 +77,7 @@ iram void user_rf_pre_init(void);
 iram void user_rf_pre_init(void)
 {
 	system_phy_set_powerup_option(3); // do full calibration
+	system_phy_freq_trace_enable(1);
 
 	stat_called.user_rf_pre_init = 1;
 }
