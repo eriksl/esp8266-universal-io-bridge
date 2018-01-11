@@ -1287,6 +1287,43 @@ irom static app_action_t application_function_gpio_assoc_set(const string_t *src
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_peek(const string_t *src, string_t *dst)
+{
+	uint32_t address;
+
+	if(parse_int(1, src, &address, 16, ' ') != parse_ok)
+	{
+		string_cat(dst, "> use peek <address>");
+		return(app_action_error);
+	}
+
+	address &= ~0x03; // ensure proper alignment
+
+	string_format(dst, "> peek (0x%x) = 0x%x\n", address, *(uint32_t *)address);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_poke(const string_t *src, string_t *dst)
+{
+	uint32_t address;
+	uint32_t value;
+
+	if((parse_int(1, src, &address, 16, ' ') != parse_ok) || (parse_int(2, src, &value, 16, ' ') != parse_ok))
+	{
+		string_cat(dst, "> use poke <address> <value>");
+		return(app_action_error);
+	}
+
+	address &= ~0x03; // ensure proper alignment
+
+	*(uint32_t *)address = value;
+
+	string_format(dst, "> poke (0x%x,0x%x) = 0x%x\n", address, value, *(uint32_t *)address);
+
+	return(app_action_normal);
+}
+
 static const application_function_table_t application_function_table[] =
 {
 	{
@@ -1513,6 +1550,16 @@ static const application_function_table_t application_function_table[] =
 		"oc", "ota-commit",
 		application_function_ota_commit,
 		"ota-commit",
+	},
+	{
+		"pe", "peek",
+		application_function_peek,
+		"peek at a memory address",
+	},
+	{
+		"po", "poke",
+		application_function_poke,
+		"poke to a memory address",
 	},
 	{
 		"q", "quit",

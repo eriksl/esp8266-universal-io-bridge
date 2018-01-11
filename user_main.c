@@ -295,6 +295,17 @@ irom void user_init(void)
 	int uart_baud, uart_data, uart_stop, uart_parity_int;
 	uart_parity_t uart_parity;
 
+	uint32_t *paint;
+	volatile uint32_t sp;
+
+	stat_stack_sp_initial = &sp;
+
+	for(paint = (uint32_t *)sysram_top; paint < &sp; paint++)
+	{
+		*paint = stack_paint_magic;
+		stat_stack_painted += 4;
+	}
+
 	system_set_os_print(0);
 
 	queue_new(&uart_send_queue, sizeof(uart_send_queue_buffer), uart_send_queue_buffer);

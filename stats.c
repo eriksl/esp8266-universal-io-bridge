@@ -37,6 +37,9 @@ int stat_update_display;
 int stat_update_ntp;
 int stat_update_idle;
 
+volatile uint32_t	*stat_stack_sp_initial;
+int					stat_stack_painted;
+
 static const char *flash_map[] =
 {
 	"4 Mb map 256/256",
@@ -104,27 +107,26 @@ irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 	return("unknown");
 }
 
-extern void *_heap_start;
-
 irom void stats_firmware(string_t *dst)
 {
 #if IMAGE_OTA == 1
 	rboot_config rcfg;
 #endif
-	static const unsigned int stacktop = 0x40000000;
-	static const unsigned int datatop = 0x3fffc000;
-	static const unsigned int malloc_size = 256;
-
 	const struct rst_info *rst_info;
 	uint32_t flash_id = spi_flash_get_id();
 	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
 	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
 	unsigned int flash_size				= (flash_id & 0x00ff0000) >> 16;
-	void * heap;
+	unsigned int stack_size = (uint32_t)stack_bottom - (uint32_t)sysram_top;
+	unsigned int stack_used = 0;
+	unsigned int stack_free = stack_size;
+	uint32_t *sp;
 
-#undef pvPortMalloc
-#undef vPortFree
-	heap = pvPortMalloc(malloc_size, "", 0);
+	for(sp = (void *)sysram_top; (sp < stat_stack_sp_initial) && (*sp == stack_paint_magic); sp++)
+	{
+		stack_used += 4;
+		stack_free -= 4;
+	}
 
 	rst_info = system_get_rst_info();
 
@@ -136,19 +138,16 @@ irom void stats_firmware(string_t *dst)
 			"> cpu frequency: %u MHz\n"
 			"> flash map: %s\n"
 			"> reset cause: %s\n"
-			"> heap free: %u bytes\n"
 			"> config sector address: %x\n"
 			"> rf calibration sector address: %x\n"
-			"> value of _heap_start: %p\n"
-			"> value of stack pointer: %p\n"
-			"> current heap: %p\n"
-			"> heap size: %u\n"
-			"> heap used: %u\n"
-			"> heap left: %u\n"
-			"> stack size (max): %u\n"
-			"> stack size: %u\n"
-			"> stack used: %u\n"
-			"> stack left: %u\n",
+			"> value of initial stack pointer: %p\n"
+			"> value of current stack pointer: %p\n"
+			"> stack painted: %u bytes\n"
+			"> stack not painted: %u bytes\n"
+			"> stack size: %u bytes\n"
+			"> stack used: %u bytes\n"
+			"> stack free: %u bytes\n"
+			"> heap free: %u bytes\n",
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
@@ -156,23 +155,18 @@ irom void stats_firmware(string_t *dst)
 				system_get_cpu_freq(),
 				flash_map[system_get_flash_size_map()],
 				reset_map[rst_info->reason],
-				system_get_free_heap_size(),
 				USER_CONFIG_SECTOR * 0x1000,
 				RFCAL_ADDRESS,
-				_heap_start,
-				&heap,
-				heap,
-				datatop - (unsigned int)_heap_start,
-				((unsigned int)heap + malloc_size) - (unsigned int)_heap_start,
-				datatop - ((unsigned int)heap + malloc_size),
-				stacktop - (unsigned int)heap,
-				stacktop - datatop,
-				stacktop - (unsigned int)&heap,
-				(unsigned int)&heap - datatop);
+				stat_stack_sp_initial,
+				&sp,
+				stat_stack_painted,
+				stack_size - stat_stack_painted,
+				stack_size,
+				stack_used,
+				stack_free,
+				system_get_free_heap_size());
 
 	system_print_meminfo();
-
-	vPortFree(heap, "", 0);
 
 #if IMAGE_OTA == 1
 	rcfg = rboot_get_config();

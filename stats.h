@@ -4,6 +4,13 @@
 #include <stdint.h>
 #include "util.h"
 
+enum
+{
+	stack_paint_magic = 0xabcdefaa,
+	sysram_top = 0x3fffeb30,
+	stack_bottom = 0x40000000
+};
+
 typedef struct
 {
 	unsigned int user_spi_flash_dio_to_qio_pre_init:1;
@@ -29,6 +36,9 @@ extern int stat_update_command_tcp;
 extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;
+
+extern volatile uint32_t *stat_stack_sp_initial;
+extern int stat_stack_painted;
 
 void stats_firmware(string_t *dst);
 void stats_time(string_t *dst);
