@@ -98,7 +98,7 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	string_cat(dst, ")");
 }
 
-iram static inline void delay(void)
+iram static inline void microdelay(void)
 {
 	int delay = i2c_bus_speed_delay;
 
@@ -155,7 +155,7 @@ iram static inline i2c_error_t wait_for_scl(void)
 		if(scl_is_high())
 			break;
 
-		delay();
+		microdelay();
 	}
 
 	if(current == 0)
@@ -168,14 +168,14 @@ iram static noinline i2c_error_t send_start(void)
 {
 	state = i2c_state_start_send;
 
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 
 	if(scl_is_low())
 	{
 		scl_high();
-		delay();
-		delay();
+		microdelay();
+		microdelay();
 	}
 
 	if(scl_is_low())
@@ -184,14 +184,14 @@ iram static noinline i2c_error_t send_start(void)
 	if(sda_is_low())
 	{
 		scl_low();
-		delay();
-		delay();
+		microdelay();
+		microdelay();
 		sda_high();
-		delay();
-		delay();
+		microdelay();
+		microdelay();
 		scl_high();
-		delay();
-		delay();
+		microdelay();
+		microdelay();
 	}
 
 	if(sda_is_low())
@@ -201,8 +201,8 @@ iram static noinline i2c_error_t send_start(void)
 
 	sda_low();
 
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 
 	if(scl_is_low())
 		return(i2c_error_bus_lock);
@@ -222,20 +222,20 @@ iram static noinline i2c_error_t send_stop(void)
 	if(scl_is_low())
 		return(i2c_error_bus_lock);
 
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 	scl_low();
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 	sda_low();
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 	scl_high();
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 	sda_high();
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 
 	if(scl_is_low())
 		return(i2c_error_bus_lock);
@@ -263,7 +263,7 @@ irom static void i2c_reset(void)
 	for(try = 16; try > 0; try--)
 	{
 		for(delaycounter = 8; delaycounter > 0; delaycounter--)
-			delay();
+			microdelay();
 
 		if((error = send_stop()) == i2c_error_ok)
 			break;
@@ -283,13 +283,13 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 		return(error);
 
 	scl_low();
-	delay();
+	microdelay();
 
 	if(bit)
 	{
 		sda_high();
 
-		delay();
+		microdelay();
 
 		if(sda_is_low())
 			return(i2c_error_sda_stuck);
@@ -298,7 +298,7 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 	{
 		sda_low();
 
-		delay();
+		microdelay();
 
 		if(sda_is_high())
 			return(i2c_error_sda_stuck);
@@ -306,8 +306,8 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 
 	scl_high();
 
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 
 	// take care of clock stretching
 
@@ -354,12 +354,12 @@ iram static noinline i2c_error_t receive_bit(bool_t *bit)
 	// do it while clock is pulled
 
 	scl_low();
-	delay();
+	microdelay();
 	sda_high();
-	delay();
+	microdelay();
 	scl_high();
-	delay();
-	delay();
+	microdelay();
+	microdelay();
 
 	// take care of clock stretching
 
