@@ -3,7 +3,7 @@
 static unsigned int sockets_length = 0;
 static socket_t *sockets[2];
 
-irom static socket_t *find_socket(struct espconn *esp_socket)
+iram static socket_t *find_socket(struct espconn *esp_socket)
 {
 	unsigned int ix;
 
@@ -31,7 +31,7 @@ irom static socket_t *find_socket(struct espconn *esp_socket)
 	return((socket_t *)0);
 }
 
-irom static void socket_callback_received(void *arg, char *buffer, unsigned short length)
+iram static void socket_callback_received(void *arg, char *buffer, unsigned short length)
 {
 	socket_t		*socket;
 	struct espconn	*esp_socket = (struct espconn *)arg;
@@ -86,7 +86,7 @@ irom static void socket_callback_received(void *arg, char *buffer, unsigned shor
 		socket->callback_received(socket, length, buffer);
 }
 
-irom static void socket_callback_sent(void *arg)
+iram static void socket_callback_sent(void *arg)
 {
 	struct espconn *esp_socket = (struct espconn *)arg;
 	socket_t *socket;
@@ -163,7 +163,7 @@ disconnect:
 	espconn_disconnect(new_esp_socket); // actually not allowed but not supposed to occur
 }
 
-irom void socket_send(socket_t *socket, char *buffer, int length)
+iram void socket_send(socket_t *socket, string_t *buffer)
 {
 	struct espconn *esp_socket;
 

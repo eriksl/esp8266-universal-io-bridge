@@ -108,17 +108,17 @@ static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 
 // set GPIO direction
 
-irom static void gpio_direction_clear_mask(uint32_t mask)
+iram static void gpio_direction_clear_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TC_ADDRESS, mask);
 }
 
-irom static void gpio_direction_set_mask(uint32_t mask)
+iram static void gpio_direction_set_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
 }
 
-irom static void gpio_direction(int io, int onoff)
+iram static void gpio_direction(int io, int onoff)
 {
 	if(onoff)
 		gpio_direction_set_mask(1 << io);

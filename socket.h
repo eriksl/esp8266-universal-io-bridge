@@ -56,4 +56,20 @@ void socket_create(bool tcp, bool udp, socket_t *socket, string_t *send_buffer, 
 		void (*callback_disconnect)(socket_t *),
 		void (*callback_accept)(socket_t *));
 
+always_inline static socket_proto_t socket_proto(socket_t *socket)
+{
+	return(socket->remote.proto);
+}
+
+always_inline static void *socket_userdata(socket_t *socket)
+{
+	return(socket->userdata);
+}
+
+always_inline static void socket_disconnect_accepted(socket_t *socket)
+{
+	if(socket->tcp.child_socket != (struct espconn *)0)
+		espconn_disconnect(socket->tcp.child_socket);
+}
+
 #endif

@@ -20,45 +20,45 @@ app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
 
 // generic
 
-iram static inline uint32_t gpio_interrupts_enabled(void)
+always_inline static uint32_t gpio_interrupts_enabled(void)
 {
     uint32_t enabled;
     __asm__ __volatile__("esync; rsr %0,intenable":"=a" (enabled));
     return enabled;
 }
 
-iram static inline uint32_t gpio_pin_addr(int pin)
+always_inline static uint32_t gpio_pin_addr(int pin)
 {
 	return(GPIO_PIN0_ADDRESS + (pin << 2));
 }
 
 // read / write registers
 
-iram static inline uint32_t read_peri_reg(uint32_t addr)
+always_inline static uint32_t read_peri_reg(uint32_t addr)
 {
 	volatile uint32_t *ptr = (volatile uint32_t *)addr;
 
 	return(*ptr);
 }
 
-iram static inline void write_peri_reg(volatile uint32_t addr, uint32_t value)
+always_inline static void write_peri_reg(volatile uint32_t addr, uint32_t value)
 {
 	volatile uint32_t *ptr = (volatile uint32_t *)addr;
 
 	*ptr = value;
 }
 
-iram static inline void clear_peri_reg_mask(volatile uint32_t addr, uint32_t mask)
+always_inline static void clear_peri_reg_mask(volatile uint32_t addr, uint32_t mask)
 {
 	write_peri_reg(addr, read_peri_reg(addr) & ~mask);
 }
 
-iram static inline void set_peri_reg_mask(volatile uint32_t addr, uint32_t mask)
+always_inline static void set_peri_reg_mask(volatile uint32_t addr, uint32_t mask)
 {
 	write_peri_reg(addr, read_peri_reg(addr) | mask);
 }
 
-iram attr_used static void clear_set_peri_reg_mask(uint32_t addr, uint32_t clearmask, uint32_t setmask)
+always_inline static void clear_set_peri_reg_mask(uint32_t addr, uint32_t clearmask, uint32_t setmask)
 {
 	clear_peri_reg_mask(addr, clearmask);
 	set_peri_reg_mask(addr, setmask);
@@ -66,41 +66,41 @@ iram attr_used static void clear_set_peri_reg_mask(uint32_t addr, uint32_t clear
 
 // read write GPIO registers
 
-iram static inline uint32_t gpio_reg_read(int reg)
+always_inline static uint32_t gpio_reg_read(int reg)
 {
 	return(read_peri_reg(PERIPHS_GPIO_BASEADDR + reg));
 }
 
-iram static inline void gpio_reg_write(int reg, uint32_t value)
+always_inline static void gpio_reg_write(int reg, uint32_t value)
 {
 	write_peri_reg(PERIPHS_GPIO_BASEADDR + reg, value);
 }
 
 // read input
 
-iram static inline uint32_t gpio_get_mask(void)
+always_inline static uint32_t gpio_get_mask(void)
 {
 	return(gpio_reg_read(GPIO_IN_ADDRESS));
 }
 
-iram static inline int gpio_get(int io)
+always_inline static int gpio_get(int io)
 {
 	return((gpio_get_mask() & (1 << io)) ? 1 : 0);
 }
 
 // set output low / high
 
-iram static inline void gpio_clear_mask(uint32_t mask)
+always_inline static void gpio_clear_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_OUT_W1TC_ADDRESS, mask);
 }
 
-iram static inline void gpio_set_mask(uint32_t mask)
+always_inline static void gpio_set_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_OUT_W1TS_ADDRESS, mask);
 }
 
-iram static inline void gpio_set(int io, int onoff)
+always_inline static void gpio_set(int io, int onoff)
 {
 	if(onoff)
 		gpio_set_mask(1 << io);

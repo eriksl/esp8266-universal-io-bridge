@@ -480,7 +480,7 @@ irom void i2c_init(int sda_in, int scl_in)
 	}
 }
 
-iram i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
+irom i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -531,7 +531,7 @@ bail:
 	return(error);
 }
 
-iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+irom i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;

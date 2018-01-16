@@ -60,20 +60,20 @@ static struct
 queue_t uart_send_queue;
 queue_t uart_receive_queue;
 
-iram attr_const void user_spi_flash_dio_to_qio_pre_init(void);
+attr_const void user_spi_flash_dio_to_qio_pre_init(void);
 iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
 {
 	stat_called.user_spi_flash_dio_to_qio_pre_init = 1;
 }
 
-iram attr_const uint32_t user_rf_cal_sector_set(void);
+attr_const uint32_t user_rf_cal_sector_set(void);
 iram attr_const uint32_t user_rf_cal_sector_set(void)
 {
 	stat_called.user_rf_cal_sector_set = 1;
 	return(RFCAL_ADDRESS / 0x1000);
 }
 
-iram void user_rf_pre_init(void);
+void user_rf_pre_init(void);
 iram void user_rf_pre_init(void)
 {
 	system_phy_set_powerup_option(3); // do full calibration
@@ -83,7 +83,8 @@ iram void user_rf_pre_init(void)
 }
 
 irom static void user_init2(void);
-irom static bool_t background_task_bridge_uart(void)
+
+iram static bool_t background_task_bridge_uart(void)
 {
 	// send data in the uart receive fifo to tcp
 	// if there is still data in uart receive fifo that can't be
@@ -101,7 +102,7 @@ irom static bool_t background_task_bridge_uart(void)
 	return(false);
 }
 
-irom static bool_t background_task_longop_handler(void)
+iram static bool_t background_task_longop_handler(void)
 {
 	if(bg_action.disconnect)
 	{
@@ -132,7 +133,7 @@ irom static bool_t background_task_longop_handler(void)
 	return(false);
 }
 
-irom static bool_t background_task_command_handler(void)
+iram static bool_t background_task_command_handler(void)
 {
 	if(!socket_cmd.receive_ready)
 		return(false);
@@ -184,7 +185,7 @@ irom static bool_t background_task_command_handler(void)
 	return(true);
 }
 
-irom static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
+iram static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
 	config_wlan_mode_t wlan_mode;
@@ -278,7 +279,7 @@ iram static void fast_timer_callback(void *arg)
 	io_periodic();
 }
 
-irom static void slow_timer_callback(void *arg)
+iram static void slow_timer_callback(void *arg)
 {
 	(void)arg;
 
@@ -433,7 +434,7 @@ irom static void callback_received_cmd(socket_t *socket, int length, char *buffe
 	system_os_post(background_task_id, 0, 0);
 }
 
-irom static void callback_received_uart(socket_t *socket, int length, char *buffer)
+iram static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
 {
 	int current, byte;
 	bool_t strip_telnet;
@@ -486,13 +487,15 @@ irom static void callback_sent_cmd(socket_t *socket)
 	socket->receive_ready = false;
 }
 
-irom static void callback_sent_uart(socket_t *socket)
+iram static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!queue_empty(&uart_receive_queue))
 		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo
 }
 
-irom static void callback_error_cmd(socket_t *socket, int error)
+// error
+
+irom static void callback_error_cmd(socket_t *socket, int error, void *userdata)
 {
 	if(reset_state != reset_state_inactive)
 		reset_state = reset_state_go;

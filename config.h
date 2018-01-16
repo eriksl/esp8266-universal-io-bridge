@@ -47,7 +47,7 @@ bool_t			config_uses_logbuffer(void);
 
 extern config_flags_t flags_cache;
 
-irom static inline attr_used config_flags_t config_flags_get(void)
+always_inline static config_flags_t config_flags_get(void)
 {
 	return(flags_cache);
 }
