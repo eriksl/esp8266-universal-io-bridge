@@ -2240,37 +2240,37 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 		if(html)
 		{
-			string_cat(dst, "<td align=\"right\">");
+			string_append(dst, "<td align=\"right\">");
 			string_double(dst, extracooked, entry->precision, 1e10);
-			string_cat(dst, " ");
+			string_append(dst, " ");
 			string_format(dst, "%s", entry->unity);
 		}
 		else
 		{
-			string_cat(dst, "[");
+			string_append(dst, "[");
 			string_double(dst, extracooked, entry->precision, 1e10);
-			string_cat(dst, "]");
+			string_append(dst, "]");
 			string_format(dst, " %s", entry->unity);
 		}
 
 		if(verbose)
 		{
-			string_cat(dst, " (uncalibrated: ");
+			string_append(dst, " (uncalibrated: ");
 			string_double(dst, value.cooked, entry->precision, 1e10);
-			string_cat(dst, ", raw: ");
+			string_append(dst, ", raw: ");
 			string_double(dst, value.raw, 0, 1e10);
-			string_cat(dst, ")");
+			string_append(dst, ")");
 		}
 	}
 	else
 	{
 		if(verbose)
 		{
-			string_cat(dst, "error");
+			string_append(dst, "error");
 			i2c_error_format_string(dst, error);
 		}
 		else
-			string_cat(dst, "error");
+			string_append(dst, "error");
 	}
 
 	if(verbose)
@@ -2281,9 +2281,9 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 		if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
 			int_offset = 0;
 
-		string_cat(dst, ", calibration: factor=");
+		string_append(dst, ", calibration: factor=");
 		string_double(dst, int_factor / 1000.0, 4, 1e10);
-		string_cat(dst, ", offset=");
+		string_append(dst, ", offset=");
 		string_double(dst, int_offset / 1000.0, 4, 1e10);
 	}
 

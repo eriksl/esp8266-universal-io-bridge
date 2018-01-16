@@ -623,7 +623,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 	if(!gpio_info->valid)
 	{
 		if(error_message)
-			string_cat(error_message, "io invalid\n");
+			string_append(error_message, "io invalid\n");
 		return(io_error);
 	}
 
@@ -729,7 +729,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	gpio_pin_data = &gpio_data[pin];
 
 	if(!gpio_info_table[pin].valid)
-		string_cat(dst, "unusable i/o pin");
+		string_append(dst, "unusable i/o pin");
 	else
 	{
 		switch(pin_config->llmode)

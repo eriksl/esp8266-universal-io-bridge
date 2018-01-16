@@ -365,14 +365,14 @@ irom static void display_update(bool_t advance)
 	{
 		string_format(&info_text, "%02u.%02u %s %s",
 				hour, minute, display_info_entry->name, display_info_entry->type);
-		display_text = string_to_ptr(&info_text);
+		display_text = string_to_cstr(&info_text);
 	}
 
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
 		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_cat_ptr(&tag_text, display_slot[slot].tag);
-		display_info_entry->set_fn(string_to_ptr(&tag_text), display_text);
+		string_append_cstr_flash(&tag_text, display_slot[slot].tag);
+		display_info_entry->set_fn(string_to_cstr(&tag_text), display_text);
 	}
 	else
 		display_info_entry->set_fn((char *)0, display_text);
@@ -406,15 +406,15 @@ irom static void display_expire(void) // call one time per second
 	if(active_slots == 0)
 	{
 		display_slot[0].timeout = 1;
-		strlcpy(display_slot[0].tag, "boot", display_slot_tag_size - 1);
+		strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
 		
 		if(!config_get_string("display.defaultmsg", 0, 0, &default_message))
 		{
 			string_clear(&default_message);
-			string_cat(&default_message, "%%%%");
+			string_append(&default_message, "%%%%");
 		}
 
-		strlcpy(display_slot[0].content, string_to_const_ptr(&default_message), display_slot_content_size - 1);
+		strecpy(display_slot[0].content, string_to_cstr(&default_message), display_slot_content_size);
 	}
 }
 
@@ -488,7 +488,7 @@ irom static void display_dump(string_t *dst)
 
 	if(display_data.detected < 0)
 	{
-		string_cat(dst, "> no displays detected\n");
+		string_append(dst, "> no displays detected\n");
 		return;
 	}
 
@@ -517,7 +517,7 @@ irom app_action_t application_function_display_default_message(const string_t *s
 	if(((ix = string_sep(src, 0, 1, ' ')) > 0) &&
 			!config_set_string("display.defaultmsg", -1, -1, src, ix, string_length(src) - ix - 1))
 	{
-		string_cat(dst, "> cannot set config\n");
+		string_append(dst, "> cannot set config\n");
 		return(app_action_error);
 	}
 
@@ -527,12 +527,12 @@ irom app_action_t application_function_display_default_message(const string_t *s
 		config_delete("display.defaultmsg", -1, -1, false);
 
 	string_clear(dst);
-	string_cat(dst, "set default display message to \"");
+	string_append(dst, "set default display message to \"");
 
 	if(!config_get_string("display.defaultmsg", -1, -1, dst))
-		string_cat(dst, "%%%%");
+		string_append(dst, "%%%%");
 
-	string_cat(dst, "\"\n");
+	string_append(dst, "\"\n");
 
 
 	return(app_action_normal);
@@ -555,7 +555,7 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 		else
 			if(!config_set_int("display.fliptimeout", -1, -1, timeout))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -575,7 +575,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 
 	if(display_data.detected < 0)
 	{
-		string_cat(dst, "display_brightess: no display detected\n");
+		string_append(dst, "display_brightess: no display detected\n");
 		return(app_action_error);
 	}
 
@@ -583,7 +583,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 
 	if(parse_int(1, src, &value, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
+		string_append(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);
 	}
 
@@ -605,7 +605,7 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 
 	if(display_data.detected < 0)
 	{
-		string_cat(dst, "display_set: no display detected\n");
+		string_append(dst, "display_set: no display detected\n");
 		return(app_action_error);
 	}
 
@@ -614,7 +614,7 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 		(parse_string(3, src, dst, ' ') != parse_ok))
 	{
 		string_clear(dst);
-		string_cat(dst, "display-set: usage: slot timeout tag text\n");
+		string_append(dst, "display-set: usage: slot timeout tag text\n");
 		return(app_action_error);
 	}
 
@@ -632,7 +632,7 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 	if(current > 0)
 	{
 		string_clear(dst);
-		string_cat(dst, "display-set: usage: slot timeout tag TEXT\n");
+		string_append(dst, "display-set: usage: slot timeout tag TEXT\n");
 		return(app_action_error);
 	}
 
@@ -655,8 +655,8 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	strlcpy(display_slot[slot].tag, string_to_ptr(dst), display_slot_tag_size - 1);
-	strlcpy(display_slot[slot].content, text, display_slot_content_size - 1);
+	strecpy(display_slot[slot].tag, string_to_cstr(dst), display_slot_tag_size);
+	strecpy(display_slot[slot].content, text, display_slot_content_size);
 	display_slot[slot].timeout = timeout;
 
 	display_update(false);

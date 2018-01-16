@@ -190,7 +190,7 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 		}
 	}
 
-	string_cat(name, "error");
+	string_append(name, "error");
 }
 
 typedef struct
@@ -233,7 +233,7 @@ irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 		}
 	}
 
-	string_cat(name, "error");
+	string_append(name, "error");
 }
 
 irom static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
@@ -250,9 +250,9 @@ irom static void io_string_from_i2c_type(string_t *name, io_i2c_t type)
 {
 	switch(type)
 	{
-		case(io_i2c_sda): { string_cat(name, "sda"); break; }
-		case(io_i2c_scl): { string_cat(name, "scl"); break; }
-		default: { string_cat(name, "error"); break; }
+		case(io_i2c_sda): { string_append(name, "sda"); break; }
+		case(io_i2c_scl): { string_append(name, "scl"); break; }
+		default: { string_append(name, "error"); break; }
 	}
 }
 
@@ -310,7 +310,7 @@ irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 		}
 	}
 
-	string_cat(name, "error");
+	string_append(name, "error");
 }
 
 typedef struct
@@ -358,7 +358,7 @@ irom static void trigger_actions_to_string(string_t *dst)
 		entry = &io_trigger_action[ix];
 
 		if(ix > 0)
-			string_cat(dst, ", ");
+			string_append(dst, ", ");
 
 		string_format(dst, "%s", entry->name);
 	}
@@ -380,20 +380,20 @@ irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
 		}
 	}
 
-	string_cat(name, "error");
+	string_append(name, "error");
 }
 
 irom static void trigger_usage(string_t *dst)
 {
-	string_cat(dst, "usage: io-trigger <io> <pin> <action>\n");
-	string_cat(dst, "    action: ");
+	string_append(dst, "usage: io-trigger <io> <pin> <action>\n");
+	string_append(dst, "    action: ");
 	trigger_actions_to_string(dst);
 }
 
 irom static void iomode_trigger_usage(string_t *dst, const char *info)
 {
-	string_cat(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
-	string_cat(dst, "    action: ");
+	string_append(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
+	string_append(dst, "    action: ");
 	trigger_actions_to_string(dst);
 	string_format(dst, "\nerror: %s\n", info);
 }
@@ -421,37 +421,37 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 	if(pin_config->flags.autostart)
 	{
 		if(!none)
-			string_cat(flags, "/");
+			string_append(flags, "/");
 		none = false;
-		string_cat(flags, "autostart");
+		string_append(flags, "autostart");
 	}
 
 	if(pin_config->flags.repeat)
 	{
 		if(!none)
-			string_cat(flags, "/");
+			string_append(flags, "/");
 		none = false;
-		string_cat(flags, "repeat");
+		string_append(flags, "repeat");
 	}
 
 	if(pin_config->flags.pullup)
 	{
 		if(!none)
-			string_cat(flags, "/");
+			string_append(flags, "/");
 		none = false;
-		string_cat(flags, "pullup");
+		string_append(flags, "pullup");
 	}
 
 	if(pin_config->flags.reset_on_read)
 	{
 		if(!none)
-			string_cat(flags, "/");
+			string_append(flags, "/");
 		none = false;
-		string_cat(flags, "reset-on-read");
+		string_append(flags, "reset-on-read");
 	}
 
 	if(none)
-		string_cat(flags, "none");
+		string_append(flags, "none");
 }
 
 irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
@@ -464,7 +464,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 		case(io_pin_error):
 		{
 			if(errormsg)
-				string_cat(errormsg, "cannot read from this pin");
+				string_append(errormsg, "cannot read from this pin");
 
 			return(io_error);
 		}
@@ -505,7 +505,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 		case(io_pin_trigger):
 		{
 			if(errormsg)
-				string_cat(errormsg, "cannot write to this pin");
+				string_append(errormsg, "cannot write to this pin");
 
 			return(io_error);
 		}
@@ -541,7 +541,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 		case(io_pin_error):
 		{
 			if(errormsg)
-				string_cat(errormsg, "cannot trigger this pin");
+				string_append(errormsg, "cannot trigger this pin");
 
 			return(io_error);
 		}
@@ -570,7 +570,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				default:
 				{
 					if(errormsg)
-						string_cat(errormsg, "invalid trigger type");
+						string_append(errormsg, "invalid trigger type");
 
 					return(io_error);
 				}
@@ -612,7 +612,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				default:
 				{
 					if(errormsg)
-						string_cat(errormsg, "invalid trigger type");
+						string_append(errormsg, "invalid trigger type");
 
 					return(io_error);
 				}
@@ -654,7 +654,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				default:
 				{
 					if(errormsg)
-						string_cat(errormsg, "invalid trigger type");
+						string_append(errormsg, "invalid trigger type");
 
 					return(io_error);
 				}
@@ -775,7 +775,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				default:
 				{
 					if(errormsg)
-						string_cat(errormsg, "invalid trigger type");
+						string_append(errormsg, "invalid trigger type");
 
 					return(io_error);
 				}
@@ -821,7 +821,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 	if(io >= io_id_size)
 	{
 		if(error_msg)
-			string_cat(error_msg, "io out of range\n");
+			string_append(error_msg, "io out of range\n");
 		return(io_error);
 	}
 
@@ -831,7 +831,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 	if(pin >= info->pins)
 	{
 		if(error_msg)
-			string_cat(error_msg, "pin out of range\n");
+			string_append(error_msg, "pin out of range\n");
 		return(io_error);
 	}
 
@@ -839,7 +839,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 	pin_data = &data->pin[pin];
 
 	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
-		string_cat(error_msg, "\n");
+		string_append(error_msg, "\n");
 	else
 		if((pin_config->mode == io_pin_counter) && (pin_config->flags.reset_on_read))
 			error = io_write_pin_x(error_msg, info, pin_data, pin_config, pin, 0);
@@ -857,7 +857,7 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, int value)
 	if(io >= io_id_size)
 	{
 		if(error)
-			string_cat(error, "io out of range\n");
+			string_append(error, "io out of range\n");
 		return(io_error);
 	}
 
@@ -867,7 +867,7 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, int value)
 	if(pin >= info->pins)
 	{
 		if(error)
-			string_cat(error, "pin out of range\n");
+			string_append(error, "pin out of range\n");
 		return(io_error);
 	}
 
@@ -887,7 +887,7 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 	if(io >= io_id_size)
 	{
 		if(error)
-			string_cat(error, "io out of range\n");
+			string_append(error, "io out of range\n");
 		return(io_error);
 	}
 
@@ -897,7 +897,7 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 	if(pin >= info->pins)
 	{
 		if(error)
-			string_cat(error, "pin out of range\n");
+			string_append(error, "pin out of range\n");
 		return(io_error);
 	}
 
@@ -922,7 +922,7 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 	if(io >= io_id_size)
 	{
 		if(errormsg)
-			string_cat(errormsg, "io out of range\n");
+			string_append(errormsg, "io out of range\n");
 		return(io_error);
 	}
 
@@ -932,7 +932,7 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 	if(pin >= info->pins)
 	{
 		if(errormsg)
-			string_cat(errormsg, "pin out of range\n");
+			string_append(errormsg, "pin out of range\n");
 		return(io_error);
 	}
 
@@ -948,7 +948,7 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 		case(io_pin_trigger):
 		{
 			if(errormsg)
-				string_cat(errormsg, "pin disabled");
+				string_append(errormsg, "pin disabled");
 			return(io_error);
 		}
 
@@ -973,7 +973,7 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 		default:
 		{
 			if(errormsg)
-				string_cat(errormsg, "no info for this type");
+				string_append(errormsg, "no info for this type");
 			return(io_error);
 		}
 	}
@@ -1457,7 +1457,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 	if((pin < 0) || (pin >= info->pins))
 	{
-		string_cat(dst, "io pin out of range\n");
+		string_append(dst, "io pin out of range\n");
 		return(app_action_error);
 	}
 
@@ -1473,7 +1473,8 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 	if((mode = io_mode_from_string(dst)) == io_pin_error)
 	{
-		string_copy(dst, "invalid mode\n");
+		string_clear(dst);
+		string_append(dst, "invalid mode\n");
 		return(app_action_error);
 	}
 
@@ -1487,7 +1488,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		{
 			if(!info->caps.input_digital)
 			{
-				string_cat(dst, "digital input mode invalid for this io\n");
+				string_append(dst, "digital input mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1504,7 +1505,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		{
 			if(!info->caps.counter)
 			{
-				string_cat(dst, "counter mode invalid for this io\n");
+				string_append(dst, "counter mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1512,7 +1513,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
 			{
-				string_cat(dst, "counter: <debounce ms>\n");
+				string_append(dst, "counter: <debounce ms>\n");
 				return(app_action_error);
 			}
 
@@ -1534,7 +1535,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 			if(!info->caps.counter)
 			{
-				string_cat(dst, "trigger mode invalid for this io\n");
+				string_append(dst, "trigger mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1632,7 +1633,7 @@ skip:
 		{
 			if(!info->caps.output_digital)
 			{
-				string_cat(dst, "digital output mode invalid for this io\n");
+				string_append(dst, "digital output mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1652,13 +1653,14 @@ skip:
 
 			if(!info->caps.output_digital)
 			{
-				string_cat(dst, "timer mode invalid for this io\n");
+				string_append(dst, "timer mode invalid for this io\n");
 				return(app_action_error);
 			}
 
 			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
-				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
+				string_clear(dst);
+				string_append(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
@@ -1668,7 +1670,7 @@ skip:
 				direction = io_dir_down;
 			else
 			{
-				string_cat(dst, ": timer direction invalid\n");
+				string_append(dst, ": timer direction invalid\n");
 				return(app_action_error);
 			}
 
@@ -1676,13 +1678,14 @@ skip:
 
 			if((parse_int(5, src, &speed, 0, ' ') != parse_ok))
 			{
-				string_copy(dst, "timer: <direction>:up/down <speed>:ms\n");
+				string_clear(dst);
+				string_append(dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
 			if(speed < 10)
 			{
-				string_cat(dst, "timer: speed too small: must be >= 10 ms\n");
+				string_append(dst, "timer: speed too small: must be >= 10 ms\n");
 				return(app_action_error);
 			}
 
@@ -1704,7 +1707,7 @@ skip:
 		{
 			if(!info->caps.input_analog)
 			{
-				string_cat(dst, "analog input mode invalid for this io\n");
+				string_append(dst, "analog input mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1725,7 +1728,7 @@ skip:
 
 			if(!info->caps.output_analog)
 			{
-				string_cat(dst, "analog output mode invalid for this io\n");
+				string_append(dst, "analog output mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1750,7 +1753,7 @@ skip:
 
 			if(upper_bound < lower_bound)
 			{
-				string_cat(dst, "upper bound below lower bound\n");
+				string_append(dst, "upper bound below lower bound\n");
 				return(app_action_error);
 			}
 
@@ -1782,19 +1785,21 @@ skip:
 
 			if(!info->caps.i2c)
 			{
-				string_cat(dst, "i2c mode invalid for this io\n");
+				string_append(dst, "i2c mode invalid for this io\n");
 				return(app_action_error);
 			}
 
 			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
-				string_copy(dst, "i2c: <pin mode>=sda|scl\n");
+				string_clear(dst);
+				string_append(dst, "i2c: <pin mode>=sda|scl\n");
 				return(app_action_error);
 			}
 
 			if((pin_mode = io_i2c_pin_from_string(dst)) == io_i2c_error)
 			{
-				string_copy(dst, "i2c: <pin mode>=sda|scl\n");
+				string_clear(dst);
+				string_append(dst, "i2c: <pin mode>=sda|scl\n");
 				return(app_action_error);
 			}
 
@@ -1816,7 +1821,7 @@ skip:
 		{
 			if(!info->caps.uart)
 			{
-				string_cat(dst, "uart mode invalid for this io\n");
+				string_append(dst, "uart mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1835,13 +1840,15 @@ skip:
 
 			if(parse_string(4, src, dst, ' ') != parse_ok)
 			{
-				string_copy(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
+				string_clear(dst);
+				string_append(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 
 			if((pin_mode = io_lcd_mode_from_string(dst)) == io_lcd_error)
 			{
-				string_copy(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
+				string_clear(dst);
+				string_append(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 
@@ -1856,7 +1863,7 @@ skip:
 						llmode = io_pin_ll_output_digital;
 					else
 					{
-						string_cat(dst, "analog/digital output mode invalid for this io\n");
+						string_append(dst, "analog/digital output mode invalid for this io\n");
 						return(app_action_error);
 					}
 			}
@@ -1864,7 +1871,7 @@ skip:
 			{
 				if(!info->caps.output_digital)
 				{
-					string_cat(dst, "digital output mode invalid for this io\n");
+					string_append(dst, "digital output mode invalid for this io\n");
 					return(app_action_error);
 				}
 
@@ -1894,14 +1901,14 @@ skip:
 		{
 			llmode = io_pin_ll_error;
 
-			string_cat(dst, "unsupported io mode\n");
+			string_append(dst, "unsupported io mode\n");
 			return(app_action_error);
 		}
 	}
 
 	if((mode == io_pin_error) || (llmode == io_pin_ll_error))
 	{
-		string_cat(dst, "error\n");
+		string_append(dst, "error\n");
 		return(app_action_error);
 	}
 
@@ -1928,7 +1935,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "io-read: <io> <pin>\n");
+		string_append(dst, "io-read: <io> <pin>\n");
 		return(app_action_error);
 	}
 
@@ -1942,13 +1949,13 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "get: <io> <pin>\n");
+		string_append(dst, "get: <io> <pin>\n");
 		return(app_action_error);
 	}
 
 	if((pin < 0) || (pin >= info->pins))
 	{
-		string_cat(dst, "io pin out of range\n");
+		string_append(dst, "io pin out of range\n");
 		return(app_action_error);
 	}
 
@@ -1958,17 +1965,17 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	if(pin_config->mode == io_pin_i2c)
 	{
-		string_cat(dst, "/");
+		string_append(dst, "/");
 		io_string_from_i2c_type(dst, pin_config->shared.i2c.pin_mode);
 	}
 
 	if(pin_config->mode == io_pin_lcd)
 	{
-		string_cat(dst, "/");
+		string_append(dst, "/");
 		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
 	}
 
-	string_cat(dst, ": ");
+	string_append(dst, ": ");
 
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
 		return(app_action_error);
@@ -1986,7 +1993,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 
 	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "io-write <io> <pin> <value>\n");
+		string_append(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
@@ -2000,13 +2007,13 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 
 	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "io-write <io> <pin> <value>\n");
+		string_append(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
 	if((pin < 0) || (pin >= info->pins))
 	{
-		string_cat(dst, "invalid pin\n");
+		string_append(dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
@@ -2019,21 +2026,21 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 
 	if(pin_config->mode == io_pin_lcd)
 	{
-		string_cat(dst, "/");
+		string_append(dst, "/");
 		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
 	}
 
-	string_cat(dst, ": ");
+	string_append(dst, ": ");
 
 	if(io_write_pin(dst, io, pin, value) != io_ok)
 	{
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
 	{
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
@@ -2072,7 +2079,7 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 
 	if((pin < 0) || (pin >= info->pins))
 	{
-		string_cat(dst, "invalid pin\n");
+		string_append(dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
@@ -2092,17 +2099,17 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 
 	string_clear(dst);
 
-	string_cat(dst, "trigger ");
+	string_append(dst, "trigger ");
 	trigger_action_to_string(dst, trigger_type);
 	string_format(dst, " %u/%u: ", io, pin);
 
 	if(io_trigger_pin(dst, io, pin, trigger_type) != io_ok)
 	{
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
-	string_cat(dst, "ok\n");
+	string_append(dst, "ok\n");
 
 	return(app_action_normal);
 }
@@ -2119,7 +2126,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "io-flag <io> <pin> <flag>\n");
+		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
@@ -2134,13 +2141,13 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "io-flag <io> <pin> <flag>\n");
+		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
 	if((pin < 0) || (pin >= info->pins))
 	{
-		string_cat(dst, "invalid pin\n");
+		string_append(dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
@@ -2151,21 +2158,24 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	if((parse_string(3, src, dst, ' ') == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
 	{
-		string_copy(dst, "io-flag <io> <pin> <flag>\n");
+		string_clear(dst);
+		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
 	if(pin_config->flags.pullup && !info->caps.pullup)
 	{
 		pin_config->flags = saved_flags;
-		string_copy(dst, "io does not support pullup\n");
+		string_clear(dst);
+		string_append(dst, "io does not support pullup\n");
 		return(app_action_error);
 	}
 
 	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
 	{
 		pin_config->flags = saved_flags;
-		string_copy(dst, "cannot enable this flag\n");
+		string_clear(dst);
+		string_append(dst, "cannot enable this flag\n");
 		return(app_action_error);
 	}
 
@@ -2177,7 +2187,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	pin_string_from_flags(dst, pin_config);
 
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -2238,7 +2248,7 @@ typedef struct {
 	const string_array_t html;
 } dump_string_t;
 
-static const roflash dump_string_t dump_strings =
+static const roflash dump_string_t roflash_dump_strings =
 {
 	.plain =
 	{
@@ -2315,16 +2325,16 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 	io_data_entry_t *data;
 	io_data_pin_entry_t *pin_data;
 	const io_config_pin_entry_t *pin_config;
-	const string_array_t *strings;
+	const string_array_t *roflash_strings;
 	int io, pin, value;
 	io_error_t error;
 
 	if(html)
-		strings = &dump_strings.html;
+		roflash_strings = &roflash_dump_strings.html;
 	else
-		strings = &dump_strings.plain;
+		roflash_strings = &roflash_dump_strings.plain;
 
-	string_cat_ptr(dst, (*strings)[ds_id_table_start]);
+	string_append_cstr_flash(dst, (*roflash_strings)[ds_id_table_start]);
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -2334,15 +2344,15 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 		info = &io_info[io];
 		data = &io_data[io];
 
-		string_format_ptr(dst, (*strings)[ds_id_io], io, info->name, info->address);
+		string_format_flash_ptr(dst, (*roflash_strings)[ds_id_io], io, info->name, info->address);
 
 		if(!data->detected)
 		{
-			string_cat_ptr(dst, (*strings)[ds_id_not_detected]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_not_detected]);
 			continue;
 		}
 
-		string_cat_ptr(dst, (*strings)[ds_id_pins_header]);
+		string_append_cstr_flash(dst, (*roflash_strings)[ds_id_pins_header]);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -2352,23 +2362,23 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
-			string_format_ptr(dst, (*strings)[ds_id_pin_1], pin);
+			string_format_flash_ptr(dst, (*roflash_strings)[ds_id_pin_1], pin);
 
-			string_cat_ptr(dst, (*strings)[ds_id_mode_1]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_mode_1]);
 			io_string_from_mode(dst, pin_config->mode, -1);
-			string_cat_ptr(dst, (*strings)[ds_id_mode_2]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_mode_2]);
 
-			string_cat_ptr(dst, (*strings)[ds_id_hw_1]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_1]);
 			io_string_from_ll_mode(dst, pin_config->llmode, -1);
-			string_cat_ptr(dst, (*strings)[ds_id_hw_2]); 
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_2]); 
 
-			string_cat_ptr(dst, (*strings)[ds_id_flags_1]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_1]);
 			pin_string_from_flags(dst, pin_config);
-			string_cat_ptr(dst, (*strings)[ds_id_flags_2]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_2]);
 
 			if((pin_config->mode != io_pin_disabled) && (pin_config->mode != io_pin_i2c) && (pin_config->mode != io_pin_uart))
 				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
-					string_cat(dst, "\n");
+					string_append(dst, "\n");
 				else
 					(void)0;
 			else
@@ -2378,7 +2388,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			{
 				case(io_pin_disabled):
 				{
-					string_cat_ptr(dst, (*strings)[ds_id_disabled]);
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_disabled]);
 
 					break;
 				}
@@ -2386,9 +2396,9 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_input_digital):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_input], onoff(value));
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_input], onoff(value));
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2396,9 +2406,9 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_counter):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_counter], value, pin_config->speed);
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_counter], value, pin_config->speed);
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2407,24 +2417,24 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				{
 					if(error == io_ok)
 					{
-						string_format_ptr(dst, (*strings)[ds_id_trigger_1], value, pin_config->speed);
-						string_format_ptr(dst, (*strings)[ds_id_trigger_2], 0,
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_1], value, pin_config->speed);
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_2], 0,
 								pin_config->shared.trigger[0].io.io,
 								pin_config->shared.trigger[0].io.pin);
 						trigger_action_to_string(dst, pin_config->shared.trigger[0].action);
 
 						if(pin_config->shared.trigger[1].action != io_trigger_none)
 						{
-							string_cat(dst, "\n");
-							string_format_ptr(dst, (*strings)[ds_id_trigger_2], 1,
+							string_append(dst, "\n");
+							string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_2], 1,
 									pin_config->shared.trigger[1].io.io,
 									pin_config->shared.trigger[1].io.pin);
 							trigger_action_to_string(dst, pin_config->shared.trigger[1].action);
 						}
-						string_cat_ptr(dst, (*strings)[ds_id_trigger_3]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_trigger_3]);
 					}
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2432,9 +2442,9 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_output_digital):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_output], onoff(value));
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_output], onoff(value));
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2442,14 +2452,14 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_timer):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_timer],
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_timer],
 								pin_config->direction == io_dir_up ? "up" : (pin_config->direction == io_dir_down ? "down" : "none"),
 								pin_config->speed,
 								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
 								pin_data->speed,
 								onoff(value));
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2457,14 +2467,14 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_output_analog):
 				{
 					if(error == io_ok)
-						string_format_ptr(dst, (*strings)[ds_id_analog_output],
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_analog_output],
 								pin_config->shared.output_analog.lower_bound,
 								pin_config->shared.output_analog.upper_bound,
 								pin_config->speed,
 								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
 								value, pin_data->saved_value);
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_error]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
 					break;
 				}
@@ -2472,24 +2482,24 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_i2c):
 				{
 					if(pin_config->shared.i2c.pin_mode == io_i2c_sda)
-						string_cat_ptr(dst, (*strings)[ds_id_i2c_sda]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_i2c_sda]);
 					else
-						string_cat_ptr(dst, (*strings)[ds_id_i2c_scl]);
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_i2c_scl]);
 
 					break;
 				}
 
 				case(io_pin_uart):
 				{
-					string_cat_ptr(dst, (*strings)[ds_id_uart]);
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_uart]);
 
 					break;
 				}
 
 				case(io_pin_lcd):
 				{
-					string_cat_ptr(dst, (*strings)[ds_id_lcd]);
-					string_cat(dst, "/");
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_lcd]);
+					string_append(dst, "/");
 					io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
 
 					break;
@@ -2497,20 +2507,20 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 
 				default:
 				{
-					string_cat_ptr(dst, (*strings)[ds_id_unknown]);
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_unknown]);
 
 					break;
 				}
 			}
 
-			string_cat_ptr(dst, (*strings)[ds_id_info_1]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_info_1]);
 			if(info->get_pin_info_fn)
 				info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
-			string_cat_ptr(dst, (*strings)[ds_id_info_2]);
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_info_2]);
 
-			string_format_ptr(dst, (*strings)[ds_id_pin_2], pin);
+			string_format_flash_ptr(dst, (*roflash_strings)[ds_id_pin_2], pin);
 		}
 	}
 
-	string_cat_ptr(dst, (*strings)[ds_id_table_end]);
+	string_append_cstr_flash(dst, (*roflash_strings)[ds_id_table_end]);
 }

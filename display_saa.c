@@ -184,7 +184,7 @@ irom bool_t display_saa1064_set(const char *tag, const char *from)
 	if(i2c_bus < 0)
 		return(false);
 
-	strlcpy(text,  "    ", sizeof(text));
+	strecpy(text,  "    ", sizeof(text));
 
 	for(current = 0; *from && (current < (int)sizeof(text)); from++)
 	{

@@ -16,17 +16,17 @@ typedef struct
 
 static const http_handler_t handlers[];
 
-roflash static const char http_header_pre[] =
+roflash static const char roflash_http_header_pre[] =
 {
 	"HTTP/1.0 "
 };
 
-roflash static const char http_eol[] =
+roflash static const char roflash_http_eol[] =
 {
 	"\r\n"
 };
 
-roflash static const char http_header_ok[] =
+roflash static const char roflash_http_header_ok[] =
 {
 	"200 OK\r\n"
 	"Content-Type: text/html; charset=UTF-8\r\n"
@@ -35,7 +35,7 @@ roflash static const char http_header_ok[] =
 	"\r\n"
 };
 
-roflash static const char http_header_error[] =
+roflash static const char roflash_http_header_error[] =
 {
 	"Content-Type: text/html; charset=UTF-8\r\n"
 	"Content-Length: %d\r\n"
@@ -43,7 +43,7 @@ roflash static const char http_header_error[] =
 	"\r\n"
 };
 
-roflash static const char html_header[] =
+roflash static const char roflash_html_header[] =
 {
 	"<!DOCTYPE html>\n"
 	"<html>\n"
@@ -70,40 +70,40 @@ roflash static const char html_header[] =
 	"	<body>\n"
 };
 
-roflash static const char html_p1[] =
+roflash static const char roflash_html_p1[] =
 {
 	"<p>"
 };
 
-roflash static const char html_p2[] =
+roflash static const char roflash_html_p2[] =
 {
 	"</p>"
 };
 
-roflash static const char html_eol[] =
+roflash static const char roflash_html_eol[] =
 {
 	"\n"
 };
 
-roflash static const char html_link_home[] =
+roflash static const char roflash_html_link_home[] =
 {
 	"<p>\n"
 	"	<a href=\"/\">Home</a>\n"
 	"</p>\n"
 };
 
-roflash static const char html_footer[] =
+roflash static const char roflash_html_footer[] =
 {
 	"	</body>\n"
 	"</html>\n"
 };
 
-roflash static const char html_table_start[] =
+roflash static const char roflash_html_table_start[] =
 {
 	"<table cellpadding=\"1\" cellspacing=\"1\" border=\"1\">\n"
 };
 
-roflash static const char html_table_end[] =
+roflash static const char roflash_html_table_end[] =
 {
 	"</table>\n"
 };
@@ -118,51 +118,51 @@ irom static void http_range_form(string_t *dst, int io, int pin, int low, int hi
 	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
 		pwm_period = 65536;
 
-	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_const_ptr(&id), "set");
-	string_cat(dst,		"	<div class=\"div\">\n");
+	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_cstr(&id), "set");
+	string_append(dst,		"	<div class=\"div\">\n");
 	string_format(dst,	"		%d/%d range: %d-%d/%d current: %d\n", io, pin, low, high, step, current);
-	string_cat(dst,		"	</div>\n");
+	string_append(dst,		"	</div>\n");
 	string_format(dst,	"	<input name=\"io\" type=\"hidden\" value=\"%d\" />\n", io);
 	string_format(dst,	"	<input name=\"pin\" type=\"hidden\" value=\"%d\" />\n", pin);
-	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%d\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_const_ptr(&id));
-	string_cat(dst,		"	<script type=\"text/javascript\">\n");
-	string_format(dst,	"	function changed_%s(value)\n", string_to_const_ptr(&id));
-	string_cat(dst,		"	{\n");
-	string_format(dst,	"		document.getElementById(\"form_%s\").submit();\n", string_to_const_ptr(&id));
-	string_cat(dst,		"	}\n");
-	string_cat(dst,		"	</script>\n");
-	string_cat(dst,		"</form>\n");
+	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%d\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_cstr(&id));
+	string_append(dst,		"	<script type=\"text/javascript\">\n");
+	string_format(dst,	"	function changed_%s(value)\n", string_to_cstr(&id));
+	string_append(dst,		"	{\n");
+	string_format(dst,	"		document.getElementById(\"form_%s\").submit();\n", string_to_cstr(&id));
+	string_append(dst,		"	}\n");
+	string_append(dst,		"	</script>\n");
+	string_append(dst,		"</form>\n");
 }
 
 irom static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
 {
 	static const char delim[] = ": ";
-	int content_length = sizeof(html_header) - 1 + sizeof(html_p1) - 1 +
+	int content_length = sizeof(roflash_html_header) - 1 + sizeof(roflash_html_p1) - 1 +
 			strlen(error_string) +
-			sizeof(html_p2) - 1 + sizeof(html_eol) - 1 + sizeof(html_footer) - 1;
+			sizeof(roflash_html_p2) - 1 + sizeof(roflash_html_eol) - 1 + sizeof(roflash_html_footer) - 1;
 
 	if(info)
-		content_length += sizeof(delim) - 1 + strlen(info) + sizeof(html_eol) - 1;
+		content_length += sizeof(delim) - 1 + strlen(info) + sizeof(roflash_html_eol) - 1;
 
-	string_cat_ptr(dst, http_header_pre);
-	string_cat_strptr(dst, error_string);
-	string_cat_ptr(dst, http_eol);
-	string_format_ptr(dst, http_header_error, content_length);
+	string_append_cstr_flash(dst, roflash_http_header_pre);
+	string_append_cstr(dst, error_string);
+	string_append_cstr_flash(dst, roflash_http_eol);
+	string_format_flash_ptr(dst, roflash_http_header_error, content_length);
 
-	string_cat_ptr(dst, html_header);
-	string_cat_ptr(dst, html_p1);
-	string_cat_strptr(dst, error_string);
+	string_append_cstr_flash(dst, roflash_html_header);
+	string_append_cstr_flash(dst, roflash_html_p1);
+	string_append_cstr(dst, error_string);
 
 	if(info)
 	{
-		string_cat_strptr(dst, delim);
-		string_cat_strptr(dst, info);
-		string_cat_ptr(dst, html_eol);
+		string_append_cstr(dst, delim);
+		string_append_cstr(dst, info);
+		string_append_cstr_flash(dst, roflash_html_eol);
 	}
 
-	string_cat_ptr(dst, html_eol);
-	string_cat_ptr(dst, html_p2);
-	string_cat_ptr(dst, html_footer);
+	string_append_cstr_flash(dst, roflash_html_eol);
+	string_append_cstr_flash(dst, roflash_html_p2);
+	string_append_cstr_flash(dst, roflash_html_footer);
 
 	return(app_action_error);
 }
@@ -179,16 +179,16 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	if((parse_string(1, src, &url, ' ')) != parse_ok)
 		return(http_error(dst, "400 Bad Request 1", "no url"));
 
-	if(string_index(&url, 0) != '/')
-		return(http_error(dst, "400 Bad Request 2", string_to_const_ptr(&url)));
+	if(string_at(&url, 0) != '/')
+		return(http_error(dst, "400 Bad Request 2", string_to_cstr(&url)));
 
 	if(!string_match(&url, "/") && (parse_string(1, &url, &afterslash, '/') != parse_ok))
-		return(http_error(dst, "400 Bad Request 3", string_to_const_ptr(&afterslash)));
+		return(http_error(dst, "400 Bad Request 3", string_to_cstr(&afterslash)));
 
 	if((parse_string(0, &afterslash, &action, '?')) != parse_ok)
 	{
 		string_clear(&action);
-		string_copy_string(&action, &afterslash);
+		string_append_string(&action, &afterslash);
 	}
 
 	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
@@ -196,19 +196,19 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 			break;
 
 	if(!handler->action || !handler->handler)
-		return(http_error(dst, "404 Not Found", string_to_const_ptr(&action)));
+		return(http_error(dst, "404 Not Found", string_to_cstr(&action)));
 
 	string_clear(dst);
-	string_cat_ptr(dst, http_header_pre);
-	string_cat_ptr(dst, http_header_ok);
-	string_cat_ptr(dst, html_header);
+	string_append_cstr_flash(dst, roflash_http_header_pre);
+	string_append_cstr_flash(dst, roflash_http_header_ok);
+	string_append_cstr_flash(dst, roflash_html_header);
 
 	error = handler->handler(&afterslash, dst);
 
-	string_cat_ptr(dst, html_link_home);
-	string_cat_ptr(dst, html_footer);
+	string_append_cstr_flash(dst, roflash_html_link_home);
+	string_append_cstr_flash(dst, roflash_html_footer);
 
-	if((length = string_length(dst) - (sizeof(http_header_pre) - 1) - (sizeof(http_header_ok) - 1)) <= 0)
+	if((length = string_length(dst) - (sizeof(roflash_http_header_pre) - 1) - (sizeof(roflash_http_header_ok) - 1)) <= 0)
 		return(http_error(dst, "500 Internal Server Error", 0));
 
 	if((ix = string_find(dst, 0, '@')) <= 0)
@@ -229,14 +229,14 @@ irom static app_action_t handler_root(const string_t *src, string_t *dst)
 {
 	const http_handler_t *handler;
 
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><th colspan=\"2\">ESP8266 Universal I/O bridge</th></tr>\n");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><th colspan=\"2\">ESP8266 Universal I/O bridge</th></tr>\n");
 
 	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
 		if(handler->description)
 			string_format(dst, "<tr><td>%s</td><td><a href=\"/%s\">/%s</a></td></tr>\n", handler->description, handler->action, handler->action);
 
-	string_cat_ptr(dst, html_table_end);
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
@@ -299,20 +299,20 @@ irom static app_action_t handler_set(const string_t *src, string_t *dst)
 	error = io_write_pin(dst, io, pin, value);
 
 	if(error == io_ok)
-		string_cat(dst, "<script>location.replace(\"/controls\");</script>\n");
+		string_append(dst, "<script>location.replace(\"/controls\");</script>\n");
 	else
 	{
 		string_format(dst, "<tr><td>%s: io=%d pin=%d value=%d</td></tr>\n<tr><td>",
-				string_to_const_ptr(&getparam), io, pin, value);
-		string_cat(dst, "</td></tr>\n");
+				string_to_cstr(&getparam), io, pin, value);
+		string_append(dst, "</td></tr>\n");
 	}
 
 	return(app_action_http_ok);
 
 error:
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><th>parameter error</h1></th></tr>\n");
-	string_cat_ptr(dst, html_table_end);
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><th>parameter error</h1></th></tr>\n");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 	return(app_action_http_ok);
 }
 
@@ -323,55 +323,55 @@ irom static app_action_t handler_favicon(const string_t *src, string_t *dst)
 
 irom static app_action_t handler_info_fw(const string_t *src, string_t *dst)
 {
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><td><pre>");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><td><pre>");
 	stats_firmware(dst);
-	string_cat(dst, "</pre></td></tr>");
-	string_cat_ptr(dst, html_table_end);
+	string_append(dst, "</pre></td></tr>");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
 
 irom static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
 {
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><td><pre>");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><td><pre>");
 	stats_i2c(dst);
-	string_cat(dst, "</pre></td></tr>");
-	string_cat_ptr(dst, html_table_end);
+	string_append(dst, "</pre></td></tr>");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
 
 irom static app_action_t handler_info_time(const string_t *src, string_t *dst)
 {
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><td><pre>");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><td><pre>");
 	stats_time(dst);
-	string_cat(dst, "</pre></td></tr>");
-	string_cat_ptr(dst, html_table_end);
+	string_append(dst, "</pre></td></tr>");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
 
 irom static app_action_t handler_info_stats(const string_t *src, string_t *dst)
 {
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><td><pre>");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><td><pre>");
 	stats_counters(dst);
-	string_cat(dst, "</pre></td></tr>");
-	string_cat_ptr(dst, html_table_end);
+	string_append(dst, "</pre></td></tr>");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
 
 irom static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
 {
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><td><pre>");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><td><pre>");
 	stats_wlan(dst);
-	string_cat(dst, "</pre></td></tr>");
-	string_cat_ptr(dst, html_table_end);
+	string_append(dst, "</pre></td></tr>");
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
@@ -389,36 +389,36 @@ irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
 	int bus;
 	int detected = 0;
 
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst, "<tr><th>bus</th><th>sensor</th><th>address</th><th>name</th><th>type</th><th>value</th></tr>\n");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst, "<tr><th>bus</th><th>sensor</th><th>address</th><th>name</th><th>type</th><th>value</th></tr>\n");
 
 	for(bus = 0; bus < i2c_busses; bus++)
 		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
 			if(i2c_sensor_detected(bus, sensor))
 			{
-				string_cat(dst, "<tr><td>");
+				string_append(dst, "<tr><td>");
 				i2c_sensor_read(dst, bus, sensor, false, true);
-				string_cat(dst, "</td></tr>\n");
+				string_append(dst, "</td></tr>\n");
 				detected++;
 			}
 
 	if(detected < 1)
-		string_cat(dst, "<tr><td colspan=\"6\">no sensors detected</td></tr>\n");
+		string_append(dst, "<tr><td colspan=\"6\">no sensors detected</td></tr>\n");
 
-	string_cat_ptr(dst, html_table_end);
+	string_append_cstr_flash(dst, roflash_html_table_end);
 
 	return(app_action_http_ok);
 }
 
 irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *dst)
 {
-	string_cat(dst, "<p>Reset WLAN configuration.</p>\n");
-	string_cat(dst, "<p>Type the SSID (network name) and password and click \"set\".</p>\n");
-	string_cat(dst, "<form action=\"/resetwlan\" method=\"get\">\n");
-	string_cat(dst, "	<input type=\"text\" name=\"ssid\">\n");
-	string_cat(dst, "	<input type=\"text\" name=\"password\">\n");
-	string_cat(dst, "	<input type=\"submit\" value=\"set\">\n");
-	string_cat(dst, "</form>\n");
+	string_append(dst, "<p>Reset WLAN configuration.</p>\n");
+	string_append(dst, "<p>Type the SSID (network name) and password and click \"set\".</p>\n");
+	string_append(dst, "<form action=\"/resetwlan\" method=\"get\">\n");
+	string_append(dst, "	<input type=\"text\" name=\"ssid\">\n");
+	string_append(dst, "	<input type=\"text\" name=\"password\">\n");
+	string_append(dst, "	<input type=\"submit\" value=\"set\">\n");
+	string_append(dst, "</form>\n");
 
 	return(app_action_http_ok);
 }
@@ -467,21 +467,21 @@ irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(config_write() == 0)
 		goto config_error;
 
-	string_cat_ptr(dst, html_table_start);
-	string_cat(dst,		"<p>SSID and password set.</p>\n");
-	string_cat(dst,		"<tr><th>SSID</th><th>password</th></tr>\n");
-	string_format(dst,	"<tr><td>%s</td><td>%s</td></tr>\n", string_to_const_ptr(&ssid), string_to_const_ptr(&passwd));
-	string_cat_ptr(dst, html_table_end);
-	string_cat(dst,		"<p>Now <a href=\"/reset\">reset</a> to activate WLAN settings.</p>\n");
+	string_append_cstr_flash(dst, roflash_html_table_start);
+	string_append(dst,		"<p>SSID and password set.</p>\n");
+	string_append(dst,		"<tr><th>SSID</th><th>password</th></tr>\n");
+	string_format(dst,	"<tr><td>%s</td><td>%s</td></tr>\n", string_to_cstr(&ssid), string_to_cstr(&passwd));
+	string_append_cstr_flash(dst, roflash_html_table_end);
+	string_append(dst,		"<p>Now <a href=\"/reset\">reset</a> to activate WLAN settings.</p>\n");
 
 	return(app_action_http_ok);
 
 parameter_error:
-	string_cat(dst, "<h1>Parameter error</h1>\n");
+	string_append(dst, "<h1>Parameter error</h1>\n");
 	return(app_action_http_ok);
 
 config_error:
-	string_cat(dst, "<h1>Can't write config</h1>\n");
+	string_append(dst, "<h1>Can't write config</h1>\n");
 	return(app_action_http_ok);
 }
 

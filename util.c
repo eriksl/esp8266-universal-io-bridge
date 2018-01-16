@@ -12,173 +12,28 @@
 #include <mem.h>
 #include <user_interface.h>
 
-static char dram_buffer[1024];
+char flash_dram_buffer[1024];
 string_new(, logbuffer, 4096 + 4);
 
-int ets_vsnprintf(char *, size_t, const char *, va_list);
+// functions missing from SDK libmain (but declared in headers)
 
-// string handling
+#ifdef isxdigit
+undef isxdigit
+#endif
 
-irom static size_t copy_flash_to_ram(char *dst, const char *from_ptr_byte, int size)
+attr_const int isxdigit(int c);
+irom attr_const int isxdigit(int c)
 {
-	int from, to;
-	uint32_t current32, byte;
-	uint8_t current8;
-	const uint32_t *from_ptr;
+	if((c >= '0' && (c <= '9')))
+		return(1);
 
-	from_ptr = (const uint32_t *)(const void *)from_ptr_byte;
+	if((c >= 'a' && (c <= 'f')))
+		return(1);
 
-	for(from = 0, to = 0; (int)(from * sizeof(*from_ptr)) < (size - 1); from++)
-	{
-		current32 = from_ptr[from];
+	if((c >= 'A' && (c <= 'F')))
+		return(1);
 
-		for(byte = 4; byte > 0; byte--)
-		{
-			if((current8 = (current32 & 0x000000ff)) == '\0')
-				goto done;
-
-			if((to + 1) >= size)
-				goto done;
-
-			dst[to++] = (char)current8;
-			current32 = (current32 >> 8) & 0x00ffffff;
-		}
-	}
-
-done:
-	dst[to] = '\0';
-
-	return(to);
-}
-
-irom void string_setlength(string_t *dst, int length)
-{
-	if((length + 1) > dst->size)
-		dst->length = dst->size - 1;
-	else
-	{
-		dst->length = length;
-		dst->buffer[dst->length] = '\0';
-	}
-}
-
-irom void string_clear(string_t *dst)
-{
-	string_setlength(dst, 0);
-};
-
-irom void string_set(string_t *dst, char *buffer, int size, int length)
-{
-	dst->buffer = buffer;
-	dst->size   = size + 1;
-	dst->length = length;
-}
-
-irom string_t string_from_ptr(size_t size, char *buffer)
-{
-	string_t string = { size, strlen(buffer), buffer };
-
-	return(string);
-}
-
-irom char *string_to_ptr(string_t *string)
-{
-	string->buffer[string->length] = '\0';
-
-	return(string->buffer);
-}
-
-irom attr_pure const char *string_to_const_ptr(const string_t *string)
-{
-	return(string->buffer);
-}
-
-irom void string_format_ptr(string_t *dst, const char *fmt_flash, ...)
-{
-	va_list ap;
-
-	copy_flash_to_ram(dram_buffer, fmt_flash, sizeof(dram_buffer));
-
-	va_start(ap, fmt_flash);
-	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, dram_buffer, ap);
-	va_end(ap);
-
-	if(dst->length > (dst->size - 1))
-		dst->length = dst->size - 1;
-
-	dst->buffer[dst->length] = '\0';
-}
-
-irom void string_format_data(string_t *dst, const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
-	va_end(ap);
-
-	if(dst->length > (dst->size - 1))
-		dst->length = dst->size - 1;
-
-	dst->buffer[dst->length] = '\0';
-}
-
-irom void string_cat_strptr(string_t *dst, const char *src)
-{
-	if(dst->length < dst->size)
-		dst->length += strlcpy(dst->buffer + dst->length, src, dst->size - dst->length);
-	else
-		dst->buffer[dst->size - 1] = '\0';
-}
-
-irom void string_cat_ptr(string_t *dst, const char *src)
-{
-	if(dst->length < dst->size)
-		dst->length += copy_flash_to_ram(dst->buffer + dst->length, src, dst->size - dst->length);
-	else
-		dst->buffer[dst->size - 1] = '\0';
-}
-
-irom int string_copy_string(string_t *dst, const string_t *src)
-{
-	int length;
-
-	if((string_length(src) + 1) >= string_size(dst))
-		length = string_size(dst) - 1;
-	else
-		length = string_length(src);
-
-	memcpy(dst->buffer, src->buffer, length);
-
-	dst->length = length;
-	dst->buffer[dst->length] = '\0';
-
-	return(length);
-}
-
-/* from OpenBSD http://code.google.com/p/honeyd/source/browse/trunk/honeyd/strlcpy.c */
-irom size_t strlcpy(char *dst, const char *src, size_t siz)
-{
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
-
-	if (n == 0)
-		return(strlen(s));
-
-	while (*s != '\0')
-	{
-		if (n != 1)
-		{
-			*d++ = *s;
-			n--;
-		}
-		s++;
-	}
-
-	*d = '\0';
-
-	return(s - src);
+	return(0);
 }
 
 /* from http://www.leidinger.net/freebsd/dox/libkern/html/d9/dd9/memchr_8c_source.html */
@@ -198,285 +53,165 @@ irom void *memchr(const void *s, int c, size_t n)
 	return(0);
 }
 
-irom void string_ip(string_t *dst, ip_addr_t addr)
-{
-	ip_addr_to_bytes_t ip_addr_to_bytes;
-	ip_addr_to_bytes.ip_addr = addr;
+// convenience functions
 
-	string_format(dst, "%u.%u.%u.%u",
-		ip_addr_to_bytes.byte[0],
-		ip_addr_to_bytes.byte[1],
-		ip_addr_to_bytes.byte[2],
-		ip_addr_to_bytes.byte[3]);
+iram int strecpy(char *dst, const char *src, int size)
+{
+	int length = strlen(src);
+
+	if(length >= size)
+		length = size - 1;
+
+	memcpy(dst, src, length);
+	dst[length] = '\0';
+
+	return(length);
 }
 
-irom void string_mac(string_t *dst, uint8 addr[6])
+iram size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size)
 {
-	int ix;
-	mac_addr_to_bytes_t mac_addr_to_bytes;
+	int from, to, byte, current8;
+	uint32_t current32;
 
-	for(ix = 0; ix < 6; ix++)
-		mac_addr_to_bytes.mac_addr[ix] = addr[ix];
-
-	string_format(dst, "%02x:%02x:%02x:%02x:%02x:%02x",
-		mac_addr_to_bytes.byte[0],
-		mac_addr_to_bytes.byte[1],
-		mac_addr_to_bytes.byte[2],
-		mac_addr_to_bytes.byte[3],
-		mac_addr_to_bytes.byte[4],
-		mac_addr_to_bytes.byte[5]);
-}
-
-irom int string_double(string_t *dst, double value, int precision, double top_decimal)
-{
-	double compare;
-	int decimal;
-	bool_t skip_leading_zeroes;
-	int original_length;
-
-	original_length = string_length(dst);
-
-	if(value < 0)
+	for(from = 0, to = 0; (int)(from * sizeof(*src_flash)) < (size - 1); from++)
 	{
-		string_append(dst, '-');
-		value = 0 - value;
-	}
+		current32 = src_flash[from];
 
-	skip_leading_zeroes = true;
-
-	if(value > (10 * top_decimal))
-	{
-		string_append(dst, '+');
-		string_append(dst, '+');
-		string_append(dst, '+');
-
-		return(string_length(dst) - original_length);
-	}
-
-	for(compare = top_decimal; compare > 0; compare /= 10)
-	{
-		if(value >= compare)
+		for(byte = 4; byte > 0; byte--)
 		{
-			skip_leading_zeroes = false;
+			current8 = current32 & 0x000000ff;
 
-			decimal = (unsigned int)(value / compare);
-			value -= decimal * compare;
+			if(((to + 1) >= size) || (current8 == '\0'))
+				goto done;
 
-			string_append(dst, (char)(decimal + '0'));
-		}
-		else
-			if(!skip_leading_zeroes)
-				string_append(dst, '0');
-
-		if((compare <= 1) && (precision == 0))
-			break;
-
-		if((unsigned int)compare == 1)
-		{
-			if(skip_leading_zeroes)
-			{
-				string_append(dst, '0');
-				skip_leading_zeroes = false;
-			}
-
-			string_append(dst, '.');
-		}
-
-		if((compare <= 1) && (precision > 0))
-			--precision;
-	}
-
-	if(string_length(dst) == original_length)
-		string_append(dst, '0');
-
-	return(string_length(dst) - original_length);
-}
-
-irom void string_append(string_t *dst, char c)
-{
-	if(string_space(dst))
-	{
-		dst->buffer[dst->length++] = c;
-		dst->buffer[dst->length] = '\0';
-	}
-	else
-		dst->buffer[dst->size - 1] = '\0';
-}
-
-irom bool_t string_match(const string_t *s1, const char *s2)
-{
-	return(!strcmp(s1->buffer, s2));
-}
-
-irom bool_t string_match_string(const string_t *s1, const string_t *s2)
-{
-	if(s1->length != s2->length)
-		return(false);
-
-	return(string_match(s1, s2->buffer));
-}
-
-irom bool_t string_memcmp(const string_t *s1, const void *s2, int n)
-{
-	return(!memcmp(s1->buffer, s2, n));
-}
-
-irom bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int n)
-{
-	if((n > s1->length) || (n > s2->length))
-		return(false);
-
-	return(string_memcmp(s1, s2->buffer, n));
-}
-
-irom bool_t string_nmatch(const string_t *s1, const char *s2, int n)
-{
-	return(!strncmp(s1->buffer, s2, n));
-}
-
-irom attr_pure char string_index(const string_t *s, int index)
-{
-	if(index < s->length)
-		return(s->buffer[index]);
-	else
-		return('\0');
-}
-
-irom attr_pure int string_sep(const string_t *src, int offset, int occurrence, char c)
-{
-	for(; (offset < string_length(src)) && (occurrence > 0); offset++)
-		if(string_index(src, offset) == c)
-			occurrence--;
-
-	if((offset >= string_size(src)) || (offset >= string_length(src)))
-		offset = -1;
-
-	return(offset);
-}
-
-irom attr_pure int string_find(const string_t *src, int offset, char c)
-{
-	for(; offset < string_length(src); offset++)
-		if(string_index(src, offset) == c)
-			return(offset);
-
-	return(-1);
-}
-
-irom void string_replace(string_t *dst, int offset, char c)
-{
-	if((offset + 1) < dst->size)
-	{
-		dst->buffer[offset] = c;
-
-		if(offset > dst->length)
-		{
-			dst->length = offset;
-			dst->buffer[dst->length + 1] = '\0';
+			dst[to++] = (char)current8;
+			current32 = (current32 >> 8) & 0x00ffffff;
 		}
 	}
+
+done:
+	dst[to] = '\0';
+
+	return(to);
 }
 
-irom void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
+irom void reset(void)
 {
-	const char *from;
-	char *to;
+	system_restart();
+}
 
-	if((src_offset + length) > string_length(src))
-		length = string_length(src) - src_offset;
+irom attr_const const char *yesno(bool_t value)
+{
+	if(!value)
+		return("no");
 
-	if((string_length(dst) + length) > string_size(dst))
-		length = string_size(dst) - string_length(dst);
+	return("yes");
+}
 
-	if(length <= 0)
+irom attr_const const char *onoff(bool_t value)
+{
+	if(!value)
+		return("off");
+
+	return("on");
+}
+
+irom int dprintf(const char *fmt, ...)
+{
+	va_list ap;
+	int current, n;
+
+	va_start(ap, fmt);
+	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt, ap);
+	va_end(ap);
+
+	for(current = 0; current < n; current++)
+		if(!queue_full(&uart_send_queue))
+			queue_push(&uart_send_queue, flash_dram_buffer[current]);
+
+	queue_push(&uart_send_queue, '\r');
+	queue_push(&uart_send_queue, '\n');
+
+	uart_start_transmit(!queue_empty(&uart_send_queue));
+
+	return(n);
+}
+
+irom int log(const char *fmt, ...)
+{
+	va_list ap;
+	int current, n;
+
+	if(ota_is_active() || config_uses_logbuffer())
+		return(0);
+
+	va_start(ap, fmt);
+	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt, ap);
+	va_end(ap);
+
+	if(flags_cache.flag.log_to_uart)
+	{
+		for(current = 0; current < n; current++)
+			queue_push(&uart_send_queue, flash_dram_buffer[current]);
+		uart_start_transmit(1);
+	}
+
+	if(flags_cache.flag.log_to_buffer)
+		string_append_cstr(&logbuffer, flash_dram_buffer);
+
+	return(n);
+}
+
+iram void logchar(char c)
+{
+	if(ota_is_active() || config_uses_logbuffer())
 		return;
 
-	from = string_to_const_ptr(src);
-	to = string_to_ptr(dst);
-
-	memcpy(to + string_length(dst), from + src_offset, length);
-
-	string_setlength(dst, string_length(dst) + length);
-}
-
-irom void string_pad(string_t *dst, int length, char c)
-{
-	while(string_length(dst) < length)
-		string_append(dst, c);
-}
-
-irom void string_bin_to_hex(string_t *dst, const char *src, int length)
-{
-	int offset;
-	uint8_t out;
-
-	for(offset = 0; offset < length ; offset++)
+	if(flags_cache.flag.log_to_uart)
 	{
-		out = (src[offset] & 0xf0) >> 4;
+		queue_push(&uart_send_queue, c);
+		uart_start_transmit(1);
+	}
 
-		if(out > 9)
-			out = (out - 10) + 'a';
-		else
-			out = out + '0';
+	if(flags_cache.flag.log_to_buffer)
+		string_append_char(&logbuffer, c);
+}
 
-		string_append(dst, out);
-
-		out = (src[offset] & 0x0f) >> 0;
-
-		if(out > 9)
-			out = (out - 10) + 'a';
-		else
-			out = out + '0';
-
-		string_append(dst, out);
+irom void msleep(int msec)
+{
+	while(msec-- > 0)
+	{
+		system_soft_wdt_feed();
+		os_delay_us(1000);
 	}
 }
 
-/**********************************************************************
- * Copyright (c) 2000 by Michael Barr.  This software is placed into
- * the public domain and may be used for any purpose.  However, this
- * notice must not be changed or removed and no warranty is either
- * expressed or implied by its publication or distribution.
- **********************************************************************/
-
-static uint32_t string_crc_table[256];
-
-irom void string_crc32_init(void)
+irom attr_pure ip_addr_t ip_addr(const char *src)
 {
-	unsigned int dividend, bit;
-	uint32_t remainder;
+	ip_addr_to_bytes_t ip_addr_to_bytes;
+	int ix, current;
 
-	for(dividend = 0; dividend < (sizeof(string_crc_table) / sizeof(*string_crc_table)); dividend++)
+	current = 0;
+
+	for(ix = 0; ix < 4; )
 	{
-		remainder = dividend << (32 - 8);
-
-		for (bit = 8; bit > 0; --bit)
+		if(src && (*src >= '0') && (*src <= '9'))
 		{
-			if (remainder & (1 << 31))
-				remainder = (remainder << 1) ^ 0x04c11db7;
-			else
-				remainder = (remainder << 1);
+			current *= 10;
+			current += *src - '0';
+			src++;
+
+			continue;
 		}
 
-		string_crc_table[dividend] = remainder;
-	}
-}
+		ip_addr_to_bytes.byte[ix++] = current;
+		current = 0;
 
-irom attr_pure uint32_t string_crc32(const string_t *src, int offset, int length)
-{
-	uint32_t remainder = 0xffffffff;
-	uint8_t data;
-	int src_length;
-
-	src_length = string_length(src);
-
-	for(; (length > 0) && (offset < src_length); offset++, length--)
-	{
-		data = string_index(src, offset) ^ (remainder >> (32 - 8));
-		remainder = string_crc_table[data] ^ (remainder << 8);
+		if(src && (*src == '.'))
+			src++;
 	}
 
-	return(remainder ^ 0xffffffff);
+	return(ip_addr_to_bytes.ip_addr);
 }
 
 irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, char delimiter)
@@ -487,15 +222,15 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, c
 	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
-	for(; offset < string_length(src); offset++)
+	for(; offset < src->length; offset++)
 	{
-		current = string_index(src, offset);
+		current = string_at(src, offset);
 
 		if(current == delimiter)
 			break;
 
 		if((current > ' ') && (current <= '~'))
-			string_append(dst, current);
+			string_append_char(dst, current);
 	}
 
 	return(parse_ok);
@@ -517,9 +252,9 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base,
 
 	if(base == 0)
 	{
-		if(((offset + 1) < string_length(src)) &&
-				(string_index(src, offset) == '0') &&
-				(string_index(src, offset + 1) == 'x'))
+		if(((offset + 1) < src->length) &&
+				(string_at(src, offset) == '0') &&
+				(string_at(src, offset + 1) == 'x'))
 		{
 			base = 16;
 			offset += 2;
@@ -528,21 +263,21 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base,
 			base = 10;
 	}
 
-	if((offset < string_length(src)) && (base == 10))
+	if((offset < src->length) && (base == 10))
 	{
-		if(string_index(src, offset) == '-')
+		if(string_at(src, offset) == '-')
 		{
 			negative = true;
 			offset++;
 		}
 
-		if(string_index(src, offset) == '+')
+		if(string_at(src, offset) == '+')
 			offset++;
 	}
 
-	for(; offset < string_length(src); offset++)
+	for(; offset < src->length; offset++)
 	{
-		current = string_index(src, offset);
+		current = string_at(src, offset);
 
 		if((current >= 'A') && (current <= 'Z'))
 			current |= 0x20;
@@ -600,15 +335,15 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst, char
 	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
-	if((offset < string_length(src)) && (string_index(src, offset) == '-'))
+	if((offset < src->length) && (string_at(src, offset) == '-'))
 	{
 		negative = true;
 		offset++;
 	}
 
-	for(; offset < string_length(src); offset++)
+	for(; offset < src->length; offset++)
 	{
-		current = string_index(src, offset);
+		current = string_at(src, offset);
 
 		if((current == '.') || (current == ','))
 		{
@@ -652,142 +387,251 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst, char
 	return(parse_ok);
 }
 
-// other convenience functions
-
-irom void reset(void)
-{
-	system_restart();
-}
-
-irom attr_const const char *yesno(bool_t value)
-{
-	if(!value)
-		return("no");
-
-	return("yes");
-}
-
-irom attr_const const char *onoff(bool_t value)
-{
-	if(!value)
-		return("off");
-
-	return("on");
-}
-
-irom int dprintf(const char *fmt, ...)
+irom void string_format_ptr(string_t *dst, const char *fmt, ...)
 {
 	va_list ap;
-	int current, n;
 
 	va_start(ap, fmt);
-	n = ets_vsnprintf(dram_buffer, sizeof(dram_buffer), fmt, ap);
+	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
 	va_end(ap);
 
-	for(current = 0; current < n; current++)
-		if(!queue_full(&uart_send_queue))
-			queue_push(&uart_send_queue, dram_buffer[current]);
+	if(dst->length > (dst->size - 1))
+		dst->length = dst->size - 1;
 
-	queue_push(&uart_send_queue, '\r');
-	queue_push(&uart_send_queue, '\n');
-
-	uart_start_transmit(!queue_empty(&uart_send_queue));
-
-	return(n);
+	dst->buffer[dst->length] = '\0';
 }
 
-irom int log(const char *fmt, ...)
+iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 {
 	va_list ap;
-	int current, n;
 
-	if(ota_is_active() || config_uses_logbuffer())
-		return(0);
+	strecpy_from_flash(flash_dram_buffer, (const uint32_t *)(const void *)fmt_flash, sizeof(flash_dram_buffer));
 
-	va_start(ap, fmt);
-	n = ets_vsnprintf(dram_buffer, sizeof(dram_buffer), fmt, ap);
+	va_start(ap, fmt_flash);
+	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, flash_dram_buffer, ap);
 	va_end(ap);
 
-	if(flags_cache.flag.log_to_uart)
+	if(dst->length > (dst->size - 1))
+		dst->length = dst->size - 1;
+
+	dst->buffer[dst->length] = '\0';
+}
+
+irom int attr_pure string_sep(const string_t *src, int offset, int occurrence, char c)
+{
+	for(; (offset < src->size) && (offset < src->length) && (occurrence > 0); offset++)
+		if(string_at(src, offset) == c)
+			occurrence--;
+
+	if((offset >= src->size) || (offset >= src->length))
+		offset = -1;
+
+	return(offset);
+}
+
+irom int attr_pure string_find(const string_t *src, int offset, char c)
+{
+	for(; offset < src->length; offset++)
+		if(string_at(src, offset) == c)
+			return(offset);
+
+	return(-1);
+}
+
+irom void string_replace(string_t *dst, int offset, char c)
+{
+	if((offset + 1) < dst->size)
 	{
-		for(current = 0; current < n; current++)
-			queue_push(&uart_send_queue, dram_buffer[current]);
-		uart_start_transmit(1);
+		dst->buffer[offset] = c;
+
+		if(offset > dst->length)
+		{
+			dst->length = offset;
+			dst->buffer[dst->length + 1] = '\0';
+		}
 	}
-
-	if(flags_cache.flag.log_to_buffer)
-		string_cat_ptr(&logbuffer, dram_buffer);
-
-	return(n);
 }
 
-iram void logchar(char c)
+irom void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
 {
-	if(ota_is_active() || config_uses_logbuffer())
+	if((src_offset + length) > src->length)
+		length = src->length - src_offset;
+
+	if((dst->length + length) > dst->size)
+		length = dst->size - dst->length;
+
+	if(length <= 0)
 		return;
 
-	if(flags_cache.flag.log_to_uart)
-	{
-		queue_push(&uart_send_queue, c);
-		uart_start_transmit(1);
-	}
+	memcpy(dst->buffer + dst->length, src->buffer + src_offset, length);
 
-	if(flags_cache.flag.log_to_buffer)
-		string_append(&logbuffer, c);
+	string_setlength(dst, dst->length + length);
 }
 
-irom void msleep(int msec)
+irom void string_bin_to_hex(string_t *dst, const char *src, int length)
 {
-	while(msec-- > 0)
+	int offset;
+	uint8_t out;
+
+	for(offset = 0; offset < length ; offset++)
 	{
-		system_soft_wdt_feed();
-		os_delay_us(1000);
+		out = (src[offset] & 0xf0) >> 4;
+
+		if(out > 9)
+			out = (out - 10) + 'a';
+		else
+			out = out + '0';
+
+		string_append_char(dst, out);
+
+		out = (src[offset] & 0x0f) >> 0;
+
+		if(out > 9)
+			out = (out - 10) + 'a';
+		else
+			out = out + '0';
+
+		string_append_char(dst, out);
 	}
 }
 
-irom attr_pure ip_addr_t ip_addr(const char *src)
+irom void string_ip(string_t *dst, ip_addr_t addr)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
-	int ix, current;
+	ip_addr_to_bytes.ip_addr = addr;
 
-	current = 0;
-
-	for(ix = 0; ix < 4; )
-	{
-		if(src && (*src >= '0') && (*src <= '9'))
-		{
-			current *= 10;
-			current += *src - '0';
-			src++;
-
-			continue;
-		}
-
-		ip_addr_to_bytes.byte[ix++] = current;
-		current = 0;
-
-		if(src && (*src == '.'))
-			src++;
-	}
-
-	return(ip_addr_to_bytes.ip_addr);
+	string_format(dst, "%u.%u.%u.%u",
+		ip_addr_to_bytes.byte[0],
+		ip_addr_to_bytes.byte[1],
+		ip_addr_to_bytes.byte[2],
+		ip_addr_to_bytes.byte[3]);
 }
 
-#ifdef isxdigit
-undef isxdigit
-#endif
-
-irom attr_const int isxdigit(int c);
-irom attr_const int isxdigit(int c)
+irom void string_mac(string_t *dst, uint8 addr[6])
 {
-	if((c >= '0' && (c <= '9')))
-		return(1);
+	int ix;
+	mac_addr_to_bytes_t mac_addr_to_bytes;
 
-	if((c >= 'a' && (c <= 'f')))
-		return(1);
+	for(ix = 0; ix < 6; ix++)
+		mac_addr_to_bytes.mac_addr[ix] = addr[ix];
 
-	if((c >= 'A' && (c <= 'F')))
-		return(1);
+	string_format(dst, "%02x:%02x:%02x:%02x:%02x:%02x",
+		mac_addr_to_bytes.byte[0],
+		mac_addr_to_bytes.byte[1],
+		mac_addr_to_bytes.byte[2],
+		mac_addr_to_bytes.byte[3],
+		mac_addr_to_bytes.byte[4],
+		mac_addr_to_bytes.byte[5]);
+}
 
-	return(0);
+irom int string_double(string_t *dst, double value, int precision, double top_decimal)
+{
+	double compare;
+	int decimal;
+	bool_t skip_leading_zeroes;
+	int original_length;
+
+	original_length = dst->length;
+
+	if(value < 0)
+	{
+		string_append_char(dst, '-');
+		value = 0 - value;
+	}
+
+	skip_leading_zeroes = true;
+
+	if(value > (10 * top_decimal))
+	{
+		string_append_char(dst, '+');
+		string_append_char(dst, '+');
+		string_append_char(dst, '+');
+
+		return(dst->length - original_length);
+	}
+
+	for(compare = top_decimal; compare > 0; compare /= 10)
+	{
+		if(value >= compare)
+		{
+			skip_leading_zeroes = false;
+
+			decimal = (unsigned int)(value / compare);
+			value -= decimal * compare;
+
+			string_append_char(dst, (char)(decimal + '0'));
+		}
+		else
+			if(!skip_leading_zeroes)
+				string_append_char(dst, '0');
+
+		if((compare <= 1) && (precision == 0))
+			break;
+
+		if((unsigned int)compare == 1)
+		{
+			if(skip_leading_zeroes)
+			{
+				string_append_char(dst, '0');
+				skip_leading_zeroes = false;
+			}
+
+			string_append_char(dst, '.');
+		}
+
+		if((compare <= 1) && (precision > 0))
+			--precision;
+	}
+
+	if(dst->length == original_length)
+		string_append_char(dst, '0');
+
+	return(dst->length - original_length);
+}
+
+/**********************************************************************
+ * Copyright (c) 2000 by Michael Barr.  This software is placed into
+ * the public domain and may be used for any purpose.  However, this
+ * notice must not be changed or removed and no warranty is either
+ * expressed or implied by its publication or distribution.
+ **********************************************************************/
+
+static uint32_t string_crc_table[256];
+
+irom void string_crc32_init(void)
+{
+	unsigned int dividend, bit;
+	uint32_t remainder;
+
+	for(dividend = 0; dividend < (sizeof(string_crc_table) / sizeof(*string_crc_table)); dividend++)
+	{
+		remainder = dividend << (32 - 8);
+
+		for (bit = 8; bit > 0; --bit)
+		{
+			if (remainder & (1 << 31))
+				remainder = (remainder << 1) ^ 0x04c11db7;
+			else
+				remainder = (remainder << 1);
+		}
+
+		string_crc_table[dividend] = remainder;
+	}
+}
+
+irom attr_pure uint32_t string_crc32(const string_t *src, int offset, int length)
+{
+	uint32_t remainder = 0xffffffff;
+	uint8_t data;
+	int src_length;
+
+	src_length = src->length;
+
+	for(; (length > 0) && (offset < src_length); offset++, length--)
+	{
+		data = string_at(src, offset) ^ (remainder >> (32 - 8));
+		remainder = string_crc_table[data] ^ (remainder << 8);
+	}
+
+	return(remainder ^ 0xffffffff);
 }

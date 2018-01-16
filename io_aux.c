@@ -108,7 +108,7 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 
 					return(io_error);
 				}
@@ -129,7 +129,7 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 
 					return(io_error);
 				}
@@ -142,7 +142,7 @@ irom io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_in
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid mode for this io\n");
+				string_append(error_message, "invalid mode for this io\n");
 
 			return(io_error);
 		}
@@ -157,19 +157,19 @@ irom io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T 
 	{
 		case(io_aux_pin_rtc):
 		{
-			string_cat(dst, "builtin rtc gpio");
+			string_append(dst, "builtin rtc gpio");
 			break;
 		}
 
 		case(io_aux_pin_adc):
 		{
-			string_cat(dst, "builtin adc input");
+			string_append(dst, "builtin adc input");
 			break;
 		}
 
 		default:
 		{
-			string_cat(dst, "invalid mode for this io\n");
+			string_append(dst, "invalid mode for this io\n");
 			return(io_error);
 		}
 	}
@@ -221,7 +221,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 					return(io_error);
 				}
 
@@ -244,7 +244,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 
 					return(io_error);
 				}
@@ -257,7 +257,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid pin for this io\n");
+				string_append(error_message, "invalid pin for this io\n");
 
 			return(io_error);
 		}
@@ -277,7 +277,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 				case(io_pin_ll_input_digital):
 				{
 					if(error_message)
-						string_cat(error_message, "cannot write to input\n");
+						string_append(error_message, "cannot write to input\n");
 					return(io_error);
 				}
 
@@ -297,7 +297,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 
 					return(io_error);
 				}
@@ -314,7 +314,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 				case(io_pin_ll_input_analog):
 				{
 					if(error_message)
-						string_cat(error_message, "cannot write to adc\n");
+						string_append(error_message, "cannot write to adc\n");
 
 					return(io_error);
 				}
@@ -322,7 +322,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 				default:
 				{
 					if(error_message)
-						string_cat(error_message, "invalid mode for this pin\n");
+						string_append(error_message, "invalid mode for this pin\n");
 
 					return(io_error);
 				}
@@ -335,7 +335,7 @@ irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid pin for this io\n");
+				string_append(error_message, "invalid pin for this io\n");
 
 			return(io_error);
 		}

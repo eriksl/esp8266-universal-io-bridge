@@ -150,18 +150,21 @@ irom static bool_t background_task_command_handler(void)
 		}
 		case(app_action_empty):
 		{
-			string_copy(socket_cmd.send_buffer, "> empty command\n");
+			string_clear(&socket_cmd.send_buffer);
+			string_append(&socket_cmd.send_buffer, "> empty command\n");
 			break;
 		}
 		case(app_action_disconnect):
 		{
-			string_copy(socket_cmd.send_buffer, "> disconnect\n");
+			string_clear(&socket_cmd.send_buffer);
+			string_append(&socket_cmd.send_buffer, "> disconnect\n");
 			bg_action.disconnect = 1;
 			break;
 		}
 		case(app_action_reset):
 		{
-			string_copy(socket_cmd.send_buffer, "> reset\n");
+			string_clear(&socket_cmd.send_buffer);
+			string_append(&socket_cmd.send_buffer, "> reset\n");
 			reset_state = reset_state_send_reply;
 			break;
 		}
@@ -441,7 +444,7 @@ irom static void callback_received_uart(socket_t *socket, int length, char *buff
 
 	for(current = 0; (current < length) && !queue_full(&uart_send_queue); current++)
 	{
-		byte = buffer[current];
+		byte = string_at(buffer, current);
 
 		switch(telnet_strip_state)
 		{
@@ -586,16 +589,16 @@ irom bool_t wlan_init(void)
 			string_clear(&config_string);
 
 			if(config_get_string("wlan.client.ssid", -1, -1, &config_string))
-				strlcpy(cconf.ssid, string_to_const_ptr(&config_string), sizeof(cconf.ssid));
+				strecpy(cconf.ssid, string_to_cstr(&config_string), sizeof(cconf.ssid));
 			else
-				strlcpy(cconf.ssid, "esp", sizeof(cconf.ssid));
+				strecpy(cconf.ssid, "esp", sizeof(cconf.ssid));
 
 			string_clear(&config_string);
 
 			if(config_get_string("wlan.client.passwd", -1, -1, &config_string))
-				strlcpy(cconf.password, string_to_const_ptr(&config_string), sizeof(cconf.password));
+				strecpy(cconf.password, string_to_cstr(&config_string), sizeof(cconf.password));
 			else
-				strlcpy(cconf.password, "espespesp", sizeof(cconf.password));
+				strecpy(cconf.password, "espespesp", sizeof(cconf.password));
 
 			log("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
 
@@ -612,14 +615,14 @@ irom bool_t wlan_init(void)
 			memset(&saconf, 0, sizeof(saconf));
 
 			if(config_get_string("wlan.ap.ssid", -1, -1, &config_string))
-				strlcpy(saconf.ssid, string_to_const_ptr(&config_string), sizeof(saconf.ssid));
+				strecpy(saconf.ssid, string_to_cstr(&config_string), sizeof(saconf.ssid));
 			else
-				strlcpy(saconf.ssid, "esp", sizeof(saconf.ssid));
+				strecpy(saconf.ssid, "esp", sizeof(saconf.ssid));
 
 			if(config_get_string("wlan.ap.passwd", -1, -1, &config_string))
-				strlcpy(saconf.password, string_to_const_ptr(&config_string), sizeof(saconf.password));
+				strecpy(saconf.password, string_to_cstr(&config_string), sizeof(saconf.password));
 			else
-				strlcpy(saconf.password, "espespesp", sizeof(saconf.password));
+				strecpy(saconf.password, "espespesp", sizeof(saconf.password));
 
 			if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
 				channel = 1;

@@ -55,7 +55,7 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 		return(tableptr->function(src, dst));
 	}
 
-	string_cat(dst, ": command unknown\n");
+	string_append(dst, ": command unknown\n");
 	return(app_action_error);
 }
 
@@ -71,7 +71,7 @@ irom static app_action_t application_function_config_write(const string_t *src, 
 
 	if((size = config_write()) == 0)
 	{
-		string_cat(dst, "> failed\n");
+		string_append(dst, "> failed\n");
 		return(app_action_error);
 	}
 
@@ -95,10 +95,10 @@ irom static app_action_t application_function_config_query_int(const string_t *s
 		if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
 			index2 = -1;
 
-	if(!config_get_int(string_to_const_ptr(dst), index1, index2, &value))
+	if(!config_get_int(string_to_cstr(dst), index1, index2, &value))
 	{
 		string_clear(dst);
-		string_cat(dst, "ERROR\n");
+		string_append(dst, "ERROR\n");
 		return(app_action_error);
 	}
 
@@ -115,7 +115,7 @@ irom static app_action_t application_function_config_query_string(const string_t
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
 	{
 		string_clear(dst);
-		string_cat(dst, "missing variable name\n");
+		string_append(dst, "missing variable name\n");
 		return(app_action_error);
 	}
 
@@ -126,17 +126,17 @@ irom static app_action_t application_function_config_query_string(const string_t
 			index2 = -1;
 
 	string_clear(dst);
-	string_cat_strptr(dst, string_to_const_ptr(&varid));
-	string_cat(dst, "=");
+	string_append_string(dst, &varid);
+	string_append(dst, "=");
 
-	if(!config_get_string(string_to_const_ptr(&varid), index1, index2, dst))
+	if(!config_get_string(string_to_cstr(&varid), index1, index2, dst))
 	{
 		string_clear(dst);
-		string_cat(dst, "ERROR\n");
+		string_append(dst, "ERROR\n");
 		return(app_action_error);
 	}
 
-	string_cat(dst, " OK\n");
+	string_append(dst, " OK\n");
 
 	return(app_action_normal);
 }
@@ -144,41 +144,41 @@ irom static app_action_t application_function_config_query_string(const string_t
 irom static app_action_t application_function_config_set(const string_t *src, string_t *dst)
 {
 	int index1, index2, offset;
-	string_new(, varid, 64);
+	string_new(stack, varid, 64);
 
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
 	{
-		string_cat(dst, "missing variable name\n");
+		string_append(dst, "missing variable name\n");
 		return(app_action_error);
 	}
 
 	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "missing index1\n");
+		string_append(dst, "missing index1\n");
 		return(app_action_error);
 	}
 
 	if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "missing index2\n");
+		string_append(dst, "missing index2\n");
 		return(app_action_error);
 	}
 
 	if((offset = string_sep(src, 0, 4, ' ')) < 0)
 	{
-		string_cat(dst, "missing variable value\n");
+		string_append(dst, "missing variable value\n");
 		return(app_action_error);
 	}
 
 	dprintf("set offset: %d", offset);
 
-	if(!config_set_string(string_to_const_ptr(&varid), index1, index2, src, offset, -1))
+	if(!config_set_string(string_to_cstr(&varid), index1, index2, src, offset, -1))
 	{
-		string_cat(dst, "ERROR\n");
+		string_append(dst, "ERROR\n");
 		return(app_action_error);
 	}
 
-	string_cat(dst, "OK\n");
+	string_append(dst, "OK\n");
 
 	return(app_action_normal);
 }
@@ -191,7 +191,7 @@ irom static app_action_t application_function_config_delete(const string_t *src,
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
 	{
 		string_clear(dst);
-		string_cat(dst, "missing variable name\n");
+		string_append(dst, "missing variable name\n");
 		return(app_action_error);
 	}
 
@@ -204,7 +204,7 @@ irom static app_action_t application_function_config_delete(const string_t *src,
 	if(parse_int(4, src, &wildcard, 0, ' ') != parse_ok)
 		wildcard = 0;
 
-	index1 = config_delete(string_to_const_ptr(&varid), index1, index2, wildcard != 0);
+	index1 = config_delete(string_to_cstr(&varid), index1, index2, wildcard != 0);
 
 	string_format(dst, "%u config entries deleted\n", index1);
 
@@ -280,7 +280,7 @@ irom static app_action_t application_function_bridge_port(const string_t *src, s
 		else
 			if(!config_set_int("bridge.port", -1, -1, port))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -310,7 +310,7 @@ irom static app_action_t application_function_bridge_timeout(const string_t *src
 		else
 			if(!config_set_int("bridge.timeout", -1, -1, timeout))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -340,7 +340,7 @@ irom static app_action_t application_function_command_port(const string_t *src, 
 		else
 			if(!config_set_int("cmd.port", -1, -1, port))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -370,7 +370,7 @@ irom static app_action_t application_function_command_timeout(const string_t *sr
 		else
 			if(!config_set_int("cmd.timeout", -1, -1, timeout))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -400,7 +400,7 @@ irom static app_action_t application_function_uart_baud_rate(const string_t *src
 		else
 			if(!config_set_int("uart.baud", -1, -1, baud_rate))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -430,7 +430,7 @@ irom static app_action_t application_function_uart_data_bits(const string_t *src
 		else
 			if(!config_set_int("uart.bits", -1, -1, data_bits))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -460,7 +460,7 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 		else
 			if(!config_set_int("uart.stop", -1, -1, stop_bits))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -484,7 +484,7 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 
 		if((parity < parity_none) || (parity >= parity_error))
 		{
-			string_cat(dst, ": invalid parity\n");
+			string_append(dst, ": invalid parity\n");
 			return(app_action_error);
 		}
 
@@ -496,7 +496,7 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 
 			if(!config_set_int("uart.parity", -1, -1, parity_int))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 		}
@@ -507,9 +507,10 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 	else
 		parity = parity_none;
 
-	string_copy(dst, "parity: ");
+	string_clear(dst);
+	string_append(dst, "parity: ");
 	uart_parity_to_string(dst, parity);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -545,7 +546,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	if(parse_int(1, src, &size, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "i2c-read: missing byte count\n");
+		string_append(dst, "i2c-read: missing byte count\n");
 		return(app_action_error);
 	}
 
@@ -559,9 +560,9 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
-		string_cat(dst, "i2c_read");
+		string_append(dst, "i2c_read");
 		i2c_error_format_string(dst, error);
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
@@ -572,7 +573,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 	for(current = 0; current < size; current++)
 		string_format(dst, " %02x", bytes[current]);
 
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	clocks = (size + 1) * 9 + 4;
 	spent = (stop - start) * 1000;
@@ -600,9 +601,9 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 
 	if((error = i2c_send(i2c_address, true, current, bytes)) != i2c_error_ok)
 	{
-		string_cat(dst, "i2c_write");
+		string_append(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
@@ -620,7 +621,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	if(parse_int(1, src, &out, 16, ' ') != parse_ok)
 	{
-		string_cat(dst, "usage: i2wr <send byte> <amount to read>\n");
+		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
@@ -628,7 +629,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	if(parse_int(2, src, &amount, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "usage: i2wr <send byte> <amount to read>\n");
+		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
@@ -640,9 +641,9 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	if((error = i2c_send_receive(i2c_address, sendbytes[0], amount, receivebytes)) != i2c_error_ok)
 	{
-		string_cat(dst, "i2wr");
+		string_append(dst, "i2wr");
 		i2c_error_format_string(dst, error);
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
@@ -651,7 +652,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 	for(current = 0; current < amount; current++)
 		string_format(dst, " %02x", receivebytes[current]);
 
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -683,7 +684,7 @@ irom static app_action_t application_function_i2c_sensor_init(const string_t *sr
 	{
 		string_format(dst, "sensor init %d:%d", bus, sensor);
 		i2c_error_format_string(dst, error);
-		string_cat(dst, "\n");
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
@@ -721,7 +722,7 @@ irom static app_action_t application_function_i2c_sensor_read(const string_t *sr
 		return(app_action_error);
 	}
 
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -735,13 +736,13 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	if(parse_int(1, src, &bus, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "> missing i2c bus\n");
+		string_append(dst, "> missing i2c bus\n");
 		return(app_action_error);
 	}
 
 	if(parse_int(2, src, &intin, 0, ' ') != parse_ok)
 	{
-		string_cat(dst, "> missing i2c sensor\n");
+		string_append(dst, "> missing i2c sensor\n");
 		return(app_action_error);
 	}
 
@@ -768,13 +769,13 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 		if((int_factor != 1000) && !config_set_int("i2s.%u.%u.factor", bus, sensor, int_factor))
 		{
-			string_cat(dst, "> cannot set factor\n");
+			string_append(dst, "> cannot set factor\n");
 			return(app_action_error);
 		}
 
 		if((int_offset != 0) && !config_set_int("i2s.%u.%u.offset", bus, sensor, int_offset))
 		{
-			string_cat(dst, "> cannot set offset\n");
+			string_append(dst, "> cannot set offset\n");
 			return(app_action_error);
 		}
 	}
@@ -787,9 +788,9 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, (int)sensor);
 	string_double(dst, int_factor / 1000.0, 4, 1e10);
-	string_cat(dst, ", offset: ");
+	string_append(dst, ", offset: ");
 	string_double(dst, int_offset / 1000.0, 4, 1e10);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -823,12 +824,12 @@ irom static app_action_t application_function_i2c_sensor_dump(const string_t *sr
 			if(all || i2c_sensor_detected(bus, sensor))
 			{
 				i2c_sensor_read(dst, bus, sensor, verbose, false);
-				string_cat(dst, "\n");
+				string_append(dst, "\n");
 			}
 		}
 
 	if(string_length(dst) == original_length)
-		string_cat(dst, "> no sensors detected\n");
+		string_append(dst, "> no sensors detected\n");
 
 	return(app_action_normal);
 }
@@ -839,15 +840,15 @@ irom static app_action_t set_unset_flag(const string_t *src, string_t *dst, bool
 	{
 		if(!config_flags_change(dst, add))
 		{
-			string_cat(dst, ": unknown flag\n");
+			string_append(dst, ": unknown flag\n");
 			return(app_action_error);
 		}
 	}
 
 	string_clear(dst);
-	string_cat(dst, "flags:");
+	string_append(dst, "flags:");
 	config_flags_to_string(dst);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -941,25 +942,25 @@ irom static app_action_t application_function_wlan_ap_configure(const string_t *
 		if(string_length(&passwd) < 8)
 		{
 			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n",
-					string_to_ptr(&passwd));
+					string_to_cstr(&passwd));
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.ap.ssid", -1, -1, &ssid, -1, -1))
 		{
-			string_cat(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.ap.passwd", -1, -1, &passwd, -1, -1))
 		{
-			string_cat(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_int("wlan.ap.channel", -1, -1, channel))
 		{
-			string_cat(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config\n");
 			return(app_action_error);
 		}
 	}
@@ -970,22 +971,20 @@ irom static app_action_t application_function_wlan_ap_configure(const string_t *
 	if(!config_get_string("wlan.ap.ssid", -1, -1, &ssid))
 	{
 		string_clear(&ssid);
-		string_cat(&ssid, "<empty>");
+		string_append(&ssid, "<empty>");
 	}
 
 	if(!config_get_string("wlan.ap.passwd", -1, -1, &passwd))
 	{
 		string_clear(&passwd);
-		string_cat(&passwd, "<empty>");
+		string_append(&passwd, "<empty>");
 	}
 
 	if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
 		channel = 0;
 
 	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %d\n",
-			string_to_const_ptr(&ssid),
-			string_to_const_ptr(&passwd),
-			channel);
+			string_to_cstr(&ssid), string_to_cstr(&passwd), channel);
 
 	return(app_action_normal);
 }
@@ -999,19 +998,19 @@ irom static app_action_t application_function_wlan_client_configure(const string
 	{
 		if(string_length(&passwd) < 8)
 		{
-			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_ptr(&passwd));
+			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_cstr(&passwd));
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.client.ssid", -1, -1, &ssid, -1, -1))
 		{
-			string_cat(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.client.passwd", -1, -1, &passwd, -1, -1))
 		{
-			string_cat(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config\n");
 			return(app_action_error);
 		}
 	}
@@ -1022,18 +1021,17 @@ irom static app_action_t application_function_wlan_client_configure(const string
 	if(!config_get_string("wlan.client.ssid", -1, -1, &ssid))
 	{
 		string_clear(&ssid);
-		string_cat(&ssid, "<empty>");
+		string_append(&ssid, "<empty>");
 	}
 
 	if(!config_get_string("wlan.client.passwd", -1, -1, &passwd))
 	{
 		string_clear(&passwd);
-		string_cat(&passwd, "<empty>");
+		string_append(&passwd, "<empty>");
 	}
 
 	string_format(dst, "> ssid: \"%s\", passwd: \"%s\"\n",
-			string_to_const_ptr(&ssid),
-			string_to_const_ptr(&passwd));
+			string_to_cstr(&ssid), string_to_cstr(&passwd));
 
 	return(app_action_normal);
 }
@@ -1051,13 +1049,13 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 
 			if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_client))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 			if(!wlan_init())
 			{
-				string_cat(dst, "> cannot init\n");
+				string_append(dst, "> cannot init\n");
 				return(app_action_error);
 			}
 
@@ -1070,25 +1068,25 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 
 			if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_ap))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 			if(!wlan_init())
 			{
-				string_cat(dst, "> cannot init\n");
+				string_append(dst, "> cannot init\n");
 				return(app_action_error);
 			}
 
 			return(app_action_disconnect);
 		}
 
-		string_cat(dst, ": invalid wlan mode\n");
+		string_append(dst, ": invalid wlan mode\n");
 		return(app_action_error);
 	}
 
 	string_clear(dst);
-	string_cat(dst, "> current mode: ");
+	string_append(dst, "> current mode: ");
 
 	if(config_get_int("wlan.mode", -1, -1, &int_mode))
 	{
@@ -1098,27 +1096,27 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 		{
 			case(config_wlan_mode_client):
 			{
-				string_cat(dst, "client mode");
+				string_append(dst, "client mode");
 				break;
 			}
 
 			case(config_wlan_mode_ap):
 			{
-				string_cat(dst, "ap mode");
+				string_append(dst, "ap mode");
 				break;
 			}
 
 			default:
 			{
-				string_cat(dst, "unknown mode");
+				string_append(dst, "unknown mode");
 				break;
 			}
 		}
 	}
 	else
-		string_cat(dst, "mode unset");
+		string_append(dst, "mode unset");
 
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
 	return(app_action_normal);
 }
@@ -1126,9 +1124,12 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 irom static app_action_t application_function_log_display(const string_t *src, string_t *dst)
 {
 	if(string_length(&logbuffer) == 0)
-		string_cat(dst, "<log empty>\n");
+		string_append(dst, "<log empty>\n");
 	else
-		string_copy_string(dst, &logbuffer);
+	{
+		string_clear(dst);
+		string_append_string(dst, &logbuffer);
+	}
 
 	return(app_action_normal);
 }
@@ -1143,12 +1144,12 @@ irom static app_action_t application_function_wlan_scan(const string_t *src, str
 {
 	if(ota_is_active() || config_uses_logbuffer())
 	{
-		string_cat(dst, "wlan-scan: output buffer is in use\n");
+		string_append(dst, "wlan-scan: output buffer is in use\n");
 		return(app_action_error);
 	}
 
 	wifi_station_scan(0, wlan_scan_done_callback);
-	string_cat(dst, "wlan scan started, use log-display to retrieve the results\n");
+	string_append(dst, "wlan scan started, use log-display to retrieve the results\n");
 
 	return(app_action_normal);
 }
@@ -1161,7 +1162,7 @@ irom static app_action_t application_function_ntp_dump(const string_t *src, stri
 	timezone = sntp_get_timezone();
 	addr = sntp_getserver(0);
 
-	string_cat(dst, "> server: ");
+	string_append(dst, "> server: ");
 	string_ip(dst, addr);
 
 	string_format(dst, "\n> time zone: GMT%c%d\n> ntp time: %s",
@@ -1181,7 +1182,7 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 
 	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_int(2, src, &timezone, 0, ' ') == parse_ok))
 	{
-		a2b.ip_addr = ip_addr(string_to_const_ptr(&ip));
+		a2b.ip_addr = ip_addr(string_to_cstr(&ip));
 
 		if((a2b.byte[0] == 0) && (a2b.byte[1] == 0) && (a2b.byte[2] == 0) && (a2b.byte[3] == 0))
 			for(ix = 0; ix < 4; ix++)
@@ -1191,7 +1192,7 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 				if(!config_set_int("ntp.server.%u", ix, -1, a2b.byte[ix]))
 				{
 					string_clear(dst);
-					string_cat(dst, "cannot set config\n");
+					string_append(dst, "cannot set config\n");
 					return(app_action_error);
 				}
 
@@ -1201,7 +1202,7 @@ irom static app_action_t application_function_ntp_set(const string_t *src, strin
 			if(!config_set_int("ntp.tz", -1, -1, timezone))
 			{
 				string_clear(dst);
-				string_cat(dst, "cannot set config\n");
+				string_append(dst, "cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -1232,7 +1233,7 @@ irom static app_action_t application_function_gpio_status_set(const string_t *sr
 			if(!config_set_int("trigger.status.io", -1, -1, trigger_io) ||
 					!config_set_int("trigger.status.pin", -1, -1, trigger_pin))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -1270,7 +1271,7 @@ irom static app_action_t application_function_gpio_assoc_set(const string_t *src
 			if(!config_set_int("trigger.assoc.io", -1, -1, trigger_io) ||
 					!config_set_int("trigger.assoc.pin", -1, -1, trigger_pin))
 			{
-				string_cat(dst, "> cannot set config\n");
+				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -1293,7 +1294,7 @@ irom static app_action_t application_function_peek(const string_t *src, string_t
 
 	if(parse_int(1, src, &address, 16, ' ') != parse_ok)
 	{
-		string_cat(dst, "> use peek <address>");
+		string_append(dst, "> use peek <address>");
 		return(app_action_error);
 	}
 
@@ -1311,7 +1312,7 @@ irom static app_action_t application_function_poke(const string_t *src, string_t
 
 	if((parse_int(1, src, &address, 16, ' ') != parse_ok) || (parse_int(2, src, &value, 16, ' ') != parse_ok))
 	{
-		string_cat(dst, "> use poke <address> <value>");
+		string_append(dst, "> use poke <address> <value>");
 		return(app_action_error);
 	}
 

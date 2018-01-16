@@ -189,7 +189,7 @@ irom void stats_firmware(string_t *dst)
 			rcfg.roms[0],
 			rcfg.roms[1]);
 #else
-	string_cat(dst, ">\n> No OTA image\n");
+	string_append(dst, ">\n> No OTA image\n");
 #endif
 }
 
@@ -310,41 +310,41 @@ irom void stats_wlan(string_t *dst)
 
 	wifi_get_ip_info(SOFTAP_IF, &ip_addr_info);
 
-	string_cat(dst, "> ap mac address: ");
+	string_append(dst, "> ap mac address: ");
 	wifi_get_macaddr(SOFTAP_IF, mac_addr);
 	string_mac(dst, mac_addr);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> ap ip address: ");
+	string_append(dst, "> ap ip address: ");
 	string_ip(dst, ip_addr_info.ip);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> ap gateway: ");
+	string_append(dst, "> ap gateway: ");
 	string_ip(dst, ip_addr_info.gw);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> ap ip netmask: ");
+	string_append(dst, "> ap ip netmask: ");
 	string_ip(dst, ip_addr_info.netmask);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, ">\n");
+	string_append(dst, ">\n");
 
 	wifi_get_ip_info(STATION_IF, &ip_addr_info);
 
-	string_cat(dst, "> station mac address: ");
+	string_append(dst, "> station mac address: ");
 	wifi_get_macaddr(STATION_IF, mac_addr);
 	string_mac(dst, mac_addr);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> station ip address: ");
+	string_append(dst, "> station ip address: ");
 	string_ip(dst, ip_addr_info.ip);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> station gateway: ");
+	string_append(dst, "> station gateway: ");
 	string_ip(dst, ip_addr_info.gw);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 
-	string_cat(dst, "> station ip netmask: ");
+	string_append(dst, "> station ip netmask: ");
 	string_ip(dst, ip_addr_info.netmask);
-	string_cat(dst, "\n");
+	string_append(dst, "\n");
 }

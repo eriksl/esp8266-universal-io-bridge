@@ -31,7 +31,7 @@ struct
 	.multiplexer = 0
 };
 
-static roflash const char state_strings[i2c_state_size][32] =
+static roflash const char roflash_state_strings[i2c_state_size][32] =
 {
 	"invalid",
 	"idle",
@@ -48,7 +48,7 @@ static roflash const char state_strings[i2c_state_size][32] =
 	"send stop"
 };
 
-static roflash const char error_strings[i2c_error_size][32] =
+static roflash const char roflash_error_strings[i2c_error_size][32] =
 {
 	"ok",
 	"uninitialised",
@@ -79,23 +79,23 @@ static i2c_state_t error_state = i2c_state_invalid;
 irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 {
 	if(error != i2c_error_ok)
-		string_cat(dst, ": i2c bus error: ");
+		string_append(dst, ": i2c bus error: ");
 	else
-		string_cat(dst, ": ");
+		string_append(dst, ": ");
 
 	if(error < i2c_error_size)
-		string_cat_ptr(dst, error_strings[error]);
+		string_append_cstr_flash(dst, roflash_error_strings[error]);
 	else
-		string_cat(dst, "<unknown error>");
+		string_append(dst, "<unknown error>");
 
-	string_cat(dst, " (in bus state: ");
+	string_append(dst, " (in bus state: ");
 
 	if(error_state < i2c_state_size)
-		string_cat_ptr(dst, state_strings[error_state]);
+		string_append_cstr_flash(dst, roflash_state_strings[error_state]);
 	else
 		string_format(dst, "<unknown state %d>", error_state);
 
-	string_cat(dst, ")");
+	string_append(dst, ")");
 }
 
 iram static inline void microdelay(void)

@@ -55,7 +55,7 @@ irom io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_in
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid mode for this pin\n");
+				string_append(error_message, "invalid mode for this pin\n");
 
 			return(io_error);
 		}
@@ -88,7 +88,7 @@ irom io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_en
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid mode for this pin\n");
+				string_append(error_message, "invalid mode for this pin\n");
 
 			return(io_error);
 		}
@@ -125,7 +125,7 @@ irom io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_e
 		default:
 		{
 			if(error_message)
-				string_cat(error_message, "invalid mode for this pin\n");
+				string_append(error_message, "invalid mode for this pin\n");
 
 			return(io_error);
 		}

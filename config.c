@@ -51,49 +51,49 @@ irom void config_flags_to_string(string_t *dst)
 	config_flags_t flags = config_flags_get();
 
 	if(flags.flag.strip_telnet)
-		string_cat(dst, " strip-telnet");
+		string_append(dst, " strip-telnet");
 	else
-		string_cat(dst, " no-strip-telnet");
+		string_append(dst, " no-strip-telnet");
 
 	if(flags.flag.log_to_uart)
-		string_cat(dst, " log-to-uart");
+		string_append(dst, " log-to-uart");
 	else
-		string_cat(dst, " no-log-to-uart");
+		string_append(dst, " no-log-to-uart");
 
 	if(flags.flag.tsl_high_sens)
-		string_cat(dst, " tsl-high-sens");
+		string_append(dst, " tsl-high-sens");
 	else
-		string_cat(dst, " no-tsl-high-sens");
+		string_append(dst, " no-tsl-high-sens");
 
 	if(flags.flag.bh_high_sens)
-		string_cat(dst, " bh-high-sens");
+		string_append(dst, " bh-high-sens");
 	else
-		string_cat(dst, " no-bh-high-sens");
+		string_append(dst, " no-bh-high-sens");
 
 	if(flags.flag.cpu_high_speed)
-		string_cat(dst, " cpu-high-speed");
+		string_append(dst, " cpu-high-speed");
 	else
-		string_cat(dst, " no-cpu-high-speed");
+		string_append(dst, " no-cpu-high-speed");
 
 	if(flags.flag.wlan_power_save)
-		string_cat(dst, " wlan-power-save");
+		string_append(dst, " wlan-power-save");
 	else
-		string_cat(dst, " no-wlan-power-save");
+		string_append(dst, " no-wlan-power-save");
 
 	if(flags.flag.enable_cfa634)
-		string_cat(dst, " enable-cfa634");
+		string_append(dst, " enable-cfa634");
 	else
-		string_cat(dst, " no-enable-cfa634");
+		string_append(dst, " no-enable-cfa634");
 
 	if(flags.flag.i2c_high_speed)
-		string_cat(dst, " i2c-high_speed");
+		string_append(dst, " i2c-high_speed");
 	else
-		string_cat(dst, " no-i2c-high_speed");
+		string_append(dst, " no-i2c-high_speed");
 
 	if(flags.flag.log_to_buffer)
-		string_cat(dst, " log-to-buffer");
+		string_append(dst, " log-to-buffer");
 	else
-		string_cat(dst, " no-log-to-buffer");
+		string_append(dst, " no-log-to-buffer");
 }
 
 irom bool_t config_flags_change(const string_t *flag, bool_t add)
@@ -173,7 +173,7 @@ irom static string_t *expand_varid(const char *id, int index1, int index2)
 	string_new(static, varid, 64);
 
 	string_clear(&varid);
-	string_format_data(&varid, id, index1, index2);
+	string_format_ptr(&varid, id, index1, index2);
 
 	return(&varid);
 }
@@ -265,12 +265,12 @@ irom bool_t config_set_string(const char *id, int index1, int index2, const stri
 		}
 
 		varid = expand_varid(id, index1, index2);
-		strlcpy(config_current->id, string_to_const_ptr(varid), config_entry_string_size);
+		strecpy(config_current->id, string_to_cstr(varid), config_entry_string_size);
 	}
 
-	strlcpy(config_current->string_value, string_to_const_ptr(value) + value_offset, value_length + 1);
+	strecpy(config_current->string_value, string_buffer(value) + value_offset, value_length + 1);
 
-	string = string_from_ptr(value_length + 1, config_current->string_value);
+	string = string_from_cstr(value_length + 1, config_current->string_value);
 
 	if(parse_int(0, &string, &config_current->int_value, 0, ' ') != parse_ok)
 		config_current->int_value = -1;
@@ -294,7 +294,7 @@ irom unsigned int config_delete(const char *id, int index1, int index2, bool_t w
 	unsigned int ix;
 	unsigned int amount, length;
 
-	varidptr = string_to_const_ptr(expand_varid(id, index1, index2));
+	varidptr = string_to_cstr(expand_varid(id, index1, index2));
 	length = strlen(varidptr);
 
 	for(ix = 0, amount = 0; ix < config_entries_length; ix++)
@@ -331,13 +331,13 @@ irom bool_t config_read(void)
 	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
 		goto done;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto done;
 
 	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
 
-	string_cat(&string, CONFIG_MAGIC);
-	string_cat(&string, "\n");
+	string_append(&string, CONFIG_MAGIC);
+	string_append(&string, "\n");
 
 	current_index = string_length(&string);
 
@@ -353,7 +353,7 @@ irom bool_t config_read(void)
 
 	for(parse_state = state_parse_id; current_index < SPI_FLASH_SEC_SIZE; current_index++)
 	{
-		current = string_index(&logbuffer, current_index);
+		current = string_at(&logbuffer, current_index);
 
 		if(current == '\0')
 		{
@@ -399,7 +399,7 @@ irom bool_t config_read(void)
 						string_clear(&string);
 						string_splice(&string, &logbuffer, id_index, id_length);
 
-						config_set_string(string_to_const_ptr(&string), -1, -1, &logbuffer, value_index, value_length);
+						config_set_string(string_to_cstr(&string), -1, -1, &logbuffer, value_index, value_length);
 					}
 
 					parse_state = state_parse_eol;
@@ -462,8 +462,8 @@ irom unsigned int config_write(void)
 		goto error;
 
 	string_clear(&logbuffer);
-	string_cat(&logbuffer, CONFIG_MAGIC);
-	string_cat(&logbuffer, "\n");
+	string_append(&logbuffer, CONFIG_MAGIC);
+	string_append(&logbuffer, "\n");
 
 	for(ix = 0; ix < config_entries_length; ix++)
 	{
@@ -475,7 +475,7 @@ irom unsigned int config_write(void)
 		string_format(&logbuffer, "%s=%s\n", entry->id, entry->string_value);
 	}
 
-	string_cat(&logbuffer, "\n");
+	string_append(&logbuffer, "\n");
 
 	length = string_length(&logbuffer);
 
@@ -483,7 +483,7 @@ irom unsigned int config_write(void)
 		goto error;
 
 	while(string_length(&logbuffer) < SPI_FLASH_SEC_SIZE)
-		string_append(&logbuffer, '.');
+		string_append_char(&logbuffer, '.');
 
 	string_crc32_init();
 	crc1 = string_crc32(&logbuffer, 0, SPI_FLASH_SEC_SIZE);
@@ -491,10 +491,10 @@ irom unsigned int config_write(void)
 	if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_const_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_to_ptr(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
 	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
