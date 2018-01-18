@@ -294,12 +294,6 @@ iram static void slow_timer_callback(void *arg)
 irom void user_init(void);
 irom void user_init(void)
 {
-	static char uart_send_queue_buffer[1024];
-	static char uart_receive_queue_buffer[1024];
-
-	int uart_baud, uart_data, uart_stop, uart_parity_int;
-	uart_parity_t uart_parity;
-
 	uint32_t *paint;
 	volatile uint32_t sp;
 
@@ -310,6 +304,12 @@ irom void user_init(void)
 		*paint = stack_paint_magic;
 		stat_stack_painted += 4;
 	}
+
+	static char uart_send_queue_buffer[1024];
+	static char uart_receive_queue_buffer[1024];
+
+	int uart_baud, uart_data, uart_stop, uart_parity_int;
+	uart_parity_t uart_parity;
 
 	string_init(varname_uart_baud, "uart.baud");
 	string_init(varname_uart_data, "uart.data");
