@@ -387,7 +387,7 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst, char
 	return(parse_ok);
 }
 
-irom void string_format_ptr(string_t *dst, const char *fmt, ...)
+irom void string_format_cstr(string_t *dst, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -466,6 +466,27 @@ irom void string_splice(string_t *dst, const string_t *src, int src_offset, int 
 	memcpy(dst->buffer + dst->length, src->buffer + src_offset, length);
 
 	string_setlength(dst, dst->length + length);
+}
+
+irom void string_trim_nl(string_t *dst)
+{
+	if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
+	{
+		dst->length--;
+
+		if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\r'))
+			dst->length--;
+	}
+	else
+	{
+		if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\r'))
+		{
+			dst->length--;
+
+			if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
+				dst->length--;
+		}
+	}
 }
 
 irom void string_bin_to_hex(string_t *dst, const char *src, int length)

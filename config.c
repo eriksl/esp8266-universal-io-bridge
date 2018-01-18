@@ -103,55 +103,55 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 	config_flags_t flags = config_flags_get();
 	bool_t rv = false;
 
-	if(string_match(flag, "strip-telnet") || string_match(flag, "st"))
+	if(string_match_cstr(flag, "strip-telnet") || string_match_cstr(flag, "st"))
 	{
 		flags.flag.strip_telnet = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "log-to-uart") || string_match(flag, " lu"))
+	if(string_match_cstr(flag, "log-to-uart") || string_match_cstr(flag, " lu"))
 	{
 		flags.flag.log_to_uart = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "tsl-high-sens") || string_match(flag, "ths"))
+	if(string_match_cstr(flag, "tsl-high-sens") || string_match_cstr(flag, "ths"))
 	{
 		flags.flag.tsl_high_sens = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "bh-high-sens") || string_match(flag, "bhv"))
+	if(string_match_cstr(flag, "bh-high-sens") || string_match_cstr(flag, "bhv"))
 	{
 		flags.flag.bh_high_sens = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "cpu-high-speed") || string_match(flag, "chs"))
+	if(string_match_cstr(flag, "cpu-high-speed") || string_match_cstr(flag, "chs"))
 	{
 		flags.flag.cpu_high_speed = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "wlan-power-save") || string_match(flag, "wps"))
+	if(string_match_cstr(flag, "wlan-power-save") || string_match_cstr(flag, "wps"))
 	{
 		flags.flag.wlan_power_save = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "enable-cfa634") || string_match(flag, "ec"))
+	if(string_match_cstr(flag, "enable-cfa634") || string_match_cstr(flag, "ec"))
 	{
 		flags.flag.enable_cfa634 = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "i2c-high-speed") || string_match(flag, "ih"))
+	if(string_match_cstr(flag, "i2c-high-speed") || string_match_cstr(flag, "ih"))
 	{
 		flags.flag.i2c_high_speed = add ? 1 : 0;
 		rv = true;
 	}
 
-	if(string_match(flag, "log-to-buffer") || string_match(flag, " lb"))
+	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, " lb"))
 	{
 		flags.flag.log_to_buffer = add ? 1 : 0;
 		rv = true;
@@ -196,7 +196,7 @@ irom static config_entry_t *find_config_entry(const string_t *id, int index1, in
 	{
 		config_entry = &config_entries[ix];
 
-		if(string_match(varid, config_entry->id))
+		if(string_match_cstr(varid, config_entry->id))
 			return(config_entry);
 	}
 
@@ -347,7 +347,7 @@ irom bool_t config_read(void)
 
 	current_index = string_length(&string);
 
-	if(!string_match_string_raw(&logbuffer, &string, current_index))
+	if(!string_nmatch_string(&logbuffer, &string, current_index))
 		goto done;
 
 	id_index = current_index;

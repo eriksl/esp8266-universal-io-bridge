@@ -183,7 +183,7 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	if(string_at(&url, 0) != '/')
 		return(http_error(dst, "400 Bad Request 2", string_to_cstr(&url)));
 
-	if(!string_match(&url, "/") && (parse_string(1, &url, &afterslash, '/') != parse_ok))
+	if(!string_match_cstr(&url, "/") && (parse_string(1, &url, &afterslash, '/') != parse_ok))
 		return(http_error(dst, "400 Bad Request 3", string_to_cstr(&afterslash)));
 
 	if((parse_string(0, &afterslash, &action, '?')) != parse_ok)
@@ -193,7 +193,7 @@ irom app_action_t application_function_http_get(const string_t *src, string_t *d
 	}
 
 	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
-		if(string_match(&action, handler->action))
+		if(string_match_cstr(&action, handler->action))
 			break;
 
 	if(!handler->action || !handler->handler)
@@ -279,13 +279,13 @@ irom static app_action_t handler_set(const string_t *src, string_t *dst)
 	if(parse_string(2, &getparam, &param3, '&') != parse_ok)
 		goto error;
 
-	if(!string_nmatch(&param1, "io=", 3))
+	if(!string_nmatch_cstr(&param1, "io=", 3))
 		goto error;
 
-	if(!string_nmatch(&param2, "pin=", 4))
+	if(!string_nmatch_cstr(&param2, "pin=", 4))
 		goto error;
 
-	if(!string_nmatch(&param3, "value=", 6))
+	if(!string_nmatch_cstr(&param3, "value=", 6))
 		goto error;
 
 	if(parse_int(1, &param1, &io, 10, '=') != parse_ok)
@@ -444,10 +444,10 @@ irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(parse_string(1, &getparam, &param2, '&') != parse_ok)
 		goto parameter_error;
 
-	if(!string_nmatch(&param1, "ssid=", 5))
+	if(!string_nmatch_cstr(&param1, "ssid=", 5))
 		goto parameter_error;
 
-	if(!string_nmatch(&param2, "password=", 9))
+	if(!string_nmatch_cstr(&param2, "password=", 9))
 		goto parameter_error;
 
 	if(parse_string(1, &param1, &ssid, '=') != parse_ok)

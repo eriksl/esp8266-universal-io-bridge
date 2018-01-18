@@ -526,7 +526,7 @@ irom app_action_t application_function_display_default_message(const string_t *s
 
 	string_clear(dst);
 
-	if(config_get_string(&varname_defaultmsg, -1, -1, dst) && string_match(dst, "%%%%"))
+	if(config_get_string(&varname_defaultmsg, -1, -1, dst) && string_match_cstr(dst, "%%%%"))
 		config_delete(&varname_defaultmsg, -1, -1, false);
 
 	string_clear(dst);

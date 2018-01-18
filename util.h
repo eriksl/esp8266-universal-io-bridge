@@ -149,22 +149,23 @@ typedef struct
 
 extern string_t logbuffer;
 
-#define string_new(_linkage, _name, _size) \
-	_linkage char _ ## _name ## _buf[_size] = { 0 }; \
-	_linkage string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
-
-void string_format_ptr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
 int string_sep(const string_t *, int offset, int occurrence, char c);
 int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
 void string_splice(string_t *dst, const string_t *src, int src_offset, int length);
+void string_trim_nl(string_t *dst);
 void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_ip(string_t *dst, ip_addr_t);
 void string_mac(string_t *dst, uint8 mac_addr[6]);
 int string_double(string_t *dst, double value, int precision, double top_decimal);
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);
+
+#define string_new(_linkage, _name, _size) \
+	_linkage char _ ## _name ## _buf[_size] = { 0 }; \
+	_linkage string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
 #define string_init(_name, _string) \
 	string_new(stack, _name, sizeof(_string)); \
@@ -227,14 +228,40 @@ always_inline static void string_setlength(string_t *dst, int length)
 	dst->length = length;
 }
 
-always_inline static bool_t string_match(const string_t *s1, const char *s2)
+always_inline static bool_t string_match_string(const string_t *s1, const string_t *s2)
 {
-	return(!strcmp(s1->buffer, s2));
+	if((s1->length == s2->length) && (memcmp(s1->buffer, s2->buffer, s1->length) == 0))
+		return(true);
+
+	return(false);
 }
 
-always_inline static bool_t string_nmatch(const string_t *s1, const char *s2, int n)
+always_inline static bool_t string_match_cstr(const string_t *s1, const char *s2)
 {
-	return(!strncmp(s1->buffer, s2, n));
+	int length = strlen(s2);
+
+	if((s1->length == length) && (memcmp(s1->buffer, s2, length) == 0))
+		return(true);
+
+	return(false);
+}
+
+always_inline static bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
+{
+	if((s1->length >= n) && (s2->length >= n) && (memcmp(s1->buffer, s2->buffer, n) == 0))
+		return(true);
+
+	return(false);
+}
+
+always_inline static bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
+{
+	int length = strlen(s2);
+
+	if((s1->length >= n) && (length >= n) && (memcmp(s1->buffer, s2, n) == 0))
+		return(true);
+
+	return(false);
 }
 
 always_inline static string_t string_from_cstr(size_t size, char *cstr)
@@ -262,22 +289,6 @@ always_inline static char string_at(const string_t *s, int at)
 		return('\0');
 }
 
-always_inline static bool_t string_match_string(const string_t *s1, const string_t *s2)
-{
-	if(s1->length != s2->length)
-		return(false);
-
-	return(string_match(s1, s2->buffer));
-}
-
-always_inline static bool_t string_match_string_raw(const string_t *s1, const string_t *s2, int n)
-{
-	if((n > s1->length) || (n > s2->length))
-		return(false);
-
-	return(!memcmp(s1->buffer, s2->buffer, n));
-}
-
 always_inline static void string_append_char(string_t *dst, char c)
 {
 	if(dst->length < dst->size)
@@ -296,16 +307,6 @@ always_inline static void string_append_cstr_flash(string_t *dst, const char *sr
 	dst->length += strecpy_from_flash(dst->buffer + dst->length, (const uint32_t *)(const void *)src, dst->size - dst->length);
 }
 
-always_inline static void string_append_ptr(string_t *dst, const char *src, int length)
-{
-	if((dst->length + length) > dst->size)
-		length = dst->size - dst->length;
-
-	memcpy(dst->buffer + dst->length, src, length);
-
-	dst->length = dst->length + length;
-}
-
 always_inline static void string_append_string(string_t *dst, const string_t *src)
 {
 	int length = src->length;
@@ -315,7 +316,7 @@ always_inline static void string_append_string(string_t *dst, const string_t *sr
 
 	memcpy(dst->buffer + dst->length, src->buffer, length);
 
-	dst->length = dst->length + length;
+	dst->length += length;
 }
 
 parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);

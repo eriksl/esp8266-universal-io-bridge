@@ -48,8 +48,8 @@ irom app_action_t application_content(const string_t *src, string_t *dst)
 		return(app_action_empty);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		if(string_match(dst, tableptr->command1) ||
-				string_match(dst, tableptr->command2))
+		if(string_match_cstr(dst, tableptr->command1) ||
+				string_match_cstr(dst, tableptr->command2))
 			break;
 
 	if(tableptr->function)
@@ -1061,7 +1061,7 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{
-		if(string_match(dst, "client"))
+		if(string_match_cstr(dst, "client"))
 		{
 			string_clear(dst);
 
@@ -1080,7 +1080,7 @@ irom static app_action_t application_function_wlan_mode(const string_t *src, str
 			return(app_action_disconnect);
 		}
 
-		if(string_match(dst, "ap"))
+		if(string_match_cstr(dst, "ap"))
 		{
 			string_clear(dst);
 

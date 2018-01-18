@@ -161,7 +161,7 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 	{
 		entry = &io_mode_traits[ix];
 
-		if(string_match(src, entry->short_name))
+		if(string_match_cstr(src, entry->short_name))
 			return(entry->mode);
 	}
 
@@ -239,9 +239,9 @@ irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 
 irom static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
 {
-	if(string_match(pin, "sda"))
+	if(string_match_cstr(pin, "sda"))
 		return(io_i2c_sda);
-	else if(string_match(pin, "scl"))
+	else if(string_match_cstr(pin, "scl"))
 		return(io_i2c_scl);
 	else
 		return(io_i2c_error);
@@ -288,7 +288,7 @@ irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
 	{
 		entry = &io_lcd_mode_traits[ix];
 
-		if(string_match(src, entry->name))
+		if(string_match_cstr(src, entry->name))
 			return(entry->mode);
 	}
 
@@ -341,7 +341,7 @@ irom static io_trigger_t string_to_trigger_action(const string_t *src)
 	{
 		entry = &io_trigger_action[ix];
 
-		if(string_match(src, entry->name))
+		if(string_match_cstr(src, entry->name))
 			return(entry->id);
 	}
 
@@ -401,13 +401,13 @@ irom static void iomode_trigger_usage(string_t *dst, const char *info)
 
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
 {
-	if(string_match(flag, "autostart"))
+	if(string_match_cstr(flag, "autostart"))
 		pin_config->flags.autostart = value;
-	else if(string_match(flag, "repeat"))
+	else if(string_match_cstr(flag, "repeat"))
 		pin_config->flags.repeat = value;
-	else if(string_match(flag, "pullup"))
+	else if(string_match_cstr(flag, "pullup"))
 		pin_config->flags.pullup = value;
-	else if(string_match(flag, "reset-on-read"))
+	else if(string_match_cstr(flag, "reset-on-read"))
 		pin_config->flags.reset_on_read = value;
 	else
 		return(false);
@@ -1707,9 +1707,9 @@ skip:
 				return(app_action_error);
 			}
 
-			if(string_match(dst, "up"))
+			if(string_match_cstr(dst, "up"))
 				direction = io_dir_up;
-			else if(string_match(dst, "down"))
+			else if(string_match_cstr(dst, "down"))
 				direction = io_dir_down;
 			else
 			{

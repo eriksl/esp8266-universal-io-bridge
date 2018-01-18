@@ -16,11 +16,11 @@ irom attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
 {
 	uart_parity_t rv;
 
-	if(string_match(src, "none"))
+	if(string_match_cstr(src, "none"))
 		rv = parity_none;
-	else if(string_match(src, "even"))
+	else if(string_match_cstr(src, "even"))
 		rv = parity_even;
-	else if(string_match(src, "odd"))
+	else if(string_match_cstr(src, "odd"))
 		rv = parity_odd;
 	else
 		rv = parity_error;
