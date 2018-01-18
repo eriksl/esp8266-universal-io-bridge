@@ -14,6 +14,7 @@ typedef enum
 	ota_inactive,
 	ota_reading,
 	ota_writing,
+	ota_dummy,
 	ota_successful
 } ota_state_t;
 
@@ -95,7 +96,8 @@ irom app_action_t application_function_ota_receive(const string_t *src, string_t
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_write(const string_t *src, string_t *dst)
+static app_action_t application_function_ota_write_or_dummy(const string_t *src, string_t *dst, bool_t real_write);
+irom static app_action_t application_function_ota_write_or_dummy(const string_t *src, string_t *dst, bool_t real_write)
 {
 	if(string_size(&logbuffer) < 0x1000)
 	{
@@ -121,7 +123,7 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 	if(flash_start_address == -1)
 	{
 #if IMAGE_OTA == 0
-		string_append(dst, "ota-write: start address required on-OTA image\n");
+		string_append(dst, "ota-write: start address required on non-OTA image\n");
 		return(app_action_error);
 #else
 		rboot_config rcfg = rboot_get_config();
@@ -145,7 +147,7 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	ota_state = ota_writing;
+	ota_state = real_write ? ota_writing : ota_dummy;
 	data_transferred = 0;
 	flash_sectors_written = 0;
 	flash_sectors_skipped = 0;
@@ -159,6 +161,16 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 	return(app_action_normal);
 }
 
+irom app_action_t application_function_ota_write_dummy(const string_t *src, string_t *dst)
+{
+	return(application_function_ota_write_or_dummy(src, dst, false));
+}
+
+irom app_action_t application_function_ota_write(const string_t *src, string_t *dst)
+{
+	return(application_function_ota_write_or_dummy(src, dst, true));
+}
+
 irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 {
 	int write_buffer_length = string_length(&logbuffer);
@@ -169,26 +181,32 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	spi_flash_read(flash_sector * 0x1000, string_buffer_nonconst(dst), write_buffer_length);
-
-	if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
+	if(ota_state != ota_dummy)
 	{
-		spi_flash_erase_sector(flash_sector);
-		spi_flash_write(flash_sector * 0x1000, string_buffer(&logbuffer), write_buffer_length);
-		flash_sectors_written++;
+		spi_flash_read(flash_sector * 0x1000, string_buffer_nonconst(dst), write_buffer_length);
+
+		if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
+		{
+			spi_flash_erase_sector(flash_sector);
+			spi_flash_write(flash_sector * 0x1000, string_buffer(&logbuffer), write_buffer_length);
+			flash_sectors_written++;
+		}
+		else
+			flash_sectors_skipped++;
+
+		spi_flash_read(flash_sector * 0x1000, string_buffer_nonconst(dst), write_buffer_length);
+
+		MD5Update(&md5, string_buffer(dst), write_buffer_length);
+
+		if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
+		{
+			string_clear(dst);
+			string_append(dst, "ota-write: verify mismatch\n");
+			return(app_action_error);
+		}
 	}
 	else
-		flash_sectors_skipped++;
-
-	spi_flash_read(flash_sector * 0x1000, string_buffer_nonconst(dst), write_buffer_length);
-	MD5Update(&md5, string_buffer(dst), write_buffer_length);
-
-	if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
-	{
-		string_clear(dst);
-		string_append(dst, "ota-write: verify mismatch\n");
-		return(app_action_error);
-	}
+		MD5Update(&md5, string_buffer(&logbuffer), write_buffer_length);
 
 	flash_sector++;
 	data_transferred += write_buffer_length;
@@ -199,55 +217,58 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_ota_send(const string_t *src, string_t *dst)
+irom app_action_t application_function_ota_send(const string_t *raw_src, string_t *dst)
 {
 	int chunk_offset, chunk_length, remote_chunk_length;
 	uint32_t crc, remote_crc;
 	app_action_t action;
+	string_t trimmed_src = *raw_src;
 
-	if(ota_state != ota_writing)
+	if((ota_state != ota_writing) && (ota_state != ota_dummy))
 	{
 		string_append(dst, "ota-send: not active\n");
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &remote_chunk_length, 0, ' ') != parse_ok)
+	string_trim_nl(&trimmed_src);
+
+	if(parse_int(1, &trimmed_src, &remote_chunk_length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ota-send: missing chunk length\n");
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &remote_crc, 0, ' ') != parse_ok)
+	if(parse_int(2, &trimmed_src, &remote_crc, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ota-send: missing crc\n");
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if((chunk_offset = string_sep(src, 0, 3, ' ')) < 0)
+	if((chunk_offset = string_sep(&trimmed_src, 0, 3, ' ')) < 0)
 	{
 		string_append(dst, "ota-send: missing data chunk\n");
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if((chunk_length = string_length(src) - chunk_offset) != remote_chunk_length)
+	if((chunk_length = string_length(&trimmed_src) - chunk_offset) != remote_chunk_length)
 	{
 		string_format(dst, "ota-send: chunk length mismatch: %d != %d\n", remote_chunk_length, chunk_length);
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if((crc = string_crc32(src, chunk_offset, chunk_length)) != remote_crc)
+	if((crc = string_crc32(&trimmed_src, chunk_offset, chunk_length)) != remote_crc)
 	{
 		string_format(dst, "ota-send: CRC mismatch %08x != %08x\n", remote_crc, crc);
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	string_splice(&logbuffer, src, chunk_offset, chunk_length);
+	string_splice(&logbuffer, &trimmed_src, chunk_offset, chunk_length);
 
 	if(string_length(&logbuffer) > 0x1000)
 	{
@@ -257,7 +278,7 @@ irom app_action_t application_function_ota_send(const string_t *src, string_t *d
 	}
 
 	if((string_length(&logbuffer) == 0x1000) &&
-			((action = flash_write_verify(src, dst)) != app_action_normal))
+			((action = flash_write_verify(&trimmed_src, dst)) != app_action_normal))
 	{
 		ota_state = ota_inactive;
 		return(action);
@@ -286,7 +307,7 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 		return(app_action_normal);
 	}
 	else
-		if(ota_state == ota_writing)
+		if((ota_state == ota_writing) || (ota_state == ota_dummy))
 		{
 			if((parse_string(1, src, &remote_md5_string, ' ')) != parse_ok)
 			{
@@ -329,13 +350,17 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 		return(app_action_error);
 	}
 
-	string_format(dst, "%s %s %s %d %d\n", flash_slot == -1 ? "PARTIAL_WRITE_OK" : "WRITE_OK",
+	string_format(dst, "%s%sWRITE_OK %s %s %d %d\n",
+				flash_slot == -1 ? "PARTIAL_" : "",
+				ota_state == ota_dummy ? "DUMMY_" : "",
 				string_to_cstr(&local_md5_string),
 				string_to_cstr(&remote_md5_string),
 				flash_sectors_written, flash_sectors_skipped);
 
-
-	ota_state = flash_slot == -1 ? ota_inactive : ota_successful;
+	if((ota_state == ota_dummy) || (flash_slot == -1))
+		ota_state = ota_inactive;
+	else
+		ota_state = ota_successful;
 
 	return(app_action_normal);
 }

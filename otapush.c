@@ -19,7 +19,7 @@ enum
 
 static void crc32_init(void);
 static uint32_t crc32(int length, const char *src);
-static unsigned int verbose, timeout, dontcommit, chunk_size, udp;
+static unsigned int verbose, dummy, timeout, dontcommit, chunk_size, udp;
 
 static void usage(void)
 {
@@ -28,6 +28,7 @@ static void usage(void)
 	fprintf(stderr, "	read  <host> <file> <address> [<length> (default = 0x1000, one sector)] \n");
 	fprintf(stderr, "	write <host> <file> [<address> (do ota partial write when specifief, otherwise do ota upgrade)]\n");
 	fprintf(stderr, "-c|--dont-commit      don't commit (reset and load new image)\n");
+	fprintf(stderr, "-d|--dummy            dummy write (don't commit)\n");
 	fprintf(stderr, "-p|--port             set command port (default 24)\n");
 	fprintf(stderr, "-s|--chunk-size       set chunk size (256 / 512 or 1024 bytes, default is 1024 bytes)\n");
 	fprintf(stderr, "-t|--timeout ms       set communication timeout (default = 30000 = 30s)\n");
@@ -405,9 +406,11 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 	}
 
 	if(address >= 0)
-		snprintf(cmdbuf, sizeof(cmdbuf), "ota-write %u %u", file_length, address);
+		snprintf(cmdbuf, sizeof(cmdbuf), "ota-write%s %u %u", dummy ? "-dummy" : "",
+				file_length, address);
 	else
-		snprintf(cmdbuf, sizeof(cmdbuf), "ota-write %u", file_length);
+		snprintf(cmdbuf, sizeof(cmdbuf), "ota-write%s %u", dummy ? "-dummy" : "",
+				file_length); 
 
 	do_log("send", strlen(cmdbuf), cmdbuf);
 
@@ -565,10 +568,21 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 		return(1);
 	}
 
-	if(strncmp((address < 0) ? "WRITE_OK" : "PARTIAL_WRITE_OK", cmdbuf, 8))
+	if(dummy)
 	{
-		fprintf(stderr, "finish failed 1: %s\n", buffer);
-		return(1);
+		if(strncmp((address < 0) ? "DUMMY_WRITE_OK" : "PARTIAL_DUMMY_WRITE_OK", cmdbuf, 8))
+		{
+			fprintf(stderr, "finish failed 1: %s\n", buffer);
+			return(1);
+		}
+	}
+	else
+	{
+		if(strncmp((address < 0) ? "WRITE_OK" : "PARTIAL_WRITE_OK", cmdbuf, 8))
+		{
+			fprintf(stderr, "finish failed 1: %s\n", buffer);
+			return(1);
+		}
 	}
 
 	if(strcmp(md5_string, remote_md5_string))
@@ -579,7 +593,7 @@ static int do_action_write(int socket_fd, const char *filename, int address)
 
 	fprintf(stderr, "%s successful, %d sectors written, %d sectors skipped\n", (address < 0) ? "upgrade" : "write to flash", written, skipped);
 
-	if((address >= 0) || dontcommit)
+	if((address >= 0) || dontcommit || dummy)
 		return(0);
 
 	snprintf(cmdbuf, sizeof(cmdbuf), "ota-commit");
@@ -627,10 +641,11 @@ typedef enum
 
 int main(int argc, char * const *argv)
 {
-	static const char *shortopts = "np:s:t:uv";
+	static const char *shortopts = "cdp:s:t:uv";
 	static const struct option longopts[] =
 	{
 		{ "dont-commmit",	no_argument,		0, 'c' },
+		{ "dummy",			no_argument,		0, 'd' },
 		{ "port",			required_argument,	0, 'p' },
 		{ "chunk-size",		required_argument,	0, 's' },
 		{ "timeout",		required_argument,	0, 't' },
@@ -661,6 +676,12 @@ int main(int argc, char * const *argv)
 			case('c'):
 			{
 				dontcommit = 1;
+				break;
+			}
+
+			case('d'):
+			{
+				dummy = 1;
 				break;
 			}
 

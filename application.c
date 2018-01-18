@@ -1562,6 +1562,11 @@ static const application_function_table_t application_function_table[] =
 		"ota-write length [start]",
 	},
 	{
+		"owd", "ota-write-dummy",
+		application_function_ota_write_dummy,
+		"ota-write-dummy length [start]",
+	},
+	{
 		"os", "ota-send-data",
 		application_function_ota_send,
 		"ota-send chunk_length data",
