@@ -28,6 +28,8 @@ extern int stat_pwm_timer_interrupts;
 extern int stat_pc_interrupts;
 extern int stat_i2c_init_time_us;
 extern int stat_display_init_time_us;
+extern int stat_receive_buffer_full;
+extern int stat_send_buffer_full;
 
 extern int stat_update_uart;
 extern int stat_update_longop;

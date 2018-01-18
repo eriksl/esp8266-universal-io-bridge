@@ -28,6 +28,8 @@ int stat_pwm_timer_interrupts;
 int stat_pc_interrupts;
 int stat_i2c_init_time_us;
 int stat_display_init_time_us;
+int stat_send_buffer_full;
+int stat_receive_buffer_full;
 
 int stat_update_uart;
 int stat_update_longop;
@@ -243,7 +245,9 @@ irom void stats_counters(string_t *dst)
 			"> commands/tcp processed: %u\n"
 			"> display updated: %u\n"
 			"> ntp updated: %u\n"
-			"> background idle: %u\n",
+			"> background idle: %u\n"
+			"> receive buffer full events: %u\n"
+			"> send buffer full events: %u\n",
 				yesno(stat_called.user_spi_flash_dio_to_qio_pre_init),
 				yesno(stat_called.user_rf_cal_sector_set),
 				yesno(stat_called.user_rf_pre_init),
@@ -259,7 +263,9 @@ irom void stats_counters(string_t *dst)
 				stat_update_command_tcp,
 				stat_update_display,
 				stat_update_ntp,
-				stat_update_idle);
+				stat_update_idle,
+				stat_receive_buffer_full,
+				stat_send_buffer_full);
 }
 
 irom void stats_i2c(string_t *dst)

@@ -1,5 +1,6 @@
 #include "socket.h"
 #include "util.h"
+#include "stats.h"
 
 static unsigned int sockets_length = 0;
 static socket_t *sockets[2];
@@ -201,6 +202,8 @@ iram void socket_send(socket_t *socket, string_t *buffer)
 
 	if(espconn_send(esp_socket, buffer, length) == 0)
 		socket->send_busy = false;
+	else
+		stat_send_buffer_full++;
 
 	return;
 }

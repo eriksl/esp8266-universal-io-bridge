@@ -434,6 +434,8 @@ irom static void callback_received_cmd(socket_t *socket, int length, char *buffe
 					length--;
 			}
 		}
+		stat_receive_buffer_full++;
+		return;
 	}
 
 	buffer[length] = '\0';
