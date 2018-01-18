@@ -1,4 +1,5 @@
 #include "socket.h"
+#include "util.h"
 
 static unsigned int sockets_length = 0;
 static socket_t *sockets[2];

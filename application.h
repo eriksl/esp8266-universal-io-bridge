@@ -1,8 +1,6 @@
 #ifndef application_h
 #define application_h
 
-#include "util.h"
-
 #include <stdint.h>
 
 typedef enum

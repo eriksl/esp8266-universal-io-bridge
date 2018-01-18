@@ -5,6 +5,7 @@
 #include "io.h"
 #include "i2c.h"
 #include "config.h"
+#include "util.h"
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 

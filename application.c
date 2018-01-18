@@ -1,6 +1,6 @@
+#include "util.h"
 #include "application.h"
 #include "stats.h"
-#include "util.h"
 #include "user_main.h"
 #include "config.h"
 #include "uart.h"
