@@ -378,11 +378,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 			mc_ip.byte[3] = 254;
 			espconn_igmp_join(&local_ip.ip_addr, &mc_ip.ip_addr);
 
-			dprintf("* join mc from %d.%d.%d.%d",
-					local_ip.byte[0],
-					local_ip.byte[1],
-					local_ip.byte[2],
-					local_ip.byte[3]);
+			log("* join mc from %d.%d.%d.%d", local_ip.byte[0], local_ip.byte[1], local_ip.byte[2], local_ip.byte[3]);
 
 			// fall through
 		}

@@ -1168,7 +1168,6 @@ irom void io_init(void)
 					break;
 				}
 
-
 				case(io_pin_output_analog):
 				{
 					int speed, lower_bound, upper_bound;
