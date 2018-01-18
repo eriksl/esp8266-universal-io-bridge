@@ -112,7 +112,7 @@ irom static app_action_t application_function_config_query_int(const string_t *s
 
 irom static app_action_t application_function_config_query_string(const string_t *src, string_t *dst)
 {
-	string_new(, varid, 64);
+	string_new(stack, varid, 64);
 	int index1, index2;
 
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
@@ -187,7 +187,7 @@ irom static app_action_t application_function_config_set(const string_t *src, st
 irom static app_action_t application_function_config_delete(const string_t *src, string_t *dst)
 {
 	int index1, index2, wildcard;
-	string_new(, varid, 64);
+	string_new(stack, varid, 64);
 
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
 	{
@@ -938,9 +938,9 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 
 irom static app_action_t application_function_wlan_ap_configure(const string_t *src, string_t *dst)
 {
-	string_new(, ssid, 64);
-	string_new(, passwd, 64);
 	int channel;
+	string_new(stack, ssid, 64);
+	string_new(stack, passwd, 64);
 	string_init(varname_wlan_ap_ssid, "wlan.ap.ssid");
 	string_init(varname_wlan_ap_passwd, "wlan.ap.passwd");
 	string_init(varname_wlan_ap_channel, "wlan.ap.channel");
@@ -1006,8 +1006,8 @@ irom static app_action_t application_function_wlan_ap_configure(const string_t *
 
 irom static app_action_t application_function_wlan_client_configure(const string_t *src, string_t *dst)
 {
-	string_new(, ssid, 64);
-	string_new(, passwd, 64);
+	string_new(stack, ssid, 64);
+	string_new(stack, passwd, 64);
 	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
 	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
 
@@ -1193,11 +1193,10 @@ irom static app_action_t application_function_ntp_dump(const string_t *src, stri
 
 irom static app_action_t application_function_ntp_set(const string_t *src, string_t *dst)
 {
-	string_new(, ip, 32);
-
 	int					timezone, ix;
 	ip_addr_to_bytes_t	a2b;
 
+	string_new(stack, ip, 32);
 	string_init(varname_ntp_server, "ntp.server.%u");
 	string_init(varname_ntp_tz, "ntp.tz");
 
