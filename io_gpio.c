@@ -332,8 +332,9 @@ irom static void pwm_go(void)
 	unsigned int duty, delta, new_phase_set, pwm_period;
 	uint32_t timer_value;
 	bool_t isr_enabled;
+	string_init(varname_pwmperiod, "pwm.period");
 
-	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
 		pwm_period = 65536;
 
 	isr_enabled = pwm_isr_enabled();
@@ -719,11 +720,12 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 {
 	gpio_data_pin_t *gpio_pin_data;
 	unsigned int pwm_period;
+	string_init(varname_pwmperiod, "pwm.period");
 
 	if((pin < 0) || (pin >= io_gpio_pin_size))
 		return(io_error);
 
-	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
 		pwm_period = 65536;
 
 	gpio_pin_data = &gpio_data[pin];
@@ -894,6 +896,7 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
 {
 	int new_pwm_period;
+	string_init(varname_pwmperiod, "pwm.period");
 
 	if(parse_int(1, src, &new_pwm_period, 0, ' ') == parse_ok)
 	{
@@ -903,12 +906,12 @@ irom app_action_t application_function_pwm_period(const string_t *src, string_t 
 			return(app_action_error);
 		}
 
-		config_set_int("pwm.period", -1, -1, new_pwm_period);
+		config_set_int(&varname_pwmperiod, -1, -1, new_pwm_period);
 
 		pwm_go();
 	}
 
-	if(!config_get_int("pwm.period", -1, -1, &new_pwm_period))
+	if(!config_get_int(&varname_pwmperiod, -1, -1, &new_pwm_period))
 		new_pwm_period = 65536;
 
 	string_format(dst, "pwm_period: %d\n", new_pwm_period);

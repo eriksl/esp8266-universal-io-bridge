@@ -112,10 +112,11 @@ irom static void http_range_form(string_t *dst, int io, int pin, int low, int hi
 {
 	string_new(, id, 32);
 	int pwm_period;
+	string_init(varname_pwmperiod, "pwm.period");
 
 	string_format(&id, "range_%d_%d", io, pin);
 
-	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
 		pwm_period = 65536;
 
 	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_cstr(&id), "set");
@@ -430,6 +431,9 @@ irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	string_new(, param2, 32);
 	string_new(, ssid, 32);
 	string_new(, passwd, 32);
+	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
+	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
+	string_init(varname_wlan_mode, "wlan.mode");
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
 		goto parameter_error;
@@ -455,13 +459,13 @@ irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if((string_length(&ssid) < 4) || (string_length(&passwd) < 8))
 		goto parameter_error;
 
-	if(!config_set_string("wlan.client.ssid", -1, -1, &ssid, -1, -1))
+	if(!config_set_string(&varname_wlan_client_ssid, -1, -1, &ssid, -1, -1))
 		goto config_error;
 
-	if(!config_set_string("wlan.client.passwd", -1, -1, &passwd, -1, -1))
+	if(!config_set_string(&varname_wlan_client_passwd, -1, -1, &passwd, -1, -1))
 		goto config_error;
 
-	if(!config_set_int("wlan.mode", -1, -1, config_wlan_mode_client))
+	if(!config_set_int(&varname_wlan_mode, -1, -1, config_wlan_mode_client))
 		goto config_error;
 
 	if(config_write() == 0)

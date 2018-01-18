@@ -2198,6 +2198,8 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 	int current;
 	int int_factor, int_offset;
 	double extracooked;
+	string_init(varname_i2s_factor, "i2s.%u.%u.factor");
+	string_init(varname_i2s_offset, "i2s.%u.%u.offset");
 
 	for(current = 0; current < i2c_sensor_size; current++)
 	{
@@ -2230,10 +2232,10 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	if((error = entry->read_fn(bus, entry, &value)) == i2c_error_ok)
 	{
-		if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
+		if(!config_get_int(&varname_i2s_factor, bus, sensor, &int_factor))
 			int_factor = 1000;
 
-		if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
+		if(!config_get_int(&varname_i2s_offset, bus, sensor, &int_offset))
 			int_offset = 0;
 
 		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
@@ -2275,10 +2277,10 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 
 	if(verbose)
 	{
-		if(!config_get_int("i2s.%u.%u.factor", bus, sensor, &int_factor))
+		if(!config_get_int(&varname_i2s_factor, bus, sensor, &int_factor))
 			int_factor = 1000;
 
-		if(!config_get_int("i2s.%u.%u.offset", bus, sensor, &int_offset))
+		if(!config_get_int(&varname_i2s_offset, bus, sensor, &int_offset))
 			int_offset = 0;
 
 		string_append(dst, ", calibration: factor=");

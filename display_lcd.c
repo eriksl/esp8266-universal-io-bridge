@@ -203,6 +203,7 @@ irom bool_t display_lcd_bright(int brightness)
 	static const unsigned int bls[5] = { 0, 1024, 4096, 16384, 65535 };
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
 	unsigned int pwm, pwm_period;
+	string_init(varname_pwmperiod, "pwm.period");
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
@@ -210,7 +211,7 @@ irom bool_t display_lcd_bright(int brightness)
 	if(!send_byte(cmds[brightness], false))
 		return(false);
 
-	if(!config_get_int("pwm.period", -1, -1, &pwm_period))
+	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
 		pwm_period = 65536;
 
 	pwm = bls[brightness] / (65536 / pwm_period);

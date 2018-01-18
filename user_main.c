@@ -190,6 +190,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 	stat_slow_timer++;
 	config_wlan_mode_t wlan_mode;
 	int wlan_mode_int;
+	string_init(varname_wlan_mode, "wlan.mode");
 
 	switch(reset_state)
 	{
@@ -251,7 +252,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 
 	if((wifi_station_get_connect_status() != STATION_GOT_IP) && (stat_update_idle == 300))
 	{
-		if(config_get_int("wlan.mode", -1, -1, &wlan_mode_int))
+		if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
 			wlan_mode = (config_wlan_mode_t)wlan_mode_int;
 		else
 			wlan_mode = config_wlan_mode_client;
@@ -259,8 +260,8 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 		if(wlan_mode == config_wlan_mode_client) 
 		{
 			wlan_mode_int = (int)config_wlan_mode_ap;
-			config_set_int("wlan.mode", -1, -1, wlan_mode_int);
-			config_get_int("wlan.mode", -1, -1, &wlan_mode_int);
+			config_set_int(&varname_wlan_mode, -1, -1, wlan_mode_int);
+			config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int);
 			wlan_init();
 		}
 	}
@@ -310,6 +311,11 @@ irom void user_init(void)
 		stat_stack_painted += 4;
 	}
 
+	string_init(varname_uart_baud, "uart.baud");
+	string_init(varname_uart_data, "uart.data");
+	string_init(varname_uart_stop, "uart.stop");
+	string_init(varname_uart_parity, "uart.parity");
+
 	system_set_os_print(0);
 
 	queue_new(&uart_send_queue, sizeof(uart_send_queue_buffer), uart_send_queue_buffer);
@@ -321,21 +327,22 @@ irom void user_init(void)
 
 	config_read();
 
-	if(!config_get_int("uart.baud", -1, -1, &uart_baud))
-		uart_baud = 9600;
+	if(!config_get_int(&varname_uart_baud, -1, -1, &uart_baud))
+		uart_baud = 115200;
 
-	if(!config_get_int("uart.data", -1, -1, &uart_data))
+	if(!config_get_int(&varname_uart_data, -1, -1, &uart_data))
 		uart_data = 8;
 
-	if(!config_get_int("uart.stop", -1, -1, &uart_stop))
+	if(!config_get_int(&varname_uart_stop, -1, -1, &uart_stop))
 		uart_stop = 1;
 
-	if(config_get_int("uart.parity", -1, -1, &uart_parity_int))
+	if(config_get_int(&varname_uart_parity, -1, -1, &uart_parity_int))
 		uart_parity = (uart_parity_t)uart_parity_int;
 	else
 		uart_parity = parity_none;
 
 	uart_init(uart_baud, uart_data, uart_stop, uart_parity);
+
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
 
@@ -356,6 +363,8 @@ irom static void wlan_event_handler(System_Event_t *event)
 	struct ip_info info;
 	ip_addr_to_bytes_t local_ip;
 	ip_addr_to_bytes_t mc_ip;
+	string_init(varname_assoc_io, "trigger.assoc.io");
+	string_init(varname_assoc_pin, "trigger.assoc.pin");
 
 	switch(event->event)
 	{
@@ -395,8 +404,8 @@ irom static void wlan_event_handler(System_Event_t *event)
 	}
 
 	if((trigger != io_trigger_none) &&
-			(config_get_int("trigger.assoc.io", -1, -1, &trigger_io) &&
-			config_get_int("trigger.assoc.pin", -1, -1, &trigger_pin) &&
+			(config_get_int(&varname_assoc_io, -1, -1, &trigger_io) &&
+			config_get_int(&varname_assoc_pin, -1, -1, &trigger_pin) &&
 			(trigger_io >= 0) && (trigger_pin >= 0)))
 		io_trigger_pin((string_t *)0, trigger_io, trigger_pin, trigger);
 }
@@ -525,16 +534,21 @@ irom static void user_init2(void)
 	int uart_port, uart_timeout;
 	int cmd_port, cmd_timeout;
 
-	if(!config_get_int("bridge.port", -1, -1, &uart_port))
+	string_init(varname_bridge_port, "bridge.port");
+	string_init(varname_bridge_timeout, "bridge.timeout");
+	string_init(varname_cmd_port, "cmd.port");
+	string_init(varname_cmd_timeout, "cmd.timeout");
+
+	if(!config_get_int(&varname_bridge_port, -1, -1, &uart_port))
 		uart_port = 0;
 
-	if(!config_get_int("bridge.timeout", -1, -1, &uart_timeout))
+	if(!config_get_int(&varname_bridge_timeout, -1, -1, &uart_timeout))
 		uart_timeout = 90;
 
-	if(!config_get_int("cmd.port", -1, -1, &cmd_port))
+	if(!config_get_int(&varname_cmd_port, -1, -1, &cmd_port))
 		cmd_port = 24;
 
-	if(!config_get_int("cmd.timeout", -1, -1, &cmd_timeout))
+	if(!config_get_int(&varname_cmd_timeout, -1, -1, &cmd_timeout))
 		cmd_timeout = 90;
 
 	if(config_flags_get().flag.cpu_high_speed)
@@ -576,8 +590,14 @@ irom bool_t wlan_init(void)
 	int channel;
 	struct station_config cconf;
 	struct softap_config saconf;
+	string_init(varname_wlan_mode, "wlan.mode");
+	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
+	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
+	string_init(varname_wlan_ap_ssid, "wlan.ap.ssid");
+	string_init(varname_wlan_ap_passwd, "wlan.ap.passwd");
+	string_init(varname_wlan_ap_channel, "wlan.ap.channel");
 
-	if(config_get_int("wlan.mode", -1, -1, &wlan_mode_int))
+	if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
 		wlan_mode = (config_wlan_mode_t)wlan_mode_int;
 	else
 		wlan_mode = config_wlan_mode_client;
@@ -591,14 +611,14 @@ irom bool_t wlan_init(void)
 
 			string_clear(&config_string);
 
-			if(config_get_string("wlan.client.ssid", -1, -1, &config_string))
+			if(config_get_string(&varname_wlan_client_ssid, -1, -1, &config_string))
 				strecpy(cconf.ssid, string_to_cstr(&config_string), sizeof(cconf.ssid));
 			else
 				strecpy(cconf.ssid, "esp", sizeof(cconf.ssid));
 
 			string_clear(&config_string);
 
-			if(config_get_string("wlan.client.passwd", -1, -1, &config_string))
+			if(config_get_string(&varname_wlan_client_passwd, -1, -1, &config_string))
 				strecpy(cconf.password, string_to_cstr(&config_string), sizeof(cconf.password));
 			else
 				strecpy(cconf.password, "espespesp", sizeof(cconf.password));
@@ -617,17 +637,17 @@ irom bool_t wlan_init(void)
 		{
 			memset(&saconf, 0, sizeof(saconf));
 
-			if(config_get_string("wlan.ap.ssid", -1, -1, &config_string))
+			if(config_get_string(&varname_wlan_ap_ssid, -1, -1, &config_string))
 				strecpy(saconf.ssid, string_to_cstr(&config_string), sizeof(saconf.ssid));
 			else
 				strecpy(saconf.ssid, "esp", sizeof(saconf.ssid));
 
-			if(config_get_string("wlan.ap.passwd", -1, -1, &config_string))
+			if(config_get_string(&varname_wlan_ap_passwd, -1, -1, &config_string))
 				strecpy(saconf.password, string_to_cstr(&config_string), sizeof(saconf.password));
 			else
 				strecpy(saconf.password, "espespesp", sizeof(saconf.password));
 
-			if(!config_get_int("wlan.ap.channel", -1, -1, &channel))
+			if(!config_get_int(&varname_wlan_ap_channel, -1, -1, &channel))
 				channel = 1;
 
 			saconf.ssid_len = strlen(saconf.ssid);

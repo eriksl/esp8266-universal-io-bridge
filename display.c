@@ -382,6 +382,7 @@ irom static void display_expire(void) // call one time per second
 {
 	int active_slots, slot;
 	string_new(, default_message, 64);
+	string_init(varname_defaultmsg, "display.defaultmsg");
 
 	if(display_data.detected < 0)
 		return;
@@ -408,7 +409,7 @@ irom static void display_expire(void) // call one time per second
 		display_slot[0].timeout = 1;
 		strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
 		
-		if(!config_get_string("display.defaultmsg", 0, 0, &default_message))
+		if(!config_get_string(&varname_defaultmsg, -1, -1, &default_message))
 		{
 			string_clear(&default_message);
 			string_append(&default_message, "%%%%");
@@ -424,6 +425,7 @@ iram bool display_periodic(void) // gets called 10 times per second
 	static int expire_counter = 0;
 	int now, flip_timeout;
 	display_info_t *display_info_entry;
+	string_init(varname_fliptimeout, "display.fliptimeout");
 
 	if(display_data.detected < 0)
 		return(false);
@@ -437,7 +439,7 @@ iram bool display_periodic(void) // gets called 10 times per second
 		expire_counter = 0;
 		display_expire();
 
-		if(!config_get_int("display.fliptimeout", 0, 0, &flip_timeout))
+		if(!config_get_int(&varname_fliptimeout, 0, 0, &flip_timeout))
 			flip_timeout = 4;
 
 		if((last_update > now) || ((last_update + flip_timeout) < now))
@@ -513,9 +515,10 @@ irom app_action_t application_function_display_dump(const string_t *src, string_
 irom app_action_t application_function_display_default_message(const string_t *src, string_t *dst)
 {
 	int ix;
+	string_init(varname_defaultmsg, "display.defaultmsg");
 
 	if(((ix = string_sep(src, 0, 1, ' ')) > 0) &&
-			!config_set_string("display.defaultmsg", -1, -1, src, ix, string_length(src) - ix - 1))
+			!config_set_string(&varname_defaultmsg, -1, -1, src, ix, string_length(src) - ix - 1))
 	{
 		string_append(dst, "> cannot set config\n");
 		return(app_action_error);
@@ -523,13 +526,13 @@ irom app_action_t application_function_display_default_message(const string_t *s
 
 	string_clear(dst);
 
-	if(config_get_string("display.defaultmsg", -1, -1, dst) && string_match(dst, "%%%%"))
-		config_delete("display.defaultmsg", -1, -1, false);
+	if(config_get_string(&varname_defaultmsg, -1, -1, dst) && string_match(dst, "%%%%"))
+		config_delete(&varname_defaultmsg, -1, -1, false);
 
 	string_clear(dst);
 	string_append(dst, "set default display message to \"");
 
-	if(!config_get_string("display.defaultmsg", -1, -1, dst))
+	if(!config_get_string(&varname_defaultmsg, -1, -1, dst))
 		string_append(dst, "%%%%");
 
 	string_append(dst, "\"\n");
@@ -541,6 +544,7 @@ irom app_action_t application_function_display_default_message(const string_t *s
 irom app_action_t application_function_display_flip_timeout(const string_t *src, string_t *dst)
 {
 	int timeout;
+	string_init(varname_fliptimeout, "display.fliptimeout");
 
 	if(parse_int(1, src, &timeout, 0, ' ') == parse_ok)
 	{
@@ -551,16 +555,16 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 		}
 
 		if(timeout == 4)
-			config_delete("display.fliptimeout", -1, -1, false);
+			config_delete(&varname_fliptimeout, -1, -1, false);
 		else
-			if(!config_set_int("display.fliptimeout", -1, -1, timeout))
+			if(!config_set_int(&varname_fliptimeout, -1, -1, timeout))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int("display.fliptimeout", -1, -1, &timeout))
+	if(!config_get_int(&varname_fliptimeout, -1, -1, &timeout))
 		timeout = 4;
 
 	string_format(dst, "> timeout: %u s\n", timeout);

@@ -166,6 +166,10 @@ int string_double(string_t *dst, double value, int precision, double top_decimal
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);
 
+#define string_init(_name, _string) \
+	string_new(stack, _name, sizeof(_string)); \
+	string_append(&_name, _string);
+
 #define string_append(dst, src) \
 do { \
 	static roflash const char src_flash[] = src; \
