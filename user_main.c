@@ -81,7 +81,7 @@ iram void user_rf_pre_init(void)
 	stat_called.user_rf_pre_init = 1;
 }
 
-irom static void user_init2(void);
+static void user_init2(void);
 
 iram static bool_t background_task_bridge_uart(void)
 {
@@ -256,7 +256,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 		else
 			wlan_mode = config_wlan_mode_client;
 
-		if(wlan_mode == config_wlan_mode_client) 
+		if(wlan_mode == config_wlan_mode_client)
 		{
 			wlan_mode_int = (int)config_wlan_mode_ap;
 			config_set_int(&varname_wlan_mode, -1, -1, wlan_mode_int);
@@ -270,8 +270,6 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 
 iram static void fast_timer_callback(void *arg)
 {
-	(void)arg;
-
 	stat_fast_timer++;
 
 	// timer runs every 10 ms = 100 Hz
@@ -281,8 +279,6 @@ iram static void fast_timer_callback(void *arg)
 
 iram static void slow_timer_callback(void *arg)
 {
-	(void)arg;
-
 	// run background task every ~100 ms = ~10 Hz
 
 	time_periodic();
@@ -290,7 +286,7 @@ iram static void slow_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
-irom void user_init(void);
+void user_init(void);
 irom void user_init(void)
 {
 	uint32_t *paint;
