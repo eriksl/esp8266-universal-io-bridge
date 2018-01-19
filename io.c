@@ -455,7 +455,7 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 		string_append(flags, "none");
 }
 
-iram static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
 {
 	io_error_t error;
 
@@ -491,7 +491,7 @@ iram static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 	return(io_ok);
 }
 
-iram static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, int value)
+irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	io_error_t error;
 

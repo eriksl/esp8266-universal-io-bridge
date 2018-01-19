@@ -232,12 +232,12 @@ static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
 
-iram static inline bool_t pwm_isr_enabled(void)
+iram always_inline static bool_t pwm_isr_enabled(void)
 {
 	return(gpio_interrupts_enabled() & (1 << ETS_FRC_TIMER1_INUM));
 }
 
-iram static inline void pwm_isr_enable(bool_t onoff)
+iram always_inline static void pwm_isr_enable(bool_t onoff)
 {
 	if(onoff)
 		ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
@@ -245,12 +245,12 @@ iram static inline void pwm_isr_enable(bool_t onoff)
 		ets_isr_mask(1 << ETS_FRC_TIMER1_INUM);
 }
 
-iram static inline void pwm_timer_set(uint32_t value)
+iram always_inline static void pwm_timer_set(uint32_t value)
 {
 	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
 }
 
-iram static inline uint32_t pwm_timer_get(void)
+iram always_inline static uint32_t pwm_timer_get(void)
 {
 	return(read_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_COUNT_ADDRESS));
 }
@@ -789,7 +789,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	return(io_ok);
 }
 
-iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -838,7 +838,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
+irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
