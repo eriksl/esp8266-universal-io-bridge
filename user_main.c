@@ -63,7 +63,6 @@ queue_t uart_receive_queue;
 attr_const void user_spi_flash_dio_to_qio_pre_init(void);
 iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
 {
-	stat_called.user_spi_flash_dio_to_qio_pre_init = 1;
 }
 
 attr_const uint32_t user_rf_cal_sector_set(void);

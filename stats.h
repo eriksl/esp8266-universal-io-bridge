@@ -13,7 +13,6 @@ enum
 
 typedef struct
 {
-	unsigned int user_spi_flash_dio_to_qio_pre_init:1;
 	unsigned int user_rf_cal_sector_set:1;
 	unsigned int user_rf_pre_init:1;
 } stat_called_t;

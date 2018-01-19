@@ -14,7 +14,6 @@
 
 stat_called_t stat_called =
 {
-	.user_spi_flash_dio_to_qio_pre_init = 0,
 	.user_rf_cal_sector_set = 0,
 	.user_rf_pre_init = 0
 };
@@ -230,7 +229,6 @@ irom void stats_time(string_t *dst)
 irom void stats_counters(string_t *dst)
 {
 	string_format(dst,
-			"> user_spi_flash_dio_to_qio_pre_init called: %s\n"
 			"> user_rf_cal_sector_set called: %s\n"
 			"> user_rf_pre_init called: %s\n"
 			"> int uart rx: %u\n"
@@ -248,7 +246,6 @@ irom void stats_counters(string_t *dst)
 			"> background idle: %u\n"
 			"> receive buffer full events: %u\n"
 			"> send buffer full events: %u\n",
-				yesno(stat_called.user_spi_flash_dio_to_qio_pre_init),
 				yesno(stat_called.user_rf_cal_sector_set),
 				yesno(stat_called.user_rf_pre_init),
 				stat_uart_rx_interrupts,
