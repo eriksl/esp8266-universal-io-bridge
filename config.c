@@ -38,7 +38,7 @@ static config_entry_t config_entries[config_entries_size];
 
 irom static bool_t config_flags_set(config_flags_t flags)
 {
-	string_init(stack, varname, "flags");
+	string_init(varname, "flags");
 
 	flags_cache.intval = flags.intval;
 
