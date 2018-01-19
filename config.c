@@ -27,10 +27,7 @@ typedef struct
 
 assert_size(config_entry_t, 64);
 
-static struct
-{
-	unsigned int using_logbuffer:1;
-} config_flags =
+config_options_t config_options =
 {
 	.using_logbuffer = 0
 };
@@ -328,7 +325,7 @@ irom bool_t config_read(void)
 	state_parse_t parse_state;
 	bool_t rv = false;
 
-	config_flags.using_logbuffer = 1;
+	config_options.using_logbuffer = 1;
 	string_clear(&logbuffer);
 
 	if(ota_is_active())
@@ -438,7 +435,7 @@ irom bool_t config_read(void)
 
 done:
 	string_clear(&logbuffer);
-	config_flags.using_logbuffer = 0;
+	config_options.using_logbuffer = 0;
 
 	string_init(varname, "flags");
 
@@ -460,7 +457,7 @@ irom unsigned int config_write(void)
 	uint32_t crc1, crc2;
 	bool_t rv = false;
 
-	config_flags.using_logbuffer = 1;
+	config_options.using_logbuffer = 1;
 	string_clear(&logbuffer);
 
 	if(ota_is_active())
@@ -516,7 +513,7 @@ irom unsigned int config_write(void)
 
 error:
 	string_clear(&logbuffer);
-	config_flags.using_logbuffer = 0;
+	config_options.using_logbuffer = 0;
 
 	return(rv ? length : 0);
 }
@@ -539,9 +536,4 @@ irom void config_dump(string_t *dst)
 	}
 
 	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
-}
-
-iram attr_pure bool_t config_uses_logbuffer(void)
-{
-	return(config_flags.using_logbuffer != 0);
 }
