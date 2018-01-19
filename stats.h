@@ -7,8 +7,8 @@
 enum
 {
 	stack_paint_magic = 0xabcdefaa,
-	sysram_top = 0x3fffeb30,
-	stack_bottom = 0x40000000
+	stack_top = 0x3fffeb30,
+	stack_bottom = 0x40000000 - sizeof(void *)
 };
 
 typedef struct

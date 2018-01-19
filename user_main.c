@@ -289,12 +289,14 @@ iram static void slow_timer_callback(void *arg)
 void user_init(void);
 irom void user_init(void)
 {
-	uint32_t *paint;
+	// don't declare stack variables here, they will get overwritten
+
+	register uint32_t *paint;
 	volatile uint32_t sp;
 
 	stat_stack_sp_initial = &sp;
 
-	for(paint = (uint32_t *)sysram_top; paint < &sp; paint++)
+	for(paint = (typeof(paint))stack_top; (paint < (typeof(paint))stack_bottom) && (paint < &sp); paint++)
 	{
 		*paint = stack_paint_magic;
 		stat_stack_painted += 4;

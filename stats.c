@@ -120,15 +120,19 @@ irom void stats_firmware(string_t *dst)
 	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
 	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
 	unsigned int flash_size				= (flash_id & 0x00ff0000) >> 16;
-	unsigned int stack_size = (uint32_t)stack_bottom - (uint32_t)sysram_top;
-	unsigned int stack_used = 0;
-	unsigned int stack_free = stack_size;
+	unsigned int stack_size = stack_bottom - stack_top;
+	int stack_used = -1; // no painted words found, overflow
+	int stack_free = -1;
 	uint32_t *sp;
 
-	for(sp = (void *)sysram_top; (sp < stat_stack_sp_initial) && (*sp == stack_paint_magic); sp++)
+	for(sp = (typeof(sp))stack_top; sp < (typeof(sp))stack_bottom; sp++)
+		if(*sp != stack_paint_magic)
+			break;
+
+	if(sp != (typeof(sp))stack_top)
 	{
-		stack_used += 4;
-		stack_free -= 4;
+		stack_free = (unsigned int)sp - stack_top;
+		stack_used = stack_bottom - (unsigned int)sp;
 	}
 
 	rst_info = system_get_rst_info();
@@ -143,13 +147,15 @@ irom void stats_firmware(string_t *dst)
 			"> reset cause: %s\n"
 			"> config sector address: %x\n"
 			"> rf calibration sector address: %x\n"
-			"> value of initial stack pointer: %p\n"
-			"> value of current stack pointer: %p\n"
+			"> stack bottom: %p\n"
+			"> stack top: %p\n"
+			"> value of initial stack pointer: %p (%u bytes)\n"
+			"> value of current stack pointer: %p (%u bytes)\n"
 			"> stack painted: %u bytes\n"
 			"> stack not painted: %u bytes\n"
 			"> stack size: %u bytes\n"
-			"> stack used: %u bytes\n"
-			"> stack free: %u bytes\n"
+			"> stack used: %d bytes\n"
+			"> stack free: %d bytes\n"
 			"> heap free: %u bytes\n",
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
@@ -160,8 +166,10 @@ irom void stats_firmware(string_t *dst)
 				reset_map[rst_info->reason],
 				USER_CONFIG_SECTOR * 0x1000,
 				RFCAL_ADDRESS,
-				stat_stack_sp_initial,
-				&sp,
+				(void *)stack_bottom,
+				(void *)stack_top,
+				stat_stack_sp_initial, (typeof(stat_stack_sp_initial))stack_bottom - stat_stack_sp_initial,
+				&sp, (typeof(&sp))stack_bottom - &sp,
 				stat_stack_painted,
 				stack_size - stat_stack_painted,
 				stack_size,
