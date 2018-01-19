@@ -32,19 +32,68 @@ typedef enum
 	reset_state_waiting
 } reset_state_t;
 
+typedef enum
+{
+	socket_state_idle,
+	socket_state_received,
+	socket_state_processing,
+	socket_state_sending,
+} socket_state_t;
+
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
 os_event_t background_task_queue[background_task_queue_length];
 
-static bool_t	uart_bridge_active = false;
+typedef struct
+{
+	socket_t		socket;
+	socket_state_t	state;
+	string_t		receive_buffer;
+	string_t		send_buffer;
+} socket_data_t;
 
-static socket_t socket_cmd;
-static socket_t socket_uart;
+static char _socket_cmd_send_buffer[4096 + 8];
 
-static ETSTimer fast_timer;
-static ETSTimer slow_timer;
+static socket_data_t socket_cmd =
+{
+	.state = socket_state_idle,
+	.receive_buffer =
+	{
+		.length = 0,
+		.size = 0,
+		.buffer = (char *)0
+	},
+	.send_buffer =
+	{
+		.length = 0,
+		.size = sizeof(_socket_cmd_send_buffer),
+		.buffer = _socket_cmd_send_buffer
+	}
+};
 
+static char _socket_uart_send_buffer[1024];
+
+static socket_data_t socket_uart =
+{
+	.state = socket_state_idle,
+
+	.receive_buffer =
+	{
+		.length = 0,
+		.size = 0,
+		.buffer = (char *)0
+	},
+	.send_buffer =
+	{
+		.length = 0,
+		.size = sizeof(_socket_uart_send_buffer),
+		.buffer = _socket_uart_send_buffer
+	}
+};
+
+static bool_t uart_bridge_active = false;
 static reset_state_t reset_state = reset_state_inactive;
+
 static struct
 {
 	unsigned int disconnect:1;
@@ -56,6 +105,9 @@ static struct
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
 };
+
+static ETSTimer fast_timer;
+static ETSTimer slow_timer;
 
 queue_t uart_send_queue;
 queue_t uart_receive_queue;
@@ -85,17 +137,25 @@ static void user_init2(void);
 
 iram static bool_t background_task_bridge_uart(void)
 {
-	// send data in the uart receive fifo to tcp
-	// if there is still data in uart receive fifo that can't be
-	// sent to tcp yet, callback_sent will call us when it can
-
-	while(!queue_empty(&uart_receive_queue) && string_space(socket_uart.send_buffer))
-		string_append(socket_uart.send_buffer, queue_pop(&uart_receive_queue));
-
-	if(string_length(socket_uart.send_buffer) > 0)
+	if(socket_uart.state == socket_state_idle)
 	{
-		socket_send(&socket_uart, string_to_ptr(socket_uart.send_buffer), string_length(socket_uart.send_buffer));
-		return(true);
+		while(!queue_empty(&uart_receive_queue) && string_space(&socket_uart.send_buffer))
+			string_append_char(&socket_uart.send_buffer, queue_pop(&uart_receive_queue));
+
+		if(!string_empty(&socket_uart.send_buffer))
+		{
+			socket_uart.state = socket_state_sending;
+
+			if(socket_send(&socket_uart.socket, &socket_uart.send_buffer))
+				return(true);
+			else
+			{
+				string_clear(&socket_uart.send_buffer);
+				socket_uart.state = socket_state_idle;
+				stat_uart_send_buffer_overflow++;
+				return(false);
+			}
+		}
 	}
 
 	return(false);
@@ -105,8 +165,7 @@ iram static bool_t background_task_longop_handler(void)
 {
 	if(bg_action.disconnect)
 	{
-		if(socket_cmd.tcp.child_socket != (struct espconn *)0)
-			espconn_disconnect(socket_cmd.tcp.child_socket);
+		socket_disconnect_accepted(&socket_cmd.socket);
 		bg_action.disconnect = 0;
 		return(true);
 	}
@@ -134,12 +193,14 @@ iram static bool_t background_task_longop_handler(void)
 
 iram static bool_t background_task_command_handler(void)
 {
-	if(!socket_cmd.receive_ready)
+	if(socket_cmd.state != socket_state_received)
 		return(false);
 
-	socket_cmd.receive_ready = false;
+	socket_cmd.state = socket_state_processing;
 
-	switch(application_content(&socket_cmd.receive_buffer, socket_cmd.send_buffer))
+	string_clear(&socket_cmd.send_buffer);
+
+	switch(application_content(&socket_cmd.receive_buffer, &socket_cmd.send_buffer))
 	{
 		case(app_action_normal):
 		case(app_action_error):
@@ -172,14 +233,21 @@ iram static bool_t background_task_command_handler(void)
 		{
 #if IMAGE_OTA == 1
 			rboot_config rcfg = rboot_get_config();
-			string_format(socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
+			string_format(&socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
 			reset_state = reset_state_send_reply;
 #endif
 			break;
 		}
 	}
 
-	socket_send(&socket_cmd, string_to_ptr(socket_cmd.send_buffer), string_length(socket_cmd.send_buffer));
+	socket_cmd.state = socket_state_sending;
+
+	if(!socket_send(&socket_cmd.socket, &socket_cmd.send_buffer))
+	{
+		stat_cmd_send_buffer_overflow++;
+		socket_cmd.state = socket_state_idle;
+		return(false);
+	}
 
 	return(true);
 }
@@ -195,8 +263,8 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 	{
 		case(reset_state_request_tcp_disconnect):
 		{
-			if(socket_cmd.tcp.child_socket != (struct espconn *)0)
-				espconn_disconnect(socket_cmd.tcp.child_socket);
+			socket_disconnect_accepted(&socket_cmd.socket);
+
 			reset_state = reset_state_wait_tcp_disconnect;
 			break;
 		}
@@ -231,7 +299,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 
 	if(background_task_command_handler())
 	{
-		if(socket_cmd.remote.proto == proto_tcp)
+		if(socket_proto(&socket_cmd.socket) == proto_tcp)
 			stat_update_command_tcp++;
 		else
 			stat_update_command_udp++;
@@ -403,51 +471,37 @@ irom static void wlan_event_handler(System_Event_t *event)
 		io_trigger_pin((string_t *)0, trigger_io, trigger_pin, trigger);
 }
 
-irom static void callback_received_cmd(socket_t *socket, int length, char *buffer)
-{
-	if(socket->receive_ready)
-		return;
+// SOCKET CALLBACKS
 
-	if(length > 0)
+// received
+
+iram static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
+{
+	if(socket_cmd.state != socket_state_idle)
 	{
-		if(buffer[length - 1] == '\n')
-		{
-			if((length > 1) && (buffer[length - 2] == '\r'))
-				length -= 2;
-			else
-				length--;
-		}
-		else
-		{
-			if(buffer[length - 1] == '\r')
-			{
-				if((length > 1) && (buffer[length - 2] == '\n'))
-					length -= 2;
-				else
-					length--;
-			}
-		}
 		stat_cmd_receive_buffer_overflow++;
 		return;
 	}
 
-	buffer[length] = '\0';
-	string_set(&socket->receive_buffer, buffer, length, length);
-	socket->receive_ready = true;
+	socket_cmd.receive_buffer = *buffer;
+	socket_cmd.state = socket_state_received;
 
 	system_os_post(background_task_id, 0, 0);
 }
 
 iram static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
 {
-	int current, byte;
+	int current, length;
+	uint8_t byte;
 	bool_t strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
+
+	length = string_length(buffer);
 
 	strip_telnet = config_flags_get().flag.strip_telnet;
 	telnet_strip_state = ts_copy;
 
-	for(current = 0; (current < length) && !queue_full(&uart_send_queue); current++)
+	for(current = 0; current < length; current++)
 	{
 		byte = string_at(buffer, current);
 
@@ -483,7 +537,9 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 	uart_start_transmit(!queue_empty(&uart_send_queue));
 }
 
-irom static void callback_sent_cmd(socket_t *socket)
+// sent
+
+iram static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
 	if(reset_state == reset_state_send_reply)
 	{
@@ -493,13 +549,16 @@ irom static void callback_sent_cmd(socket_t *socket)
 			reset_state = reset_state_request_tcp_disconnect;
 	}
 
-	socket->receive_ready = false;
+	socket_cmd.state = socket_state_idle;
 }
 
 iram static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!queue_empty(&uart_receive_queue))
 		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo
+
+	string_clear(&socket_uart.send_buffer);
+	socket_uart.state = socket_state_idle;
 }
 
 // error
@@ -509,28 +568,49 @@ irom static void callback_error_cmd(socket_t *socket, int error, void *userdata)
 	if(reset_state != reset_state_inactive)
 		reset_state = reset_state_go;
 
-	socket->receive_ready = false;
+	socket_cmd.state = socket_state_idle;
 }
 
-irom static void callback_disconnect_cmd(socket_t *socket)
+irom static void callback_error_uart(socket_t *socket, int error, void *userdata)
+{
+	string_clear(&socket_uart.send_buffer);
+	socket_uart.state = socket_state_idle;
+}
+
+// disconnect
+
+irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 {
 	if((reset_state == reset_state_request_tcp_disconnect) || (reset_state == reset_state_wait_tcp_disconnect))
 		reset_state = reset_state_wait;
 
-	socket->receive_ready = false;
+	socket_cmd.state = socket_state_idle;
 }
 
-irom static void callback_accept_uart(socket_t *socket)
+irom static void callback_disconnect_uart(socket_t *socket, void *userdata)
+{
+	string_clear(&socket_uart.send_buffer);
+	socket_uart.state = socket_state_idle;
+}
+
+// accept
+
+irom static void callback_accept_cmd(socket_t *socket, void *userdata)
+{
+	socket_cmd.state = socket_state_idle;
+}
+
+irom static void callback_accept_uart(socket_t *socket, void *userdata)
 {
 	queue_flush(&uart_send_queue);
 	queue_flush(&uart_receive_queue);
+
+	string_clear(&socket_uart.send_buffer);
+	socket_uart.state = socket_state_idle;
 }
 
 irom static void user_init2(void)
 {
-	string_new(static, send_buffer_uart, 1024);
-	string_new(static, send_buffer_cmd, 4096 + 8); // need a few extra bytes to make up exactly 4096 bytes for OTA
-
 	int uart_port, uart_timeout;
 	int cmd_port, cmd_timeout;
 
@@ -562,13 +642,13 @@ irom static void user_init2(void)
 	time_init();
 	io_init();
 
-	socket_create(true, true, &socket_cmd, &send_buffer_cmd, cmd_port, cmd_timeout,
-			callback_received_cmd, callback_sent_cmd, callback_error_cmd, callback_disconnect_cmd, (void *)0);
+	socket_create(true, true, &socket_cmd.socket, cmd_port, cmd_timeout,
+			callback_received_cmd, callback_sent_cmd, callback_error_cmd, callback_disconnect_cmd, callback_accept_cmd, (void *)&socket_cmd);
 
 	if(uart_port > 0)
 	{
-		socket_create(true, true, &socket_uart,	&send_buffer_uart,	uart_port,	uart_timeout,
-				callback_received_uart, callback_sent_uart, (void *)0, (void *)0, callback_accept_uart);
+		socket_create(true, true, &socket_uart.socket, uart_port, uart_timeout,
+				callback_received_uart, callback_sent_uart, callback_error_uart, callback_disconnect_uart, callback_accept_uart, (void *)&socket_uart);
 
 		uart_bridge_active = true;
 	}

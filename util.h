@@ -193,6 +193,11 @@ always_inline static int string_size(const string_t *dst)
 	return(dst->size);
 }
 
+always_inline static int string_empty(const string_t *dst)
+{
+	return(dst->length == 0);
+}
+
 always_inline static const char *string_buffer(const string_t *string)
 {
 	return(string->buffer);

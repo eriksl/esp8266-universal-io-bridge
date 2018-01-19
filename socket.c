@@ -33,14 +33,8 @@ iram static socket_t *find_socket(struct espconn *esp_socket)
 	return((socket_t *)0);
 }
 
-iram static void socket_callback_received(void *arg, char *buffer, unsigned short length)
+iram static void set_remote(struct espconn *esp_socket, socket_t *socket)
 {
-	socket_t		*socket;
-	struct espconn	*esp_socket = (struct espconn *)arg;
-
-	if(!(socket = find_socket(esp_socket)))
-		return;
-
 	switch(esp_socket->type)
 	{
 		case(ESPCONN_TCP):
@@ -83,58 +77,12 @@ iram static void socket_callback_received(void *arg, char *buffer, unsigned shor
 			break;
 		}
 	}
-
-	if(socket->callback_received)
-		socket->callback_received(socket, length, buffer);
 }
 
-iram static void socket_callback_sent(void *arg)
-{
-	struct espconn *esp_socket = (struct espconn *)arg;
-	socket_t *socket;
-
-	if(!(socket = find_socket(esp_socket)))
-		return;
-
-	if(socket->callback_sent)
-		socket->callback_sent(socket);
-
-	string_clear(socket->send_buffer);
-	socket->send_busy = false;
-}
-
-irom static void socket_callback_error(void *arg, int8_t error)
-{
-	struct espconn *esp_socket = (struct espconn *)arg;
-	socket_t *socket;
-
-	if(!(socket = find_socket(esp_socket)))
-		return;
-
-	if(socket->callback_error)
-		socket->callback_error(socket, error);
-
-	string_clear(socket->send_buffer);
-	socket->send_busy = false;
-}
-
-irom static void socket_callback_disconnect(void *arg)
-{
-	struct espconn *esp_socket = (struct espconn *)arg;
-	socket_t *socket;
-
-	if(!(socket = find_socket(esp_socket)))
-		return;
-
-	if(socket->callback_disconnect)
-		socket->callback_disconnect(socket);
-
-	socket->tcp.child_socket	= (struct espconn *)0;
-	socket->remote.proto		= proto_none;
-
-	string_clear(socket->send_buffer);
-	socket->send_busy = false;
-}
+static void socket_callback_sent(void *arg);
+static void socket_callback_received(void *arg, char *buffer, unsigned short length);
+static void socket_callback_disconnect(void *arg);
+static void socket_callback_error(void *arg, int8_t error);
 
 irom static void socket_callback_accept(void *arg)
 {
@@ -149,15 +97,18 @@ irom static void socket_callback_accept(void *arg)
 
 	socket->tcp.child_socket = new_esp_socket;
 
+	set_remote(new_esp_socket, socket);
+
 	espconn_regist_recvcb(socket->tcp.child_socket,		socket_callback_received);
 	espconn_regist_sentcb(socket->tcp.child_socket,		socket_callback_sent);
 	espconn_regist_disconcb(socket->tcp.child_socket,	socket_callback_disconnect);
 	espconn_regist_reconcb(socket->tcp.child_socket,	socket_callback_error);
 
-	espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
+	//espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
+	espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR);
 
 	if(socket->callback_accept)
-		socket->callback_accept(socket);
+		socket->callback_accept(socket, socket->tcp.child_socket);
 
 	return;
 
@@ -165,12 +116,75 @@ disconnect:
 	espconn_disconnect(new_esp_socket); // actually not allowed but not supposed to occur
 }
 
-iram void socket_send(socket_t *socket, string_t *buffer)
+iram static void socket_callback_received(void *arg, char *buffer, unsigned short length)
+{
+	string_t		string_buffer;
+	socket_t		*socket;
+	struct espconn	*esp_socket = (struct espconn *)arg;
+
+	if(!(socket = find_socket(esp_socket)))
+		return;
+
+	set_remote(esp_socket, socket);
+
+	if(socket->callback_received)
+	{
+		string_set(&string_buffer, buffer, length, length);
+		socket->callback_received(socket, &string_buffer, socket->userdata);
+	}
+}
+
+iram static void socket_callback_sent(void *arg)
+{
+	struct espconn *esp_socket = (struct espconn *)arg;
+	socket_t *socket;
+
+	if(!(socket = find_socket(esp_socket)))
+		return;
+
+	if(socket->callback_sent)
+		socket->callback_sent(socket, socket->userdata);
+
+	socket->send_busy = false;
+}
+
+irom static void socket_callback_error(void *arg, int8_t error)
+{
+	struct espconn *esp_socket = (struct espconn *)arg;
+	socket_t *socket;
+
+	if(!(socket = find_socket(esp_socket)))
+		return;
+
+	if(socket->callback_error)
+		socket->callback_error(socket, error, socket->userdata);
+
+	socket->send_busy = false;
+}
+
+irom static void socket_callback_disconnect(void *arg)
+{
+	struct espconn *esp_socket = (struct espconn *)arg;
+	socket_t *socket;
+
+	if(!(socket = find_socket(esp_socket)))
+		return;
+
+	if(socket->callback_disconnect)
+		socket->callback_disconnect(socket, socket->userdata);
+
+	socket->tcp.child_socket	= (struct espconn *)0;
+	socket->remote.proto		= proto_none;
+
+	socket->send_busy = false;
+}
+
+iram bool_t socket_send(socket_t *socket, string_t *buffer)
 {
 	struct espconn *esp_socket;
 
 	if(socket->send_busy)
-		return;
+		goto error;
 
 	switch(socket->remote.proto)
 	{
@@ -194,26 +208,28 @@ iram void socket_send(socket_t *socket, string_t *buffer)
 
 		default:
 		{
-			return;
+			goto error;
 		}
 	}
 
 	socket->send_busy = true;
 
-	if(espconn_send(esp_socket, buffer, length) == 0)
-		socket->send_busy = false;
-	else
-		stat_send_buffer_full++;
+	if(espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer)) == 0)
+		return(true);
 
-	return;
+error:
+	socket->send_busy = false;
+	return(false);
 }
 
-irom void socket_create(bool tcp, bool udp, socket_t *socket, string_t *send_buffer, int port, int timeout,
-		void (*callback_received)(socket_t *, int, char *),
-		void (*callback_sent)(socket_t *),
-		void (*callback_error)(socket_t *, int),
-		void (*callback_disconnect)(socket_t *),
-		void (*callback_accept)(socket_t *))
+irom void socket_create(bool tcp, bool udp, socket_t *socket,
+		int port, int timeout,
+		void (*callback_received)(socket_t *, const string_t *, void *userdata),
+		void (*callback_sent)(socket_t *, void *userdata),
+		void (*callback_error)(socket_t *, int, void *userdata),
+		void (*callback_disconnect)(socket_t *, void *userdata),
+		void (*callback_accept)(socket_t *, void *userdata),
+		void *userdata)
 {
 	if(sockets_length >= (sizeof(sockets) / sizeof(*sockets)))
 		return;
@@ -254,9 +270,7 @@ irom void socket_create(bool tcp, bool udp, socket_t *socket, string_t *send_buf
 		espconn_create(&socket->udp.socket);
 	}
 
-	socket->send_buffer		= send_buffer;
 	socket->remote.proto	= proto_none;
-	socket->receive_ready	= false;
 	socket->send_busy		= false;
 
 	socket->remote.proto			= proto_none;
@@ -271,7 +285,4 @@ irom void socket_create(bool tcp, bool udp, socket_t *socket, string_t *send_buf
 	socket->callback_error		= callback_error;
 	socket->callback_disconnect	= callback_disconnect;
 	socket->callback_accept		= callback_accept;
-
-	string_clear(&socket->receive_buffer);
-	string_clear(socket->send_buffer);
 }

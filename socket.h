@@ -28,9 +28,6 @@ typedef struct _socket_t
 		struct espconn	*child_socket;
 	} tcp;
 
-	string_t 		receive_buffer;
-	string_t 		*send_buffer;
-	bool_t			receive_ready;
 	bool_t			send_busy;
 
 	struct
@@ -40,21 +37,24 @@ typedef struct _socket_t
 		ip_addr_to_bytes_t	address;
 	} remote;
 
-	void (*callback_received)(struct _socket_t *, int, char *);
-	void (*callback_sent)(struct _socket_t *);
-	void (*callback_error)(struct _socket_t *, int error);
-	void (*callback_disconnect)(struct _socket_t *);
-	void (*callback_accept)(struct _socket_t *);
+	void (*callback_received)(struct _socket_t *, const string_t *, void *userdata);
+	void (*callback_sent)(struct _socket_t *, void *userdata);
+	void (*callback_error)(struct _socket_t *, int error, void *userdata);
+	void (*callback_disconnect)(struct _socket_t *, void *userdata);
+	void (*callback_accept)(struct _socket_t *, void *userdata);
+	void *userdata;
 } socket_t;
 
-void socket_send(socket_t *socket, char *buffer, int length);
+bool_t socket_send(socket_t *socket, string_t *);
 
-void socket_create(bool tcp, bool udp, socket_t *socket, string_t *send_buffer, int port, int timeout,
-		void (*callback_received)(socket_t *, int, char *),
-		void (*callback_sent)(socket_t *),
-		void (*callback_error)(socket_t *, int),
-		void (*callback_disconnect)(socket_t *),
-		void (*callback_accept)(socket_t *));
+void socket_create(bool tcp, bool udp, socket_t *socket,
+		int port, int timeout,
+		void (*callback_received)(socket_t *, const string_t *, void *userdata),
+		void (*callback_sent)(socket_t *, void *userdata),
+		void (*callback_error)(socket_t *, int, void *userdata),
+		void (*callback_disconnect)(socket_t *, void *userdata),
+		void (*callback_accept)(socket_t *, void *userdata),
+		void *userdata);
 
 always_inline static socket_proto_t socket_proto(socket_t *socket)
 {
