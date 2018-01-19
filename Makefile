@@ -303,6 +303,9 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 ota:					$(FIRMWARE_OTA_IMG) free otapush
 						./otapush write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
+ota-dummy:				$(FIRMWARE_OTA_IMG) free otapush
+						./otapush -d write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+
 ota-default:
 						./otapush write $(OTA_HOST) $(RF_FILE) $(RF_OFFSET_OTA)
 						./otapush write $(OTA_HOST) $(SYSTEM_FILE) $(SYSTEM_OFFSET_OTA)
