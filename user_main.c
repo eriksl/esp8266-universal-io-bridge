@@ -429,7 +429,7 @@ irom static void callback_received_cmd(socket_t *socket, int length, char *buffe
 					length--;
 			}
 		}
-		stat_receive_buffer_full++;
+		stat_cmd_receive_buffer_overflow++;
 		return;
 	}
 
@@ -460,7 +460,12 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 				if(strip_telnet && (byte == 0xff))
 					telnet_strip_state = ts_dodont;
 				else
-					queue_push(&uart_send_queue, (char)byte);
+				{
+					if(queue_full(&uart_send_queue))
+						stat_uart_receive_buffer_overflow++;
+					else
+						queue_push(&uart_send_queue, byte);
+				}
 
 				break;
 			}
