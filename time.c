@@ -11,6 +11,8 @@ typedef struct
 	unsigned int ntp_server_valid:1;
 } time_flags_t;
 
+static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w);
+
 static time_flags_t time_flags;
 
 // uptime
@@ -37,7 +39,7 @@ iram static void uptime_periodic(void)
 	uptime_last_us = uptime_now;
 }
 
-irom void time_uptime_get(unsigned int *s, unsigned int *ms,
+irom static void uptime_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -61,7 +63,16 @@ irom void time_uptime_get(unsigned int *s, unsigned int *ms,
 		*base = uptime_base_us;
 
 	if(wraps)
-		*wraps = 0;
+		*wraps = uptime_wraps;
+}
+
+irom string_t *time_uptime_stats(void)
+{
+	int secs, msecs, raw1, raw2, base, wraps;
+
+	uptime_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+
+	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
 }
 
 // system
@@ -88,7 +99,7 @@ iram static void system_periodic(void)
 	system_last_us = system_now;
 }
 
-irom void time_system_get(unsigned int *s, unsigned int *ms,
+irom static void system_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -112,7 +123,16 @@ irom void time_system_get(unsigned int *s, unsigned int *ms,
 		*base = system_base_us;
 
 	if(wraps)
-		*wraps = 0;
+		*wraps = system_wraps;
+}
+
+irom string_t *time_system_stats(void)
+{
+	int secs, msecs, raw1, raw2, base, wraps;
+
+	system_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+
+	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
 }
 
 // rtc
@@ -160,7 +180,7 @@ iram static void rtc_periodic(void)
 	rtc_last_value = rtc_current_value;
 }
 
-irom void time_rtc_get(unsigned int *s, unsigned int *ms,
+irom static void rtc_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -185,6 +205,15 @@ irom void time_rtc_get(unsigned int *s, unsigned int *ms,
 
 	if(wraps)
 		*wraps = rtc_wraps;
+}
+
+irom string_t *time_rtc_stats(void)
+{
+	int secs, msecs, raw1, raw2, base, wraps;
+
+	rtc_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+
+	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
 }
 
 // timer
@@ -213,7 +242,7 @@ iram static void timer_periodic(void)
 	}
 }
 
-irom void time_timer_get(unsigned int *s, unsigned int *ms,
+irom static void timer_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -234,6 +263,15 @@ irom void time_timer_get(unsigned int *s, unsigned int *ms,
 
 	if(wraps)
 		*wraps = timer_wraps;
+}
+
+irom string_t *time_timer_stats(void)
+{
+	int secs, msecs, raw1, raw2, base, wraps;
+
+	timer_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+
+	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
 }
 
 // ntp
@@ -308,7 +346,7 @@ iram static void ntp_periodic(void)
 		ntp_base_s = ntp_s;
 }
 
-irom void time_ntp_get(unsigned int *s, unsigned int *ms,
+irom static void ntp_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -316,6 +354,9 @@ irom void time_ntp_get(unsigned int *s, unsigned int *ms,
 
 	if(!time_flags.ntp_server_valid)
 	{
+		if(s)
+			*s = 0;
+
 		if(ms)
 			*ms = 0;
 
@@ -360,7 +401,35 @@ irom void time_ntp_get(unsigned int *s, unsigned int *ms,
 	}
 }
 
+irom string_t *time_ntp_stats(void)
+{
+	int secs, msecs, raw1, raw2, base, wraps;
+
+	ntp_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+
+	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+}
+
 // generic interface
+
+irom static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
+{
+	string_new(static, value, 64);
+	int d, h, m;
+
+	string_clear(&value);
+
+	d = s / (24 * 60 * 60);
+	s -= d * 24 * 60 * 60;
+	h = s / (60 * 60);
+	s -= h * 60 * 60;
+	m = s / 60;
+	s -= m * 60;
+
+	string_format(&value, "%2u %02u:%02u:%02u.%03u (r1=%u,r2=%u,b=%u,w=%u)", d, h, m, s, ms, r1, r2, b, w);
+
+	return(&value);
+}
 
 static unsigned int time_base_s;
 
@@ -408,12 +477,12 @@ irom const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 	if(ntp_base_s > 0) // we have ntp sync
 	{
 		source = "ntp";
-		time_ntp_get(0, 0, &time_s, 0, 0, 0);
+		ntp_get(0, 0, &time_s, 0, 0, 0);
 	}
 	else
 	{
 		source = "rtc";
-		time_rtc_get(&time_s, 0, 0, 0, 0, 0);
+		rtc_get(&time_s, 0, 0, 0, 0, 0);
 		time_s = (unsigned int)(time_s + time_base_s);
 	}
 

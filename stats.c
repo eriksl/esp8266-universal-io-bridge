@@ -206,34 +206,17 @@ irom void stats_firmware(string_t *dst)
 
 irom void stats_time(string_t *dst)
 {
-	unsigned int uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps;
-	unsigned int system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps;
-	unsigned int rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps;
-	unsigned int timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps;
-	unsigned int ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps;
 	unsigned int Y, M, D, h, m, s;
 	const char *time_source;
 
-	time_uptime_get(&uptime_secs, &uptime_msecs, &uptime_raw1, &uptime_raw2, &uptime_base, &uptime_wraps);
-	time_system_get(&system_secs, &system_msecs, &system_raw1, &system_raw2, &system_base, &system_wraps);
-	time_rtc_get(&rtc_secs, &rtc_msecs, &rtc_raw1, &rtc_raw2, &rtc_base, &rtc_wraps);
-	time_timer_get(&timer_secs, &timer_msecs, &timer_raw1, &timer_raw2, &timer_base, &timer_wraps);
-	time_ntp_get(&ntp_secs, &ntp_msecs, &ntp_raw1, &ntp_raw2, &ntp_base, &ntp_wraps);
 	time_source = time_get(&h, &m, &s, &Y, &M, &D);
 
-	string_format(dst,
-			"> uptime: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
-			"> system: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> rtc: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> timer: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u,d=%d)\n"
-			"> ntp: %u.%03u s (r1=%u,r2=%u,b=%u,w=%u)\n"
-			"> time: %04u/%02u/%02u %02u:%02u:%02u, source: %s\n",
-				uptime_secs, uptime_msecs, uptime_raw1, uptime_raw2, uptime_base, uptime_wraps,
-				system_secs, system_msecs, system_raw1, system_raw2, system_base, system_wraps, system_secs - ntp_secs,
-				rtc_secs, rtc_msecs, rtc_raw1, rtc_raw2, rtc_base, rtc_wraps, rtc_secs - ntp_secs,
-				timer_secs, timer_msecs, timer_raw1, timer_raw2, timer_base, timer_wraps, timer_secs - ntp_secs,
-				ntp_secs, ntp_msecs, ntp_raw1, ntp_raw2, ntp_base, ntp_wraps,
-				Y, M, D, h, m, s, time_source);
+	string_format(dst, "> uptime: %s\n", string_to_cstr(time_uptime_stats()));
+	string_format(dst, "> system: %s\n", string_to_cstr(time_system_stats()));
+	string_format(dst, "> rtc:    %s\n", string_to_cstr(time_rtc_stats()));
+	string_format(dst, "> timer:  %s\n", string_to_cstr(time_timer_stats()));
+	string_format(dst, "> ntp:    %s\n", string_to_cstr(time_ntp_stats()));
+	string_format(dst, "> time:   %04u/%02u/%02u %02u:%02u:%02u, source: %s\n", Y, M, D, h, m, s, time_source);
 }
 
 irom void stats_counters(string_t *dst)
