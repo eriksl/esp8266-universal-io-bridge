@@ -135,7 +135,7 @@ ifeq ($(IMAGE),ota)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
-	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush
+	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush resetserial
 	FLASH_TARGET := flash-ota
 endif
 
@@ -189,7 +189,7 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(CONFIG_DEFAULT_ELF) \
-						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush
+						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush resetserial
 
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
@@ -281,7 +281,7 @@ $(CONFIG_DEFAULT_BIN):	$(CONFIG_DEFAULT_ELF)
 
 flash:					$(FLASH_TARGET)
 
-flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
+flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free resetserial
 						$(VECHO) "FLASH PLAIN"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
@@ -290,7 +290,7 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free
 							$(SYSTEM_OFFSET_PLAIN) $(SYSTEM_FILE) \
 							$(RFCAL_OFFSET_PLAIN) $(RFCAL_FILE) \
 
-flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
+flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free resetserial
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
@@ -344,5 +344,9 @@ wipe-config:
 						$(Q) $(CC) -x c $(WARNINGS) $(CFLAGS) -I$(RBOOT) $(CINC) -c $< -o $@
 
 otapush:				otapush.c
+						$(VECHO) "HOST CC $<"
+						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
+
+resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"
 						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
