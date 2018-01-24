@@ -194,6 +194,22 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 	string_append(name, "error");
 }
 
+irom static void io_strings_from_modes(string_t *dst)
+{
+	int ix;
+	const io_mode_trait_t *entry;
+
+	for(ix = 0; ix < io_pin_size; ix++)
+	{
+		entry = &io_mode_traits[ix];
+
+		if(ix != 0)
+			string_append(dst, "/");
+
+		string_append_cstr(dst, entry->short_name);
+	}
+}
+
 typedef struct
 {
 	io_pin_ll_mode_t	mode;
@@ -1516,7 +1532,9 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	if((mode = io_mode_from_string(dst)) == io_pin_error)
 	{
 		string_clear(dst);
-		string_append(dst, "invalid mode\n");
+		string_append(dst, "invalid mode, available modes: ");
+		io_strings_from_modes(dst);
+		string_append(dst, "\n");
 		return(app_action_error);
 	}
 
