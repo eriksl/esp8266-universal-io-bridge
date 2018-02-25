@@ -25,7 +25,7 @@ int stat_slow_timer;
 int stat_timer_interrupts;
 int stat_pwm_timer_interrupts;
 int stat_pwm_timer_interrupts_while_nmi_masked;
-int stat_pc_interrupts;
+int stat_pc_counts;
 int stat_i2c_init_time_us;
 int stat_display_init_time_us;
 int stat_cmd_receive_buffer_overflow;
@@ -231,7 +231,7 @@ irom void stats_counters(string_t *dst)
 			"> slow timer fired: %u\n"
 			"> pwm timer int fired: %u\n"
 			"> ... while masked: %u\n"
-			"> pc int fired: %u\n"
+			"> pc counts: %u\n"
 			"> uart updated: %u\n"
 			"> longops processed: %u\n"
 			"> commands/udp processed: %u\n"
@@ -251,7 +251,7 @@ irom void stats_counters(string_t *dst)
 				stat_slow_timer,
 				stat_pwm_timer_interrupts,
 				stat_pwm_timer_interrupts_while_nmi_masked,
-				stat_pc_interrupts,
+				stat_pc_counts,
 				stat_update_uart,
 				stat_update_longop,
 				stat_update_command_udp,

@@ -25,7 +25,7 @@ extern int stat_fast_timer;
 extern int stat_slow_timer;
 extern int stat_pwm_timer_interrupts;
 extern int stat_pwm_timer_interrupts_while_nmi_masked;
-extern int stat_pc_interrupts;
+extern int stat_pc_counts;
 extern int stat_i2c_init_time_us;
 extern int stat_display_init_time_us;
 extern int stat_cmd_receive_buffer_overflow;
