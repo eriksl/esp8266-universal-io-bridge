@@ -18,33 +18,43 @@ enum
 	FUNC_GPIO7 = 3,
 	FUNC_GPIO8 = 3,
 	FUNC_GPIO11 = 3
-};
+} FUNC;
 
 // from SDK hw_timer.c
+enum
+{
+	INT_ENABLE_REG = 0x3ff00004,
+	INT_ENABLE_WDOG = 1 << 0,
+	INT_ENABLE_FRC1 = 1 << 1,
+	INT_ENABLE_FRC2 = 1 << 2,
+} INT_ENABLE;
 
 enum
 {
-	FRC1_DIVIDE_BY_1 = 0,
-	FRC1_DIVIDE_BY_16 = 4,
-	FRC1_DIVIDE_BY_256 = 8
-};
+	FRC1_LOAD_REG = 0x60000600,
+} FRC1_LOAD;
 
 enum
 {
-	FRC1_EDGE_INT = 0,
-	FCR1_LEVEL_INT = 1
-};
+	FRC1_COUNT_REG = 0x60000604,
+} FRC1_COUNT;
 
 enum
 {
-	FRC1_AUTO_LOAD = 0x0040,
-	FRC1_ENABLE_TIMER = 0x0080,
-};
+	FRC1_CTRL_REG = 0x60000608,
+	FRC1_CTRL_INT_EDGE		= 0 << 0,
+	FRC1_CTRL_INT_LEVEL		= 1 << 0,
+	FRC1_CTRL_DIVIDE_BY_16	= 1 << 2,
+	FRC1_CTRL_DIVIDE_BY_256	= 1 << 3,
+	FRC1_CTRL_AUTO_RELOAD	= 1 << 6,
+	FRC1_CTRL_ENABLE_TIMER	= 1 << 7,
+} FRC1_CTRL;
 
 enum
 {
-	FRC1_NMI_SOURCE = 0x8000
-};
+	FRC1_INT_REG = 0x6000060c,
+	FRC1_INT_CLEAR = 1 << 0
+} FRC1_INT;
 
 enum
 {
@@ -224,6 +234,7 @@ typedef struct
 	unsigned int	pwm_next_phase_set:1;
 	unsigned int	pwm_cpu_high_speed:1;
 	unsigned int	counter_triggered:1;
+	unsigned int	pwm_int_enabled:1;
 } io_gpio_flags_t;
 
 static unsigned int		pwm_current_phase_set;
@@ -232,27 +243,43 @@ static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
 
-iram always_inline static bool_t pwm_isr_enabled(void)
+static void pwm_isr(void);
+
+irom static void pwm_isr_setup(void)
 {
-	return(gpio_interrupts_enabled() & (1 << ETS_FRC_TIMER1_INUM));
+	NmiTimSetFunc(pwm_isr);
+	write_peri_reg(FRC1_CTRL_REG, FRC1_CTRL_INT_EDGE | FRC1_CTRL_DIVIDE_BY_16 | FRC1_CTRL_ENABLE_TIMER);
+	clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
+	ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
 }
 
-iram always_inline static void pwm_isr_enable(bool_t onoff)
+iram always_inline static bool_t pwm_isr_enabled(void)
 {
-	if(onoff)
-		ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
+	return(io_gpio_flags.pwm_int_enabled);
+}
+
+iram always_inline static void pwm_isr_enable(bool_t enable)
+{
+	if(enable)
+	{
+		io_gpio_flags.pwm_int_enabled = 1;
+		set_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
+	}
 	else
-		ets_isr_mask(1 << ETS_FRC_TIMER1_INUM);
+	{
+		clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
+		io_gpio_flags.pwm_int_enabled = 0;
+	}
 }
 
 iram always_inline static void pwm_timer_set(uint32_t value)
 {
-	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_LOAD_ADDRESS, value);
+	write_peri_reg(FRC1_LOAD_REG, value);
 }
 
 iram always_inline static uint32_t pwm_timer_get(void)
 {
-	return(read_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_COUNT_ADDRESS));
+	return(read_peri_reg(FRC1_COUNT_REG));
 }
 
 iram static void pwm_isr(void)
@@ -260,7 +287,15 @@ iram static void pwm_isr(void)
 	static unsigned int	phase, delay;
 	static pwm_phases_t *phase_data;
 
+	set_peri_reg_mask(FRC1_INT_REG, FRC1_INT_CLEAR);
+
 	stat_pwm_timer_interrupts++;
+
+	if(!pwm_isr_enabled())
+	{
+		stat_pwm_timer_interrupts_while_nmi_masked++;
+		return;
+	}
 
 	phase_data = &pwm_phase[pwm_current_phase_set & 0x01];
 
@@ -561,11 +596,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	pwm_phase[1].size = 0;
 
 	gpio_init();
-
-	pwm_isr_enable(false);
-	NmiTimSetFunc(pwm_isr);
-	set_peri_reg_mask(EDGE_INT_ENABLE_REG, BIT1);
-	write_peri_reg(PERIPHS_TIMER_BASEDDR + FRC1_CTRL_ADDRESS, FRC1_ENABLE_TIMER | FRC1_DIVIDE_BY_16 | FRC1_EDGE_INT);
+	pwm_isr_setup();
 
 	ets_isr_attach(ETS_GPIO_INUM, pc_int_isr, 0);
 	ets_isr_unmask(1 << ETS_GPIO_INUM);
@@ -638,6 +669,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 	}
 
 	gpio_func_select(pin, gpio_info->func);
+	gpio_pin_intr_state_set(pin, GPIO_PIN_INTR_DISABLE);
 
 	gpio_pin_data = &gpio_data[pin];
 

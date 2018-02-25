@@ -20,13 +20,6 @@ app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
 
 // generic
 
-always_inline static uint32_t gpio_interrupts_enabled(void)
-{
-    uint32_t enabled;
-    __asm__ __volatile__("esync; rsr %0,intenable":"=a" (enabled));
-    return enabled;
-}
-
 always_inline static uint32_t gpio_pin_addr(int pin)
 {
 	return(GPIO_PIN0_ADDRESS + (pin << 2));
