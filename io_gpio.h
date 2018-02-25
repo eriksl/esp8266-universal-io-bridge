@@ -71,14 +71,14 @@ always_inline static void gpio_reg_write(int reg, uint32_t value)
 
 // read input
 
-always_inline static uint32_t gpio_get_mask(void)
+always_inline static uint32_t gpio_get_all(void)
 {
 	return(gpio_reg_read(GPIO_IN_ADDRESS));
 }
 
 always_inline static int gpio_get(int io)
 {
-	return((gpio_get_mask() & (1 << io)) ? 1 : 0);
+	return((gpio_get_all() & (1 << io)) ? 1 : 0);
 }
 
 // set output low / high
