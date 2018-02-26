@@ -9,8 +9,6 @@
 
 #include <stdlib.h>
 
-// missing from eagle_soc.h
-
 enum
 {
 	FUNC_U0RXD = 0,
@@ -20,7 +18,6 @@ enum
 	FUNC_GPIO11 = 3
 } FUNC;
 
-// from SDK hw_timer.c
 enum
 {
 	INT_ENABLE_REG = 0x3ff00004,
