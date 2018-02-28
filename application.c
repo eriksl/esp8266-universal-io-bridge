@@ -772,7 +772,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_float(3, src, &factor, 0) == parse_ok) && (parse_float(4, src, &offset, 0) == parse_ok))
+	if((parse_float(3, src, &factor, ' ') == parse_ok) && (parse_float(4, src, &offset, ' ') == parse_ok))
 	{
 		int_factor = (int)(factor * 1000.0);
 		int_offset = (int)(offset * 1000.0);
