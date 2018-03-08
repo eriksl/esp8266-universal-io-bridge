@@ -106,7 +106,7 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 		rv = true;
 	}
 
-	if(string_match_cstr(flag, "log-to-uart") || string_match_cstr(flag, " lu"))
+	if(string_match_cstr(flag, "log-to-uart") || string_match_cstr(flag, "lu"))
 	{
 		flags.flag.log_to_uart = add ? 1 : 0;
 		rv = true;
@@ -148,7 +148,7 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 		rv = true;
 	}
 
-	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, " lb"))
+	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, "lb"))
 	{
 		flags.flag.log_to_buffer = add ? 1 : 0;
 		rv = true;
