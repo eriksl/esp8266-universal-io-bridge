@@ -1330,7 +1330,7 @@ irom void io_init(void)
 	}
 }
 
-iram void io_periodic(void)
+attr_speed iram void io_periodic(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;

@@ -59,7 +59,7 @@ static int instance_index(const struct io_info_entry_T *info)
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
-iram static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
+attr_speed iram static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -87,7 +87,7 @@ iram static io_error_t read_register(string_t *error_message, int address, int r
 	return(io_ok);
 }
 
-iram static io_error_t write_register(string_t *error_message, int address, int reg, int value)
+attr_speed iram static io_error_t write_register(string_t *error_message, int address, int reg, int value)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -106,7 +106,7 @@ iram static io_error_t write_register(string_t *error_message, int address, int 
 	return(io_ok);
 }
 
-iram static io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
+attr_speed iram static io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
 {
 	uint8_t i2cbuffer[2];
 	i2c_error_t error;
@@ -345,7 +345,7 @@ irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T 
 	return(io_ok);
 }
 
-iram io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+irom io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
 {
 	int bank, bankpin, tv;
 	mcp_data_pin_t *mcp_pin_data;
@@ -387,7 +387,7 @@ iram io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-iram io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
+irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
 {
 	int bank, bankpin;
 	mcp_data_pin_t *mcp_pin_data;

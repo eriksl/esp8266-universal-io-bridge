@@ -33,7 +33,7 @@ irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-iram void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+attr_speed iram void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	int pin;
 

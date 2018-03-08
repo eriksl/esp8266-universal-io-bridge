@@ -48,6 +48,7 @@ _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))
 #define attr_packed __attribute__ ((__packed__))
+#define attr_speed __attribute__ ((optimize("O3", "unroll-loops")))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 
 // make sure we don't use the broken memory management

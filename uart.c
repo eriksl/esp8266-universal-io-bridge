@@ -59,17 +59,17 @@ irom void uart_parameters_to_string(string_t *dst, const uart_parameters_t *para
 			params->stop_bits);
 }
 
-iram static int uart_rx_fifo_length(void)
+attr_speed iram static int uart_rx_fifo_length(void)
 {
 	return((read_peri_reg(UART_STATUS(0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-iram static int uart_tx_fifo_length(void)
+attr_speed iram static int uart_tx_fifo_length(void)
 {
 	return((read_peri_reg(UART_STATUS(0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
-iram static void uart_callback(void *p)
+attr_speed iram static void uart_callback(void *p)
 {
 	char data;
 
@@ -169,7 +169,7 @@ irom void uart_init(int baud, int data_bits, int stop_bits, uart_parity_t parity
 	ETS_UART_INTR_ENABLE();
 }
 
-iram void uart_start_transmit(char c)
+attr_speed iram void uart_start_transmit(char c)
 {
 	if(c)
 		set_peri_reg_mask(UART_INT_ENA(0), UART_TXFIFO_EMPTY_INT_ENA);

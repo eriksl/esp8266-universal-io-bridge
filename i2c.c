@@ -98,7 +98,7 @@ irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	string_append(dst, ")");
 }
 
-iram static inline void microdelay(void)
+attr_speed iram static inline void microdelay(void)
 {
 	int delay = i2c_bus_speed_delay;
 
@@ -106,47 +106,47 @@ iram static inline void microdelay(void)
 		asm("nop");
 }
 
-iram static inline void sda_low(void)
+attr_speed iram static inline void sda_low(void)
 {
 	gpio_set(sda_pin, 0);
 }
 
-iram static inline void sda_high(void)
+attr_speed iram static inline void sda_high(void)
 {
 	gpio_set(sda_pin, 1);
 }
 
-iram static inline void scl_low(void)
+attr_speed iram static inline void scl_low(void)
 {
 	gpio_set(scl_pin, 0);
 }
 
-iram static inline void scl_high(void)
+attr_speed iram static inline void scl_high(void)
 {
 	gpio_set(scl_pin, 1);
 }
 
-iram static inline bool_t sda_is_low(void)
+attr_speed iram static inline bool_t sda_is_low(void)
 {
 	return(!gpio_get(sda_pin));
 }
 
-iram static inline bool_t sda_is_high(void)
+attr_speed iram static inline bool_t sda_is_high(void)
 {
 	return(gpio_get(sda_pin));
 }
 
-iram static inline bool_t scl_is_low(void)
+attr_speed iram static inline bool_t scl_is_low(void)
 {
 	return(!gpio_get(scl_pin));
 }
 
-iram static inline bool_t scl_is_high(void)
+attr_speed iram static inline bool_t scl_is_high(void)
 {
 	return(gpio_get(scl_pin));
 }
 
-iram static inline i2c_error_t wait_for_scl(void)
+attr_speed static inline i2c_error_t wait_for_scl(void)
 {
 	int current;
 
@@ -317,7 +317,7 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_byte(int byte)
+attr_speed iram static i2c_error_t send_byte(int byte)
 {
 	i2c_error_t error;
 	int current;
@@ -371,7 +371,7 @@ iram static noinline i2c_error_t receive_bit(bool_t *bit)
 	return(i2c_error_ok);
 }
 
-iram static noinline i2c_error_t receive_byte(uint8_t *byte)
+attr_speed iram static noinline i2c_error_t receive_byte(uint8_t *byte)
 {
 	int current;
 	bool_t bit;
@@ -391,7 +391,7 @@ iram static noinline i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-iram static noinline i2c_error_t send_ack(bool_t ack)
+attr_speed iram static noinline i2c_error_t send_ack(bool_t ack)
 {
 	i2c_error_t error;
 
@@ -404,7 +404,7 @@ iram static noinline i2c_error_t send_ack(bool_t ack)
 	return(i2c_error_ok);
 }
 
-iram static noinline i2c_error_t receive_ack(bool_t *ack)
+attr_speed iram static noinline i2c_error_t receive_ack(bool_t *ack)
 {
 	i2c_error_t error;
 	bool_t bit;
@@ -420,7 +420,7 @@ iram static noinline i2c_error_t receive_ack(bool_t *ack)
 	return(i2c_error_ok);
 }
 
-iram static noinline i2c_error_t send_header(int address, i2c_direction_t direction)
+attr_speed iram static noinline i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t ack;
@@ -480,7 +480,7 @@ irom void i2c_init(int sda_in, int scl_in)
 	}
 }
 
-irom i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
+iram i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -531,7 +531,7 @@ bail:
 	return(error);
 }
 
-irom i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+attr_speed iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -574,7 +574,7 @@ bail:
 	return(error);
 }
 
-irom i2c_error_t i2c_send_1(int address, int byte0)
+attr_speed iram i2c_error_t i2c_send_1(int address, int byte0)
 {
 	uint8_t bytes[1];
 
@@ -583,7 +583,7 @@ irom i2c_error_t i2c_send_1(int address, int byte0)
 	return(i2c_send(address, true, 1, bytes));
 }
 
-irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
+attr_speed iram i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2];
 
@@ -593,7 +593,7 @@ irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 	return(i2c_send(address, true, 2, bytes));
 }
 
-irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
+attr_speed iram i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3];
 
@@ -604,7 +604,7 @@ irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 	return(i2c_send(address, true, 3, bytes));
 }
 
-irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
+attr_speed iram i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4];
 
@@ -616,7 +616,7 @@ irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int by
 	return(i2c_send(address, true, 4, bytes));
 }
 
-irom i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_t *receivebytes)
+attr_speed iram i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_t *receivebytes)
 {
 	uint8_t sendbytes[1];
 	i2c_error_t rv;
@@ -629,7 +629,7 @@ irom i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_
 	return(i2c_receive(address, length, receivebytes));
 }
 
-irom i2c_error_t i2c_select_bus(unsigned int bus)
+attr_speed iram i2c_error_t i2c_select_bus(unsigned int bus)
 {
 	if(!i2c_flags.multiplexer)
 		return((bus == 0) ? i2c_error_ok : i2c_error_invalid_bus);

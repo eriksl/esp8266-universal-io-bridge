@@ -135,7 +135,7 @@ iram void user_rf_pre_init(void)
 
 static void user_init2(void);
 
-iram static bool_t background_task_bridge_uart(void)
+attr_speed iram static bool_t background_task_bridge_uart(void)
 {
 	if(socket_uart.state == socket_state_idle)
 	{
@@ -161,7 +161,7 @@ iram static bool_t background_task_bridge_uart(void)
 	return(false);
 }
 
-iram static bool_t background_task_longop_handler(void)
+attr_speed iram static bool_t background_task_longop_handler(void)
 {
 	if(bg_action.disconnect)
 	{
@@ -191,7 +191,7 @@ iram static bool_t background_task_longop_handler(void)
 	return(false);
 }
 
-iram static bool_t background_task_command_handler(void)
+attr_speed iram static bool_t background_task_command_handler(void)
 {
 	if(socket_cmd.state != socket_state_received)
 		return(false);
@@ -252,7 +252,7 @@ iram static bool_t background_task_command_handler(void)
 	return(true);
 }
 
-iram static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
+attr_speed iram static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
 	config_wlan_mode_t wlan_mode;
@@ -336,7 +336,7 @@ iram static void background_task(os_event_t *events) // posted every ~100 ms = ~
 	stat_update_idle++;
 }
 
-iram static void fast_timer_callback(void *arg)
+attr_speed iram static void fast_timer_callback(void *arg)
 {
 	stat_fast_timer++;
 
@@ -345,7 +345,7 @@ iram static void fast_timer_callback(void *arg)
 	io_periodic();
 }
 
-iram static void slow_timer_callback(void *arg)
+attr_speed iram static void slow_timer_callback(void *arg)
 {
 	// run background task every ~100 ms = ~10 Hz
 
@@ -475,7 +475,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 
 // received
 
-iram static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
+attr_speed iram static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
 {
 	if(socket_cmd.state != socket_state_idle)
 	{
@@ -539,7 +539,7 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 // sent
 
-iram static void callback_sent_cmd(socket_t *socket, void *userdata)
+attr_speed iram static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
 	if(reset_state == reset_state_send_reply)
 	{
@@ -552,7 +552,7 @@ iram static void callback_sent_cmd(socket_t *socket, void *userdata)
 	socket_cmd.state = socket_state_idle;
 }
 
-iram static void callback_sent_uart(socket_t *socket, void *userdata)
+attr_speed iram static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!queue_empty(&uart_receive_queue))
 		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo

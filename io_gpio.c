@@ -115,17 +115,17 @@ static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 
 // set GPIO direction
 
-iram static void gpio_direction_clear_mask(uint32_t mask)
+irom static void gpio_direction_clear_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TC_ADDRESS, mask);
 }
 
-iram static void gpio_direction_set_mask(uint32_t mask)
+irom static void gpio_direction_set_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
 }
 
-iram static void gpio_direction(int io, int onoff)
+irom static void gpio_direction(int io, int onoff)
 {
 	if(onoff)
 		gpio_direction_set_mask(1 << io);
@@ -239,7 +239,7 @@ static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
 
-static void pwm_isr(void);
+attr_speed static void pwm_isr(void);
 
 irom static void pwm_isr_setup(void)
 {
@@ -249,12 +249,12 @@ irom static void pwm_isr_setup(void)
 	ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
 }
 
-iram always_inline static bool_t pwm_isr_enabled(void)
+attr_speed iram always_inline static bool_t pwm_isr_enabled(void)
 {
 	return(io_gpio_flags.pwm_int_enabled);
 }
 
-iram always_inline static void pwm_isr_enable(bool_t enable)
+attr_speed iram always_inline static void pwm_isr_enable(bool_t enable)
 {
 	if(enable)
 	{
@@ -268,17 +268,17 @@ iram always_inline static void pwm_isr_enable(bool_t enable)
 	}
 }
 
-iram always_inline static void pwm_timer_set(uint32_t value)
+attr_speed iram always_inline static void pwm_timer_set(uint32_t value)
 {
 	write_peri_reg(FRC1_LOAD_REG, value);
 }
 
-iram always_inline static uint32_t pwm_timer_get(void)
+attr_speed iram always_inline static uint32_t pwm_timer_get(void)
 {
 	return(read_peri_reg(FRC1_COUNT_REG));
 }
 
-iram static void pwm_isr(void)
+attr_speed iram static void pwm_isr(void)
 {
 	static unsigned int	phase, delay;
 	static pwm_phases_t *phase_data;

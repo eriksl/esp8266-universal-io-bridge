@@ -24,7 +24,7 @@ static unsigned int flash_sector, flash_sectors_written, flash_sectors_skipped;
 static int flash_start_address, flash_slot;
 static MD5_CTX md5;
 
-iram attr_pure bool_t ota_is_active(void)
+attr_speed iram attr_pure bool_t ota_is_active(void)
 {
 	return(ota_state != ota_inactive);
 }

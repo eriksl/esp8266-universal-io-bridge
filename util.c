@@ -55,7 +55,7 @@ irom void *memchr(const void *s, int c, size_t n)
 
 // convenience functions
 
-iram int strecpy(char *dst, const char *src, int size)
+attr_speed iram int strecpy(char *dst, const char *src, int size)
 {
 	int length = strlen(src);
 
@@ -162,7 +162,7 @@ irom int log(const char *fmt, ...)
 	return(n);
 }
 
-iram void logchar(char c)
+attr_speed iram void logchar(char c)
 {
 	if(ota_is_active() || config_uses_logbuffer())
 		return;
@@ -406,7 +406,7 @@ irom void string_format_cstr(string_t *dst, const char *fmt, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
-iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
+attr_speed iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 {
 	va_list ap;
 

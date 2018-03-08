@@ -13,7 +13,7 @@ static bool_t inited = false;
 static bool_t nibble_mode;
 static lcd_io_t lcd_io_pin[io_lcd_size];
 
-iram static bool set_pin(io_lcd_mode_t pin_use, int value)
+irom static bool set_pin(io_lcd_mode_t pin_use, int value)
 {
 	int io, pin;
 
@@ -29,7 +29,7 @@ iram static bool set_pin(io_lcd_mode_t pin_use, int value)
 	return(true);
 }
 
-iram static bool send_byte_raw(int byte, bool data)
+irom static bool send_byte_raw(int byte, bool data)
 {
 	if(!set_pin(io_lcd_rs, data))
 		return(false);
@@ -61,7 +61,7 @@ iram static bool send_byte_raw(int byte, bool data)
 	return(true);
 }
 
-iram static bool send_byte(int byte, bool data)
+irom static bool send_byte(int byte, bool data)
 {
 	if(nibble_mode)
 	{
@@ -231,7 +231,7 @@ irom bool_t display_lcd_set(const char *tag, const char *text)
 				display_common_udg_size, display_common_udg));
 }
 
-iram bool_t display_lcd_show(void)
+irom bool_t display_lcd_show(void)
 {
 	static const uint8_t offset[4][2] =
 	{
