@@ -283,8 +283,6 @@ iram static void pwm_isr(void)
 	static unsigned int	phase, delay;
 	static pwm_phases_t *phase_data;
 
-	set_peri_reg_mask(FRC1_INT_REG, FRC1_INT_CLEAR);
-
 	stat_pwm_timer_interrupts++;
 
 	if(!pwm_isr_enabled())
