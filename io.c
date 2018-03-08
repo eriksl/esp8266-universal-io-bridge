@@ -412,7 +412,7 @@ irom static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_append(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
 	string_append(dst, "    action: ");
 	trigger_actions_to_string(dst);
-	string_format(dst, "\nerror: %s\n", info);
+	string_format(dst, "\nerror in <%s>\n", info);
 }
 
 irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
