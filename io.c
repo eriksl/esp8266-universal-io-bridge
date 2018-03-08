@@ -1021,9 +1021,9 @@ irom void io_init(void)
 	string_init(varname_iotrigger_0_io, "io.%u.%u.trigger.0.io");
 	string_init(varname_iotrigger_0_pin, "io.%u.%u.trigger.0.pin");
 	string_init(varname_iotrigger_0_type, "io.%u.%u.trigger.0.type");
-	string_init(varname_iotrigger_1_io, "io.%u.%u.trigger.0.io");
-	string_init(varname_iotrigger_1_pin, "io.%u.%u.trigger.0.pin");
-	string_init(varname_iotrigger_1_type, "io.%u.%u.trigger.0.type");
+	string_init(varname_iotrigger_1_io, "io.%u.%u.trigger.1.io");
+	string_init(varname_iotrigger_1_pin, "io.%u.%u.trigger.1.pin");
+	string_init(varname_iotrigger_1_type, "io.%u.%u.trigger.1.type");
 	string_init(varname_iotimer_delay, "io.%u.%u.timer.delay");
 	string_init(varname_iotimer_direction, "io.%u.%u.timer.direction");
 	string_init(varname_iooutputa_speed, "io.%u.%u.outputa.speed");
