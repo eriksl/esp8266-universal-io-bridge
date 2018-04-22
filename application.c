@@ -1352,6 +1352,51 @@ irom static app_action_t application_function_poke(const string_t *src, string_t
 static const application_function_table_t application_function_table[] =
 {
 	{
+		"?", "help",
+		application_function_help,
+		"help [command]",
+	},
+	{
+		"q", "quit",
+		application_function_quit,
+		"quit",
+	},
+	{
+		"r", "reset",
+		application_function_reset,
+		"reset",
+	},
+	{
+		"id", "identification",
+		application_function_identification,
+		"hostname/identification/location/comment",
+	},
+	{
+		"s", "stats",
+		application_function_stats_firmware,
+		"statistics",
+	},
+	{
+		"sc", "stats-counters",
+		application_function_stats_counters,
+		"stats (counters)",
+	},
+	{
+		"si", "stats-i2c",
+		application_function_stats_i2c,
+		"stats (i2c)",
+	},
+	{
+		"st", "stats-time",
+		application_function_stats_time,
+		"stats (time)",
+	},
+	{
+		"sw", "stats-wlan",
+		application_function_stats_wlan,
+		"stats (wlan)",
+	},
+	{
 		"bp", "bridge-port",
 		application_function_bridge_port,
 		"set uart bridge tcp/udp port (default 23)"
@@ -1375,26 +1420,6 @@ static const application_function_table_t application_function_table[] =
 		"cd", "config-dump",
 		application_function_config_dump,
 		"dump config contents (stored in flash)"
-	},
-	{
-		"cqs", "config-query-string",
-		application_function_config_query_string,
-		"query config string"
-	},
-	{
-		"cqi", "config-query-int",
-		application_function_config_query_int,
-		"query config int"
-	},
-	{
-		"cs", "config-set",
-		application_function_config_set,
-		"set config entry"
-	},
-	{
-		"cde", "config-delete",
-		application_function_config_delete,
-		"delete config entry"
 	},
 	{
 		"cw", "config-write",
@@ -1502,11 +1527,6 @@ static const application_function_table_t application_function_table[] =
 		"clear i/o pin flag",
 	},
 	{
-		"isi", "i2c-sensor-init",
-		application_function_i2c_sensor_init,
-		"(re-)init i2c sensor",
-	},
-	{
 		"isr", "i2c-sensor-read",
 		application_function_i2c_sensor_read,
 		"read from i2c sensor",
@@ -1540,91 +1560,6 @@ static const application_function_table_t application_function_table[] =
 		"ns", "ntp-set",
 		application_function_ntp_set,
 		"set ntp <ip addr> <timezone GMT+x>",
-	},
-	{
-		"?", "help",
-		application_function_help,
-		"help [command]",
-	},
-	{
-		"or", "ota-read",
-		application_function_ota_read,
-		"ota-read length start chunk-size",
-	},
-	{
-		"od", "ota-receive-data",
-		application_function_ota_receive,
-		"ota-receive-data",
-	},
-	{
-		"ow", "ota-write",
-		application_function_ota_write,
-		"ota-write length [start]",
-	},
-	{
-		"owd", "ota-write-dummy",
-		application_function_ota_write_dummy,
-		"ota-write-dummy length [start]",
-	},
-	{
-		"os", "ota-send-data",
-		application_function_ota_send,
-		"ota-send chunk_length data",
-	},
-	{
-		"of", "ota-finish",
-		application_function_ota_finish,
-		"ota-finish md5sum",
-	},
-	{
-		"oc", "ota-commit",
-		application_function_ota_commit,
-		"ota-commit",
-	},
-	{
-		"pe", "peek",
-		application_function_peek,
-		"peek at a memory address",
-	},
-	{
-		"po", "poke",
-		application_function_poke,
-		"poke to a memory address",
-	},
-	{
-		"q", "quit",
-		application_function_quit,
-		"quit",
-	},
-	{
-		"r", "reset",
-		application_function_reset,
-		"reset",
-	},
-	{
-		"s", "stats",
-		application_function_stats_firmware,
-		"statistics",
-	},
-	{
-		"sc", "stats-counters",
-		application_function_stats_counters,
-		"stats (counters)",
-	},
-	{
-		"si", "stats-i2c",
-		application_function_stats_i2c,
-		"stats (i2c)",
-	},
-	{
-		"st", "stats-time",
-		application_function_stats_time,
-		"stats (time)",
-	},
-	{
-		"sw", "stats-wlan",
-		application_function_stats_wlan,
-		"stats (wlan)",
 	},
 	{
 		"ts", "time-set",
@@ -1672,9 +1607,79 @@ static const application_function_table_t application_function_table[] =
 		"scan wlan, use wlan-list to retrieve the results"
 	},
 	{
+		"cqs", "config-query-string",
+		application_function_config_query_string,
+		"query config string"
+	},
+	{
+		"cqi", "config-query-int",
+		application_function_config_query_int,
+		"query config int"
+	},
+	{
+		"cs", "config-set",
+		application_function_config_set,
+		"set config entry"
+	},
+	{
+		"cde", "config-delete",
+		application_function_config_delete,
+		"delete config entry"
+	},
+	{
 		"GET", "http-get",
 		application_function_http_get,
 		"get access over http"
+	},
+	{
+		"isi", "i2c-sensor-init",
+		application_function_i2c_sensor_init,
+		"(re-)init i2c sensor",
+	},
+	{
+		"or", "ota-read",
+		application_function_ota_read,
+		"ota-read length start chunk-size",
+	},
+	{
+		"od", "ota-receive-data",
+		application_function_ota_receive,
+		"ota-receive-data",
+	},
+	{
+		"ow", "ota-write",
+		application_function_ota_write,
+		"ota-write length [start]",
+	},
+	{
+		"owd", "ota-write-dummy",
+		application_function_ota_write_dummy,
+		"ota-write-dummy length [start]",
+	},
+	{
+		"os", "ota-send-data",
+		application_function_ota_send,
+		"ota-send chunk_length data",
+	},
+	{
+		"of", "ota-finish",
+		application_function_ota_finish,
+		"ota-finish md5sum",
+	},
+	{
+		"oc", "ota-commit",
+		application_function_ota_commit,
+		"ota-commit",
+	},
+	{
+		"pe", "peek",
+		application_function_peek,
+		"peek at a memory address",
+	},
+	{
+		"po", "poke",
+		application_function_poke,
+		"poke to a memory address",
 	},
 	{
 		"", "",
