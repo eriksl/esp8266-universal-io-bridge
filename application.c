@@ -224,6 +224,47 @@ irom static app_action_t application_function_help(const string_t *src, string_t
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_identification(const string_t *src, string_t *dst)
+{
+	int start, length;
+	char last;
+	string_init(varname_identification, "identification");
+
+	if((start = string_sep(src, 0, 1, ' ')) > 0)
+	{
+		length = string_length(src) - 1;
+
+		if(length > 0)
+		{
+			last = string_at(src, length - 1);
+
+			if((last == '\n') || (last == '\r'))
+				length--;
+		}
+
+		if(!config_set_string(&varname_identification, -1, -1, src, start, length - start))
+		{
+			string_append(dst, "> cannot set identification\n");
+			return(app_action_error);
+		}
+	}
+
+	string_clear(dst);
+
+	if(config_get_string(&varname_identification, -1, -1, dst) && string_empty(dst))
+		config_delete(&varname_identification, -1, -1, false);
+
+	string_clear(dst);
+	string_append(dst, "identification is \"");
+
+	if(!config_get_string(&varname_identification, -1, -1, dst))
+		string_append(dst, "<unset>");
+
+	string_append(dst, "\"\n");
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_quit(const string_t *src, string_t *dst)
 {
 	return(app_action_disconnect);
