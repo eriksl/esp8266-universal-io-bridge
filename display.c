@@ -363,8 +363,10 @@ irom static void display_update(bool_t advance)
 
 	if(!strcmp(display_text, "%%%%"))
 	{
-		string_format(&info_text, "%02u.%02u %s %s",
-				hour, minute, display_info_entry->name, display_info_entry->type);
+		string_init(varname_identification, "identification");
+
+		config_get_string(&varname_identification, -1, -1, &info_text);
+		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->type);
 		display_text = string_to_cstr(&info_text);
 	}
 
