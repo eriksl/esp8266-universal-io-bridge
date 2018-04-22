@@ -289,7 +289,7 @@ always_inline static const char *string_to_cstr(string_t *string)
 
 always_inline static char string_at(const string_t *s, int at)
 {
-	if(at < s->length)
+	if((unsigned int)at < (unsigned int)s->length)
 		return(s->buffer[at]);
 	else
 		return('\0');
