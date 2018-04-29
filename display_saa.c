@@ -205,7 +205,7 @@ irom bool_t display_saa1064_set(const char *tag, const char *from)
 	for(current = 0; (current < 4) && text[current]; current++)
 		i2cdata[5 - current] = led_render_char(text[current]); // reverse digit's position
 
-	if(i2c_send(0x38, true, 6, i2cdata) != i2c_error_ok)
+	if(i2c_send(0x38, 6, i2cdata) != i2c_error_ok)
 		return(false);
 
 	return(true);

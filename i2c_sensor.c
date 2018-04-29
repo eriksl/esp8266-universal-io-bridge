@@ -1910,7 +1910,7 @@ irom static i2c_error_t sensor_veml6075_init(int bus, const device_table_entry_t
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[2];
 
-	if((error = i2c_send_receive(entry->address, 0x0c, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x0c, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2c_buffer[0] != 0x26) || (i2c_buffer[1] != 0x00))
@@ -1945,22 +1945,22 @@ irom static i2c_error_t sensor_veml6075_read(int bus, const device_table_entry_t
 	double		uva, uvb;
 	double		uvia, uvib, uvi;
 
-	if((error = i2c_send_receive(entry->address, 0x07, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x07, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	uva_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
 
-	if((error = i2c_send_receive(entry->address, 0x09, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x09, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	uvb_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
 
-	if((error = i2c_send_receive(entry->address, 0x0a, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x0a, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	uv_comp1_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
 
-	if((error = i2c_send_receive(entry->address, 0x0b, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x0b, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	uv_comp2_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
@@ -1993,7 +1993,7 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const device_
 	if(i2c_sensor_detected(bus, i2c_sensor_si114x_visible_light))
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send_receive(entry->address, 0x0c /* WHO_AM_I */, 1, &i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x0c /* WHO_AM_I */, 1, &i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(i2c_buffer != 0xc4)
@@ -2033,13 +2033,13 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const device_
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
 
-	if((error = i2c_send_receive(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(!(i2c_buffer[0] & /* TDR */ 0b00000010))
 		return(i2c_error_device_error_3);
 
-	if((error = i2c_send_receive(entry->address, 0x04 /* OUT_T x 2 */, 2, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x04 /* OUT_T x 2 */, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
@@ -2053,13 +2053,13 @@ irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const device_
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
 
-	if((error = i2c_send_receive(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(!(i2c_buffer[0] & /* PDR */ 0b00000100))
 		return(i2c_error_device_error_3);
 
-	if((error = i2c_send_receive(entry->address, 0x01 /* OUT_P x 3 */, 3, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(entry->address, 0x01 /* OUT_P x 3 */, 3, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);

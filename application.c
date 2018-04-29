@@ -673,9 +673,9 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 		bytes[current] = (uint8_t)(out & 0xff);
 	}
 
-	if((error = i2c_send(i2c_address, true, current, bytes)) != i2c_error_ok)
 	i2c_select_bus(i2c_bus);
 
+	if((error = i2c_send(i2c_address, current, bytes)) != i2c_error_ok)
 	{
 		string_append(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
@@ -717,7 +717,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 		return(app_action_error);
 	}
 
-	if((error = i2c_send_receive(i2c_address, sendbytes[0], amount, receivebytes)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(i2c_address, sendbytes[0], amount, receivebytes)) != i2c_error_ok)
 	{
 		string_append(dst, "i2wr");
 		i2c_error_format_string(dst, error);

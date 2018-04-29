@@ -14,6 +14,12 @@ typedef enum
 	i2c_direction_send,
 } i2c_direction_t;
 
+typedef enum
+{
+	i2c_sequence_normal,
+	i2c_sequence_repeated_start,
+} i2c_sequence_t;
+
 _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
@@ -317,7 +323,7 @@ iram static noinline i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-attr_speed iram static i2c_error_t send_byte(int byte)
+iram static i2c_error_t send_byte(int byte)
 {
 	i2c_error_t error;
 	int current;
@@ -391,7 +397,7 @@ attr_speed iram static noinline i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-attr_speed iram static noinline i2c_error_t send_ack(bool_t ack)
+iram static noinline i2c_error_t send_ack(bool_t ack)
 {
 	i2c_error_t error;
 
@@ -404,7 +410,7 @@ attr_speed iram static noinline i2c_error_t send_ack(bool_t ack)
 	return(i2c_error_ok);
 }
 
-attr_speed iram static noinline i2c_error_t receive_ack(bool_t *ack)
+iram static noinline i2c_error_t receive_ack(bool_t *ack)
 {
 	i2c_error_t error;
 	bool_t bit;
@@ -420,7 +426,7 @@ attr_speed iram static noinline i2c_error_t receive_ack(bool_t *ack)
 	return(i2c_error_ok);
 }
 
-attr_speed iram static noinline i2c_error_t send_header(int address, i2c_direction_t direction)
+iram static noinline i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t ack;
@@ -452,35 +458,7 @@ attr_speed iram static noinline i2c_error_t send_header(int address, i2c_directi
 	return(i2c_error_ok);
 }
 
-irom void i2c_init(int sda_in, int scl_in)
-{
-	uint8_t byte;
-
-	sda_pin = sda_in;
-	scl_pin = scl_in;
-
-	i2c_flags.init_done = 1;
-
-	if(config_flags_get().flag.i2c_high_speed)
-		i2c_bus_speed_delay = 2;
-	else
-	{
-		if(config_flags_get().flag.cpu_high_speed)
-			i2c_bus_speed_delay = 66;
-		else
-			i2c_bus_speed_delay = 24;
-	}
-
-	i2c_reset();
-
-	if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
-	{
-		i2c_flags.multiplexer = 1;
-		i2c_select_bus(0);
-	}
-}
-
-iram i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_t *bytes)
+iram static i2c_error_t i2c_send_sequence(int address, i2c_sequence_t sequence_type, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -521,7 +499,7 @@ iram i2c_error_t i2c_send(int address, bool_t sendstop, int length, const uint8_
 		}
 	}
 
-	if(sendstop && (error = send_stop()) != i2c_error_ok)
+	if((sequence_type == i2c_sequence_normal) && (error = send_stop()) != i2c_error_ok)
 		goto bail;
 
 	return(i2c_error_ok);
@@ -531,7 +509,7 @@ bail:
 	return(error);
 }
 
-attr_speed iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -574,26 +552,64 @@ bail:
 	return(error);
 }
 
-attr_speed iram i2c_error_t i2c_send_1(int address, int byte0)
+irom void i2c_init(int sda_in, int scl_in)
+{
+	uint8_t byte;
+
+	sda_pin = sda_in;
+	scl_pin = scl_in;
+
+	i2c_flags.init_done = 1;
+
+	if(config_flags_get().flag.i2c_high_speed)
+		i2c_bus_speed_delay = 2;
+	else
+	{
+		if(config_flags_get().flag.cpu_high_speed)
+			i2c_bus_speed_delay = 66;
+		else
+			i2c_bus_speed_delay = 24;
+	}
+
+	i2c_reset();
+
+	if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
+	{
+		i2c_flags.multiplexer = 1;
+		i2c_select_bus(0);
+	}
+}
+
+irom i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
+{
+	return(i2c_send_sequence(address, i2c_sequence_normal, length, bytes));
+}
+
+irom i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+{
+	return(i2c_receive_sequence(address, length, bytes));
+}
+
+irom i2c_error_t i2c_send_1(int address, int byte0)
 {
 	uint8_t bytes[1];
 
 	bytes[0] = byte0;
 
-	return(i2c_send(address, true, 1, bytes));
+	return(i2c_send(address, 1, bytes));
 }
 
-attr_speed iram i2c_error_t i2c_send_2(int address, int byte0, int byte1)
+irom i2c_error_t i2c_send_2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2];
 
 	bytes[0] = byte0;
 	bytes[1] = byte1;
 
-	return(i2c_send(address, true, 2, bytes));
+	return(i2c_send(address, 2, bytes));
 }
 
-attr_speed iram i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
+irom i2c_error_t i2c_send_3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3];
 
@@ -601,10 +617,10 @@ attr_speed iram i2c_error_t i2c_send_3(int address, int byte0, int byte1, int by
 	bytes[1] = byte1;
 	bytes[2] = byte2;
 
-	return(i2c_send(address, true, 3, bytes));
+	return(i2c_send(address, 3, bytes));
 }
 
-attr_speed iram i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
+irom i2c_error_t i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4];
 
@@ -613,23 +629,36 @@ attr_speed iram i2c_error_t i2c_send_4(int address, int byte0, int byte1, int by
 	bytes[2] = byte2;
 	bytes[3] = byte3;
 
-	return(i2c_send(address, true, 4, bytes));
+	return(i2c_send(address, 4, bytes));
 }
 
-attr_speed iram i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_t *receivebytes)
+irom i2c_error_t i2c_send_receive(int address, int sendbyte0, int length, uint8_t *receivebytes)
 {
 	uint8_t sendbytes[1];
 	i2c_error_t rv;
 
 	sendbytes[0] = sendbyte0 & 0xff;
 
-	if((rv = (i2c_send(address, false, 1, sendbytes))) != i2c_error_ok)
+	if((rv = (i2c_send_sequence(address, i2c_sequence_normal, 1, sendbytes))) != i2c_error_ok)
 		return(rv);
 
 	return(i2c_receive(address, length, receivebytes));
 }
 
-attr_speed iram i2c_error_t i2c_select_bus(unsigned int bus)
+irom i2c_error_t i2c_send_receive_repeated_start(int address, int sendbyte0, int length, uint8_t *receivebytes)
+{
+	uint8_t sendbytes[1];
+	i2c_error_t rv;
+
+	sendbytes[0] = sendbyte0 & 0xff;
+
+	if((rv = (i2c_send_sequence(address, i2c_sequence_repeated_start, 1, sendbytes))) != i2c_error_ok)
+		return(rv);
+
+	return(i2c_receive(address, length, receivebytes));
+}
+
+irom i2c_error_t i2c_select_bus(unsigned int bus)
 {
 	if(!i2c_flags.multiplexer)
 		return((bus == 0) ? i2c_error_ok : i2c_error_invalid_bus);
