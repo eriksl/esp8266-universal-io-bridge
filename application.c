@@ -566,6 +566,7 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 }
 
 static int i2c_address = 0;
+static int i2c_bus = 0;
 
 irom static app_action_t application_function_i2c_address(const string_t *src, string_t *dst)
 {
@@ -583,6 +584,27 @@ irom static app_action_t application_function_i2c_address(const string_t *src, s
 	}
 
 	string_format(dst, "i2c-address: address: 0x%02x\n", i2c_address);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_i2c_bus(const string_t *src, string_t *dst)
+{
+	int intin;
+	i2c_error_t error;
+
+	if(parse_int(1, src, &intin, 0, ' ') == parse_ok)
+	{
+		if((error = i2c_select_bus(intin)) != i2c_error_ok)
+		{
+			i2c_error_format_string(dst, error);
+			return(app_action_error);
+		}
+
+		i2c_bus = intin;
+	}
+
+	string_format(dst, "i2c-bus: bus: %d\n", i2c_bus);
 
 	return(app_action_normal);
 }
@@ -605,6 +627,8 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 		string_format(dst, "i2c-read: read max %d bytes\n", sizeof(bytes));
 		return(app_action_error);
 	}
+
+	i2c_select_bus(i2c_bus);
 
 	start = system_get_time();
 
@@ -650,6 +674,8 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 	}
 
 	if((error = i2c_send(i2c_address, true, current, bytes)) != i2c_error_ok)
+	i2c_select_bus(i2c_bus);
+
 	{
 		string_append(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
@@ -674,6 +700,8 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
+
+	i2c_select_bus(i2c_bus);
 
 	sendbytes[0] = (uint8_t)(out & 0xff);
 
@@ -1516,6 +1544,11 @@ static const application_function_table_t application_function_table[] =
 		"i2a", "i2c-address",
 		application_function_i2c_address,
 		"set i2c slave address",
+	},
+	{
+		"i2b", "i2c-bus",
+		application_function_i2c_bus,
+		"set i2c mux bus number (0-3)",
 	},
 	{
 		"i2r", "i2c-read",
