@@ -2068,6 +2068,138 @@ irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const device_
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_ccs811_read_register(int address, int reg, uint8_t *result)
+{
+	i2c_error_t error;
+	int try;
+
+	for(try = 8; try > 0; try--)
+	{
+		if((error = i2c_send_receive_repeated_start(address, reg, 1, result)) == i2c_error_ok)
+			return(i2c_error_ok);
+
+		msleep(1);
+	}
+
+	return(error);
+}
+
+irom static i2c_error_t sensor_ccs811_co2_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[8];
+
+	if((error = sensor_ccs811_read_register(entry->address, 0x20 /* HW_ID */, &i2c_buffer[0])) != i2c_error_ok)
+		return(error);
+
+	if(error != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != 0x81)
+		return(i2c_error_device_error_1);
+
+	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] & 0b10000000) // in application mode -> reset
+	{
+		i2c_buffer[0] = 0xff; // SW_RESET
+		i2c_buffer[1] = 0x11;
+		i2c_buffer[2] = 0xe5;
+		i2c_buffer[3] = 0x72;
+		i2c_buffer[4] = 0x8a;
+
+		i2c_send(entry->address, 5, i2c_buffer);
+
+		msleep(1);
+	}
+
+	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+		return(error);
+
+	if(!(i2c_buffer[0] & 0b00010000))
+		return(i2c_error_device_error_2); // no valid application
+
+	if((error = i2c_send_1(entry->address, 0xf4 /* APP_START */)) != i2c_error_ok) // start app
+		return(error);
+
+	msleep(1);
+
+	if((error = i2c_send_2(entry->address, 0x01 /* MEAS_MODE */, 0b01000000)) != i2c_error_ok) // DRIVE_MODE = 100 = 4/sec
+		return(error);
+
+	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] & 0b00000001)
+		return(i2c_error_device_error_3); // some error occured
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_ccs811_tov_init(int bus, const device_table_entry_t *entry)
+{
+	if(!i2c_sensor_detected(bus, i2c_sensor_ccs811_co2))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
+static unsigned int sensor_ccs811_cache_co2 = ~0UL;
+static unsigned int sensor_ccs811_cache_tov = ~0UL;
+
+irom static i2c_error_t sensor_ccs811_read(int bus, const device_table_entry_t *entry)
+{
+	uint8_t i2c_buffer[8];
+
+	if(sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0]) == i2c_error_ok)
+	{
+		if(i2c_buffer[0] & /* STATUS -> DATA_READY */ 0b00001000) // fresh data
+		{
+			if(i2c_send_receive_repeated_start(entry->address, 0x02 /* ALG_RESULT_DATA */, 8, i2c_buffer) == i2c_error_ok)
+			{
+				if(i2c_buffer[5] /* STATUS -> ERROR_ID */ != 0)
+					return(i2c_error_device_error_2);
+
+				sensor_ccs811_cache_co2 = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+				sensor_ccs811_cache_tov = (i2c_buffer[2] << 8) | (i2c_buffer[3] << 0);
+			}
+		}
+	}
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_ccs811_co2_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t error;
+
+	if((error = sensor_ccs811_read(bus, entry)) != i2c_error_ok)
+		return(error);
+
+	if(sensor_ccs811_cache_co2 == ~0UL)
+		return(i2c_error_device_error_3);
+
+	value->raw = value->cooked = sensor_ccs811_cache_co2;
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_ccs811_tov_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t error;
+
+	if((error = sensor_ccs811_read(bus, entry)) != i2c_error_ok)
+		return(error);
+
+	if(sensor_ccs811_cache_tov == ~0UL)
+		return(i2c_error_device_error_3);
+
+	value->raw = value->cooked = sensor_ccs811_cache_tov;
+
+	return(i2c_error_ok);
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -2243,6 +2375,18 @@ static const device_table_entry_t device_table[] =
 		"mpl3115a2", "pressure", "hPa", 2,
 		sensor_mpl3115a2_airpressure_init,
 		sensor_mpl3115a2_airpressure_read,
+	},
+	{
+		i2c_sensor_ccs811_co2, 0x5a,
+		"ccs811", "co2", "ppm", 0,
+		sensor_ccs811_co2_init,
+		sensor_ccs811_co2_read,
+	},
+	{
+		i2c_sensor_ccs811_tov, 0x5a,
+		"ccs811", "tov", "ppm", 0,
+		sensor_ccs811_tov_init,
+		sensor_ccs811_tov_read,
 	},
 };
 
