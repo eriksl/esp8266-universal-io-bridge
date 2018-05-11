@@ -1296,23 +1296,6 @@ irom static i2c_error_t si114x_sendcmd(unsigned int command, unsigned int *respo
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_reset(void)
-{
-	i2c_error_t error;
-
-	msleep(25);
-
-	if((error = si114x_write_register(si114x_command, si114x_command_reset)) != i2c_error_ok)
-		return(error);
-
-	msleep(20);
-
-	if((error = si114x_write_register(si114x_hw_key, 0x17)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
 #if 0 // unused
 irom static i2c_error_t si114x_get_param(unsigned int param, unsigned int *value)
 {
@@ -1428,16 +1411,20 @@ irom static i2c_error_t sensor_si114x_visible_light_init(int bus, const device_t
 	if((error = si114x_startstop(si144x_do_stop)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_reset()) != i2c_error_ok)
+	msleep(25);
+
+	if((error = si114x_write_register(si114x_command, si114x_command_reset)) != i2c_error_ok)
+		return(error);
+
+	msleep(20);
+
+	if((error = si114x_write_register(si114x_hw_key, 0x17)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_write_register(si114x_int_cfg, 0x00)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_write_register(si114x_irq_enable, 0x00)) != i2c_error_ok)
-		return(error);
-
-	if((error = si114x_write_register(si114x_hw_key, 0x17)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_write_register(si114x_meas_rate_low, (si114x_measure_delay & 0x00ff) >> 0)) != i2c_error_ok)
