@@ -1211,10 +1211,7 @@ irom static i2c_error_t si114x_read_register(si144x_register_t reg, unsigned int
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
 
-	if((error = i2c_send_1(0x60, reg)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(0x60, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send_receive_repeated_start(0x60, reg, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	*value = i2c_buffer[0];
