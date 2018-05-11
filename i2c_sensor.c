@@ -1192,6 +1192,12 @@ enum
 	si114x_measure_delay = 16384,
 };
 
+typedef enum
+{
+	si144x_do_stop = 0,
+	si144x_do_start = 1,
+} si144x_start_stop_t;
+
 irom static i2c_error_t si114x_read_register(unsigned int reg, unsigned int *value)
 {
 	i2c_error_t error;
@@ -1352,10 +1358,12 @@ irom static i2c_error_t si114x_set_param(unsigned int param, unsigned int value)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_startstop(bool_t startstop)
+irom static i2c_error_t si114x_startstop(si144x_start_stop_t startstop)
 {
 	i2c_error_t error;
-	unsigned int attempt1, attempt2, value, response;
+	unsigned int attempt1, attempt2, value, response, command;
+
+	command = (startstop == si144x_do_stop) ? si114x_command_psalspause : si114x_command_psalsauto;
 
 	for(attempt1 = si114x_attempt_count; attempt1 > 0; attempt1--)
 	{
@@ -1376,7 +1384,7 @@ irom static i2c_error_t si114x_startstop(bool_t startstop)
 		if(attempt2 == 0)
 			return(i2c_error_device_error_5);
 
-		if((error = si114x_sendcmd(startstop ? si114x_command_psalsauto : si114x_command_psalspause, /*dummy*/&response)) != i2c_error_ok)
+		if((error = si114x_sendcmd(command, /*dummy*/&response)) != i2c_error_ok)
 			return(error);
 
 		for(attempt2 = si114x_attempt_count; attempt2 > 0; attempt2--)
@@ -1417,7 +1425,7 @@ irom static i2c_error_t sensor_si114x_visible_light_init(int bus, const device_t
 	if((value != 0x45) && (value != 0x46) && (value != 0x47))
 		return(i2c_error_device_error_1);
 
-	if((error = si114x_startstop(false)) != i2c_error_ok)
+	if((error = si114x_startstop(si144x_do_stop)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_reset()) != i2c_error_ok)
@@ -1472,7 +1480,7 @@ irom static i2c_error_t sensor_si114x_visible_light_init(int bus, const device_t
 	if((error = si114x_set_param(si114x_chlist, 0b10110000)) != i2c_error_ok) // start automatic measurements
 		return(error);
 
-	if((error = si114x_startstop(true)) != i2c_error_ok)
+	if((error = si114x_startstop(si144x_do_start)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
