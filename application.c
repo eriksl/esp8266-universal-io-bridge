@@ -1746,6 +1746,51 @@ static const application_function_table_t application_function_table[] =
 		"ota-commit",
 	},
 	{
+		"flash-info", "flash-info",
+		application_function_flash_info,
+		"flash-info",
+	},
+	{
+		"flash-erase", "flash-erase",
+		application_function_flash_erase,
+		"flash-erase",
+	},
+	{
+		"flash-send", "flash-send",
+		application_function_flash_send,
+		"flash-send",
+	},
+	{
+		"flash-read", "flash-read",
+		application_function_flash_read,
+		"flash-read",
+	},
+	{
+		"flash-receive", "flash-receive",
+		application_function_flash_receive,
+		"flash-receive",
+	},
+	{
+		"flash-write", "flash-write",
+		application_function_flash_write,
+		"flash-write",
+	},
+	{
+		"flash-verify", "flash-verify",
+		application_function_flash_verify,
+		"flash-verify",
+	},
+	{
+		"flash-checksum", "flash-checksum",
+		application_function_flash_checksum,
+		"flash-checksum",
+	},
+	{
+		"flash-select", "flash-select",
+		application_function_flash_select,
+		"flash-select",
+	},
+	{
 		"pe", "peek",
 		application_function_peek,
 		"peek at a memory address",

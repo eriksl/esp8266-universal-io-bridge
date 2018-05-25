@@ -395,10 +395,7 @@ irom bool_t config_read(void)
 					if((id_index > 0) && (id_length > 0) && (value_index > 0))
 					{
 						value_length = current_index - value_index;
-
-						string_clear(&string);
-						string_splice(&string, &logbuffer, id_index, id_length);
-
+						string_splice(&string, 0, &logbuffer, id_index, id_length);
 						config_set_string(&string, -1, -1, &logbuffer, value_index, value_length);
 					}
 

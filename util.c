@@ -457,20 +457,26 @@ irom void string_replace(string_t *dst, int offset, char c)
 	}
 }
 
-irom void string_splice(string_t *dst, const string_t *src, int src_offset, int length)
+irom void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length)
 {
+	if(dst_offset < 0)
+		dst_offset = dst->length;
+
+	if(src_offset < 0)
+		src_offset = 0;
+
+	if(length < 0)
+		length = src->length - src_offset;
+
 	if((src_offset + length) > src->length)
 		length = src->length - src_offset;
 
-	if((dst->length + length) > dst->size)
-		length = dst->size - dst->length;
+	if((dst_offset + length) > dst->size)
+		length = dst->size - dst_offset;
 
-	if(length <= 0)
-		return;
+	memcpy(dst->buffer + dst_offset, src->buffer + src_offset, length);
 
-	memcpy(dst->buffer + dst->length, src->buffer + src_offset, length);
-
-	string_setlength(dst, dst->length + length);
+	string_setlength(dst, dst_offset + length);
 }
 
 irom void string_trim_nl(string_t *dst)

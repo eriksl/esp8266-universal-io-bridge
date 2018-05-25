@@ -5,6 +5,7 @@ ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
 HOSTCC				?= gcc
+HOSTCPP				?= g++
 OTA_HOST			?= esp1
 
 # no user serviceable parts below
@@ -135,7 +136,7 @@ ifeq ($(IMAGE),ota)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
-	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush resetserial
+	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush espflash resetserial
 	FLASH_TARGET := flash-ota
 endif
 
@@ -188,7 +189,7 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(CONFIG_DEFAULT_ELF) \
-						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush resetserial
+						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush espflash resetserial
 
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
@@ -218,7 +219,6 @@ io_gpio.o:			$(HEADERS)
 io_mcp.o:			$(HEADERS)
 io_pcf.o:			$(HEADERS)
 ota.o:				$(HEADERS)
-otapush.o:			$(HEADERS)
 queue.o:			queue.h
 stats.o:			$(HEADERS) always
 time.o:				$(HEADERS)
@@ -299,16 +299,19 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(SYSTEM_OFFSET_OTA) $(SYSTEM_FILE) \
 							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE)
 
-ota:					$(FIRMWARE_OTA_IMG) free otapush
-						./otapush write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+ota-compat:				$(FIRMWARE_OTA_IMG) free otapush espflash
+						./otapush -u write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
-ota-dummy:				$(FIRMWARE_OTA_IMG) free otapush
-						./otapush -d write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+ota:					$(FIRMWARE_OTA_IMG) free otapush espflash
+						./espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
+
+ota-dummy:				$(FIRMWARE_OTA_IMG) free otapush espflash
+						./espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
 ota-default:
-						./otapush write $(OTA_HOST) $(RF_FILE) $(RF_OFFSET_OTA)
-						./otapush write $(OTA_HOST) $(SYSTEM_FILE) $(SYSTEM_OFFSET_OTA)
-						./otapush write $(OTA_HOST) $(RFCAL_FILE) $(RFCAL_OFFSET_OTA)
+						./espflash -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
+						./espflash -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
+						./espflash -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
@@ -345,6 +348,10 @@ wipe-config:
 otapush:				otapush.c
 						$(VECHO) "HOST CC $<"
 						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
+
+espflash:				espflash.cpp
+						$(VECHO) "HOST CPP $<"
+						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
 
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"

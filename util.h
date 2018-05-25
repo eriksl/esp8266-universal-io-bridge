@@ -84,6 +84,12 @@ typedef struct {
   unsigned char digest[16];
 } MD5_CTX;
 
+typedef struct {
+    unsigned int h0, h1, h2, h3, h4;
+    unsigned int Nl, Nh;
+    unsigned int data[16];
+    unsigned int num;
+} SHA_CTX;
 
 struct tm
 {
@@ -104,9 +110,16 @@ int ets_vsnprintf(char *, size_t, const char *, va_list);
 void system_get_string_from_flash(const void *src, char *dst, size_t length);
 struct tm *sntp_localtime(const time_t *);
 
-void MD5Init(MD5_CTX *mdContext);
-void MD5Update(MD5_CTX *mdContext, const unsigned char *inBuf, unsigned int inLen);
-void MD5Final(unsigned char hash[], MD5_CTX *mdContext);
+int MD5Init(MD5_CTX *context);
+int MD5Update(MD5_CTX *context, const void *, unsigned int length);
+int MD5Final(unsigned char *hash, MD5_CTX *context);
+
+int SHA1Init(SHA_CTX *context);
+int SHA1Update(SHA_CTX *context, const void *, unsigned int length);
+int SHA1Final(unsigned char *md, SHA_CTX *context);
+
+enum { SHA_DIGEST_LENGTH = 20 };
+
 
 // functions missing from SDK libmain (but declared in headers)
 
@@ -155,7 +168,7 @@ void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((f
 int string_sep(const string_t *, int offset, int occurrence, char c);
 int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
-void string_splice(string_t *dst, const string_t *src, int src_offset, int length);
+void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
 void string_trim_nl(string_t *dst);
 void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_ip(string_t *dst, ip_addr_t);
