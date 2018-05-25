@@ -18,22 +18,19 @@ typedef enum
 	ota_successful
 } ota_state_t;
 
+string_new(, ota_receive_buffer, 0x1000);
+
 static ota_state_t ota_state = ota_inactive;
 static unsigned int remote_file_length, chunk_size, data_transferred;
 static unsigned int flash_sector, flash_sectors_written, flash_sectors_skipped;
 static int flash_start_address, flash_slot;
 static MD5_CTX md5;
 
-attr_speed iram attr_pure bool_t ota_is_active(void)
-{
-	return(ota_state != ota_inactive);
-}
-
 irom app_action_t application_function_ota_read(const string_t *src, string_t *dst)
 {
-	if(string_size(&logbuffer) < 0x1000)
+	if(string_size(&ota_receive_buffer) < 0x1000) // FIXME
 	{
-		string_format(dst, "ota-read: string read buffer too small: %d\n", string_size(&logbuffer));
+		string_format(dst, "ota-read: string read buffer too small: %d\n", string_size(&ota_receive_buffer));
 		return(app_action_error);
 	}
 
@@ -83,25 +80,24 @@ irom app_action_t application_function_ota_receive(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	spi_flash_read(address, string_buffer_nonconst(&logbuffer), chunk_size);
+	spi_flash_read(address, string_buffer_nonconst(&ota_receive_buffer), chunk_size);
 
 	string_clear(dst);
-	string_setlength(&logbuffer, chunk_size);
-	crc = string_crc32(&logbuffer, 0, chunk_size);
-	MD5Update(&md5, string_buffer(&logbuffer), chunk_size);
+	string_setlength(&ota_receive_buffer, chunk_size);
+	crc = string_crc32(&ota_receive_buffer, 0, chunk_size);
+	MD5Update(&md5, string_buffer(&ota_receive_buffer), chunk_size);
 	data_transferred += chunk_size;
 	string_format(dst, "DATA %u %u %u @", chunk_size, data_transferred, crc);
-	string_splice(dst, &logbuffer, 0, chunk_size);
+	string_splice(dst, -1, &ota_receive_buffer, 0, chunk_size);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_ota_write_or_dummy(const string_t *src, string_t *dst, bool_t real_write);
 irom static app_action_t application_function_ota_write_or_dummy(const string_t *src, string_t *dst, bool_t real_write)
 {
-	if(string_size(&logbuffer) < 0x1000)
+	if(string_size(&ota_receive_buffer) < 0x1000) // FIXME
 	{
-		string_format(dst, "ota-write: string write buffer too small: %d\n", string_size(&logbuffer));
+		string_format(dst, "ota-write: string write buffer too small: %d\n", string_size(&ota_receive_buffer));
 		return(app_action_error);
 	}
 
@@ -153,7 +149,7 @@ irom static app_action_t application_function_ota_write_or_dummy(const string_t 
 	flash_sectors_skipped = 0;
 	flash_sector = flash_start_address / 0x1000;
 
-	string_clear(&logbuffer);
+	string_clear(&ota_receive_buffer);
 	string_crc32_init();
 	MD5Init(&md5);
 
@@ -173,7 +169,7 @@ irom app_action_t application_function_ota_write(const string_t *src, string_t *
 
 irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 {
-	int write_buffer_length = string_length(&logbuffer);
+	int write_buffer_length = string_length(&ota_receive_buffer);
 
 	if(string_size(dst) < 0x1000)
 	{
@@ -185,10 +181,10 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 	{
 		spi_flash_read(flash_sector * 0x1000, string_buffer_nonconst(dst), write_buffer_length);
 
-		if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
+		if(memcmp(string_buffer(&ota_receive_buffer), string_buffer(dst), write_buffer_length))
 		{
 			spi_flash_erase_sector(flash_sector);
-			spi_flash_write(flash_sector * 0x1000, string_buffer(&logbuffer), write_buffer_length);
+			spi_flash_write(flash_sector * 0x1000, string_buffer(&ota_receive_buffer), write_buffer_length);
 			flash_sectors_written++;
 		}
 		else
@@ -198,7 +194,7 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 
 		MD5Update(&md5, string_buffer(dst), write_buffer_length);
 
-		if(memcmp(string_buffer(&logbuffer), string_buffer(dst), write_buffer_length))
+		if(memcmp(string_buffer(&ota_receive_buffer), string_buffer(dst), write_buffer_length))
 		{
 			string_clear(dst);
 			string_append(dst, "ota-write: verify mismatch\n");
@@ -206,12 +202,12 @@ irom static app_action_t flash_write_verify(const string_t *src, string_t *dst)
 		}
 	}
 	else
-		MD5Update(&md5, string_buffer(&logbuffer), write_buffer_length);
+		MD5Update(&md5, string_buffer(&ota_receive_buffer), write_buffer_length);
 
 	flash_sector++;
 	data_transferred += write_buffer_length;
 
-	string_clear(&logbuffer);
+	string_clear(&ota_receive_buffer);
 	string_clear(dst);
 
 	return(app_action_normal);
@@ -268,16 +264,16 @@ irom app_action_t application_function_ota_send(const string_t *raw_src, string_
 		return(app_action_error);
 	}
 
-	string_splice(&logbuffer, &trimmed_src, chunk_offset, chunk_length);
+	string_splice(&ota_receive_buffer, -1, &trimmed_src, chunk_offset, chunk_length);
 
-	if(string_length(&logbuffer) > 0x1000)
+	if(string_length(&ota_receive_buffer) > 0x1000)
 	{
-		string_format(dst, "ota-send: unaligned %u\n", string_length(&logbuffer));
+		string_format(dst, "ota-send: unaligned %u\n", string_length(&ota_receive_buffer));
 		ota_state = ota_inactive;
 		return(app_action_error);
 	}
 
-	if((string_length(&logbuffer) == 0x1000) &&
+	if((string_length(&ota_receive_buffer) == 0x1000) &&
 			((action = flash_write_verify(&trimmed_src, dst)) != app_action_normal))
 	{
 		ota_state = ota_inactive;
@@ -317,7 +313,7 @@ irom app_action_t application_function_ota_finish(const string_t *src, string_t 
 				return(app_action_error);
 			}
 
-			if((string_length(&logbuffer) > 0) &&
+			if((string_length(&ota_receive_buffer) > 0) &&
 					((action = flash_write_verify(src, dst)) != app_action_normal))
 			{
 				ota_state = ota_inactive;

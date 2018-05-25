@@ -328,9 +328,6 @@ irom bool_t config_read(void)
 	config_options.using_logbuffer = 1;
 	string_clear(&logbuffer);
 
-	if(ota_is_active())
-		goto done;
-
 	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
 		goto done;
 
@@ -459,9 +456,6 @@ irom unsigned int config_write(void)
 
 	config_options.using_logbuffer = 1;
 	string_clear(&logbuffer);
-
-	if(ota_is_active())
-		goto error;
 
 	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
 		goto error;

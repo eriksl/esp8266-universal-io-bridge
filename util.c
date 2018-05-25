@@ -142,7 +142,7 @@ irom int log(const char *fmt, ...)
 	va_list ap;
 	int current, n;
 
-	if(ota_is_active() || config_uses_logbuffer())
+	if(config_uses_logbuffer())
 		return(0);
 
 	va_start(ap, fmt);
@@ -164,7 +164,7 @@ irom int log(const char *fmt, ...)
 
 attr_speed iram void logchar(char c)
 {
-	if(ota_is_active() || config_uses_logbuffer())
+	if(config_uses_logbuffer())
 		return;
 
 	if(flags_cache.flag.log_to_uart)

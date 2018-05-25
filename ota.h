@@ -4,8 +4,6 @@
 #include "util.h"
 #include "application.h"
 
-bool_t ota_is_active(void);
-
 app_action_t application_function_ota_read(const string_t *, string_t *);
 app_action_t application_function_ota_write(const string_t *, string_t *);
 app_action_t application_function_ota_write_dummy(const string_t *, string_t *);
