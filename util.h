@@ -134,7 +134,7 @@ void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
 int dprintf(const char *fmt, ...);
-int log(const char *fmt, ...);
+int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void logchar(char c);
 void msleep(int);
 ip_addr_t ip_addr(const char *);
