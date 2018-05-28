@@ -84,12 +84,12 @@ irom static i2c_error_t sensor_ds1631_init(int bus, const device_table_entry_t *
 	//	0xac	select config register
 	//	0x0c	r0=r1=1, max resolution, other bits zero
 
-	if((error = i2c_send_2(entry->address, 0xac, 0x0c)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0xac, 0x0c)) != i2c_error_ok)
 		return(error);
 
 	// start conversions
 
-	if((error = i2c_send_1(entry->address, 0x51)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, 0x51)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -103,7 +103,7 @@ irom static i2c_error_t sensor_ds1631_read(int bus, const device_table_entry_t *
 
 	// read temperature
 
-	if((error = i2c_send_1(entry->address, 0xaa)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, 0xaa)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
@@ -131,7 +131,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 	// 0x60		set all defaults, operation is not shutdown
 	// 			specific for tmp275 variant, select high-res operation
 
-	if((error = i2c_send_2(entry->address, 0x01, 0x60)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0x01, 0x60)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 1, i2cbuffer)) != i2c_error_ok)
@@ -142,7 +142,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 
 	// 0x03	select overtemperature register
 
-	if((error = i2c_send_3(entry->address, 0x03, 0xff, 0xff)) != i2c_error_ok)
+	if((error = i2c_send3(entry->address, 0x03, 0xff, 0xff)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
@@ -153,7 +153,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 
 	// 0x03	select overtemperature register
 
-	if((error = i2c_send_3(entry->address, 0x03, 0x00, 0x00)) != i2c_error_ok)
+	if((error = i2c_send3(entry->address, 0x03, 0x00, 0x00)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
@@ -164,7 +164,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 
 	// select temperature register
 
-	if((error = i2c_send_1(entry->address, 0x00)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, 0x00)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -175,7 +175,7 @@ irom static i2c_error_t sensor_lm75_read(int bus, const device_table_entry_t *en
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 
-	if((error = i2c_send_1(entry->address, 0)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, 0)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
@@ -208,7 +208,7 @@ irom static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int va
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_2(address, reg, (uint8_t)value)) != i2c_error_ok)
+	if((error = i2c_send2(address, reg, (uint8_t)value)) != i2c_error_ok)
 		return(error);
 
 	return(0);
@@ -219,7 +219,7 @@ irom static i2c_error_t bmp085_read_reg_2(int address, int reg, uint16_t *value)
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
 
-	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+	if((error = i2c_send1(address, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 2, i2cbuffer)) != i2c_error_ok)
@@ -235,7 +235,7 @@ irom static i2c_error_t bmp085_read_reg_3(int address, int reg, uint32_t *value)
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
 
-	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+	if((error = i2c_send1(address, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 3, i2cbuffer)) != i2c_error_ok)
@@ -631,7 +631,7 @@ irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_1(address, in)) != i2c_error_ok)
+	if((error = i2c_send1(address, in)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 1, out)) != i2c_error_ok)
@@ -944,13 +944,13 @@ irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, in
 
 	// wake the device
 
-	i2c_send_1(address, 0);
+	i2c_send1(address, 0);
 
 	for(try = 32; try > 0; try--)
 	{
 		msleep(10);
 
-		if((error = i2c_send_3(address, 0x03, offset, length)) == i2c_error_ok)
+		if((error = i2c_send3(address, 0x03, offset, length)) == i2c_error_ok)
 			break;
 	}
 
@@ -1570,7 +1570,7 @@ irom static i2c_error_t bme280_read_register_1(int address, int reg, uint8_t *va
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+	if((error = i2c_send1(address, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 1, value)) != i2c_error_ok)
@@ -1583,7 +1583,7 @@ irom static i2c_error_t bme280_read_register_2(int address, int reg, uint16_t *v
 {
 	i2c_error_t error;
 
-	if((error = i2c_send_1(address, reg)) != i2c_error_ok)
+	if((error = i2c_send1(address, reg)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 2, (uint8_t *)value)) != i2c_error_ok)
@@ -1603,7 +1603,7 @@ irom static i2c_error_t bme280_read(int address, value_t *rv_temperature, value_
 
 	// retrieve all ADC values in one go to make use of the register shadowing feature
 
-	if((error = i2c_send_1(address, 0xf7)) != i2c_error_ok)
+	if((error = i2c_send1(address, 0xf7)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(address, 8, i2c_buffer)) != i2c_error_ok)
@@ -1679,7 +1679,7 @@ irom static i2c_error_t sensor_bme280_temperature_init(int bus, const device_tab
 	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_1(entry->address, 0xd0)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, 0xd0)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, 1, i2c_buffer)) != i2c_error_ok)
@@ -1756,19 +1756,19 @@ irom static i2c_error_t sensor_bme280_temperature_init(int bus, const device_tab
 	if((error = bme280_read_register_1(entry->address, 0xe7, &bme280.dig_H6)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_2(entry->address, 0xf4, 0x00)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0xf4, 0x00)) != i2c_error_ok)
 		return(error);
 
 	// crtl_hum		0xf2		humidity oversampling		0b00000101		humidity oversampling = 16
 
-	if((error = i2c_send_2(entry->address, 0xf2, 0x05)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0xf2, 0x05)) != i2c_error_ok)
 		return(error);
 
 	// config		0xf5		device config				0b00000000		standby = 0.5 ms
 	// 														0b00010000		filter range = 16
 	// 														0b00000000		disable SPI interface
 
-	if((error = i2c_send_2(entry->address, 0xf5, 0x10)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0xf5, 0x10)) != i2c_error_ok)
 		return(error);
 
 	/* now start sampling in normal mode */
@@ -1777,7 +1777,7 @@ irom static i2c_error_t sensor_bme280_temperature_init(int bus, const device_tab
 	// 														0b00010100		pressure oversampling = 16
 	// 														0b00000011		device normal acquisition mode
 
-	if((error = i2c_send_2(entry->address, 0xf4, 0xb7)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, 0xf4, 0xb7)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);

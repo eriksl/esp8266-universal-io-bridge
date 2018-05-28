@@ -61,12 +61,10 @@ static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
 attr_speed iram static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
 {
-	uint8_t i2cbuffer[2];
+	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -74,28 +72,16 @@ attr_speed iram static io_error_t read_register(string_t *error_message, int add
 		return(io_error);
 	}
 
-	if((error = i2c_receive(address, 1, &i2cbuffer[1])) != i2c_error_ok)
-	{
-		if(error_message)
-			i2c_error_format_string(error_message, error);
-
-		return(io_error);
-	}
-
-	*value = i2cbuffer[1];
+	*value = i2cbuffer[0];
 
 	return(io_ok);
 }
 
 attr_speed iram static io_error_t write_register(string_t *error_message, int address, int reg, int value)
 {
-	uint8_t i2cbuffer[2];
 	i2c_error_t error;
 
-	i2cbuffer[0] = reg;
-	i2cbuffer[1] = value;
-
-	if((error = i2c_send(address, 2, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send2(address, reg, value)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -108,12 +94,10 @@ attr_speed iram static io_error_t write_register(string_t *error_message, int ad
 
 attr_speed iram static io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
 {
-	uint8_t i2cbuffer[2];
+	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	i2cbuffer[0] = reg;
-
-	if((error = i2c_send(address, 1, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -121,18 +105,10 @@ attr_speed iram static io_error_t clear_set_register(string_t *error_message, in
 		return(io_error);
 	}
 
-	if((error = i2c_receive(address, 1, &i2cbuffer[1])) != i2c_error_ok)
-	{
-		if(error_message)
-			i2c_error_format_string(error_message, error);
+	i2cbuffer[0] &= ~clearmask;
+	i2cbuffer[0] |= setmask;
 
-		return(io_error);
-	}
-
-	i2cbuffer[1] &= ~clearmask;
-	i2cbuffer[1] |= setmask;
-
-	if((error = i2c_send(address, 2, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send2(address, reg, i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -147,13 +123,13 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
 	int pin;
 	int iocon_value = (1 << DISSLW) | (1 << INTPOL);
-	uint8_t i2c_buffer[0x01];
+	uint8_t i2c_buffer[1];
 	mcp_data_pin_t *mcp_pin_data;
 
-	if(i2c_send_2(info->address, IOCON(0), iocon_value) != i2c_error_ok)
+	if(i2c_send2(info->address, IOCON(0), iocon_value) != i2c_error_ok)
 		return(io_error);
 
-	if(i2c_send_receive(info->address, IOCON(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
+	if(i2c_send1_receive_repeated_start(info->address, IOCON(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
 		return(io_error);
 
 	if(i2c_buffer[0] != iocon_value)

@@ -146,7 +146,7 @@ irom bool_t display_saa1064_init(void)
 		if((i2cdata & 0x7f) != 0x00)
 			continue;
 
-		if(i2c_send_2(0x38, 0x00, 0x7f) != i2c_error_ok)
+		if(i2c_send2(0x38, 0x00, 0x7f) != i2c_error_ok)
 			continue;
 
 		i2c_bus = bus;

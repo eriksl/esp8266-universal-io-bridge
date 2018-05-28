@@ -67,17 +67,22 @@ typedef struct attr_packed
 assert_size(i2c_info_t, 2);
 
 void		i2c_init(int sda_index, int scl_index);
-i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
 void		i2c_error_format_string(string_t *dst, i2c_error_t error);
 i2c_error_t	i2c_select_bus(unsigned int bus);
 void		i2c_get_info(i2c_info_t *);
 
+i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
 i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
-i2c_error_t	i2c_send_1(int address, int byte0);
-i2c_error_t	i2c_send_2(int address, int byte0, int byte1);
-i2c_error_t	i2c_send_3(int address, int byte0, int byte1, int byte2);
-i2c_error_t	i2c_send_4(int address, int byte0, int byte1, int byte2, int byte3);
+i2c_error_t	i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes);
+i2c_error_t	i2c_send_receive_repeated_start(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes);
 
-i2c_error_t	i2c_send_receive(int address, int sendbyte0, int length, uint8_t *bytes);
-i2c_error_t	i2c_send_receive_repeated_start(int address, int sendbyte0, int length, uint8_t *bytes);
+i2c_error_t	i2c_send1(int address, int byte0);
+i2c_error_t	i2c_send2(int address, int byte0, int byte1);
+i2c_error_t	i2c_send3(int address, int byte0, int byte1, int byte2);
+i2c_error_t	i2c_send4(int address, int byte0, int byte1, int byte2, int byte3);
+
+i2c_error_t	i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes);
+i2c_error_t	i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes);
+i2c_error_t	i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes);
+
 #endif

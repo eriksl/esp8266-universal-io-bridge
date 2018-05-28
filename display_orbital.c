@@ -10,7 +10,7 @@ irom bool_t display_orbital_init(void)
 
 	for(ix = 4; ix > 0; ix--)
 	{
-		if(i2c_send_1(0x28, 0x21) == i2c_error_ok)
+		if(i2c_send1(0x28, 0x21) == i2c_error_ok)
 			break;
 		msleep(25);
 	}
@@ -20,11 +20,11 @@ irom bool_t display_orbital_init(void)
 
 	for(ix = 0; ix < display_common_udg_size; ix++)
 	{
-		if(i2c_send_3(0x28, 0xfe, 0x4e, ix) != i2c_error_ok)
+		if(i2c_send3(0x28, 0xfe, 0x4e, ix) != i2c_error_ok)
 			return(false);
 
 		for(byte = 0; byte < display_common_udg_byte_size; byte++)
-			if(i2c_send_1(0x28, display_common_udg[ix].pattern[byte]) != i2c_error_ok)
+			if(i2c_send1(0x28, display_common_udg[ix].pattern[byte]) != i2c_error_ok)
 				return(false);
 	}
 
@@ -46,10 +46,10 @@ irom bool_t display_orbital_bright(int brightness)
 	{
 		case(0):
 		{
-			if(i2c_send_2(0x28, 0xfe, 0x46) != i2c_error_ok)
+			if(i2c_send2(0x28, 0xfe, 0x46) != i2c_error_ok)
 				return(false);
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
 				return(false);
 
 			break;
@@ -57,10 +57,10 @@ irom bool_t display_orbital_bright(int brightness)
 
 		case(1):
 		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
 				return(false);
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x59, 0x03) != i2c_error_ok)
 				return(false);
 
 			break;
@@ -68,10 +68,10 @@ irom bool_t display_orbital_bright(int brightness)
 
 		case(2):
 		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
 				return(false);
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x02) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x59, 0x02) != i2c_error_ok)
 				return(false);
 
 			break;
@@ -79,10 +79,10 @@ irom bool_t display_orbital_bright(int brightness)
 
 		case(3):
 		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
 				return(false);
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x01) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x59, 0x01) != i2c_error_ok)
 				return(false);
 
 			break;
@@ -90,10 +90,10 @@ irom bool_t display_orbital_bright(int brightness)
 
 		case(4):
 		{
-			if(i2c_send_3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
 				return(false);
 
-			if(i2c_send_3(0x28, 0xfe, 0x59, 0x00) != i2c_error_ok)
+			if(i2c_send3(0x28, 0xfe, 0x59, 0x00) != i2c_error_ok)
 				return(false);
 
 			break;
@@ -132,20 +132,20 @@ irom bool_t display_orbital_show(void)
 	if(y >= display_common_buffer_rows)
 		return(false);
 
-	if(i2c_send_2(0x28, 0xfe, 0x44) != i2c_error_ok) // line wrap off
+	if(i2c_send2(0x28, 0xfe, 0x44) != i2c_error_ok) // line wrap off
 		return(false);
 
-	if(i2c_send_2(0x28, 0xfe, 0x52) != i2c_error_ok) // scroll off
+	if(i2c_send2(0x28, 0xfe, 0x52) != i2c_error_ok) // scroll off
 		return(false);
 
-	if(i2c_send_2(0x28, 0xfe, 0x54) != i2c_error_ok) // cursor off
+	if(i2c_send2(0x28, 0xfe, 0x54) != i2c_error_ok) // cursor off
 		return(false);
 
-	if(i2c_send_4(0x28, 0xfe, 0x47, 1, y + 1) != i2c_error_ok)
+	if(i2c_send4(0x28, 0xfe, 0x47, 1, y + 1) != i2c_error_ok)
 		return(false);
 
 	for(x = 0; x < display_common_buffer_columns; x++)
-		if(i2c_send_1(0x28, display_common_buffer[y][x]) != i2c_error_ok)
+		if(i2c_send1(0x28, display_common_buffer[y][x]) != i2c_error_ok)
 			return(false);
 
 	display_common_row_status.row[y].dirty = 0;

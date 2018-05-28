@@ -30,7 +30,7 @@ irom io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_in
 		case(io_pin_ll_disabled):
 		case(io_pin_ll_input_digital):
 		{
-			if((error = i2c_send_1(info->address, 0xff)) != i2c_error_ok)
+			if((error = i2c_send1(info->address, 0xff)) != i2c_error_ok)
 			{
 				if(error_message)
 					i2c_error_format_string(error_message, error);
@@ -42,7 +42,7 @@ irom io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_in
 
 		case(io_pin_ll_output_digital):
 		{
-			if((error = i2c_send_1(info->address, 0x00)) != i2c_error_ok)
+			if((error = i2c_send1(info->address, 0x00)) != i2c_error_ok)
 			{
 				if(error_message)
 					i2c_error_format_string(error_message, error);
@@ -113,7 +113,7 @@ irom io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_e
 			else
 				*pcf_pin_data = *pcf_pin_data & ~(1 << pin);
 			
-			if((error = i2c_send_1(info->address, *pcf_pin_data)) != i2c_error_ok)
+			if((error = i2c_send1(info->address, *pcf_pin_data)) != i2c_error_ok)
 			{
 				i2c_error_format_string(error_message, error);
 				return(io_error);
