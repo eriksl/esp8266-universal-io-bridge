@@ -221,12 +221,13 @@ iram static noinline i2c_error_t send_start(void)
 
 iram static noinline i2c_error_t send_stop(void)
 {
+	i2c_error_t error;
 	state = i2c_state_stop_send;
 
 	// at this point sda is unknown and scl should be off
 
-	if(scl_is_low())
-		return(i2c_error_bus_lock);
+	if((error = wait_for_scl()) != i2c_error_ok)
+		return(error);
 
 	microdelay();
 	microdelay();
@@ -243,8 +244,8 @@ iram static noinline i2c_error_t send_stop(void)
 	microdelay();
 	microdelay();
 
-	if(scl_is_low())
-		return(i2c_error_bus_lock);
+	if((error = wait_for_scl()) != i2c_error_ok)
+		return(error);
 
 	if(sda_is_low())
 		return(i2c_error_sda_stuck);
