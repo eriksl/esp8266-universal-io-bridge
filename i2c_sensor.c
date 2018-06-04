@@ -2247,38 +2247,112 @@ irom static i2c_error_t sensor_veml6075_infrared_light_read(int bus, const devic
 	return(i2c_error_ok);
 }
 
+typedef enum
+{
+	mpl3115_reg_out_p =			0x01,
+	mpl3115_reg_out_t =			0x04,
+	mpl3115_reg_drstatus =		0x06,
+	mpl3115_reg_whoami =		0x0c,
+	mpl3115_reg_ptdatacfg =		0x13,
+	mpl3115_reg_ctrl_reg1 =		0x26,
+	mpl3115_reg_ctrl_reg2 =		0x27,
+} mpl3115_reg_t;
+
+typedef enum
+{
+	mpl3115_drstatus_tdr =	 	(1 << 1),
+	mpl3115_drstatus_pdr =	 	(1 << 2),
+	mpl3115_drstatus_ptdr = 	(1 << 3),
+	mpl3115_drstatus_tow = 		(1 << 5),
+	mpl3115_drstatus_pow = 		(1 << 6),
+	mpl3115_drstatus_ptow = 	(1 << 7),
+} mpl3115_drstatus_t;
+
+typedef enum
+{
+	mpl3115_id_mpl3115a2 = 0xc4,
+} mpl3115_id_t;
+
+typedef enum
+{
+	mpl3115_ptdatacfg_tdefe =	(1 << 0),
+	mpl3115_ptdatacfg_pdefe =	(1 << 1),
+	mpl3115_ptdatacfg_drem =	(1 << 2),
+} mpl3115_ptdatacfg_t;
+
+typedef enum
+{
+	mpl3115_ctrl1_sbyb =	(1 << 0),
+	mpl3115_ctrl1_ost =		(1 << 1),
+	mpl3115_ctrl1_reset =	(1 << 2),
+	mpl3115_ctrl1_os_1 =	(0 << 5) | (0 << 4) | (0 << 3),
+	mpl3115_ctrl1_os_2 =	(0 << 5) | (0 << 4) | (1 << 3),
+	mpl3115_ctrl1_os_4 =	(0 << 5) | (1 << 4) | (0 << 3),
+	mpl3115_ctrl1_os_8 =	(0 << 5) | (1 << 4) | (1 << 3),
+	mpl3115_ctrl1_os_16 =	(1 << 5) | (0 << 4) | (0 << 3),
+	mpl3115_ctrl1_os_32 =	(1 << 5) | (0 << 4) | (1 << 3),
+	mpl3115_ctrl1_os_64 =	(1 << 5) | (1 << 4) | (0 << 3),
+	mpl3115_ctrl1_os_128 =	(1 << 5) | (1 << 4) | (1 << 3),
+	mpl3115_ctrl1_raw =		(1 << 6),
+	mpl3115_ctrl1_alt =		(1 << 7),
+} mpl3115_ctrl1_t;
+
+typedef enum
+{
+	mpl3115_ctrl2_st =		(1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+	mpl3115_ctrl2_alarm =	(1 << 4),
+	mpl3115_crtl2_load =	(1 << 5),
+} mpl3115_ctrl2_t;
+
+enum
+{
+	mpl3115_max_attempts = 8,
+};
+
 irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer;
-	int try;
+	int attempt;
 
 	if(i2c_sensor_detected(bus, i2c_sensor_si114x_visible_light))
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x0c /* WHO_AM_I */, 1, &i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_whoami, 1, &i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer != 0xc4)
+	if(i2c_buffer != mpl3115_id_mpl3115a2)
 		return(i2c_error_device_error_2);
 
-	i2c_send_2(entry->address, 0x26 /*   CTRL_REG1 */, 0b00000100); // [2] = 1 = reset
+	i2c_send2(entry->address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_reset);
 
-	for(try = 8; try > 0; try--)
-		if((error = i2c_send_2(entry->address, 0x13 /* PT_DATA_CFG */, 0b00000011)) == i2c_error_ok) // [1..0] = 1 = event mode enabled on both sensors
+	for(attempt = mpl3115_max_attempts; attempt > 0; attempt--)
+		if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) == i2c_error_ok)
 			break;
 
 	if(error != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_2(entry->address, 0x26 /*   CTRL_REG1 */, 0b00111000)) != i2c_error_ok) // [5..3] = 7 = 128 times oversampling
+	if(i2c_buffer != 0x00)
+		return(i2c_error_device_error_3);
+
+	if((error = i2c_send2(entry->address, mpl3115_reg_ptdatacfg, mpl3115_ptdatacfg_tdefe | mpl3115_ptdatacfg_pdefe)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_2(entry->address, 0x27 /*   CTRL_REG2 */, 0b00000000)) != i2c_error_ok) // [0] = 0 = auto acquisition step = 1 sec
+	if((error = i2c_send2(entry->address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_os_128)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_2(entry->address, 0x26 /*   CTRL_REG1 */, 0b00000001)) != i2c_error_ok) // [0] = 1 = standby -> active
+	if((error = i2c_send2(entry->address, mpl3115_reg_ctrl_reg2, (0x00 & mpl3115_ctrl2_st))) != i2c_error_ok) // auto acquisition step = 1 sec
 		return(error);
+
+	if((error = i2c_send2(entry->address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_os_128 | mpl3115_ctrl1_sbyb)) != i2c_error_ok) // go to "active" auto operation
+		return(error);
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer != (mpl3115_ctrl1_os_128 | mpl3115_ctrl1_sbyb))
+		return(i2c_error_device_error_5);
 
 	return(i2c_error_ok);
 }
@@ -2296,13 +2370,13 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const device_
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_drstatus, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if(!(i2c_buffer[0] & /* TDR */ 0b00000010))
-		return(i2c_error_device_error_3);
+	if(!(i2c_buffer[0] & mpl3115_drstatus_tdr))
+		return(i2c_error_device_error_4);
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x04 /* OUT_T x 2 */, 2, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_t, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
@@ -2316,13 +2390,13 @@ irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const device_
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x06 /* DR_STATUS */, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_drstatus, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if(!(i2c_buffer[0] & /* PDR */ 0b00000100))
-		return(i2c_error_device_error_3);
+	if(!(i2c_buffer[0] & mpl3115_drstatus_pdr))
+		return(i2c_error_device_error_4);
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x01 /* OUT_P x 3 */, 3, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_p, 3, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);
@@ -2338,7 +2412,7 @@ irom static i2c_error_t sensor_ccs811_read_register(int address, int reg, uint8_
 
 	for(try = 8; try > 0; try--)
 	{
-		if((error = i2c_send_receive_repeated_start(address, reg, 1, result)) == i2c_error_ok)
+		if((error = i2c_send1_receive_repeated_start(address, reg, 1, result)) == i2c_error_ok)
 			return(i2c_error_ok);
 
 		msleep(1);
@@ -2383,12 +2457,12 @@ irom static i2c_error_t sensor_ccs811_co2_init(int bus, const device_table_entry
 	if(!(i2c_buffer[0] & 0b00010000))
 		return(i2c_error_device_error_2); // no valid application
 
-	if((error = i2c_send_1(entry->address, 0xf4 /* APP_START */)) != i2c_error_ok) // start app
+	if((error = i2c_send1(entry->address, 0xf4 /* APP_START */)) != i2c_error_ok) // start app
 		return(error);
 
 	msleep(1);
 
-	if((error = i2c_send_2(entry->address, 0x01 /* MEAS_MODE */, 0b01000000)) != i2c_error_ok) // DRIVE_MODE = 100 = 4/sec
+	if((error = i2c_send2(entry->address, 0x01 /* MEAS_MODE */, 0b01000000)) != i2c_error_ok) // DRIVE_MODE = 100 = 4/sec
 		return(error);
 
 	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
@@ -2419,7 +2493,7 @@ irom static i2c_error_t sensor_ccs811_read(int bus, const device_table_entry_t *
 	{
 		if(i2c_buffer[0] & /* STATUS -> DATA_READY */ 0b00001000) // fresh data
 		{
-			if(i2c_send_receive_repeated_start(entry->address, 0x02 /* ALG_RESULT_DATA */, 8, i2c_buffer) == i2c_error_ok)
+			if(i2c_send1_receive_repeated_start(entry->address, 0x02 /* ALG_RESULT_DATA */, 8, i2c_buffer) == i2c_error_ok)
 			{
 				if(i2c_buffer[5] /* STATUS -> ERROR_ID */ != 0)
 					return(i2c_error_device_error_2);
