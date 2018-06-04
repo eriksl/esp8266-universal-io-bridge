@@ -2670,6 +2670,94 @@ irom static i2c_error_t sensor_hdc1080_humidity_read(int bus, const device_table
 	return(sensor_hdc1080_read(bus, entry, value, hdc1080_action_humidity));
 }
 
+typedef enum
+{
+	hih6130_action_temperature,
+	hih6130_action_humidity,
+} hih6130_action_t;
+
+typedef enum
+{
+	hih6130_status_normal =	(0 << 7) | (0 << 6),
+	hih6130_status_stale =	(0 << 7) | (1 << 6),
+	hih6130_status_cmd =	(1 << 7) | (0 << 6),
+	hih6130_status_mask =	(1 << 7) | (1 << 6),
+} hih6130_status_t;
+
+enum
+{
+	hih6130_max_attempts = 3,
+};
+
+irom static i2c_error_t sensor_hih6130_read(int bus, const device_table_entry_t *entry, value_t *value, hih6130_action_t action)
+{
+	uint8_t i2c_buffer[4];
+	i2c_error_t error;
+	int attempt;
+
+	value->cooked = value->raw = -1;
+
+	if((error = i2c_send(entry->address, 0, 0)) != i2c_error_ok)
+		return(error);
+
+	for(attempt = hih6130_max_attempts; attempt > 0; attempt--)
+	{
+		if((i2c_receive(entry->address, 4, i2c_buffer) == i2c_error_ok) && ((i2c_buffer[0] & hih6130_status_mask) == hih6130_status_normal))
+			break;
+
+		log("hih6130: retry %d\n", attempt);
+
+		msleep(20);
+	}
+
+	if(attempt <= 0)
+		return(i2c_error_device_error_1);
+
+	i2c_buffer[0] &= ~hih6130_status_mask;
+
+	if(action == hih6130_action_temperature)
+	{
+		value->raw = ((i2c_buffer[2] << 8) + i2c_buffer[3]) >> 2;
+		value->cooked = ((value->raw * 165) / ((1 << 14) - 2)) - 40;
+	}
+	else
+	{
+		value->raw = ((i2c_buffer[0] << 8) + i2c_buffer[1]) & 0b0011111111111111;
+		value->cooked = (value->raw * 100) / ((1 << 14) - 2);
+	}
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_hih6130_temperature_init(int bus, const device_table_entry_t *entry)
+{
+	uint8_t i2c_buffer[4];
+	i2c_error_t error;
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_hih6130_humidity_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_hih6130_temperature))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_hih6130_temperature_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_hih6130_read(bus, entry, value, hih6130_action_temperature));
+}
+
+irom static i2c_error_t sensor_hih6130_humidity_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_hih6130_read(bus, entry, value, hih6130_action_humidity));
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -2887,6 +2975,18 @@ static const device_table_entry_t device_table[] =
 		"hdc1080", "humidity", "", 0,
 		sensor_hdc1080_humidity_init,
 		sensor_hdc1080_humidity_read,
+	},
+	{
+		i2c_sensor_hih6130_temperature, 0x27,
+		"hih6130", "temperature", "C", 2,
+		sensor_hih6130_temperature_init,
+		sensor_hih6130_temperature_read,
+	},
+	{
+		i2c_sensor_hih6130_humidity, 0x27,
+		"hih6130", "humidity", "", 0,
+		sensor_hih6130_humidity_init,
+		sensor_hih6130_humidity_read,
 	},
 };
 
