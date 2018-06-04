@@ -43,6 +43,8 @@ typedef enum attr_packed
 	i2c_sensor_veml6075_infrared_light,
 	i2c_sensor_veml6075_visible_light,
 	i2c_sensor_si114x_temperature,
+	i2c_sensor_hdc1080_temperature,
+	i2c_sensor_hdc1080_humidity,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;

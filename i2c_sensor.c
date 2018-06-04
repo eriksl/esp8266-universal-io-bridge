@@ -2537,6 +2537,139 @@ irom static i2c_error_t sensor_ccs811_tov_read(int bus, const device_table_entry
 	return(i2c_error_ok);
 }
 
+typedef enum
+{
+	hdc1080_reg_data_temp =	0x00,
+	hdc1080_reg_data_hum =	0x01,
+	hdc1080_reg_conf =		0x02,
+	hdc1080_reg_serial1 =	0xfb,
+	hdc1080_reg_serial2 =	0xfc,
+	hdc1080_reg_serial3 =	0xfd,
+	hdc1080_reg_man_id =	0xfe,
+	hdc1080_reg_dev_id =	0xff,
+} hdc1080_reg_t;
+
+typedef enum
+{
+	hdc1080_conf_hres_8 =	(1 << 9) | (0 << 8),
+	hdc1080_conf_hres_11 =	(0 << 9) | (1 << 8),
+	hdc1080_conf_hres_14 =	(0 << 9) | (0 << 8),
+	hdc1080_conf_tres_11 =	(1 << 10),
+	hdc1080_conf_tres_14 =	(0 << 10),
+	hdc1080_conf_btst =		(1 << 11),
+	hdc1080_conf_mode_one =	(0 << 12),
+	hdc1080_conf_mode_two =	(1 << 12),
+	hdc1080_conf_heat =		(1 << 13),
+	hdc1080_conf_reserve0 =	(0 << 14),
+	hdc1080_conf_rst =		(1 << 15),
+} hdc1080_conf_t;
+
+typedef enum
+{
+	hdc1080_action_temperature,
+	hdc1080_action_humidity,
+} hdc1080_action_t;
+
+enum
+{
+	hdc1080_max_attempts = 16
+};
+
+irom static i2c_error_t sensor_hdc1080_read(int bus, const device_table_entry_t *entry, value_t *value, hdc1080_action_t action)
+{
+	i2c_error_t error;
+	int attempt;
+	uint32_t conf;
+	uint8_t i2c_buffer[3];
+	uint8_t reg;
+
+	value->cooked = value->raw = -1;
+
+	conf = hdc1080_conf_tres_14 | hdc1080_conf_hres_14 | hdc1080_conf_mode_one;
+
+	i2c_buffer[0] = hdc1080_reg_conf;
+	i2c_buffer[1] = (conf & 0xff00) >> 8;
+	i2c_buffer[2] = (conf & 0x00ff) >> 0;
+
+	if((error = i2c_send(entry->address, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(action == hdc1080_action_temperature)
+		reg = 0x00;
+	else
+		reg = 0x01;
+
+	if((error = i2c_send1(entry->address, reg)) != i2c_error_ok)
+		return(error);
+
+	for(attempt = hdc1080_max_attempts; attempt > 0; attempt--)
+	{
+		if(i2c_receive(entry->address, 2, i2c_buffer) == i2c_error_ok)
+			break;
+
+		msleep(2);
+	}
+
+	if(attempt <= 0)
+		return(i2c_error_device_error_1);
+
+	value->raw = (i2c_buffer[0] << 8) + i2c_buffer[1];
+
+	if(action == hdc1080_action_temperature)
+		value->cooked = ((value->raw * 165) / (1 << 16)) - 40;
+	else
+		value->cooked = ((value->raw * 100) / (1 << 16));
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_hdc1080_temperature_init(int bus, const device_table_entry_t *entry)
+{
+	uint8_t i2c_buffer[2];
+	i2c_error_t error;
+
+	if(i2c_sensor_detected(bus, i2c_sensor_htu21_temperature)) // shares 0x40
+		return(i2c_error_address_nak);
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, hdc1080_reg_man_id, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != 0x54) || (i2c_buffer[1] != 0x49))
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, hdc1080_reg_dev_id, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != 0x10) || (i2c_buffer[1] != 0x50))
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, 0xff, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send2(entry->address, hdc1080_reg_conf, hdc1080_conf_rst)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_hdc1080_humidity_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_hdc1080_temperature))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_hdc1080_temperature_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_hdc1080_read(bus, entry, value, hdc1080_action_temperature));
+}
+
+irom static i2c_error_t sensor_hdc1080_humidity_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_hdc1080_read(bus, entry, value, hdc1080_action_humidity));
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -2742,6 +2875,18 @@ static const device_table_entry_t device_table[] =
 		"si114x", "temperature", "C", 1,
 		sensor_si114x_temperature_init,
 		sensor_si114x_temperature_read,
+	},
+	{
+		i2c_sensor_hdc1080_temperature, 0x40,
+		"hdc1080", "temperature", "C", 2,
+		sensor_hdc1080_temperature_init,
+		sensor_hdc1080_temperature_read,
+	},
+	{
+		i2c_sensor_hdc1080_humidity, 0x40,
+		"hdc1080", "humidity", "", 0,
+		sensor_hdc1080_humidity_init,
+		sensor_hdc1080_humidity_read,
 	},
 };
 
