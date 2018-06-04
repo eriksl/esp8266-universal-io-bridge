@@ -785,47 +785,66 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const device_table_entry_t 
 	return(i2c_error_ok);
 }
 
+typedef enum
+{
+	bh1750_opcode_powerdown =		0b00000000,	// 0x00
+	bh1750_opcode_poweron =			0b00000001,	// 0x01
+	bh1750_opcode_reset =			0b00000111,	// 0x07
+	bh1750_opcode_cont_hmode =		0b00010000,	// 0x10
+	bh1750_opcode_cont_hmode2 =		0b00010001,	// 0x11
+	bh1750_opcode_cont_lmode =		0b00010011,	// 0x13
+	bh1750_opcode_one_hmode =		0b00100000,	// 0x20
+	bh1750_opcode_one_hmode2 =		0b00100001,	// 0x21
+	bh1750_opcode_one_lmode =		0b00100011,	// 0x23
+	bh1750_opcode_change_meas_hi =	0b01000000,	// 0x40
+	bh1750_opcode_change_meas_lo =	0b01100000,	// 0x60
+} bh1740_opcode_t;
+
 irom static i2c_error_t sensor_bh1750_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	int timing;
 	uint8_t regval[2];
+	bh1740_opcode_t mode;
 
 	// there is no "read register" command on this device, so assume
 	// a device at 0x23 is actually a bh1750, there is no way to be sure.
 
 	// power on
 
-	if((error = i2c_send_1(entry->address, 0b00000001)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, bh1750_opcode_poweron)) != i2c_error_ok)
 		return(error);
 
 	// reset
 
-	if((error = i2c_send_1(entry->address, 0b00000111)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, bh1750_opcode_reset)) != i2c_error_ok)
 		return(error);
 
 	// set sensitivity
-	// "window" can be set between 31 and 254
-	// lux-per-count is 0.93 for low sensibility mode (window = 31)
-	// lux-per-count is 0.11 for high sensibility mode (window = 254)
 
 	if(config_flags_get().flag.bh_high_sens)
-		timing = 254;
+	{
+		mode = bh1750_opcode_cont_hmode2;
+		timing = 254; // max
+	}
 	else
-		timing = 31;
+	{
+		mode = bh1750_opcode_cont_lmode;
+		timing = 69; // default
+	}
 
-	regval[0] = 0b01000000 | ((timing >> 5) & 0b00000111);
-	regval[1] = 0b01100000 | ((timing >> 0) & 0b00011111);
+	regval[0] = bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111);
+	regval[1] = bh1750_opcode_change_meas_lo | ((timing >> 0) & 0b00011111);
 
-	if((error = i2c_send_1(entry->address, regval[0])) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, regval[0])) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_1(entry->address, regval[1])) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, regval[1])) != i2c_error_ok)
 		return(error);
 
-	// start continuous sampling every 120 ms, high resolution = 0.42 Lx
+	// start continuous sampling
 
-	if((error = i2c_send_1(entry->address, 0b00010001)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, mode)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -841,9 +860,14 @@ irom static i2c_error_t sensor_bh1750_read(int bus, const device_table_entry_t *
 		return(error);
 
 	if(config_flags_get().flag.bh_high_sens)
-		luxpercount = 0.11;
+		// mode = hmode2, timing = 254
+		// hmode2 = 1/2 lx / count
+		// timing = 1 / 254 / 69 = 0.27
+		luxpercount = 1.2 * 0.5 * 0.27;
 	else
-		luxpercount = 0.93;
+		// mode = hmode, timing = default = 69
+		// hmode =  1 lx / count
+		luxpercount = 1.2;
 
 	value->raw		= (double)((i2cbuffer[0] << 8) | i2cbuffer[1]);
 	value->cooked	= value->raw * luxpercount;
@@ -879,7 +903,7 @@ irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uin
 	uint8_t	i2cbuffer[4];
 	uint8_t crc1, crc2;
 
-	if((error = i2c_send_1(entry->address, command)) != i2c_error_ok)
+	if((error = i2c_send1(entry->address, command)) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_receive(entry->address, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
@@ -2323,7 +2347,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_bh1750, 0x23,
-		"bh1750", "light", "", 2,
+		"bh1750", "visible light", "lx", 2,
 		sensor_bh1750_init,
 		sensor_bh1750_read
 	},
