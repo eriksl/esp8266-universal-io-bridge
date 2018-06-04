@@ -2758,6 +2758,278 @@ irom static i2c_error_t sensor_hih6130_humidity_read(int bus, const device_table
 	return(sensor_hih6130_read(bus, entry, value, hih6130_action_humidity));
 }
 
+typedef enum
+{
+	sht30_cmd_single_meas_clock_high =		0x2c06,
+	sht30_cmd_single_meas_clock_medium =	0x2c0d,
+	sht30_cmd_single_meas_clock_low =		0x2c10,
+
+	sht30_cmd_single_meas_noclock_high =	0x2400,
+	sht30_cmd_single_meas_noclock_medium =	0x240b,
+	sht30_cmd_single_meas_noclock_low =		0x2416,
+
+	sht30_cmd_auto_meas_high_05 =			0x2032,
+	sht30_cmd_auto_meas_medium_05 =			0x2024,
+	sht30_cmd_auto_meas_low_05 =			0x202f,
+
+	sht30_cmd_auto_meas_high_1 =			0x2130,
+	sht30_cmd_auto_meas_medium_1 =			0x2126,
+	sht30_cmd_auto_meas_low_1 =				0x212d,
+
+	sht30_cmd_auto_meas_high_2 =			0x2236,
+	sht30_cmd_auto_meas_medium_2 =			0x2220,
+	sht30_cmd_auto_meas_low_2 =				0x222b,
+
+	sht30_cmd_auto_meas_high_4 =			0x2334,
+	sht30_cmd_auto_meas_medium_4 =			0x2322,
+	sht30_cmd_auto_meas_low_4 =				0x2329,
+
+	sht30_cmd_auto_meas_high_10 =			0x2737,
+	sht30_cmd_auto_meas_medium_10 =			0x2721,
+	sht30_cmd_auto_meas_low_10 =			0x272a,
+
+	sht30_cmd_fetch_data =					0xe000,
+	sht30_cmd_art =							0x2b32,
+	sht30_cmd_break =						0x3093,
+	sht30_cmd_reset =						0x30a2,
+	sht30_cmd_heater_en =					0x306d,
+	sht30_cmd_heater_dis =					0x3066,
+	sht30_cmd_read_status =					0xf32d,
+	sht30_cmd_clear_status =				0x3041,
+} sht30_cmd_t;
+
+typedef enum
+{
+	sht30_status_none =				0x00,
+	sht30_status_write_checksum =	(1 << 0),
+	sht30_status_command_status =	(1 << 1),
+	sht30_status_reset_detected =	(1 << 4),
+	sht30_status_temp_track_alert =	(1 << 10),
+	sht30_status_hum_track_alert =	(1 << 11),
+	sht30_status_heater =			(1 << 13),
+	sht30_status_alert =			(1 << 15),
+} sht30_status_t;
+
+typedef enum
+{
+	sht30_action_none,
+	sht30_action_temperature,
+	sht30_action_humidity,
+} sht30_action_t;
+
+enum
+{
+	sht30_max_attempts = 4,
+};
+
+static unsigned int sht30_raw_temperature_cached = ~0;
+static unsigned int sht30_raw_humidity_cached = ~0;
+
+irom attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
+{
+	uint8_t outer, inner, testbit, crc;
+
+	crc = 0xff;
+
+	for(outer = 0; (int)outer < length; outer++)
+	{
+		crc ^= data[outer];
+
+		for(inner = 0; inner < 8; inner++)
+		{
+			testbit = !!(crc & 0x80);
+			crc <<= 1;
+			if(testbit)
+				crc ^= 0x31;
+		}
+	}
+
+	return(crc);
+}
+
+irom static i2c_error_t sht30_writeread(int address, sht30_cmd_t cmd, int *result1, int *result2, bool_t wait)
+{
+	int attempt;
+	uint8_t i2c_buffer[8];	// 2 + 3 + 3
+	uint8_t crc_local, crc_remote;
+
+	i2c_buffer[0] = (cmd & 0xff00) >> 8;
+	i2c_buffer[1] = (cmd & 0x00ff) >> 0;
+
+	for(attempt = wait ? sht30_max_attempts : 1; attempt > 0; attempt--)
+	{
+		if(!result1)		// out word
+		{
+			if(i2c_send(address, 2, &i2c_buffer[0]) != i2c_error_ok)
+			{
+				log("sht30: i2c error\n");
+				goto error;
+			}
+		}
+		else
+		{
+			if(!result2)	// out word, in word + crc
+			{
+				if(i2c_send_receive_repeated_start(address, 2, &i2c_buffer[0], 3, &i2c_buffer[2]) != i2c_error_ok)
+					goto error;
+
+				crc_local = i2c_buffer[4];
+				crc_remote = sht30_crc(2, &i2c_buffer[2]);
+
+				if(crc_local != crc_remote)
+				{
+					log("sht30: crc_local (%x) != crc_remote (%x)\n", crc_local, crc_remote);
+					goto error;
+				}
+
+				*result1 = (i2c_buffer[2] << 8) | i2c_buffer[3];
+			}
+			else
+			{				// out word, in word + crc, in word + crc
+				if(i2c_send_receive_repeated_start(address, 2, &i2c_buffer[0], 6, &i2c_buffer[2]) != i2c_error_ok)
+					goto error;
+
+				crc_local = i2c_buffer[4];
+				crc_remote = sht30_crc(2, &i2c_buffer[2]);
+
+				if(crc_local != crc_remote)
+				{
+					log("sht30: crc_local 1 (%x) != crc_remote 1 (%x)\n", crc_local, crc_remote);
+					goto error;
+				}
+
+				crc_local = i2c_buffer[7];
+				crc_remote = sht30_crc(2, &i2c_buffer[5]);
+
+				if(crc_local != crc_remote)
+				{
+					log("sht30: crc_local 2 (%x) != crc_remote 2 (%x)\n", crc_local, crc_remote);
+					goto error;
+				}
+
+				*result1 = (i2c_buffer[2] << 8) | i2c_buffer[3];
+				*result2 = (i2c_buffer[5] << 8) | i2c_buffer[6];
+			}
+		}
+
+		break;
+error:
+		log("sht30: error, retry #%d\n", attempt);
+		msleep(1);
+	}
+
+	if(attempt <= 0)
+	{
+		log("sht30: too many attempts: %d\n", attempt);
+		return(i2c_error_device_error_3);
+	}
+
+	return(i2c_error_ok); // FIXME
+}
+
+irom static i2c_error_t sensor_sht30_temperature_init(int bus, const device_table_entry_t *entry)
+{
+	int result;
+	i2c_error_t error;
+
+	log("\nsht30: start init, bus: %d\n", bus);
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_break, 0, 0, false)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: A\n");
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_reset, 0, 0, true)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: A1\n");
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_read_status, &result, 0, true)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: B: %x\n", result);
+
+	if((result & (sht30_status_write_checksum | sht30_status_command_status)) != 0x00)
+		return(i2c_error_device_error_1);
+
+	log("sht30: C\n");
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_clear_status, 0, 0, true)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: D\n");
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_auto_meas_high_2, 0, 0, true)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: D2\n");
+
+	if((error = sht30_writeread(entry->address, sht30_cmd_read_status, &result, 0, true)) != i2c_error_ok)
+		return(error);
+
+	log("sht30: E, %x\n", result);
+
+	if((result & (sht30_status_write_checksum | sht30_status_command_status | sht30_status_reset_detected)) != sht30_status_none)
+		return(i2c_error_device_error_2);
+
+	log("sht30: F\n");
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_sht30_humidity_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_sht30_temperature))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_sht30_read(int bus, const device_table_entry_t *entry, sht30_action_t action, value_t *value)
+{
+	int result1, result2;
+
+	if(sht30_writeread(entry->address, sht30_cmd_fetch_data, &result1, &result2, yes) == i2c_error_ok)
+	{
+		sht30_raw_temperature_cached = result1;
+		sht30_raw_humidity_cached = result2;
+	}
+	else
+	{
+		result1 = sht30_raw_temperature_cached;
+		result2 = sht30_raw_humidity_cached;
+	}
+
+	if(action == sht30_action_temperature)
+	{
+		if(result1 == ~0)
+			return(i2c_error_device_error_4);
+
+		value->raw = result1;
+		value->cooked = ((value->raw * 175) / ((1 << 16) - 1)) - 45;
+	}
+	else
+	{
+		if(result2 == ~0)
+			return(i2c_error_device_error_4);
+
+		value->raw = result2;
+		value->cooked = (value->raw * 100) / ((1 << 16) - 1);
+	}
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_sht30_temperature_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_sht30_read(bus, entry, sht30_action_temperature, value));
+}
+
+irom static i2c_error_t sensor_sht30_humidity_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	return(sensor_sht30_read(bus, entry, sht30_action_humidity, value));
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -2987,6 +3259,18 @@ static const device_table_entry_t device_table[] =
 		"hih6130", "humidity", "", 0,
 		sensor_hih6130_humidity_init,
 		sensor_hih6130_humidity_read,
+	},
+	{
+		i2c_sensor_sht30_temperature, 0x44,
+		"sht30", "temperature", "C", 2,
+		sensor_sht30_temperature_init,
+		sensor_sht30_temperature_read,
+	},
+	{
+		i2c_sensor_sht30_humidity, 0x44,
+		"sht30", "humidity", "", 0,
+		sensor_sht30_humidity_init,
+		sensor_sht30_humidity_read,
 	},
 };
 
