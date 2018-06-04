@@ -2089,28 +2089,65 @@ irom static i2c_error_t sensor_max44009_read(int bus, const device_table_entry_t
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6075_init(int bus, const device_table_entry_t *entry)
+typedef enum
+{
+	veml6075_reg_uv_conf = 			0x00,
+	veml6075_reg_uv_uva_data =		0x07,
+	veml6075_reg_uv_uvb_data =		0x09,
+	veml6075_reg_uv_uvcomp1_data =	0x0a,
+	veml6075_reg_uv_uvcomp2_data =	0x0b,
+	veml6075_reg_uv_id =			0x0c,
+} veml6075_register_t;
+
+typedef enum
+{
+	veml6075_conf_sd =				1 << 0,
+	veml6075_conf_uv_af =			1 << 1,
+	veml6075_conf_uv_trig =			1 << 2,
+	veml6075_conf_hd =				1 << 3,
+	veml6075_conf_it =				(1 << 4) || (1 << 5) || (1 << 6),
+	veml6075_conf_reserved =		1 << 7,
+} veml6075_conf_bit_t;
+
+typedef enum
+{
+	veml6075_conf_it_50ms = 		0b00000000,
+	veml6075_conf_it_100ms = 		0b00010000,
+	veml6075_conf_it_200ms = 		0b00100000,
+	veml6075_conf_it_400ms = 		0b00110000,
+	veml6075_conf_it_800ms = 		0b01000000,
+} veml6075_integration_time_t;
+
+typedef enum
+{
+	veml6075_id_vendor =			0x00,
+	veml6075_id_device =			0x26,
+} veml6075_id_t;
+
+
+irom static i2c_error_t sensor_veml6075_uvindex_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[2];
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x0c, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, 0x0c, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if((i2c_buffer[0] != 0x26) || (i2c_buffer[1] != 0x00))
+	if((i2c_buffer[0] != veml6075_id_device) || (i2c_buffer[1] != veml6075_id_vendor))
 		return(i2c_error_device_error_1);
 
-	if(i2c_send_2(entry->address, 0x00 /* conf */, 0x01 /* shutdown */) != i2c_error_ok)
+	if(i2c_send2(entry->address, veml6075_reg_uv_conf, veml6075_conf_sd) != i2c_error_ok)
 		return(i2c_error_device_error_2);
 
-	if(i2c_send_2(entry->address, 0x00 /* conf */, 0b01000000) != i2c_error_ok)
+	if(i2c_send2(entry->address, veml6075_reg_uv_conf, veml6075_conf_it_100ms) != i2c_error_ok)
 		return(i2c_error_device_error_3);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6075_read(int bus, const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_veml6075_uvindex_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
+	/* "no teflon" values */
 	static const double a = 2.22;
 	static const double b = 1.33;
 	static const double c = 2.95;
@@ -2121,36 +2158,32 @@ irom static i2c_error_t sensor_veml6075_read(int bus, const device_table_entry_t
 	static const double uvbr = 0.002591;
 
 	i2c_error_t	error;
-	uint8_t		i2c_buffer[2];
-	int			uva_data;
-	int 		uvb_data;
-	double		uv_comp1_data;
-	double		uv_comp2_data;
-	double		uva, uvb;
-	double		uvia, uvib, uvi;
+	uint8_t i2c_buffer[2];
+	unsigned int uva_data, uvb_data, uv_comp1_data, uv_comp2_data;
+	double uva, uvb, uvia, uvib, uvi;
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x07, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uva_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	uva_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+	uva_data = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x09, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uvb_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	uvb_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+	uvb_data = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x0a, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uvcomp1_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	uv_comp1_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+	uv_comp1_data = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	if((error = i2c_send_receive_repeated_start(entry->address, 0x0b, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uvcomp2_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	uv_comp2_data = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+	uv_comp2_data = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	uva	= uva_data - (a * uv_comp1_data) - (b * uv_comp2_data);
-	uvb	= uvb_data - (c * uv_comp1_data) - (d * uv_comp2_data);
+	uva	= (double)uva_data - (a * (double)uv_comp1_data) - (b * (double)uv_comp2_data);
+	uvb	= (double)uvb_data - (c * (double)uv_comp1_data) - (d * (double)uv_comp2_data);
 
 	if(uva < 0)
 		uva = 0;
@@ -2162,8 +2195,54 @@ irom static i2c_error_t sensor_veml6075_read(int bus, const device_table_entry_t
 	uvib	= uvb * k2 * uvbr;
 	uvi		= (uvia + uvib) / 2;
 
-	value->raw = (unsigned int)uva * 10000 + (unsigned int)uvb;
-	value->cooked = uvi;
+	value->raw = (unsigned int)uvia * 10000 + (unsigned int)uvib;
+	value->cooked = uvi * 0.6;
+
+	log("uva_data: %u, uvb_data: %u, uv_comp1_data: %u, uv_comp2_data: %u\n", uva_data, uvb_data, uv_comp1_data, uv_comp2_data);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_veml6075_visible_light_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_veml6075_uvindex))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_veml6075_visible_light_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uvcomp1_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	value->raw = (i2c_buffer[1] << 8) | i2c_buffer[0];
+	value->cooked = 60 * value->raw;
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_veml6075_infrared_light_init(int bus, const device_table_entry_t *entry)
+{
+	if(i2c_sensor_detected(bus, i2c_sensor_veml6075_uvindex))
+		return(i2c_error_ok);
+
+	return(i2c_error_address_nak);
+}
+
+irom static i2c_error_t sensor_veml6075_infrared_light_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, veml6075_reg_uv_uvcomp2_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	value->raw = (i2c_buffer[1] << 8) | i2c_buffer[0];
+	value->cooked = 50 * value->raw;
 
 	return(i2c_error_ok);
 }
@@ -2543,10 +2622,10 @@ static const device_table_entry_t device_table[] =
 		sensor_max44009_read,
 	},
 	{
-		i2c_sensor_veml6075, 0x10,
-		"veml6075", "uv light", "", 2,
-		sensor_veml6075_init,
-		sensor_veml6075_read,
+		i2c_sensor_veml6075_uvindex, 0x10,
+		"veml6075", "ultraviolet light index", "", 1,
+		sensor_veml6075_uvindex_init,
+		sensor_veml6075_uvindex_read,
 	},
 	{
 		i2c_sensor_mpl3115a2_temperature, 0x60,
@@ -2571,6 +2650,18 @@ static const device_table_entry_t device_table[] =
 		"ccs811", "tov", "ppm", 0,
 		sensor_ccs811_tov_init,
 		sensor_ccs811_tov_read,
+	},
+	{
+		i2c_sensor_veml6075_visible_light, 0x10,
+		"veml6075", "visible light", "", 2,
+		sensor_veml6075_visible_light_init,
+		sensor_veml6075_visible_light_read,
+	},
+	{
+		i2c_sensor_veml6075_infrared_light, 0x10,
+		"veml6075", "infrared light", "", 2,
+		sensor_veml6075_infrared_light_init,
+		sensor_veml6075_infrared_light_read,
 	},
 	{
 		i2c_sensor_si114x_temperature, 0x60,
