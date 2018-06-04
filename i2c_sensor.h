@@ -40,6 +40,7 @@ typedef enum attr_packed
 	i2c_sensor_mpl3115a2_airpressure,
 	i2c_sensor_ccs811_co2,
 	i2c_sensor_ccs811_tov,
+	i2c_sensor_si114x_temperature,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
