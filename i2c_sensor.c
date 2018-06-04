@@ -390,208 +390,6 @@ irom static i2c_error_t sensor_bmp085_read_pressure(int bus, const device_table_
 	return(bmp085_read(entry->address, 0, value));
 }
 
-typedef struct
-{
-	const double ratio_top;
-	const double ch0_factor;
-	const double ch1_factor;
-} tsl2560_lookup_t;
-
-static const tsl2560_lookup_t tsl2560_lookup[] =
-{
-	{ 0.125, 0.03040, 0.02720 },
-	{ 0.250, 0.03250, 0.04400 },
-	{ 0.375, 0.03510, 0.05440 },
-	{ 0.500, 0.03810, 0.06240 },
-	{ 0.610, 0.02240, 0.03100 },
-	{ 0.800, 0.01280, 0.01530 },
-	{ 1.300, 0.00146, 0.00112 },
-	{ 0.000, 0.00000, 0.00000 }
-};
-
-irom static i2c_error_t tsl2560_write(int address, int reg, int value)
-{
-	i2c_error_t error;
-
-	// 0xc0	write byte
-
-	if((error = i2c_send_2(address, 0xc0 | reg, value)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t tsl2560_read(int address, int reg, uint8_t *byte)
-{
-	i2c_error_t error;
-
-	// 0xc0	read byte
-
-	if((error = i2c_send_1(address, 0xc0 | reg)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(address, 1, byte)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t tsl2560_write_check(int address, int reg, int value)
-{
-	i2c_error_t error;
-	uint8_t rv;
-
-	if((error = tsl2560_write(address, reg, value)) != i2c_error_ok)
-		return(error);
-
-	if((error = tsl2560_read(address, reg, &rv)) != i2c_error_ok)
-		return(error);
-
-	if(value != rv)
-		return(i2c_error_device_error_1);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t tsl2560_read_block(int address, int reg, uint8_t *values)
-{
-	i2c_error_t error;
-
-	// 0xd0	read block
-
-	if((error = i2c_send_1(address, 0xd0 | reg)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(address , 4, values)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_tsl2560_init(int bus, const device_table_entry_t *entry)
-{
-	i2c_error_t error;
-	uint8_t regval;
-
-	if((entry->address == 0x39) && i2c_sensor_detected(bus, i2c_sensor_tsl2550))
-		return(i2c_error_device_error_1);
-
-	if((error = tsl2560_write_check(entry->address, 0x00, 0x00)) != i2c_error_ok) // power down
-		return(error);
-
-	if((error = tsl2560_write(entry->address, 0x00, 0x03)) != i2c_error_ok)	// power up
-		return(error);
-
-	if((error = tsl2560_read(entry->address, 0x00, &regval)) != i2c_error_ok)
-		return(error);
-
-	if((regval & 0x0f) != 0x03)
-		return(i2c_error_device_error_2);
-
-	if((error = tsl2560_write_check(entry->address, 0x06, 0x00)) != i2c_error_ok)	// disable interrupts
-		return(error);
-
-	if((error = tsl2560_write(entry->address, 0x0a, 0x00)) != i2c_error_ok)	// id register 1
-		return(error);
-
-	if((error = tsl2560_read(entry->address, 0x0a, &regval)) != i2c_error_ok) // read id register 1
-		return(error);
-
-	if(regval != 0x50)
-		return(i2c_error_device_error_3);
-
-	if((error = tsl2560_write(entry->address, 0x0b, 0x00)) != i2c_error_ok)	// id register 2
-		return(error);
-
-	if((error = tsl2560_read(entry->address, 0x0b, &regval)) != i2c_error_ok) // read id register 2
-		return(error);
-
-	if(regval != 0x04)
-		return(i2c_error_device_error_3);
-
-
-	if(config_flags_get().flag.tsl_high_sens)
-		regval = 0b00010010; // 400 ms sampling window, gain is high, 16x
-	else
-		regval = 0b00000010; // 400 ms sampling window, gain is high, 1x
-
-	if((error = tsl2560_write_check(entry->address, 0x01, regval)) != i2c_error_ok)	// start continuous sampling
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_tsl2560_read(int bus, const device_table_entry_t *entry, value_t *value)
-{
-	uint8_t	i2cbuffer[4];
-	i2c_error_t	error;
-	unsigned int ch0r, ch1r;
-	double ratio, ch0, ch1;
-	const tsl2560_lookup_t *tsl2560_entry;
-	int current;
-
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
-		return(i2c_error_device_error_1);
-
-	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
-			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
-		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
-
-	if((error = tsl2560_read_block(entry->address, 0x0c, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	ch0r = i2cbuffer[0] | (i2cbuffer[1] << 8);
-	ch1r = i2cbuffer[2] | (i2cbuffer[3] << 8);
-
-	value->raw = ((double)ch1r * 1000000) + (double)ch0r;
-
-	if((ch0r == 65535) || (ch1r == 65535))
-	{
-		value->cooked = -1;
-		return(i2c_error_ok);
-	}
-
-	if(config_flags_get().flag.tsl_high_sens)
-	{
-		// high sensitivity = 400 ms integration time, scaling factor = 1
-		// analogue amplification = 16x, scaling factor = 1
-
-		ch0 = (double)ch0r * 1.0;
-		ch1 = (double)ch1r * 1.0;
-	}
-	else
-	{
-		// low  sensitivity =  400 ms integration time, scaling factor = 1
-		// analogue amplification = 1x, scaling factor = 16
-
-		ch0 = (double)ch0r * 1.0 * 16.0;
-		ch1 = (double)ch1r * 1.0 * 16.0;
-	}
-
-	if((unsigned int)ch0 != 0)
-		ratio = ch1 / ch0;
-	else
-		ratio = 0;
-
-	for(current = 0;; current++)
-	{
-		tsl2560_entry = &tsl2560_lookup[current];
-
-		if(((unsigned int)tsl2560_entry->ratio_top == 0) || ((unsigned int)tsl2560_entry->ch0_factor == 0) || ((unsigned int)tsl2560_entry->ch1_factor == 0))
-			break;
-
-		if(ratio <= tsl2560_entry->ratio_top)
-			break;
-	}
-
-	value->cooked = (ch0 * tsl2560_entry->ch0_factor) - (ch1 * tsl2560_entry->ch1_factor);
-
-	if(value->cooked < 0)
-		value->cooked = 0;
-
-	return(i2c_error_ok);
-}
-
 static const uint16_t tsl2550_count[128] =
 {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26,
@@ -660,7 +458,7 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const device_table_entry_t 
 	int sens_command;
 	uint8_t	i2cbuffer[2];
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
 		return(i2c_error_device_error_1);
 
 	// tsl2550 power up
@@ -689,7 +487,7 @@ irom static i2c_error_t sensor_tsl2550_read(int bus, const device_table_entry_t 
 	uint8_t		ch0, ch1;
 	int			attempt, ratio;
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0))
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
 		return(i2c_error_device_error_1);
 
 	error = i2c_error_ok;
@@ -735,6 +533,254 @@ error:
 
 	if(!config_flags_get().flag.tsl_high_sens)
 		value->cooked *= 5;
+
+	return(i2c_error_ok);
+}
+
+typedef enum
+{
+	tsl2561_reg_control =			0x00,
+	tsl2561_reg_timeint =			0x01,
+	tsl2561_reg_threshlowlow =		0x02,
+	tsl2561_reg_threshlowhigh =		0x03,
+	tsl2561_reg_threshhighlow =		0x04,
+	tsl2561_reg_threshhighhigh =	0x05,
+	tsl2561_reg_interrupt =			0x06,
+	tsl2561_reg_crc =				0x08,
+	tsl2561_reg_id =				0x0a,
+	tsl2561_reg_data0low =			0x0c,
+	tsl2561_reg_data0high =			0x0d,
+	tsl2561_reg_data1low =			0x0e,
+	tsl2561_reg_data1high =			0x0f,
+} tsl2561_reg_t;
+
+typedef enum
+{
+	tsl2561_cmd_address =	(1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+	tsl2561_cmd_block =		1 << 4,
+	tsl2561_cmd_word =		1 << 5,
+	tsl2561_cmd_clear =		1 << 6,
+	tsl2561_cmd_cmd =		1 << 7,
+} tsl2561_cmd_t;
+
+typedef enum
+{
+	tsl2561_ctrl_power_off =	0x00,
+	tsl2561_ctrl_power_on =		0x03,
+} tsl2561_ctrl_t;
+
+typedef enum
+{
+	tsl2561_tim_integ_13ms	=	(0 << 1) | (0 << 0),
+	tsl2561_tim_integ_101ms	=	(0 << 1) | (1 << 0),
+	tsl2561_tim_integ_402ms	=	(1 << 1) | (0 << 0),
+	tsl2561_tim_manual		=	1 << 3,
+	tsl2561_tim_high_gain	=	1 << 4,
+} tsl2561_timeint_t;
+
+typedef struct
+{
+	const double ratio_top;
+	const double ch0_factor;
+	const double ch1_factor;
+} tsl2561_lookup_t;
+
+static const tsl2561_lookup_t tsl2561_lookup[] =
+{
+	{ 0.125, 0.03040, 0.02720 },
+	{ 0.250, 0.03250, 0.04400 },
+	{ 0.375, 0.03510, 0.05440 },
+	{ 0.500, 0.03810, 0.06240 },
+	{ 0.610, 0.02240, 0.03100 },
+	{ 0.800, 0.01280, 0.01530 },
+	{ 1.300, 0.00146, 0.00112 },
+	{ 0.000, 0.00000, 0.00000 }
+};
+
+irom static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned int value)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send2(address, tsl2561_cmd_cmd | tsl2561_cmd_clear | (reg & tsl2561_cmd_address), value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t tsl2561_read(int address, tsl2561_reg_t reg, uint8_t *byte)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send1_receive_repeated_start(address, tsl2561_cmd_cmd | (reg & tsl2561_cmd_address), sizeof(*byte), byte)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned int value)
+{
+	i2c_error_t error;
+	uint8_t rv;
+
+	if((error = tsl2561_write(address, reg, value)) != i2c_error_ok)
+		return(error);
+
+	if((error = tsl2561_read(address, reg, &rv)) != i2c_error_ok)
+		return(error);
+
+	if(value != rv)
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t tsl2561_read_block(int address, tsl2561_reg_t reg, unsigned int *value1, unsigned int *value2)
+{
+	i2c_error_t error;
+	uint8_t i2cbuffer[4];
+
+	if((error = i2c_send1_receive_repeated_start(address, tsl2561_cmd_cmd | tsl2561_cmd_block | (reg & tsl2561_cmd_address), sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
+		return(error);
+
+	*value1 = (i2cbuffer[1] << 8) | i2cbuffer[0];
+	*value2 = (i2cbuffer[3] << 8) | i2cbuffer[2];
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_tsl2561_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t error;
+	uint8_t regval;
+	tsl2561_timeint_t timeint;
+	uint8_t i2cbuffer[2];
+
+	if((entry->address == 0x39) && i2c_sensor_detected(bus, i2c_sensor_tsl2550))
+		return(i2c_error_device_error_1);
+
+	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
+			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
+		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
+
+	if((error = tsl2561_write_check(entry->address, tsl2561_reg_control, tsl2561_ctrl_power_off)) != i2c_error_ok)
+		return(error);
+
+	if((error = tsl2561_read(entry->address, tsl2561_reg_id, &regval)) != i2c_error_ok)
+		return(error);
+
+	if(regval != 0x50)
+		return(i2c_error_device_error_3);
+
+	if(tsl2561_write_check(entry->address, tsl2561_reg_id, 0x00) == i2c_error_ok) // id register should not be writable
+		return(i2c_error_device_error_4);
+
+	if((error = tsl2561_write_check(entry->address, tsl2561_reg_interrupt, 0x00)) != i2c_error_ok)	// disable interrupts
+		return(error);
+
+	if(config_flags_get().flag.tsl_high_sens)
+		timeint = tsl2561_tim_integ_402ms | tsl2561_tim_high_gain;
+	else
+		timeint = tsl2561_tim_integ_101ms;
+
+	if((error = tsl2561_write_check(entry->address, tsl2561_reg_timeint, timeint)) != i2c_error_ok)	// start continuous sampling
+		return(error);
+
+	if((error = tsl2561_write(entry->address, tsl2561_reg_control, tsl2561_ctrl_power_on)) != i2c_error_ok)	// power up
+		return(error);
+
+	if((error = tsl2561_read(entry->address, tsl2561_reg_control, &regval)) != i2c_error_ok)
+		return(error);
+
+	if((regval & 0x0f) != tsl2561_ctrl_power_on)
+		return(i2c_error_device_error_3);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_tsl2561_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t	error;
+	unsigned int ch0r, ch1r;
+	double ratio, ch0, ch1;
+	const tsl2561_lookup_t *tsl2561_entry;
+	int current;
+
+	value->raw = value->cooked = -1;
+
+	if((error = tsl2561_read_block(entry->address, tsl2561_reg_data0low, &ch0r, &ch1r)) != i2c_error_ok)
+		return(error);
+
+	if(ch0r == 0)
+	{
+		value->raw = value->cooked = 0;
+		return(i2c_error_ok);
+	}
+
+	if(config_flags_get().flag.tsl_high_sens)
+	{
+		// high sensitivity = 402 ms integration time, scaling factor = 1
+		// analogue amplification = 16x, scaling factor = 1
+
+		if((ch0r == 65535) || (ch1r == 65535))
+		{
+			value->raw = (100000 * ch0r) + ch1r;
+			value->cooked = 2000;
+			return(i2c_error_ok);
+		}
+
+		ch0 = (double)ch0r * 1.0 * 1.0;
+		ch1 = (double)ch1r * 1.0 * 1.0;
+	}
+	else
+	{
+		// low  sensitivity = 101 ms integration time, scaling factor = 3.98 (402 / 101)
+		// analogue amplification = 1x, scaling factor = 16
+
+		if((ch0r == 37177) || (ch1r == 37177))
+		{
+			value->raw = (100000 * ch0r) + ch1r;
+			value->cooked = 43000;
+			return(i2c_error_ok);
+		}
+
+		ch0 = (double)ch0r * 3.98 * 16.0;
+		ch1 = (double)ch1r * 3.98 * 16.0;
+	}
+
+	ratio = ch1 / ch0;
+
+	for(current = 0;; current++)
+	{
+		tsl2561_entry = &tsl2561_lookup[current];
+
+		if(((unsigned int)tsl2561_entry->ratio_top == 0) || ((unsigned int)tsl2561_entry->ch0_factor == 0) || ((unsigned int)tsl2561_entry->ch1_factor == 0))
+			break;
+
+		if(ratio <= tsl2561_entry->ratio_top)
+			break;
+	}
+
+	value->raw = (ch0 * tsl2561_entry->ch0_factor) - (ch1 * tsl2561_entry->ch1_factor);
+
+	if(value->raw < 0)
+		value->raw = 0;
+
+	if(ratio > 1.30)
+		value->cooked = 0;
+	else
+		if(ratio >= 0.80)
+			value->cooked = (0.00146 * ch0) - (0.00112 * ch1);
+		else
+			if(ratio >= 0.61)
+				value->cooked = (0.0128 * ch0) - (0.0153 * ch1);
+			else
+				if(ratio >= 0.50)
+					value->cooked = (0.0224 * ch0) - (0.031 * ch1);
+				else
+				{
+					log("tsl2550: using pow\n");
+					value->cooked = (0.0304 * ch0) - (0.062 * ch0 * pow(ratio, 1.4));
+				}
 
 	return(i2c_error_ok);
 }
@@ -1082,7 +1128,7 @@ irom static i2c_error_t sensor_veml6070_init(int bus, const device_table_entry_t
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550)) // 0x39
 		return(i2c_error_device_error_1);
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2560_0)) // 0x39
+	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0)) // 0x39
 		return(i2c_error_device_error_1);
 
 	if((error = i2c_send_1(0x38, 0b00000110)) != i2c_error_ok) // recommended initial value
@@ -2264,14 +2310,14 @@ static const device_table_entry_t device_table[] =
 		sensor_bmp085_read_pressure
 	},
 	{
-		i2c_sensor_tsl2560_0, 0x39,
-		"tsl2560/tsl2561 #0", "visible light", "", 2,
-		sensor_tsl2560_init,
-		sensor_tsl2560_read,
+		i2c_sensor_tsl2561_0, 0x39,
+		"tsl2561 #0", "visible light", "lx", 2,
+		sensor_tsl2561_init,
+		sensor_tsl2561_read,
 	},
 	{
 		i2c_sensor_tsl2550, 0x39,
-		"tsl2550", "visible light", "", 2,
+		"tsl2550", "visible light", "lx", 2,
 		sensor_tsl2550_init,
 		sensor_tsl2550_read
 	},
@@ -2348,10 +2394,10 @@ static const device_table_entry_t device_table[] =
 		sensor_bme280_airpressure_read,
 	},
 	{
-		i2c_sensor_tsl2560_1, 0x29,
-		"tsl2560/tsl2561 #1", "visible light", "", 2,
-		sensor_tsl2560_init,
-		sensor_tsl2560_read,
+		i2c_sensor_tsl2561_1, 0x29,
+		"tsl2561 #1", "visible light", "lx", 2,
+		sensor_tsl2561_init,
+		sensor_tsl2561_read,
 	},
 	{
 		i2c_sensor_max44009_0, 0x4a,

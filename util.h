@@ -120,6 +120,9 @@ int SHA1Final(unsigned char *md, SHA_CTX *context);
 
 enum { SHA_DIGEST_LENGTH = 20 };
 
+// prototypes missing
+
+double pow(double, double);
 
 // functions missing from SDK libmain (but declared in headers)
 

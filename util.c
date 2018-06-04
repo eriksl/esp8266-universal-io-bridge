@@ -15,6 +15,8 @@
 char flash_dram_buffer[1024];
 string_new(, logbuffer, 4096 + 4);
 
+int __errno;
+
 // functions missing from SDK libmain (but declared in headers)
 
 #ifdef isxdigit
