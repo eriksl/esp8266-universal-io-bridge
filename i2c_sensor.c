@@ -1128,18 +1128,40 @@ irom static i2c_error_t sensor_am2321_hum_init(int bus, const device_table_entry
 	return(i2c_error_ok);
 }
 
+typedef enum
+{
+	veml6070_addr_ara = 0x09,
+	veml6070_addr_cmd = 0x38,
+	veml6070_addr_data_lsb = 0x38,
+	veml6070_addr_data_msb = 0x39,
+} veml6070_i2c_addr_t;
+
+typedef enum
+{
+	veml6070_cmd_init =			0x06,
+	veml6070_cmd_sd =			(1 << 0),				//	1
+	veml6070_cmd_reserved0 =	(1 << 1),				//	2
+	veml6070_cmd_it_0_5t =		(0 << 2) | (0 << 3),	//	0
+	veml6070_cmd_it_1t =		(1 << 2) | (0 << 3),	//	4
+	veml6070_cmd_it_2t =		(0 << 2) | (1 << 3),	//	8
+	veml6070_cmd_it_4t =		(1 << 2) | (1 << 3),	//	12
+	veml6070_cmd_thd =			(1 << 4),				//	16
+	veml6070_cmd_ack =			(1 << 5),				//	32
+	veml6070_cmd_reserved1 =	(1 << 6) | (1 << 7),	//	192
+} veml6070_cmd_t;
+
 irom static i2c_error_t veml6070_read(unsigned int *rv)
 {
 	i2c_error_t error;
-	uint8_t i2cbuffer[2];
+	uint8_t i2c_buffer[2];
 
-	if((error = i2c_receive(0x39, 1, &i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_receive(veml6070_addr_data_msb, 1, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(0x38, 1, &i2cbuffer[1])) != i2c_error_ok)
+	if((error = i2c_receive(veml6070_addr_data_lsb, 1, &i2c_buffer[1])) != i2c_error_ok)
 		return(error);
 
-	*rv = (i2cbuffer[0] << 8) | (i2cbuffer[1]);
+	*rv = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
 	return(i2c_error_ok);
 }
@@ -1155,13 +1177,13 @@ irom static i2c_error_t sensor_veml6070_init(int bus, const device_table_entry_t
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0)) // 0x39
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send_1(0x38, 0b00000110)) != i2c_error_ok) // recommended initial value
+	if((error = i2c_send1(veml6070_addr_cmd, veml6070_cmd_init)) != i2c_error_ok)
 		return(error);
 
-	if((error = veml6070_read(&rv)) != i2c_error_ok)
+	if((error = i2c_send1(veml6070_addr_cmd, veml6070_cmd_sd)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send_1(0x38, 0b00001100)) != i2c_error_ok)
+	if((error = i2c_send1(veml6070_addr_cmd, veml6070_cmd_it_4t)) != i2c_error_ok)
 		return(error);
 
 	if((error = veml6070_read(&rv)) != i2c_error_ok)
@@ -1179,7 +1201,10 @@ irom static i2c_error_t sensor_veml6070_read(int bus, const device_table_entry_t
 		return(error);
 
 	value->raw = rv;
-	value->cooked = rv / 17.6; // FIXME
+	value->cooked = (((double)rv - 700) / 750) * 1.6; // magic values determined from it = 4 and example relations from Vishay
+
+	if(value->cooked < 0)
+		value->cooked = 0;
 
 	return(i2c_error_ok);
 }
@@ -2377,7 +2402,7 @@ static const device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_veml6070, 0x38,
-		"veml6070", "ultraviolet light", "", 1,
+		"veml6070", "ultraviolet light index", "", 1,
 		sensor_veml6070_init,
 		sensor_veml6070_read
 	},
