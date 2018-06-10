@@ -2429,9 +2429,6 @@ irom static i2c_error_t sensor_ccs811_co2_init(int bus, const device_table_entry
 	if((error = sensor_ccs811_read_register(entry->address, 0x20 /* HW_ID */, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if(error != i2c_error_ok)
-		return(error);
-
 	if(i2c_buffer[0] != 0x81)
 		return(i2c_error_device_error_1);
 
