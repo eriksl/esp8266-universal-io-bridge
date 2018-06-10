@@ -870,7 +870,7 @@ irom static i2c_error_t sensor_bh1750_read(int bus, const device_table_entry_t *
 		luxpercount = 1.2;
 
 	value->raw		= (double)((i2cbuffer[0] << 8) | i2cbuffer[1]);
-	value->cooked	= value->raw * luxpercount;
+	value->cooked	= value->raw * luxpercount * 0.6;
 
 	return(i2c_error_ok);
 }
