@@ -982,7 +982,15 @@ irom static i2c_error_t sensor_htu21_hum_init(int bus, const device_table_entry_
 	return(i2c_error_ok);
 }
 
-irom attr_pure static uint16_t am2321_crc(int length, const uint8_t *data)
+enum
+{
+	am2320_max_attempts = 4,
+};
+
+static value_t sensor_am2320_cached_temperature;
+static value_t sensor_am2320_cached_humidity;
+
+irom attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit;
 	uint16_t crc;
@@ -1005,57 +1013,37 @@ irom attr_pure static uint16_t am2321_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sensor_am2321_read_registers(int address, int offset, int length, uint8_t *values)
+irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, int length, uint8_t *values)
 {
-	int try;
 	i2c_error_t	error;
-	uint8_t		i2cbuffer[32];
+	uint8_t		i2c_buffer[32];
 	uint16_t	crc1, crc2;
 
-	// wake the device
+	i2c_send(address, 0, 0);
 
-	i2c_send1(address, 0);
-
-	for(try = 32; try > 0; try--)
-	{
-		msleep(10);
-
-		if((error = i2c_send3(address, 0x03, offset, length)) == i2c_error_ok)
-			break;
-	}
-
-	if(try <= 0)
+	if((error = i2c_send3(address, 0x03, offset, length)) != i2c_error_ok)
 		return(error);
 
-	for(try = 32; try > 0; try--)
-	{
-		msleep(10);
+	msleep(10);
 
-		if((error = i2c_receive(address, length + 4, i2cbuffer)) == i2c_error_ok)
-			break;
-	}
-
-	if(try <= 0)
+	if((error = i2c_receive(address, length + 4, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if((i2cbuffer[0] != 0x03) || (i2cbuffer[1] != length))
+	if((i2c_buffer[0] != 0x03) || (i2c_buffer[1] != length))
 		return(i2c_error_device_error_2);
 
-	crc1 = i2cbuffer[length + 2] | (i2cbuffer[length + 3] << 8);
-	crc2 = am2321_crc(length + 2, i2cbuffer);
+	crc1 = i2c_buffer[length + 2] | (i2c_buffer[length + 3] << 8);
+	crc2 = am2320_crc(length + 2, i2c_buffer);
 
 	if(crc1 != crc2)
 		return(i2c_error_device_error_3);
 
-	memcpy(values, &i2cbuffer[2], length);
+	memcpy(values, &i2c_buffer[2], length);
 
 	return(i2c_error_ok);
 }
 
-static value_t sensor_am2321_cached_temperature;
-static value_t sensor_am2321_cached_humidity;
-
-irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t request_humidity)
+irom static i2c_error_t sensor_am2320_read(int address, value_t *value, bool_t request_humidity)
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
@@ -1064,13 +1052,13 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 	//	0x00	start address: humidity (16 bits), temperature (16 bits)
 	//	0x04	length
 
-	if((error = sensor_am2321_read_registers(address, 0x00, 0x04, values)) == i2c_error_ok)
+	if((error = sensor_am2320_read_registers(address, 0x00, 0x04, values)) == i2c_error_ok)
 	{
-		sensor_am2321_cached_humidity.raw = (values[0] << 8) | values[1];
-		sensor_am2321_cached_humidity.cooked = sensor_am2321_cached_humidity.raw / 10.0;
+		sensor_am2320_cached_humidity.raw = (values[0] << 8) | values[1];
+		sensor_am2320_cached_humidity.cooked = sensor_am2320_cached_humidity.raw / 10.0;
 
-		if(sensor_am2321_cached_humidity.cooked > 100)
-			sensor_am2321_cached_humidity.cooked = 100;
+		if(sensor_am2320_cached_humidity.cooked > 100)
+			sensor_am2320_cached_humidity.cooked = 100;
 
 		raw_temp = (values[2] << 8) | values[3];
 
@@ -1080,29 +1068,29 @@ irom static i2c_error_t sensor_am2321_read(int address, value_t *value, bool_t r
 			raw_temp = 0 - raw_temp;
 		}
 
-		sensor_am2321_cached_temperature.raw = raw_temp;
-		sensor_am2321_cached_temperature.cooked = sensor_am2321_cached_temperature.raw / 10.0;
+		sensor_am2320_cached_temperature.raw = raw_temp;
+		sensor_am2320_cached_temperature.cooked = sensor_am2320_cached_temperature.raw / 10.0;
 	}
 
 	if(request_humidity)
-		*value = sensor_am2321_cached_humidity;
+		*value = sensor_am2320_cached_humidity;
 	else
-		*value = sensor_am2321_cached_temperature;
+		*value = sensor_am2320_cached_temperature;
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_temp_read(int bus, const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_am2320_temp_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	return(sensor_am2321_read(entry->address, value, false));
+	return(sensor_am2320_read(entry->address, value, false));
 }
 
-irom static i2c_error_t sensor_am2321_hum_read(int bus, const device_table_entry_t *entry, value_t *value)
+irom static i2c_error_t sensor_am2320_hum_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	return(sensor_am2321_read(entry->address, value, true));
+	return(sensor_am2320_read(entry->address, value, true));
 }
 
-irom static i2c_error_t sensor_am2321_temp_init(int bus, const device_table_entry_t *entry)
+irom static i2c_error_t sensor_am2320_temp_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t	error;
 	uint8_t		values[2];
@@ -1110,19 +1098,15 @@ irom static i2c_error_t sensor_am2321_temp_init(int bus, const device_table_entr
 	//	0x08	start address: device id
 	//	0x02	length
 
-	if((error = sensor_am2321_read_registers(entry->address, 0x08, 0x02, values)) != i2c_error_ok)
+	if((error = sensor_am2320_read_registers(entry->address, 0x08, 0x02, values)) != i2c_error_ok)
 		return(error);
-
-	// this doesn't work on all models
-	//if((values[0] != 0x32) || (values[1] != 0x31))
-		//return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2321_hum_init(int bus, const device_table_entry_t *entry)
+irom static i2c_error_t sensor_am2320_hum_init(int bus, const device_table_entry_t *entry)
 {
-	if(!i2c_sensor_detected(bus, i2c_sensor_am2321_temperature))
+	if(!i2c_sensor_detected(bus, i2c_sensor_am2320_temperature))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
@@ -3120,16 +3104,16 @@ static const device_table_entry_t device_table[] =
 		sensor_htu21_hum_read
 	},
 	{
-		i2c_sensor_am2321_temperature, 0x5c,
-		"am2321", "temperature", "C", 2,
-		sensor_am2321_temp_init,
-		sensor_am2321_temp_read
+		i2c_sensor_am2320_temperature, 0x5c,
+		"am2320/1/2", "temperature", "C", 2,
+		sensor_am2320_temp_init,
+		sensor_am2320_temp_read
 	},
 	{
-		i2c_sensor_am2321_humidity, 0x5c,
-		"am2321", "humidity", "%", 0,
-		sensor_am2321_hum_init,
-		sensor_am2321_hum_read
+		i2c_sensor_am2320_humidity, 0x5c,
+		"am2320/1/2", "humidity", "%", 0,
+		sensor_am2320_hum_init,
+		sensor_am2320_hum_read
 	},
 	{
 		i2c_sensor_veml6070, 0x38,
