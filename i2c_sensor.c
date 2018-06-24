@@ -1020,6 +1020,7 @@ irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, in
 	uint16_t	crc1, crc2;
 
 	i2c_send(address, 0, 0);
+	i2c_send(address, 0, 0);
 
 	if((error = i2c_send3(address, 0x03, offset, length)) != i2c_error_ok)
 		return(error);
