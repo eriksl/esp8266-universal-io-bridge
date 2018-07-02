@@ -609,12 +609,31 @@ irom static app_action_t application_function_i2c_bus(const string_t *src, strin
 	return(app_action_normal);
 }
 
+irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, int length, int length_setup, double clock_offset)
+{
+	double spent_us, speed, clocks;
+
+	spent_us = to_us - from_us;
+	clocks = ((length + length_setup) * 9) + clock_offset;
+
+	speed = 1000000 / (spent_us / clocks);
+
+	string_format(dst, "> transferred %u bytes in ", length);
+	string_double(dst, clocks, 1, 1000);
+	string_append(dst, " scl clocks\n");
+	string_append(dst, "> time spent: ");
+	string_double(dst, spent_us, 1, 1000000000);
+	string_append(dst, " microseconds, makes ");
+	string_double(dst, speed / 1000, 3, 10000);
+	string_append(dst, " kHz i2c bus\n");
+}
+
 irom static app_action_t application_function_i2c_read(const string_t *src, string_t *dst)
 {
 	int size, current;
 	i2c_error_t error;
 	uint8_t bytes[32];
-	uint32_t start, stop, clocks, spent;
+	uint32_t from, to;
 
 	if(parse_int(1, src, &size, 0, ' ') != parse_ok)
 	{
@@ -630,7 +649,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	i2c_select_bus(i2c_bus);
 
-	start = system_get_time();
+	from = system_get_time();
 
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
@@ -640,7 +659,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 		return(app_action_error);
 	}
 
-	stop = system_get_time();
+	to = system_get_time();
 
 	string_format(dst, "> i2c_read: read %d bytes from %02x:", size, i2c_address);
 
@@ -649,12 +668,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	string_append(dst, "\n");
 
-	clocks = (size + 1) * 9 + 4;
-	spent = (stop - start) * 1000;
-
-	string_format(dst, "> transferred %u bytes in %u scl clocks\n", size + 1, clocks);
-	string_format(dst, "> time spent: %u microseconds, makes %u kHz i2c bus\n",
-			spent / 1000, 1000000 / (spent / clocks));
+	i2c_timing_report(dst, from, to, size, 1, 3.8);
 
 	return(app_action_normal);
 }
@@ -663,19 +677,22 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 {
 	i2c_error_t error;
 	static uint8_t bytes[32];
-	int current, out;
+	int size, out;
+	uint32_t from, to;
 
-	for(current = 0; current < (int)sizeof(bytes); current++)
+	for(size = 0; size < (int)sizeof(bytes); size++)
 	{
-		if(parse_int(current + 1, src, &out, 16, ' ') != parse_ok)
+		if(parse_int(size + 1, src, &out, 16, ' ') != parse_ok)
 			break;
 
-		bytes[current] = (uint8_t)(out & 0xff);
+		bytes[size] = (uint8_t)(out & 0xff);
 	}
 
 	i2c_select_bus(i2c_bus);
 
-	if((error = i2c_send(i2c_address, current, bytes)) != i2c_error_ok)
+	from = system_get_time();
+
+	if((error = i2c_send(i2c_address, size, bytes)) != i2c_error_ok)
 	{
 		string_append(dst, "i2c_write");
 		i2c_error_format_string(dst, error);
@@ -683,7 +700,11 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 		return(app_action_error);
 	}
 
-	string_format(dst, "i2c_write: written %d bytes to %02x\n", current, i2c_address);
+	to = system_get_time();
+
+	string_format(dst, "i2c_write: written %d bytes to %02x\n", size, i2c_address);
+
+	i2c_timing_report(dst, from, to, size, 1, 3.8);
 
 	return(app_action_normal);
 }
@@ -693,7 +714,8 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 	i2c_error_t error;
 	uint8_t sendbytes[1];
 	uint8_t receivebytes[32];
-	int amount, current, out;
+	int size, current, out;
+	uint32_t from, to;
 
 	if(parse_int(1, src, &out, 16, ' ') != parse_ok)
 	{
@@ -705,19 +727,21 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	sendbytes[0] = (uint8_t)(out & 0xff);
 
-	if(parse_int(2, src, &amount, 0, ' ') != parse_ok)
+	if(parse_int(2, src, &size, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
-	if((amount < 0) || (amount >= (int)sizeof(receivebytes)))
+	if((size < 0) || (size >= (int)sizeof(receivebytes)))
 	{
 		string_format(dst, "i2wr: max read %d bytes\n", sizeof(receivebytes));
 		return(app_action_error);
 	}
 
-	if((error = i2c_send1_receive_repeated_start(i2c_address, sendbytes[0], amount, receivebytes)) != i2c_error_ok)
+	from = system_get_time();
+
+	if((error = i2c_send1_receive_repeated_start(i2c_address, sendbytes[0], size, receivebytes)) != i2c_error_ok)
 	{
 		string_append(dst, "i2wr");
 		i2c_error_format_string(dst, error);
@@ -725,12 +749,16 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 		return(app_action_error);
 	}
 
-	string_format(dst, "> i2wr: read %d bytes from %02x:", amount, i2c_address);
+	to = system_get_time();
 
-	for(current = 0; current < amount; current++)
+	string_format(dst, "> i2wr: read %d bytes from %02x:", size, i2c_address);
+
+	for(current = 0; current < size; current++)
 		string_format(dst, " %02x", receivebytes[current]);
 
 	string_append(dst, "\n");
+
+	i2c_timing_report(dst, from, to, size, 3, 6.6);
 
 	return(app_action_normal);
 }
