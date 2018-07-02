@@ -57,7 +57,7 @@ irom void *memchr(const void *s, int c, size_t n)
 
 // convenience functions
 
-attr_speed iram int strecpy(char *dst, const char *src, int size)
+iram attr_speed int strecpy(char *dst, const char *src, int size)
 {
 	int length = strlen(src);
 
@@ -164,7 +164,7 @@ irom int log(const char *fmt, ...)
 	return(n);
 }
 
-attr_speed iram void logchar(char c)
+iram attr_speed void logchar(char c)
 {
 	if(config_uses_logbuffer())
 		return;
@@ -408,7 +408,7 @@ irom void string_format_cstr(string_t *dst, const char *fmt, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
-attr_speed iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
+iram attr_speed void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 {
 	va_list ap;
 
