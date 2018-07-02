@@ -37,6 +37,7 @@ typedef enum
 	i2c_error_no_init,
 	i2c_error_invalid_state_not_idle,
 	i2c_error_invalid_state_idle,
+	i2c_error_invalid_state_not_send_start,
 	i2c_error_invalid_state_not_send_header,
 	i2c_error_invalid_state_not_send_address_or_data,
 	i2c_error_invalid_state_not_receive_ack,
@@ -84,5 +85,7 @@ i2c_error_t	i2c_send4(int address, int byte0, int byte1, int byte2, int byte3);
 i2c_error_t	i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes);
 i2c_error_t	i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes);
 i2c_error_t	i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes);
+
+i2c_error_t i2c_reset(void);
 
 #endif
