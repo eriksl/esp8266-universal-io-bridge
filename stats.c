@@ -272,12 +272,10 @@ irom void stats_i2c(string_t *dst)
 	i2c_get_info(&i2c_info);
 
 	string_format(dst,
-			"> i2c clock delay: %u\n"
 			"> display initialisation time: %u us\n"
 			"> i2c initialisation time: %u us\n"
 			"> i2c multiplexer found: %s\n"
 			"> i2c buses: %u\n",
-				i2c_info.delay,
 				stat_display_init_time_us,
 				stat_i2c_init_time_us,
 				yesno(i2c_info.multiplexer),

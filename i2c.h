@@ -62,10 +62,9 @@ typedef struct attr_packed
 {
 	unsigned int multiplexer:1;
 	unsigned int buses:7;
-	unsigned int delay:8;
 } i2c_info_t;
 
-assert_size(i2c_info_t, 2);
+assert_size(i2c_info_t, 1);
 
 void		i2c_init(int sda_index, int scl_index);
 void		i2c_error_format_string(string_t *dst, i2c_error_t error);
