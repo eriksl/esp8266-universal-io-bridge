@@ -178,7 +178,7 @@ iram attr_speed void logchar(char c)
 	if(flags_cache.flag.log_to_buffer)
 	{
 		if((logbuffer.length + 1) >= logbuffer.size)
-			logbuffer.length = 0;
+			string_clear(&logbuffer);
 
 		string_append_char(&logbuffer, c);
 	}
