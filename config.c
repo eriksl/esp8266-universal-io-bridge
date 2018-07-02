@@ -85,9 +85,9 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " no-enable-cfa634");
 
 	if(flags.flag.i2c_high_speed)
-		string_append(dst, " i2c-high_speed");
+		string_append(dst, " i2c-high-speed");
 	else
-		string_append(dst, " no-i2c-high_speed");
+		string_append(dst, " no-i2c-high-speed");
 
 	if(flags.flag.log_to_buffer)
 		string_append(dst, " log-to-buffer");
@@ -142,7 +142,7 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 		rv = true;
 	}
 
-	if(string_match_cstr(flag, "i2c-high-speed") || string_match_cstr(flag, "ih"))
+	if(string_match_cstr(flag, "i2c-high-speed") || string_match_cstr(flag, "ihs"))
 	{
 		flags.flag.i2c_high_speed = add ? 1 : 0;
 		rv = true;
