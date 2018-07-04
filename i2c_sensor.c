@@ -982,11 +982,6 @@ irom static i2c_error_t sensor_htu21_hum_init(int bus, const device_table_entry_
 	return(i2c_error_ok);
 }
 
-enum
-{
-	am2320_max_attempts = 4,
-};
-
 static value_t sensor_am2320_cached_temperature;
 static value_t sensor_am2320_cached_humidity;
 
@@ -1020,7 +1015,6 @@ irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, in
 	uint16_t	crc1, crc2;
 
 	i2c_send(address, 0, 0);
-	i2c_send(address, 0, 0);
 
 	if((error = i2c_send3(address, 0x03, offset, length)) != i2c_error_ok)
 		return(error);
@@ -1048,18 +1042,20 @@ irom static i2c_error_t sensor_am2320_read(int address, value_t *value, bool_t r
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
-	int32_t		raw_temp;
+	int32_t		raw_temp, raw_hum;
 
 	//	0x00	start address: humidity (16 bits), temperature (16 bits)
 	//	0x04	length
 
 	if((error = sensor_am2320_read_registers(address, 0x00, 0x04, values)) == i2c_error_ok)
 	{
-		sensor_am2320_cached_humidity.raw = (values[0] << 8) | values[1];
-		sensor_am2320_cached_humidity.cooked = sensor_am2320_cached_humidity.raw / 10.0;
+		raw_hum = (values[0] << 8) | values[1];
 
-		if(sensor_am2320_cached_humidity.cooked > 100)
-			sensor_am2320_cached_humidity.cooked = 100;
+		if(raw_hum > 1000)
+			raw_hum = 1000;
+
+		sensor_am2320_cached_humidity.raw = raw_hum;
+		sensor_am2320_cached_humidity.cooked = raw_hum / 10.0;
 
 		raw_temp = (values[2] << 8) | values[3];
 
@@ -1070,7 +1066,7 @@ irom static i2c_error_t sensor_am2320_read(int address, value_t *value, bool_t r
 		}
 
 		sensor_am2320_cached_temperature.raw = raw_temp;
-		sensor_am2320_cached_temperature.cooked = sensor_am2320_cached_temperature.raw / 10.0;
+		sensor_am2320_cached_temperature.cooked = raw_temp / 10.0;
 	}
 
 	if(request_humidity)
