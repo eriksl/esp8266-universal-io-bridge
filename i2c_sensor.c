@@ -1995,48 +1995,74 @@ typedef enum
 	max44009_conf_cont =		(1 << 7),
 } max44009_reg_conf_t;
 
+irom static i2c_error_t max44009_read_register(int address, int regaddr, unsigned int *value)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[1];
+
+	if((error = i2c_send1_receive_repeated_start(address, regaddr, 1, i2c_buffer)) != i2c_error_ok)
+	{
+		*value = 0;
+		return(error);
+	}
+
+	*value = i2c_buffer[0];
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t max44009_write_register(int address, int regaddr, unsigned int value)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send2(address, regaddr, value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
 irom static i2c_error_t sensor_max44009_init(int bus, const device_table_entry_t *entry)
 {
-	i2c_error_t	error;
-	uint8_t		i2c_buffer[2];
+	i2c_error_t		error;
+	unsigned int	value;
 
 	if(i2c_sensor_detected(bus, i2c_sensor_lm75_2))
 		return(i2c_error_address_nak);
 
-	if((error = i2c_send2(entry->address, max44009_reg_ints, 0xff)) != i2c_error_ok)
+	if((error = max44009_write_register(entry->address, max44009_reg_inte, 0xff)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_ints, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = max44009_read_register(entry->address, max44009_reg_inte, &value)) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] != 0x00)
+	if(value != 0x01)
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send2(entry->address, max44009_reg_inte, 0xff)) != i2c_error_ok)
+	if((error = max44009_write_register(entry->address, max44009_reg_inte, 0x00)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_inte, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = max44009_read_register(entry->address, max44009_reg_inte, &value)) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] != 0x01)
+	if(value != 0x00)
 		return(i2c_error_device_error_2);
 
-	if((error = i2c_send2(entry->address, max44009_reg_inte, 0x00)) != i2c_error_ok)
+	if((error = max44009_write_register(entry->address, max44009_reg_ints, 0xff)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_inte, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = max44009_read_register(entry->address, max44009_reg_ints, &value)) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] != 0x00)
+	if(value != 0x00)
 		return(i2c_error_device_error_3);
 
-	if((error = i2c_send2(entry->address, max44009_reg_conf, max44009_conf_cont)) != i2c_error_ok)
+	if((error = max44009_write_register(entry->address, max44009_reg_conf, max44009_conf_cont)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_conf, 1, i2c_buffer)) != i2c_error_ok)
+	if((error = max44009_read_register(entry->address, max44009_reg_conf, &value)) != i2c_error_ok)
 		return(error);
 
-	if((i2c_buffer[0] & (max44009_conf_cont | max44009_conf_manual)) != max44009_conf_cont)
+	if((value & (max44009_conf_cont | max44009_conf_manual)) != max44009_conf_cont)
 		return(i2c_error_device_error_4);
 
 	return(i2c_error_ok);
@@ -2047,11 +2073,6 @@ irom static i2c_error_t sensor_max44009_read(int bus, const device_table_entry_t
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[2];
 	int			exponent, mantissa;
-
-	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_conf, 1, i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	log("max44009: conf: %02x\n", i2c_buffer[0]);
 
 	if((error = i2c_send1_receive_repeated_start(entry->address, max44009_reg_data_msb, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
