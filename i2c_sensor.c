@@ -2407,68 +2407,103 @@ irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const device_
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ccs811_read_register(int address, int reg, uint8_t *result)
+enum
 {
-	i2c_error_t error;
-	int try;
+	ccs811_reg_status		= 0x00,
+	ccs811_reg_meas_mode	= 0x01,
+	ccs811_reg_alg_result	= 0x02,
+	ccs811_reg_hw_id		= 0x20,
+	ccs811_reg_app_start	= 0xf4,
+	ccs811_reg_reset		= 0xff,
+};
 
-	for(try = 8; try > 0; try--)
-	{
-		if((error = i2c_send1_receive_repeated_start(address, reg, 1, result)) == i2c_error_ok)
-			return(i2c_error_ok);
+enum
+{
+	ccs811_status_app_mode		= 0b10000000,
+	ccs811_status_app_valid		= 0b00010000,
+	ccs811_status_data_ready	= 0b00001000,
+	ccs811_status_error			= 0b00000001,
+};
 
-		msleep(1);
-	}
+enum
+{
+	ccs811_algdata_eco2		= 0x00,
+	ccs811_algdata_tvoc		= 0x02,
+	ccs811_algdata_status	= 0x04,
+	ccs811_algdata_error_id	= 0x05,
+	ccs811_raw_data			= 0x06,
+};
 
-	return(error);
-}
+enum
+{
+	ccs811_mm_0 =		0b00000000, // idle
+	ccs811_mm_1 =		0b00010000,	// constant power 1/1s
+	ccs811_mm_2 =		0b00100000,	// pulse heat 1/10s
+	ccs811_mm_3 =		0b00110000,	// low power pulse heat 1/60s
+	ccs811_mm_4 =		0b01000000,	// constant power 4/1s
+	ccs811_mm_int_en =	0b00001000,	// enable interrupts
+	ccs811_mm_int_thr =	0b00000100,	// use interrupts for threshold crossing
+};
+
+enum
+{
+	ccs811_hw_id		= 0x81,
+};
+
+enum
+{
+	ccs811_reset_seq_0	=	0x11,
+	ccs811_reset_seq_1	=	0xe5,
+	ccs811_reset_seq_2	=	0x72,
+	ccs811_reset_seq_3	=	0x8a,
+};
 
 irom static i2c_error_t sensor_ccs811_co2_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[8];
 
-	if((error = sensor_ccs811_read_register(entry->address, 0x20 /* HW_ID */, &i2c_buffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, ccs811_reg_hw_id, 1, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] != 0x81)
-		return(i2c_error_device_error_1);
+	if(i2c_buffer[0] != ccs811_hw_id)
+		return(i2c_error_address_nak);
 
-	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, ccs811_reg_status, 1, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] & 0b10000000) // in application mode -> reset
+	if(i2c_buffer[0] & ccs811_status_app_mode)
 	{
-		i2c_buffer[0] = 0xff; // SW_RESET
-		i2c_buffer[1] = 0x11;
-		i2c_buffer[2] = 0xe5;
-		i2c_buffer[3] = 0x72;
-		i2c_buffer[4] = 0x8a;
+		i2c_buffer[0] = ccs811_reg_reset;
+		i2c_buffer[1] = ccs811_reset_seq_0;
+		i2c_buffer[2] = ccs811_reset_seq_1;
+		i2c_buffer[3] = ccs811_reset_seq_2;
+		i2c_buffer[4] = ccs811_reset_seq_3;
 
 		i2c_send(entry->address, 5, i2c_buffer);
 
-		msleep(1);
+		msleep(2);
 	}
 
-	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, ccs811_reg_status, 1, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if(!(i2c_buffer[0] & 0b00010000))
-		return(i2c_error_device_error_2); // no valid application
+	if(!(i2c_buffer[0] & ccs811_status_app_valid))
+		return(i2c_error_device_error_2);
 
-	if((error = i2c_send1(entry->address, 0xf4 /* APP_START */)) != i2c_error_ok) // start app
+	if((error = i2c_send1(entry->address, ccs811_reg_app_start)) != i2c_error_ok)
 		return(error);
 
-	msleep(1);
+	msleep(2);
 
-	if((error = i2c_send2(entry->address, 0x01 /* MEAS_MODE */, 0b01000000)) != i2c_error_ok) // DRIVE_MODE = 100 = 4/sec
+	if((error = i2c_send2(entry->address, ccs811_reg_meas_mode, ccs811_mm_1)) != i2c_error_ok)
 		return(error);
 
-	if((error = sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0])) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, ccs811_reg_status, 1, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] & 0b00000001)
-		return(i2c_error_device_error_3); // some error occured
+	if(i2c_buffer[0] & ccs811_status_error)
+		return(i2c_error_device_error_3);
 
 	return(i2c_error_ok);
 }
@@ -2481,59 +2516,37 @@ irom static i2c_error_t sensor_ccs811_tov_init(int bus, const device_table_entry
 	return(i2c_error_ok);
 }
 
-static unsigned int sensor_ccs811_cache_co2 = ~0UL;
-static unsigned int sensor_ccs811_cache_tov = ~0UL;
-
-irom static i2c_error_t sensor_ccs811_read(int bus, const device_table_entry_t *entry)
+irom static i2c_error_t ccs811_read(int address, value_t *value_co2, value_t *value_tov)
 {
-	uint8_t i2c_buffer[8];
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
 
-	if(sensor_ccs811_read_register(entry->address, 0x00 /* STATUS */, &i2c_buffer[0]) == i2c_error_ok)
-	{
-		if(i2c_buffer[0] & /* STATUS -> DATA_READY */ 0b00001000) // fresh data
-		{
-			if(i2c_send1_receive_repeated_start(entry->address, 0x02 /* ALG_RESULT_DATA */, 8, i2c_buffer) == i2c_error_ok)
-			{
-				if(i2c_buffer[5] /* STATUS -> ERROR_ID */ != 0)
-					return(i2c_error_device_error_2);
+	if(value_co2)
+		value_co2->raw = value_co2->cooked = 0;
 
-				sensor_ccs811_cache_co2 = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
-				sensor_ccs811_cache_tov = (i2c_buffer[2] << 8) | (i2c_buffer[3] << 0);
-			}
-		}
-	}
+	if(value_tov)
+		value_tov->raw = value_tov->cooked = 0;
+
+	if((error = i2c_send1_receive_repeated_start(address, ccs811_reg_alg_result, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(value_co2)
+		value_co2->raw = value_co2->cooked = (i2c_buffer[ccs811_algdata_eco2 + 0] << 8) | (i2c_buffer[ccs811_algdata_eco2 + 1] << 0);
+
+	if(value_tov)
+		value_tov->raw = value_tov->cooked = (i2c_buffer[ccs811_algdata_tvoc + 0] << 8) | (i2c_buffer[ccs811_algdata_tvoc + 1] << 0);
 
 	return(i2c_error_ok);
 }
 
 irom static i2c_error_t sensor_ccs811_co2_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	i2c_error_t error;
-
-	if((error = sensor_ccs811_read(bus, entry)) != i2c_error_ok)
-		return(error);
-
-	if(sensor_ccs811_cache_co2 == ~0UL)
-		return(i2c_error_device_error_3);
-
-	value->raw = value->cooked = sensor_ccs811_cache_co2;
-
-	return(i2c_error_ok);
+	return(ccs811_read(entry->address, value, (value_t *)0));
 }
 
 irom static i2c_error_t sensor_ccs811_tov_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	i2c_error_t error;
-
-	if((error = sensor_ccs811_read(bus, entry)) != i2c_error_ok)
-		return(error);
-
-	if(sensor_ccs811_cache_tov == ~0UL)
-		return(i2c_error_device_error_3);
-
-	value->raw = value->cooked = sensor_ccs811_cache_tov;
-
-	return(i2c_error_ok);
+	return(ccs811_read(entry->address, (value_t *)0, value));
 }
 
 typedef enum
