@@ -141,92 +141,84 @@ always_inline attr_speed static void delay(int delay_us_lowspeed)
 iram static i2c_error_t sda_set_test(bool_t val, int delay_val)
 {
 	int current = i2c_config_sda_wait_cycles;
-	bool_t first = true;
+	int wait_cycles = 0;
 
 	if(val)
 	{
-		for(sda_high(); current > 0; current--)
+		for(sda_high(); current > 0; current--, wait_cycles++)
 		{
 			if(delay_val)
 				delay(delay_val);
 
 			if(sda_is_high())
 				break;
-
-			first = false;
 		}
 	}
 	else
 	{
-		for(sda_low(); current > 0; current--)
+		for(sda_low(); current > 0; current--, wait_cycles++)
 		{
 			if(delay_val)
 				delay(delay_val);
 
 			if(sda_is_low())
 				break;
-
-			first = false;
 		}
 	}
 
-	if(first)
+	if(wait_cycles < 2)
 		return(i2c_error_ok);
 
 	if(current > 0)
 	{
-		// this line takes ~240/~150 microseconds to complete
-		log("sda set test: sda stuck resolved after %d cycles\n", i2c_config_sda_wait_cycles - current);
+		// this line takes ~240/~150 microseconds to complete, so don't add additional delays
+		log("sda set test: sda stuck resolved after %d cycles\n", wait_cycles);
 		return(i2c_error_ok);
 	}
 
-	log("sda set test: sda stuck, giving up\n");
+	log("sda set test: sda still stuck after %d cycles, giving up\n", wait_cycles);
 	return(i2c_error_sda_stuck);
 }
 
 iram static i2c_error_t scl_set_test(bool_t val, int delay_val)
 {
 	int current = i2c_config_scl_wait_cycles;
-	bool_t first = true;
+	int wait_cycles = 0;
 
 	if(val)
 	{
-		for(scl_high(); current > 0; current--)
+		for(scl_high(); current > 0; current--, wait_cycles++)
 		{
 			if(delay_val)
 				delay(delay_val);
 
 			if(scl_is_high())
 				break;
-
-			first = false;
 		}
 	}
 	else
 	{
-		for(scl_low(); current > 0; current--)
+		for(scl_low(); current > 0; current--, wait_cycles++)
 		{
 			if(delay_val)
 				delay(delay_val);
 
 			if(scl_is_low())
 				break;
-
-			first = false;
 		}
 	}
 
-	if(first)
+	if(wait_cycles < 2)
 		return(i2c_error_ok);
 
 	if(current > 0)
 	{
-		// this line takes ~240/~150 microseconds to complete
+		// this line takes ~240/~150 microseconds to complete, so don't add additional delays
 		log("scl set test: bus lock resolved after %d cycles\n", i2c_config_scl_wait_cycles - current);
 		return(i2c_error_ok);
 	}
 
-	log("scl set test: bus lock, giving up\n");
+	log("scl set test: bus still locked after %d cycles, giving up\n", wait_cycles);
 	return(i2c_error_bus_lock);
 }
 
@@ -603,6 +595,7 @@ irom i2c_error_t i2c_reset(void)
 {
 	i2c_error_t error;
 	int current;
+	int wait_cycles = 0;
 
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
@@ -619,7 +612,7 @@ irom i2c_error_t i2c_reset(void)
 
 	if(sda_is_low())
 	{
-		for(current = i2c_config_sda_reset_cycles; current > 0; current--)
+		for(current = i2c_config_sda_reset_cycles; current > 0; current--, wait_cycles++)
 		{
 			delay(2);
 			scl_low();
@@ -635,15 +628,12 @@ irom i2c_error_t i2c_reset(void)
 
 		if(sda_is_low())
 		{
-			log("i2c_reset: sda stuck, giving up\n");
+			log("i2c_reset: sda stuck still stuck after %d cycles, giving up\n", wait_cycles);
 			return(i2c_error_sda_stuck);
 		}
-#if 1
-		// this line takes ~240/~150 microseconds to complete
-		log("i2c_reset: sda stuck resolved after %d cycles\n", i2c_config_sda_reset_cycles - current);
-#else
-		delay(4);
-#endif
+
+		// this line takes ~240/~150 microseconds to complete, so don't add extra delays
+		log("i2c_reset: sda stuck resolved after %d cycles\n", wait_cycles);
 	}
 
 	if((error = scl_set_test(true, 0)) != i2c_error_ok)
