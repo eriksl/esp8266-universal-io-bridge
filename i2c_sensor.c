@@ -2306,16 +2306,10 @@ typedef enum
 	mpl3115_crtl2_load =	(1 << 5),
 } mpl3115_ctrl2_t;
 
-enum
-{
-	mpl3115_max_attempts = 8,
-};
-
 irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const device_table_entry_t *entry)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer;
-	int attempt;
 
 	if(i2c_sensor_detected(bus, i2c_sensor_si114x_visible_light))
 		return(i2c_error_device_error_1);
@@ -2328,11 +2322,9 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const device_
 
 	i2c_send2(entry->address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_reset);
 
-	for(attempt = mpl3115_max_attempts; attempt > 0; attempt--)
-		if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) == i2c_error_ok)
-			break;
+	msleep(1);
 
-	if(error != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(i2c_buffer != 0x00)
@@ -2369,16 +2361,10 @@ irom static i2c_error_t sensor_mpl3115a2_airpressure_init(int bus, const device_
 
 irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	uint8_t i2c_buffer[4];
+	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_drstatus, 1, i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	if(!(i2c_buffer[0] & mpl3115_drstatus_tdr))
-		return(i2c_error_device_error_4);
-
-	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_t, 2, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_t, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
@@ -2389,16 +2375,10 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const device_
 
 irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const device_table_entry_t *entry, value_t *value)
 {
-	uint8_t i2c_buffer[4];
+	uint8_t i2c_buffer[3];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_drstatus, 1, i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	if(!(i2c_buffer[0] & mpl3115_drstatus_pdr))
-		return(i2c_error_device_error_4);
-
-	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_p, 3, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, mpl3115_reg_out_p, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);
