@@ -173,6 +173,7 @@ int string_find(const string_t *, int offset, char c);
 void string_replace(string_t *, int index, char c);
 void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
 void string_trim_nl(string_t *dst);
+void string_trim_string(string_t *haystack_string, const string_t *needle_string);
 void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_ip(string_t *dst, ip_addr_t);
 void string_mac(string_t *dst, uint8 mac_addr[6]);
