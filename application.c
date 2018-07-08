@@ -1251,8 +1251,13 @@ irom static app_action_t application_function_log_display(const string_t *src, s
 
 irom static app_action_t application_function_log_clear(const string_t *src, string_t *dst)
 {
+	app_action_t rv;
+
+	rv = application_function_log_display(src, dst);
+
 	string_clear(&logbuffer);
-	return(application_function_log_display(src, dst));
+
+	return(rv);
 }
 
 irom static app_action_t application_function_wlan_scan(const string_t *src, string_t *dst)
