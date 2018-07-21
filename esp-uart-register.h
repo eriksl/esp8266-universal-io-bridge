@@ -90,6 +90,12 @@
 #define UART_RXFIFO_CNT_S					0
 
 #define UART_CONF0(i)						(REG_UART_BASE(i) + 0x20)
+#define UART_DTR_INV						(BIT(24))
+#define UART_RTS_INV						(BIT(23))
+#define UART_TXD_INV						(BIT(22))
+#define UART_DSR_INV						(BIT(21))
+#define UART_CTS_INV						(BIT(20))
+#define UART_RXD_INV						(BIT(19))
 #define UART_TXFIFO_RST						(BIT(18))
 #define UART_RXFIFO_RST						(BIT(17))
 #define UART_IRDA_EN						(BIT(16))
