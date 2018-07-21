@@ -122,50 +122,67 @@ irom static i2c_error_t sensor_ds1631_read(int bus, const device_table_entry_t *
 	return(i2c_error_ok);
 }
 
+enum
+{
+	lm75_reg_temp	= 0x00,
+	lm75_reg_conf	= 0x01,
+	lm75_reg_thyst	= 0x02,
+	lm75_reg_tos	= 0x03,
+};
+
+enum
+{
+	lm75_reg_conf_reserved			= 0b11100000,
+	lm75_reg_conf_tmp275_res_0		= 0b00000000,
+	lm75_reg_conf_tmp275_res_1		= 0b00100000,
+	lm75_reg_conf_tmp275_res_2		= 0b01000000,
+	lm75_reg_conf_tmp275_res_3		= 0b01100000,
+	lm75_reg_conf_os_f_queue_1		= 0b00000000,
+	lm75_reg_conf_os_f_queue_2		= 0b00001000,
+	lm75_reg_conf_os_f_queue_3		= 0b00010000,
+	lm75_reg_conf_os_f_queue_4		= 0b00011000,
+	lm75_reg_conf_os_pol_low		= 0b00000000,
+	lm75_reg_conf_os_pol_high		= 0b00000100,
+	lm75_reg_conf_os_comp_int_comp	= 0b00000000,
+	lm75_reg_conf_os_comp_int_int	= 0b00000010,
+	lm75_reg_conf_shutdown_enable	= 0b00000001,
+	lm75_reg_conf_shutdown_disable	= 0b00000000,
+};
+
 irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *entry)
 {
 	uint8_t i2cbuffer[4];
 	i2c_error_t error;
 
-	// 0x01		select config register
-	// 0x60		set all defaults, operation is not shutdown
-	// 			specific for tmp275 variant, select high-res operation
-
-	if((error = i2c_send2(entry->address, 0x01, 0x60)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, lm75_reg_conf, lm75_reg_conf_tmp275_res_3 | lm75_reg_conf_shutdown_disable)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 1, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_conf, 1, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	if((i2cbuffer[0] != 0x60 /* most */) && (i2cbuffer[0] != 0x00 /* lm75bd */))
+	if((i2cbuffer[0] != lm75_reg_conf_tmp275_res_3 /* most */) && (i2cbuffer[0] != 0x00 /* lm75bd */))
 		return(i2c_error_device_error_1);
 
-	// 0x03	select overtemperature register
-
-	if((error = i2c_send3(entry->address, 0x03, 0xff, 0xff)) != i2c_error_ok)
+	if((error = i2c_send3(entry->address, lm75_reg_tos, 0xff, 0xff)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_tos, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
+	{
+		log("\nlm75: [0] = %02x, [1] = %02x\n", i2cbuffer[0], i2cbuffer[1]);
 		return(i2c_error_device_error_2);
+	}
 
-	// 0x03	select overtemperature register
-
-	if((error = i2c_send3(entry->address, 0x03, 0x00, 0x00)) != i2c_error_ok)
+	if((error = i2c_send3(entry->address, lm75_reg_tos, 0x00, 0x00)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_tos, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
 	if((i2cbuffer[0] != 0x00) || (i2cbuffer[1] != 0x00))
 		return(i2c_error_device_error_3);
-
-	// select temperature register
-
-	if((error = i2c_send1(entry->address, 0x00)) != i2c_error_ok)
-		return(error);
 
 	return(i2c_error_ok);
 }
@@ -175,10 +192,7 @@ irom static i2c_error_t sensor_lm75_read(int bus, const device_table_entry_t *en
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 
-	if((error = i2c_send1(entry->address, 0)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_temp, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
