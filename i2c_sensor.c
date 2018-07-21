@@ -3398,7 +3398,7 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 			break;
 	}
 
-	if(current >= i2c_sensor_size)
+	if((current >= i2c_sensor_size) || (entry->read_fn == (void *)0))
 	{
 		string_format(dst, "i2c sensor read: sensor #%u unknown\n", sensor);
 		return(false);
