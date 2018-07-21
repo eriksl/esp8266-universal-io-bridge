@@ -2979,6 +2979,96 @@ irom static i2c_error_t sensor_sht30_humidity_read(int bus, const device_table_e
 	return(sht30_read(entry->address, (value_t *)0, value));
 }
 
+enum
+{
+	mcp9808_reg_rfu =			0b00000000,
+	mcp9808_reg_config =		0b00000001,
+	mcp9808_reg_alert_u =		0b00000010,
+	mcp9808_reg_alert_l =		0b00000011,
+	mcp9808_reg_critical =		0b00000100,
+	mcp9808_reg_temperature =	0b00000101,
+	mcp9808_reg_manufacturer =	0b00000110,
+	mcp9808_reg_device_id =		0b00000111,
+	mcp9808_reg_resolution =	0b00001000,
+};
+
+enum
+{
+	mcp9808_config_hyst_0_0 =		0b0000000000000000,
+	mcp9808_config_hyst_1_5 =		0b0000001000000000,
+	mcp9808_config_hyst_3_0 =		0b0000010000000000,
+	mcp9808_config_hyst_6_0 =		0b0000011000000000,
+	mcp9808_config_shutdown =		0b0000000100000000,
+	mcp9808_config_lock_crit =		0b0000000010000000,
+	mcp9808_config_lock_wind =		0b0000000001000000,
+	mcp9808_config_int_clear =		0b0000000000100000,
+	mcp9808_config_alert_status =	0b0000000000010000,
+	mcp9808_config_alert_control =	0b0000000000001000,
+	mcp9808_config_alert_select =	0b0000000000000100,
+	mcp9808_config_alert_pol =		0b0000000000000010,
+	mcp9808_config_alert_mode =		0b0000000000000001,
+};
+
+enum
+{
+	mcp9808_resolution_0_5 =		0b00000000,
+	mcp9808_resolution_0_25 =		0b00000001,
+	mcp9808_resolution_0_125 =		0b00000010,
+	mcp9808_resolution_0_0625 =		0b00000011,
+};
+
+enum
+{
+	mcp9808_manufacturer_id_0 =		0x00,
+	mcp9808_manufacturer_id_1 =		0x54,
+	mcp9808_device_id =				0x04,
+};
+
+irom static i2c_error_t sensor_mcp9808_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[2];
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, mcp9808_reg_manufacturer, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != mcp9808_manufacturer_id_0) || (i2c_buffer[1] != mcp9808_manufacturer_id_1))
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, mcp9808_reg_device_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != mcp9808_device_id))
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send2(entry->address, mcp9808_reg_config, mcp9808_config_int_clear)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send2(entry->address, mcp9808_reg_resolution, mcp9808_resolution_0_0625)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_mcp9808_read(int bus, const device_table_entry_t *entry, value_t *value)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[2];
+	unsigned int raw;
+
+	if((error = i2c_send1_receive_repeated_start(entry->address, mcp9808_reg_temperature, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+	value->raw = raw;
+	value->cooked = (raw & 0x0fff) / 16.0;
+
+	if(raw & (1 << 12))
+		value->cooked = 256 - value->cooked;
+
+	return(i2c_error_ok);
+}
+
 static const device_table_entry_t device_table[] =
 {
 	{
@@ -3220,6 +3310,12 @@ static const device_table_entry_t device_table[] =
 		"sht30", "humidity", "", 0,
 		sensor_sht30_humidity_init,
 		sensor_sht30_humidity_read,
+	},
+	{
+		i2c_sensor_mcp9808_temperature, 0x18,
+		"mcp9808", "temperature", "C", 2,
+		sensor_mcp9808_init,
+		sensor_mcp9808_read,
 	},
 };
 
