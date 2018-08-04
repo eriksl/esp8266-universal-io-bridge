@@ -152,7 +152,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 					-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
 					-Wsuggest-attribute=const -Wsuggest-attribute=pure
 
-CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks \
+CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
 						-D__ets__ -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
 						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
