@@ -759,6 +759,37 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_i2c_speed(const string_t *src, string_t *dst)
+{
+	int speed;
+	string_init(varname_i2c_speed, "i2c.speed_delay");
+
+	if(parse_int(1, src, &speed, 0, ' ') == parse_ok)
+	{
+		if((speed < 0) || (speed > 65535))
+		{
+			string_format(dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %d\n", speed);
+			return(app_action_error);
+		}
+
+		if(speed == 1000)
+			config_delete(&varname_i2c_speed, -1, -1, false);
+		else
+			if(!config_set_int(&varname_i2c_speed, -1, -1, speed))
+			{
+				string_append(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+	}
+
+	if(!config_get_int(&varname_i2c_speed, -1, -1, &speed))
+		speed = 1000;
+
+	string_format(dst, "> i2c speed delay: %d\n", speed);
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_i2c_sensor_init(const string_t *src, string_t *dst)
 {
 	int intin, bus;
@@ -1583,6 +1614,11 @@ static const application_function_table_t application_function_table[] =
 		"i2r", "i2c-read",
 		application_function_i2c_read,
 		"read data from i2c slave",
+	},
+	{
+		"i2s", "i2c-speed",
+		application_function_i2c_speed,
+		"set i2c bus speed",
 	},
 	{
 		"i2w", "i2c-write",
