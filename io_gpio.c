@@ -281,7 +281,6 @@ attr_speed iram always_inline static uint32_t pwm_timer_get(void)
 attr_speed iram static void pwm_isr(void)
 {
 	static unsigned int	phase, delay;
-	static pwm_phases_t *phase_data;
 
 	stat_pwm_timer_interrupts++;
 
@@ -291,11 +290,9 @@ attr_speed iram static void pwm_isr(void)
 		return;
 	}
 
-	phase_data = &pwm_phase[pwm_current_phase_set & 0x01];
-
 	for(;;)
 	{
-		if(phase >= phase_data->size)
+		if(phase >= pwm_phase[pwm_current_phase_set].size)
 			phase = 0;
 
 		if(phase == 0)
@@ -305,25 +302,24 @@ attr_speed iram static void pwm_isr(void)
 
 			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
 			{
-				phase_data = &pwm_phase[pwm_current_phase_set];
-				gpio_set_mask(phase_data->init_set_mask);
-				gpio_clear_mask(phase_data->init_clear_mask);
+				gpio_set_mask(pwm_phase[pwm_current_phase_set].init_set_mask);
+				gpio_clear_mask(pwm_phase[pwm_current_phase_set].init_clear_mask);
 				io_gpio_flags.pwm_reset_phase_set = 0;
 				io_gpio_flags.pwm_next_phase_set = 0;
 			}
 
-			if(phase_data->size < 2)
+			if(pwm_phase[pwm_current_phase_set].size < 2)
 			{
 				pwm_isr_enable(false);
 				return;
 			}
 
-			gpio_set_mask(phase_data->phase[phase].mask);
+			gpio_set_mask(pwm_phase[pwm_current_phase_set].phase[phase].mask);
 		}
 		else
-			gpio_clear_mask(phase_data->phase[phase].mask);
+			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].mask);
 
-		delay = phase_data->phase[phase].delay;
+		delay = pwm_phase[pwm_current_phase_set].phase[phase].delay;
 
 		phase++;
 
