@@ -144,7 +144,7 @@ WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 					-Wno-pointer-sign -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement \
 					-Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wwrite-strings \
 					-Wsequence-point -Wclobbered -Wlogical-op -Wmissing-field-initializers -Wpacked \
-					-Wredundant-decls -Wnested-externs -Wlong-long -Wvla -Wdisabled-optimization \
+					-Wredundant-decls -Wnested-externs -Wvla -Wdisabled-optimization \
 					-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
 					-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
 					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align \
