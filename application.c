@@ -609,23 +609,19 @@ irom static app_action_t application_function_i2c_bus(const string_t *src, strin
 	return(app_action_normal);
 }
 
-irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, int length, int length_setup, double clock_offset)
+irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, int length, int extra_clocks)
 {
-	double spent_us, speed, clocks;
+	unsigned int clocks, spent_us, speed;
 
-	spent_us = to_us - from_us;
-	clocks = ((length + length_setup) * 9) + clock_offset;
+	length++;								// address + r/w
+	extra_clocks += 2;						// start and stop condition
+	spent_us = to_us - from_us - 8;
+	clocks = (length * 9) + extra_clocks;	// 9 is 8 data bits + ack
 
-	speed = 1000000 / (spent_us / clocks);
+	speed = 1000000000ULL / ((spent_us * 1000) / clocks);
 
-	string_format(dst, "> transferred %u bytes in ", length);
-	string_double(dst, clocks, 1, 1000);
-	string_append(dst, " scl clocks\n");
-	string_append(dst, "> time spent: ");
-	string_double(dst, spent_us, 1, 1000000000);
-	string_append(dst, " microseconds, makes ");
-	string_double(dst, speed / 1000, 3, 10000);
-	string_append(dst, " kHz i2c bus\n");
+	string_format(dst, "> transferred %u bytes in %u scl clocks\n", length, clocks);
+	string_format(dst, "> time spent: %u microseconds, makes %u Hz i2c bus", spent_us, speed);
 }
 
 irom static app_action_t application_function_i2c_read(const string_t *src, string_t *dst)
@@ -668,7 +664,7 @@ irom static app_action_t application_function_i2c_read(const string_t *src, stri
 
 	string_append(dst, "\n");
 
-	i2c_timing_report(dst, from, to, size, 1, 3.8);
+	i2c_timing_report(dst, from, to, size, 0);
 
 	return(app_action_normal);
 }
@@ -704,7 +700,7 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 
 	string_format(dst, "i2c_write: written %d bytes to %02x\n", size, i2c_address);
 
-	i2c_timing_report(dst, from, to, size, 1, 3.8);
+	i2c_timing_report(dst, from, to, size, 0);
 
 	return(app_action_normal);
 }
@@ -758,7 +754,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	string_append(dst, "\n");
 
-	i2c_timing_report(dst, from, to, size, 3, 6.6);
+	i2c_timing_report(dst, from, to, size, 19);
 
 	return(app_action_normal);
 }
