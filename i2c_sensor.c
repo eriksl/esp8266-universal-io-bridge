@@ -2816,6 +2816,11 @@ typedef enum
 	sht30_status_alert =			(1 << 15),
 } sht30_status_t;
 
+enum
+{
+	sht30_inter_access_delay = 500,
+};
+
 irom attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit, crc;
@@ -2847,17 +2852,16 @@ irom static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int 
 	i2c_buffer[0] = (cmd & 0xff00) >> 8;
 	i2c_buffer[1] = (cmd & 0x00ff) >> 0;
 
-	if(!result1)		// out word
-	{
-		if((error = i2c_send(address, 2, &i2c_buffer[0])) != i2c_error_ok)
-			return(error);
+	usleep(sht30_inter_access_delay);
 
-		return(i2c_error_ok);
-	}
+	if((error = i2c_send(address, 2, &i2c_buffer[0])) != i2c_error_ok)
+		return(error);
 
-	if(!result2)	// out word, in word + crc
+	if(result1)
 	{
-		if((error = i2c_send_receive_repeated_start(address, 2, &i2c_buffer[0], 3, &i2c_buffer[2])) != i2c_error_ok)
+		usleep(sht30_inter_access_delay);
+
+		if((error = i2c_receive(address, result2 ? 6 : 3, &i2c_buffer[2])) != i2c_error_ok)
 			return(error);
 
 		crc_local = i2c_buffer[4];
@@ -2868,28 +2872,17 @@ irom static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int 
 
 		*result1 = (i2c_buffer[2] << 8) | i2c_buffer[3];
 
-		return(i2c_error_ok);
+		if(result2)
+		{
+			crc_local = i2c_buffer[7];
+			crc_remote = sht30_crc(2, &i2c_buffer[5]);
+
+			if(crc_local != crc_remote)
+				return(error);
+
+			*result2 = (i2c_buffer[5] << 8) | i2c_buffer[6];
+		}
 	}
-
-	// out word, in word + crc, in word + crc
-
-	if((error = i2c_send_receive_repeated_start(address, 2, &i2c_buffer[0], 6, &i2c_buffer[2])) != i2c_error_ok)
-		return(error);
-
-	crc_local = i2c_buffer[4];
-	crc_remote = sht30_crc(2, &i2c_buffer[2]);
-
-	if(crc_local != crc_remote)
-		return(error);
-
-	crc_local = i2c_buffer[7];
-	crc_remote = sht30_crc(2, &i2c_buffer[5]);
-
-	if(crc_local != crc_remote)
-		return(error);
-
-	*result1 = (i2c_buffer[2] << 8) | i2c_buffer[3];
-	*result2 = (i2c_buffer[5] << 8) | i2c_buffer[6];
 
 	return(i2c_error_ok);
 }
@@ -2898,10 +2891,6 @@ irom static i2c_error_t sensor_sht30_temperature_init(int bus, const device_tabl
 {
 	int result;
 	i2c_error_t error;
-	uint8_t i2c_buffer[4];
-
-	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
 
 	if((error = sht30_register_access(entry->address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
 		return(error);
@@ -2924,7 +2913,7 @@ irom static i2c_error_t sensor_sht30_temperature_init(int bus, const device_tabl
 	if((error = sht30_register_access(entry->address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
 		return(error);
 
-	if((result & (sht30_status_write_checksum | sht30_status_command_status | sht30_status_reset_detected)) != sht30_status_none)
+	if((result & (sht30_status_write_checksum | sht30_status_command_status | sht30_status_reset_detected)) != 0x00)
 		return(i2c_error_device_error_2);
 
 	return(i2c_error_ok);

@@ -153,6 +153,12 @@ int dprintf(const char *fmt, ...);
 int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void logchar(char c);
 void msleep(int);
+
+static always_inline void usleep(int usec)
+{
+	os_delay_us(usec);
+}
+
 ip_addr_t ip_addr(const char *);
 
 // string functions
