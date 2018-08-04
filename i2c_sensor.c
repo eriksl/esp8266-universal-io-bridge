@@ -3359,11 +3359,15 @@ irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 
 irom void i2c_sensor_init_all(void)
 {
-	int bus;
+	i2c_info_t i2c_info;
+	unsigned int bus, buses;
 	i2c_sensor_t current;
 
-	for(bus = 0; bus < i2c_busses; bus++)
-		for(current = 0; current < i2c_sensor_size; current++)
+	i2c_get_info(&i2c_info);
+	buses = i2c_info.buses;
+
+	for(bus = 0; bus < buses; bus++)
+		for(current = 0; current != i2c_sensor_size; current++)
 			if((bus == 0) || !(device_data[current].detected & (1 << 0)))
 				i2c_sensor_init(bus, current);
 }
