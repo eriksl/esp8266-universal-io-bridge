@@ -220,8 +220,8 @@ typedef struct
 typedef struct
 {
 	unsigned int	size;
-	uint32_t		init_set_mask;
-	uint32_t		init_clear_mask;
+	uint32_t		static_set_mask;
+	uint32_t		static_clear_mask;
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
 
@@ -302,8 +302,8 @@ attr_speed iram static void pwm_isr(void)
 
 			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
 			{
-				gpio_set_mask(pwm_phase[pwm_current_phase_set].init_set_mask);
-				gpio_clear_mask(pwm_phase[pwm_current_phase_set].init_clear_mask);
+				gpio_set_mask(pwm_phase[pwm_current_phase_set].static_set_mask);
+				gpio_clear_mask(pwm_phase[pwm_current_phase_set].static_clear_mask);
 				io_gpio_flags.pwm_reset_phase_set = 0;
 				io_gpio_flags.pwm_next_phase_set = 0;
 			}
@@ -409,8 +409,8 @@ irom static void pwm_go(void)
 	// create linked list
 
 	phase_data = &pwm_phase[new_phase_set];
-	phase_data->init_clear_mask = 0;
-	phase_data->init_set_mask = 0;
+	phase_data->static_clear_mask = 0;
+	phase_data->static_set_mask = 0;
 
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
@@ -422,10 +422,10 @@ irom static void pwm_go(void)
 			continue;
 
 		if(pin1_data->pwm.duty == 0)
-			phase_data->init_clear_mask |= 1 << pin1;
+			phase_data->static_clear_mask |= 1 << pin1;
 		else
 			if((pin1_data->pwm.duty + 1) >= pwm_period)
-				phase_data->init_set_mask |= 1 << pin1;
+				phase_data->static_set_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
 				{
@@ -501,19 +501,6 @@ irom static void pwm_go(void)
 
 	if(phase_data->size < 2)
 		phase_data->size = 0;
-
-#if 0
-	dprintf("* program");
-
-	for(phase = 0; phase < phase_data->size; phase++)
-	{
-		dprintf("phase:%d du:%d de:%d m:%x",
-				phase,
-				phase_data->phase[phase].duty,
-				phase_data->phase[phase].delay,
-				phase_data->phase[phase].mask);
-	}
-#endif
 
 	if(new_phase_set == pwm_current_phase_set)
 	{
