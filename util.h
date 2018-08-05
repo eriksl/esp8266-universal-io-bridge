@@ -154,9 +154,30 @@ int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void logchar(char c);
 void msleep(int);
 
-static always_inline void usleep(int usec)
+always_inline static void usleep(int usec)
 {
 	os_delay_us(usec);
+}
+
+always_inline static uint32_t ccount(void)
+{
+	uint32_t sr_ccount;
+
+	asm volatile ("esync; rsr %0, ccount" : "=r"(sr_ccount));
+
+	return(sr_ccount);
+}
+
+always_inline static void csleep(volatile uint32_t target)
+{
+	if(target < 14)
+		while(target-- > 0);
+	else
+	{
+		target += ccount();
+		while(ccount() > target);
+		while(ccount() < target);
+	}
 }
 
 ip_addr_t ip_addr(const char *);

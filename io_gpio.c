@@ -113,6 +113,46 @@ static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 	{ true,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	-1			},
 };
 
+typedef struct
+{
+	unsigned int delay;
+	const unsigned int delay_cpu_low_speed;
+	const unsigned int delay_cpu_high_speed;
+} pwm_delay_t;
+
+enum
+{
+	pwm_table_delay_size = 24,
+};
+
+pwm_delay_t pwm_delay_entry[pwm_table_delay_size] =
+{
+	{	0,	16,		8,		},	// special case, this entry is only used for the default case (i.e. delay >= pwm_table_delay_size)
+	{	1,	0,		0,		},	// special case, not used
+	{	2,	0,		4,		},
+	{	3,	1,		44,		},
+	{	4,	12,		78,		},
+	{	5,	30,		110,	},
+	{	6,	48,		144,	},
+	{	7,	62,		176,	},
+	{	8,	78,		208,	},
+	{	9,	94,		240,	},
+	{	10,	112,	272,	},
+	{	11,	128,	306,	},
+	{	12,	144,	338,	},
+	{	13,	160,	368,	},
+	{	14,	176,	400,	},
+	{	15,	190,	432,	},
+	{	16,	208,	464,	},
+	{	17,	222,	496,	},
+	{	18,	238,	526,	},
+	{	19,	256,	558,	},
+	{	20,	272,	590,	},
+	{	21,	286,	622,	},
+	{	22,	304,	654,	},
+	{	23,	320,	686,	},
+};
+
 // set GPIO direction
 
 irom static void gpio_direction_clear_mask(uint32_t mask)
@@ -229,7 +269,6 @@ typedef struct
 {
 	unsigned int	pwm_reset_phase_set:1;
 	unsigned int	pwm_next_phase_set:1;
-	unsigned int	pwm_cpu_high_speed:1;
 	unsigned int	pwm_int_enabled:1;
 } io_gpio_flags_t;
 
@@ -280,7 +319,7 @@ attr_speed iram always_inline static uint32_t pwm_timer_get(void)
 
 attr_speed iram static void pwm_isr(void)
 {
-	static unsigned int	phase, delay;
+	static unsigned int	phase, ticks_to_next_phase;
 
 	stat_pwm_timer_interrupts++;
 
@@ -298,7 +337,7 @@ attr_speed iram static void pwm_isr(void)
 		if(phase == 0)
 		{
 			if(io_gpio_flags.pwm_next_phase_set)
-				pwm_current_phase_set = (pwm_current_phase_set + 1) & 0x01;
+				pwm_current_phase_set ^= 0x01;
 
 			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
 			{
@@ -319,31 +358,16 @@ attr_speed iram static void pwm_isr(void)
 		else
 			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].mask);
 
-		delay = pwm_phase[pwm_current_phase_set].phase[phase].delay;
-
+		ticks_to_next_phase = pwm_phase[pwm_current_phase_set].phase[phase].delay;
 		phase++;
 
-		if(delay < 2)
+		if(ticks_to_next_phase < 2)
 			continue;
 		else
-			if(delay < 24)
-				if(io_gpio_flags.pwm_cpu_high_speed)
-					for(delay = ((delay - 2) * 6) + 5; delay > 0; delay--)
-						asm volatile("nop");
-				else
-					for(delay = ((delay - 2) * 3) + 2; delay > 0; delay--)
-						asm volatile("nop");
+			if(ticks_to_next_phase < pwm_table_delay_size)
+				csleep(pwm_delay_entry[ticks_to_next_phase].delay);
 			else
-			{
-				if(io_gpio_flags.pwm_cpu_high_speed)
-					delay -= 7;
-				else
-					delay -= 14;
-
-				pwm_timer_set(delay);
-
-				return;
-			}
+				return(pwm_timer_set(ticks_to_next_phase - pwm_delay_entry[0].delay));
 	}
 }
 
@@ -382,8 +406,6 @@ irom static void pwm_go(void)
 		pwm_timer_set(timer_value);
 		pwm_isr_enable(true);
 	}
-
-	io_gpio_flags.pwm_cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
 	pwm_head = -1;
 
@@ -520,6 +542,15 @@ irom static void pwm_go(void)
 
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
+	unsigned int entry;
+	bool_t cpu_high_speed = config_flags_get().flag.cpu_high_speed;
+
+	for(entry = 0; entry < pwm_table_delay_size; entry++)
+		if(cpu_high_speed)
+			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_high_speed;
+		else
+			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_low_speed;
+
 	pwm_current_phase_set = 0;
 	io_gpio_flags.pwm_reset_phase_set = 0;
 	io_gpio_flags.pwm_next_phase_set = 0;
