@@ -31,57 +31,38 @@ typedef enum
 
 typedef enum
 {
-	i2c_delay_send_bit_0 = 0,
-	i2c_delay_send_bit_1,
-	i2c_delay_send_bit_2,
-	i2c_delay_receive_bit_0,
-	i2c_delay_receive_bit_1,
-	i2c_delay_receive_bit_2,
-	i2c_delay_fixup_0,
-	i2c_delay_fixup_1,
-	i2c_delay_fixup_2,
-	i2c_delay_send_start_0,
-	i2c_delay_send_start_1,
-	i2c_delay_send_start_2,
-	i2c_delay_send_start_3,
-	i2c_delay_send_stop_0,
-	i2c_delay_send_stop_1,
-	i2c_delay_send_stop_2,
-	i2c_delay_send_stop_3,
+	i2c_delay_send_bit_scl_low = 0,
+	i2c_delay_send_bit_scl_high,
+	i2c_delay_receive_bit_scl_low,
+	i2c_delay_receive_bit_scl_high,
+	i2c_delay_fixup_pre_wait,
+	i2c_delay_fixup_cycle_phase,
+	i2c_delay_fixup_post_wait,
+	i2c_delay_send_start_stop_scl_low,
+	i2c_delay_send_start_stop_scl_high_1,
+	i2c_delay_send_start_stop_scl_high_2,
 	i2c_delay_size,
 } i2c_delay_enum_t;
 
 typedef struct
 {
-	const i2c_delay_enum_t	index;
+	unsigned int			delay;
 	const unsigned int		factor_slow;
 	const unsigned int		factor_fast;
-	unsigned int			delay;
 } i2c_delay_t;
 
 static i2c_delay_t i2c_delay[i2c_delay_size] =
 {
-	{	i2c_delay_send_bit_0,		23,	62,		0,	},	// low phase of SCL part 1
-	{	i2c_delay_send_bit_1,		23,	62,		0,	},	// low phase of SCL part 2
-	{	i2c_delay_send_bit_2,		61,	142,	0,	},	// high phase of SCL
-
-	{	i2c_delay_receive_bit_0,	28,	67,		0,	},	// low phase of SCL part 1
-	{	i2c_delay_receive_bit_1,	28,	67,		0,	},	// low phase of SCL part 2
-	{	i2c_delay_receive_bit_2,	52,	132,	0,	},	// high phase of SCL
-
-	{	i2c_delay_fixup_0,			75,	150,	0,	},
-	{	i2c_delay_fixup_1,			50,	100,	0,	},
-	{	i2c_delay_fixup_2,			75,	150,	0,	},
-
-	{	i2c_delay_send_start_0,		24,	63,		0,	},
-	{	i2c_delay_send_start_1,		24,	63,		0,	},
-	{	i2c_delay_send_start_2,		20,	61,		0,	},
-	{	i2c_delay_send_start_3,		20,	61,		0,	},
-
-	{	i2c_delay_send_stop_0,		24,	63,		0,	},
-	{	i2c_delay_send_stop_1,		24,	63,		0,	},
-	{	i2c_delay_send_stop_2,		23,	61,		0,	},
-	{	i2c_delay_send_stop_3,		23,	61,		0,	},
+	{	i2c_delay_send_bit_scl_low,				96,		288		},
+	{	i2c_delay_send_bit_scl_high,			280,	690		},
+	{	i2c_delay_receive_bit_scl_low,			124,	320		},
+	{	i2c_delay_receive_bit_scl_high,			232,	630		},
+	{	i2c_delay_fixup_pre_wait,				500,	1332	},
+	{	i2c_delay_fixup_cycle_phase,			250,	664		},
+	{	i2c_delay_fixup_post_wait,				250,	664		},
+	{	i2c_delay_send_start_stop_scl_low,		100,	294		},
+	{	i2c_delay_send_start_stop_scl_high_1,	100,	340		},
+	{	i2c_delay_send_start_stop_scl_high_2,	60,		210		},
 };
 
 struct
@@ -181,10 +162,7 @@ always_inline static bool_t scl_is_high(void)
 
 always_inline static void delay(i2c_delay_enum_t delay_index)
 {
-	unsigned int delay_ticks;
-
-	for(delay_ticks = i2c_delay[delay_index].delay; delay_ticks > 0; delay_ticks--)
-		asm("");
+	csleep(i2c_delay[delay_index].delay);
 }
 
 iram static i2c_error_t sda_set_test(bool_t val, i2c_delay_enum_t delay_index)
@@ -274,19 +252,19 @@ iram static i2c_error_t send_bit(bool_t bit)
 	// at this point SCL should be high and sda will be unknown
 	// wait for SCL to be released by slave (clock stretching)
 
-	if((error = scl_set_test(false, i2c_delay_send_bit_0)) != i2c_error_ok)
+	if((error = scl_set_test(false, i2c_delay_send_bit_scl_low)) != i2c_error_ok)
 	{
 		log("\nsend_bit 1\n");
 		return(error);
 	}
 
-	if((error = sda_set_test(bit, i2c_delay_send_bit_1)) != i2c_error_ok)
+	if((error = sda_set_test(bit, i2c_delay_send_bit_scl_low)) != i2c_error_ok)
 	{
 		log("\nsend_bit 2\n");
 		return(error);
 	}
 
-	if((error = scl_set_test(true, i2c_delay_send_bit_2)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_send_bit_scl_high)) != i2c_error_ok)
 	{
 		log("send_bit 3\n");
 		return(error);
@@ -308,16 +286,16 @@ iram static i2c_error_t receive_bit(bool_t *bit)
 	// make sure SDA is off so slave can pull it
 	// do it while SCL is pulled
 
-	if((error = scl_set_test(false, i2c_delay_receive_bit_0)) != i2c_error_ok)
+	if((error = scl_set_test(false, i2c_delay_receive_bit_scl_low)) != i2c_error_ok)
 		return(error);
 
-	delay(i2c_delay_receive_bit_1);
+	delay(i2c_delay_receive_bit_scl_low);
 
 	// don't check SDA here, because the slave might already have pulled it low, which is OK
 
 	sda_high();
 
-	if((error = scl_set_test(true, i2c_delay_receive_bit_2)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_receive_bit_scl_high)) != i2c_error_ok)
 		return(error);
 
 	// sample at end of SCL cycle
@@ -336,18 +314,18 @@ iram static i2c_error_t send_start(void)
 
 	// make sure SDA is released and set it to high
 
-	if((error = scl_set_test(false, i2c_delay_send_start_0)) != i2c_error_ok)
+	if((error = scl_set_test(false, i2c_delay_send_start_stop_scl_low)) != i2c_error_ok)
 		return(error);
 
-	if((error = sda_set_test(true, i2c_delay_send_start_1)) != i2c_error_ok)
+	if((error = sda_set_test(true, i2c_delay_send_start_stop_scl_low)) != i2c_error_ok)
 		return(error);
 
-	if((error = scl_set_test(true, i2c_delay_send_start_2)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_send_start_stop_scl_high_1)) != i2c_error_ok)
 		return(error);
 
 	// send actual start condition
 
-	if((error = sda_set_test(false, i2c_delay_send_start_3)) != i2c_error_ok)
+	if((error = sda_set_test(false, i2c_delay_send_start_stop_scl_high_2)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -359,18 +337,18 @@ iram static i2c_error_t send_stop(void)
 
 	// release SDA from last slave's ACK and set it low
 
-	if((error = scl_set_test(false, i2c_delay_send_stop_0)) != i2c_error_ok)
+	if((error = scl_set_test(false, i2c_delay_send_start_stop_scl_low)) != i2c_error_ok)
 		return(error);
 
-	if((error = sda_set_test(false, i2c_delay_send_stop_1)) != i2c_error_ok)
+	if((error = sda_set_test(false, i2c_delay_send_start_stop_scl_low)) != i2c_error_ok)
 		return(error);
 
-	if((error = scl_set_test(true, i2c_delay_send_stop_2)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_send_start_stop_scl_high_1)) != i2c_error_ok)
 		return(error);
 
 	// send actual stop condition
 
-	if((error = sda_set_test(true, i2c_delay_send_stop_3)) != i2c_error_ok)
+	if((error = sda_set_test(true, i2c_delay_send_start_stop_scl_high_2)) != i2c_error_ok)
 		return(error);
 
 	if(sda_is_low())
@@ -665,7 +643,7 @@ irom noinline static i2c_error_t i2c_reset_fixup_bus(void)
 	int current;
 	int wait_cycles = 0;
 
-	if((error = scl_set_test(true, i2c_delay_fixup_0)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_fixup_pre_wait)) != i2c_error_ok)
 		return(error);
 
 	// if SDA still asserted by slave, cycle SCL until they release it
@@ -674,13 +652,13 @@ irom noinline static i2c_error_t i2c_reset_fixup_bus(void)
 	{
 		for(current = i2c_config_sda_reset_cycles; current > 0; current--, wait_cycles++)
 		{
-			delay(i2c_delay_fixup_1);
+			delay(i2c_delay_fixup_cycle_phase);
 			scl_low();
-			delay(i2c_delay_fixup_1);
+			delay(i2c_delay_fixup_cycle_phase);
 			sda_high();
-			delay(i2c_delay_fixup_1);
+			delay(i2c_delay_fixup_cycle_phase);
 			scl_high();
-			delay(i2c_delay_fixup_1);
+			delay(i2c_delay_fixup_cycle_phase);
 
 			if(sda_is_high())
 				break;
@@ -696,7 +674,7 @@ irom noinline static i2c_error_t i2c_reset_fixup_bus(void)
 		log("i2c-reset-fixup-bus: sda stuck resolved after %d cycles\n", wait_cycles);
 	}
 
-	if((error = scl_set_test(true, i2c_delay_fixup_2)) != i2c_error_ok)
+	if((error = scl_set_test(true, i2c_delay_fixup_post_wait)) != i2c_error_ok)
 	{
 		log("i2c-reset-fixup-bus: bus lock: %d\n", error);
 		return(error);
@@ -751,7 +729,7 @@ irom void i2c_init(int sda_in, int scl_in)
 	{
 		entry = &i2c_delay[current];
 
-		if(entry->index != current)
+		if(entry->delay != current)
 			continue;
 
 		if(config_flags_get().flag.cpu_high_speed)
