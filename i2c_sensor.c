@@ -889,6 +889,35 @@ irom static i2c_error_t sensor_bh1750_read(int bus, const device_table_entry_t *
 	return(i2c_error_ok);
 }
 
+enum
+{
+	htu21_cmd_meas_temp_hold_master =		0xe3,
+	htu21_cmd_meas_hum_hold_master =		0xe5,
+	htu21_cmd_write_user =					0xe6,
+	htu21_cmd_read_user =					0xe7,
+	htu21_cmd_meas_temp_no_hold_master =	0xf3,
+	htu21_cmd_meas_hum_no_hold_master =		0xf5,
+	htu21_cmd_reset =						0xfe,
+};
+
+enum
+{
+	htu21_user_reg_rh12_temp14 =		0b00000000,
+	htu21_user_reg_rh8_temp12 =			0b00000001,
+	htu21_user_reg_rh10_temp13 =		0b10000000,
+	htu21_user_reg_rh11_temp11 =		0b10000001,
+	htu21_user_reg_bat_stat =			0b01000000,
+	htu21_user_reg_reserved =			0b00111000,
+	htu21_user_reg_heater_enable =		0b00000100,
+	htu21_user_reg_otp_reload_disable =	0b00000010,
+};
+
+enum
+{
+	htu21_delay_reset =			2,
+	htu21_delay_measurement =	8,
+};
+
 irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit, crc;
@@ -911,6 +940,53 @@ irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
+irom static i2c_error_t sensor_htu21_temp_init(int bus, const device_table_entry_t *entry)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[1];
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send1(entry->address, htu21_cmd_reset)) != i2c_error_ok)
+		return(error);
+
+	msleep(htu21_delay_reset);
+
+	if((error = i2c_send1(entry->address, htu21_cmd_read_user)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	i2c_buffer[0] &= htu21_user_reg_reserved | htu21_user_reg_bat_stat;
+	i2c_buffer[0] |= htu21_user_reg_rh11_temp11 | htu21_user_reg_otp_reload_disable;
+
+	if((error = i2c_send2(entry->address, htu21_cmd_write_user, i2c_buffer[0])) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send1(entry->address, htu21_cmd_read_user)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	i2c_buffer[0] &= ~(htu21_user_reg_reserved | htu21_user_reg_bat_stat);
+
+	if(i2c_buffer[0] != (htu21_user_reg_rh11_temp11 | htu21_user_reg_otp_reload_disable))
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_htu21_hum_init(int bus, const device_table_entry_t *entry)
+{
+	if(!i2c_sensor_detected(bus, i2c_sensor_htu21_temperature))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
+
 irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uint8_t command, uint16_t *result)
 {
 	i2c_error_t error;
@@ -919,6 +995,8 @@ irom static i2c_error_t sensor_htu21_read(const device_table_entry_t *entry, uin
 
 	if((error = i2c_send1(entry->address, command)) != i2c_error_ok)
 		return(error);
+
+	msleep(htu21_delay_measurement);
 
 	if((error = i2c_receive(entry->address, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 		return(error);
@@ -940,9 +1018,7 @@ irom static i2c_error_t sensor_htu21_temp_read(int bus, const device_table_entry
 	i2c_error_t error;
 	uint16_t result;
 
-	// temperature measurement "hold master" mode -> 0xe3
-
-	if((error = sensor_htu21_read(entry, 0xe3, &result)) != i2c_error_ok)
+	if((error = sensor_htu21_read(entry, htu21_cmd_meas_temp_no_hold_master, &result)) != i2c_error_ok)
 		return(error);
 
 	value->raw = result;
@@ -960,12 +1036,10 @@ irom static i2c_error_t sensor_htu21_hum_read(int bus, const device_table_entry_
 	if((error = sensor_htu21_temp_read(bus, entry, &temperature)) != i2c_error_ok)
 		return(error);
 
-	// humidity measurement "hold master" mode -> 0xe5
-
-	if((error = sensor_htu21_read(entry, 0xe5, &result)) != i2c_error_ok)
+	if((error = sensor_htu21_read(entry, htu21_cmd_meas_hum_no_hold_master, &result)) != i2c_error_ok)
 		return(error);
 
-	value->raw = (((double)result * 125) / 65536) - 6;
+	value->raw = ((result * 125.0) / 65536) - 6;
 	value->cooked = value->raw + ((25 - temperature.cooked) * -0.10); // FIXME, TempCoeff guessed
 
 	if(value->cooked < 0)
@@ -973,25 +1047,6 @@ irom static i2c_error_t sensor_htu21_hum_read(int bus, const device_table_entry_
 
 	if(value->cooked > 100)
 		value->cooked = 100;
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_htu21_temp_init(int bus, const device_table_entry_t *entry)
-{
-	value_t value;
-	i2c_error_t error;
-
-	if((error = sensor_htu21_temp_read(bus, entry, &value)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_htu21_hum_init(int bus, const device_table_entry_t *entry)
-{
-	if(!i2c_sensor_detected(bus, i2c_sensor_htu21_temperature))
-		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
 }
