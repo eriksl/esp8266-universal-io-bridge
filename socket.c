@@ -110,8 +110,7 @@ irom static void socket_callback_accept(void *arg)
 	espconn_regist_disconcb(socket->tcp.child_socket,	socket_callback_disconnect);
 	espconn_regist_reconcb(socket->tcp.child_socket,	socket_callback_error);
 
-	//espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
-	espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR);
+	espconn_set_opt(socket->tcp.child_socket, ESPCONN_REUSEADDR | ESPCONN_NODELAY);
 
 	if(socket->callback_accept)
 		socket->callback_accept(socket, socket->tcp.child_socket);
