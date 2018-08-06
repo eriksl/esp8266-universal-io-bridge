@@ -10,8 +10,18 @@
 
 enum
 {
-	background_task_id				= USER_TASK_PRIO_0,
+	command_task_id					= USER_TASK_PRIO_1,
+	command_task_queue_length		= 16,
+
+	background_task_id				= USER_TASK_PRIO_2,
 	background_task_queue_length	= 64,
+};
+
+enum
+{
+	command_task_command_invalid,
+	command_task_command_reset,
+	command_task_command_reset_finish,
 };
 
 extern queue_t uart_send_queue;

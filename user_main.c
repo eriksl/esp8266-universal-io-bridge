@@ -23,17 +23,6 @@ typedef enum
 
 typedef enum
 {
-	reset_state_inactive,
-	reset_state_send_reply,
-	reset_state_request_tcp_disconnect,
-	reset_state_wait_tcp_disconnect,
-	reset_state_wait,
-	reset_state_go,
-	reset_state_waiting
-} reset_state_t;
-
-typedef enum
-{
 	socket_state_idle,
 	socket_state_received,
 	socket_state_processing,
@@ -42,6 +31,7 @@ typedef enum
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
+os_event_t command_task_queue[command_task_queue_length];
 os_event_t background_task_queue[background_task_queue_length];
 
 typedef struct
@@ -92,18 +82,19 @@ static socket_data_t socket_uart =
 };
 
 static bool_t uart_bridge_active = false;
-static reset_state_t reset_state = reset_state_inactive;
 
 static struct
 {
 	unsigned int disconnect:1;
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
+	unsigned int preparing_reset:1;
 } bg_action =
 {
 	.disconnect = 0,
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
+	.preparing_reset = 0,
 };
 
 static ETSTimer fast_timer;
@@ -222,19 +213,12 @@ always_inline static bool_t background_task_command_handler(void)
 			bg_action.disconnect = 1;
 			break;
 		}
-		case(app_action_reset):
-		{
-			string_clear(&socket_cmd.send_buffer);
-			string_append(&socket_cmd.send_buffer, "> reset\n");
-			reset_state = reset_state_send_reply;
-			break;
-		}
-		case(app_action_ota_commit):
+		case(app_action_ota_commit): //FIXME
 		{
 #if IMAGE_OTA == 1
 			rboot_config rcfg = rboot_get_config();
 			string_format(&socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
-			reset_state = reset_state_send_reply;
+			system_os_post(command_task_id, command_task_command_reset, 0);
 #endif
 			break;
 		}
@@ -252,36 +236,44 @@ always_inline static bool_t background_task_command_handler(void)
 	return(true);
 }
 
-iram attr_speed static void background_task(os_event_t *events) // posted every ~100 ms = ~10 Hz
+irom attr_speed static void command_task(os_event_t *event)
+{
+	log("signal: %u\n", event->sig);
+	log("parameter: %u\n", event->par);
+
+	switch(event->sig)
+	{
+		case(command_task_command_reset):
+		{
+			bg_action.preparing_reset = 1;
+
+			if((socket_proto(&socket_cmd.socket) == proto_udp) && !socket_send_busy(&socket_cmd.socket))
+			{
+				msleep(100);
+				system_os_post(command_task_id, command_task_command_reset_finish, 0);
+			}
+
+			socket_disconnect_accepted(&socket_cmd.socket);
+
+			break;
+		}
+
+		case(command_task_command_reset_finish):
+		{
+			if(bg_action.preparing_reset)
+				reset();
+
+			break;
+		}
+	}
+}
+
+iram attr_speed static void background_task(os_event_t *event) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
 	config_wlan_mode_t wlan_mode;
 	int wlan_mode_int;
 	string_init(varname_wlan_mode, "wlan.mode");
-
-	switch(reset_state)
-	{
-		case(reset_state_request_tcp_disconnect):
-		{
-			socket_disconnect_accepted(&socket_cmd.socket);
-
-			reset_state = reset_state_wait_tcp_disconnect;
-			break;
-		}
-		case(reset_state_wait):
-		{
-			reset_state = reset_state_go;
-			msleep(100);
-			break;
-		}
-		case(reset_state_go):
-		{
-			reset_state = reset_state_waiting;
-			reset();
-			return;
-		}
-		default: break;
-	}
 
 	if(uart_bridge_active && background_task_bridge_uart())
 	{
@@ -541,13 +533,8 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
-	if(reset_state == reset_state_send_reply)
-	{
-		if(socket->remote.proto == proto_udp)
-			reset_state = reset_state_wait;
-		else
-			reset_state = reset_state_request_tcp_disconnect;
-	}
+	if(bg_action.preparing_reset && socket_proto(socket) == proto_udp)
+		system_os_post(command_task_id, command_task_command_reset_finish, 0);
 
 	socket_cmd.state = socket_state_idle;
 }
@@ -565,9 +552,6 @@ iram attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 
 irom static void callback_error_cmd(socket_t *socket, int error, void *userdata)
 {
-	if(reset_state != reset_state_inactive)
-		reset_state = reset_state_go;
-
 	socket_cmd.state = socket_state_idle;
 }
 
@@ -581,8 +565,8 @@ irom static void callback_error_uart(socket_t *socket, int error, void *userdata
 
 irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 {
-	if((reset_state == reset_state_request_tcp_disconnect) || (reset_state == reset_state_wait_tcp_disconnect))
-		reset_state = reset_state_wait;
+	if(bg_action.preparing_reset)
+		system_os_post(command_task_id, command_task_command_reset_finish, 0);
 
 	socket_cmd.state = socket_state_idle;
 }
@@ -654,6 +638,7 @@ irom static void user_init2(void)
 	}
 
 	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms

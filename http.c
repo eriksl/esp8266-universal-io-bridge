@@ -4,8 +4,7 @@
 #include "io.h"
 #include "stats.h"
 #include "i2c_sensor.h"
-
-#include <sntp.h>
+#include "user_main.h"
 
 typedef struct
 {
@@ -491,7 +490,8 @@ config_error:
 
 irom static app_action_t handler_reset(const string_t *src, string_t *dst)
 {
-	return(app_action_reset);
+	system_os_post(command_task_id, command_task_command_reset, 0);
+	return(app_action_http_ok);
 }
 
 static const http_handler_t handlers[] =
