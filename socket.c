@@ -90,10 +90,16 @@ irom static void socket_callback_accept(void *arg)
 	socket_t *socket;
 
 	if(!(socket = find_socket(new_esp_socket)))
+	{
+		log("socket: socket_accept: socket id not found\n");
 		goto disconnect;
+	}
 
 	if(socket->tcp.child_socket)
+	{
+		log("socket: socket_accept: socket already accepted\n");
 		goto disconnect;
+	}
 
 	socket->tcp.child_socket = new_esp_socket;
 
@@ -123,7 +129,10 @@ iram static void socket_callback_received(void *arg, char *buffer, unsigned shor
 	struct espconn	*esp_socket = (struct espconn *)arg;
 
 	if(!(socket = find_socket(esp_socket)))
+	{
+		log("socket: socket_callback_received: socket not found\n");
 		return;
+	}
 
 	set_remote(esp_socket, socket);
 
@@ -140,7 +149,10 @@ iram static void socket_callback_sent(void *arg)
 	socket_t *socket;
 
 	if(!(socket = find_socket(esp_socket)))
+	{
+		log("socket: callback_sent: socket not found\n");
 		return;
+	}
 
 	if(socket->callback_sent)
 		socket->callback_sent(socket, socket->userdata);
@@ -154,10 +166,15 @@ irom static void socket_callback_error(void *arg, int8_t error)
 	socket_t *socket;
 
 	if(!(socket = find_socket(esp_socket)))
+	{
+		log("socket: callback_error: socket not found\n");
 		return;
+	}
 
 	if(socket->callback_error)
 		socket->callback_error(socket, error, socket->userdata);
+
+	log("socket: callback error: %d\n", error);
 
 	socket->send_busy = false;
 }
@@ -168,7 +185,10 @@ irom static void socket_callback_disconnect(void *arg)
 	socket_t *socket;
 
 	if(!(socket = find_socket(esp_socket)))
+	{
+		log("socket: callback_disconnect: socket not found\n");
 		return;
+	}
 
 	if(socket->callback_disconnect)
 		socket->callback_disconnect(socket, socket->userdata);
@@ -184,7 +204,10 @@ iram bool_t socket_send(socket_t *socket, string_t *buffer)
 	struct espconn *esp_socket;
 
 	if(socket->send_busy)
+	{
+		log("socket: socket_send: socket busy\n");
 		goto error;
+	}
 
 	switch(socket->remote.proto)
 	{
@@ -208,6 +231,7 @@ iram bool_t socket_send(socket_t *socket, string_t *buffer)
 
 		default:
 		{
+			log("socket: socket_send: protocol unknown\n");
 			goto error;
 		}
 	}
@@ -216,6 +240,8 @@ iram bool_t socket_send(socket_t *socket, string_t *buffer)
 
 	if(espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer)) == 0)
 		return(true);
+
+	log("socket: socket_send: espconn_send returned error\n");
 
 error:
 	socket->send_busy = false;
