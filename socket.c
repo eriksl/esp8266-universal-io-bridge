@@ -286,3 +286,24 @@ irom void socket_create(bool tcp, bool udp, socket_t *socket,
 	socket->callback_disconnect	= callback_disconnect;
 	socket->callback_accept		= callback_accept;
 }
+
+attr_pure socket_proto_t socket_proto(const socket_t *socket)
+{
+	return(socket->remote.proto);
+}
+
+attr_pure bool_t socket_send_busy(const socket_t *socket)
+{
+	return(socket->send_busy);
+}
+
+attr_pure void *socket_userdata(const socket_t *socket)
+{
+	return(socket->userdata);
+}
+
+void socket_disconnect_accepted(socket_t *socket)
+{
+	if(socket->tcp.child_socket != (struct espconn *)0)
+		espconn_disconnect(socket->tcp.child_socket);
+}
