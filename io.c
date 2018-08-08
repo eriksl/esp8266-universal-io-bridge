@@ -1216,7 +1216,6 @@ irom void io_init(void)
 					break;
 				}
 
-
 				case(io_pin_lcd):
 				{
 					int pin_mode;
