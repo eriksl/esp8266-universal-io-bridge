@@ -257,7 +257,7 @@ irom bool_t config_set_string(const string_t *id, int index1, int index2, const 
 		}
 
 		varid = expand_varid(id, index1, index2);
-		strecpy(config_current->id, string_to_cstr(varid), config_entry_string_size);
+		strecpy(config_current->id, string_to_cstr(varid), config_entry_id_size);
 	}
 
 	strecpy(config_current->string_value, string_buffer(value) + value_offset, value_length + 1);
