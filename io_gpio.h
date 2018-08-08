@@ -53,8 +53,12 @@ always_inline attr_speed static void set_peri_reg_mask(volatile uint32_t addr, u
 
 always_inline attr_speed static void clear_set_peri_reg_mask(uint32_t addr, uint32_t clearmask, uint32_t setmask)
 {
-	clear_peri_reg_mask(addr, clearmask);
-	set_peri_reg_mask(addr, setmask);
+	uint32_t regval;
+
+	regval = read_peri_reg(addr);
+	regval &= ~clearmask;
+	regval |= setmask;
+	write_peri_reg(addr, regval);
 }
 
 // read write GPIO registers
