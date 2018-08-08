@@ -44,6 +44,7 @@ extern uint8_t display_common_buffer[display_common_buffer_rows][display_common_
 
 void display_init(void);
 bool_t display_periodic(void);
+bool_t display_detected(void);
 
 bool_t display_common_set(const char *tag, const char *text,
 			int map_size, const display_map_t *map,

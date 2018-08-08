@@ -330,6 +330,11 @@ irom bool_t display_common_set(const char *tag, const char *text,
 	return(true);
 }
 
+irom attr_pure bool_t display_detected(void)
+{
+	return(display_data.detected >= 0);
+}
+
 irom static void display_update(bool_t advance)
 {
 	const char *display_text;
@@ -338,7 +343,7 @@ irom static void display_update(bool_t advance)
 	string_new(, tag_text, 32);
 	string_new(, info_text, 64);
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 		return;
 
 	display_info_entry = &display_info[display_data.detected];
@@ -385,7 +390,7 @@ irom static void display_expire(void) // call one time per second
 	string_new(stack, default_message, 64);
 	string_init(varname_defaultmsg, "display.defaultmsg");
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 		return;
 
 	active_slots = 0;
@@ -428,7 +433,7 @@ irom bool_t display_periodic(void) // gets called 10 times per second
 	display_info_t *display_info_entry;
 	string_init(varname_fliptimeout, "display.fliptimeout");
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 		return(false);
 
 	now = system_get_time() / 1000000;
@@ -489,7 +494,7 @@ irom static void display_dump(string_t *dst)
 	display_info_t *display_info_entry;
 	int slot;
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 	{
 		string_append(dst, "> no displays detected\n");
 		return;
@@ -578,7 +583,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 	int value;
 	display_info_t *display_info_entry;
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 	{
 		string_append(dst, "display_brightess: no display detected\n");
 		return(app_action_error);
@@ -608,7 +613,7 @@ irom app_action_t application_function_display_set(const string_t *src, string_t
 	int slot, timeout, current;
 	const char *text;
 
-	if(display_data.detected < 0)
+	if(!display_detected())
 	{
 		string_append(dst, "display_set: no display detected\n");
 		return(app_action_error);
