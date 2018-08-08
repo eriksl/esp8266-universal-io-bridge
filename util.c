@@ -118,27 +118,6 @@ irom attr_const const char *onoff(bool_t value)
 	return("on");
 }
 
-irom int dprintf(const char *fmt, ...)
-{
-	va_list ap;
-	int current, n;
-
-	va_start(ap, fmt);
-	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt, ap);
-	va_end(ap);
-
-	for(current = 0; current < n; current++)
-		if(!queue_full(&uart_send_queue))
-			queue_push(&uart_send_queue, flash_dram_buffer[current]);
-
-	queue_push(&uart_send_queue, '\r');
-	queue_push(&uart_send_queue, '\n');
-
-	uart_start_transmit(!queue_empty(&uart_send_queue));
-
-	return(n);
-}
-
 irom attr_speed int log(const char *fmt, ...)
 {
 	va_list ap;

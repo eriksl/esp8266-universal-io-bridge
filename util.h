@@ -156,7 +156,6 @@ size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
 void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
-int dprintf(const char *fmt, ...);
 int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void logchar(char c);
 void msleep(int);
