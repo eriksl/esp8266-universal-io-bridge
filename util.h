@@ -329,6 +329,9 @@ always_inline static string_t string_from_cstr(size_t size, char *cstr)
 
 always_inline static const char *string_to_cstr(string_t *string)
 {
+	if((string == (string_t *)0) || (string->size < 1) || (string->length < 1) || (string->buffer == (const char *)0))
+		return("");
+
 	if(string->length >= string->size)
 		string->length = string->size - 1;
 
