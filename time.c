@@ -39,13 +39,16 @@ iram static void uptime_periodic(void)
 	uptime_last_us = uptime_now;
 }
 
+iram uint64_t time_get_us(void)
+{
+	return((((uint64_t)system_get_time()) | ((uint64_t)uptime_wraps << 32)) - uptime_base_us);
+}
+
 irom static void uptime_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
-	uint64_t uptime_us;
-
-	uptime_us = (((uint64_t)system_get_time()) | ((uint64_t)uptime_wraps << 32)) - uptime_base_us;
+	uint64_t uptime_us = time_get_us();
 
 	if(s)
 		*s = uptime_us / 1000000;

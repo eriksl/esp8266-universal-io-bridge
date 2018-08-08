@@ -17,5 +17,6 @@ void		time_set_hms(unsigned int h, unsigned int m, unsigned int s);
 void		time_set_stamp(unsigned int base);
 const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 				unsigned int *Y, unsigned int *M, unsigned int *D);
+uint64_t	time_get_us(void);
 
 #endif
