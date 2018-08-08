@@ -41,6 +41,10 @@ extern int stat_update_display;
 extern int stat_update_ntp;
 extern int stat_update_idle;
 
+extern int stat_debug_1;
+extern int stat_debug_2;
+extern int stat_debug_3;
+
 extern volatile uint32_t *stat_stack_sp_initial;
 extern int stat_stack_painted;
 

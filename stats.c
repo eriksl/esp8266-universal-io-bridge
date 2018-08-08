@@ -41,6 +41,10 @@ int stat_update_display;
 int stat_update_ntp;
 int stat_update_idle;
 
+int stat_debug_1;
+int stat_debug_2;
+int stat_debug_3;
+
 volatile uint32_t	*stat_stack_sp_initial;
 int					stat_stack_painted;
 
@@ -242,7 +246,10 @@ irom void stats_counters(string_t *dst)
 			"> cmd receive buffer overflow events: %u\n"
 			"> cmd send buffer overflow events: %u\n"
 			"> uart receive buffer overflow events: %u\n"
-			"> uart send buffer overflow events: %u\n",
+			"> uart send buffer overflow events: %u\n"
+			"> debug counter 1: %u\n"
+			"> debug counter 2: %u\n"
+			"> debug counter 3: %u\n",
 				yesno(stat_called.user_rf_cal_sector_set),
 				yesno(stat_called.user_rf_pre_init),
 				stat_uart_rx_interrupts,
@@ -262,7 +269,10 @@ irom void stats_counters(string_t *dst)
 				stat_cmd_receive_buffer_overflow,
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
-				stat_uart_send_buffer_overflow);
+				stat_uart_send_buffer_overflow,
+				stat_debug_1,
+				stat_debug_2,
+				stat_debug_3);
 }
 
 irom void stats_i2c(string_t *dst)
