@@ -158,8 +158,8 @@ typedef enum
 
 irom static string_t *expand_varid(const string_t *varid, int index1, int index2)
 {
-	string_new(static, varid_in, 64);
-	string_new(static, varid_out, 64);
+	string_new(static, varid_in, config_entry_id_size);
+	string_new(static, varid_out, config_entry_id_size);
 
 	string_clear(&varid_in);
 	string_clear(&varid_out);
