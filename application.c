@@ -433,6 +433,125 @@ irom static app_action_t application_function_command_timeout(const string_t *sr
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_sequencer_clear(const string_t *src, string_t *dst)
+{
+	io_sequencer_clear();
+
+	string_append(dst, "> sequencer-clear: ok\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_remove(const string_t *src, string_t *dst)
+{
+	int	current;
+
+	if(parse_int(1, src, &current, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "> usage: sequencer-remove index\n");
+		return(app_action_error);
+	}
+
+	if(!io_sequencer_remove_entry(current))
+	{
+		string_append(dst, "sequencer-remove: failed\n");
+		return(app_action_error);
+	}
+
+	string_append(dst, "sequencer-remove: ok\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_set(const string_t *src, string_t *dst)
+{
+	int	current, io, pin, value, duration;
+
+	if((parse_int(1, src, &current, 0, ' ') != parse_ok) ||
+			(parse_int(2, src, &io, 0, ' ') != parse_ok) ||
+			(parse_int(3, src, &pin, 0, ' ') != parse_ok) ||
+			(parse_int(4, src, &value, 0, ' ') != parse_ok) ||
+			(parse_int(5, src, &duration, 0, ' ') != parse_ok))
+	{
+		string_append(dst, "> usage: sequencer-set index io pin value duration_ms\n");
+		return(app_action_error);
+	}
+
+	if(current < 0)
+		for(current = 0;; current++)
+			if(!io_sequencer_get_entry(current, (int *)0, (int *)0, (int *)0, (int *)0))
+				break;
+
+	if(!io_sequencer_set_entry(current, io, pin, value, duration))
+	{
+		string_append(dst, "> sequencer-set: error setting entry (get)\n");
+		return(app_action_error);
+	}
+
+	if(!io_sequencer_get_entry(current, &io, &pin, &value, &duration))
+	{
+		string_append(dst, "> sequencer-set: error setting entry (set)\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "> sequencer-set: %d: %u/%u %u %u ms\n",
+			current, io, pin, value, duration);
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_write(const string_t *src, string_t *dst)
+{
+	io_sequencer_save();
+
+	string_append(dst, "> sequencer-write: ok\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_fetch(const string_t *src, string_t *dst)
+{
+	io_sequencer_load();
+
+	string_append(dst, "> sequencer-read: ok\n");
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_list(const string_t *src, string_t *dst)
+{
+	int	current, io, pin, value, duration;
+
+	string_append(dst, "> index io pin value duration_ms\n");
+
+	for(current = 0;; current++)
+	{
+		if(!io_sequencer_get_entry(current, &io, &pin, &value, &duration))
+			break;
+
+		string_format(dst, "> %5d %2d %3d %5d       %5d\n", current, io, pin, value, duration);
+	}
+
+	return(app_action_normal);
+}
+
+irom static app_action_t application_function_sequencer_play(const string_t *src, string_t *dst)
+{
+	int	repeats;
+
+	if(parse_int(1, src, &repeats, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "> usage: sequencer-play repeats\n");
+		return(app_action_error);
+	}
+
+	io_sequencer_start(repeats);
+
+	string_append(dst, "> sequence-play ok\n");
+
+	return(app_action_normal);
+}
+
 irom static app_action_t application_function_uart_baud_rate(const string_t *src, string_t *dst)
 {
 	string_init(varname_baudrate, "uart.baud.%u");
@@ -1764,6 +1883,41 @@ static const application_function_table_t application_function_table[] =
 		"ts", "time-set",
 		application_function_time_set,
 		"set time base [h m (s)] or [unix timestamp tz_offset]",
+	},
+	{
+		"sec", "sequencer-clear",
+		application_function_sequencer_clear,
+		"clear sequencer",
+	},
+	{
+		"ses", "sequencer-set",
+		application_function_sequencer_set,
+		"set sequencer entry",
+	},
+	{
+		"ser", "sequencer-remove",
+		application_function_sequencer_remove,
+		"remove sequencer entry",
+	},
+	{
+		"sew", "sequencer-write",
+		application_function_sequencer_write,
+		"write sequencer list to config",
+	},
+	{
+		"sef", "sequencer-fetch",
+		application_function_sequencer_fetch,
+		"fetch sequencer list from config",
+	},
+	{
+		"sel", "sequencer-list",
+		application_function_sequencer_list,
+		"list sequencer entries",
+	},
+	{
+		"sep", "sequencery-play",
+		application_function_sequencer_play,
+		"start play sequencer",
 	},
 	{
 		"ub", "uart-baud",
