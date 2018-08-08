@@ -68,11 +68,11 @@ typedef enum
 
 typedef const struct
 {
-	const	bool_t		valid;
-	const	uint32_t	mux;
-	const	uint32_t	func;
-	const	io_uart_t	uart_pin;
-	const	uint32_t	uart_func;
+	const bool_t		valid;
+	const unsigned int	mux;
+	const unsigned int	func;
+	const io_uart_t		uart_pin;
+	const unsigned int	uart_func;
 } gpio_info_t;
 
 typedef union
