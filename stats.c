@@ -149,7 +149,7 @@ irom void stats_firmware(string_t *dst)
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
 			"> cpu frequency: %u MHz\n"
 			"> flash map: %s\n"
-			"> reset cause: %s\n"
+			"> reset cause: %s, exception: %d, epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n"
 			"> config sector address: %x\n"
 			"> rf calibration sector address: %x\n"
 			"> stack bottom: %p\n"
@@ -168,7 +168,7 @@ irom void stats_firmware(string_t *dst)
 				flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
 				flash_map[system_get_flash_size_map()],
-				reset_map[rst_info->reason],
+				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
 				USER_CONFIG_SECTOR * 0x1000,
 				RFCAL_ADDRESS,
 				(void *)stack_bottom,
