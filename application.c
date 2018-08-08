@@ -593,6 +593,38 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_uart_write(const string_t *src, string_t *dst)
+{
+	int uart;
+	int start, length;
+	char last;
+
+	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || ((start = string_sep(src, 0, 2, ' ')) <= 0))
+	{
+		string_append(dst, "> usage: uart-write <uart id> <text>\n");
+		return(app_action_error);
+	}
+
+	length = string_length(src) - start;
+
+	if(length > 0)
+	{
+		last = string_at(src, length - 1);
+
+		if((last == '\n') || (last == '\r'))
+			length--;
+	}
+
+	for(; length > 0; length--, start++)
+		uart_send(uart, string_at(src, start));
+
+	uart_flush(uart);
+
+	string_append(dst, "> uart-write ok\n");
+
+	return(app_action_normal);
+}
+
 static int i2c_address = 0;
 static int i2c_bus = 0;
 
@@ -1752,6 +1784,11 @@ static const application_function_table_t application_function_table[] =
 		"up", "uart-parity",
 		application_function_uart_parity,
 		"set uart parity [none/even/odd]",
+	},
+	{
+		"uw", "uart-write",
+		application_function_uart_write,
+		"write text to uart",
 	},
 	{
 		"wac", "wlan-ap-configure",
