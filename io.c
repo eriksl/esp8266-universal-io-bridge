@@ -486,16 +486,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 			return(io_error);
 		}
 
-		case(io_pin_input_digital):
-		case(io_pin_counter):
-		case(io_pin_output_digital):
-		case(io_pin_timer):
-		case(io_pin_input_analog):
-		case(io_pin_output_analog):
-		case(io_pin_i2c):
-		case(io_pin_uart):
-		case(io_pin_lcd):
-		case(io_pin_trigger):
+		default:
 		{
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -514,12 +505,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 	switch(pin_config->mode)
 	{
 		case(io_pin_disabled):
-		case(io_pin_input_digital):
-		case(io_pin_input_analog):
-		case(io_pin_i2c):
-		case(io_pin_uart):
 		case(io_pin_error):
-		case(io_pin_trigger):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot write to this pin");
@@ -527,11 +513,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 			return(io_error);
 		}
 
-		case(io_pin_counter):
-		case(io_pin_output_digital):
-		case(io_pin_lcd):
-		case(io_pin_timer):
-		case(io_pin_output_analog):
+		default:
 		{
 			if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
@@ -550,19 +532,6 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 	switch(pin_config->mode)
 	{
-		case(io_pin_disabled):
-		case(io_pin_input_digital):
-		case(io_pin_input_analog):
-		case(io_pin_i2c):
-		case(io_pin_uart):
-		case(io_pin_error):
-		{
-			if(errormsg)
-				string_append(errormsg, "cannot trigger this pin");
-
-			return(io_error);
-		}
-
 		case(io_pin_output_digital):
 		case(io_pin_lcd):
 		{
@@ -822,6 +791,15 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 			break;
 		}
+
+		default:
+		{
+			if(errormsg)
+				string_append(errormsg, "cannot trigger this pin");
+
+			return(io_error);
+		}
+
 	}
 
 	return(io_ok);
@@ -1070,16 +1048,6 @@ irom void io_init(void)
 
 			switch(mode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_error):
-				case(io_pin_input_digital):
-				case(io_pin_output_digital):
-				case(io_pin_input_analog):
-				case(io_pin_uart):
-				{
-					break;
-				}
-
 				case(io_pin_counter):
 				{
 					int debounce;
@@ -1264,6 +1232,12 @@ irom void io_init(void)
 
 					break;
 				}
+
+				default:
+				{
+					break;
+				}
+
 			}
 		}
 
@@ -1280,17 +1254,6 @@ irom void io_init(void)
 				{
 					switch(pin_config->mode)
 					{
-						case(io_pin_disabled):
-						case(io_pin_input_digital):
-						case(io_pin_counter):
-						case(io_pin_input_analog):
-						case(io_pin_uart):
-						case(io_pin_trigger):
-						case(io_pin_error):
-						{
-							break;
-						}
-
 						case(io_pin_output_digital):
 						case(io_pin_lcd):
 						case(io_pin_timer):
@@ -1321,6 +1284,11 @@ irom void io_init(void)
 							if((i2c_sda >= 0) && (i2c_scl >= 0))
 								i2c_init(i2c_sda, i2c_scl);
 
+							break;
+						}
+
+						default:
+						{
 							break;
 						}
 					}
@@ -1362,19 +1330,6 @@ attr_speed iram void io_periodic(void)
 
 			switch(pin_config->mode)
 			{
-				case(io_pin_disabled):
-				case(io_pin_input_digital):
-				case(io_pin_counter):
-				case(io_pin_output_digital):
-				case(io_pin_input_analog):
-				case(io_pin_i2c):
-				case(io_pin_uart):
-				case(io_pin_lcd):
-				case(io_pin_error):
-				{
-					break;
-				}
-
 				case(io_pin_timer):
 				{
 					if((pin_data->direction != io_dir_none) && (pin_data->speed >= 10) && ((pin_data->speed -= 10) <= 0))
@@ -1443,6 +1398,12 @@ attr_speed iram void io_periodic(void)
 
 					break;
 				}
+
+				default:
+				{
+					break;
+				}
+
 			}
 		}
 	}
