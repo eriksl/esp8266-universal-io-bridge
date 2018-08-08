@@ -254,7 +254,6 @@ irom attr_speed static void command_task(os_event_t *event)
 			}
 
 			socket_disconnect_accepted(&socket_cmd.socket);
-
 			break;
 		}
 

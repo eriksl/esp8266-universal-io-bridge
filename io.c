@@ -1303,11 +1303,9 @@ attr_speed iram void io_periodic(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin;
+	int io, pin, value, trigger;
 	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
-	int value;
-	int trigger;
 	string_init(varname_trigger_io, "trigger.status.io");
 	string_init(varname_trigger_pin, "trigger.status.pin");
 

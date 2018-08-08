@@ -221,7 +221,6 @@ uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
-
 irom bool_t display_common_set(const char *tag, const char *text,
 	int map_size, const display_map_t *map,
 	int udg_size, const display_udg_t *udg)
