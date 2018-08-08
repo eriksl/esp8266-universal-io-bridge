@@ -2397,7 +2397,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 			pin_string_from_flags(dst, pin_config);
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_2]);
 
-			if((pin_config->mode != io_pin_disabled) && (pin_config->mode != io_pin_i2c) && (pin_config->mode != io_pin_uart))
+			if(pin_config->mode != io_pin_disabled)
 				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
 					string_append(dst, "\n");
 				else
