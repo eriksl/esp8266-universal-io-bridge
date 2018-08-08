@@ -61,9 +61,9 @@ enum
 
 typedef enum
 {
+	io_uart_none = 0,
 	io_uart_rx,
 	io_uart_tx,
-	io_uart_none,
 } io_uart_t;
 
 typedef const struct
