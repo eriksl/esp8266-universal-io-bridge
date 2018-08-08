@@ -57,12 +57,15 @@ irom void *memchr(const void *s, int c, size_t n)
 
 // convenience functions
 
-iram attr_speed int strecpy(char *dst, const char *src, int size)
+iram int strecpy(char *dst, const char *src, int size)
 {
 	int length = strlen(src);
 
 	if(length >= size)
 		length = size - 1;
+
+	if(length < 0)
+		length = 0;
 
 	memcpy(dst, src, length);
 	dst[length] = '\0';
