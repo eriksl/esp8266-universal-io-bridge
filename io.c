@@ -2380,7 +2380,7 @@ static const roflash dump_string_t roflash_dump_strings =
 	}
 };
 
-irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
+irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;

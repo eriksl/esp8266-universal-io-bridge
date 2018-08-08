@@ -68,7 +68,7 @@ typedef enum
 
 typedef const struct
 {
-	const	bool		valid;
+	const	bool_t		valid;
 	const	uint32_t	mux;
 	const	uint32_t	func;
 	const	io_uart_t	uart_pin;

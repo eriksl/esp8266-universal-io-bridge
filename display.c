@@ -421,7 +421,7 @@ irom static void display_expire(void) // call one time per second
 	}
 }
 
-irom bool display_periodic(void) // gets called 10 times per second
+irom bool_t display_periodic(void) // gets called 10 times per second
 {
 	static int last_update = 0;
 	static int expire_counter = 0;
