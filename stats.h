@@ -39,7 +39,6 @@ extern int stat_update_command_udp;
 extern int stat_update_command_tcp;
 extern int stat_update_display;
 extern int stat_update_ntp;
-extern int stat_update_idle;
 
 extern int stat_debug_1;
 extern int stat_debug_2;

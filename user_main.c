@@ -126,7 +126,7 @@ iram void user_rf_pre_init(void)
 
 static void user_init2(void);
 
-always_inline static bool_t background_task_bridge_uart(void)
+iram static bool_t background_task_bridge_uart(void)
 {
 	if(socket_uart.state == socket_state_idle)
 	{
@@ -152,41 +152,8 @@ always_inline static bool_t background_task_bridge_uart(void)
 	return(false);
 }
 
-always_inline static bool_t background_task_longop_handler(void)
+irom static void background_task_command_handler(void)
 {
-	if(bg_action.disconnect)
-	{
-		socket_disconnect_accepted(&socket_cmd.socket);
-		bg_action.disconnect = 0;
-		return(true);
-	}
-
-	if(bg_action.init_i2c_sensors)
-	{
-		uint32_t now = system_get_time();
-		i2c_sensor_init_all();
-		bg_action.init_i2c_sensors = 0;
-		stat_i2c_init_time_us = system_get_time() - now;
-		return(true);
-	}
-
-	if(bg_action.init_displays)
-	{
-		uint32_t now = system_get_time();
-		display_init();
-		bg_action.init_displays = 0;
-		stat_display_init_time_us = system_get_time() - now;
-		return(true);
-	}
-
-	return(false);
-}
-
-always_inline static bool_t background_task_command_handler(void)
-{
-	if(socket_cmd.state != socket_state_received)
-		return(false);
-
 	socket_cmd.state = socket_state_processing;
 
 	string_clear(&socket_cmd.send_buffer);
@@ -230,17 +197,11 @@ always_inline static bool_t background_task_command_handler(void)
 	{
 		stat_cmd_send_buffer_overflow++;
 		socket_cmd.state = socket_state_idle;
-		return(false);
 	}
-
-	return(true);
 }
 
-irom attr_speed static void command_task(os_event_t *event)
+iram static void command_task(os_event_t *event)
 {
-	log("signal: %u\n", event->sig);
-	log("parameter: %u\n", event->par);
-
 	switch(event->sig)
 	{
 		case(command_task_command_reset):
@@ -261,6 +222,86 @@ irom attr_speed static void command_task(os_event_t *event)
 		{
 			if(bg_action.preparing_reset)
 				reset();
+			break;
+		}
+
+		case(command_task_command_uart_bridge):
+		{
+			stat_update_uart++;
+
+			if(background_task_bridge_uart())
+				system_os_post(command_task_id, command_task_command_uart_bridge, 0);
+			break;
+		}
+
+		case(command_task_command_disconnect):
+		{
+			socket_disconnect_accepted(&socket_cmd.socket);
+			bg_action.disconnect = 0;
+			stat_update_longop++;
+			break;
+		}
+
+		case(command_task_command_init_i2c_sensors):
+		{
+			uint32_t now = system_get_time();
+			i2c_sensor_init_all();
+			bg_action.init_i2c_sensors = 0;
+			stat_i2c_init_time_us = system_get_time() - now;
+			stat_update_longop++;
+			break;
+		}
+
+		case(command_task_command_init_displays):
+		{
+			uint32_t now = system_get_time();
+			display_init();
+			bg_action.init_displays = 0;
+			stat_display_init_time_us = system_get_time() - now;
+			stat_update_longop++;
+			break;
+		}
+
+		case(command_task_command_received_command):
+		{
+			if(socket_proto(&socket_cmd.socket) == proto_tcp)
+				stat_update_command_tcp++;
+			else
+				stat_update_command_udp++;
+
+			background_task_command_handler();
+
+			break;
+		}
+
+		case(command_task_command_display_update):
+		{
+			stat_update_display++;
+
+			if(display_periodic())
+				system_os_post(command_task_id, command_task_command_display_update, 0);
+
+			break;
+		}
+
+		case(command_task_command_fallback_wlan):
+		{
+			config_wlan_mode_t wlan_mode;
+			int wlan_mode_int;
+			string_init(varname_wlan_mode, "wlan.mode");
+
+			if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
+				wlan_mode = (config_wlan_mode_t)wlan_mode_int;
+			else
+				wlan_mode = config_wlan_mode_client;
+
+			if(wlan_mode == config_wlan_mode_client)
+			{
+				wlan_mode_int = (int)config_wlan_mode_ap;
+				config_set_int(&varname_wlan_mode, -1, -1, wlan_mode_int);
+				config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int);
+				wlan_init();
+			}
 
 			break;
 		}
@@ -270,61 +311,29 @@ irom attr_speed static void command_task(os_event_t *event)
 iram attr_speed static void background_task(os_event_t *event) // posted every ~100 ms = ~10 Hz
 {
 	stat_slow_timer++;
-	config_wlan_mode_t wlan_mode;
-	int wlan_mode_int;
-	string_init(varname_wlan_mode, "wlan.mode");
 
-	if(uart_bridge_active && background_task_bridge_uart())
-	{
-		stat_update_uart++;
-		system_os_post(background_task_id, 0, 0);
-		return;
-	}
+	if(uart_bridge_active)
+		system_os_post(command_task_id, command_task_command_uart_bridge, 0);
 
-	if(background_task_longop_handler())
-	{
-		stat_update_longop++;
-		system_os_post(background_task_id, 0, 0);
-		return;
-	}
+	if(bg_action.disconnect)
+		system_os_post(command_task_id, command_task_command_disconnect, 0);
 
-	if(background_task_command_handler())
-	{
-		if(socket_proto(&socket_cmd.socket) == proto_tcp)
-			stat_update_command_tcp++;
-		else
-			stat_update_command_udp++;
+	if(bg_action.init_i2c_sensors)
+		system_os_post(command_task_id, command_task_command_init_i2c_sensors, 0);
 
-		system_os_post(background_task_id, 0, 0);
-		return;
-	}
+	if(bg_action.init_displays)
+		system_os_post(command_task_id, command_task_command_init_displays, 0);
 
-	if(display_periodic())
-	{
-		stat_update_display++;
-		system_os_post(background_task_id, 0, 0);
-		return;
-	}
+	if(socket_cmd.state == socket_state_received)
+		system_os_post(command_task_id, command_task_command_received_command, 0);
+
+	if(display_detected())
+		system_os_post(command_task_id, command_task_command_display_update, 0);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
-	if((wifi_station_get_connect_status() != STATION_GOT_IP) && (stat_update_idle == 300))
-	{
-		if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
-			wlan_mode = (config_wlan_mode_t)wlan_mode_int;
-		else
-			wlan_mode = config_wlan_mode_client;
-
-		if(wlan_mode == config_wlan_mode_client)
-		{
-			wlan_mode_int = (int)config_wlan_mode_ap;
-			config_set_int(&varname_wlan_mode, -1, -1, wlan_mode_int);
-			config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int);
-			wlan_init();
-		}
-	}
-
-	stat_update_idle++;
+	if((wifi_station_get_connect_status() != STATION_GOT_IP) && (stat_slow_timer == 300))
+		system_os_post(command_task_id, command_task_command_fallback_wlan, 0);
 }
 
 iram attr_speed static void fast_timer_callback(void *arg)
@@ -636,8 +645,9 @@ irom static void user_init2(void)
 		uart_bridge_active = true;
 	}
 
-	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
+	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms

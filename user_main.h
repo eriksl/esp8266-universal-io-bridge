@@ -22,6 +22,13 @@ enum
 	command_task_command_invalid,
 	command_task_command_reset,
 	command_task_command_reset_finish,
+	command_task_command_uart_bridge,
+	command_task_command_disconnect,
+	command_task_command_init_i2c_sensors,
+	command_task_command_init_displays,
+	command_task_command_received_command,
+	command_task_command_display_update,
+	command_task_command_fallback_wlan,
 };
 
 extern queue_t uart_send_queue;

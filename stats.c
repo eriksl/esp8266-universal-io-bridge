@@ -39,7 +39,6 @@ int stat_update_command_udp;
 int stat_update_command_tcp;
 int stat_update_display;
 int stat_update_ntp;
-int stat_update_idle;
 
 int stat_debug_1;
 int stat_debug_2;
@@ -242,7 +241,6 @@ irom void stats_counters(string_t *dst)
 			"> commands/tcp processed: %u\n"
 			"> display updated: %u\n"
 			"> ntp updated: %u\n"
-			"> background idle: %u\n"
 			"> cmd receive buffer overflow events: %u\n"
 			"> cmd send buffer overflow events: %u\n"
 			"> uart receive buffer overflow events: %u\n"
@@ -265,7 +263,6 @@ irom void stats_counters(string_t *dst)
 				stat_update_command_tcp,
 				stat_update_display,
 				stat_update_ntp,
-				stat_update_idle,
 				stat_cmd_receive_buffer_overflow,
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
