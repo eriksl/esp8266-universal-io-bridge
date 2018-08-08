@@ -3,8 +3,6 @@
 #include "config.h"
 #include "io.h"
 #include "uart.h"
-#include "queue.h"
-#include "user_main.h"
 
 static bool_t inited = false;
 
@@ -110,13 +108,13 @@ irom bool_t display_cfa634_init(void)
 	{
 		msleep(10);
 
-		queue_push(&uart_send_queue, 25);	// send UDG
-		queue_push(&uart_send_queue, ix);
+		uart_send(0, 25);	// send UDG
+		uart_send(0, ix);
 
 		for(byte = 0; byte < display_common_udg_byte_size; byte++)
-			queue_push(&uart_send_queue, display_common_udg[ix].pattern[byte]);
+			uart_send(0, display_common_udg[ix].pattern[byte]);
 
-		uart_start_transmit(!queue_empty(&uart_send_queue));
+		uart_flush(0);
 	}
 
 	inited = true;
@@ -138,10 +136,9 @@ attr_const irom bool_t display_cfa634_bright(int brightness)
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	queue_push(&uart_send_queue, 15); // set contrast
-	queue_push(&uart_send_queue, values[brightness]);
-
-	uart_start_transmit(!queue_empty(&uart_send_queue));
+	uart_send(0, 15); // set contrast
+	uart_send(0, values[brightness]);
+	uart_flush(0);
 
 	msleep(10);
 
@@ -173,13 +170,15 @@ irom bool_t display_cfa634_show(void)
 	if(y >= display_common_buffer_rows)
 		return(false);
 
-	queue_push(&uart_send_queue, 3);	// restore blanked display
-	queue_push(&uart_send_queue, 20);	// scroll off
-	queue_push(&uart_send_queue, 24);	// wrap off
+	uart_send(0, 3);	// restore blanked display
+	uart_send(0, 20);	// scroll off
+	uart_send(0, 24);	// wrap off
 
-	queue_push(&uart_send_queue, 17);	// goto column,row
-	queue_push(&uart_send_queue, 0);
-	queue_push(&uart_send_queue, y);
+	uart_send(0, 17);	// goto column,row
+	uart_send(0, 0);
+	uart_send(0, y);
+
+	uart_flush(0);
 
 	for(x = 0; x < display_common_buffer_columns; x++)
 	{
@@ -187,16 +186,16 @@ irom bool_t display_cfa634_show(void)
 
 		if((c < 32) || ((c > 128) && (c < 136)))
 		{
-			queue_push(&uart_send_queue, 30);	// send data directly to LCD controller
-			queue_push(&uart_send_queue, 1);
+			uart_send(0, 30);	// send data directly to LCD controller
+			uart_send(0, 1);
 		}
 
-		queue_push(&uart_send_queue, c);
+		uart_send(0, c);
 	}
 
-	display_common_row_status.row[y].dirty = 0;
+	uart_flush(0);
 
-	uart_start_transmit(!queue_empty(&uart_send_queue));
+	display_common_row_status.row[y].dirty = 0;
 
 	msleep(10);
 

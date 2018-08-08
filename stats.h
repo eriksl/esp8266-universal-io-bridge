@@ -19,8 +19,9 @@ typedef struct
 
 extern stat_called_t stat_called;
 
-extern int stat_uart_rx_interrupts;
-extern int stat_uart_tx_interrupts;
+extern int stat_uart0_rx_interrupts;
+extern int stat_uart0_tx_interrupts;
+extern int stat_uart1_tx_interrupts;
 extern int stat_fast_timer;
 extern int stat_slow_timer;
 extern int stat_pwm_timer_interrupts;

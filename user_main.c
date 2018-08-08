@@ -31,6 +31,7 @@ typedef enum
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
+os_event_t uart_task_queue[uart_task_queue_length];
 os_event_t command_task_queue[command_task_queue_length];
 os_event_t background_task_queue[background_task_queue_length];
 
@@ -100,9 +101,6 @@ static struct
 static ETSTimer fast_timer;
 static ETSTimer slow_timer;
 
-queue_t uart_send_queue;
-queue_t uart_receive_queue;
-
 attr_const void user_spi_flash_dio_to_qio_pre_init(void);
 iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
 {
@@ -130,8 +128,8 @@ iram static bool_t background_task_bridge_uart(void)
 {
 	if(socket_uart.state == socket_state_idle)
 	{
-		while(!queue_empty(&uart_receive_queue) && string_space(&socket_uart.send_buffer))
-			string_append_char(&socket_uart.send_buffer, queue_pop(&uart_receive_queue));
+		while(!uart_empty(0) && string_space(&socket_uart.send_buffer))
+			string_append_char(&socket_uart.send_buffer, uart_receive(0));
 
 		if(!string_empty(&socket_uart.send_buffer))
 		{
@@ -354,6 +352,39 @@ iram attr_speed static void slow_timer_callback(void *arg)
 	system_os_post(background_task_id, 0, 0);
 }
 
+irom void uart_set_initial(unsigned int uart)
+{
+	int baud;
+	int data;
+	int stop;
+	int parity_int;
+	uart_parity_t parity;
+
+	string_init(varname_uart_baud, "uart.baud.%u");
+	string_init(varname_uart_data, "uart.data.%u");
+	string_init(varname_uart_stop, "uart.stop.%u");
+	string_init(varname_uart_parity, "uart.parity.%u");
+
+	if(!config_get_int(&varname_uart_baud, uart, -1, &baud))
+		baud = 115200;
+
+	if(!config_get_int(&varname_uart_data, uart, -1, &data))
+		data = 8;
+
+	if(!config_get_int(&varname_uart_stop, uart, -1, &stop))
+		stop = 1;
+
+	if(config_get_int(&varname_uart_parity, uart, -1, &parity_int))
+		parity = (uart_parity_t)parity_int;
+	else
+		parity = parity_none;
+
+	uart_baudrate(uart, baud);
+	uart_data_bits(uart, data);
+	uart_stop_bits(uart, stop);
+	uart_parity(uart, parity);
+}
+
 void user_init(void);
 irom void user_init(void)
 {
@@ -370,21 +401,7 @@ irom void user_init(void)
 		stat_stack_painted += 4;
 	}
 
-	static char uart_send_queue_buffer[1024];
-	static char uart_receive_queue_buffer[1024];
-
-	int uart_baud, uart_data, uart_stop, uart_parity_int;
-	uart_parity_t uart_parity;
-
-	string_init(varname_uart_baud, "uart.baud");
-	string_init(varname_uart_data, "uart.data");
-	string_init(varname_uart_stop, "uart.stop");
-	string_init(varname_uart_parity, "uart.parity");
-
 	system_set_os_print(0);
-
-	queue_new(&uart_send_queue, sizeof(uart_send_queue_buffer), uart_send_queue_buffer);
-	queue_new(&uart_receive_queue, sizeof(uart_receive_queue_buffer), uart_receive_queue_buffer);
 
 	bg_action.disconnect = 0;
 	bg_action.init_i2c_sensors = 1;
@@ -392,21 +409,9 @@ irom void user_init(void)
 
 	config_read();
 
-	if(!config_get_int(&varname_uart_baud, -1, -1, &uart_baud))
-		uart_baud = 115200;
-
-	if(!config_get_int(&varname_uart_data, -1, -1, &uart_data))
-		uart_data = 8;
-
-	if(!config_get_int(&varname_uart_stop, -1, -1, &uart_stop))
-		uart_stop = 1;
-
-	if(config_get_int(&varname_uart_parity, -1, -1, &uart_parity_int))
-		uart_parity = (uart_parity_t)uart_parity_int;
-	else
-		uart_parity = parity_none;
-
-	uart_init(uart_baud, uart_data, uart_stop, uart_parity);
+	uart_init();
+	uart_set_initial(0);
+	uart_set_initial(1);
 
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
@@ -513,10 +518,10 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 					telnet_strip_state = ts_dodont;
 				else
 				{
-					if(queue_full(&uart_send_queue))
+					if(uart_full(0))
 						stat_uart_receive_buffer_overflow++;
 					else
-						queue_push(&uart_send_queue, byte);
+						uart_send(0, byte);
 				}
 
 				break;
@@ -534,7 +539,7 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 		}
 	}
 
-	uart_start_transmit(!queue_empty(&uart_send_queue));
+	uart_flush(0);
 }
 
 // sent
@@ -549,7 +554,7 @@ iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 
 iram attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 {
-	if(!queue_empty(&uart_receive_queue))
+	if(!uart_empty(0))
 		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo
 
 	string_clear(&socket_uart.send_buffer);
@@ -594,8 +599,8 @@ iram attr_speed static void callback_accept_cmd(socket_t *socket, void *userdata
 
 iram attr_speed static void callback_accept_uart(socket_t *socket, void *userdata)
 {
-	queue_flush(&uart_send_queue);
-	queue_flush(&uart_receive_queue);
+	uart_clear_send_queue(0);
+	uart_clear_receive_queue(0);
 
 	string_clear(&socket_uart.send_buffer);
 	socket_uart.state = socket_state_idle;

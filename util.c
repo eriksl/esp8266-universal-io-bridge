@@ -1,7 +1,6 @@
 #include "util.h"
 
 #include "user_main.h"
-#include "queue.h"
 #include "uart.h"
 #include "ota.h"
 
@@ -136,8 +135,9 @@ irom attr_speed int log(const char *fmt, ...)
 	if(flags_cache.flag.log_to_uart)
 	{
 		for(current = 0; current < n; current++)
-			queue_push(&uart_send_queue, flash_dram_buffer[current]);
-		uart_start_transmit(1);
+			uart_send(0, flash_dram_buffer[current]);
+
+		uart_flush(0);
 	}
 
 	if(flags_cache.flag.log_to_buffer)
@@ -155,8 +155,8 @@ iram attr_speed void logchar(char c)
 
 	if(flags_cache.flag.log_to_uart)
 	{
-		queue_push(&uart_send_queue, c);
-		uart_start_transmit(1);
+		uart_send(0, c);
+		uart_flush(0);
 	}
 
 	if(flags_cache.flag.log_to_buffer)

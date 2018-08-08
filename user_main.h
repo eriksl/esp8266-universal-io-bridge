@@ -1,7 +1,6 @@
 #ifndef user_main_h
 #define user_main_h
 
-#include "queue.h"
 #include "config.h"
 
 #include <os_type.h>
@@ -10,6 +9,9 @@
 
 enum
 {
+	uart_task_id					= USER_TASK_PRIO_0,
+	uart_task_queue_length			= 16,
+
 	command_task_id					= USER_TASK_PRIO_1,
 	command_task_queue_length		= 16,
 
@@ -19,7 +21,10 @@ enum
 
 enum
 {
-	command_task_command_invalid,
+	uart_task_invalid,
+	uart_task_fetch_fifo,
+	uart_task_fill0_fifo,
+	uart_task_fill1_fifo,
 	command_task_command_reset,
 	command_task_command_reset_finish,
 	command_task_command_uart_bridge,
@@ -31,9 +36,8 @@ enum
 	command_task_command_fallback_wlan,
 };
 
-extern queue_t uart_send_queue;
-extern queue_t uart_receive_queue;
 extern os_event_t background_task_queue[background_task_queue_length];
 
 bool_t	wlan_init(void);
+void	uart_set_initial(unsigned int uart);
 #endif

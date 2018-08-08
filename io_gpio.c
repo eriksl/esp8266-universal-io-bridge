@@ -2,6 +2,7 @@
 
 #include "stats.h"
 #include "util.h"
+#include "user_main.h"
 
 #include <user_interface.h>
 #include <osapi.h>
@@ -73,6 +74,7 @@ typedef const struct
 	const unsigned int	func;
 	const io_uart_t		uart_pin;
 	const unsigned int	uart_func;
+	const unsigned int	uart;
 } gpio_info_t;
 
 typedef union
@@ -95,22 +97,22 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ true, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,	},
-	{ true,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_none,	-1,			},
-	{ true,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD	},
-	{ true,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	-1			},
-	{ false,	PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	-1			},
-	{ true,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	-1			},
+	{ true, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,		0	},
+	{ true,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_tx,		FUNC_U1TXD_BK,	1	},
+	{ true,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD,		0	},
+	{ true,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	0,				0	},
+	{ false,	PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	0,				0	},
+	{ true,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	0,				0	},
 };
 
 typedef struct
@@ -776,7 +778,40 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 			case(io_pin_ll_uart):
 			{
-				string_format(dst, "uart pin: %s", (gpio_info_table[pin].uart_pin == io_uart_rx) ? "rx" : "tx");
+				unsigned int uart = gpio_info_table[pin].uart;
+
+				if((uart != 0) && (uart != 1))
+					string_append(dst, "<invalid uart>");
+				else
+				{
+					string_format(dst, "uart %u, pin: ", uart);
+
+					switch(gpio_info_table[pin].uart_pin)
+					{
+						case(io_uart_tx):
+						{
+							bool_t			enabled;
+							unsigned int	character;
+
+							uart_is_autofill(uart, &enabled, &character);
+							string_format(dst, "tx, autofill: %s, character: 0x%02x", yesno(enabled), character);
+
+							break;
+						}
+
+						case(io_uart_rx):
+						{
+							string_append(dst, "rx");
+							break;
+						}
+
+						default:
+						{
+							string_append(dst, "<invalid uart pin mode>");
+							break;
+						}
+					}
+				}
 
 				break;
 			}
@@ -825,6 +860,30 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 		case(io_pin_ll_output_analog):
 		{
 			*value = gpio_pin_data->pwm.duty;
+
+			break;
+		}
+
+		case(io_pin_ll_uart):
+		{
+			bool_t			enabled;
+			unsigned int	character;
+			int				uart = gpio_info_table[pin].uart;
+
+			if((uart < 0) || (uart > 1))
+			{
+				if(error_message)
+					string_format(error_message, "cannot uart read from gpio %d\n", pin);
+				return(io_error);
+			}
+
+			if(gpio_info_table[pin].uart_pin == io_uart_tx)
+			{
+				uart_is_autofill(uart, &enabled, &character);
+				*value = !!enabled;
+			}
+			else
+				*value = 0;
 
 			break;
 		}
@@ -881,7 +940,40 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 			}
 
 			break;
+		}
 
+		case(io_pin_ll_uart):
+		{
+			int uart = gpio_info_table[pin].uart;
+
+			if((uart < 0) || (uart > 1))
+			{
+				if(error_message)
+					string_format(error_message, "cannot uart write to gpio %d\n", pin);
+				return(io_error);
+			}
+
+			if(gpio_info_table[pin].uart_pin == io_uart_tx)
+			{
+				if(value < 0)
+					value = 0;
+
+				if(value == 0)
+				{
+					uart_autofill(uart, false, 0);
+					uart_set_initial(uart);
+				}
+				else
+				{
+					uart_data_bits(uart, 8);
+					uart_stop_bits(uart, 1);
+					uart_parity(uart, parity_none);
+					uart_baudrate(uart, value << 1);
+					uart_autofill(uart, true, 0x55);
+				}
+			}
+
+			break;
 		}
 
 		default:

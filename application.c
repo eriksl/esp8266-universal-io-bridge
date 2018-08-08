@@ -435,10 +435,16 @@ irom static app_action_t application_function_command_timeout(const string_t *sr
 
 irom static app_action_t application_function_uart_baud_rate(const string_t *src, string_t *dst)
 {
-	string_init(varname_baudrate, "uart.baud");
-	int baud_rate;
+	string_init(varname_baudrate, "uart.baud.%u");
+	int uart, baud_rate;
 
-	if(parse_int(1, src, &baud_rate, 0, ' ') == parse_ok)
+	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	{
+		string_append(dst, "> usage uart-baudrate <uart [0|1]> <baud rate>\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &baud_rate, 0, ' ') == parse_ok)
 	{
 		if((baud_rate < 150) || (baud_rate > 1000000))
 		{
@@ -446,30 +452,36 @@ irom static app_action_t application_function_uart_baud_rate(const string_t *src
 			return(app_action_error);
 		}
 
-		if(baud_rate == 9600)
-			config_delete(&varname_baudrate, -1, -1, false);
+		if(baud_rate == 115200)
+			config_delete(&varname_baudrate, uart, -1, false);
 		else
-			if(!config_set_int(&varname_baudrate, -1, -1, baud_rate))
+			if(!config_set_int(&varname_baudrate, uart, -1, baud_rate))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_baudrate, -1, -1, &baud_rate))
-		baud_rate = 9600;
+	if(!config_get_int(&varname_baudrate, uart, -1, &baud_rate))
+		baud_rate = 115200;
 
-	string_format(dst, "> baudrate: %d\n", baud_rate);
+	string_format(dst, "> baudrate[%d]: %d\n", uart, baud_rate);
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_uart_data_bits(const string_t *src, string_t *dst)
 {
-	int data_bits;
-	string_init(varname_uartbits, "uart.bits");
+	int uart, data_bits;
+	string_init(varname_uartbits, "uart.bits.%u");
 
-	if(parse_int(1, src, &data_bits, 0, ' ') == parse_ok)
+	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	{
+		string_append(dst, "> usage uart-data-bits <uart [0|1]> <data bits>\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &data_bits, 0, ' ') == parse_ok)
 	{
 		if((data_bits < 5) || (data_bits > 8))
 		{
@@ -478,29 +490,35 @@ irom static app_action_t application_function_uart_data_bits(const string_t *src
 		}
 
 		if(data_bits == 8)
-			config_delete(&varname_uartbits, -1, -1, false);
+			config_delete(&varname_uartbits, uart, -1, false);
 		else
-			if(!config_set_int(&varname_uartbits, -1, -1, data_bits))
+			if(!config_set_int(&varname_uartbits, uart, -1, data_bits))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_uartbits, -1, -1, &data_bits))
+	if(!config_get_int(&varname_uartbits, uart, -1, &data_bits))
 		data_bits = 8;
 
-	string_format(dst, "data bits: %d\n", data_bits);
+	string_format(dst, "data bits[%d]: %d\n", uart, data_bits);
 
 	return(app_action_normal);
 }
 
 irom static app_action_t application_function_uart_stop_bits(const string_t *src, string_t *dst)
 {
-	int stop_bits;
-	string_init(varname_stopbits, "uart.stop");
+	int uart, stop_bits;
+	string_init(varname_stopbits, "uart.stop.%u");
 
-	if(parse_int(1, src, &stop_bits, 0, ' ') == parse_ok)
+	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	{
+		string_append(dst, "> usage uart-stop-bits <uart [0|1]> <stop bits>\n");
+		return(app_action_error);
+	}
+
+	if(parse_int(2, src, &stop_bits, 0, ' ') == parse_ok)
 	{
 		if((stop_bits < 1) || (stop_bits > 2))
 		{
@@ -509,19 +527,19 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 		}
 
 		if(stop_bits == 1)
-			config_delete(&varname_stopbits, -1, -1, false);
+			config_delete(&varname_stopbits, uart, -1, false);
 		else
-			if(!config_set_int(&varname_stopbits, -1, -1, stop_bits))
+			if(!config_set_int(&varname_stopbits, uart, -1, stop_bits))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_stopbits, -1, -1, &stop_bits))
+	if(!config_get_int(&varname_stopbits, uart, -1, &stop_bits))
 		stop_bits = 1;
 
-	string_format(dst, "> stop bits: %d\n", stop_bits);
+	string_format(dst, "> stop bits[%d]: %d\n", uart, stop_bits);
 
 	return(app_action_normal);
 }
@@ -529,10 +547,16 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 irom static app_action_t application_function_uart_parity(const string_t *src, string_t *dst)
 {
 	uart_parity_t parity;
-	int parity_int;
-	string_init(varname_parity, "uart.parity");
+	int uart, parity_int;
+	string_init(varname_parity, "uart.parity.%u");
 
-	if(parse_string(1, src, dst, ' ') == parse_ok)
+	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	{
+		string_append(dst, "> usage uart-parity <uart [0|1]> <parity>\n");
+		return(app_action_error);
+	}
+
+	if(parse_string(2, src, dst, ' ') == parse_ok)
 	{
 		parity = uart_string_to_parity(dst);
 
@@ -543,12 +567,12 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 		}
 
 		if(parity == parity_none)
-			config_delete(&varname_parity, -1, -1, false);
+			config_delete(&varname_parity, uart, -1, false);
 		else
 		{
 			parity_int = (int)parity;
 
-			if(!config_set_int(&varname_parity, -1, -1, parity_int))
+			if(!config_set_int(&varname_parity, uart, -1, parity_int))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
@@ -556,13 +580,13 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 		}
 	}
 
-	if(config_get_int(&varname_parity, -1, -1, &parity_int))
+	if(config_get_int(&varname_parity, uart, -1, &parity_int))
 		parity = (uart_parity_t)parity_int;
 	else
 		parity = parity_none;
 
 	string_clear(dst);
-	string_append(dst, "parity: ");
+	string_format(dst, "parity[%d]: ", uart);
 	uart_parity_to_string(dst, parity);
 	string_append(dst, "\n");
 

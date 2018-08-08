@@ -18,8 +18,9 @@ stat_called_t stat_called =
 	.user_rf_pre_init = 0
 };
 
-int stat_uart_rx_interrupts;
-int stat_uart_tx_interrupts;
+int stat_uart0_rx_interrupts;
+int stat_uart0_tx_interrupts;
+int stat_uart1_tx_interrupts;
 int stat_fast_timer;
 int stat_slow_timer;
 int stat_timer_interrupts;
@@ -228,8 +229,9 @@ irom void stats_counters(string_t *dst)
 	string_format(dst,
 			"> user_rf_cal_sector_set called: %s\n"
 			"> user_rf_pre_init called: %s\n"
-			"> int uart rx: %u\n"
-			"> int uart tx: %u\n"
+			"> int uart0 rx: %u\n"
+			"> int uart0 tx: %u\n"
+			"> int uart1 tx: %u\n"
 			"> fast timer fired: %u\n"
 			"> slow timer fired: %u\n"
 			"> pwm timer int fired: %u\n"
@@ -250,8 +252,9 @@ irom void stats_counters(string_t *dst)
 			"> debug counter 3: %u\n",
 				yesno(stat_called.user_rf_cal_sector_set),
 				yesno(stat_called.user_rf_pre_init),
-				stat_uart_rx_interrupts,
-				stat_uart_tx_interrupts,
+				stat_uart0_rx_interrupts,
+				stat_uart0_tx_interrupts,
+				stat_uart1_tx_interrupts,
 				stat_fast_timer,
 				stat_slow_timer,
 				stat_pwm_timer_interrupts,
