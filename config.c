@@ -13,9 +13,9 @@
 
 enum
 {
-	config_entries_size = 100,
+	config_entries_size = 96,
 	config_entry_id_size = 28,
-	config_entry_string_size = 32
+	config_entry_string_size = 16,
 };
 
 typedef struct
@@ -25,7 +25,7 @@ typedef struct
 	int		int_value;
 } config_entry_t;
 
-assert_size(config_entry_t, 64);
+assert_size(config_entry_t, 48);
 
 config_options_t config_options =
 {
