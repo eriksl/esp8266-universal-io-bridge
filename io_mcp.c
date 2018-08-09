@@ -36,7 +36,7 @@ always_inline static int INTCAP(int s)	{ return(0x10 + s);	}
 always_inline static int GPIO(int s)	{ return(0x12 + s);	}
 always_inline static int OLAT(int s)	{ return(0x14 + s);	}
 
-static int instance_index(const struct io_info_entry_T *info)
+always_inline static int instance_index(const struct io_info_entry_T *info)
 {
 	return(info->instance - io_mcp_instance_first);
 }
@@ -44,7 +44,7 @@ static int instance_index(const struct io_info_entry_T *info)
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
-attr_speed iram static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
+always_inline static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
