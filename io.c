@@ -13,7 +13,7 @@ io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 io_info_t io_info =
 {
 	{
-		/* io_id_gpio = 0 */
+		io_id_gpio, /* = 0 */
 		0x00,
 		0,
 		16,
@@ -36,7 +36,7 @@ io_info_t io_info =
 		io_gpio_write_pin,
 	},
 	{
-		/* io_id_aux = 1 */
+		io_id_aux,/* = 1 */
 		0x01,
 		0,
 		2,
@@ -59,7 +59,7 @@ io_info_t io_info =
 		io_aux_write_pin,
 	},
 	{
-		/* io_id_mcp_20 = 2 */
+		io_id_mcp_20, /* = 2 */
 		0x20,
 		io_mcp_instance_20,
 		16,
@@ -82,7 +82,7 @@ io_info_t io_info =
 		io_mcp_write_pin,
 	},
 	{
-		/* io_id_mcp_21 = 3 */
+		io_id_mcp_21, /* = 3 */
 		0x21,
 		io_mcp_instance_21,
 		16,
@@ -105,7 +105,7 @@ io_info_t io_info =
 		io_mcp_write_pin,
 	},
 	{
-		/* io_id_mcp_22 = 4 */
+		io_id_mcp_22, /* = 4 */
 		0x22,
 		io_mcp_instance_22,
 		16,
@@ -128,7 +128,7 @@ io_info_t io_info =
 		io_mcp_write_pin,
 	},
 	{
-		/* io_id_pcf_3a = 5 */
+		io_id_pcf_3a, /* = 5 */
 		0x3a,
 		io_pcf_instance_3a,
 		8,

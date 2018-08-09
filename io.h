@@ -19,7 +19,7 @@ enum
 	max_triggers_per_pin = 2
 };
 
-enum
+typedef enum
 {
 	io_id_gpio = 0,
 	io_id_aux,
@@ -28,7 +28,7 @@ enum
 	io_id_mcp_22,
 	io_id_pcf_3a,
 	io_id_size,
-};
+} io_id_t;
 
 typedef struct
 {
@@ -219,6 +219,7 @@ typedef struct
 
 typedef const struct io_info_entry_T
 {
+	io_id_t	id;
 	uint8_t address;
 	uint8_t	instance;
 	uint8_t pins;
