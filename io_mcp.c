@@ -14,21 +14,6 @@ typedef struct
 
 enum
 {
-	_IODIR = 0x00,
-	_IPOL = 0x02,
-	_GPINTEN = 0x04,
-	_DEFVAL = 0x06,
-	_INTCON = 0x08,
-	_IOCON = 0x0a,
-	_GPPU = 0x0c,
-	_INTF = 0x0e,
-	_INTCAP = 0x10,
-	_GPIO = 0x12,
-	_OLAT = 0x14,
-};
-
-enum
-{
 	UNUSED = 0,
 	INTPOL,
 	ODR,
@@ -39,17 +24,17 @@ enum
 	BANK
 };
 
-static int IODIR(int s)		{ return(_IODIR + s);	}
-static int IPOL(int s)		{ return(_IPOL + s);	}
-static int GPINTEN(int s)	{ return(_GPINTEN + s);	}
-static int DEFVAL(int s)	{ return(_DEFVAL + s);	}
-static int INTCON(int s)	{ return(_INTCON + s);	}
-static int IOCON(int s)		{ return(_IOCON + s);	}
-static int GPPU(int s)		{ return(_GPPU + s);	}
-static int INTF(int s)		{ return(_INTF + s);	}
-static int INTCAP(int s)	{ return(_INTCAP + s);	}
-static int GPIO(int s)		{ return(_GPIO + s);	}
-static int OLAT(int s)		{ return(_OLAT + s);	}
+always_inline static int IODIR(int s)	{ return(0x00 + s);	}
+always_inline static int IPOL(int s)	{ return(0x02 + s);	}
+always_inline static int GPINTEN(int s)	{ return(0x04 + s);	}
+always_inline static int DEFVAL(int s)	{ return(0x06 + s);	}
+always_inline static int INTCON(int s)	{ return(0x08 + s);	}
+always_inline static int IOCON(int s)	{ return(0x0a + s);	}
+always_inline static int GPPU(int s)	{ return(0x0c + s);	}
+always_inline static int INTF(int s)	{ return(0x0e + s);	}
+always_inline static int INTCAP(int s)	{ return(0x10 + s);	}
+always_inline static int GPIO(int s)	{ return(0x12 + s);	}
+always_inline static int OLAT(int s)	{ return(0x14 + s);	}
 
 static int instance_index(const struct io_info_entry_T *info)
 {
@@ -77,7 +62,7 @@ attr_speed iram static io_error_t read_register(string_t *error_message, int add
 	return(io_ok);
 }
 
-attr_speed iram static io_error_t write_register(string_t *error_message, int address, int reg, int value)
+irom static io_error_t write_register(string_t *error_message, int address, int reg, int value)
 {
 	i2c_error_t error;
 
@@ -92,7 +77,7 @@ attr_speed iram static io_error_t write_register(string_t *error_message, int ad
 	return(io_ok);
 }
 
-attr_speed iram static io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
+irom static io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
