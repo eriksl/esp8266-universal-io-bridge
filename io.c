@@ -371,10 +371,10 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 		if(entry->mode == mode)
 		{
 			if(pad > 0)
-				string_format(name, "%14s", entry->long_name);
+				string_format(name, "%20s", entry->long_name);
 			else
 				if(pad < 0)
-					string_format(name, "%-14s", entry->long_name);
+					string_format(name, "%-20s", entry->long_name);
 				else
 					string_format(name, "%s", entry->long_name);
 
