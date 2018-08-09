@@ -513,7 +513,7 @@ irom static app_action_t application_function_sequencer_fetch(const string_t *sr
 {
 	io_sequencer_load();
 
-	string_append(dst, "> sequencer-read: ok\n");
+	string_append(dst, "> sequencer-fetch: ok\n");
 
 	return(app_action_normal);
 }
