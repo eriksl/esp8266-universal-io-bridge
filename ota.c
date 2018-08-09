@@ -765,7 +765,7 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 irom app_action_t application_function_flash_select(const string_t *src, string_t *dst)
 {
 #if IMAGE_OTA == 0
-	string_format(dst, "ERROR flash-select: no OTA image\n");
+	string_append(dst, "ERROR flash-select: no OTA image\n");
 	return(app_action_error);
 #else
 	int slot;
