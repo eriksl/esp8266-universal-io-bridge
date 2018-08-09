@@ -236,9 +236,10 @@ irom void io_sequencer_save(void)
 			break;
 
 		string_clear(&var_value);
-		string_format(&var_value, "%02x %08x",
-				(sequencer.entry[current].io << 4) | (sequencer.entry[current].pin << 0),
-				(sequencer.entry[current].value << 16) | (sequencer.entry[current].duration << 0));
+		string_format(&var_value, "%02x %08x %04x",
+				((sequencer.entry[current].io << 4) | (sequencer.entry[current].pin << 0)) & 0x0f,
+				sequencer.entry[current].value & 0xffffffff,
+				sequencer.entry[current].duration & 0xffff);
 
 		config_set_string(&varname_set, current, -1, &var_value, -1, -1);
 	}
@@ -249,7 +250,7 @@ irom void io_sequencer_load(void)
 	string_init(varname_io, "sequencer.%u");
 	string_new(stack, var_value, 32);
 
-	int intval1, intval2;
+	int intval1, intval2, intval3;
 	int io, pin, value, duration;
 
 	unsigned int current;
@@ -269,10 +270,13 @@ irom void io_sequencer_load(void)
 		if(parse_int(1, &var_value, &intval2, 16, ' ') != parse_ok)
 			continue;
 
+		if(parse_int(2, &var_value, &intval3, 16, ' ') != parse_ok)
+			continue;
+
 		io = (intval1 >> 4) & 0x0f;
 		pin = (intval1 >> 0) & 0x0f;
-		value = (intval2 >> 16) & 0xffff;
-		duration = (intval2 >> 0) & 0xfff;
+		value = intval2 & 0xffffffff;
+		duration = intval3 & 0xffff;
 
 		io_sequencer_set_entry(current, io, pin, value, duration);
 	}
