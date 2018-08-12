@@ -601,16 +601,22 @@ irom static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_format(dst, "\nerror in <%s>\n", info);
 }
 
-irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, int value)
+irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, bool_t value)
 {
 	if(string_match_cstr(flag, "autostart"))
-		pin_config->flags.autostart = value;
+		pin_config->flags.autostart = value ? 1: 0;
 	else if(string_match_cstr(flag, "repeat"))
-		pin_config->flags.repeat = value;
+		pin_config->flags.repeat = value ? 1: 0;
 	else if(string_match_cstr(flag, "pullup"))
-		pin_config->flags.pullup = value;
+		pin_config->flags.pullup = value ? 1: 0;
 	else if(string_match_cstr(flag, "reset-on-read"))
-		pin_config->flags.reset_on_read = value;
+		pin_config->flags.reset_on_read = value ? 1: 0;
+	else if(string_match_cstr(flag, "extended"))
+		pin_config->flags.extended = value ? 1: 0;
+	else if(string_match_cstr(flag, "grb"))
+		pin_config->flags.grb = value ? 1: 0;
+	else if(string_match_cstr(flag, "linear"))
+		pin_config->flags.linear = value ? 1: 0;
 	else
 		return(false);
 
@@ -925,10 +931,18 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 				{
 					old_value = value;
 
-					value /= (pin_config->speed / 10000.0) + 1;
+					if(pin_config->flags.linear)
+					{
+						if(value >= pin_config->speed)
+							value -= pin_config->speed;
+					}
+					else
+					{
+						value /= (pin_config->speed / 10000.0) + 1;
 
-					if((old_value == value) && (value > 0))
-						value--;
+						if((old_value == value) && (value > 0))
+							value--;
+					}
 
 					if(value <= pin_config->shared.output_analog.lower_bound)
 					{
@@ -952,10 +966,15 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					{
 						old_value = value;
 
-						value *= (pin_config->speed / 10000.0) + 1;
+						if(pin_config->flags.linear)
+							value += pin_config->speed;
+						else
+						{
+							value *= (pin_config->speed / 10000.0) + 1;
 
-						if(old_value == value)
-							value++;
+							if(old_value == value)
+								value++;
+						}
 					}
 
 					if(value >= pin_config->shared.output_analog.upper_bound)

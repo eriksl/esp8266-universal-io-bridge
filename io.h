@@ -88,6 +88,9 @@ typedef struct attr_packed
 	unsigned int repeat:1;
 	unsigned int pullup:1;
 	unsigned int reset_on_read:1;
+	unsigned int extended:1;
+	unsigned int grb:1;
+	unsigned int linear:1;
 } io_pin_flag_t;
 
 assert_size(io_pin_flag_t, 1);
