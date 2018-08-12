@@ -120,47 +120,47 @@ static int scl_pin;
 static i2c_state_t state = i2c_state_invalid;
 static i2c_state_t error_state = i2c_state_invalid;
 
-always_inline static void sda_low(void)
+attr_inline void sda_low(void)
 {
 	gpio_set(sda_pin, 0);
 }
 
-always_inline static void sda_high(void)
+attr_inline void sda_high(void)
 {
 	gpio_set(sda_pin, 1);
 }
 
-always_inline static void scl_low(void)
+attr_inline void scl_low(void)
 {
 	gpio_set(scl_pin, 0);
 }
 
-always_inline static void scl_high(void)
+attr_inline void scl_high(void)
 {
 	gpio_set(scl_pin, 1);
 }
 
-always_inline static bool_t sda_is_low(void)
+attr_inline bool_t sda_is_low(void)
 {
 	return(!gpio_get(sda_pin));
 }
 
-always_inline static bool_t sda_is_high(void)
+attr_inline bool_t sda_is_high(void)
 {
 	return(gpio_get(sda_pin));
 }
 
-always_inline static bool_t scl_is_low(void)
+attr_inline bool_t scl_is_low(void)
 {
 	return(!gpio_get(scl_pin));
 }
 
-always_inline static bool_t scl_is_high(void)
+attr_inline bool_t scl_is_high(void)
 {
 	return(gpio_get(scl_pin));
 }
 
-always_inline static void delay(i2c_delay_enum_t delay_index)
+attr_inline void delay(i2c_delay_enum_t delay_index)
 {
 	csleep(i2c_delay[delay_index].delay);
 }

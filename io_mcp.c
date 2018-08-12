@@ -24,19 +24,19 @@ enum
 	BANK
 };
 
-always_inline static int IODIR(int s)	{ return(0x00 + s);	}
-always_inline static int IPOL(int s)	{ return(0x02 + s);	}
-always_inline static int GPINTEN(int s)	{ return(0x04 + s);	}
-always_inline static int DEFVAL(int s)	{ return(0x06 + s);	}
-always_inline static int INTCON(int s)	{ return(0x08 + s);	}
-always_inline static int IOCON(int s)	{ return(0x0a + s);	}
-always_inline static int GPPU(int s)	{ return(0x0c + s);	}
-always_inline static int INTF(int s)	{ return(0x0e + s);	}
-always_inline static int INTCAP(int s)	{ return(0x10 + s);	}
-always_inline static int GPIO(int s)	{ return(0x12 + s);	}
-always_inline static int OLAT(int s)	{ return(0x14 + s);	}
+attr_inline int IODIR(int s)	{ return(0x00 + s);	}
+attr_inline int IPOL(int s)	{ return(0x02 + s);	}
+attr_inline int GPINTEN(int s)	{ return(0x04 + s);	}
+attr_inline int DEFVAL(int s)	{ return(0x06 + s);	}
+attr_inline int INTCON(int s)	{ return(0x08 + s);	}
+attr_inline int IOCON(int s)	{ return(0x0a + s);	}
+attr_inline int GPPU(int s)	{ return(0x0c + s);	}
+attr_inline int INTF(int s)	{ return(0x0e + s);	}
+attr_inline int INTCAP(int s)	{ return(0x10 + s);	}
+attr_inline int GPIO(int s)	{ return(0x12 + s);	}
+attr_inline int OLAT(int s)	{ return(0x14 + s);	}
 
-always_inline static int instance_index(const struct io_info_entry_T *info)
+attr_inline int instance_index(const struct io_info_entry_T *info)
 {
 	return(info->instance - io_mcp_instance_first);
 }
@@ -44,7 +44,7 @@ always_inline static int instance_index(const struct io_info_entry_T *info)
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
-always_inline static io_error_t read_register(string_t *error_message, int address, int reg, int *value)
+attr_inline io_error_t read_register(string_t *error_message, int address, int reg, int *value)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;

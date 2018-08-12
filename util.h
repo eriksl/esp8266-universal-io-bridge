@@ -160,12 +160,12 @@ int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void logchar(char c);
 void msleep(int);
 
-always_inline static void usleep(int usec)
+attr_inline void usleep(int usec)
 {
 	os_delay_us(usec);
 }
 
-always_inline static uint32_t ccount(void)
+attr_inline uint32_t ccount(void)
 {
 	uint32_t sr_ccount;
 
@@ -174,7 +174,7 @@ always_inline static uint32_t ccount(void)
 	return(sr_ccount);
 }
 
-always_inline static void csleep(volatile uint32_t target)
+attr_inline void csleep(volatile uint32_t target)
 {
 	if(target < 14)
 		while(target-- > 0);
@@ -234,49 +234,49 @@ do { \
 	string_format_flash_ptr(dst, fmt_flash, __VA_ARGS__); \
 } while(0)
 
-always_inline static int string_length(const string_t *dst)
+attr_inline int string_length(const string_t *dst)
 {
 	return(dst->length);
 }
 
-always_inline static int string_size(const string_t *dst)
+attr_inline int string_size(const string_t *dst)
 {
 	return(dst->size);
 }
 
-always_inline static int string_empty(const string_t *dst)
+attr_inline int string_empty(const string_t *dst)
 {
 	return(dst->length == 0);
 }
 
-always_inline static const char *string_buffer(const string_t *string)
+attr_inline const char *string_buffer(const string_t *string)
 {
 	return(string->buffer);
 }
 
-always_inline static char *string_buffer_nonconst(string_t *string)
+attr_inline char *string_buffer_nonconst(string_t *string)
 {
 	return(string->buffer);
 }
 
-always_inline static bool_t string_space(const string_t *dst)
+attr_inline bool_t string_space(const string_t *dst)
 {
 	return(dst->length < dst->size);
 }
 
-always_inline static void string_clear(string_t *dst)
+attr_inline void string_clear(string_t *dst)
 {
 	dst->length = 0;
 };
 
-always_inline static void string_set(string_t *dst, char *buffer, int size, int length)
+attr_inline void string_set(string_t *dst, char *buffer, int size, int length)
 {
 	dst->buffer = buffer;
 	dst->size   = size;
 	dst->length = length;
 }
 
-always_inline static void string_setlength(string_t *dst, int length)
+attr_inline void string_setlength(string_t *dst, int length)
 {
 	if(length > dst->size)
 		length = dst->size;
@@ -284,7 +284,7 @@ always_inline static void string_setlength(string_t *dst, int length)
 	dst->length = length;
 }
 
-always_inline static bool_t string_match_string(const string_t *s1, const string_t *s2)
+attr_inline bool_t string_match_string(const string_t *s1, const string_t *s2)
 {
 	if((s1->length == s2->length) && (memcmp(s1->buffer, s2->buffer, s1->length) == 0))
 		return(true);
@@ -292,7 +292,7 @@ always_inline static bool_t string_match_string(const string_t *s1, const string
 	return(false);
 }
 
-always_inline static bool_t string_match_cstr(const string_t *s1, const char *s2)
+attr_inline bool_t string_match_cstr(const string_t *s1, const char *s2)
 {
 	int length = strlen(s2);
 
@@ -302,7 +302,7 @@ always_inline static bool_t string_match_cstr(const string_t *s1, const char *s2
 	return(false);
 }
 
-always_inline static bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
+attr_inline bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
 {
 	if((s1->length >= n) && (s2->length >= n) && (memcmp(s1->buffer, s2->buffer, n) == 0))
 		return(true);
@@ -310,7 +310,7 @@ always_inline static bool_t string_nmatch_string(const string_t *s1, const strin
 	return(false);
 }
 
-always_inline static bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
+attr_inline bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
 {
 	int length = strlen(s2);
 
@@ -320,14 +320,14 @@ always_inline static bool_t string_nmatch_cstr(const string_t *s1, const char *s
 	return(false);
 }
 
-always_inline static string_t string_from_cstr(size_t size, char *cstr)
+attr_inline string_t string_from_cstr(size_t size, char *cstr)
 {
 	string_t string = { size, strlen(cstr), cstr };
 
 	return(string);
 }
 
-always_inline static const char *string_to_cstr(string_t *string)
+attr_inline const char *string_to_cstr(string_t *string)
 {
 	if((string == (string_t *)0) || (string->size < 1) || (string->length < 1) || (string->buffer == (const char *)0))
 		return("");
@@ -340,7 +340,7 @@ always_inline static const char *string_to_cstr(string_t *string)
 	return(string->buffer);
 }
 
-always_inline static char string_at(const string_t *s, int at)
+attr_inline char string_at(const string_t *s, int at)
 {
 	if((unsigned int)at < (unsigned int)s->length)
 		return(s->buffer[at]);
@@ -348,7 +348,7 @@ always_inline static char string_at(const string_t *s, int at)
 		return('\0');
 }
 
-always_inline static void string_append_char(string_t *dst, char c)
+attr_inline void string_append_char(string_t *dst, char c)
 {
 	if(dst->length < dst->size)
 		dst->buffer[dst->length++] = c;
@@ -356,17 +356,17 @@ always_inline static void string_append_char(string_t *dst, char c)
 	dst->buffer[dst->length] = '\0';
 }
 
-always_inline static void string_append_cstr(string_t *dst, const char *src)
+attr_inline void string_append_cstr(string_t *dst, const char *src)
 {
 	dst->length += strecpy(dst->buffer + dst->length, src, dst->size - dst->length);
 }
 
-always_inline static void string_append_cstr_flash(string_t *dst, const char *src)
+attr_inline void string_append_cstr_flash(string_t *dst, const char *src)
 {
 	dst->length += strecpy_from_flash(dst->buffer + dst->length, (const uint32_t *)(const void *)src, dst->size - dst->length);
 }
 
-always_inline static void string_append_string(string_t *dst, const string_t *src)
+attr_inline void string_append_string(string_t *dst, const string_t *src)
 {
 	int length = src->length;
 

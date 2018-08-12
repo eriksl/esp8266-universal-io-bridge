@@ -51,7 +51,7 @@ void			config_dump(string_t *);
 extern config_flags_t flags_cache;
 extern config_options_t config_options;
 
-always_inline static config_flags_t config_flags_get(void)
+attr_inline config_flags_t config_flags_get(void)
 {
 	return(flags_cache);
 }

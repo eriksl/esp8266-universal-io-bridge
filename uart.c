@@ -70,17 +70,17 @@ irom void uart_parameters_to_string(string_t *dst, const uart_parameters_t *para
 			params->stop_bits);
 }
 
-always_inline static int rx_fifo_length(unsigned int uart)
+attr_inline int rx_fifo_length(unsigned int uart)
 {
 	return((read_peri_reg(UART_STATUS(uart)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT);
 }
 
-always_inline static int tx_fifo_length(unsigned int uart)
+attr_inline int tx_fifo_length(unsigned int uart)
 {
 	return((read_peri_reg(UART_STATUS(uart)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
-always_inline static void enable_transmit_int(unsigned int uart, bool_t enable)
+attr_inline void enable_transmit_int(unsigned int uart, bool_t enable)
 {
 	if(enable)
 		set_peri_reg_mask(UART_INT_ENA(uart), UART_TXFIFO_EMPTY_INT_ENA);
@@ -88,7 +88,7 @@ always_inline static void enable_transmit_int(unsigned int uart, bool_t enable)
 		clear_peri_reg_mask(UART_INT_ENA(uart), UART_TXFIFO_EMPTY_INT_ENA);
 }
 
-always_inline static void enable_receive_int(unsigned int uart, bool_t enable)
+attr_inline void enable_receive_int(unsigned int uart, bool_t enable)
 {
 	if(enable)
 		set_peri_reg_mask(UART_INT_ENA(uart), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
