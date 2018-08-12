@@ -35,7 +35,7 @@ irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 
 attr_speed iram void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
-	int pin;
+	unsigned int pin;
 
 	for(pin = io_aux_pin_rtc; pin < io_aux_pin_size; pin++)
 	{

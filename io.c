@@ -345,7 +345,7 @@ irom void io_sequencer_start(unsigned int repeats)
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 {
-	int ix;
+	unsigned int ix;
 	const io_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_pin_size; ix++)
@@ -361,7 +361,7 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 
 irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad)
 {
-	int ix;
+	unsigned int ix;
 	const io_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_pin_size; ix++)
@@ -387,7 +387,7 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 
 irom static void io_strings_from_modes(string_t *dst)
 {
-	int ix;
+	unsigned int ix;
 	const io_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_pin_size; ix++)
@@ -421,7 +421,7 @@ static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 
 irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 {
-	int ix;
+	unsigned int ix;
 	const io_ll_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_pin_size; ix++)
@@ -488,7 +488,7 @@ static io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
 
 irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
 {
-	int ix;
+	unsigned int ix;
 	const io_lcd_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_lcd_size; ix++)
@@ -504,7 +504,7 @@ irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
 
 irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 {
-	int ix;
+	unsigned int ix;
 	const io_lcd_mode_trait_t *entry;
 
 	for(ix = 0; ix < io_lcd_size; ix++)
@@ -541,7 +541,7 @@ static io_trigger_action_t io_trigger_action[io_trigger_size] =
 
 irom static io_trigger_t string_to_trigger_action(const string_t *src)
 {
-	int ix;
+	unsigned int ix;
 	const io_trigger_action_t *entry;
 
 	for(ix = 0; ix < io_trigger_size; ix++)
@@ -558,7 +558,7 @@ irom static io_trigger_t string_to_trigger_action(const string_t *src)
 irom static void trigger_actions_to_string(string_t *dst)
 
 {
-	int ix;
+	unsigned int ix;
 	const io_trigger_action_t *entry;
 
 	for(ix = 0; ix < io_trigger_size; ix++)
@@ -574,7 +574,7 @@ irom static void trigger_actions_to_string(string_t *dst)
 
 irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
 {
-	int ix;
+	unsigned int ix;
 	const io_trigger_action_t *entry;
 
 	for(ix = 0; ix < io_trigger_size; ix++)
