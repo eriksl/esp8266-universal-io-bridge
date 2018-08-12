@@ -178,15 +178,6 @@ irom static void background_task_command_handler(void)
 			bg_action.disconnect = 1;
 			break;
 		}
-		case(app_action_ota_commit): //FIXME
-		{
-#if IMAGE_OTA == 1
-			rboot_config rcfg = rboot_get_config();
-			string_format(&socket_cmd.send_buffer, "OTA commit slot %d\n", rcfg.current_rom);
-			system_os_post(command_task_id, command_task_command_reset, 0);
-#endif
-			break;
-		}
 	}
 
 	socket_cmd.state = socket_state_sending;

@@ -1995,41 +1995,6 @@ static const application_function_table_t application_function_table[] =
 		"(re-)init i2c sensor",
 	},
 	{
-		"or", "ota-read",
-		application_function_ota_read,
-		"ota-read length start chunk-size",
-	},
-	{
-		"od", "ota-receive-data",
-		application_function_ota_receive,
-		"ota-receive-data",
-	},
-	{
-		"ow", "ota-write",
-		application_function_ota_write,
-		"ota-write length [start]",
-	},
-	{
-		"owd", "ota-write-dummy",
-		application_function_ota_write_dummy,
-		"ota-write-dummy length [start]",
-	},
-	{
-		"os", "ota-send-data",
-		application_function_ota_send,
-		"ota-send chunk_length data",
-	},
-	{
-		"of", "ota-finish",
-		application_function_ota_finish,
-		"ota-finish md5sum",
-	},
-	{
-		"oc", "ota-commit",
-		application_function_ota_commit,
-		"ota-commit",
-	},
-	{
 		"flash-info", "flash-info",
 		application_function_flash_info,
 		"flash-info",
