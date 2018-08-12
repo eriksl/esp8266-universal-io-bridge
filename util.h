@@ -219,7 +219,7 @@ uint32_t string_crc32(const string_t *src, int offset, int length);
 	_linkage string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
 #define string_init(_name, _string) \
-	string_new(stack, _name, sizeof(_string)); \
+	string_new(, _name, sizeof(_string)); \
 	string_append(&_name, _string);
 
 #define string_append(dst, src) \

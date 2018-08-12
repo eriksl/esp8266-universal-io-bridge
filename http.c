@@ -110,7 +110,7 @@ roflash static const char roflash_html_table_end[] =
 irom static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
 {
 	int pwm_period;
-	string_new(stack, id, 32);
+	string_new(, id, 32);
 	string_init(varname_pwmperiod, "pwm.period");
 
 	string_format(&id, "range_%d_%d", io, pin);
@@ -425,11 +425,11 @@ irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *
 
 irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 {
-	string_new(stack, getparam, 64);
-	string_new(stack, param1, 32);
-	string_new(stack, param2, 32);
-	string_new(stack, ssid, 32);
-	string_new(stack, passwd, 32);
+	string_new(, getparam, 64);
+	string_new(, param1, 32);
+	string_new(, param2, 32);
+	string_new(, ssid, 32);
+	string_new(, passwd, 32);
 	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
 	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
 	string_init(varname_wlan_mode, "wlan.mode");

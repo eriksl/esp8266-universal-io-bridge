@@ -581,7 +581,7 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(stack, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -622,7 +622,7 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(stack, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -717,7 +717,7 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(stack, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{

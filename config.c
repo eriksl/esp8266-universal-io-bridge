@@ -272,7 +272,7 @@ irom bool_t config_set_string(const string_t *id, int index1, int index2, const 
 
 irom bool_t config_set_int(const string_t *id, int index1, int index2, int value)
 {
-	string_new(stack, string, 16);
+	string_new(, string, 16);
 
 	string_format(&string, "%d", value);
 
@@ -308,8 +308,8 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, bool
 
 irom bool_t config_read(void)
 {
-	string_new(stack, string, 64);
 	int current_index, id_index, id_length, value_index, value_length;
+	string_new(, string, 64);
 	char current;
 	state_parse_t parse_state;
 	bool_t rv = false;

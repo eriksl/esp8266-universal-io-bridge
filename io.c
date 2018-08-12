@@ -224,7 +224,7 @@ irom void io_sequencer_save(void)
 {
 	string_init(varname_set, "sequencer.%u");
 	string_init(varname_delete, "sequencer.");
-	string_new(stack, var_value, 32);
+	string_new(, var_value, 32);
 
 	unsigned int current;
 
@@ -248,7 +248,7 @@ irom void io_sequencer_save(void)
 irom void io_sequencer_load(void)
 {
 	string_init(varname_io, "sequencer.%u");
-	string_new(stack, var_value, 32);
+	string_new(, var_value, 32);
 
 	int intval1, intval2, intval3;
 	int io, pin, value, duration;
