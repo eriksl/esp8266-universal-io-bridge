@@ -164,12 +164,12 @@ LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto -lm
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
-						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_pcf.o ota.o queue.o \
+						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
 						socket.o stats.o time.o uart.o user_main.o util.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
-						io_aux.h io_mcp.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
+						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
 						socket.h user_main.h util.h
 
 .PRECIOUS:		*.c *.h
@@ -217,6 +217,7 @@ io_aux.o:			$(HEADERS)
 io.o:				$(HEADERS)
 io_gpio.o:			$(HEADERS)
 io_mcp.o:			$(HEADERS)
+io_ledpixel.o:		$(HEADERS)
 io_pcf.o:			$(HEADERS)
 ota.o:				$(HEADERS)
 queue.o:			queue.h

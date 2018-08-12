@@ -2,6 +2,7 @@
 #include "io_aux.h"
 #include "io_mcp.h"
 #include "io_pcf.h"
+#include "io_ledpixel.h"
 #include "io.h"
 #include "i2c.h"
 #include "config.h"
@@ -25,6 +26,7 @@ static const io_info_t io_info =
 			.output_analog = 1,
 			.i2c = 1,
 			.uart = 1,
+			.ledpixel = 1,
 			.pullup = 1,
 		},
 		"Internal GPIO",
@@ -48,6 +50,7 @@ static const io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 			.uart = 0,
+			.ledpixel = 0,
 			.pullup = 0,
 		},
 		"Auxilliary GPIO (RTC+ADC)",
@@ -71,6 +74,7 @@ static const io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 			.uart = 0,
+			.ledpixel = 0,
 			.pullup = 1,
 		},
 		"MCP23017 I2C I/O expander #1",
@@ -94,6 +98,7 @@ static const io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 			.uart = 0,
+			.ledpixel = 0,
 			.pullup = 1,
 		},
 		"MCP23017 I2C I/O expander #2",
@@ -117,6 +122,7 @@ static const io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 			.uart = 0,
+			.ledpixel = 0,
 			.pullup = 1,
 		},
 		"MCP23017 I2C I/O expander #3",
@@ -140,6 +146,7 @@ static const io_info_t io_info =
 			.output_analog = 0,
 			.i2c = 0,
 			.uart = 0,
+			.ledpixel = 0,
 			.pullup = 0,
 		},
 		"PCF8574A I2C I/O expander",
@@ -149,6 +156,30 @@ static const io_info_t io_info =
 		0,
 		io_pcf_read_pin,
 		io_pcf_write_pin,
+	},
+	{
+		io_id_ledpixel, /* = 6 */
+		0x00,
+		0,
+		16,
+		{
+			.input_digital = 0,
+			.counter = 0,
+			.output_digital = 0,
+			.input_analog = 0,
+			.output_analog = 1,
+			.i2c = 0,
+			.uart = 0,
+			.ledpixel = 0,
+			.pullup = 0,
+		},
+		"led string",
+		io_ledpixel_init,
+		io_ledpixel_periodic,
+		io_ledpixel_init_pin_mode,
+		0,
+		io_ledpixel_read_pin,
+		io_ledpixel_write_pin,
 	}
 };
 
@@ -174,6 +205,7 @@ static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_uart,				"uart",			"uart"					},
 	{ io_pin_lcd,				"lcd",			"lcd"					},
 	{ io_pin_trigger,			"trigger",		"trigger"				},
+	{ io_pin_ledpixel,			"ledpixel",		"ledpixel control"		},
 };
 
 enum
@@ -695,6 +727,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 	{
 		case(io_pin_disabled):
 		case(io_pin_error):
+		case(io_pin_ledpixel):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot read from this pin");
@@ -722,6 +755,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 	{
 		case(io_pin_disabled):
 		case(io_pin_error):
+		case(io_pin_ledpixel):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot write to this pin");
@@ -1463,6 +1497,18 @@ irom void io_init(void)
 					break;
 				}
 
+				case(io_pin_ledpixel):
+				{
+					if(!info->caps.ledpixel)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					break;
+				}
+
 				default:
 				{
 					break;
@@ -1513,6 +1559,14 @@ irom void io_init(void)
 
 							if((i2c_sda >= 0) && (i2c_scl >= 0))
 								i2c_init(i2c_sda, i2c_scl);
+
+							break;
+						}
+
+						case(io_pin_ledpixel):
+						{
+							if(io == 0)
+								io_ledpixel_setup(pin, 0);
 
 							break;
 						}
@@ -2162,6 +2216,23 @@ skip:
 			break;
 		}
 
+		case(io_pin_ledpixel):
+		{
+			if(!info->caps.ledpixel)
+			{
+				string_append(dst, "ledpixel mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			llmode = io_pin_ll_uart;
+
+			config_delete(&varname_io, io, pin, true);
+			config_set_int(&varname_io_mode, io, pin, mode);
+			config_set_int(&varname_io_llmode, io, pin, io_pin_ll_uart);
+
+			break;
+		}
+
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
@@ -2502,6 +2573,7 @@ typedef enum
 	ds_id_i2c_sda,
 	ds_id_i2c_scl,
 	ds_id_uart,
+	ds_id_ledpixel,
 	ds_id_lcd,
 	ds_id_unknown,
 	ds_id_not_detected,
@@ -2548,6 +2620,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_i2c_sda */			"sda",
 		/* ds_id_i2c_scl */			"scl",
 		/* ds_id_uart */			"uart",
+		/* ds_id_ledpixel */		"ledpixel",
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_not_detected */	"  not found\n",
@@ -2582,6 +2655,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_i2c_sda */			"<td>sda</td>",
 		/* ds_id_i2c_scl */			"<td>scl</td>",
 		/* ds_id_uart */			"<td>uart</td>",
+		/* ds_id_ledpixel */		"<td>ledpixel</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_not_detected */	"<tr><td colspan=\"6\">not connected</td></tr>\n",
@@ -2779,6 +2853,13 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_lcd]);
 					string_append(dst, "/");
 					io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
+
+					break;
+				}
+
+				case(io_pin_ledpixel):
+				{
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_ledpixel]);
 
 					break;
 				}

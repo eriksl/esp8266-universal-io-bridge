@@ -27,6 +27,7 @@ typedef enum
 	io_id_mcp_21,
 	io_id_mcp_22,
 	io_id_pcf_3a,
+	io_id_ledpixel,
 	io_id_size,
 } io_id_t;
 
@@ -76,6 +77,7 @@ typedef enum attr_packed
 	io_pin_uart,
 	io_pin_lcd,
 	io_pin_trigger,
+	io_pin_ledpixel,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -157,6 +159,7 @@ typedef struct
 	unsigned int input_analog:1;
 	unsigned int output_analog:1;
 	unsigned int i2c:1;
+	unsigned int ledpixel:1;
 	unsigned int uart:1;
 	unsigned int pullup:1;
 } io_caps_t;

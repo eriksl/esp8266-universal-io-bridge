@@ -700,6 +700,13 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 				return(io_error);
 			}
 
+			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->uart_pin != io_uart_tx))
+			{
+				if(error_message)
+					string_format(error_message, "gpio pin %d (uart rx) cannot be used for ledpixel mode\n", pin);
+				return(io_error);
+			}
+
 			gpio_func_select(pin, gpio_info->uart_func);
 			gpio_pullup(pin, pin_config->flags.pullup);
 
@@ -979,6 +986,17 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 	}
 
 	return(io_ok);
+}
+
+irom attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
+{
+	if(pin >= max_pins_per_io)
+		return(-1);
+
+	if(gpio_info_table[pin].uart_pin == io_uart_none)
+		return(-1);
+
+	return(gpio_info_table[pin].uart);
 }
 
 irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
