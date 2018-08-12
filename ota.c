@@ -1,6 +1,7 @@
 #include "ota.h"
 #include "util.h"
 #include "config.h"
+#include "user_main.h"
 
 #if IMAGE_OTA == 1
 #include <rboot-api.h>
@@ -39,7 +40,7 @@ irom app_action_t application_function_flash_info(const string_t *src, string_t 
 #endif
 
 	string_format(dst, "OK flash function available, sector size: %u bytes, OTA update available: %d, slots: %d, slot: %d, address: %u, address: %u, address: %u, address: %u\n",
-			string_size(&ota_receive_buffer),
+			SPI_FLASH_SEC_SIZE,
 			ota_available,
 			ota_slots, ota_slot,
 			ota_address_0, ota_address_1, ota_address_2, ota_address_3);
@@ -60,9 +61,14 @@ static iram unsigned int flash_erase(unsigned int sector_offset, unsigned int se
 irom app_action_t application_function_flash_erase(const string_t *src, string_t *dst)
 {
 	int address, length;
-	int flash_sector_size = string_size(&ota_receive_buffer);
 	int sector_offset, sector_count, count;
 	uint32_t time_start, time_finish;
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-erase: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -76,16 +82,16 @@ irom app_action_t application_function_flash_erase(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	sector_offset = address / flash_sector_size;
-	sector_count = length / flash_sector_size;
+	sector_offset = address / SPI_FLASH_SEC_SIZE;
+	sector_count = length / SPI_FLASH_SEC_SIZE;
 
-	if((address % flash_sector_size) != 0)
+	if((address % SPI_FLASH_SEC_SIZE) != 0)
 	{
 		sector_offset--;
 		sector_count++;
 	}
 
-	if((length % flash_sector_size) != 0)
+	if((length % SPI_FLASH_SEC_SIZE) != 0)
 		sector_count++;
 
 	time_start = system_get_time();
@@ -101,7 +107,12 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 {
 	string_t src = *raw_src;
 	int offset, length, chunk_offset, chunk_length;
-	int flash_sector_size = string_size(&ota_receive_buffer);
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-send: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	string_trim_nl(&src);
 
@@ -123,15 +134,15 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 		return(app_action_error);
 	}
 
-	if((length != 0) && ((flash_sector_size % length) != 0))
+	if((length != 0) && ((SPI_FLASH_SEC_SIZE % length) != 0))
 	{
 		string_append(dst, "ERROR: flash-send: chunk length should be divisible by flash sector size");
 		return(app_action_error);
 	}
 
-	if((offset + length) > string_size(&ota_receive_buffer))
+	if((offset + length) > SPI_FLASH_SEC_SIZE)
 	{
-		string_format(dst, "ERROR flash-send: length(%d) + offset(%d) > sector size(%d)\n", offset, length, string_size(&ota_receive_buffer));
+		string_format(dst, "ERROR flash-send: length(%d) + offset(%d) > sector size(%d)\n", offset, length, SPI_FLASH_SEC_SIZE);
 		return(app_action_error);
 	}
 
@@ -147,7 +158,7 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 		return(app_action_error);
 	}
 
-	string_splice(&ota_receive_buffer, offset, &src, chunk_offset, chunk_length);
+	string_splice(&flash_sector_buffer, offset, &src, chunk_offset, chunk_length);
 
 	string_format(dst, "OK flash-send: received bytes: %d, at offset: %d\n", length, offset);
 
@@ -157,7 +168,12 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 irom app_action_t application_function_flash_receive(const string_t *src, string_t *dst)
 {
 	int chunk_offset, chunk_length;
-	int flash_sector_size = string_size(&ota_receive_buffer);
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-receive: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	if(parse_int(1, src, &chunk_offset, 0, ' ') != parse_ok)
 	{
@@ -177,22 +193,22 @@ irom app_action_t application_function_flash_receive(const string_t *src, string
 		return(app_action_error);
 	}
 
-	if((chunk_length == 0) || ((flash_sector_size % chunk_length) != 0))
+	if((chunk_length == 0) || ((SPI_FLASH_SEC_SIZE % chunk_length) != 0))
 	{
 		string_append(dst, "ERROR: flash-receive: chunk length should be divisible by flash sector size");
 		return(app_action_error);
 	}
 
-	if((chunk_offset + chunk_length) > string_size(&ota_receive_buffer))
+	if((chunk_offset + chunk_length) > SPI_FLASH_SEC_SIZE)
 	{
-		string_format(dst, "ERROR flash-receive: chunk_length(%d) + chunk_offset(%d) > sector size(%d)\n", chunk_offset, chunk_length, string_size(&ota_receive_buffer));
+		string_format(dst, "ERROR flash-receive: chunk_length(%d) + chunk_offset(%d) > sector size(%d)\n", chunk_offset, chunk_length, SPI_FLASH_SEC_SIZE);
 		return(app_action_error);
 	}
 
-	string_setlength(&ota_receive_buffer, string_size(&ota_receive_buffer));
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 
 	string_format(dst, "OK flash-receive: sending bytes: %d, from offset: %d, data: @", chunk_length, chunk_offset);
-	string_splice(dst, -1, &ota_receive_buffer, chunk_offset, chunk_length);
+	string_splice(dst, -1, &flash_sector_buffer, chunk_offset, chunk_length);
 	string_append(dst, "\n");
 
 	return(app_action_normal);
@@ -201,11 +217,16 @@ irom app_action_t application_function_flash_receive(const string_t *src, string
 irom app_action_t application_function_flash_read(const string_t *src, string_t *dst)
 {
 	int address, sector;
-	int sector_size = string_size(&ota_receive_buffer);
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-read: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -213,21 +234,21 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 		return(app_action_error);
 	}
 
-	if((address % sector_size) != 0)
+	if((address % SPI_FLASH_SEC_SIZE) != 0)
 	{
 		string_append(dst, "ERROR flash-read: address should be divisible by flash sector size");
 		return(app_action_error);
 	}
 
-	sector = address / sector_size;
-	spi_flash_read(sector * sector_size, string_buffer_nonconst(&ota_receive_buffer), sector_size);
+	sector = address / SPI_FLASH_SEC_SIZE;
+	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
 
 	SHA1Init(&sha_context);
-	SHA1Update(&sha_context, string_buffer(&ota_receive_buffer), sector_size);
+	SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	string_format(dst, "OK flash-read: read bytes: %d, from address: %d (%d), checksum: ", sector_size, address, flash_sector);
+	string_format(dst, "OK flash-read: read bytes: %d, from address: %d (%d), checksum: ", SPI_FLASH_SEC_SIZE, address, sector);
 
 	string_append_string(dst, &sha_string);
 	string_append(dst, "\n");
@@ -238,7 +259,6 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst, bool_t verify)
 {
 	int address, sector;
-	int sector_size = string_size(&ota_receive_buffer);
 	int byte;
 	int same = 0;
 	int erase = 1;
@@ -247,6 +267,12 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-verify: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -260,7 +286,7 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 		return(app_action_error);
 	}
 
-	if((address % sector_size) != 0)
+	if((address % SPI_FLASH_SEC_SIZE) != 0)
 	{
 		if(verify)
 			string_append(dst, "ERROR flash-verify");
@@ -272,8 +298,8 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 		return(app_action_error);
 	}
 
-	sector = address / sector_size;
-	spi_flash_read(sector * sector_size, string_buffer_nonconst(dst), sector_size);
+	sector = address / SPI_FLASH_SEC_SIZE;
+	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
 
 	erase = 0;
 	same = 0;
@@ -281,16 +307,16 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 
 	if(verify)
 	{
-		if(!memcmp(string_buffer(&ota_receive_buffer), string_buffer(dst), sector_size))
+		if(!memcmp(string_buffer(&flash_sector_buffer), string_buffer(dst), SPI_FLASH_SEC_SIZE))
 			same = 1;
 
-		SHA1Update(&sha_context, string_buffer(dst), sector_size);
+		SHA1Update(&sha_context, string_buffer(dst), SPI_FLASH_SEC_SIZE);
 	}
 	else
 	{
-		if(memcmp(string_buffer(&ota_receive_buffer), string_buffer(dst), sector_size))
+		if(memcmp(string_buffer(&flash_sector_buffer), string_buffer(dst), SPI_FLASH_SEC_SIZE))
 		{
-			for(byte = 0, ptr = string_buffer(dst); byte < sector_size; byte++, ptr++)
+			for(byte = 0, ptr = string_buffer(dst); byte < SPI_FLASH_SEC_SIZE; byte++, ptr++)
 			{
 				if(*ptr != 0xff)
 				{
@@ -302,21 +328,21 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 			if(erase)
 				spi_flash_erase_sector(sector);
 
-			spi_flash_write(sector * sector_size, string_buffer(&ota_receive_buffer), sector_size);
+			spi_flash_write(sector * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
 		}
 		else
 			same = 1;
 
-		SHA1Update(&sha_context, string_buffer(&ota_receive_buffer), sector_size);
+		SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
 	}
 
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
 	if(verify)
-		string_format(dst, "OK flash-verify: verified bytes: %d, at address: %d (%d), same: %d, checksum: ", sector_size, address, flash_sector, same);
+		string_format(dst, "OK flash-verify: verified bytes: %d, at address: %d (%d), same: %d, checksum: ", SPI_FLASH_SEC_SIZE, address, sector, same);
 	else
-		string_format(dst, "OK flash-write: written bytes: %d, to address: %d (%d), same: %d, erased: %d, checksum: ", sector_size, address, flash_sector, same, erase);
+		string_format(dst, "OK flash-write: written bytes: %d, to address: %d (%d), same: %d, erased: %d, checksum: ", SPI_FLASH_SEC_SIZE, address, sector, same, erase);
 
 	string_append_string(dst, &sha_string);
 	string_append(dst, "\n");
@@ -337,11 +363,16 @@ irom app_action_t application_function_flash_verify(const string_t *src, string_
 irom app_action_t application_function_flash_checksum(const string_t *src, string_t *dst)
 {
 	int address, current, length, done;
-	int sector_size = string_size(&ota_receive_buffer);
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-checksum: flash sector buffer too small: %u\n", string_size(&flash_sector_buffer));
+		return(app_action_error);
+	}
 
 	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -355,13 +386,13 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 		return(app_action_error);
 	}
 
-	if((address % sector_size) != 0)
+	if((address % SPI_FLASH_SEC_SIZE) != 0)
 	{
 		string_append(dst, "ERROR: flash_checksum: address should be divisible by flash sector size");
 		return(app_action_error);
 	}
 
-	if((length % sector_size) != 0)
+	if((length % SPI_FLASH_SEC_SIZE) != 0)
 	{
 		string_append(dst, "ERROR: flash_checksum: length should be divisible by flash sector size");
 		return(app_action_error);
@@ -369,10 +400,10 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 
 	SHA1Init(&sha_context);
 
-	for(current = address, done = 0; done < length; current += sector_size, done += sector_size)
+	for(current = address, done = 0; done < length; current += SPI_FLASH_SEC_SIZE, done += SPI_FLASH_SEC_SIZE)
 	{
-		spi_flash_read(current, string_buffer_nonconst(dst), sector_size);
-		SHA1Update(&sha_context, string_buffer(dst), sector_size);
+		spi_flash_read(current, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+		SHA1Update(&sha_context, string_buffer(dst), SPI_FLASH_SEC_SIZE);
 	}
 
 	SHA1Final(sha_result, &sha_context);

@@ -36,7 +36,7 @@ enum
 	command_task_command_fallback_wlan,
 };
 
-extern os_event_t background_task_queue[background_task_queue_length];
+extern string_t flash_sector_buffer;
 
 bool_t	wlan_init(void);
 void	uart_set_initial(unsigned int uart);
