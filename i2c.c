@@ -1,12 +1,11 @@
 #include "i2c.h"
 
-#include "util.h"
-
 #include <user_interface.h>
 
 #include "config.h"
 #include "util.h"
 #include "io_gpio.h"
+#include "attribute.h"
 
 typedef enum
 {

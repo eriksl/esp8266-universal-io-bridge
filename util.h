@@ -7,6 +7,8 @@
 #include <osapi.h>
 #include <ip_addr.h>
 
+#include "attribute.h"
+
 typedef enum
 {
 	off = 0,
@@ -37,19 +39,6 @@ typedef union
 } ip_addr_to_bytes_t;
 
 _Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
-
-#define irom __attribute__((section(".irom0.text")))
-#define iram __attribute__((section(".text")))
-#define stack auto
-#define roflash __attribute__((section(".flash.rodata"))) __attribute__((aligned(sizeof(uint32_t))))
-#define noinline __attribute__ ((noinline))
-#define always_inline inline __attribute__((always_inline))
-#define attr_used __attribute__ ((unused))
-#define attr_pure __attribute__ ((pure))
-#define attr_const __attribute__ ((const))
-#define attr_packed __attribute__ ((__packed__))
-#define attr_speed __attribute__ ((optimize("O3", "unroll-loops")))
-#define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 
 // make sure we don't use the broken memory management
 
@@ -214,9 +203,9 @@ int string_double(string_t *dst, double value, int precision, double top_decimal
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);
 
-#define string_new(_linkage, _name, _size) \
-	_linkage char _ ## _name ## _buf[_size] = { 0 }; \
-	_linkage string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
+#define string_new(_attributes, _name, _size) \
+	_attributes char _ ## _name ## _buf[_size] = { 0 }; \
+	_attributes string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
 #define string_init(_name, _string) \
 	string_new(, _name, sizeof(_string)); \
