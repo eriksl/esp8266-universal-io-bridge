@@ -1526,7 +1526,7 @@ irom void io_init(void)
 				pin_config = &io_config[io][pin];
 				pin_data = &data->pin[pin];
 
-				if(info->init_pin_mode_fn((string_t *)0, info, pin_data, pin_config, pin) == io_ok)
+				if(!info->init_pin_mode_fn || (info->init_pin_mode_fn((string_t *)0, info, pin_data, pin_config, pin) == io_ok))
 				{
 					switch(pin_config->mode)
 					{
