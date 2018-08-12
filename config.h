@@ -39,9 +39,9 @@ void			config_flags_to_string(string_t *);
 bool_t			config_flags_change(const string_t *, bool_t add);
 
 bool_t			config_get_string(const string_t *id, int index1, int index2, string_t *value);
-bool_t			config_get_int(const string_t *id, int index1, int index2, int *value);
+bool_t			config_get_int(const string_t *id, int index1, int index2, uint32_t *value);
 bool_t			config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
-bool_t			config_set_int(const string_t *id, int index1, int index2, int value);
+bool_t			config_set_int(const string_t *id, int index1, int index2, uint32_t value);
 unsigned int	config_delete(const string_t *id, int index1, int index2, bool_t wildcard);
 
 bool_t			config_read(void);

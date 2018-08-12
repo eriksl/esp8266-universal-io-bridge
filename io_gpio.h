@@ -11,8 +11,9 @@ void		io_gpio_periodic(int io, const struct io_info_entry_T *, io_data_entry_t *
 io_error_t	io_gpio_init(const struct io_info_entry_T *);
 io_error_t	io_gpio_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t	io_gpio_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-io_error_t	io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, int *);
-io_error_t	io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, int);
+io_error_t	io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
+io_error_t	io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
+int			io_gpio_get_uart_from_pin(unsigned int pin);
 
 app_action_t application_function_pwm_period(const string_t *src, string_t *dst);
 

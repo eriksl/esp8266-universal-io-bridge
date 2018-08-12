@@ -228,10 +228,10 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, c
 	return(parse_ok);
 }
 
-irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter)
+irom parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, bool_t do_signed)
 {
-	bool_t negative, valid;
-	int value;
+	bool_t valid, negative;
+	uint32_t value;
 	int offset;
 	char current;
 
@@ -301,7 +301,7 @@ irom parse_error_t parse_int(int index, const string_t *src, int *dst, int base,
 	if(!valid)
 		return(parse_invalid);
 
-	if(negative)
+	if(do_signed && negative)
 		*dst = 0 - value;
 	else
 		*dst = value;

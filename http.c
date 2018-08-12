@@ -263,7 +263,8 @@ irom static app_action_t handler_set(const string_t *src, string_t *dst)
 	string_new(, param2, 16);
 	string_new(, param3, 16);
 
-	int io, pin, value;
+	unsigned int io, pin;
+	uint32_t value;
 	io_error_t error;
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
@@ -287,13 +288,13 @@ irom static app_action_t handler_set(const string_t *src, string_t *dst)
 	if(!string_nmatch_cstr(&param3, "value=", 6))
 		goto error;
 
-	if(parse_int(1, &param1, &io, 10, '=') != parse_ok)
+	if(parse_uint(1, &param1, &io, 10, '=') != parse_ok)
 		goto error;
 
-	if(parse_int(1, &param2, &pin, 10, '=') != parse_ok)
+	if(parse_uint(1, &param2, &pin, 10, '=') != parse_ok)
 		goto error;
 
-	if(parse_int(1, &param3, &value, 10, '=') != parse_ok)
+	if(parse_uint(1, &param3, &value, 10, '=') != parse_ok)
 		goto error;
 
 	error = io_write_pin(dst, io, pin, value);

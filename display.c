@@ -549,10 +549,10 @@ irom app_action_t application_function_display_default_message(const string_t *s
 
 irom app_action_t application_function_display_flip_timeout(const string_t *src, string_t *dst)
 {
-	int timeout;
+	unsigned int timeout;
 	string_init(varname_fliptimeout, "display.fliptimeout");
 
-	if(parse_int(1, src, &timeout, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
@@ -580,7 +580,7 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 
 irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
 {
-	int value;
+	unsigned int value;
 	display_info_t *display_info_entry;
 
 	if(!display_detected())
@@ -591,7 +591,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 
 	display_info_entry = &display_info[display_data.detected];
 
-	if(parse_int(1, src, &value, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &value, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);

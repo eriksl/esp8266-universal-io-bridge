@@ -169,9 +169,9 @@ assert_size(io_flags_t, 4);
 
 typedef struct
 {
-	uint16_t		speed;
+	uint32_t		speed;
+	uint32_t		saved_value;
 	io_direction_t	direction;
-	int				saved_value;
 } io_data_pin_entry_t;
 
 typedef struct
@@ -195,8 +195,8 @@ typedef struct
 	{
 		struct
 		{
-			uint16_t		lower_bound;
-			uint16_t		upper_bound;
+			uint32_t		lower_bound;
+			uint32_t		upper_bound;
 		} output_analog;
 
 		struct
@@ -229,8 +229,8 @@ typedef const struct io_info_entry_T
 	void		(* const periodic_fn)		(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, int *);
-	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, int);
+	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
+	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
 } io_info_entry_t;
 
 typedef const io_info_entry_t io_info_t[io_id_size];
@@ -241,19 +241,19 @@ assert_size(io_error_t, 4);
 
 void		io_init(void);
 void		io_periodic(void);
-io_error_t	io_read_pin(string_t *, int, int, int *);
-io_error_t	io_write_pin(string_t *, int, int, int);
+io_error_t	io_read_pin(string_t *, int, int, uint32_t *);
+io_error_t	io_write_pin(string_t *, int, int, uint32_t);
 io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);
-io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, int *low, int *high, int *step, int *current);
+io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
 void		io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html);
 void		io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 void		io_sequencer_clear(void);
 void		io_sequencer_load(void);
 void		io_sequencer_start(unsigned int repeats);
 void		io_sequencer_save(void);
-bool_t		io_sequencer_set_entry(int current, int io, int pin, int value, int duration);
-bool_t		io_sequencer_get_entry(int current, int *io, int *pin, int *value, int *duration);
-bool_t		io_sequencer_remove_entry(int current);
+bool_t		io_sequencer_set_entry(int entry, int io, int pin, uint32_t value, int duration);
+bool_t		io_sequencer_get_entry(int entry, int *io, int *pin, uint32_t *value, int *duration);
+bool_t		io_sequencer_remove_entry(int entry);
 
 app_action_t application_function_io_mode(const string_t *src, string_t *dst);
 app_action_t application_function_io_read(const string_t *src, string_t *dst);

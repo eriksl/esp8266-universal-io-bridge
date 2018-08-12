@@ -84,8 +84,9 @@ irom static app_action_t application_function_config_write(const string_t *src, 
 
 irom static app_action_t application_function_config_query_int(const string_t *src, string_t *dst)
 {
-	int index1, index2;
-	int value;
+	int index1 = -1;
+	int index2 = -1;
+	uint32_t value;
 
 	string_clear(dst);
 
@@ -112,8 +113,9 @@ irom static app_action_t application_function_config_query_int(const string_t *s
 
 irom static app_action_t application_function_config_query_string(const string_t *src, string_t *dst)
 {
-	int index1, index2;
 	string_new(, varid, 64);
+	int index1 = -1;
+	int index2 = -1;
 
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
 	{
@@ -186,7 +188,8 @@ irom static app_action_t application_function_config_set(const string_t *src, st
 
 irom static app_action_t application_function_config_delete(const string_t *src, string_t *dst)
 {
-	int index1, index2, wildcard;
+	int index1, index2;
+	unsigned int wildcard;
 	string_new(, varid, 64);
 
 	if(parse_string(1, src, &varid, ' ') != parse_ok)
@@ -202,7 +205,7 @@ irom static app_action_t application_function_config_delete(const string_t *src,
 	if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
 		index2 = -1;
 
-	if(parse_int(4, src, &wildcard, 0, ' ') != parse_ok)
+	if(parse_uint(4, src, &wildcard, 0, ' ') != parse_ok)
 		wildcard = 0;
 
 	index1 = config_delete(&varid, index1, index2, wildcard != 0);
@@ -311,12 +314,12 @@ irom static app_action_t application_function_stats_wlan(const string_t *src, st
 
 irom static app_action_t application_function_bridge_port(const string_t *src, string_t *dst)
 {
-	int port;
+	unsigned int port;
 	string_init(varname_bridgeport, "bridge.port");
 
-	if(parse_int(1, src, &port, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
 	{
-		if((port < 0) || (port > 65535))
+		if(port > 65535)
 		{
 			string_format(dst, "> invalid port %d\n", port);
 			return(app_action_error);
@@ -343,11 +346,11 @@ irom static app_action_t application_function_bridge_port(const string_t *src, s
 irom static app_action_t application_function_bridge_timeout(const string_t *src, string_t *dst)
 {
 	string_init(varname_bridgetimeout, "bridge.timeout");
-	int timeout;
+	unsigned int timeout;
 
-	if(parse_int(1, src, &timeout, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
 	{
-		if((timeout < 0) || (timeout > 65535))
+		if(timeout > 65535)
 		{
 			string_format(dst, "> invalid timeout: %d\n", timeout);
 			return(app_action_error);
@@ -374,11 +377,11 @@ irom static app_action_t application_function_bridge_timeout(const string_t *src
 irom static app_action_t application_function_command_port(const string_t *src, string_t *dst)
 {
 	string_init(varname_cmdport, "cmd.port");
-	int port;
+	unsigned int port;
 
-	if(parse_int(1, src, &port, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
 	{
-		if((port < 1) || (port > 65535))
+		if(port > 65535)
 		{
 			string_format(dst, "> invalid port %d\n", port);
 			return(app_action_error);
@@ -405,11 +408,11 @@ irom static app_action_t application_function_command_port(const string_t *src, 
 irom static app_action_t application_function_command_timeout(const string_t *src, string_t *dst)
 {
 	string_init(varname_cmdtimeout, "cmd.timeout");
-	int timeout;
+	unsigned int timeout;
 
-	if(parse_int(1, src, &timeout, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
 	{
-		if((timeout < 0) || (timeout > 65535))
+		if(timeout > 65535)
 		{
 			string_format(dst, "> invalid timeout: %d\n", timeout);
 			return(app_action_error);
@@ -444,9 +447,9 @@ irom static app_action_t application_function_sequencer_clear(const string_t *sr
 
 irom static app_action_t application_function_sequencer_remove(const string_t *src, string_t *dst)
 {
-	int	current;
+	unsigned int current;
 
-	if(parse_int(1, src, &current, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &current, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "> usage: sequencer-remove index\n");
 		return(app_action_error);
@@ -465,13 +468,15 @@ irom static app_action_t application_function_sequencer_remove(const string_t *s
 
 irom static app_action_t application_function_sequencer_set(const string_t *src, string_t *dst)
 {
-	int	current, io, pin, value, duration;
+	int	current;
+	unsigned int io, pin, duration;
+	uint32_t value;
 
 	if((parse_int(1, src, &current, 0, ' ') != parse_ok) ||
-			(parse_int(2, src, &io, 0, ' ') != parse_ok) ||
-			(parse_int(3, src, &pin, 0, ' ') != parse_ok) ||
-			(parse_int(4, src, &value, 0, ' ') != parse_ok) ||
-			(parse_int(5, src, &duration, 0, ' ') != parse_ok))
+			(parse_uint(2, src, &io, 0, ' ') != parse_ok) ||
+			(parse_uint(3, src, &pin, 0, ' ') != parse_ok) ||
+			(parse_uint(4, src, &value, 0, ' ') != parse_ok) ||
+			(parse_uint(5, src, &duration, 0, ' ') != parse_ok))
 	{
 		string_append(dst, "> usage: sequencer-set index io pin value duration_ms\n");
 		return(app_action_error);
@@ -537,9 +542,9 @@ irom static app_action_t application_function_sequencer_list(const string_t *src
 
 irom static app_action_t application_function_sequencer_play(const string_t *src, string_t *dst)
 {
-	int	repeats;
+	unsigned int repeats;
 
-	if(parse_int(1, src, &repeats, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &repeats, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "> usage: sequencer-play repeats\n");
 		return(app_action_error);
@@ -555,22 +560,16 @@ irom static app_action_t application_function_sequencer_play(const string_t *src
 irom static app_action_t application_function_uart_baud_rate(const string_t *src, string_t *dst)
 {
 	string_init(varname_baudrate, "uart.baud.%u");
-	int uart, baud_rate;
+	unsigned int uart, baud_rate;
 
-	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
 		string_append(dst, "> usage uart-baudrate <uart [0|1]> <baud rate>\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &baud_rate, 0, ' ') == parse_ok)
+	if(parse_uint(2, src, &baud_rate, 0, ' ') == parse_ok)
 	{
-		if((baud_rate < 150) || (baud_rate > 1000000))
-		{
-			string_format(dst, "> invalid baud rate: %d\n", baud_rate);
-			return(app_action_error);
-		}
-
 		if(baud_rate == 115200)
 			config_delete(&varname_baudrate, uart, -1, false);
 		else
@@ -591,16 +590,16 @@ irom static app_action_t application_function_uart_baud_rate(const string_t *src
 
 irom static app_action_t application_function_uart_data_bits(const string_t *src, string_t *dst)
 {
-	int uart, data_bits;
+	unsigned int uart, data_bits;
 	string_init(varname_uartbits, "uart.bits.%u");
 
-	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
 		string_append(dst, "> usage uart-data-bits <uart [0|1]> <data bits>\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &data_bits, 0, ' ') == parse_ok)
+	if(parse_uint(2, src, &data_bits, 0, ' ') == parse_ok)
 	{
 		if((data_bits < 5) || (data_bits > 8))
 		{
@@ -628,16 +627,16 @@ irom static app_action_t application_function_uart_data_bits(const string_t *src
 
 irom static app_action_t application_function_uart_stop_bits(const string_t *src, string_t *dst)
 {
-	int uart, stop_bits;
+	unsigned int uart, stop_bits;
 	string_init(varname_stopbits, "uart.stop.%u");
 
-	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
 		string_append(dst, "> usage uart-stop-bits <uart [0|1]> <stop bits>\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &stop_bits, 0, ' ') == parse_ok)
+	if(parse_uint(2, src, &stop_bits, 0, ' ') == parse_ok)
 	{
 		if((stop_bits < 1) || (stop_bits > 2))
 		{
@@ -666,10 +665,10 @@ irom static app_action_t application_function_uart_stop_bits(const string_t *src
 irom static app_action_t application_function_uart_parity(const string_t *src, string_t *dst)
 {
 	uart_parity_t parity;
-	int uart, parity_int;
+	unsigned int uart, parity_int;
 	string_init(varname_parity, "uart.parity.%u");
 
-	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || (uart < 0) || (uart > 1))
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
 		string_append(dst, "> usage uart-parity <uart [0|1]> <parity>\n");
 		return(app_action_error);
@@ -714,11 +713,11 @@ irom static app_action_t application_function_uart_parity(const string_t *src, s
 
 irom static app_action_t application_function_uart_write(const string_t *src, string_t *dst)
 {
-	int uart;
+	unsigned int uart;
 	int start, length;
 	char last;
 
-	if((parse_int(1, src, &uart, 0, ' ') != parse_ok) || ((start = string_sep(src, 0, 2, ' ')) <= 0))
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || ((start = string_sep(src, 0, 2, ' ')) <= 0))
 	{
 		string_append(dst, "> usage: uart-write <uart id> <text>\n");
 		return(app_action_error);
@@ -749,9 +748,9 @@ static int i2c_bus = 0;
 
 irom static app_action_t application_function_i2c_address(const string_t *src, string_t *dst)
 {
-	int intin;
+	unsigned int intin;
 
-	if(parse_int(1, src, &intin, 16, ' ') == parse_ok)
+	if(parse_uint(1, src, &intin, 16, ' ') == parse_ok)
 	{
 		if((intin < 2) || (intin > 127))
 		{
@@ -769,10 +768,10 @@ irom static app_action_t application_function_i2c_address(const string_t *src, s
 
 irom static app_action_t application_function_i2c_bus(const string_t *src, string_t *dst)
 {
-	int intin;
+	unsigned int intin;
 	i2c_error_t error;
 
-	if(parse_int(1, src, &intin, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &intin, 0, ' ') == parse_ok)
 	{
 		if((error = i2c_select_bus(intin)) != i2c_error_ok)
 		{
@@ -805,12 +804,12 @@ irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_
 
 irom static app_action_t application_function_i2c_read(const string_t *src, string_t *dst)
 {
-	int size, current;
+	unsigned int size, current;
 	i2c_error_t error;
 	uint8_t bytes[32];
 	uint32_t from, to;
 
-	if(parse_int(1, src, &size, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &size, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "i2c-read: missing byte count\n");
 		return(app_action_error);
@@ -852,12 +851,12 @@ irom static app_action_t application_function_i2c_write(const string_t *src, str
 {
 	i2c_error_t error;
 	static uint8_t bytes[32];
-	int size, out;
+	unsigned int out, size;
 	uint32_t from, to;
 
 	for(size = 0; size < (int)sizeof(bytes); size++)
 	{
-		if(parse_int(size + 1, src, &out, 16, ' ') != parse_ok)
+		if(parse_uint(size + 1, src, &out, 16, ' ') != parse_ok)
 			break;
 
 		bytes[size] = (uint8_t)(out & 0xff);
@@ -889,10 +888,10 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 	i2c_error_t error;
 	uint8_t sendbytes[1];
 	uint8_t receivebytes[32];
-	int size, current, out;
+	unsigned int size, current, out;
 	uint32_t from, to;
 
-	if(parse_int(1, src, &out, 16, ' ') != parse_ok)
+	if(parse_uint(1, src, &out, 16, ' ') != parse_ok)
 	{
 		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
@@ -902,13 +901,13 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	sendbytes[0] = (uint8_t)(out & 0xff);
 
-	if(parse_int(2, src, &size, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &size, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
-	if((size < 0) || (size >= (int)sizeof(receivebytes)))
+	if(size >= (int)sizeof(receivebytes))
 	{
 		string_format(dst, "i2wr: max read %d bytes\n", sizeof(receivebytes));
 		return(app_action_error);
@@ -940,12 +939,12 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 irom static app_action_t application_function_i2c_speed(const string_t *src, string_t *dst)
 {
-	int speed;
+	unsigned int speed;
 	string_init(varname_i2c_speed, "i2c.speed_delay");
 
-	if(parse_int(1, src, &speed, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &speed, 0, ' ') == parse_ok)
 	{
-		if((speed < 0) || (speed > 65535))
+		if(speed > 65535)
 		{
 			string_format(dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %d\n", speed);
 			return(app_action_error);
@@ -971,11 +970,11 @@ irom static app_action_t application_function_i2c_speed(const string_t *src, str
 
 irom static app_action_t application_function_i2c_sensor_init(const string_t *src, string_t *dst)
 {
-	int intin, bus;
+	unsigned int intin, bus;
 	i2c_error_t error;
 	i2c_sensor_t sensor;
 
-	if((parse_int(1, src, &intin, 0, ' ')) != parse_ok)
+	if((parse_uint(1, src, &intin, 0, ' ')) != parse_ok)
 	{
 		string_format(dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
@@ -983,7 +982,7 @@ irom static app_action_t application_function_i2c_sensor_init(const string_t *sr
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_int(2, src, &bus, 0, ' ')) != parse_ok)
+	if((parse_uint(2, src, &bus, 0, ' ')) != parse_ok)
 		bus = 0;
 
 	if(bus >= i2c_busses)
@@ -1007,10 +1006,10 @@ irom static app_action_t application_function_i2c_sensor_init(const string_t *sr
 
 irom static app_action_t application_function_i2c_sensor_read(const string_t *src, string_t *dst)
 {
-	int intin, bus;
+	unsigned int intin, bus;
 	i2c_sensor_t sensor;
 
-	if((parse_int(1, src, &intin, 0, ' ')) != parse_ok)
+	if((parse_uint(1, src, &intin, 0, ' ')) != parse_ok)
 	{
 		string_format(dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
@@ -1018,7 +1017,7 @@ irom static app_action_t application_function_i2c_sensor_read(const string_t *sr
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_int(2, src, &bus, 0, ' ')) != parse_ok)
+	if((parse_uint(2, src, &bus, 0, ' ')) != parse_ok)
 		bus = 0;
 
 	if(bus >= i2c_busses)
@@ -1049,13 +1048,13 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 	string_init(varname_i2s_factor, "i2s.%u.%u.factor");
 	string_init(varname_i2s_offset, "i2s.%u.%u.offset");
 
-	if(parse_int(1, src, &bus, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &bus, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "> missing i2c bus\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &intin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &intin, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "> missing i2c sensor\n");
 		return(app_action_error);
@@ -1113,14 +1112,14 @@ irom static app_action_t application_function_i2c_sensor_calibrate(const string_
 irom static app_action_t application_function_i2c_sensor_dump(const string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
-	int option, bus;
+	unsigned int option, bus;
 	bool_t all, verbose;
 	int original_length = string_length(dst);
 
 	all = false;
 	verbose = false;
 
-	if(parse_int(1, src, &option, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &option, 0, ' ') == parse_ok)
 	{
 		switch(option)
 		{
@@ -1183,9 +1182,9 @@ irom static app_action_t application_function_time_set(const string_t *src, stri
 	unsigned int Y, M, D, h, m, s;
 	const char *source;
 
-	if((parse_int(1, src, &h, 0, ' ') == parse_ok) && (parse_int(2, src, &m, 0, ' ') == parse_ok))
+	if((parse_uint(1, src, &h, 0, ' ') == parse_ok) && (parse_uint(2, src, &m, 0, ' ') == parse_ok))
 	{
-		if(parse_int(3, src, &s, 0, ' ') != parse_ok)
+		if(parse_uint(3, src, &s, 0, ' ') != parse_ok)
 			s = 0;
 
 		if((h > 10512000) && (s == 0)) // unix timestamp supplied
@@ -1241,7 +1240,7 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 
 irom static app_action_t application_function_wlan_ap_configure(const string_t *src, string_t *dst)
 {
-	int channel;
+	unsigned int channel;
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
 	string_init(varname_wlan_ap_ssid, "wlan.ap.ssid");
@@ -1249,7 +1248,7 @@ irom static app_action_t application_function_wlan_ap_configure(const string_t *
 	string_init(varname_wlan_ap_channel, "wlan.ap.channel");
 
 	if((parse_string(1, src, &ssid, ' ') == parse_ok) && (parse_string(2, src, &passwd, ' ') == parse_ok) &&
-			(parse_int(3, src, &channel, 0, ' ') == parse_ok))
+			(parse_uint(3, src, &channel, 0, ' ') == parse_ok))
 	{
 		if((channel < 1) || (channel > 13))
 		{
@@ -1501,14 +1500,14 @@ irom static app_action_t application_function_ntp_dump(const string_t *src, stri
 
 irom static app_action_t application_function_ntp_set(const string_t *src, string_t *dst)
 {
-	int					timezone, ix;
-	ip_addr_to_bytes_t	a2b;
+	unsigned int timezone, ix;
+	ip_addr_to_bytes_t a2b;
 
 	string_new(, ip, 32);
 	string_init(varname_ntp_server, "ntp.server.%u");
 	string_init(varname_ntp_tz, "ntp.tz");
 
-	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_int(2, src, &timezone, 0, ' ') == parse_ok))
+	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_uint(2, src, &timezone, 0, ' ') == parse_ok))
 	{
 		a2b.ip_addr = ip_addr(string_to_cstr(&ip));
 
@@ -1624,7 +1623,7 @@ irom static app_action_t application_function_peek(const string_t *src, string_t
 {
 	uint32_t address;
 
-	if(parse_int(1, src, &address, 16, ' ') != parse_ok)
+	if(parse_uint(1, src, &address, 16, ' ') != parse_ok)
 	{
 		string_append(dst, "> use peek <address>");
 		return(app_action_error);
@@ -1642,7 +1641,7 @@ irom static app_action_t application_function_poke(const string_t *src, string_t
 	uint32_t address;
 	uint32_t value;
 
-	if((parse_int(1, src, &address, 16, ' ') != parse_ok) || (parse_int(2, src, &value, 16, ' ') != parse_ok))
+	if((parse_uint(1, src, &address, 16, ' ') != parse_ok) || (parse_uint(2, src, &value, 16, ' ') != parse_ok))
 	{
 		string_append(dst, "> use poke <address> <value>");
 		return(app_action_error);

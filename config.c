@@ -20,9 +20,9 @@ enum
 
 typedef struct
 {
-	char	id[config_entry_id_size];
-	char	string_value[config_entry_string_size];
-	int		int_value;
+	char		id[config_entry_id_size];
+	char		string_value[config_entry_string_size];
+	uint32_t	uint_value;
 } config_entry_t;
 
 assert_size(config_entry_t, 52);
@@ -201,14 +201,14 @@ irom bool_t config_get_string(const string_t *id, int index1, int index2, string
 	return(true);
 }
 
-irom bool_t config_get_int(const string_t *id, int index1, int index2, int *value)
+irom bool_t config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
 {
 	config_entry_t *config_entry;
 
 	if(!(config_entry = find_config_entry(id, index1, index2)))
 		return(false);
 
-	*value = config_entry->int_value;
+	*value = config_entry->uint_value;
 
 	return(true);
 }
@@ -264,17 +264,17 @@ irom bool_t config_set_string(const string_t *id, int index1, int index2, const 
 
 	string = string_from_cstr(value_length + 1, config_current->string_value);
 
-	if(parse_int(0, &string, &config_current->int_value, 0, ' ') != parse_ok)
-		config_current->int_value = -1;
+	if(parse_uint(0, &string, &config_current->uint_value, 0, ' ') != parse_ok)
+		config_current->uint_value = 0;
 
 	return(true);
 }
 
-irom bool_t config_set_int(const string_t *id, int index1, int index2, int value)
+irom bool_t config_set_int(const string_t *id, int index1, int index2, uint32_t value)
 {
 	string_new(, string, 16);
 
-	string_format(&string, "%d", value);
+	string_format(&string, "%u", value);
 
 	return(config_set_string(id, index1, index2, &string, 0, -1));
 }
@@ -283,8 +283,7 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, bool
 {
 	const char *varidptr;
 	config_entry_t *config_current;
-	unsigned int ix;
-	unsigned int amount, length;
+	unsigned int ix, amount, length;
 
 	varidptr = string_to_cstr(expand_varid(id, index1, index2));
 	length = strlen(varidptr);
@@ -299,7 +298,7 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, bool
 			amount++;
 			config_current->id[0] = '\0';
 			config_current->string_value[0] = '\0';
-			config_current->int_value = '0';
+			config_current->uint_value = 0;
 		}
 	}
 
@@ -308,8 +307,8 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, bool
 
 irom bool_t config_read(void)
 {
-	int current_index, id_index, id_length, value_index, value_length;
 	string_new(, string, 64);
+	unsigned int current_index, id_index, id_length, value_index, value_length;
 	char current;
 	state_parse_t parse_state;
 	bool_t rv = false;
@@ -512,7 +511,7 @@ irom void config_dump(string_t *dst)
 
 		in_use++;
 
-		string_format(dst, "%s=%s (%d)\n", config_current->id, config_current->string_value, config_current->int_value);
+		string_format(dst, "%s=%s (%u/%d)\n", config_current->id, config_current->string_value, config_current->uint_value, (int)config_current->uint_value);
 	}
 
 	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);

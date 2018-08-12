@@ -60,7 +60,7 @@ static iram unsigned int flash_erase(unsigned int sector_offset, unsigned int se
 
 irom app_action_t application_function_flash_erase(const string_t *src, string_t *dst)
 {
-	int address, length;
+	unsigned int address, length;
 	int sector_offset, sector_count, count;
 	uint32_t time_start, time_finish;
 
@@ -70,13 +70,13 @@ irom app_action_t application_function_flash_erase(const string_t *src, string_t
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-erase: offset required\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &length, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-erase: length required\n");
 		return(app_action_error);
@@ -106,7 +106,8 @@ irom app_action_t application_function_flash_erase(const string_t *src, string_t
 irom app_action_t application_function_flash_send(const string_t *raw_src, string_t *dst)
 {
 	string_t src = *raw_src;
-	int offset, length, chunk_offset, chunk_length;
+	int chunk_offset;
+	unsigned int offset, length, chunk_length;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -116,13 +117,13 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 
 	string_trim_nl(&src);
 
-	if(parse_int(1, &src, &offset, 0, ' ') != parse_ok)
+	if(parse_uint(1, &src, &offset, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-send: offset required\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, &src, &length, 0, ' ') != parse_ok)
+	if(parse_uint(2, &src, &length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-send: length required\n");
 		return(app_action_error);
@@ -167,7 +168,7 @@ irom app_action_t application_function_flash_send(const string_t *raw_src, strin
 
 irom app_action_t application_function_flash_receive(const string_t *src, string_t *dst)
 {
-	int chunk_offset, chunk_length;
+	unsigned int chunk_offset, chunk_length;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -175,13 +176,13 @@ irom app_action_t application_function_flash_receive(const string_t *src, string
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &chunk_offset, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &chunk_offset, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-receive: chunk offset required\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &chunk_length, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &chunk_length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-receive: chunk chunk_length required\n");
 		return(app_action_error);
@@ -216,7 +217,7 @@ irom app_action_t application_function_flash_receive(const string_t *src, string
 
 irom app_action_t application_function_flash_read(const string_t *src, string_t *dst)
 {
-	int address, sector;
+	unsigned int address, sector;
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
@@ -228,7 +229,7 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-read: address required\n");
 		return(app_action_error);
@@ -258,7 +259,7 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 
 irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst, bool_t verify)
 {
-	int address, sector;
+	unsigned int address, sector;
 	int byte;
 	int same = 0;
 	int erase = 1;
@@ -274,7 +275,7 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
 		if(verify)
 			string_append(dst, "ERROR flash-verify");
@@ -362,7 +363,7 @@ irom app_action_t application_function_flash_verify(const string_t *src, string_
 
 irom app_action_t application_function_flash_checksum(const string_t *src, string_t *dst)
 {
-	int address, current, length, done;
+	unsigned int address, current, length, done;
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
@@ -374,13 +375,13 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &address, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-checksum: address required\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &length, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-checksum: length required\n");
 		return(app_action_error);
@@ -423,7 +424,7 @@ irom app_action_t application_function_flash_select(const string_t *src, string_
 	string_append(dst, "ERROR flash-select: no OTA image\n");
 	return(app_action_error);
 #else
-	int slot;
+	unsigned int slot;
 
 	rboot_config rcfg = rboot_get_config();
 
@@ -433,7 +434,7 @@ irom app_action_t application_function_flash_select(const string_t *src, string_
 		return(app_action_error);
 	}
 
-	if(parse_int(1, src, &slot, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &slot, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-select: slot required\n");
 		return(app_action_error);
@@ -445,7 +446,7 @@ irom app_action_t application_function_flash_select(const string_t *src, string_
 		return(app_action_error);
 	}
 
-	if((slot < 0) || (slot >= rcfg.count))
+	if(slot >= rcfg.count)
 	{
 		string_format(dst, "ERROR flash-select: invalid slot, valid range = 0 - %d\n", rcfg.count - 1);
 		return(app_action_error);

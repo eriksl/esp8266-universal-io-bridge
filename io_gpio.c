@@ -826,7 +826,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	return(io_ok);
 }
 
-irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -899,7 +899,7 @@ irom io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int value)
+irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -930,10 +930,7 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 		case(io_pin_ll_output_analog):
 		{
-			if(value < 0)
-				value = 0;
-
-			if(gpio_pin_data->pwm.duty != (unsigned int)value)
+			if(gpio_pin_data->pwm.duty != value)
 			{
 				gpio_pin_data->pwm.duty = value;
 				pwm_go();
@@ -955,9 +952,6 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 			if(gpio_info_table[pin].uart_pin == io_uart_tx)
 			{
-				if(value < 0)
-					value = 0;
-
 				if(value == 0)
 				{
 					uart_autofill(uart, false, 0);
@@ -989,10 +983,10 @@ irom io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
 {
-	int new_pwm_period;
+	unsigned int new_pwm_period;
 	string_init(varname_pwmperiod, "pwm.period");
 
-	if(parse_int(1, src, &new_pwm_period, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &new_pwm_period, 0, ' ') == parse_ok)
 	{
 		if((new_pwm_period < 256) || (new_pwm_period > 65536))
 		{

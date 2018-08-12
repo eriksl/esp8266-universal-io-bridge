@@ -184,13 +184,13 @@ enum
 typedef struct attr_packed
 {
 	unsigned	int active:1;
-	unsigned	int	io:3;
+	unsigned	int	io:7;
 	unsigned	int	pin:8;
-	unsigned	int	value:16;
 	unsigned	int	duration:16;
+	uint32_t	value;
 } sequencer_entry_t;
 
-assert_size(sequencer_entry_t, 6);
+assert_size(sequencer_entry_t, 8);
 
 typedef struct
 {
@@ -211,7 +211,7 @@ irom void io_sequencer_clear(void)
 		sequencer.entry[current].active = 0;
 		sequencer.entry[current].io = -1;
 		sequencer.entry[current].pin = -1;
-		sequencer.entry[current].value = -1;
+		sequencer.entry[current].value = 0;
 		sequencer.entry[current].duration = -1;
 	}
 
@@ -238,8 +238,7 @@ irom void io_sequencer_save(void)
 		string_clear(&var_value);
 		string_format(&var_value, "%02x %08x %04x",
 				((sequencer.entry[current].io << 4) | (sequencer.entry[current].pin << 0)) & 0x0f,
-				sequencer.entry[current].value & 0xffffffff,
-				sequencer.entry[current].duration & 0xffff);
+				sequencer.entry[current].value, sequencer.entry[current].duration & 0xffff);
 
 		config_set_string(&varname_set, current, -1, &var_value, -1, -1);
 	}
@@ -250,10 +249,8 @@ irom void io_sequencer_load(void)
 	string_init(varname_io, "sequencer.%u");
 	string_new(, var_value, 32);
 
-	int intval1, intval2, intval3;
-	int io, pin, value, duration;
-
-	unsigned int current;
+	unsigned int varintval_iopin, io, pin, duration, current;
+	uint32_t value;
 
 	io_sequencer_clear();
 
@@ -264,25 +261,23 @@ irom void io_sequencer_load(void)
 		if(!config_get_string(&varname_io, current, -1, &var_value))
 			break;
 
-		if(parse_int(0, &var_value, &intval1, 16, ' ') != parse_ok)
+		if(parse_uint(0, &var_value, &varintval_iopin, 16, ' ') != parse_ok)
 			continue;
 
-		if(parse_int(1, &var_value, &intval2, 16, ' ') != parse_ok)
+		if(parse_uint(1, &var_value, &value, 16, ' ') != parse_ok)
 			continue;
 
-		if(parse_int(2, &var_value, &intval3, 16, ' ') != parse_ok)
+		if(parse_uint(2, &var_value, &duration, 16, ' ') != parse_ok)
 			continue;
 
-		io = (intval1 >> 4) & 0x0f;
-		pin = (intval1 >> 0) & 0x0f;
-		value = intval2 & 0xffffffff;
-		duration = intval3 & 0xffff;
+		io = (varintval_iopin >> 4) & 0x0f;
+		pin = (varintval_iopin >> 0) & 0x0f;
 
 		io_sequencer_set_entry(current, io, pin, value, duration);
 	}
 }
 
-irom bool_t io_sequencer_set_entry(int current, int io, int pin, int value, int duration)
+irom bool_t io_sequencer_set_entry(int current, int io, int pin, uint32_t value, int duration)
 {
 	if((current < 0) || (current >= sequencer_size))
 		return(false);
@@ -296,7 +291,7 @@ irom bool_t io_sequencer_set_entry(int current, int io, int pin, int value, int 
 	return(true);
 }
 
-irom bool_t io_sequencer_get_entry(int current, int *io, int *pin, int *value, int *duration)
+irom bool_t io_sequencer_get_entry(int current, int *io, int *pin, uint32_t *value, int *duration)
 {
 	if((current < 0) || (current >= sequencer_size))
 		return(false);
@@ -330,7 +325,7 @@ irom bool_t io_sequencer_remove_entry(int current)
 	sequencer.entry[current].active = 0;
 	sequencer.entry[current].io = -1;
 	sequencer.entry[current].pin = -1;
-	sequencer.entry[current].value = -1;
+	sequencer.entry[current].value = 0;
 	sequencer.entry[current].duration = -1;
 
 	return(true);
@@ -658,11 +653,35 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 		string_append(flags, "reset-on-read");
 	}
 
+	if(pin_config->flags.extended)
+	{
+		if(!none)
+			string_append(flags, "/");
+		none = false;
+		string_append(flags, "extended");
+	}
+
+	if(pin_config->flags.grb)
+	{
+		if(!none)
+			string_append(flags, "/");
+		none = false;
+		string_append(flags, "grb");
+	}
+
+	if(pin_config->flags.linear)
+	{
+		if(!none)
+			string_append(flags, "/");
+		none = false;
+		string_append(flags, "linear");
+	}
+
 	if(none)
 		string_append(flags, "none");
 }
 
-irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, int *value)
+irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	io_error_t error;
 
@@ -689,7 +708,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 	return(io_ok);
 }
 
-irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, int value)
+irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	io_error_t error;
 
@@ -719,7 +738,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
-	int value = 0, old_value, trigger;
+	uint32_t value = 0, old_value, trigger;
 
 	switch(pin_config->mode)
 	{
@@ -765,7 +784,8 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 					if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
 						return(error);
 
-					value--;
+					if(value > 0)
+						value--;
 
 					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 						return(error);
@@ -996,7 +1016,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 	return(io_ok);
 }
 
-irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
+irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1033,7 +1053,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, int *value)
 	return(error);
 }
 
-irom io_error_t io_write_pin(string_t *error, int io, int pin, int value)
+irom io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1093,14 +1113,14 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
 }
 
-irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, int *low, int *high, int *step, int *current)
+irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
 {
 	io_error_t error;
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int pwm_period;
+	unsigned int pwm_period;
 	string_init(varname_pwmperiod, "pwm.period");
 
 	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
@@ -1141,17 +1161,17 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 
 		case(io_pin_output_analog):
 		{
-			*low		= pin_config->shared.output_analog.lower_bound;
-			*high		= pin_config->shared.output_analog.upper_bound;
-			*step		= pin_config->speed;
+			*lower_bound	= pin_config->shared.output_analog.lower_bound;
+			*upper_bound	= pin_config->shared.output_analog.upper_bound;
+			*step			= pin_config->speed;
 
-			if(*low > pwm_period)
-				*low = 0;
+			if(*lower_bound > pwm_period)
+				*lower_bound = 0;
 
-			if(*high > pwm_period)
-				*high = pwm_period - 1;
+			if(*upper_bound > pwm_period)
+				*upper_bound = pwm_period - 1;
 
-			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, current)) != io_ok)
+			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
 
 			break;
@@ -1345,7 +1365,8 @@ irom void io_init(void)
 
 				case(io_pin_output_analog):
 				{
-					int speed, lower_bound, upper_bound;
+					int speed;
+					uint32_t lower_bound, upper_bound;
 
 					if(!info->caps.output_analog)
 					{
@@ -1492,7 +1513,8 @@ irom void io_init(void)
 
 irom noinline static void run_sequencer(void)
 {
-	int current, io, pin, value, duration;
+	int current, io, pin, duration;
+	uint32_t value;
 
 	sequencer.current++;
 
@@ -1532,7 +1554,8 @@ iram void io_periodic(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin, value, trigger;
+	int io, pin, trigger;
+	uint32_t value;
 	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
 	string_init(varname_trigger_io, "trigger.status.io");
@@ -1656,7 +1679,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	io_data_pin_entry_t		*pin_data;
 	io_pin_mode_t			mode;
 	io_pin_ll_mode_t		llmode;
-	int io, pin;
+	unsigned int io, pin;
 	string_init(varname_io, "io.%u.%u.");
 	string_init(varname_io_mode, "io.%u.%u.mode");
 	string_init(varname_io_llmode, "io.%u.%u.llmode");
@@ -1676,13 +1699,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 	string_init(varname_io_i2c_pinmode, "io.%u.%u.i2c.pinmode");
 	string_init(varname_io_lcd_pin, "io.%u.%u.lcd.pin");
 
-	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
 		io_config_dump(dst, -1, -1, false);
 		return(app_action_normal);
 	}
 
-	if((io < 0) || (io >= io_id_size))
+	if(io >= io_id_size)
 	{
 		string_format(dst, "invalid io %d\n", io);
 		return(app_action_error);
@@ -1697,13 +1720,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		io_config_dump(dst, io, -1, false);
 		return(app_action_normal);
 	}
 
-	if((pin < 0) || (pin >= info->pins))
+	if(pin >= info->pins)
 	{
 		string_append(dst, "io pin out of range\n");
 		return(app_action_error);
@@ -1759,9 +1782,9 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			int debounce;
+			unsigned int debounce;
 
-			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
+			if((parse_uint(4, src, &debounce, 0, ' ') != parse_ok))
 			{
 				string_append(dst, "counter: <debounce ms>\n");
 				return(app_action_error);
@@ -1780,7 +1803,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 
 		case(io_pin_trigger):
 		{
-			int debounce, trigger_io, trigger_pin;
+			unsigned int debounce, trigger_io, trigger_pin;
 			io_trigger_t trigger_type;
 
 			if(!info->caps.counter)
@@ -1789,7 +1812,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			if((parse_int(4, src, &debounce, 0, ' ') != parse_ok))
+			if((parse_uint(4, src, &debounce, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst, "debounce");
 				return(app_action_error);
@@ -1811,13 +1834,13 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				return(app_action_error);
 			}
 
-			if((parse_int(6, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_uint(6, src, &trigger_io, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst, "io");
 				return(app_action_error);
 			}
 
-			if((parse_int(7, src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_uint(7, src, &trigger_pin, 0, ' ') != parse_ok))
 			{
 				iomode_trigger_usage(dst, "pin");
 				return(app_action_error);
@@ -1845,7 +1868,7 @@ irom app_action_t application_function_io_mode(const string_t *src, string_t *ds
 				goto skip;
 			}
 
-			if((parse_int(9, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_uint(9, src, &trigger_io, 0, ' ') != parse_ok))
 				goto skip;
 
 			if((parse_int(10, src, &trigger_pin, 0, ' ') != parse_ok))
@@ -1899,7 +1922,7 @@ skip:
 		case(io_pin_timer):
 		{
 			io_direction_t direction;
-			int speed;
+			uint32_t speed;
 
 			if(!info->caps.output_digital)
 			{
@@ -1926,7 +1949,7 @@ skip:
 
 			string_clear(dst);
 
-			if((parse_int(5, src, &speed, 0, ' ') != parse_ok))
+			if((parse_uint(5, src, &speed, 0, ' ') != parse_ok))
 			{
 				string_clear(dst);
 				string_append(dst, "timer: <direction>:up/down <speed>:ms\n");
@@ -1972,9 +1995,9 @@ skip:
 
 		case(io_pin_output_analog):
 		{
-			int lower_bound = 0;
-			int upper_bound = 0;
-			int speed = 0;
+			uint32_t lower_bound = 0;
+			uint32_t upper_bound = 0;
+			uint32_t speed = 0;
 
 			if(!info->caps.output_analog)
 			{
@@ -1982,34 +2005,16 @@ skip:
 				return(app_action_error);
 			}
 
-			parse_int(4, src, &lower_bound, 0, ' ');
-			parse_int(5, src, &upper_bound, 0, ' ');
-			parse_int(6, src, &speed, 0, ' ');
-
-			if((lower_bound < 0) || (lower_bound > 65535))
-			{
-				string_format(dst, "outputa: lower bound out of range: %d\n", lower_bound);
-				return(app_action_error);
-			}
+			parse_uint(4, src, &lower_bound, 0, ' ');
+			parse_uint(5, src, &upper_bound, 0, ' ');
+			parse_uint(6, src, &speed, 0, ' ');
 
 			if(upper_bound == 0)
-				upper_bound = lower_bound;
-
-			if((upper_bound < 0) || (upper_bound > 65535))
-			{
-				string_format(dst, "outputa: upper bound out of range: %d\n", upper_bound);
-				return(app_action_error);
-			}
+				upper_bound = ~0;
 
 			if(upper_bound < lower_bound)
 			{
 				string_append(dst, "upper bound below lower bound\n");
-				return(app_action_error);
-			}
-
-			if((speed < 0) || (speed > 65535))
-			{
-				string_format(dst, "outputa: speed out of range: %d\n", speed);
 				return(app_action_error);
 			}
 
@@ -2181,15 +2186,16 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
-	int io, pin, value;
+	unsigned int io, pin;
+	uint32_t value;
 
-	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "io-read: <io> <pin>\n");
 		return(app_action_error);
 	}
 
-	if((io < 0) || (io >= io_id_size))
+	if(io >= io_id_size)
 	{
 		string_format(dst, "invalid io %d\n", io);
 		return(app_action_error);
@@ -2197,13 +2203,13 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "get: <io> <pin>\n");
 		return(app_action_error);
 	}
 
-	if((pin < 0) || (pin >= info->pins))
+	if(pin >= info->pins)
 	{
 		string_append(dst, "io pin out of range\n");
 		return(app_action_error);
@@ -2230,7 +2236,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
 		return(app_action_error);
 
-	string_format(dst, "[%d]\n", value);
+	string_format(dst, "[%u]\n", value);
 
 	return(app_action_normal);
 }
@@ -2239,15 +2245,16 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
-	int io, pin, value;
+	unsigned int io, pin;
+	uint32_t value;
 
-	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
-	if((io < 0) || (io >= io_id_size))
+	if(io >= io_id_size)
 	{
 		string_format(dst, "invalid io %d\n", io);
 		return(app_action_error);
@@ -2255,13 +2262,13 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
-	if((pin < 0) || (pin >= info->pins))
+	if(pin >= info->pins)
 	{
 		string_append(dst, "invalid pin\n");
 		return(app_action_error);
@@ -2270,7 +2277,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	pin_config = &io_config[io][pin];
 
 	value = 0;
-	parse_int(3, src, &value, 0, ' ');
+	parse_uint(3, src, &value, 0, ' ');
 
 	io_string_from_mode(dst, pin_config->mode, 0);
 
@@ -2302,17 +2309,17 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 irom app_action_t application_function_io_trigger(const string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
-	int io, pin;
+	unsigned int io, pin;
 	io_trigger_t trigger_type;
 
-	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		trigger_usage(dst);
 		return(app_action_normal);
 	}
 
-	if((io < 0) || (io >= io_id_size))
+	if(io >= io_id_size)
 	{
 		string_format(dst, "invalid io %d\n", io);
 		return(app_action_error);
@@ -2320,14 +2327,14 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 
 	info = &io_info[io];
 
-	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		trigger_usage(dst);
 		return(app_action_normal);
 	}
 
-	if((pin < 0) || (pin >= info->pins))
+	if(pin >= info->pins)
 	{
 		string_append(dst, "invalid pin\n");
 		return(app_action_error);
@@ -2364,24 +2371,24 @@ irom app_action_t application_function_io_trigger(const string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, int value)
+irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, uint32_t value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
 	io_data_pin_entry_t *pin_data;
 	io_config_pin_entry_t *pin_config;
-	int io, pin;
+	unsigned int io, pin;
 	io_pin_flag_t saved_flags;
 	io_pin_flag_to_int_t io_pin_flag_to_int;
 	string_init(varname_io_flags, "io.%u.%u.flags");
 
-	if(parse_int(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
-	if((io < 0) || (io >= io_id_size))
+	if(io >= io_id_size)
 	{
 		string_format(dst, "invalid io %d\n", io);
 		return(app_action_error);
@@ -2390,13 +2397,13 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	info = &io_info[io];
 	data = &io_data[io];
 
-	if(parse_int(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
-	if((pin < 0) || (pin >= info->pins))
+	if(pin >= info->pins)
 	{
 		string_append(dst, "invalid pin\n");
 		return(app_action_error);
@@ -2407,7 +2414,7 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 
 	saved_flags = pin_config->flags;
 
-	if((parse_string(3, src, dst, ' ') == parse_ok) && !pin_flag_from_string(dst, pin_config, value))
+	if((parse_string(3, src, dst, ' ') == parse_ok) && !pin_flag_from_string(dst, pin_config, !!value))
 	{
 		string_clear(dst);
 		string_append(dst, "io-flag <io> <pin> <flag>\n");
@@ -2518,7 +2525,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_trigger_3 */		"",
 		/* ds_id_output */			"output, state: %s",
 		/* ds_id_timer */			"config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
-		/* ds_id_analog_output */	"analog output, min/static: %d, max: %d, current speed: %d, direction: %s, value: %d, saved value: %d",
+		/* ds_id_analog_output */	"analog output, min/static: %u, max: %u, current speed: %d, direction: %s, value: %u, saved value: %u",
 		/* ds_id_i2c_sda */			"sda",
 		/* ds_id_i2c_scl */			"scl",
 		/* ds_id_uart */			"uart",
@@ -2552,7 +2559,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_trigger_3 */		"</td>",
 		/* ds_id_output */			"<td>output</td><td>state: %s</td>",
 		/* ds_id_timer */			"<td>config direction: %s, speed: %d ms, current direction %s, delay: %d ms, state: %s</td>",
-		/* ds_analog_output */		"<td>min/static: %d, max: %d, speed: %d, current direction: %s, value: %d, saved value: %d",
+		/* ds_id_analog_output */	"<td>min/static: %u, max: %u, speed: %d, current direction: %s, value: %u, saved value: %u",
 		/* ds_id_i2c_sda */			"<td>sda</td>",
 		/* ds_id_i2c_scl */			"<td>scl</td>",
 		/* ds_id_uart */			"<td>uart</td>",
@@ -2577,7 +2584,8 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 	io_data_pin_entry_t *pin_data;
 	const io_config_pin_entry_t *pin_config;
 	const string_array_t *roflash_strings;
-	int io, pin, value;
+	int io, pin;
+	uint32_t value;
 	io_error_t error;
 
 	if(html)
@@ -2621,7 +2629,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_1]);
 			io_string_from_ll_mode(dst, pin_config->llmode, -1);
-			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_2]); 
+			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_2]);
 
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_1]);
 			pin_string_from_flags(dst, pin_config);
