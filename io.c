@@ -10,7 +10,7 @@
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
-io_info_t io_info =
+static const io_info_t io_info =
 {
 	{
 		io_id_gpio, /* = 0 */
@@ -161,7 +161,7 @@ typedef struct
 	const char		*long_name;
 } io_mode_trait_t;
 
-static io_mode_trait_t io_mode_traits[io_pin_size] =
+static const io_mode_trait_t io_mode_traits[io_pin_size] =
 {
 	{ io_pin_disabled,			"disabled",		"disabled"				},
 	{ io_pin_input_digital,		"dinput",		"digital input"			},
