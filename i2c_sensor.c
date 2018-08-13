@@ -171,7 +171,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const device_table_entry_t *en
 
 	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
 	{
-		log("\nlm75: [0] = %02x, [1] = %02x\n", i2cbuffer[0], i2cbuffer[1]);
+		logfmt("\nlm75: [0] = %02x, [1] = %02x\n", i2cbuffer[0], i2cbuffer[1]);
 		return(i2c_error_device_error_2);
 	}
 
@@ -1534,7 +1534,7 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 
 		if(local_response != 0x00)
 		{
-			log("si114x: response not 0: %d\n", local_response);
+			logfmt("si114x: response not 0: %d\n", local_response);
 			goto failed;
 		}
 
@@ -1554,12 +1554,12 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 
 			if((local_response & 0b10001000) == 0b10001000)		// overflow, treat as OK
 			{
-				log("si114x: response overflow: %x\n", local_response);
+				logfmt("si114x: response overflow: %x\n", local_response);
 				break;
 			}
 
-			log("si114x: response invalid command / timeout: %x\n", local_response);
-			log("si114x: attempt2: %d\n", attempt2);
+			logfmt("si114x: response invalid command / timeout: %x\n", local_response);
+			logfmt("si114x: attempt2: %d\n", attempt2);
 
 			msleep(1);
 		}
@@ -1568,7 +1568,7 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 			break;
 
 failed:
-		log("si114x: attempt1: %d\n", attempt1);
+		logfmt("si114x: attempt1: %d\n", attempt1);
 		msleep(1);
 	}
 
@@ -2766,7 +2766,7 @@ irom static i2c_error_t sensor_hih6130_read(int bus, const device_table_entry_t 
 		if((i2c_receive(entry->address, 4, i2c_buffer) == i2c_error_ok) && ((i2c_buffer[0] & hih6130_status_mask) == hih6130_status_normal))
 			break;
 
-		log("hih6130: retry %d\n", attempt);
+		logfmt("hih6130: retry %d\n", attempt);
 
 		msleep(20);
 	}

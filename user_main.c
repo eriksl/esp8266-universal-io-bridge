@@ -440,7 +440,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 			mc_ip.byte[3] = 254;
 			espconn_igmp_join(&local_ip.ip_addr, &mc_ip.ip_addr);
 
-			log("* join mc from %d.%d.%d.%d", local_ip.byte[0], local_ip.byte[1], local_ip.byte[2], local_ip.byte[3]);
+			logfmt("* join mc from %d.%d.%d.%d", local_ip.byte[0], local_ip.byte[1], local_ip.byte[2], local_ip.byte[3]);
 
 			// fall through
 		}
@@ -694,7 +694,7 @@ irom bool_t wlan_init(void)
 			else
 				strecpy(cconf.password, "espespesp", sizeof(cconf.password));
 
-			log("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
+			logfmt("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
 
 			wifi_station_disconnect();
 			wifi_set_opmode_current(STATION_MODE);
@@ -728,7 +728,7 @@ irom bool_t wlan_init(void)
 			saconf.max_connection = 1;
 			saconf.beacon_interval = 100;
 
-			log("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
+			logfmt("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
 					saconf.ssid, saconf.password, saconf.channel);
 
 			wifi_station_disconnect();

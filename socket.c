@@ -173,7 +173,7 @@ irom static void socket_callback_error(void *arg, int8_t error)
 	if(socket->callback_error)
 		socket->callback_error(socket, error, socket->userdata);
 
-	log("socket: callback error: %d\n", error);
+	logfmt("socket: callback error: %d\n", error);
 
 	socket->send_busy = false;
 }

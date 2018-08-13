@@ -145,8 +145,7 @@ size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
 void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
-int log(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
-void logchar(char c);
+
 void msleep(int);
 
 attr_inline void usleep(int usec)
@@ -385,5 +384,25 @@ attr_inline parse_error_t parse_int(int index, const string_t *src, int32_t *dst
 	*dst = (int32_t)value;
 	return(error);
 }
+
+// logging
+
+extern string_t logbuffer;
+
+int log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
+
+#define logfmt(fmt, ...) \
+do { \
+	static roflash const char fmt_flash[] = fmt; \
+	log_from_flash(fmt_flash, __VA_ARGS__); \
+} while(0)
+
+#define log(str) \
+do { \
+	static roflash const char str_flash[] = str; \
+	log_from_flash(str_flash); \
+} while(0)
+
+void logchar(char c);
 
 #endif

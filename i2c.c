@@ -196,11 +196,11 @@ iram static i2c_error_t sda_set_test(bool_t val, i2c_delay_enum_t delay_index)
 	if(current > 0)
 	{
 		// this line takes ~240/~150 microseconds to complete, so don't add additional delays
-		log("sda set test: sda stuck resolved after %d cycles\n", wait_cycles);
+		logfmt("sda set test: sda stuck resolved after %d cycles\n", wait_cycles);
 		return(i2c_error_ok);
 	}
 
-	log("sda set test: sda still stuck after %d cycles, giving up\n", wait_cycles);
+	logfmt("sda set test: sda still stuck after %d cycles, giving up\n", wait_cycles);
 	return(i2c_error_sda_stuck);
 }
 
@@ -236,11 +236,11 @@ iram static i2c_error_t scl_set_test(bool_t val, i2c_delay_enum_t delay_index)
 	if(current > 0)
 	{
 		// this line takes ~240/~150 microseconds to complete, so don't add additional delays
-		log("scl set test: bus lock resolved after %d cycles\n", i2c_config_scl_wait_cycles - current);
+		logfmt("scl set test: bus lock resolved after %d cycles\n", i2c_config_scl_wait_cycles - current);
 		return(i2c_error_ok);
 	}
 
-	log("scl set test: bus still locked after %d cycles, giving up\n", wait_cycles);
+	logfmt("scl set test: bus still locked after %d cycles, giving up\n", wait_cycles);
 	return(i2c_error_bus_lock);
 }
 
@@ -665,17 +665,17 @@ irom noinline static i2c_error_t i2c_reset_fixup_bus(void)
 
 		if(sda_is_low())
 		{
-			log("i2c-reset-fixup-bus: sda stuck still stuck after %d cycles, giving up\n", wait_cycles);
+			logfmt("i2c-reset-fixup-bus: sda stuck still stuck after %d cycles, giving up\n", wait_cycles);
 			return(i2c_error_sda_stuck);
 		}
 
 		// this line takes ~240/~150 microseconds to complete, so don't add extra delays
-		log("i2c-reset-fixup-bus: sda stuck resolved after %d cycles\n", wait_cycles);
+		logfmt("i2c-reset-fixup-bus: sda stuck resolved after %d cycles\n", wait_cycles);
 	}
 
 	if((error = scl_set_test(true, i2c_delay_fixup_post_wait)) != i2c_error_ok)
 	{
-		log("i2c-reset-fixup-bus: bus lock: %d\n", error);
+		logfmt("i2c-reset-fixup-bus: bus lock: %d\n", error);
 		return(error);
 	}
 
@@ -700,7 +700,7 @@ iram i2c_error_t i2c_reset(void)
 
 	if((error = send_stop()) != i2c_error_ok)
 	{
-		log("i2c-reset: send_stop error: %d\n", error);
+		logfmt("i2c-reset: send_stop error: %d\n", error);
 		return(error);
 	}
 

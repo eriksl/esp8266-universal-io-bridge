@@ -120,16 +120,18 @@ irom attr_const const char *onoff(bool_t value)
 	return("on");
 }
 
-irom attr_speed int log(const char *fmt, ...)
+irom int log_from_flash(const char *fmt_in_flash, ...)
 {
 	va_list ap;
 	int current, n;
+	char fmt_in_dram[128];
 
 	if(config_uses_logbuffer())
 		return(0);
+	strecpy_from_flash(fmt_in_dram, (const uint32_t *)(const void *)fmt_in_flash, sizeof(fmt_in_dram));
 
-	va_start(ap, fmt);
-	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt, ap);
+	va_start(ap, fmt_in_flash);
+	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
 	va_end(ap);
 
 	if(flags_cache.flag.log_to_uart)
