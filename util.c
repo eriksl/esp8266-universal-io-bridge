@@ -12,7 +12,13 @@
 #include <user_interface.h>
 
 char flash_dram_buffer[1024];
-string_new(, logbuffer, 4096 + 4);
+
+string_t logbuffer =
+{
+	.size = 0x3fffeb2c - 0x3fffe000 - 16,
+	.length = 0,
+	.buffer = (char *)0x3fffe000,
+};
 
 int __errno;
 
