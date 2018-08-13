@@ -431,8 +431,6 @@ irom unsigned int config_write(void)
 	config_entry_t *entry;
 	unsigned int ix, length = 0;
 	uint32_t crc1, crc2;
-	bool_t rv = false;
-
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -448,7 +446,7 @@ irom unsigned int config_write(void)
 	{
 		entry = &config_entries[ix];
 
-		if(!entry->id[0])
+		if(entry->id[0] == '\0')
 			continue;
 
 		string_format(&flash_sector_buffer, "%s=%s\n", entry->id, entry->string_value);
@@ -457,9 +455,6 @@ irom unsigned int config_write(void)
 	string_append(&flash_sector_buffer, "\n");
 
 	length = string_length(&flash_sector_buffer);
-
-	if(length > (4096 - 32))
-		goto error;
 
 	while(string_length(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		string_append_byte(&flash_sector_buffer, '.');
@@ -483,11 +478,12 @@ irom unsigned int config_write(void)
 	if(crc1 != crc2)
 		goto error;
 
-	rv = true;
+	string_clear(&flash_sector_buffer);
+	return(length);
 
 error:
-	return(rv ? length : 0);
 	string_clear(&flash_sector_buffer);
+	return(0);
 }
 
 irom void config_dump(string_t *dst)

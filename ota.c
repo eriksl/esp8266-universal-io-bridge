@@ -221,7 +221,7 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -267,7 +267,7 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -367,7 +367,7 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 
 	SHA_CTX sha_context;
 	uint8_t sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2);
+	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{

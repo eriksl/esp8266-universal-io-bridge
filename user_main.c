@@ -43,7 +43,7 @@ typedef struct
 	string_t		send_buffer;
 } socket_data_t;
 
-string_new(attr_flash_align, flash_sector_buffer, 4096 + 16);
+string_new(attr_flash_align, flash_sector_buffer, 4096);
 static char _socket_cmd_send_buffer[4096 + 8];
 
 static socket_data_t socket_cmd =

@@ -336,10 +336,16 @@ attr_inline char string_at(const string_t *s, int at)
 
 attr_inline void string_append_char(string_t *dst, char c)
 {
-	if(dst->length < dst->size)
+	if((dst->length + 2) < dst->size)
 		dst->buffer[dst->length++] = c;
 
 	dst->buffer[dst->length] = '\0';
+}
+
+attr_inline void string_append_byte(string_t *dst, char c)
+{
+	if(dst->length < dst->size)
+		dst->buffer[dst->length++] = c;
 }
 
 attr_inline void string_append_cstr(string_t *dst, const char *src)
