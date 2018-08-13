@@ -30,11 +30,6 @@ typedef union
 	uint32_t intval;
 } config_flags_t;
 
-typedef struct
-{
-	unsigned int using_logbuffer:1;
-} config_options_t;
-
 void			config_flags_to_string(string_t *);
 bool_t			config_flags_change(const string_t *, bool_t add);
 
@@ -49,16 +44,9 @@ unsigned int	config_write(void);
 void			config_dump(string_t *);
 
 extern config_flags_t flags_cache;
-extern config_options_t config_options;
 
 attr_inline config_flags_t config_flags_get(void)
 {
 	return(flags_cache);
 }
-
-always_inline static attr_pure bool_t config_uses_logbuffer(void)
-{
-	return(config_options.using_logbuffer != 0);
-}
-
 #endif

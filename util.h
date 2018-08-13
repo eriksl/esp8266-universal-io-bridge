@@ -185,8 +185,6 @@ typedef struct
 	char *buffer;
 } string_t;
 
-extern string_t logbuffer;
-
 void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
 int string_sep(const string_t *, int offset, int occurrence, char c);

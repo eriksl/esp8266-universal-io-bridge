@@ -1467,12 +1467,6 @@ irom static app_action_t application_function_log_clear(const string_t *src, str
 
 irom static app_action_t application_function_wlan_scan(const string_t *src, string_t *dst)
 {
-	if(config_uses_logbuffer())
-	{
-		string_append(dst, "wlan-scan: output buffer is in use\n");
-		return(app_action_error);
-	}
-
 	wifi_station_scan(0, wlan_scan_done_callback);
 	string_append(dst, "wlan scan started, use log-display to retrieve the results\n");
 

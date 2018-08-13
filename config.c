@@ -4,6 +4,7 @@
 #include "io.h"
 #include "i2c_sensor.h"
 #include "ota.h"
+#include "user_main.h"
 
 #include <ets_sys.h>
 #include <c_types.h>
@@ -26,11 +27,6 @@ typedef struct
 } config_entry_t;
 
 assert_size(config_entry_t, 52);
-
-config_options_t config_options =
-{
-	.using_logbuffer = 0
-};
 
 config_flags_t flags_cache;
 static unsigned int config_entries_length = 0;
@@ -313,23 +309,22 @@ irom bool_t config_read(void)
 	state_parse_t parse_state;
 	bool_t rv = false;
 
-	config_options.using_logbuffer = 1;
-	string_clear(&logbuffer);
+	string_clear(&flash_sector_buffer);
 
-	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		goto done;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto done;
 
-	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 
 	string_append(&string, CONFIG_MAGIC);
 	string_append(&string, "\n");
 
 	current_index = string_length(&string);
 
-	if(!string_nmatch_string(&logbuffer, &string, current_index))
+	if(!string_nmatch_string(&flash_sector_buffer, &string, current_index))
 		goto done;
 
 	id_index = current_index;
@@ -341,7 +336,7 @@ irom bool_t config_read(void)
 
 	for(parse_state = state_parse_id; current_index < SPI_FLASH_SEC_SIZE; current_index++)
 	{
-		current = string_at(&logbuffer, current_index);
+		current = string_at(&flash_sector_buffer, current_index);
 
 		if(current == '\0')
 		{
@@ -383,8 +378,8 @@ irom bool_t config_read(void)
 					if((id_index > 0) && (id_length > 0) && (value_index > 0))
 					{
 						value_length = current_index - value_index;
-						string_splice(&string, 0, &logbuffer, id_index, id_length);
-						config_set_string(&string, -1, -1, &logbuffer, value_index, value_length);
+						string_splice(&string, 0, &flash_sector_buffer, id_index, id_length);
+						config_set_string(&string, -1, -1, &flash_sector_buffer, value_index, value_length);
 					}
 
 					parse_state = state_parse_eol;
@@ -416,8 +411,7 @@ irom bool_t config_read(void)
 	}
 
 done:
-	string_clear(&logbuffer);
-	config_options.using_logbuffer = 0;
+	string_clear(&flash_sector_buffer);
 
 	string_init(varname, "flags");
 
@@ -439,15 +433,16 @@ irom unsigned int config_write(void)
 	uint32_t crc1, crc2;
 	bool_t rv = false;
 
-	config_options.using_logbuffer = 1;
-	string_clear(&logbuffer);
 
-	if(string_size(&logbuffer) < SPI_FLASH_SEC_SIZE)
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("config_write: buffer too small\n");
 		goto error;
+	}
 
-	string_clear(&logbuffer);
-	string_append(&logbuffer, CONFIG_MAGIC);
-	string_append(&logbuffer, "\n");
+	string_clear(&flash_sector_buffer);
+	string_append(&flash_sector_buffer, CONFIG_MAGIC);
+	string_append(&flash_sector_buffer, "\n");
 
 	for(ix = 0; ix < config_entries_length; ix++)
 	{
@@ -456,34 +451,34 @@ irom unsigned int config_write(void)
 		if(!entry->id[0])
 			continue;
 
-		string_format(&logbuffer, "%s=%s\n", entry->id, entry->string_value);
+		string_format(&flash_sector_buffer, "%s=%s\n", entry->id, entry->string_value);
 	}
 
-	string_append(&logbuffer, "\n");
+	string_append(&flash_sector_buffer, "\n");
 
-	length = string_length(&logbuffer);
+	length = string_length(&flash_sector_buffer);
 
 	if(length > (4096 - 32))
 		goto error;
 
-	while(string_length(&logbuffer) < SPI_FLASH_SEC_SIZE)
-		string_append_char(&logbuffer, '.');
+	while(string_length(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+		string_append_byte(&flash_sector_buffer, '.');
 
 	string_crc32_init();
-	crc1 = string_crc32(&logbuffer, 0, SPI_FLASH_SEC_SIZE);
+	crc1 = string_crc32(&flash_sector_buffer, 0, SPI_FLASH_SEC_SIZE);
 
 	if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&logbuffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	string_setlength(&logbuffer, SPI_FLASH_SEC_SIZE);
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 
-	crc2 = string_crc32(&logbuffer, 0, SPI_FLASH_SEC_SIZE);
+	crc2 = string_crc32(&flash_sector_buffer, 0, SPI_FLASH_SEC_SIZE);
 
 	if(crc1 != crc2)
 		goto error;
@@ -491,10 +486,8 @@ irom unsigned int config_write(void)
 	rv = true;
 
 error:
-	string_clear(&logbuffer);
-	config_options.using_logbuffer = 0;
-
 	return(rv ? length : 0);
+	string_clear(&flash_sector_buffer);
 }
 
 irom void config_dump(string_t *dst)

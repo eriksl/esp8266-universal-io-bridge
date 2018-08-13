@@ -126,8 +126,6 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 	int current, n;
 	char fmt_in_dram[128];
 
-	if(config_uses_logbuffer())
-		return(0);
 	strecpy_from_flash(fmt_in_dram, (const uint32_t *)(const void *)fmt_in_flash, sizeof(fmt_in_dram));
 
 	va_start(ap, fmt_in_flash);
@@ -151,9 +149,6 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 iram attr_speed void logchar(char c)
 {
 	string_init(log_ignore_1, "sta trace 0\n");
-
-	if(config_uses_logbuffer())
-		return;
 
 	if(flags_cache.flag.log_to_uart)
 	{
