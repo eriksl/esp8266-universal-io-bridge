@@ -253,13 +253,6 @@ io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);
 io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
 void		io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html);
 void		io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
-void		io_sequencer_clear(void);
-void		io_sequencer_load(void);
-void		io_sequencer_start(unsigned int repeats);
-void		io_sequencer_save(void);
-bool_t		io_sequencer_set_entry(int entry, int io, int pin, uint32_t value, int duration);
-bool_t		io_sequencer_get_entry(int entry, int *io, int *pin, uint32_t *value, int *duration);
-bool_t		io_sequencer_remove_entry(int entry);
 
 app_action_t application_function_io_mode(const string_t *src, string_t *dst);
 app_action_t application_function_io_read(const string_t *src, string_t *dst);

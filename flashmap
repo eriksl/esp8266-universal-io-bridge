@@ -6,7 +6,8 @@ non-OTA (512 kbyte, 4 Mbit, 1 slot)
 	07c000	-	07cfff	default RF parameter values, default.bin					01000	1 sector
 	07b000	-	07bfff	RF calibration storage										01000	1 sector
 	07a000	-	07afff	user config													01000	1 sector
-	010000	-	079fff	irom contents												6a000	424 kbyte
+	076000	-	079fff	sequencer storage											04000	4 sectors
+	010000	-	075fff	irom contents												66000	408 kbyte
 	000000	-	00ffff	iram contents												10000	64 kbyte
 
 OTA (2048 kbyte, 16 mbit, 2 identical slots)
@@ -17,7 +18,8 @@ OTA (2048 kbyte, 16 mbit, 2 identical slots)
 	1fc000	-	1fcfff	default RF parameter values, default.bin					01000	1 sector
 	1fb000	-	1fbfff	unused (mirror RF calibration storage in slot 0)			01000	1 sector
 	1fa000	-	1fafff	unused (mirror user config in slot 0)						01000	1 sector
-	102000	-	1f9fff	ota image slot 1											f8000	992 kbyte
+	1f6000	-	1f9fff	sequencer storage mirror 1									04000	4 sectors
+	102000	-	1f5fff	ota image slot 1											f4000	976 kbyte
 	101000	-	101fff	unused (mirror rboot config in slot 0)						01000	1 sector
 	100000	-	100fff	unused (mirror ota boot in slot 0)							01000	1 sector
 
@@ -27,6 +29,7 @@ OTA (2048 kbyte, 16 mbit, 2 identical slots)
 	0fc000	-	0fcfff	unused (mirror default RF parameters value in slot 1)		01000	1 sector
 	0fb000	-	0fbfff	RF calibration storage										01000	1 sector
 	0fa000	-	0fafff	user config													01000	1 sector
-	002000	-	0f9fff	ota image slot 0											f8000	992 kbyte
+	0f6000	-	0f9fff	sequencer storage mirror 0									04000	4 sectors
+	002000	-	0f5fff	ota image slot 0											f8000	976 kbyte
 	001000	-	001fff	rboot config												01000	1 sector
 	000000	-	000fff	ota boot													01000	1 sector

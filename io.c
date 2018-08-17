@@ -8,6 +8,7 @@
 #include "config.h"
 #include "util.h"
 #include "time.h"
+#include "sequencer.h"
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
@@ -207,168 +208,6 @@ static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_trigger,			"trigger",		"trigger"				},
 	{ io_pin_ledpixel,			"ledpixel",		"ledpixel control"		},
 };
-
-enum
-{
-	sequencer_size = 64,
-};
-
-typedef struct attr_packed
-{
-	unsigned	int active:1;
-	unsigned	int	io:7;
-	unsigned	int	pin:8;
-	unsigned	int	duration:16;
-	uint32_t	value;
-} sequencer_entry_t;
-
-assert_size(sequencer_entry_t, 8);
-
-typedef struct
-{
-	int			current;
-	uint64_t	current_end_time;
-	int			repeats;
-	sequencer_entry_t entry[sequencer_size];
-} sequencer_t;
-
-static sequencer_t sequencer;
-
-irom void io_sequencer_clear(void)
-{
-	unsigned int current;
-
-	for(current = 0; current < sequencer_size; current++)
-	{
-		sequencer.entry[current].active = 0;
-		sequencer.entry[current].io = -1;
-		sequencer.entry[current].pin = -1;
-		sequencer.entry[current].value = 0;
-		sequencer.entry[current].duration = -1;
-	}
-
-	sequencer.current = -1;
-	sequencer.current_end_time = 0;
-	sequencer.repeats = 0;
-}
-
-irom void io_sequencer_save(void)
-{
-	string_init(varname_set, "sequencer.%u");
-	string_init(varname_delete, "sequencer.");
-	string_new(, var_value, 32);
-
-	unsigned int current;
-
-	config_delete(&varname_delete, -1, -1, true);
-
-	for(current = 0; current < sequencer_size; current++)
-	{
-		if(!sequencer.entry[current].active)
-			break;
-
-		string_clear(&var_value);
-		string_format(&var_value, "%02x %08x %04x",
-				((sequencer.entry[current].io << 4) | (sequencer.entry[current].pin << 0)) & 0x0f,
-				sequencer.entry[current].value, sequencer.entry[current].duration & 0xffff);
-
-		config_set_string(&varname_set, current, -1, &var_value, -1, -1);
-	}
-}
-
-irom void io_sequencer_load(void)
-{
-	string_init(varname_io, "sequencer.%u");
-	string_new(, var_value, 32);
-
-	unsigned int varintval_iopin, io, pin, duration, current;
-	uint32_t value;
-
-	io_sequencer_clear();
-
-	for(current = 0; current < sequencer_size; current++)
-	{
-		string_clear(&var_value);
-
-		if(!config_get_string(&varname_io, current, -1, &var_value))
-			break;
-
-		if(parse_uint(0, &var_value, &varintval_iopin, 16, ' ') != parse_ok)
-			continue;
-
-		if(parse_uint(1, &var_value, &value, 16, ' ') != parse_ok)
-			continue;
-
-		if(parse_uint(2, &var_value, &duration, 16, ' ') != parse_ok)
-			continue;
-
-		io = (varintval_iopin >> 4) & 0x0f;
-		pin = (varintval_iopin >> 0) & 0x0f;
-
-		io_sequencer_set_entry(current, io, pin, value, duration);
-	}
-}
-
-irom bool_t io_sequencer_set_entry(int current, int io, int pin, uint32_t value, int duration)
-{
-	if((current < 0) || (current >= sequencer_size))
-		return(false);
-
-	sequencer.entry[current].active = 1;
-	sequencer.entry[current].io = io;
-	sequencer.entry[current].pin = pin;
-	sequencer.entry[current].value = value;
-	sequencer.entry[current].duration = duration;
-
-	return(true);
-}
-
-irom bool_t io_sequencer_get_entry(int current, int *io, int *pin, uint32_t *value, int *duration)
-{
-	if((current < 0) || (current >= sequencer_size))
-		return(false);
-
-	if(!sequencer.entry[current].active)
-		return(false);
-
-	if(io)
-		*io = sequencer.entry[current].io;
-
-	if(pin)
-		*pin = sequencer.entry[current].pin;
-
-	if(value)
-		*value = sequencer.entry[current].value;
-
-	if(duration)
-		*duration = sequencer.entry[current].duration;
-
-	return(true);
-}
-
-irom bool_t io_sequencer_remove_entry(int current)
-{
-	if((current < 0) || (current >= sequencer_size))
-		return(false);
-
-	if(!sequencer.entry[current].active)
-		return(false);
-
-	sequencer.entry[current].active = 0;
-	sequencer.entry[current].io = -1;
-	sequencer.entry[current].pin = -1;
-	sequencer.entry[current].value = 0;
-	sequencer.entry[current].duration = -1;
-
-	return(true);
-}
-
-irom void io_sequencer_start(unsigned int repeats)
-{
-	sequencer.current = -1;
-	sequencer.current_end_time = 0;
-	sequencer.repeats = repeats;
-}
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 {
@@ -1581,44 +1420,7 @@ irom void io_init(void)
 		}
 	}
 
-	io_sequencer_load();
-}
-
-irom noinline static void run_sequencer(void)
-{
-	int current, io, pin, duration;
-	uint32_t value;
-
-	sequencer.current++;
-
-	if(!io_sequencer_get_entry(sequencer.current, &io, &pin, &value, &duration))
-	{
-		if(--sequencer.repeats <= 0)
-			goto stop;
-
-		sequencer.current = 0;
-
-		if(!io_sequencer_get_entry(sequencer.current, &io, &pin, &value, &duration))
-			goto stop;
-	}
-
-	sequencer.current_end_time = (time_get_us() / 1000) + duration;
-
-	io_write_pin((string_t *)0, io, pin, value);
-
-	return;
-
-stop:
-	sequencer.current = -1;
-	sequencer.repeats = 0;
-
-	for(current = 0;; current++)
-	{
-		if(!io_sequencer_get_entry(current, &io, &pin, &value, &duration))
-			break;
-
-		io_write_pin((string_t *)0, io, pin, 0);
-	}
+	sequencer_init();
 }
 
 iram void io_periodic(void)
@@ -1738,8 +1540,8 @@ iram void io_periodic(void)
 		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
 	}
 
-	if((sequencer.repeats > 0) && ((time_get_us() / 1000) > sequencer.current_end_time))
-		run_sequencer();
+	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
+		sequencer_run();
 }
 
 /* app commands */

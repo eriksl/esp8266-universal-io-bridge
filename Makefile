@@ -62,6 +62,9 @@ CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
 OBJCOPY						:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
+SEQUENCER_FLASH_OFFSET_PLAIN:= 0x076000
+SEQUENCER_FLASH_OFFSET_OTA_0:= 0x0f6000
+SEQUENCER_FLASH_OFFSET_OTA_1:= 0x1f6000
 RFCAL_OFFSET_PLAIN			:= 0x7b000
 RFCAL_OFFSET_OTA			:= 0xfb000
 RFCAL_FILE					:= $(SDKROOT)/sdk/bin/blank.bin
@@ -118,6 +121,8 @@ ifeq ($(IMAGE),plain)
 	FLASH_SIZE_KBYTES := 512
 	RBOOT_SPI_SIZE := 512K
 	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_PLAIN)
+	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_PLAIN)
+	SEQUENCER_FLASH_OFFSET_1 := 0x000000
 	RFCAL_ADDRESS=$(RFCAL_OFFSET_PLAIN)
 	LD_ADDRESS := 0x40210000
 	LD_LENGTH := 0x79000
@@ -132,6 +137,8 @@ ifeq ($(IMAGE),ota)
 	FLASH_SIZE_KBYTES := 2048
 	RBOOT_SPI_SIZE := 2M
 	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_OTA)
+	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_OTA_0)
+	SEQUENCER_FLASH_OFFSET_1 := $(SEQUENCER_FLASH_OFFSET_OTA_1)
 	RFCAL_ADDRESS=$(RFCAL_OFFSET_OTA)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
@@ -155,7 +162,9 @@ WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
 						-D__ets__ -DICACHE_FLASH \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
-						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS)
+						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS) \
+						-DSEQUENCER_FLASH_OFFSET=$(SEQUENCER_FLASH_OFFSET_0) \
+						-DSEQUENCER_FLASH_OFFSET_0=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_OFFSET_1=$(SEQUENCER_FLASH_OFFSET_1)
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -165,12 +174,12 @@ SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto -lm
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
-						socket.o stats.o time.o uart.o user_main.o util.o
+						socket.o stats.o time.o uart.o user_main.o util.o sequencer.o
 OTA_OBJ			:= rboot-bigflash.o rboot-api.o
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
-						socket.h user_main.h util.h
+						socket.h user_main.h util.h sequencer.h
 
 .PRECIOUS:		*.c *.h
 .PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota
@@ -195,7 +204,7 @@ free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF),iram,.text,,,32)
 				$(call section_free,$(ELF),dram,.bss,.data,.rodata,77)
-				$(call section_free,$(ELF),irom,.irom0.text,,,424)
+				$(call section_free,$(ELF),irom,.irom0.text,,,408)
 
 linkdebug:		$(LINKMAP)
 				$(Q) echo "IROM:"
@@ -226,6 +235,7 @@ time.o:				$(HEADERS)
 uart.o:				$(HEADERS)
 user_main.o:		$(HEADERS)
 util.o:				$(HEADERS)
+sequencer.o:		$(HEADERS)
 $(LINKMAP):			$(ELF_OTA)
 
 $(ESPTOOL2_BIN):
