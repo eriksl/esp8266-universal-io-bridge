@@ -2078,6 +2078,11 @@ static const application_function_table_t application_function_table[] =
 		"flash-select",
 	},
 	{
+		"flash-select-once", "flash-select-once",
+		application_function_flash_select_once,
+		"flash-select-once",
+	},
+	{
 		"pe", "peek",
 		application_function_peek,
 		"peek at a memory address",

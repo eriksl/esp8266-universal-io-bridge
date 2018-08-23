@@ -13,4 +13,5 @@ app_action_t application_function_flash_read(const string_t *, string_t *);
 app_action_t application_function_flash_verify(const string_t *, string_t *);
 app_action_t application_function_flash_checksum(const string_t *, string_t *);
 app_action_t application_function_flash_select(const string_t *, string_t *);
+app_action_t application_function_flash_select_once(const string_t *, string_t *);
 #endif

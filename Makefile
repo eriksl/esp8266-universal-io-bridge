@@ -164,7 +164,8 @@ CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-seria
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
 						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS) \
 						-DSEQUENCER_FLASH_OFFSET=$(SEQUENCER_FLASH_OFFSET_0) \
-						-DSEQUENCER_FLASH_OFFSET_0=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_OFFSET_1=$(SEQUENCER_FLASH_OFFSET_1)
+						-DSEQUENCER_FLASH_OFFSET_0=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_OFFSET_1=$(SEQUENCER_FLASH_OFFSET_1) \
+						-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -244,7 +245,7 @@ $(ESPTOOL2_BIN):
 
 $(RBOOT_BIN):			$(ESPTOOL2_BIN)
 						$(VECHO) "MAKE RBOOT"
-						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
+						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=1 RBOOT_RTC_ENABLED=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
 
 $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
@@ -323,6 +324,9 @@ ota-default:
 						./espflash -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
 						./espflash -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
 						./espflash -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
+
+ota-rboot-update:		$(FIRMWARE_OTA_RBOOT)
+						./espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"

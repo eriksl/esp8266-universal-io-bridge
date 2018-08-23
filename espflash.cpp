@@ -841,6 +841,7 @@ int main(int argc, const char **argv)
 		bool verbose = false;
 		bool nocommit = false;
 		bool noreset = false;
+		bool notemp = false;
 		bool otawrite = false;
 		bool cmd_write = false;
 		bool cmd_simulate = false;
@@ -857,8 +858,9 @@ int main(int argc, const char **argv)
 			("length,l",	po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
 			("nocommit,n",	po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
 			("noreset,N",	po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
+			("notemp,t",	po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
 			("port,p",		po::value<std::string>(&port)->default_value("24"),					"port to connect to")
-			("start,s",		po::value<std::string>(&start_string)->default_value("0x00000"),	"send/receive start address")
+			("start,s",		po::value<std::string>(&start_string)->default_value("2147483647"),	"send/receive start address")
 			("read,R",		po::bool_switch(&cmd_read)->implicit_value(true),					"READ")
 			("simulate,S",	po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
 			("udp,u",		po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
@@ -962,7 +964,7 @@ int main(int argc, const char **argv)
 		if((flash_sector_size % chunk_size) != 0)
 			throw(std::string("chunk size should be dividable by flash sector size"));
 
-		if(start == 0)
+		if(start == 2147483647)
 		{
 			if(flash_ota)
 			{
@@ -978,7 +980,7 @@ int main(int argc, const char **argv)
 				otawrite = true;
 			}
 			else
-				throw(std::string("start address and image does not support OTA updating"));
+				throw(std::string("no start address supplied and image does not support OTA updating"));
 		}
 
 		if((start % flash_sector_size) != 0)
@@ -1054,14 +1056,29 @@ int main(int argc, const char **argv)
 					if(attempt != max_attempts)
 						std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
 
-					send_string = std::string("flash-select ") + std::to_string(flash_slot);
-
-					if(!process(channel, send_string, reply,
-							"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-							string_value, int_value, verbose))
+					if(notemp)
 					{
-						std::cout << "flash-select: generic failure";
-						continue;
+						send_string = std::string("flash-select ") + std::to_string(flash_slot);
+
+						if(!process(channel, send_string, reply,
+								"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
+								string_value, int_value, verbose))
+						{
+							std::cout << "flash-select: generic failure";
+							continue;
+						}
+					}
+					else
+					{
+						send_string = std::string("flash-select-once ") + std::to_string(flash_slot);
+
+						if(!process(channel, send_string, reply,
+								"OK flash-select-once: slot ([0-9]+) selected, address ([0-9]+)\\s*",
+								string_value, int_value, verbose))
+						{
+							std::cout << "flash-select-once: generic failure";
+							continue;
+						}
 					}
 
 					if((unsigned int)int_value[0] != flash_slot)
@@ -1082,22 +1099,70 @@ int main(int argc, const char **argv)
 				if(attempt <= 0)
 					throw(std::string("flash-select: no more attempts"));
 
-				std::cout << "selected slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
+				if(notemp)
+					std::cout << "selected boot slot";
+				else
+					std::cout << "selected one time boot slot";
+
+				std::cout << ": " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
 
 				if(!noreset)
 				{
+					std::cout << "rebooting" << std::endl;
+
 					if(!process(channel, "reset", reply, "> reset\\s*", string_value, int_value, verbose))
 						throw(std::string("reset: generic failure"));
 
-					sleep(1);
+					sleep(2);
 
 					channel.reconnect();
+
+					std::cout << "reboot success" << std::endl;
+
+
+					if(!notemp)
+					{
+						std::cout << "permanently selecting boot slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
+
+						for(attempt = max_attempts; attempt > 0; attempt--)
+						{
+							std::string send_string;
+							std::string reply;
+
+							if(attempt != max_attempts)
+								std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
+
+							send_string = std::string("flash-select ") + std::to_string(flash_slot);
+
+							if(!process(channel, send_string, reply,
+									"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
+									string_value, int_value, verbose))
+							{
+								std::cout << "flash-select: generic failure";
+								continue;
+							}
+
+							if((unsigned int)int_value[0] != flash_slot)
+							{
+								std::cout << "flash-select failed, local slot (" << flash_slot << ") != remote slot (" << int_value[0] << ")";
+								continue;
+							}
+
+							if((unsigned int)int_value[1] != start)
+							{
+								std::cout << "flash-select failed, local address (" << flash_slot << ") != remote address (" << int_value[0] << ")";
+								continue;
+							}
+
+							break;
+						}
+					}
 				}
 
 				if(!process(channel, "stats", reply, "> firmware version date: ([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 1000))
 					throw(std::string("stats: generic failure"));
 
-				std::cout << "ready, firmware version: " << string_value[0] << std::endl;
+				std::cout << "firmware version: " << string_value[0] << std::endl;
 			}
 		}
 	}

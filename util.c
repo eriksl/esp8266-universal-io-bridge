@@ -11,6 +11,10 @@
 #include <mem.h>
 #include <user_interface.h>
 
+#if IMAGE_OTA != 0
+#include <rboot/rboot.h>
+#endif
+
 char flash_dram_buffer[1024];
 
 string_t logbuffer =
@@ -125,6 +129,21 @@ irom attr_const const char *onoff(bool_t value)
 
 	return("on");
 }
+
+#if IMAGE_OTA == 1
+irom attr_const const char *rboot_boot_mode(unsigned int index)
+{
+	switch(index)
+	{
+		case(MODE_STANDARD): return("standard");
+		case(MODE_GPIO_ROM): return("gpio_rom");
+		case(MODE_TEMP_ROM): return("temp_rom");
+		case(MODE_GPIO_ERASES_SDKCONFIG): return("erase_sdk_config");
+		case(MODE_GPIO_SKIP): return("gpio_skip");
+		default: return("<unknown>");
+	}
+}
+#endif
 
 irom int log_from_flash(const char *fmt_in_flash, ...)
 {

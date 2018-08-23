@@ -418,62 +418,114 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_select(const string_t *src, string_t *dst)
+irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t once)
 {
+	const char *cmdname = once ? "flash-select-once" : "flash-select";
+
 #if IMAGE_OTA == 0
-	string_append(dst, "ERROR flash-select: no OTA image\n");
+	string_format(dst, "ERROR %s: no OTA image\n", cmdname);
 	return(app_action_error);
 #else
 	unsigned int slot;
 
 	rboot_config rcfg = rboot_get_config();
+	rboot_rtc_data rrtc;
 
 	if(rcfg.magic != BOOT_CONFIG_MAGIC)
 	{
-		string_append(dst, "ERROR flash-select: rboot config invalid\n");
+		string_format(dst, "ERROR %s: rboot config invalid\n", cmdname);
 		return(app_action_error);
 	}
 
 	if(parse_uint(1, src, &slot, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR flash-select: slot required\n");
+		string_format(dst, "ERROR %s: slot required\n", cmdname);
 		return(app_action_error);
 	}
 
 	if(slot == rcfg.current_rom)
 	{
-		string_append(dst, "ERROR flash-select: this slot is already active\n");
+		string_format(dst, "ERROR %s: this slot is already active\n", cmdname);
 		return(app_action_error);
 	}
 
 	if(slot >= rcfg.count)
 	{
-		string_format(dst, "ERROR flash-select: invalid slot, valid range = 0 - %d\n", rcfg.count - 1);
+		string_format(dst, "ERROR %s: invalid slot, valid range = 0 - %d\n", cmdname, rcfg.count - 1);
 		return(app_action_error);
 	}
 
-	if(!rboot_set_current_rom(slot))
+	if(once)
 	{
-		string_format(dst, "ERROR: flash-select: set current slot to %d failed\n", slot);
-		return(app_action_error);
+		if(!rboot_set_temp_rom(slot))
+		{
+			string_format(dst, "ERROR: %s: set current slot to %d failed\n", cmdname, slot);
+			return(app_action_error);
+		}
+
+		if(!rboot_get_rtc_data(&rrtc))
+		{
+			string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
+			return(app_action_error);
+		}
+
+		if(rrtc.magic != RBOOT_RTC_MAGIC)
+		{
+			string_format(dst, "ERROR: %s: RTC data invalid\n", cmdname);
+			return(app_action_error);
+		}
+
+		if(rrtc.next_mode != MODE_TEMP_ROM)
+		{
+			string_format(dst, "ERROR: %s: RTC data invalid, next boot mode: %s\n", cmdname, rboot_boot_mode(rrtc.next_mode));
+			return(app_action_error);
+		}
+
+		if(rrtc.temp_rom != slot)
+		{
+			string_format(dst, "ERROR: %s: RTC data invalid, next boot slot: %x\n", cmdname, rrtc.temp_rom);
+			return(app_action_error);
+		}
+
+		slot = rrtc.temp_rom;
 	}
-
-	rcfg = rboot_get_config();
-
-	if(rcfg.magic != BOOT_CONFIG_MAGIC)
+	else
 	{
-		string_append(dst, "ERROR flash-select: rboot config invalid after write\n");
-		return(app_action_error);
+		if(!rboot_set_current_rom(slot))
+		{
+			string_format(dst, "ERROR: %s: set current slot to %d failed\n", cmdname, slot);
+			return(app_action_error);
+		}
+
+		rcfg = rboot_get_config();
+
+		if(rcfg.magic != BOOT_CONFIG_MAGIC)
+		{
+			string_format(dst, "ERROR %s: rboot config invalid after write\n", cmdname);
+			return(app_action_error);
+		}
+
+		if(rcfg.current_rom != slot)
+		{
+			string_format(dst, "ERROR %s: slot not selected\n", cmdname);
+			return(app_action_error);
+		}
+
+		slot = rcfg.current_rom;
 	}
 
-	if(rcfg.current_rom != slot)
-	{
-		string_append(dst, "ERROR flash-select: slot not selected\n");
-		return(app_action_error);
-	}
-
-	string_format(dst, "OK flash-select: slot %d selected, address %d\n", rcfg.current_rom, rcfg.roms[rcfg.current_rom]);
+	string_format(dst, "OK %s: slot %d selected, address %d\n", cmdname, slot, rcfg.roms[slot]);
 
 	return(app_action_normal);
 #endif
+}
+
+irom app_action_t application_function_flash_select(const string_t *src, string_t *dst)
+{
+	return(flash_select(src, dst, false));
+}
+
+irom app_action_t application_function_flash_select_once(const string_t *src, string_t *dst)
+{
+	return(flash_select(src, dst, true));
 }

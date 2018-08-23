@@ -145,6 +145,7 @@ size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
 void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
+const char *rboot_boot_mode(unsigned int index);
 
 void msleep(int);
 

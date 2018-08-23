@@ -8,10 +8,10 @@
 #include <c_types.h>
 #include <mem.h>
 #include <ets_sys.h>
+#include <user_interface.h>
 
 #undef memcpy
 
 #define IRAM_CACHE_ATTR irom
-
 #include <rboot-api.h>
 #include <rboot-api.c>

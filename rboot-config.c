@@ -8,7 +8,7 @@ typedef uint32_t uint32;
 const rboot_config rboot_config_data =
 {
 	.magic			= BOOT_CONFIG_MAGIC,
-	.version		= 1,
+	.version		= BOOT_CONFIG_VERSION,
 	.mode			= MODE_STANDARD,
 	.current_rom	= 0,
 	.gpio_rom		= 0,

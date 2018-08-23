@@ -121,6 +121,7 @@ irom void stats_firmware(string_t *dst)
 {
 #if IMAGE_OTA == 1
 	rboot_config rcfg;
+	rboot_rtc_data rrtc;
 #endif
 	const struct rst_info *rst_info;
 	uint32_t flash_id = spi_flash_get_id();
@@ -192,20 +193,42 @@ irom void stats_firmware(string_t *dst)
 	string_format(dst,
 			">\n"
 			"> OTA image information\n"
-			"> magic: 0x%x\n"
-			"> version: %u\n"
-			"> mode: %x\n"
-			"> current: %u\n"
-			"> count: %u\n"
-			"> rom 0: 0x%06x\n"
-			"> rom 1: 0x%06x\n",
+			"> magic number: 0x%08x\n"
+			"> struct version: %u\n"
+			"> boot mode: %s\n"
+			"> current slot: %u\n"
+			"> slot count: %u\n"
+			"> slot 0: 0x%06x\n"
+			"> slot 1: 0x%06x\n",
 			rcfg.magic,
 			rcfg.version,
-			rcfg.mode,
+			rboot_boot_mode(rcfg.mode),
 			rcfg.current_rom,
 			rcfg.count,
 			rcfg.roms[0],
 			rcfg.roms[1]);
+
+	if(rboot_get_rtc_data(&rrtc))
+		string_format(dst,
+				">\n"
+				"> OTA RTC RAM boot config information\n"
+				"> magic number: 0x%08x\n"
+				"> current boot mode: %s\n"
+				"> current slot: %u\n"
+				"> start once boot mode: %s\n"
+				"> start once rom slot: %u\n"
+				"> struct checksum: %x\n",
+			rrtc.magic,
+			rboot_boot_mode(rrtc.last_mode),
+			rrtc.last_rom,
+			rboot_boot_mode(rrtc.next_mode),
+			rrtc.temp_rom,
+			rrtc.chksum);
+	else
+		string_append(dst,
+				"\n"
+				"> RTC RAM boot config invalid\n");
+
 #else
 	string_append(dst, ">\n> No OTA image\n");
 #endif
