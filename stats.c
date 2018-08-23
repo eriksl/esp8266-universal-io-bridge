@@ -28,6 +28,8 @@ int stat_pwm_timer_interrupts;
 int stat_pwm_timer_interrupts_while_nmi_masked;
 int stat_pc_counts;
 int stat_i2c_init_time_us;
+int stat_i2c_soft_resets;
+int stat_i2c_hard_resets;
 int stat_display_init_time_us;
 int stat_cmd_receive_buffer_overflow;
 int stat_cmd_send_buffer_overflow;
@@ -284,10 +286,14 @@ irom void stats_i2c(string_t *dst)
 	string_format(dst,
 			"> display initialisation time: %u us\n"
 			"> i2c initialisation time: %u us\n"
+			"> i2c soft resets: %u\n"
+			"> i2c hard resets: %u\n"
 			"> i2c multiplexer found: %s\n"
 			"> i2c buses: %u\n",
 				stat_display_init_time_us,
 				stat_i2c_init_time_us,
+				stat_i2c_soft_resets,
+				stat_i2c_hard_resets,
 				yesno(i2c_info.multiplexer),
 				i2c_info.buses);
 }

@@ -28,6 +28,8 @@ extern int stat_pwm_timer_interrupts;
 extern int stat_pwm_timer_interrupts_while_nmi_masked;
 extern int stat_pc_counts;
 extern int stat_i2c_init_time_us;
+extern int stat_i2c_soft_resets;
+extern int stat_i2c_hard_resets;
 extern int stat_display_init_time_us;
 extern int stat_cmd_receive_buffer_overflow;
 extern int stat_cmd_send_buffer_overflow;

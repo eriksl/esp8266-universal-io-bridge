@@ -6,6 +6,7 @@
 #include "util.h"
 #include "io_gpio.h"
 #include "attribute.h"
+#include "stats.h"
 
 typedef enum
 {
@@ -686,6 +687,8 @@ iram i2c_error_t i2c_reset(void)
 {
 	i2c_error_t error;
 
+	stat_i2c_soft_resets++;
+
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
 
@@ -695,8 +698,11 @@ iram i2c_error_t i2c_reset(void)
 	state = i2c_state_idle;
 
 	if(sda_is_low() || scl_is_low())
+	{
+		stat_i2c_hard_resets++;
 		if((error = i2c_reset_fixup_bus()) != i2c_error_ok)
 			return(error);
+	}
 
 	if((error = send_stop()) != i2c_error_ok)
 	{
