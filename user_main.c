@@ -350,9 +350,6 @@ iram attr_speed static void background_task(os_event_t *event) // posted every ~
 	if(bg_action.init_displays)
 		task_post_command(command_task_command_init_displays);
 
-	if(socket_cmd.state == socket_state_received)
-		system_os_post(command_task_id, command_task_command_received_command, 0);
-
 	if(display_detected())
 		task_post_command(command_task_command_display_update);
 
@@ -518,8 +515,7 @@ iram attr_speed static void callback_received_cmd(socket_t *socket, const string
 
 	socket_cmd.receive_buffer = *buffer;
 	socket_cmd.state = socket_state_received;
-
-	system_os_post(background_task_id, 0, 0);
+	task_post_command(command_task_command_received_command);
 }
 
 iram static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
