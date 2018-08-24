@@ -60,8 +60,6 @@ irom static void send_byte(unsigned int byte)
 		byte <<= 2;
 		uart_send(esp8266_uart, by_six);
 	}
-
-	uart_flush(esp8266_uart);
 }
 
 irom static void send_all(bool_t force)
@@ -92,7 +90,7 @@ irom static void send_all(bool_t force)
 			send_byte((ledpixel_data_pin[pin].value & 0xff000000) >>  24);
 	}
 
-	usleep(128);
+	uart_flush(esp8266_uart);
 }
 
 irom void io_ledpixel_setup(unsigned pin, unsigned uart)
