@@ -578,6 +578,43 @@ irom void string_mac(string_t *dst, uint8 addr[6])
 		mac_addr_to_bytes.byte[5]);
 }
 
+#if 0
+irom int string_bin(string_t *dst, unsigned int value, int precision, bool_t add_prefix)
+{
+	int length = 0;
+	int bitpos;
+	bool_t bit;
+	bool_t skip_leading;
+
+	if(precision < 1)
+	{
+		precision = 32;
+		skip_leading = true;
+	}
+	else
+		skip_leading = false;
+
+	if(add_prefix)
+		string_append(dst, "0b");
+
+	for(bitpos = precision - 1; bitpos >= 0; bitpos--)
+	{
+		bit = !!(value & (1 << bitpos));
+
+		if(bit)
+			skip_leading = false;
+
+		if(skip_leading && (bitpos > 0))
+			continue;
+
+		string_append_char(dst, bit ? '1' : '0');
+		length++;
+	}
+
+	return(length);
+}
+#endif
+
 irom int string_double(string_t *dst, double value, int precision, double top_decimal)
 {
 	double compare;

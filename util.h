@@ -198,6 +198,7 @@ void string_trim_string(string_t *haystack_string, const string_t *needle_string
 void string_bin_to_hex(string_t *dst, const char *src, int length);
 void string_ip(string_t *dst, ip_addr_t);
 void string_mac(string_t *dst, uint8 mac_addr[6]);
+//int string_bin(string_t *dst, unsigned int value, int precision, bool_t add_prefix);
 int string_double(string_t *dst, double value, int precision, double top_decimal);
 void string_crc32_init(void);
 uint32_t string_crc32(const string_t *src, int offset, int length);
