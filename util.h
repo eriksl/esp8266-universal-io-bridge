@@ -103,6 +103,7 @@ enum
 void ets_isr_mask(unsigned int);
 void ets_isr_unmask(unsigned int);
 int ets_vsnprintf(char *, size_t, const char *, va_list);
+int ets_snprintf(char *, size_t, const char *, ...);
 void system_get_string_from_flash(const void *src, char *dst, size_t length);
 struct tm *sntp_localtime(const time_t *);
 
