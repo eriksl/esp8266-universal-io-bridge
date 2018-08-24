@@ -9,6 +9,7 @@
 #include "util.h"
 #include "time.h"
 #include "sequencer.h"
+#include "dispatch.h"
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
@@ -1524,7 +1525,7 @@ iram void io_periodic_fast(void)
 		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
 
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		task_post_command(command_task_command_run_sequencer);
+		dispatch_post_command(command_task_command_run_sequencer);
 }
 
 irom void io_periodic_slow(void)

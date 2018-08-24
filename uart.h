@@ -44,5 +44,6 @@ void			uart_clear_send_queue(unsigned int);
 bool_t			uart_empty(unsigned int);
 unsigned int	uart_receive(unsigned int);
 void			uart_clear_receive_queue(unsigned int);
+void			uart_set_initial(unsigned int uart);
 
 #endif

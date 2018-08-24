@@ -1,7 +1,6 @@
 #include "util.h"
 #include "application.h"
 #include "stats.h"
-#include "user_main.h"
 #include "config.h"
 #include "uart.h"
 #include "i2c.h"
@@ -13,6 +12,8 @@
 #include "time.h"
 #include "ota.h"
 #include "sequencer.h"
+#include "init.h"
+#include "dispatch.h"
 
 #include <user_interface.h>
 #include <c_types.h>
@@ -276,7 +277,7 @@ irom static app_action_t application_function_quit(const string_t *src, string_t
 
 irom static app_action_t application_function_reset(const string_t *src, string_t *dst)
 {
-	task_post_command(command_task_command_reset);
+	dispatch_post_command(command_task_command_reset);
 
 	string_append(dst, "> reset\n");
 

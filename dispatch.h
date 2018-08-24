@@ -1,5 +1,5 @@
-#ifndef user_main_h
-#define user_main_h
+#ifndef dispatch_h
+#define dispatch_h
 
 #include "config.h"
 
@@ -30,9 +30,9 @@ typedef enum
 
 extern string_t flash_sector_buffer;
 
-bool_t	wlan_init(void);
-void	uart_set_initial(unsigned int uart);
-void	task_post_uart(task_command_t);
-void	task_post_command(task_command_t);
-void	task_post_timer(task_command_t);
+void	dispatch_init1(void);
+void	dispatch_init2(void);
+void	dispatch_post_uart(task_command_t);
+void	dispatch_post_command(task_command_t);
+void	dispatch_post_timer(task_command_t);
 #endif

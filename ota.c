@@ -1,7 +1,7 @@
 #include "ota.h"
 #include "util.h"
 #include "config.h"
-#include "user_main.h"
+#include "dispatch.h"
 
 #if IMAGE_OTA == 1
 #include <rboot-api.h>

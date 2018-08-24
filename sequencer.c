@@ -1,6 +1,7 @@
 #include "sequencer.h"
 #include "time.h"
 #include "io.h"
+#include "dispatch.h"
 
 typedef struct
 {

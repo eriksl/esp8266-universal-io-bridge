@@ -1,6 +1,6 @@
 #include "uart.h"
 
-#include "user_main.h"
+#include "dispatch.h"
 #include "stats.h"
 #include "io_gpio.h"
 
@@ -183,21 +183,21 @@ iram static void uart_callback(void *p)
 	{
 		stat_uart0_rx_interrupts++;
 		enable_receive_int(0, false); // disable input info data available interrupts while the fifo is not empty
-		task_post_uart(uart_task_fetch_fifo);
+		dispatch_post_uart(uart_task_fetch_fifo);
 	}
 
 	if(uart0_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart0
 	{
 		stat_uart0_tx_interrupts++;
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		task_post_uart(uart_task_fill0_fifo);
+		dispatch_post_uart(uart_task_fill0_fifo);
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
 		stat_uart1_tx_interrupts++;
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		task_post_uart(uart_task_fill1_fifo);
+		dispatch_post_uart(uart_task_fill1_fifo);
 	}
 
 	// acknowledge all uart interrupts
@@ -362,4 +362,37 @@ iram void uart_clear_send_queue(unsigned int uart)
 iram void uart_clear_receive_queue(unsigned int uart)
 {
 	queue_flush(&uart_receive_queue);
+}
+
+irom void uart_set_initial(unsigned int uart)
+{
+	int baud;
+	int data;
+	int stop;
+	int parity_int;
+	uart_parity_t parity;
+
+	string_init(varname_uart_baud, "uart.baud.%u");
+	string_init(varname_uart_data, "uart.data.%u");
+	string_init(varname_uart_stop, "uart.stop.%u");
+	string_init(varname_uart_parity, "uart.parity.%u");
+
+	if(!config_get_int(&varname_uart_baud, uart, -1, &baud))
+		baud = 115200;
+
+	if(!config_get_int(&varname_uart_data, uart, -1, &data))
+		data = 8;
+
+	if(!config_get_int(&varname_uart_stop, uart, -1, &stop))
+		stop = 1;
+
+	if(config_get_int(&varname_uart_parity, uart, -1, &parity_int))
+		parity = (uart_parity_t)parity_int;
+	else
+		parity = parity_none;
+
+	uart_baudrate(uart, baud);
+	uart_data_bits(uart, data);
+	uart_stop_bits(uart, stop);
+	uart_parity(uart, parity);
 }

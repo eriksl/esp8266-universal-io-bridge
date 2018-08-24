@@ -2,7 +2,6 @@
 
 #include "stats.h"
 #include "util.h"
-#include "user_main.h"
 
 #include <user_interface.h>
 #include <osapi.h>

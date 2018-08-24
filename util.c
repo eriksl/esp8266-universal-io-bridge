@@ -1,8 +1,7 @@
 #include "util.h"
-
-#include "user_main.h"
 #include "uart.h"
 #include "ota.h"
+#include "config.h"
 
 #include <stdarg.h>
 #include <stdint.h>
