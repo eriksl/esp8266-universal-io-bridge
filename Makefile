@@ -320,10 +320,10 @@ ota:					$(FIRMWARE_OTA_IMG) free otapush espflash
 ota-dummy:				$(FIRMWARE_OTA_IMG) free otapush espflash
 						./espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
-ota-default:
-						./espflash -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
-						./espflash -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
-						./espflash -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
+ota-default:			$(RF_FILE) $(SYSTEM_FILE) $(RFCAL_FILE)
+						./espflash -n -N -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
+						./espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
+						./espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
 ota-rboot-update:		$(FIRMWARE_OTA_RBOOT)
 						./espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
