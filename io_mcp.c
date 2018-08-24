@@ -135,17 +135,20 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 
 irom void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
-	int pin;
-	int intf[2], intcap[2];
-	int bank, bankpin;
+	uint8_t i2c_buffer[4];
+	unsigned int intf[2];
+	unsigned int intcap[2];
+	unsigned int pin, bank, bankpin;
 	mcp_data_pin_t *mcp_pin_data;
 	io_config_pin_entry_t *pin_config;
 
-	read_register((string_t *)0, info->address, INTF(0), &intf[0]);
-	read_register((string_t *)0, info->address, INTF(1), &intf[1]);
+	if(i2c_send1_receive_repeated_start(info->address, INTF(0), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok) // INTFA, INTFB, INTCAPA, INTCAPB
+		return;
 
-	read_register((string_t *)0, info->address, INTCAP(0), &intcap[0]);
-	read_register((string_t *)0, info->address, INTCAP(1), &intcap[1]);
+	intf[0] = i2c_buffer[0];
+	intf[1] = i2c_buffer[1];
+	intcap[0] = i2c_buffer[2];
+	intcap[1] = i2c_buffer[3];
 
 	for(pin = 0; pin < 16; pin++)
 	{
