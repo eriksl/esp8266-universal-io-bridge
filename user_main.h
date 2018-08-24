@@ -22,6 +22,7 @@ typedef enum
 	command_task_command_received_command,
 	command_task_command_display_update,
 	command_task_command_fallback_wlan,
+	command_task_command_update_time,
 	command_task_command_run_sequencer,
 	timer_task_io_periodic_slow,
 	timer_task_io_periodic_fast,

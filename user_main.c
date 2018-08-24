@@ -333,6 +333,12 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
+		case(command_task_command_update_time):
+		{
+			time_periodic();
+			break;
+		}
+
 		case(command_task_command_run_sequencer):
 		{
 			sequencer_run();
@@ -374,6 +380,8 @@ iram attr_speed static void slow_timer_callback(void *arg)
 	time_periodic();
 
 	stat_slow_timer++;
+
+	task_post_command(command_task_command_update_time);
 
 	if(uart_bridge_active)
 		task_post_command(command_task_command_uart_bridge);
