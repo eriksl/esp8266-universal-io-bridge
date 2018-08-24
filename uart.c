@@ -152,21 +152,18 @@ irom void uart_task(os_event_t *event)
 	{
 		case(uart_task_fetch_fifo):
 		{
-			stat_uart0_rx_interrupts++;
 			fetch_queue(0);
 			break;
 		}
 
 		case(uart_task_fill0_fifo):
 		{
-			stat_uart0_tx_interrupts++;
 			fill_queue(0);
 			break;
 		}
 
 		case(uart_task_fill1_fifo):
 		{
-			stat_uart1_tx_interrupts++;
 			fill_queue(1);
 			break;
 		}
@@ -184,18 +181,21 @@ iram static void uart_callback(void *p)
 
 	if(uart0_int_status & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST)) // data in input fifo of uart0
 	{
+		stat_uart0_rx_interrupts++;
 		enable_receive_int(0, false); // disable input info data available interrupts while the fifo is not empty
 		task_post_uart(uart_task_fetch_fifo);
 	}
 
 	if(uart0_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart0
 	{
+		stat_uart0_tx_interrupts++;
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
 		task_post_uart(uart_task_fill0_fifo);
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
+		stat_uart1_tx_interrupts++;
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
 		task_post_uart(uart_task_fill1_fifo);
 	}
