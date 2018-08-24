@@ -332,9 +332,11 @@ ota-default:			$(RF_FILE) $(SYSTEM_FILE) $(RFCAL_FILE)
 						$(VECHO) "* rf calibiration"
 						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
-ota-rboot-update:		$(FIRMWARE_OTA_RBOOT)
+ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) free espflash
 						$(VECHO) "FLASH RBOOT"
 						$(Q) espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
+						$(VECHO) "FLASH OTA"
+						$(Q) espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W -t
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
