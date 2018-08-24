@@ -544,17 +544,17 @@ error_reset:
 	return(error);
 }
 
-irom i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
+iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 {
 	return(i2c_send_sequence(address, i2c_sequence_normal, length, bytes));
 }
 
-irom i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 {
 	return(i2c_receive_sequence(address, length, bytes));
 }
 
-irom i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
 {
 	i2c_error_t error;
 
@@ -564,7 +564,7 @@ irom i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *se
 	return(i2c_receive_sequence(address, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send_receive_repeated_start(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send_receive_repeated_start(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
 {
 	i2c_error_t error;
 
@@ -574,49 +574,49 @@ irom i2c_error_t i2c_send_receive_repeated_start(int address, int sendlength, co
 	return(i2c_receive_sequence(address, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send1(int address, int byte0)
+iram i2c_error_t i2c_send1(int address, int byte0)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send2(int address, int byte0, int byte1)
+iram i2c_error_t i2c_send2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2] = { byte0, byte1 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
+iram i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3] = { byte0, byte1, byte2 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
+iram i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4] = { byte0, byte1, byte2, byte3 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send_receive(address, sizeof(bytes), bytes, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send_receive_repeated_start(address, sizeof(bytes), bytes, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[2] = { byte0, byte1 };
 

@@ -161,7 +161,7 @@ iram void task_post_timer(task_command_t command)
 
 static void user_init2(void);
 
-iram static bool_t background_task_bridge_uart(void)
+irom static bool_t background_task_bridge_uart(void)
 {
 	if(socket_uart.state == socket_state_idle)
 	{
@@ -226,7 +226,7 @@ irom static void background_task_command_handler(void)
 	}
 }
 
-iram static void command_task(os_event_t *event)
+irom static void command_task(os_event_t *event)
 {
 	switch(event->sig)
 	{
@@ -519,7 +519,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 
 // received
 
-iram attr_speed static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
+irom static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
 {
 	if(socket_cmd.state != socket_state_idle)
 	{
@@ -532,7 +532,7 @@ iram attr_speed static void callback_received_cmd(socket_t *socket, const string
 	task_post_command(command_task_command_received_command);
 }
 
-iram static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
+irom static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
 {
 	int current, length;
 	uint8_t byte;
@@ -582,7 +582,7 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 // sent
 
-iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
+irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
 	if(bg_action.preparing_reset && socket_proto(socket) == proto_udp)
 		task_post_command(command_task_command_reset_finish);
@@ -590,7 +590,7 @@ iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 	socket_cmd.state = socket_state_idle;
 }
 
-iram attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
+irom attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!uart_empty(0))
 		task_post_command(command_task_command_uart_bridge); // retry to send data still in the fifo
@@ -630,12 +630,12 @@ irom static void callback_disconnect_uart(socket_t *socket, void *userdata)
 
 // accept
 
-iram attr_speed static void callback_accept_cmd(socket_t *socket, void *userdata)
+irom attr_speed static void callback_accept_cmd(socket_t *socket, void *userdata)
 {
 	socket_cmd.state = socket_state_idle;
 }
 
-iram attr_speed static void callback_accept_uart(socket_t *socket, void *userdata)
+irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdata)
 {
 	uart_clear_send_queue(0);
 	uart_clear_receive_queue(0);

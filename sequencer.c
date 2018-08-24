@@ -197,12 +197,12 @@ irom attr_pure int sequencer_get_current(void)
 	return(sequencer.current);
 }
 
-irom attr_pure uint64_t sequencer_get_current_end_time(void)
+iram attr_pure uint64_t sequencer_get_current_end_time(void)
 {
 	return(sequencer.current_end_time);
 }
 
-irom attr_pure int sequencer_get_repeats(void)
+iram attr_pure int sequencer_get_repeats(void)
 {
 	return(sequencer.repeats);
 }

@@ -33,7 +33,7 @@ irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-attr_speed iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	unsigned int pin;
 
@@ -196,7 +196,7 @@ irom io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T 
 	return(io_ok);
 }
 
-irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	switch(pin)
 	{
@@ -266,7 +266,7 @@ irom io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-irom io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	switch(pin)
 	{
