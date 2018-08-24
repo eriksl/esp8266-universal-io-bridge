@@ -280,7 +280,7 @@ static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
 
-attr_speed static void pwm_isr(void);
+static void pwm_isr(void);
 
 irom static void pwm_isr_setup(void)
 {
@@ -290,12 +290,12 @@ irom static void pwm_isr_setup(void)
 	ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
 }
 
-attr_inline attr_speed bool_t pwm_isr_enabled(void)
+attr_inline bool_t pwm_isr_enabled(void)
 {
 	return(io_gpio_flags.pwm_int_enabled);
 }
 
-attr_inline attr_speed void pwm_isr_enable(bool_t enable)
+attr_inline void pwm_isr_enable(bool_t enable)
 {
 	if(enable)
 	{
@@ -309,12 +309,12 @@ attr_inline attr_speed void pwm_isr_enable(bool_t enable)
 	}
 }
 
-attr_inline attr_speed void pwm_timer_set(uint32_t value)
+attr_inline void pwm_timer_set(uint32_t value)
 {
 	write_peri_reg(FRC1_LOAD_REG, value);
 }
 
-attr_inline attr_speed uint32_t pwm_timer_get(void)
+attr_inline uint32_t pwm_timer_get(void)
 {
 	return(read_peri_reg(FRC1_COUNT_REG));
 }
