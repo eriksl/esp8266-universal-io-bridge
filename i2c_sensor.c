@@ -1529,6 +1529,8 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 		if((error = si114x_write_register_1(si114x_reg_command, si114x_cmd_nop)) != i2c_error_ok)
 			goto failed;
 
+		msleep(1);
+
 		if((error = si114x_read_register_1(si114x_reg_response, &local_response)) != i2c_error_ok)
 			goto failed;
 
