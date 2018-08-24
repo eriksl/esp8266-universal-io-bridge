@@ -22,7 +22,9 @@ typedef enum
 	command_task_command_received_command,
 	command_task_command_display_update,
 	command_task_command_fallback_wlan,
-};
+	timer_task_io_periodic_slow,
+	timer_task_io_periodic_fast,
+} task_command_t;
 
 extern string_t flash_sector_buffer;
 

@@ -33,7 +33,7 @@ irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-attr_speed iram void io_aux_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+attr_speed iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	unsigned int pin;
 
@@ -48,8 +48,8 @@ attr_speed iram void io_aux_periodic(int io, const struct io_info_entry_T *info,
 			// debouncing on input requested && debouncing period active
 			if((pin_config->speed != 0) && (io_aux_data_pin->counter.debounce != 0))
 			{
-				if(io_aux_data_pin->counter.debounce > 10)
-					io_aux_data_pin->counter.debounce -= 10; // 10 ms per tick
+				if(io_aux_data_pin->counter.debounce > ms_per_fast_tick)
+					io_aux_data_pin->counter.debounce -= ms_per_fast_tick;
 				else
 					io_aux_data_pin->counter.debounce = 0;
 			}

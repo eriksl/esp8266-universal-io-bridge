@@ -566,7 +566,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	static uint32_t gpio_pc_pins_previous;
 	static bool_t first_call = true;
@@ -577,40 +577,38 @@ iram void io_gpio_periodic(int io, const struct io_info_entry_T *info, io_data_e
 	gpio_pc_pins_current = gpio_get_all();
 
 	if(first_call)
-	{
 		first_call = false;
-		goto end;
-	}
-
-	for(pin = 0; pin < io_gpio_pin_size; pin++)
+	else
 	{
-		io_config_pin_entry_t *pin_config = &io_config[io][pin];
-
-		if(pin_config->llmode == io_pin_ll_counter)
+		for(pin = 0; pin < io_gpio_pin_size; pin++)
 		{
-			gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
+			io_config_pin_entry_t *pin_config = &io_config[io][pin];
 
-			if(gpio_pin_data->counter.debounce == 0)
+			if(pin_config->llmode == io_pin_ll_counter)
 			{
-				if((gpio_pc_pins_previous & (1 << pin)) && !(gpio_pc_pins_current & (1 << pin)))
+				gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
+
+				if(gpio_pin_data->counter.debounce == 0)
 				{
-					gpio_pin_data->counter.counter++;
-					gpio_pin_data->counter.debounce = pin_config->speed;
-					flags->counter_triggered = 1;
-					stat_pc_counts++;
+					if((gpio_pc_pins_previous & (1 << pin)) && !(gpio_pc_pins_current & (1 << pin)))
+					{
+						gpio_pin_data->counter.counter++;
+						gpio_pin_data->counter.debounce = pin_config->speed;
+						flags->counter_triggered = 1;
+						stat_pc_counts++;
+					}
 				}
-			}
-			else
-			{
-				if(gpio_pin_data->counter.debounce >= 10)
-					gpio_pin_data->counter.debounce -= 10; // 10 ms per tick
 				else
-					gpio_pin_data->counter.debounce = 0;
+				{
+					if(gpio_pin_data->counter.debounce >= ms_per_fast_tick)
+						gpio_pin_data->counter.debounce -= ms_per_fast_tick;
+					else
+						gpio_pin_data->counter.debounce = 0;
+				}
 			}
 		}
 	}
 
-end:
 	gpio_pc_pins_previous = gpio_pc_pins_current;
 }
 

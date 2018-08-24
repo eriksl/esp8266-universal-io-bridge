@@ -32,7 +32,8 @@ static const io_info_t io_info =
 		},
 		"Internal GPIO",
 		io_gpio_init,
-		io_gpio_periodic,
+		(void *)0, // periodic slow
+		io_gpio_periodic_fast,
 		io_gpio_init_pin_mode,
 		io_gpio_get_pin_info,
 		io_gpio_read_pin,
@@ -56,7 +57,8 @@ static const io_info_t io_info =
 		},
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
-		io_aux_periodic,
+		(void *)0, // periodic slow
+		io_aux_periodic_fast,
 		io_aux_init_pin_mode,
 		io_aux_get_pin_info,
 		io_aux_read_pin,
@@ -80,7 +82,8 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
-		io_mcp_periodic,
+		io_mcp_periodic_slow,
+		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -104,7 +107,8 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #2",
 		io_mcp_init,
-		io_mcp_periodic,
+		io_mcp_periodic_slow,
+		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -128,7 +132,8 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #3",
 		io_mcp_init,
-		io_mcp_periodic,
+		io_mcp_periodic_slow,
+		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -152,9 +157,10 @@ static const io_info_t io_info =
 		},
 		"PCF8574A I2C I/O expander",
 		io_pcf_init,
-		0,
+		(void *)0, // periodic slow
+		(void *)0, // periodic fast
 		io_pcf_init_pin_mode,
-		0,
+		(void *)0, // get pin info
 		io_pcf_read_pin,
 		io_pcf_write_pin,
 	},
@@ -176,9 +182,10 @@ static const io_info_t io_info =
 		},
 		"led string",
 		io_ledpixel_init,
-		io_ledpixel_periodic,
+		(void *)0, // periodic slow
+		(void *)0, // periodic fast
 		io_ledpixel_init_pin_mode,
-		0,
+		(void *)0, // get pin info
 		io_ledpixel_read_pin,
 		io_ledpixel_write_pin,
 	}
@@ -1423,7 +1430,7 @@ irom void io_init(void)
 	sequencer_init();
 }
 
-iram void io_periodic(void)
+iram void io_periodic_fast(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1444,91 +1451,108 @@ iram void io_periodic(void)
 		if(!data->detected)
 			continue;
 
-		if(info->periodic_fn)
-			info->periodic_fn(io, info, data, &flags);
+		if(info->periodic_fast_fn)
+			info->periodic_fast_fn(io, info, data, &flags);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
-			switch(pin_config->mode)
+			if((pin_config->mode == io_pin_timer) && (pin_data->direction != io_dir_none))
 			{
-				case(io_pin_timer):
+				if(pin_data->speed > ms_per_fast_tick)
+					pin_data->speed -= ms_per_fast_tick;
+				else
+					pin_data->speed = 0;
+
+				if(pin_data->speed == 0)
 				{
-					if((pin_data->direction != io_dir_none) && (pin_data->speed >= 10) && ((pin_data->speed -= 10) <= 0))
+					if(pin_data->direction == io_dir_up)
 					{
-						switch(pin_data->direction)
+						info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
+						pin_data->direction = io_dir_down;
+					}
+					else
+					{
+						if(pin_data->direction == io_dir_down)
 						{
-							case(io_dir_none):
-							{
-								break;
-							}
-
-							case(io_dir_up):
-							{
-								info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
-								pin_data->direction = io_dir_down;
-								break;
-							}
-
-							case(io_dir_down):
-							{
-								info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
-								pin_data->direction = io_dir_up;
-								break;
-							}
-						}
-
-						if(pin_config->flags.repeat)
-							pin_data->speed = pin_config->speed;
-						else
-						{
-							pin_data->speed = 0;
-							pin_data->direction = io_dir_none;
+							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+							pin_data->direction = io_dir_up;
 						}
 					}
 
-					break;
-				}
-
-				case(io_pin_trigger):
-				{
-					if((info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
+					if(pin_config->flags.repeat)
+						pin_data->speed = pin_config->speed;
+					else
 					{
-						for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
-						{
-							if(pin_config->shared.trigger[trigger].action != io_trigger_none)
-							{
-								io_trigger_pin((string_t *)0,
-										pin_config->shared.trigger[trigger].io.io,
-										pin_config->shared.trigger[trigger].io.pin,
-										pin_config->shared.trigger[trigger].action);
-							}
-						}
-
-						info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+						pin_data->speed = 0;
+						pin_data->direction = io_dir_none;
 					}
-
-					break;
 				}
-
-				case(io_pin_output_analog):
-				{
-					if((pin_config->shared.output_analog.upper_bound > pin_config->shared.output_analog.lower_bound) &&
-							(pin_config->speed > 0) && (pin_data->direction != io_dir_none))
-						io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
-								(pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
-
-					break;
-				}
-
-				default:
-				{
-					break;
-				}
-
 			}
+
+			if((pin_config->mode == io_pin_trigger) && (info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
+			{
+				for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
+				{
+					if(pin_config->shared.trigger[trigger].action != io_trigger_none)
+					{
+						io_trigger_pin((string_t *)0,
+								pin_config->shared.trigger[trigger].io.io,
+								pin_config->shared.trigger[trigger].io.pin,
+								pin_config->shared.trigger[trigger].action);
+					}
+				}
+
+				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+			}
+		}
+	}
+
+	if(flags.counter_triggered &&
+			config_get_int(&varname_trigger_io, -1, -1, &trigger_status_io) &&
+			config_get_int(&varname_trigger_pin, -1, -1, &trigger_status_pin) &&
+			(trigger_status_io >= 0) && (trigger_status_pin >= 0))
+		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
+
+	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
+		task_post_command(command_task_command_run_sequencer);
+}
+
+irom void io_periodic_slow(void)
+{
+	const io_info_entry_t *info;
+	io_data_entry_t *data;
+	io_config_pin_entry_t *pin_config;
+	io_data_pin_entry_t *pin_data;
+	int io, pin;
+	int trigger_status_io, trigger_status_pin;
+	io_flags_t flags = { .counter_triggered = 0 };
+	string_init(varname_trigger_io, "trigger.status.io");
+	string_init(varname_trigger_pin, "trigger.status.pin");
+
+	for(io = 0; io < io_id_size; io++)
+	{
+		info = &io_info[io];
+		data = &io_data[io];
+
+		if(!data->detected)
+			continue;
+
+		if(info->periodic_slow_fn)
+			info->periodic_slow_fn(io, info, data, &flags);
+
+		for(pin = 0; pin < info->pins; pin++)
+		{
+			pin_config = &io_config[io][pin];
+			pin_data = &data->pin[pin];
+
+			if((pin_config->mode == io_pin_output_analog) &&
+					(pin_config->shared.output_analog.upper_bound > pin_config->shared.output_analog.lower_bound) &&
+					(pin_config->speed > 0) &&
+					(pin_data->direction != io_dir_none))
+				io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
 		}
 	}
 
@@ -1539,9 +1563,6 @@ iram void io_periodic(void)
 	{
 		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
 	}
-
-	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		sequencer_run();
 }
 
 /* app commands */
@@ -1831,9 +1852,9 @@ skip:
 				return(app_action_error);
 			}
 
-			if(speed < 10)
+			if(speed < ms_per_slow_tick)
 			{
-				string_append(dst, "timer: speed too small: must be >= 10 ms\n");
+				string_format(dst, "timer: speed too small: must be >= %u ms\n", ms_per_slow_tick);
 				return(app_action_error);
 			}
 

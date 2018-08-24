@@ -16,7 +16,9 @@ typedef enum
 enum
 {
 	max_pins_per_io = 16,
-	max_triggers_per_pin = 2
+	max_triggers_per_pin = 2,
+	ms_per_fast_tick = 10,
+	ms_per_slow_tick = 100,
 };
 
 typedef enum
@@ -232,7 +234,8 @@ typedef const struct io_info_entry_T
 	io_caps_t caps;
 	const char *name;
 	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
-	void		(* const periodic_fn)		(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
+	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
+	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
@@ -246,7 +249,8 @@ extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 assert_size(io_error_t, 4);
 
 void		io_init(void);
-void		io_periodic(void);
+void		io_periodic_slow(void);
+void		io_periodic_fast(void);
 io_error_t	io_read_pin(string_t *, int, int, uint32_t *);
 io_error_t	io_write_pin(string_t *, int, int, uint32_t);
 io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);

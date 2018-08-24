@@ -334,8 +334,38 @@ iram static void command_task(os_event_t *event)
 	}
 }
 
-iram attr_speed static void background_task(os_event_t *event) // posted every ~100 ms = ~10 Hz
+iram static void timer_task(os_event_t *event)
 {
+	switch(event->sig)
+	{
+		case(timer_task_io_periodic_fast):
+		{
+			io_periodic_fast();
+			break;
+		}
+
+		case(timer_task_io_periodic_slow):
+		{
+			io_periodic_slow();
+			break;
+		}
+	}
+}
+
+iram attr_speed static void fast_timer_callback(void *arg)
+{
+	// timer runs every 10 ms = 100 Hz
+
+	stat_fast_timer++;
+	task_post_timer(timer_task_io_periodic_fast);
+}
+
+iram attr_speed static void slow_timer_callback(void *arg)
+{
+	// run background task every ~100 ms = ~10 Hz
+
+	time_periodic();
+
 	stat_slow_timer++;
 
 	if(uart_bridge_active)
@@ -355,26 +385,10 @@ iram attr_speed static void background_task(os_event_t *event) // posted every ~
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
-	if((wifi_station_get_connect_status() != STATION_GOT_IP) && (stat_slow_timer == 300))
-		system_os_post(command_task_id, command_task_command_fallback_wlan, 0);
-}
+	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
+		task_post_command(command_task_command_fallback_wlan);
 
-iram attr_speed static void fast_timer_callback(void *arg)
-{
-	stat_fast_timer++;
-
-	// timer runs every 10 ms = 100 Hz
-
-	io_periodic();
-}
-
-iram attr_speed static void slow_timer_callback(void *arg)
-{
-	// run background task every ~100 ms = ~10 Hz
-
-	time_periodic();
-
-	system_os_post(background_task_id, 0, 0);
+	task_post_timer(timer_task_io_periodic_slow);
 }
 
 irom void uart_set_initial(unsigned int uart)
@@ -676,7 +690,7 @@ irom static void user_init2(void)
 
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
-	system_os_task(background_task, background_task_id, background_task_queue, background_task_queue_length);
+	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms

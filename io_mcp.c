@@ -133,7 +133,7 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-iram void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+iram void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	int pin;
 	int intf[2], intcap[2];
@@ -159,8 +159,8 @@ iram void io_mcp_periodic(int io, const struct io_info_entry_T *info, io_data_en
 		{
 			if(mcp_pin_data->debounce != 0)
 			{
-				if(mcp_pin_data->debounce >= 10)
-					mcp_pin_data->debounce -= 10; // 10 ms per tick
+				if(mcp_pin_data->debounce > ms_per_slow_tick)
+					mcp_pin_data->debounce -= ms_per_slow_tick;
 				else
 					mcp_pin_data->debounce = 0;
 			}
