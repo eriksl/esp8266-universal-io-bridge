@@ -96,6 +96,11 @@ attr_inline void enable_receive_int(unsigned int uart, bool_t enable)
 		clear_peri_reg_mask(UART_INT_ENA(uart), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
 }
 
+attr_inline void clear_interrupts(unsigned int uart)
+{
+	write_peri_reg(UART_INT_CLR(uart), 0xffff);
+}
+
 irom static void clear_fifos(unsigned int uart)
 {
 	set_peri_reg_mask(UART_CONF0(uart), UART_RXFIFO_RST | UART_TXFIFO_RST);
@@ -117,6 +122,7 @@ irom static void fetch_queue(unsigned int uart)
 			queue_push(&uart_receive_queue, byte);
 	}
 
+	clear_interrupts(uart);
 	enable_receive_int(uart, true);
 }
 
@@ -124,16 +130,18 @@ irom static void fill_queue(unsigned int uart)
 {
 	if(autofill_info[uart].enabled)
 	{
-		while(tx_fifo_length(uart) < 126)
+		while(tx_fifo_length(uart) < 128)
 			write_peri_reg(UART_FIFO(uart), autofill_info[uart].character);
 
+		clear_interrupts(uart);
 		enable_transmit_int(uart, true);
 	}
 	else
 	{
-		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 64))
+		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 128))
 			write_peri_reg(UART_FIFO(uart), queue_pop(&uart_send_queue[uart]));
 
+		clear_interrupts(uart);
 		enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 	}
 }
@@ -194,8 +202,8 @@ iram static void uart_callback(void *p)
 
 	// acknowledge all uart interrupts
 
-	write_peri_reg(UART_INT_CLR(0), 0xffff);
-	write_peri_reg(UART_INT_CLR(1), 0xffff);
+	clear_interrupts(0);
+	clear_interrupts(1);
 
 	ets_isr_unmask(1 << ETS_UART_INUM);
 }
@@ -258,9 +266,9 @@ irom void uart_autofill(unsigned int uart, bool_t enable, unsigned int character
 	{
 		autofill_info[uart].enabled = enable;
 		autofill_info[uart].character = character;
-	}
 
-	enable_transmit_int(uart, enable);
+		enable_transmit_int(uart, enable);
+	}
 }
 
 irom void uart_is_autofill(unsigned int uart, bool_t *enable, unsigned int *character)
@@ -300,15 +308,16 @@ irom void uart_init(void)
 	// interrupt.
 
 	write_peri_reg(UART_CONF1(0),
-			(( 2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) | UART_RX_TOUT_EN |
-			((16 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
-			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
+			UART_RX_TOUT_EN |
+			((8 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
+			((8 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	write_peri_reg(UART_CONF1(1),
-			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((8 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
-	write_peri_reg(UART_INT_CLR(0), 0xffff);
-	write_peri_reg(UART_INT_CLR(1), 0xffff);
+	clear_interrupts(0);
+	clear_interrupts(1);
 
 	// Don't enable the send fifo interrupt here but enable it when the fifo has
 	// something in it that should be written to the uart's fifo
