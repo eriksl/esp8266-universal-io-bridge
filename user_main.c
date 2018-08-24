@@ -31,9 +31,21 @@ typedef enum
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
-os_event_t uart_task_queue[uart_task_queue_length];
-os_event_t command_task_queue[command_task_queue_length];
-os_event_t background_task_queue[background_task_queue_length];
+enum
+{
+	uart_task_id					= USER_TASK_PRIO_0,
+	uart_task_queue_length			= 3,
+
+	command_task_id					= USER_TASK_PRIO_1,
+	command_task_queue_length		= 12,
+
+	timer_task_id					= USER_TASK_PRIO_2,
+	timer_task_queue_length			= 2,
+};
+
+static os_event_t uart_task_queue[uart_task_queue_length];
+static os_event_t command_task_queue[command_task_queue_length];
+static os_event_t timer_task_queue[timer_task_queue_length];
 
 typedef struct
 {
@@ -123,6 +135,30 @@ iram void user_rf_pre_init(void)
 	stat_called.user_rf_pre_init = 1;
 }
 
+iram void task_post_uart(task_command_t command)
+{
+	if(system_os_post(uart_task_id, command, 0))
+		stat_task_uart_posted++;
+	else
+		stat_task_uart_failed++;
+}
+
+iram void task_post_command(task_command_t command)
+{
+	if(system_os_post(command_task_id, command, 0))
+		stat_task_command_posted++;
+	else
+		stat_task_command_failed++;
+}
+
+iram void task_post_timer(task_command_t command)
+{
+	if(system_os_post(timer_task_id, command, 0))
+		stat_task_timer_posted++;
+	else
+		stat_task_timer_failed++;
+}
+
 static void user_init2(void);
 
 iram static bool_t background_task_bridge_uart(void)
@@ -201,7 +237,7 @@ iram static void command_task(os_event_t *event)
 			if((socket_proto(&socket_cmd.socket) == proto_udp) && !socket_send_busy(&socket_cmd.socket))
 			{
 				msleep(100);
-				system_os_post(command_task_id, command_task_command_reset_finish, 0);
+				task_post_command(command_task_command_reset_finish);
 			}
 
 			socket_disconnect_accepted(&socket_cmd.socket);
@@ -220,7 +256,7 @@ iram static void command_task(os_event_t *event)
 			stat_update_uart++;
 
 			if(background_task_bridge_uart())
-				system_os_post(command_task_id, command_task_command_uart_bridge, 0);
+				task_post_command(command_task_command_uart_bridge);
 			break;
 		}
 
@@ -269,7 +305,7 @@ iram static void command_task(os_event_t *event)
 			stat_update_display++;
 
 			if(display_periodic())
-				system_os_post(command_task_id, command_task_command_display_update, 0);
+				task_post_command(command_task_command_display_update);
 
 			break;
 		}
@@ -303,22 +339,22 @@ iram attr_speed static void background_task(os_event_t *event) // posted every ~
 	stat_slow_timer++;
 
 	if(uart_bridge_active)
-		system_os_post(command_task_id, command_task_command_uart_bridge, 0);
+		task_post_command(command_task_command_uart_bridge);
 
 	if(bg_action.disconnect)
-		system_os_post(command_task_id, command_task_command_disconnect, 0);
+		task_post_command(command_task_command_disconnect);
 
 	if(bg_action.init_i2c_sensors)
-		system_os_post(command_task_id, command_task_command_init_i2c_sensors, 0);
+		task_post_command(command_task_command_init_i2c_sensors);
 
 	if(bg_action.init_displays)
-		system_os_post(command_task_id, command_task_command_init_displays, 0);
+		task_post_command(command_task_command_init_displays);
 
 	if(socket_cmd.state == socket_state_received)
 		system_os_post(command_task_id, command_task_command_received_command, 0);
 
 	if(display_detected())
-		system_os_post(command_task_id, command_task_command_display_update, 0);
+		task_post_command(command_task_command_display_update);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
@@ -539,7 +575,7 @@ iram static void callback_received_uart(socket_t *socket, const string_t *buffer
 iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
 	if(bg_action.preparing_reset && socket_proto(socket) == proto_udp)
-		system_os_post(command_task_id, command_task_command_reset_finish, 0);
+		task_post_command(command_task_command_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
 }
@@ -547,7 +583,7 @@ iram attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 iram attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!uart_empty(0))
-		system_os_post(background_task_id, 0, 0); // retry to send data still in the fifo
+		task_post_command(command_task_command_uart_bridge); // retry to send data still in the fifo
 
 	string_clear(&socket_uart.send_buffer);
 	socket_uart.state = socket_state_idle;
@@ -571,7 +607,7 @@ irom static void callback_error_uart(socket_t *socket, int error, void *userdata
 irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 {
 	if(bg_action.preparing_reset)
-		system_os_post(command_task_id, command_task_command_reset_finish, 0);
+		task_post_command(command_task_command_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
 }

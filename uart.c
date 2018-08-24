@@ -177,19 +177,19 @@ iram static void uart_callback(void *p)
 	if(uart0_int_status & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST)) // data in input fifo of uart0
 	{
 		enable_receive_int(0, false); // disable input info data available interrupts while the fifo is not empty
-		system_os_post(uart_task_id, uart_task_fetch_fifo, 0);
+		task_post_uart(uart_task_fetch_fifo);
 	}
 
 	if(uart0_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart0
 	{
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		system_os_post(uart_task_id, uart_task_fill0_fifo, 0);
+		task_post_uart(uart_task_fill0_fifo);
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		system_os_post(uart_task_id, uart_task_fill1_fifo, 0);
+		task_post_uart(uart_task_fill1_fifo);
 	}
 
 	// acknowledge all uart interrupts

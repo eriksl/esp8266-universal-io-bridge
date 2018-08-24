@@ -7,19 +7,7 @@
 #include <ets_sys.h>
 #include <user_interface.h>
 
-enum
-{
-	uart_task_id					= USER_TASK_PRIO_0,
-	uart_task_queue_length			= 16,
-
-	command_task_id					= USER_TASK_PRIO_1,
-	command_task_queue_length		= 16,
-
-	background_task_id				= USER_TASK_PRIO_2,
-	background_task_queue_length	= 64,
-};
-
-enum
+typedef enum
 {
 	uart_task_invalid,
 	uart_task_fetch_fifo,
@@ -40,4 +28,7 @@ extern string_t flash_sector_buffer;
 
 bool_t	wlan_init(void);
 void	uart_set_initial(unsigned int uart);
+void	task_post_uart(task_command_t);
+void	task_post_command(task_command_t);
+void	task_post_timer(task_command_t);
 #endif

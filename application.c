@@ -276,7 +276,7 @@ irom static app_action_t application_function_quit(const string_t *src, string_t
 
 irom static app_action_t application_function_reset(const string_t *src, string_t *dst)
 {
-	system_os_post(command_task_id, command_task_command_reset, 0);
+	task_post_command(command_task_command_reset);
 
 	string_append(dst, "> reset\n");
 

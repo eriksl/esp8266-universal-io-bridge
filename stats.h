@@ -43,6 +43,13 @@ extern int stat_update_command_tcp;
 extern int stat_update_display;
 extern int stat_update_ntp;
 
+extern unsigned int stat_task_uart_posted;
+extern unsigned int stat_task_uart_failed;
+extern unsigned int stat_task_command_posted;
+extern unsigned int stat_task_command_failed;
+extern unsigned int stat_task_timer_posted;
+extern unsigned int stat_task_timer_failed;
+
 extern int stat_debug_1;
 extern int stat_debug_2;
 extern int stat_debug_3;

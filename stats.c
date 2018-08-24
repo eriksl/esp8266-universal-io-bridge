@@ -43,6 +43,13 @@ int stat_update_command_tcp;
 int stat_update_display;
 int stat_update_ntp;
 
+unsigned int stat_task_uart_posted;
+unsigned int stat_task_uart_failed;
+unsigned int stat_task_command_posted;
+unsigned int stat_task_command_failed;
+unsigned int stat_task_timer_posted;
+unsigned int stat_task_timer_failed;
+
 int stat_debug_1;
 int stat_debug_2;
 int stat_debug_3;
@@ -272,6 +279,12 @@ irom void stats_counters(string_t *dst)
 			"> cmd send buffer overflow events: %u\n"
 			"> uart receive buffer overflow events: %u\n"
 			"> uart send buffer overflow events: %u\n"
+			"> task uart posted: %u\n"
+			"> task uart failed: %u\n"
+			"> task command posted: %u\n"
+			"> task command failed: %u\n"
+			"> task timer posted: %u\n"
+			"> task timer failed: %u\n"
 			"> debug counter 1: %u\n"
 			"> debug counter 2: %u\n"
 			"> debug counter 3: %u\n",
@@ -295,6 +308,12 @@ irom void stats_counters(string_t *dst)
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
 				stat_uart_send_buffer_overflow,
+				stat_task_uart_posted,
+				stat_task_uart_failed,
+				stat_task_command_posted,
+				stat_task_command_failed,
+				stat_task_timer_posted,
+				stat_task_timer_failed,
 				stat_debug_1,
 				stat_debug_2,
 				stat_debug_3);
