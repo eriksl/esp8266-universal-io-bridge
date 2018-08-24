@@ -9,6 +9,7 @@
 #include "time.h"
 #include "i2c_sensor.h"
 #include "socket.h"
+#include "sequencer.h"
 
 #if IMAGE_OTA == 1
 #include <rboot-api.h>
@@ -329,6 +330,12 @@ irom static void command_task(os_event_t *event)
 				wlan_init();
 			}
 
+			break;
+		}
+
+		case(command_task_command_run_sequencer):
+		{
+			sequencer_run();
 			break;
 		}
 	}
