@@ -312,21 +312,29 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE)
 
 ota-compat:				$(FIRMWARE_OTA_IMG) free otapush espflash
-						./otapush -u write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
+						$(VECHO) "FLASH OTA LEGACY INTERFACE"
+						$(Q) otapush -u write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
-ota:					$(FIRMWARE_OTA_IMG) free otapush espflash
-						./espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
+ota:					$(FIRMWARE_OTA_IMG) free espflash
+						$(VECHO) "FLASH OTA"
+						espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
 
-ota-dummy:				$(FIRMWARE_OTA_IMG) free otapush espflash
-						./espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+ota-dummy:				$(FIRMWARE_OTA_IMG) free espflash
+						$(VECHO) "FLASH OTA DUMMY"
+						$(Q) espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
 ota-default:			$(RF_FILE) $(SYSTEM_FILE) $(RFCAL_FILE)
-						./espflash -n -N -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
-						./espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
-						./espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
+						$(VECHO) "FLASH OTA DEFAULTS"
+						$(VECHO) "* rf config"
+						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
+						$(VECHO) "* system_config"
+						$(Q)espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
+						$(VECHO) "* rf calibiration"
+						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
 ota-rboot-update:		$(FIRMWARE_OTA_RBOOT)
-						./espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
+						$(VECHO) "FLASH RBOOT"
+						$(Q) espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
