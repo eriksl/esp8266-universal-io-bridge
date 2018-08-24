@@ -32,6 +32,7 @@ static const io_info_t io_info =
 		},
 		"Internal GPIO",
 		io_gpio_init,
+		(void *)0, // postinit
 		(void *)0, // periodic slow
 		io_gpio_periodic_fast,
 		io_gpio_init_pin_mode,
@@ -57,6 +58,7 @@ static const io_info_t io_info =
 		},
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
+		(void *)0, // postinit
 		(void *)0, // periodic slow
 		io_aux_periodic_fast,
 		io_aux_init_pin_mode,
@@ -82,6 +84,7 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
+		(void *)0, // postinit
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -107,6 +110,7 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #2",
 		io_mcp_init,
+		(void *)0, // postinit
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -132,6 +136,7 @@ static const io_info_t io_info =
 		},
 		"MCP23017 I2C I/O expander #3",
 		io_mcp_init,
+		(void *)0, // postinit
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -157,6 +162,7 @@ static const io_info_t io_info =
 		},
 		"PCF8574A I2C I/O expander",
 		io_pcf_init,
+		(void *)0, // postinit
 		(void *)0, // periodic slow
 		(void *)0, // periodic fast
 		io_pcf_init_pin_mode,
@@ -182,6 +188,7 @@ static const io_info_t io_info =
 		},
 		"led string",
 		io_ledpixel_init,
+		io_ledpixel_post_init,
 		(void *)0, // periodic slow
 		(void *)0, // periodic fast
 		io_ledpixel_init_pin_mode,
@@ -1531,6 +1538,7 @@ irom void io_periodic_slow(void)
 	io_flags_t flags = { .counter_triggered = 0 };
 	string_init(varname_trigger_io, "trigger.status.io");
 	string_init(varname_trigger_pin, "trigger.status.pin");
+	static bool_t post_init_run = false;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -1539,6 +1547,9 @@ irom void io_periodic_slow(void)
 
 		if(!data->detected)
 			continue;
+
+		if(!post_init_run && info->post_init_fn)
+			info->post_init_fn(info);
 
 		if(info->periodic_slow_fn)
 			info->periodic_slow_fn(io, info, data, &flags);
@@ -1555,6 +1566,8 @@ irom void io_periodic_slow(void)
 				io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
 		}
 	}
+
+	post_init_run = true;
 
 	if(flags.counter_triggered &&
 			config_get_int(&varname_trigger_io, -1, -1, &trigger_status_io) &&

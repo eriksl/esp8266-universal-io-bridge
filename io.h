@@ -234,6 +234,7 @@ typedef const struct io_info_entry_T
 	io_caps_t caps;
 	const char *name;
 	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
+	void		(* const post_init_fn)		(					const struct io_info_entry_T *);
 	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);

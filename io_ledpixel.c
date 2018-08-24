@@ -99,15 +99,9 @@ irom void io_ledpixel_setup(unsigned pin, unsigned uart)
 	esp8266_uart = uart;
 }
 
-iram void io_ledpixel_periodic(int io, const struct io_info_entry_T *io_info_entry, io_data_entry_t *io_data_entry, io_flags_t *io_flags)
+irom void io_ledpixel_post_init(const struct io_info_entry_T *info)
 {
-	static bool_t init_finished = false;
-
-	if(!init_finished)
-	{
-		send_all(true);
-		init_finished = true;
-	}
+	send_all(true);
 }
 
 irom io_error_t io_ledpixel_init(const struct io_info_entry_T *info)
