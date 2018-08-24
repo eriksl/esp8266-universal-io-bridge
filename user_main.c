@@ -470,8 +470,6 @@ irom void user_init(void)
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
 
-	wifi_station_set_auto_connect(0);
-
 	if(config_flags_get().flag.wlan_power_save)
 		wifi_set_sleep_type(MODEM_SLEEP_T);
 	else
@@ -718,7 +716,8 @@ irom bool_t wlan_init(void)
 {
 	int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;
-	string_new(, config_string, 64);
+	string_new(, string_ssid, 64);
+	string_new(, string_passwd, 64);
 	int channel;
 	struct station_config cconf;
 	struct softap_config saconf;
@@ -738,29 +737,39 @@ irom bool_t wlan_init(void)
 	{
 		case(config_wlan_mode_client):
 		{
-			memset(&cconf, 0, sizeof(cconf));
-			cconf.bssid_set = 0;
+			if(!config_get_string(&varname_wlan_client_ssid, -1, -1, &string_ssid))
+			{
+				string_clear(&string_ssid);
+				string_append(&string_ssid, "esp");
+			}
 
-			string_clear(&config_string);
+			if(!config_get_string(&varname_wlan_client_passwd, -1, -1, &string_passwd))
+			{
+				string_clear(&string_passwd);
+				string_append(&string_passwd, "espespesp");
+			}
 
-			if(config_get_string(&varname_wlan_client_ssid, -1, -1, &config_string))
-				strecpy(cconf.ssid, string_to_cstr(&config_string), sizeof(cconf.ssid));
+			if((wifi_get_opmode() != STATION_MODE) ||
+					!wifi_station_get_config(&cconf) ||
+					!wifi_station_get_auto_connect() ||
+					!string_match_cstr(&string_ssid, cconf.ssid) ||
+					!string_match_cstr(&string_passwd, cconf.password))
+			{
+				memset(&cconf, 0, sizeof(cconf));
+				strecpy(cconf.ssid, string_to_cstr(&string_ssid), sizeof(cconf.ssid));
+				strecpy(cconf.password, string_to_cstr(&string_passwd), sizeof(cconf.password));
+				cconf.bssid_set = 0;
+
+				logfmt("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\" and reconnect\n", cconf.ssid, cconf.password);
+
+				wifi_station_disconnect();
+				wifi_set_opmode(STATION_MODE);
+				wifi_station_set_config(&cconf);
+				wifi_station_connect();
+				wifi_station_set_auto_connect(1);
+			}
 			else
-				strecpy(cconf.ssid, "esp", sizeof(cconf.ssid));
-
-			string_clear(&config_string);
-
-			if(config_get_string(&varname_wlan_client_passwd, -1, -1, &config_string))
-				strecpy(cconf.password, string_to_cstr(&config_string), sizeof(cconf.password));
-			else
-				strecpy(cconf.password, "espespesp", sizeof(cconf.password));
-
-			logfmt("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\"\r\n", cconf.ssid, cconf.password);
-
-			wifi_station_disconnect();
-			wifi_set_opmode_current(STATION_MODE);
-			wifi_station_set_config_current(&cconf);
-			wifi_station_connect();
+				logfmt("* wlan mode is client, ssid=\"%s\", passwd=\"%s\"\n", cconf.ssid, cconf.password);
 
 			break;
 		}
@@ -769,13 +778,13 @@ irom bool_t wlan_init(void)
 		{
 			memset(&saconf, 0, sizeof(saconf));
 
-			if(config_get_string(&varname_wlan_ap_ssid, -1, -1, &config_string))
-				strecpy(saconf.ssid, string_to_cstr(&config_string), sizeof(saconf.ssid));
+			if(config_get_string(&varname_wlan_ap_ssid, -1, -1, &string_ssid))
+				strecpy(saconf.ssid, string_to_cstr(&string_ssid), sizeof(saconf.ssid));
 			else
 				strecpy(saconf.ssid, "esp", sizeof(saconf.ssid));
 
-			if(config_get_string(&varname_wlan_ap_passwd, -1, -1, &config_string))
-				strecpy(saconf.password, string_to_cstr(&config_string), sizeof(saconf.password));
+			if(config_get_string(&varname_wlan_ap_passwd, -1, -1, &string_passwd))
+				strecpy(saconf.password, string_to_cstr(&string_passwd), sizeof(saconf.password));
 			else
 				strecpy(saconf.password, "espespesp", sizeof(saconf.password));
 

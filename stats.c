@@ -357,11 +357,13 @@ irom void stats_wlan(string_t *dst)
 			config.ssid, config.password);
 
 	string_format(dst,
+			"> autoconnect: %s\n"
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
 			"> signal strength: %d dB\n"
 			">\n",
+				onoff(wifi_station_get_auto_connect()),
 				phy[wifi_get_phy_mode()],
 				slp[wifi_get_sleep_type()],
 				wifi_get_channel(),
