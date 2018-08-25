@@ -27,17 +27,18 @@ enum
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
 static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
-attr_inline int IODIR(int s)	{ return(0x00 + s);	}
-attr_inline int IPOL(int s)		{ return(0x02 + s);	}
-attr_inline int GPINTEN(int s)	{ return(0x04 + s);	}
-attr_inline int DEFVAL(int s)	{ return(0x06 + s);	}
-attr_inline int INTCON(int s)	{ return(0x08 + s);	}
-attr_inline int IOCON(int s)	{ return(0x0a + s);	}
-attr_inline int GPPU(int s)		{ return(0x0c + s);	}
-attr_inline int INTF(int s)		{ return(0x0e + s);	}
-attr_inline int INTCAP(int s)	{ return(0x10 + s);	}
-attr_inline int GPIO(int s)		{ return(0x12 + s);	}
-attr_inline int OLAT(int s)		{ return(0x14 + s);	}
+attr_inline int IODIR(int s)		{ return(0x00 + s);	}
+attr_inline int IPOL(int s)			{ return(0x02 + s);	}
+attr_inline int GPINTEN(int s)		{ return(0x04 + s);	}
+attr_inline int DEFVAL(int s)		{ return(0x06 + s);	}
+attr_inline int INTCON(int s)		{ return(0x08 + s);	}
+attr_inline int IOCON_linear(int s)	{ return(0x0a + s);	}
+attr_inline int IOCON_banked(int s)	{ return(s ? 0x05 : 0x15); }
+attr_inline int GPPU(int s)			{ return(0x0c + s);	}
+attr_inline int INTF(int s)			{ return(0x0e + s);	}
+attr_inline int INTCAP(int s)		{ return(0x10 + s);	}
+attr_inline int GPIO(int s)			{ return(0x12 + s);	}
+attr_inline int OLAT(int s)			{ return(0x14 + s);	}
 
 attr_inline int instance_index(const struct io_info_entry_T *info)
 {
@@ -106,15 +107,23 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 
 irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
-	int pin;
-	int iocon_value = (1 << DISSLW) | (1 << INTPOL);
+	unsigned int pin;
+	unsigned int iocon_value = (1 << DISSLW) | (1 << INTPOL | (0 << BANK));
 	uint8_t i2c_buffer[1];
 	mcp_data_pin_t *mcp_pin_data;
 
-	if(i2c_send2(info->address, IOCON(0), iocon_value) != i2c_error_ok)
+	// switch to linear mode, assuming config is in banked mode
+	// if config was in linear mode already, GPINTENB will be written instead of IOCON, but that's ok (value == 0)
+
+	if(i2c_send2(info->address, IOCON_banked(0), 0 << BANK) != i2c_error_ok)
 		return(io_error);
 
-	if(i2c_send1_receive_repeated_start(info->address, IOCON(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
+	// config should be in linear mode now
+
+	if(i2c_send2(info->address, IOCON_linear(0), iocon_value) != i2c_error_ok)
+		return(io_error);
+
+	if(i2c_send1_receive_repeated_start(info->address, IOCON_linear(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
 		return(io_error);
 
 	if(i2c_buffer[0] != iocon_value)
