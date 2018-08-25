@@ -239,7 +239,6 @@ irom static void command_task(os_event_t *event)
 		case(command_task_command_disconnect):
 		{
 			socket_disconnect_accepted(&socket_cmd.socket);
-			bg_action.disconnect = 0;
 			stat_update_longop++;
 			break;
 		}
@@ -248,7 +247,6 @@ irom static void command_task(os_event_t *event)
 		{
 			uint32_t now = system_get_time();
 			i2c_sensor_init_all();
-			bg_action.init_i2c_sensors = 0;
 			stat_i2c_init_time_us = system_get_time() - now;
 			stat_update_longop++;
 			break;
@@ -258,7 +256,6 @@ irom static void command_task(os_event_t *event)
 		{
 			uint32_t now = system_get_time();
 			display_init();
-			bg_action.init_displays = 0;
 			stat_display_init_time_us = system_get_time() - now;
 			stat_update_longop++;
 			break;
@@ -362,13 +359,22 @@ iram attr_speed static void slow_timer_callback(void *arg)
 		dispatch_post_command(command_task_command_uart_bridge);
 
 	if(bg_action.disconnect)
+	{
+		bg_action.disconnect = 0;
 		dispatch_post_command(command_task_command_disconnect);
+	}
 
 	if(bg_action.init_i2c_sensors)
+	{
+		bg_action.init_i2c_sensors = 0;
 		dispatch_post_command(command_task_command_init_i2c_sensors);
+	}
 
 	if(bg_action.init_displays)
+	{
+		bg_action.init_displays = 0;
 		dispatch_post_command(command_task_command_init_displays);
+	}
 
 	if(display_detected())
 		dispatch_post_command(command_task_command_display_update);
