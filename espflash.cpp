@@ -817,6 +817,7 @@ int main(int argc, const char **argv)
 		unsigned int start, length, chunk_size;
 		bool use_udp = false;
 		bool verbose = false;
+		bool verbose2 = false;
 		bool nocommit = false;
 		bool noreset = false;
 		bool notemp = false;
@@ -843,6 +844,7 @@ int main(int argc, const char **argv)
 			("simulate,S",	po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
 			("udp,u",		po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
 			("verbose,v",	po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
+			("verbose2,x",	po::bool_switch(&verbose2)->implicit_value(true),					"less verbose output")
 			("verify,V",	po::bool_switch(&cmd_verify)->implicit_value(true),					"VERIFY")
 			("write,W",		po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE");
 
@@ -1040,7 +1042,7 @@ int main(int argc, const char **argv)
 
 						if(!process(channel, send_string, reply,
 								"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-								string_value, int_value, verbose))
+								string_value, int_value, verbose || verbose2))
 						{
 							std::cout << "flash-select: generic failure";
 							continue;
@@ -1052,7 +1054,7 @@ int main(int argc, const char **argv)
 
 						if(!process(channel, send_string, reply,
 								"OK flash-select-once: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-								string_value, int_value, verbose))
+								string_value, int_value, verbose ||verbose2))
 						{
 							std::cout << "flash-select-once: generic failure";
 							continue;
@@ -1088,7 +1090,7 @@ int main(int argc, const char **argv)
 				{
 					std::cout << "rebooting" << std::endl;
 
-					if(!process(channel, "reset", reply, "> reset\\s*", string_value, int_value, verbose))
+					if(!process(channel, "reset", reply, "> reset\\s*", string_value, int_value, verbose || verbose2))
 						throw(std::string("reset: generic failure"));
 
 					sleep(2);
@@ -1114,7 +1116,7 @@ int main(int argc, const char **argv)
 
 							if(!process(channel, send_string, reply,
 									"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-									string_value, int_value, verbose))
+									string_value, int_value, verbose || verbose2))
 							{
 								std::cout << "flash-select: generic failure";
 								continue;
