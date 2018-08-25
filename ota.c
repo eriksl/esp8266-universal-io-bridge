@@ -23,6 +23,7 @@ irom app_action_t application_function_flash_info(const string_t *src, string_t 
 
 #if IMAGE_OTA != 0
 	rboot_config rcfg = rboot_get_config();
+	rboot_rtc_data rrtc;
 
 	if((rcfg.magic != BOOT_CONFIG_MAGIC) || (rcfg.count > 3))
 	{
@@ -37,6 +38,9 @@ irom app_action_t application_function_flash_info(const string_t *src, string_t 
 	ota_address_1 = rcfg.roms[1];
 	ota_address_2 = rcfg.roms[2];
 	ota_address_3 = rcfg.roms[3];
+
+	if(rboot_get_rtc_data(&rrtc) && (rrtc.magic == RBOOT_RTC_MAGIC))
+		ota_slot = rrtc.last_rom;
 #endif
 
 	string_format(dst, "OK flash function available, sector size: %u bytes, OTA update available: %d, slots: %d, slot: %d, address: %u, address: %u, address: %u, address: %u\n",
@@ -512,6 +516,21 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 		}
 
 		slot = rcfg.current_rom;
+
+		if(!rboot_get_rtc_data(&rrtc))
+		{
+			string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
+			return(app_action_error);
+		}
+
+		rrtc.next_mode = MODE_STANDARD;
+		rrtc.temp_rom = slot;
+
+		if(!rboot_set_rtc_data(&rrtc))
+		{
+			string_format(dst, "ERROR: %s: set RTC data failed\n", cmdname);
+			return(app_action_error);
+		}
 	}
 
 	string_format(dst, "OK %s: slot %d selected, address %d\n", cmdname, slot, rcfg.roms[slot]);
