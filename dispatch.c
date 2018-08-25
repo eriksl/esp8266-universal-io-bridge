@@ -349,8 +349,6 @@ iram attr_speed static void slow_timer_callback(void *arg)
 {
 	// run background task every ~100 ms = ~10 Hz
 
-	time_periodic();
-
 	stat_slow_timer++;
 
 	dispatch_post_command(command_task_command_update_time);
