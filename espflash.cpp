@@ -948,7 +948,7 @@ int main(int argc, const char **argv)
 		{
 			if(flash_ota)
 			{
-				if((action != action_read) && (action != action_none))
+				if(action == action_write)
 				{
 					flash_slot++;
 
