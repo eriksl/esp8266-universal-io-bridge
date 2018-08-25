@@ -29,7 +29,7 @@ irom static void uptime_init(void)
 	uptime_base_us = system_get_time();
 }
 
-iram static void uptime_periodic(void)
+attr_inline void uptime_periodic(void)
 {
 	unsigned int uptime_now = system_get_time();
 
@@ -92,7 +92,7 @@ irom static void system_init(void)
 	system_base_us = system_get_time();
 }
 
-iram static void system_periodic(void)
+attr_inline void system_periodic(void)
 {
 	unsigned int system_now = system_get_time();
 
@@ -160,7 +160,7 @@ irom static void rtc_init(void)
 	rtc_wraps = 0;
 }
 
-iram static void rtc_periodic(void)
+attr_inline void rtc_periodic(void)
 {
 	unsigned int rtc_current_value;
 	uint64_t calvalue_ns, diff;
@@ -232,7 +232,7 @@ irom static void timer_init(void)
 	timer_wraps = 0;
 }
 
-iram static void timer_periodic(void)
+attr_inline void timer_periodic(void)
 {
 	timer_ms += 100;
 
@@ -318,7 +318,7 @@ irom void time_ntp_init(void)
 		sntp_init();
 }
 
-iram static void ntp_periodic(void)
+attr_inline void ntp_periodic(void)
 {
 	static int delay = 0;
 	static bool_t initial_burst = true;
