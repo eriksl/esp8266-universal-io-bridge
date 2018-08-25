@@ -453,41 +453,65 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 		return(app_action_error);
 	}
 
-	if(once)
+	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
 	{
-		if(!rboot_set_temp_rom(slot))
+		logfmt("%s: rtc signature invalid: %x\n", cmdname, rrtc.magic);
+
+		rrtc.magic		= RBOOT_RTC_MAGIC;
+		rrtc.next_mode	= MODE_STANDARD;
+		rrtc.last_mode	= MODE_STANDARD;
+		rrtc.last_rom	= slot;
+		rrtc.temp_rom	= slot;
+
+		if(!rboot_set_rtc_data(&rrtc))
 		{
-			string_format(dst, "ERROR: %s: set current slot to %d failed\n", cmdname, slot);
+			string_format(dst, "ERROR: %s: RTC info signature absent and can't create a new one\n", cmdname);
 			return(app_action_error);
 		}
-
-		if(!rboot_get_rtc_data(&rrtc))
-		{
-			string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
-			return(app_action_error);
-		}
-
-		if(rrtc.magic != RBOOT_RTC_MAGIC)
-		{
-			string_format(dst, "ERROR: %s: RTC data invalid\n", cmdname);
-			return(app_action_error);
-		}
-
-		if(rrtc.next_mode != MODE_TEMP_ROM)
-		{
-			string_format(dst, "ERROR: %s: RTC data invalid, next boot mode: %s\n", cmdname, rboot_boot_mode(rrtc.next_mode));
-			return(app_action_error);
-		}
-
-		if(rrtc.temp_rom != slot)
-		{
-			string_format(dst, "ERROR: %s: RTC data invalid, next boot slot: %x\n", cmdname, rrtc.temp_rom);
-			return(app_action_error);
-		}
-
-		slot = rrtc.temp_rom;
 	}
-	else
+
+	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
+	{
+		string_format(dst, "ERROR: %s: RTC info signature invalid (1)\n", cmdname);
+		return(app_action_error);
+	}
+
+	rrtc.next_mode	= once ? MODE_TEMP_ROM : MODE_STANDARD;
+	rrtc.temp_rom	= slot;
+
+	if(!rboot_set_rtc_data(&rrtc))
+	{
+		string_format(dst, "ERROR: %s: can't write RTC info\n", cmdname);
+		return(app_action_error);
+	}
+
+	if(!rboot_get_rtc_data(&rrtc))
+	{
+		string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
+		return(app_action_error);
+	}
+
+	if(rrtc.magic != RBOOT_RTC_MAGIC)
+	{
+		string_format(dst, "ERROR: %s: RTC magic invalid: %x\n", cmdname, rrtc.magic);
+		return(app_action_error);
+	}
+
+	if(rrtc.next_mode != (once ? MODE_TEMP_ROM : MODE_STANDARD))
+	{
+		string_format(dst, "ERROR: %s: RTC data invalid, next boot mode: %s\n", cmdname, rboot_boot_mode(rrtc.next_mode));
+		return(app_action_error);
+	}
+
+	if(rrtc.temp_rom != slot)
+	{
+		string_format(dst, "ERROR: %s: RTC data invalid, next boot slot: %x\n", cmdname, rrtc.temp_rom);
+		return(app_action_error);
+	}
+
+	slot = rrtc.temp_rom;
+
+	if(!once)
 	{
 		if(!rboot_set_current_rom(slot))
 		{
@@ -510,21 +534,6 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 		}
 
 		slot = rcfg.current_rom;
-
-		if(!rboot_get_rtc_data(&rrtc))
-		{
-			string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
-			return(app_action_error);
-		}
-
-		rrtc.next_mode = MODE_STANDARD;
-		rrtc.temp_rom = slot;
-
-		if(!rboot_set_rtc_data(&rrtc))
-		{
-			string_format(dst, "ERROR: %s: set RTC data failed\n", cmdname);
-			return(app_action_error);
-		}
 	}
 
 	string_format(dst, "OK %s: slot %d selected, address %d\n", cmdname, slot, rcfg.roms[slot]);

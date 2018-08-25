@@ -1097,44 +1097,54 @@ int main(int argc, const char **argv)
 
 					channel.reconnect();
 
-					std::cout << "reboot success" << std::endl;
-
+					std::cout << "reboot finished" << std::endl;
 
 					if(!notemp)
 					{
-						std::cout << "permanently selecting boot slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
+						if(!process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
+									"slots: ([0-9]+), slot: ([0-9]+), "
+									"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
+									string_value, int_value, verbose))
+							throw(std::string("incompatible image"));
 
-						for(attempt = max_attempts; attempt > 0; attempt--)
+						if(int_value[3] != (int)flash_slot)
+							std::cout << "boot failed" << std::endl;
+						else
 						{
-							std::string send_string;
-							std::string reply;
+							std::cout << "boot succeeded, permanently selecting boot slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
 
-							if(attempt != max_attempts)
-								std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
-
-							send_string = std::string("flash-select ") + std::to_string(flash_slot);
-
-							if(!process(channel, send_string, reply,
-									"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-									string_value, int_value, verbose || verbose2))
+							for(attempt = max_attempts; attempt > 0; attempt--)
 							{
-								std::cout << "flash-select: generic failure";
-								continue;
-							}
+								std::string send_string;
+								std::string reply;
 
-							if((unsigned int)int_value[0] != flash_slot)
-							{
-								std::cout << "flash-select failed, local slot (" << flash_slot << ") != remote slot (" << int_value[0] << ")";
-								continue;
-							}
+								if(attempt != max_attempts)
+									std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
 
-							if((unsigned int)int_value[1] != start)
-							{
-								std::cout << "flash-select failed, local address (" << flash_slot << ") != remote address (" << int_value[0] << ")";
-								continue;
-							}
+								send_string = std::string("flash-select ") + std::to_string(flash_slot);
 
-							break;
+								if(!process(channel, send_string, reply,
+										"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
+										string_value, int_value, verbose || verbose2))
+								{
+									std::cout << "flash-select: generic failure";
+									continue;
+								}
+
+								if((unsigned int)int_value[0] != flash_slot)
+								{
+									std::cout << "flash-select failed, local slot (" << flash_slot << ") != remote slot (" << int_value[0] << ")";
+									continue;
+								}
+
+								if((unsigned int)int_value[1] != start)
+								{
+									std::cout << "flash-select failed, local address (" << flash_slot << ") != remote address (" << int_value[0] << ")";
+									continue;
+								}
+
+								break;
+							}
 						}
 					}
 				}
