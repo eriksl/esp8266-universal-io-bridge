@@ -224,28 +224,6 @@ static bool process(GenericSocket &channel, const std::string &send_string, std:
 		}
 	}
 
-#if 0
-	if(verbose)
-	{
-		std::cout << "string captures: ";
-
-		for(const auto &it : string_value)
-			std::cout << it << " ";
-
-		std::cout << std::endl;
-	}
-
-	if(verbose)
-	{
-		std::cout << "int captures: ";
-
-		for(const auto &it : int_value)
-			std::cout << it << " ";
-
-		std::cout << std::endl;
-	}
-#endif
-
 	return(true);
 }
 
