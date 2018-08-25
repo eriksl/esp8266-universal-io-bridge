@@ -569,6 +569,10 @@ irom void dispatch_init1(void)
 	bg_action.disconnect = 0;
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
+
+	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
+	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
+	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
 }
 
 irom void dispatch_init2(void)
@@ -604,10 +608,6 @@ irom void dispatch_init2(void)
 
 		uart_bridge_active = true;
 	}
-
-	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
-	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
-	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms
