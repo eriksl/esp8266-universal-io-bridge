@@ -137,8 +137,6 @@ irom bool_t display_lcd_init(void)
 	// robust initialisation sequence,
 	// from http://web.alfredstate.edu/weimandn/lcd/lcd_initialization/lcd_initialization_index.html
 
-	msleep(50);
-
 	for(pin = 3; pin > 0; pin--)
 	{
 		if(!send_byte_raw(0b00110000, false))	// 3 x special "reset" command, low nibble ignored
