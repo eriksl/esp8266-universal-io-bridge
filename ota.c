@@ -447,12 +447,6 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 		return(app_action_error);
 	}
 
-	if(slot == rcfg.current_rom)
-	{
-		string_format(dst, "ERROR %s: this slot is already active\n", cmdname);
-		return(app_action_error);
-	}
-
 	if(slot >= rcfg.count)
 	{
 		string_format(dst, "ERROR %s: invalid slot, valid range = 0 - %d\n", cmdname, rcfg.count - 1);
