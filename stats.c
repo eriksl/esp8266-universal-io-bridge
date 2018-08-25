@@ -285,9 +285,9 @@ irom void stats_counters(string_t *dst)
 			"> task command failed: %u\n"
 			"> task timer posted: %u\n"
 			"> task timer failed: %u\n"
-			"> debug counter 1: %u\n"
-			"> debug counter 2: %u\n"
-			"> debug counter 3: %u\n",
+			"> debug counter 1: 0x%08x %d\n"
+			"> debug counter 2: 0x%08x %d\n"
+			"> debug counter 3: 0x%08x %d\n",
 				yesno(stat_called.user_rf_cal_sector_set),
 				yesno(stat_called.user_rf_pre_init),
 				stat_uart0_rx_interrupts,
@@ -315,7 +315,10 @@ irom void stats_counters(string_t *dst)
 				stat_task_timer_posted,
 				stat_task_timer_failed,
 				stat_debug_1,
+				stat_debug_1,
 				stat_debug_2,
+				stat_debug_2,
+				stat_debug_3,
 				stat_debug_3);
 }
 
