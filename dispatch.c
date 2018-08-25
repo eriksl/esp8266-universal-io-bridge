@@ -140,30 +140,29 @@ iram void dispatch_post_timer(task_command_t command)
 		stat_task_timer_failed++;
 }
 
-irom static bool_t background_task_bridge_uart(void)
+irom static void background_task_bridge_uart(void)
 {
-	if(socket_uart.state == socket_state_idle)
+	if(socket_uart.state != socket_state_idle)
 	{
-		while(!uart_empty(0) && string_space(&socket_uart.send_buffer))
-			string_append_char(&socket_uart.send_buffer, uart_receive(0));
-
-		if(!string_empty(&socket_uart.send_buffer))
-		{
-			socket_uart.state = socket_state_sending;
-
-			if(socket_send(&socket_uart.socket, &socket_uart.send_buffer))
-				return(true);
-			else
-			{
-				string_clear(&socket_uart.send_buffer);
-				socket_uart.state = socket_state_idle;
-				stat_uart_send_buffer_overflow++;
-				return(false);
-			}
-		}
+		dispatch_post_command(command_task_command_uart_bridge);
+		return;
 	}
 
-	return(false);
+	while(!uart_empty(0) && string_space(&socket_uart.send_buffer))
+		string_append_char(&socket_uart.send_buffer, uart_receive(0));
+
+	if(string_empty(&socket_uart.send_buffer))
+		return;
+
+	socket_uart.state = socket_state_sending;
+
+	if(socket_send(&socket_uart.socket, &socket_uart.send_buffer))
+		return;
+
+	string_clear(&socket_uart.send_buffer);
+	socket_uart.state = socket_state_idle;
+	stat_uart_send_buffer_overflow++;
+	dispatch_post_command(command_task_command_uart_bridge);
 }
 
 irom static void background_task_command_handler(void)
@@ -232,10 +231,8 @@ irom static void command_task(os_event_t *event)
 
 		case(command_task_command_uart_bridge):
 		{
+			background_task_bridge_uart();
 			stat_update_uart++;
-
-			if(background_task_bridge_uart())
-				dispatch_post_command(command_task_command_uart_bridge);
 			break;
 		}
 
