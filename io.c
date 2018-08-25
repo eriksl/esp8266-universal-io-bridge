@@ -40,6 +40,7 @@ static const io_info_t io_info =
 		io_gpio_get_pin_info,
 		io_gpio_read_pin,
 		io_gpio_write_pin,
+		(void *)0, // set_mask
 	},
 	{
 		io_id_aux,/* = 1 */
@@ -66,6 +67,7 @@ static const io_info_t io_info =
 		io_aux_get_pin_info,
 		io_aux_read_pin,
 		io_aux_write_pin,
+		(void *)0, // set_mask
 	},
 	{
 		io_id_mcp_20, /* = 2 */
@@ -92,6 +94,7 @@ static const io_info_t io_info =
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
 		io_mcp_write_pin,
+		io_mcp_set_mask,
 	},
 	{
 		io_id_mcp_21, /* = 3 */
@@ -118,6 +121,7 @@ static const io_info_t io_info =
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
 		io_mcp_write_pin,
+		io_mcp_set_mask,
 	},
 	{
 		io_id_mcp_22, /* = 4 */
@@ -144,6 +148,7 @@ static const io_info_t io_info =
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
 		io_mcp_write_pin,
+		io_mcp_set_mask,
 	},
 	{
 		io_id_pcf_3a, /* = 5 */
@@ -170,6 +175,7 @@ static const io_info_t io_info =
 		(void *)0, // get pin info
 		io_pcf_read_pin,
 		io_pcf_write_pin,
+		io_mcp_set_mask,
 	},
 	{
 		io_id_ledpixel, /* = 6 */
@@ -196,6 +202,7 @@ static const io_info_t io_info =
 		(void *)0, // get pin info
 		io_ledpixel_read_pin,
 		io_ledpixel_write_pin,
+		(void *)0, // set_mask
 	}
 };
 
@@ -629,6 +636,19 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 	return(io_ok);
 }
 
+irom static io_error_t io_set_mask_x(string_t *errormsg, const io_info_entry_t *info, unsigned int mask, unsigned int pins)
+{
+	if(!info->set_mask_fn)
+	{
+		if(errormsg)
+			string_append(errormsg, "set mask operation not supported on this io");
+
+		return(io_error);
+	}
+
+	return(info->set_mask_fn(errormsg, info, mask, pins));
+}
+
 irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
@@ -988,6 +1008,22 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
 	pin_data = &data->pin[pin];
 
 	return(io_write_pin_x(error, info, pin_data, pin_config, pin, value));
+}
+
+irom io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins)
+{
+	const io_info_entry_t *info;
+
+	if(io >= io_id_size)
+	{
+		if(error)
+			string_append(error, "io out of range\n");
+		return(io_error);
+	}
+
+	info = &io_info[io];
+
+	return(io_set_mask_x(error, info, mask, pins));
 }
 
 irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger_type)
@@ -2229,6 +2265,45 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	}
 
 	string_format(dst, "[%d]\n", value);
+
+	return(app_action_normal);
+}
+
+irom app_action_t application_function_io_set_mask(const string_t *src, string_t *dst)
+{
+	unsigned int io, mask, pins;
+
+	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		return(app_action_error);
+	}
+
+	if(io >= io_id_size)
+	{
+		string_format(dst, "invalid io %d\n", io);
+		return(app_action_error);
+	}
+
+	if(parse_uint(2, src, &mask, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		return(app_action_error);
+	}
+
+	if(parse_uint(3, src, &pins, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		return(app_action_error);
+	}
+
+	if(io_set_mask(dst, io, mask, pins) != io_ok)
+	{
+		string_append(dst, "error\n");
+		return(app_action_error);
+	}
+
+	string_append(dst, "ok\n");
 
 	return(app_action_normal);
 }

@@ -3,60 +3,44 @@
 #include "io.h"
 #include "config.h"
 
-typedef struct
-{
-	int	io;
-	int pin;
-} lcd_io_t;
-
 static bool_t inited = false;
 static bool_t nibble_mode;
-static lcd_io_t lcd_io_pin[io_lcd_size];
 
-irom static bool set_pin(io_lcd_mode_t pin_use, int value)
+static int bl_io;
+static int bl_pin;
+static int lcd_io;
+static int lcd_pin[io_lcd_size];
+static unsigned int pin_mask;
+
+attr_inline unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
-	int io, pin;
+	unsigned int pin = 0;
 
-	io = lcd_io_pin[pin_use].io;
-	pin = lcd_io_pin[pin_use].pin;
+	if(value & (1 << src_bitindex))
+		pin = 1;
 
-	if((io < 0) || (pin < 0))
-		return(false);
-
-	if(io_write_pin((string_t *)0, io, pin, value) != io_ok)
-		return(false);
-
-	return(true);
+	return(pin << lcd_pin[function]);
 }
 
-irom static bool send_byte_raw(int byte, bool data)
+irom static bool send_byte_raw(int byte, bool_t data)
 {
-	if(!set_pin(io_lcd_rs, data))
-		return(false);
+	unsigned int pins = 0;
 
-	set_pin(io_lcd_rw, 0);
-	set_pin(io_lcd_d0, !!(byte & (1 << 0)));
-	set_pin(io_lcd_d1, !!(byte & (1 << 1)));
-	set_pin(io_lcd_d2, !!(byte & (1 << 2)));
-	set_pin(io_lcd_d3, !!(byte & (1 << 3)));
+	io_set_mask((string_t *)0, lcd_io, pin_mask, 0);
 
-	if(!set_pin(io_lcd_d4, !!(byte & (1 << 4))))
-		return(false);
+	pins |= bit_to_pin(!!data, 0, io_lcd_rs);
+	pins |= bit_to_pin(0, 0, io_lcd_rw);
+	pins |= bit_to_pin(byte, 0, io_lcd_d0);
+	pins |= bit_to_pin(byte, 1, io_lcd_d1);
+	pins |= bit_to_pin(byte, 2, io_lcd_d2);
+	pins |= bit_to_pin(byte, 3, io_lcd_d3);
+	pins |= bit_to_pin(byte, 4, io_lcd_d4);
+	pins |= bit_to_pin(byte, 5, io_lcd_d5);
+	pins |= bit_to_pin(byte, 6, io_lcd_d6);
+	pins |= bit_to_pin(byte, 7, io_lcd_d7);
+	pins |= bit_to_pin(1, 0, io_lcd_e);
 
-	if(!set_pin(io_lcd_d5, !!(byte & (1 << 5))))
-		return(false);
-
-	if(!set_pin(io_lcd_d6, !!(byte & (1 << 6))))
-		return(false);
-
-	if(!set_pin(io_lcd_d7, !!(byte & (1 << 7))))
-		return(false);
-
-	if(!set_pin(io_lcd_e, false))
-		return(false);
-
-	if(!set_pin(io_lcd_e, true))
-		return(false);
+	io_set_mask((string_t *)0, lcd_io, pin_mask, pins);
 
 	return(true);
 }
@@ -82,11 +66,13 @@ irom bool_t display_lcd_init(void)
 	io_config_pin_entry_t *pin_config;
 	int io, pin, ix, byte, x, y;
 
+	bl_io	= -1;
+	bl_pin	= -1;
+	lcd_io	= -1;
+	pin_mask = 0;
+
 	for(pin = 0; pin < io_lcd_size; pin++)
-	{
-		lcd_io_pin[pin].io = -1;
-		lcd_io_pin[pin].pin = -1;
-	}
+		lcd_pin[pin] = -1;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -96,42 +82,60 @@ irom bool_t display_lcd_init(void)
 
 			if(pin_config->mode == io_pin_lcd)
 			{
-				lcd_io_pin[pin_config->shared.lcd.pin_use].io = io;
-				lcd_io_pin[pin_config->shared.lcd.pin_use].pin = pin;
+				if(pin_config->shared.lcd.pin_use == io_lcd_bl)
+				{
+					bl_io = io;
+					bl_pin = pin;
+				}
+				else
+				{
+					if((lcd_io >= 0) && (io != lcd_io))
+					{
+						log("* lcd: pins must be on same device\n");
+						continue;
+					}
+
+					lcd_io = io;
+					lcd_pin[pin_config->shared.lcd.pin_use] = pin;
+					pin_mask |= 1 << pin;
+				}
 			}
 		}
 	}
 
-	if((lcd_io_pin[io_lcd_rs].io < 0) || (lcd_io_pin[io_lcd_rs].pin < 0))
+	if(lcd_io < 0)
 		return(false);
 
-	if((lcd_io_pin[io_lcd_e].io < 0) || (lcd_io_pin[io_lcd_e].pin < 0))
+	if(lcd_pin[io_lcd_rs] < 0)
 		return(false);
 
-	if((lcd_io_pin[io_lcd_d4].io < 0) || (lcd_io_pin[io_lcd_d4].pin < 0))
+	if(lcd_pin[io_lcd_e] < 0)
 		return(false);
 
-	if((lcd_io_pin[io_lcd_d5].io < 0) || (lcd_io_pin[io_lcd_d5].pin < 0))
+	if(lcd_pin[io_lcd_d4] < 0)
 		return(false);
 
-	if((lcd_io_pin[io_lcd_d6].io < 0) || (lcd_io_pin[io_lcd_d6].pin < 0))
+	if(lcd_pin[io_lcd_d5] < 0)
 		return(false);
 
-	if((lcd_io_pin[io_lcd_d7].io < 0) || (lcd_io_pin[io_lcd_d7].pin < 0))
+	if(lcd_pin[io_lcd_d6] < 0)
+		return(false);
+
+	if(lcd_pin[io_lcd_d7] < 0)
 		return(false);
 
 	nibble_mode = false;
 
-	if((lcd_io_pin[io_lcd_d0].io < 0) || (lcd_io_pin[io_lcd_d0].pin < 0))
+	if(lcd_pin[io_lcd_d0] < 0)
 		nibble_mode = true;
 
-	if((lcd_io_pin[io_lcd_d1].io < 0) || (lcd_io_pin[io_lcd_d1].pin < 0))
+	if(lcd_pin[io_lcd_d1] < 0)
 		nibble_mode = true;
 
-	if((lcd_io_pin[io_lcd_d2].io < 0) || (lcd_io_pin[io_lcd_d2].pin < 0))
+	if(lcd_pin[io_lcd_d2] < 0)
 		nibble_mode = true;
 
-	if((lcd_io_pin[io_lcd_d3].io < 0) || (lcd_io_pin[io_lcd_d3].pin < 0))
+	if(lcd_pin[io_lcd_d3] < 0)
 		nibble_mode = true;
 
 	// robust initialisation sequence,
@@ -214,7 +218,8 @@ irom bool_t display_lcd_bright(int brightness)
 
 	pwm = bls[brightness] / (65536 / pwm_period);
 
-	set_pin(io_lcd_bl, pwm); // backlight pin might be not configured, ignore error
+	if((bl_io >= 0) && (bl_pin >= 0))
+		io_write_pin((string_t *)0, bl_io, bl_pin, pwm);
 
 	return(true);
 }

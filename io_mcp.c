@@ -404,3 +404,18 @@ iram io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_e
 
 	return(io_ok);
 }
+
+iram io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+{
+	unsigned int index = instance_index(info);
+
+	pin_output_cache[index][0] &= ~((mask & 0x00ff) >> 0);
+	pin_output_cache[index][1] &= ~((mask & 0xff00) >> 8);
+	pin_output_cache[index][0] |= (pins & 0x00ff) >> 0;
+	pin_output_cache[index][1] |= (pins & 0xff00) >> 8;
+
+	if(i2c_send3(info->address, GPIO(0), pin_output_cache[index][0], pin_output_cache[index][1]) != i2c_error_ok)
+		return(false);
+
+	return(io_ok);
+}

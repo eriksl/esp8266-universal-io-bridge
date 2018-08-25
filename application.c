@@ -1874,6 +1874,11 @@ static const application_function_table_t application_function_table[] =
 		"write to i/o pin",
 	},
 	{
+		"ism", "io-set-mask",
+		application_function_io_set_mask,
+		"write to multiple i/o pins",
+	},
+	{
 		"isf", "io-set-flag",
 		application_function_io_set_flag,
 		"set i/o pin flag",

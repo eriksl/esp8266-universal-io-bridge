@@ -241,6 +241,7 @@ typedef const struct io_info_entry_T
 	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
 	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
+	io_error_t	(* const set_mask_fn)		(string_t *error,	const struct io_info_entry_T *, unsigned int mask, unsigned int pins);
 } io_info_entry_t;
 
 typedef const io_info_entry_t io_info_t[io_id_size];
@@ -254,6 +255,7 @@ void		io_periodic_slow(void);
 void		io_periodic_fast(void);
 io_error_t	io_read_pin(string_t *, int, int, uint32_t *);
 io_error_t	io_write_pin(string_t *, int, int, uint32_t);
+io_error_t	io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
 io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);
 io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
 void		io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html);
@@ -265,5 +267,6 @@ app_action_t application_function_io_write(const string_t *src, string_t *dst);
 app_action_t application_function_io_trigger(const string_t *src, string_t *dst);
 app_action_t application_function_io_set_flag(const string_t *src, string_t *dst);
 app_action_t application_function_io_clear_flag(const string_t *src, string_t *dst);
+app_action_t application_function_io_set_mask(const string_t *src, string_t *dst);
 
 #endif
