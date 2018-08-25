@@ -1108,7 +1108,7 @@ int main(int argc, const char **argv)
 							throw(std::string("incompatible image"));
 
 						if(int_value[3] != (int)flash_slot)
-							std::cout << "boot failed" << std::endl;
+							std::cout << "boot failed, requested slot: " << flash_slot << ", active slot: " << int_value[3] << std::endl;
 						else
 						{
 							std::cout << "boot succeeded, permanently selecting boot slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
