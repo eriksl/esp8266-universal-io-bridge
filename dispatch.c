@@ -103,13 +103,12 @@ static struct
 {
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
-	unsigned int preparing_reset:1;
 } bg_action =
 {
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
-	.preparing_reset = 0,
 };
+static bool_t preparing_reset = false;
 
 static ETSTimer fast_timer;
 static ETSTimer slow_timer;
@@ -214,7 +213,7 @@ irom static void command_task(os_event_t *event)
 	{
 		case(command_task_reset):
 		{
-			bg_action.preparing_reset = 1;
+			preparing_reset = 1;
 
 			if((socket_proto(&socket_cmd.socket) == proto_udp) && !socket_send_busy(&socket_cmd.socket))
 			{
@@ -228,7 +227,7 @@ irom static void command_task(os_event_t *event)
 
 		case(command_task_reset_finish):
 		{
-			if(bg_action.preparing_reset)
+			if(preparing_reset)
 				reset();
 			break;
 		}
@@ -522,7 +521,7 @@ irom static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
-	if(bg_action.preparing_reset && socket_proto(socket) == proto_udp)
+	if(preparing_reset && socket_proto(socket) == proto_udp)
 		dispatch_post_command(command_task_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
@@ -554,7 +553,7 @@ irom static void callback_error_uart(socket_t *socket, int error, void *userdata
 
 irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 {
-	if(bg_action.preparing_reset)
+	if(preparing_reset)
 		dispatch_post_command(command_task_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
