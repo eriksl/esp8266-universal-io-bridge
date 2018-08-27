@@ -1543,6 +1543,8 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 		if((error = si114x_write_register_1(si114x_reg_command, command)) != i2c_error_ok)
 			goto failed;
 
+		msleep(1);
+
 		for(attempt2 = si114x_attempt_count; attempt2 > 0; attempt2--)
 		{
 			if((error = si114x_read_register_1(si114x_reg_response, &local_response)) != i2c_error_ok)
@@ -1617,9 +1619,13 @@ irom static i2c_error_t sensor_si114x_visible_light_init(int bus, const device_t
 {
 	i2c_error_t error;
 	unsigned int value;
+	uint8_t i2c_buffer[1];
 
 	if(i2c_sensor_detected(bus, i2c_sensor_mpl3115a2_temperature))
 		return(i2c_error_device_error_1);
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
 
 	if((error = si114x_read_register_1(si114x_reg_part_id, &value)) != i2c_error_ok)
 		return(error);
