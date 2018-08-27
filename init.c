@@ -30,8 +30,8 @@ iram attr_const uint32_t user_rf_cal_sector_set(void)
 void user_rf_pre_init(void);
 iram void user_rf_pre_init(void)
 {
-	system_phy_set_powerup_option(3); // default = 0, otherwise 3
-	system_phy_freq_trace_enable(1); // default = 0, otherwise 1
+	system_phy_set_powerup_option(0); // default = 0, otherwise 3
+	system_phy_freq_trace_enable(0); // default = 0, otherwise 1
 
 	stat_called.user_rf_pre_init = 1;
 }
