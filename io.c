@@ -1141,6 +1141,7 @@ irom void io_init(void)
 	int io, pin, mode, llmode;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
+	unsigned int i2c_speed_delay;
 	int trigger;
 	string_init(varname_iomode, "io.%u.%u.mode");
 	string_init(varname_llmode, "io.%u.%u.llmode");
@@ -1162,6 +1163,7 @@ irom void io_init(void)
 	string_init(varname_iooutputa_lower, "io.%u.%u.outputa.lower");
 	string_init(varname_iooutputa_upper, "io.%u.%u.outputa.upper");
 	string_init(varname_i2c_pinmode, "io.%u.%u.i2c.pinmode");
+	string_init(varname_i2c_speed_delay, "i2c.speed_delay");
 	string_init(varname_lcd_pin, "io.%u.%u.lcd.pin");
 
 	for(io = 0; io < io_id_size; io++)
@@ -1448,7 +1450,11 @@ irom void io_init(void)
 								i2c_scl = pin;
 
 							if((i2c_sda >= 0) && (i2c_scl >= 0))
-								i2c_init(i2c_sda, i2c_scl);
+							{
+								if(!config_get_int(&varname_i2c_speed_delay, -1, -1, &i2c_speed_delay))
+									i2c_speed_delay = 1000;
+								i2c_init(i2c_sda, i2c_scl, i2c_speed_delay);
+							}
 
 							break;
 						}

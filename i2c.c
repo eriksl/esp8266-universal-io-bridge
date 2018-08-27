@@ -713,36 +713,29 @@ iram i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-irom void i2c_init(int sda_in, int scl_in)
+irom void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 {
-	string_init(varname_i2c_speed_delay, "i2c.speed_delay");
 	uint8_t byte;
 	i2c_delay_enum_t current;
 	i2c_delay_t *entry;
-	unsigned int config_factor, user_factor;
-	int user_config_value;
+	unsigned int config_factor;
 
-	sda_pin = sda_in;
-	scl_pin = scl_in;
-
-	if(!config_get_int(&varname_i2c_speed_delay, -1, -1, &user_config_value))
-		user_config_value = 1000;
-
-	user_factor = (unsigned int)user_config_value;
+	if((sda_in >= 0) && (scl_in >= 0))
+	{
+		sda_pin = sda_in;
+		scl_pin = scl_in;
+	}
 
 	for(current = 0; current < i2c_delay_size; current++)
 	{
 		entry = &i2c_delay[current];
-
-		if(entry->delay != current)
-			continue;
 
 		if(config_flags_get().flag.cpu_high_speed)
 			config_factor = entry->factor_fast;
 		else
 			config_factor = entry->factor_slow;
 
-		entry->delay = user_factor * config_factor / 1000;
+		entry->delay = speed_delay * config_factor / 1000;
 	}
 
 	i2c_flags.init_done = 1;
