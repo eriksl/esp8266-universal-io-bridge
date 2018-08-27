@@ -204,6 +204,12 @@ irom static void background_task_command_handler(void)
 
 irom static void command_task(os_event_t *event)
 {
+	int trigger_io, trigger_pin;
+	string_init(varname_alert_assoc_io, "trigger.assoc.io");
+	string_init(varname_alert_assoc_pin, "trigger.assoc.pin");
+	string_init(varname_alert_status_io, "trigger.status.io");
+	string_init(varname_alert_status_pin, "trigger.status.pin");
+
 	switch(event->sig)
 	{
 		case(command_task_command_reset):
@@ -314,6 +320,36 @@ irom static void command_task(os_event_t *event)
 			sequencer_run();
 			break;
 		}
+
+		case(command_task_command_alert_association):
+		{
+			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
+					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
+					(trigger_io >= 0) && (trigger_pin >= 0)))
+				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
+
+			break;
+		}
+
+		case(command_task_command_alert_disassociation):
+		{
+			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
+					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
+					(trigger_io >= 0) && (trigger_pin >= 0)))
+				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_off);
+
+			break;
+		}
+
+		case(command_task_command_alert_status):
+		{
+			if((config_get_int(&varname_alert_status_io, -1, -1, &trigger_io) &&
+					config_get_int(&varname_alert_status_pin, -1, -1, &trigger_pin) &&
+					(trigger_io >= 0) && (trigger_pin >= 0)))
+				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
+
+			break;
+		}
 	}
 }
 
@@ -379,13 +415,11 @@ iram attr_speed static void slow_timer_callback(void *arg)
 
 irom static void wlan_event_handler(System_Event_t *event)
 {
-	int trigger_io, trigger_pin;
-	io_trigger_t trigger = io_trigger_none;
 	struct ip_info info;
 	ip_addr_to_bytes_t local_ip;
 	ip_addr_to_bytes_t mc_ip;
-	string_init(varname_assoc_io, "trigger.assoc.io");
-	string_init(varname_assoc_pin, "trigger.assoc.pin");
+	string_init(varname_alert_assoc_io, "trigger.assoc.io");
+	string_init(varname_alert_assoc_pin, "trigger.assoc.pin");
 
 	switch(event->event)
 	{
@@ -399,13 +433,11 @@ irom static void wlan_event_handler(System_Event_t *event)
 			mc_ip.byte[3] = 254;
 			espconn_igmp_join(&local_ip.ip_addr, &mc_ip.ip_addr);
 
-			logfmt("* join mc from %d.%d.%d.%d", local_ip.byte[0], local_ip.byte[1], local_ip.byte[2], local_ip.byte[3]);
-
 			// fall through
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
-			trigger = io_trigger_on;
+			dispatch_post_command(command_task_command_alert_association);
 			break;
 		}
 
@@ -415,16 +447,10 @@ irom static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
-			trigger = io_trigger_off;
+			dispatch_post_command(command_task_command_alert_disassociation);
 			break;
 		}
 	}
-
-	if((trigger != io_trigger_none) &&
-			(config_get_int(&varname_assoc_io, -1, -1, &trigger_io) &&
-			config_get_int(&varname_assoc_pin, -1, -1, &trigger_pin) &&
-			(trigger_io >= 0) && (trigger_pin >= 0)))
-		io_trigger_pin((string_t *)0, trigger_io, trigger_pin, trigger);
 }
 
 // SOCKET CALLBACKS

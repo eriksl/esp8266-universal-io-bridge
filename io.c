@@ -1488,10 +1488,7 @@ iram void io_periodic_fast(void)
 	io_data_pin_entry_t *pin_data;
 	int io, pin, trigger;
 	uint32_t value;
-	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
-	string_init(varname_trigger_io, "trigger.status.io");
-	string_init(varname_trigger_pin, "trigger.status.pin");
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -1560,14 +1557,11 @@ iram void io_periodic_fast(void)
 		}
 	}
 
-	if(flags.counter_triggered &&
-			config_get_int(&varname_trigger_io, -1, -1, &trigger_status_io) &&
-			config_get_int(&varname_trigger_pin, -1, -1, &trigger_status_pin) &&
-			(trigger_status_io >= 0) && (trigger_status_pin >= 0))
-		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
-
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
 		dispatch_post_command(command_task_command_run_sequencer);
+
+	if(flags.counter_triggered)
+		dispatch_post_command(command_task_command_alert_status);
 }
 
 irom void io_periodic_slow(void)
@@ -1577,7 +1571,6 @@ irom void io_periodic_slow(void)
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
 	int io, pin;
-	int trigger_status_io, trigger_status_pin;
 	io_flags_t flags = { .counter_triggered = 0 };
 	string_init(varname_trigger_io, "trigger.status.io");
 	string_init(varname_trigger_pin, "trigger.status.pin");
@@ -1612,13 +1605,8 @@ irom void io_periodic_slow(void)
 
 	post_init_run = true;
 
-	if(flags.counter_triggered &&
-			config_get_int(&varname_trigger_io, -1, -1, &trigger_status_io) &&
-			config_get_int(&varname_trigger_pin, -1, -1, &trigger_status_pin) &&
-			(trigger_status_io >= 0) && (trigger_status_pin >= 0))
-	{
-		io_trigger_pin((string_t *)0, trigger_status_io, trigger_status_pin, io_trigger_on);
-	}
+	if(flags.counter_triggered)
+		dispatch_post_command(command_task_command_alert_status);
 }
 
 /* app commands */
