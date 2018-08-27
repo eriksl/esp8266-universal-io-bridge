@@ -166,14 +166,12 @@ attr_inline uint32_t ccount(void)
 
 attr_inline void csleep(volatile uint32_t target)
 {
+	uint32_t start;
+
 	if(target < 14)
 		while(target-- > 0);
 	else
-	{
-		target += ccount();
-		while(ccount() > target);
-		while(ccount() < target);
-	}
+		for(start = ccount(); (ccount() - start) < target; );
 }
 
 ip_addr_t ip_addr(const char *);
