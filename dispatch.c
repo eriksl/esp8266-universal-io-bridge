@@ -101,13 +101,11 @@ static bool_t uart_bridge_active = false;
 
 static struct
 {
-	unsigned int disconnect:1;
 	unsigned int init_i2c_sensors:1;
 	unsigned int init_displays:1;
 	unsigned int preparing_reset:1;
 } bg_action =
 {
-	.disconnect = 0,
 	.init_i2c_sensors = 0,
 	.init_displays = 0,
 	.preparing_reset = 0,
@@ -190,7 +188,7 @@ irom static void background_task_command_handler(void)
 		{
 			string_clear(&socket_cmd.send_buffer);
 			string_append(&socket_cmd.send_buffer, "> disconnect\n");
-			bg_action.disconnect = 1;
+			dispatch_post_command(command_task_command_disconnect);
 			break;
 		}
 	}
@@ -355,12 +353,6 @@ iram attr_speed static void slow_timer_callback(void *arg)
 
 	if(uart_bridge_active)
 		dispatch_post_command(command_task_command_uart_bridge);
-
-	if(bg_action.disconnect)
-	{
-		bg_action.disconnect = 0;
-		dispatch_post_command(command_task_command_disconnect);
-	}
 
 	if(bg_action.init_i2c_sensors)
 	{
@@ -566,7 +558,6 @@ irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdat
 
 irom void dispatch_init1(void)
 {
-	bg_action.disconnect = 0;
 	bg_action.init_i2c_sensors = 1;
 	bg_action.init_displays = 1;
 
