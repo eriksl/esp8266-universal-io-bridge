@@ -168,9 +168,6 @@ irom bool_t wlan_init(void)
 			saconf.max_connection = 1;
 			saconf.beacon_interval = 100;
 
-			logfmt("* set wlan mode to ap, ssid=\"%s\", passwd=\"%s\", channel=%d\r\n",
-					saconf.ssid, saconf.password, saconf.channel);
-
 			wifi_station_disconnect();
 			wifi_set_opmode_current(SOFTAP_MODE);
 			wifi_softap_set_config_current(&saconf);
