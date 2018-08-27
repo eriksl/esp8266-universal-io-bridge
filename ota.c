@@ -460,8 +460,6 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 
 	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
 	{
-		logfmt("%s: rtc signature invalid: %x\n", cmdname, rrtc.magic);
-
 		rrtc.magic		= RBOOT_RTC_MAGIC;
 		rrtc.next_mode	= MODE_STANDARD;
 		rrtc.last_mode	= MODE_STANDARD;
