@@ -232,13 +232,11 @@ irom static void command_task(os_event_t *event)
 		case(command_task_disconnect):
 		{
 			socket_disconnect_accepted(&socket_cmd.socket);
-			stat_update_longop++;
 			break;
 		}
 
 		case(command_task_init_i2c_sensors):
 		{
-			stat_update_longop++;
 			if(i2c_sensors_init())
 				dispatch_post_command(command_task_init_i2c_sensors);
 			break;
@@ -249,7 +247,6 @@ irom static void command_task(os_event_t *event)
 			uint32_t now = system_get_time();
 			display_init();
 			stat_display_init_time_us = system_get_time() - now;
-			stat_update_longop++;
 			break;
 		}
 

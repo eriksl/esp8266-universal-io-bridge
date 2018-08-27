@@ -35,7 +35,6 @@ int stat_uart_receive_buffer_overflow;
 int stat_uart_send_buffer_overflow;
 
 int stat_update_uart;
-int stat_update_longop;
 int stat_update_command_udp;
 int stat_update_command_tcp;
 int stat_update_display;
@@ -279,7 +278,6 @@ irom void stats_counters(string_t *dst)
 			"> ... while masked: %u\n"
 			"> pc counts: %u\n"
 			"> uart updated: %u\n"
-			"> longops processed: %u\n"
 			"> commands/udp processed: %u\n"
 			"> commands/tcp processed: %u\n"
 			"> display updated: %u\n"
@@ -308,7 +306,6 @@ irom void stats_counters(string_t *dst)
 				stat_pwm_timer_interrupts_while_nmi_masked,
 				stat_pc_counts,
 				stat_update_uart,
-				stat_update_longop,
 				stat_update_command_udp,
 				stat_update_command_tcp,
 				stat_update_display,
