@@ -142,7 +142,7 @@ irom static void background_task_bridge_uart(void)
 {
 	if(socket_uart.state != socket_state_idle)
 	{
-		dispatch_post_command(command_task_command_uart_bridge);
+		dispatch_post_command(command_task_uart_bridge);
 		return;
 	}
 
@@ -160,7 +160,7 @@ irom static void background_task_bridge_uart(void)
 	string_clear(&socket_uart.send_buffer);
 	socket_uart.state = socket_state_idle;
 	stat_uart_send_buffer_overflow++;
-	dispatch_post_command(command_task_command_uart_bridge);
+	dispatch_post_command(command_task_uart_bridge);
 }
 
 irom static void background_task_command_handler(void)
@@ -188,7 +188,7 @@ irom static void background_task_command_handler(void)
 		{
 			string_clear(&socket_cmd.send_buffer);
 			string_append(&socket_cmd.send_buffer, "> disconnect\n");
-			dispatch_post_command(command_task_command_disconnect);
+			dispatch_post_command(command_task_disconnect);
 			break;
 		}
 	}
@@ -212,42 +212,42 @@ irom static void command_task(os_event_t *event)
 
 	switch(event->sig)
 	{
-		case(command_task_command_reset):
+		case(command_task_reset):
 		{
 			bg_action.preparing_reset = 1;
 
 			if((socket_proto(&socket_cmd.socket) == proto_udp) && !socket_send_busy(&socket_cmd.socket))
 			{
 				msleep(100);
-				dispatch_post_command(command_task_command_reset_finish);
+				dispatch_post_command(command_task_reset_finish);
 			}
 
 			socket_disconnect_accepted(&socket_cmd.socket);
 			break;
 		}
 
-		case(command_task_command_reset_finish):
+		case(command_task_reset_finish):
 		{
 			if(bg_action.preparing_reset)
 				reset();
 			break;
 		}
 
-		case(command_task_command_uart_bridge):
+		case(command_task_uart_bridge):
 		{
 			background_task_bridge_uart();
 			stat_update_uart++;
 			break;
 		}
 
-		case(command_task_command_disconnect):
+		case(command_task_disconnect):
 		{
 			socket_disconnect_accepted(&socket_cmd.socket);
 			stat_update_longop++;
 			break;
 		}
 
-		case(command_task_command_init_i2c_sensors):
+		case(command_task_init_i2c_sensors):
 		{
 			uint32_t now = system_get_time();
 			i2c_sensor_init_all();
@@ -256,7 +256,7 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_init_displays):
+		case(command_task_init_displays):
 		{
 			uint32_t now = system_get_time();
 			display_init();
@@ -265,7 +265,7 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_received_command):
+		case(command_task_received_command):
 		{
 			if(socket_proto(&socket_cmd.socket) == proto_tcp)
 				stat_update_command_tcp++;
@@ -277,17 +277,17 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_display_update):
+		case(command_task_display_update):
 		{
 			stat_update_display++;
 
 			if(display_periodic())
-				dispatch_post_command(command_task_command_display_update);
+				dispatch_post_command(command_task_display_update);
 
 			break;
 		}
 
-		case(command_task_command_fallback_wlan):
+		case(command_task_fallback_wlan):
 		{
 			config_wlan_mode_t wlan_mode;
 			int wlan_mode_int;
@@ -309,19 +309,19 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_update_time):
+		case(command_task_update_time):
 		{
 			time_periodic();
 			break;
 		}
 
-		case(command_task_command_run_sequencer):
+		case(command_task_run_sequencer):
 		{
 			sequencer_run();
 			break;
 		}
 
-		case(command_task_command_alert_association):
+		case(command_task_alert_association):
 		{
 			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
 					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
@@ -331,7 +331,7 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_alert_disassociation):
+		case(command_task_alert_disassociation):
 		{
 			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
 					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
@@ -341,7 +341,7 @@ irom static void command_task(os_event_t *event)
 			break;
 		}
 
-		case(command_task_command_alert_status):
+		case(command_task_alert_status):
 		{
 			if((config_get_int(&varname_alert_status_io, -1, -1, &trigger_io) &&
 					config_get_int(&varname_alert_status_pin, -1, -1, &trigger_pin) &&
@@ -385,30 +385,30 @@ iram attr_speed static void slow_timer_callback(void *arg)
 
 	stat_slow_timer++;
 
-	dispatch_post_command(command_task_command_update_time);
+	dispatch_post_command(command_task_update_time);
 
 	if(uart_bridge_active)
-		dispatch_post_command(command_task_command_uart_bridge);
+		dispatch_post_command(command_task_uart_bridge);
 
 	if(bg_action.init_i2c_sensors)
 	{
 		bg_action.init_i2c_sensors = 0;
-		dispatch_post_command(command_task_command_init_i2c_sensors);
+		dispatch_post_command(command_task_init_i2c_sensors);
 	}
 
 	if(bg_action.init_displays)
 	{
 		bg_action.init_displays = 0;
-		dispatch_post_command(command_task_command_init_displays);
+		dispatch_post_command(command_task_init_displays);
 	}
 
 	if(display_detected())
-		dispatch_post_command(command_task_command_display_update);
+		dispatch_post_command(command_task_display_update);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
 	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
-		dispatch_post_command(command_task_command_fallback_wlan);
+		dispatch_post_command(command_task_fallback_wlan);
 
 	dispatch_post_timer(timer_task_io_periodic_slow);
 }
@@ -437,7 +437,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
-			dispatch_post_command(command_task_command_alert_association);
+			dispatch_post_command(command_task_alert_association);
 			break;
 		}
 
@@ -447,7 +447,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
-			dispatch_post_command(command_task_command_alert_disassociation);
+			dispatch_post_command(command_task_alert_disassociation);
 			break;
 		}
 	}
@@ -467,7 +467,7 @@ irom static void callback_received_cmd(socket_t *socket, const string_t *buffer,
 
 	socket_cmd.receive_buffer = *buffer;
 	socket_cmd.state = socket_state_received;
-	dispatch_post_command(command_task_command_received_command);
+	dispatch_post_command(command_task_received_command);
 }
 
 irom static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
@@ -523,7 +523,7 @@ irom static void callback_received_uart(socket_t *socket, const string_t *buffer
 irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
 	if(bg_action.preparing_reset && socket_proto(socket) == proto_udp)
-		dispatch_post_command(command_task_command_reset_finish);
+		dispatch_post_command(command_task_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
 }
@@ -531,7 +531,7 @@ irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 irom attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 {
 	if(!uart_empty(0))
-		dispatch_post_command(command_task_command_uart_bridge); // retry to send data still in the fifo
+		dispatch_post_command(command_task_uart_bridge); // retry to send data still in the fifo
 
 	string_clear(&socket_uart.send_buffer);
 	socket_uart.state = socket_state_idle;
@@ -555,7 +555,7 @@ irom static void callback_error_uart(socket_t *socket, int error, void *userdata
 irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 {
 	if(bg_action.preparing_reset)
-		dispatch_post_command(command_task_command_reset_finish);
+		dispatch_post_command(command_task_reset_finish);
 
 	socket_cmd.state = socket_state_idle;
 }

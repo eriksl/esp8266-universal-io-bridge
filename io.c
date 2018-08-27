@@ -1558,10 +1558,10 @@ iram void io_periodic_fast(void)
 	}
 
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		dispatch_post_command(command_task_command_run_sequencer);
+		dispatch_post_command(command_task_run_sequencer);
 
 	if(flags.counter_triggered)
-		dispatch_post_command(command_task_command_alert_status);
+		dispatch_post_command(command_task_alert_status);
 }
 
 irom void io_periodic_slow(void)
@@ -1606,7 +1606,7 @@ irom void io_periodic_slow(void)
 	post_init_run = true;
 
 	if(flags.counter_triggered)
-		dispatch_post_command(command_task_command_alert_status);
+		dispatch_post_command(command_task_alert_status);
 }
 
 /* app commands */
