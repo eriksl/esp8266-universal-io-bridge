@@ -17,8 +17,6 @@ int			io_gpio_get_uart_from_pin(unsigned int pin);
 
 app_action_t application_function_pwm_period(const string_t *src, string_t *dst);
 
-#include "util.h"
-
 // generic
 
 attr_inline attr_speed uint32_t gpio_pin_addr(int pin)
