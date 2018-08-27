@@ -27,9 +27,6 @@ extern int stat_slow_timer;
 extern int stat_pwm_timer_interrupts;
 extern int stat_pwm_timer_interrupts_while_nmi_masked;
 extern int stat_pc_counts;
-extern int stat_i2c_init_time_us;
-extern int stat_i2c_soft_resets;
-extern int stat_i2c_hard_resets;
 extern int stat_display_init_time_us;
 extern int stat_cmd_receive_buffer_overflow;
 extern int stat_cmd_send_buffer_overflow;
@@ -53,6 +50,10 @@ extern unsigned int stat_task_timer_failed;
 extern int stat_debug_1;
 extern int stat_debug_2;
 extern int stat_debug_3;
+
+extern unsigned int stat_i2c_init_time_us;
+extern unsigned int stat_i2c_soft_resets;
+extern unsigned int stat_i2c_hard_resets;
 
 extern volatile uint32_t *stat_stack_sp_initial;
 extern int stat_stack_painted;

@@ -9,7 +9,7 @@
 
 typedef enum attr_packed
 {
-	i2c_sensor_digipicco_temperature,
+	i2c_sensor_digipicco_temperature = 0,
 	i2c_sensor_digipicco_humidity,
 	i2c_sensor_lm75_0,
 	i2c_sensor_lm75_1,
@@ -56,8 +56,19 @@ typedef enum attr_packed
 
 assert_size(i2c_sensor_t, 1);
 
+typedef struct
+{
+	unsigned int	init_called;
+	unsigned int	init_succeeded;
+	unsigned int	init_failed;
+	unsigned int	init_current_bus;
+	i2c_sensor_t	init_current_sensor;
+	bool_t			init_finished;
+} i2c_sensor_info_t;
+
+void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
-void		i2c_sensor_init_all(void);
+bool_t		i2c_sensors_init(void);
 bool_t		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool_t verbose, bool_t html);
 bool_t		i2c_sensor_detected(int bus, i2c_sensor_t);
 

@@ -4,6 +4,7 @@
 #include "config.h"
 #include "time.h"
 #include "i2c.h"
+#include "i2c_sensor.h"
 
 #include <c_types.h>
 #include <user_interface.h>
@@ -27,9 +28,6 @@ int stat_timer_interrupts;
 int stat_pwm_timer_interrupts;
 int stat_pwm_timer_interrupts_while_nmi_masked;
 int stat_pc_counts;
-int stat_i2c_init_time_us;
-int stat_i2c_soft_resets;
-int stat_i2c_hard_resets;
 int stat_display_init_time_us;
 int stat_cmd_receive_buffer_overflow;
 int stat_cmd_send_buffer_overflow;
@@ -49,6 +47,10 @@ unsigned int stat_task_command_posted;
 unsigned int stat_task_command_failed;
 unsigned int stat_task_timer_posted;
 unsigned int stat_task_timer_failed;
+
+unsigned int stat_i2c_init_time_us;
+unsigned int stat_i2c_soft_resets;
+unsigned int stat_i2c_hard_resets;
 
 int stat_debug_1;
 int stat_debug_2;
@@ -331,9 +333,11 @@ irom void stats_counters(string_t *dst)
 
 irom void stats_i2c(string_t *dst)
 {
-	i2c_info_t i2c_info;
+	i2c_info_t			i2c_info;
+	i2c_sensor_info_t	i2c_sensor_info;
 
 	i2c_get_info(&i2c_info);
+	i2c_sensor_get_info(&i2c_sensor_info);
 
 	string_format(dst,
 			"> display initialisation time: %u us\n"
@@ -341,13 +345,25 @@ irom void stats_i2c(string_t *dst)
 			"> i2c soft resets: %u\n"
 			"> i2c hard resets: %u\n"
 			"> i2c multiplexer found: %s\n"
-			"> i2c buses: %u\n",
+			"> i2c buses: %u\n"
+			"> i2c sensors init called: %u\n"
+			"> i2c sensors init succeeded: %u\n"
+			"> i2c sensors init failed: %u\n"
+			"> i2c sensors init current bus: %u\n"
+			"> i2c sensors init current sensor id: %u\n"
+			"> i2c sensors init finished: %s\n",
 				stat_display_init_time_us,
 				stat_i2c_init_time_us,
 				stat_i2c_soft_resets,
 				stat_i2c_hard_resets,
 				yesno(i2c_info.multiplexer),
-				i2c_info.buses);
+				i2c_info.buses,
+				i2c_sensor_info.init_called,
+				i2c_sensor_info.init_succeeded,
+				i2c_sensor_info.init_failed,
+				i2c_sensor_info.init_current_bus,
+				i2c_sensor_info.init_current_sensor,
+				yesno(i2c_sensor_info.init_finished));
 }
 
 irom void stats_wlan(string_t *dst)

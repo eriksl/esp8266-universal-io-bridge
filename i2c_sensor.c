@@ -3385,6 +3385,13 @@ static const device_table_entry_t device_table[] =
 	},
 };
 
+static i2c_sensor_info_t sensor_info;
+
+irom void i2c_sensor_get_info(i2c_sensor_info_t *sensor_info_ptr)
+{
+	*sensor_info_ptr = sensor_info;
+}
+
 irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 {
 	const device_table_entry_t *entry;
@@ -3420,19 +3427,42 @@ irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	return(i2c_error_ok);
 }
 
-irom void i2c_sensor_init_all(void)
+irom bool_t i2c_sensors_init(void)
 {
 	i2c_info_t i2c_info;
-	unsigned int bus, buses;
-	i2c_sensor_t current;
+	unsigned int buses;
+
+	sensor_info.init_called++;
+
+	if(sensor_info.init_finished)
+		return(false);
+
+	if((sensor_info.init_current_bus > 0) && (device_data[sensor_info.init_current_sensor].detected & (1 << 0)))
+		sensor_info.init_failed++;
+	else
+		if(i2c_sensor_init(sensor_info.init_current_bus, sensor_info.init_current_sensor) == i2c_error_ok)
+			sensor_info.init_succeeded++;
+		else
+			sensor_info.init_failed++;
 
 	i2c_get_info(&i2c_info);
 	buses = i2c_info.buses;
 
-	for(bus = 0; bus < buses; bus++)
-		for(current = 0; current != i2c_sensor_size; current++)
-			if((bus == 0) || !(device_data[current].detected & (1 << 0)))
-				i2c_sensor_init(bus, current);
+	if(++sensor_info.init_current_sensor >= i2c_sensor_size)
+	{
+		sensor_info.init_current_sensor = 0;
+		sensor_info.init_current_bus++;
+
+		if(sensor_info.init_current_bus >= buses)
+		{
+			sensor_info.init_current_sensor = 0;
+			sensor_info.init_current_bus = 0;
+			sensor_info.init_finished = true;
+			return(false);
+		}
+	}
+
+	return(true);
 }
 
 irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t verbose, bool_t html)

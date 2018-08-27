@@ -98,14 +98,6 @@ static socket_data_t socket_uart =
 };
 
 static bool_t uart_bridge_active = false;
-
-static struct
-{
-	unsigned int init_i2c_sensors:1;
-} bg_action =
-{
-	.init_i2c_sensors = 0,
-};
 static bool_t preparing_reset = false;
 
 static ETSTimer fast_timer;
@@ -246,10 +238,9 @@ irom static void command_task(os_event_t *event)
 
 		case(command_task_init_i2c_sensors):
 		{
-			uint32_t now = system_get_time();
-			i2c_sensor_init_all();
-			stat_i2c_init_time_us = system_get_time() - now;
 			stat_update_longop++;
+			if(i2c_sensors_init())
+				dispatch_post_command(command_task_init_i2c_sensors);
 			break;
 		}
 
@@ -387,12 +378,6 @@ iram attr_speed static void slow_timer_callback(void *arg)
 	if(uart_bridge_active)
 		dispatch_post_command(command_task_uart_bridge);
 
-	if(bg_action.init_i2c_sensors)
-	{
-		bg_action.init_i2c_sensors = 0;
-		dispatch_post_command(command_task_init_i2c_sensors);
-	}
-
 	if(display_detected())
 		dispatch_post_command(command_task_display_update);
 
@@ -429,6 +414,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
 			dispatch_post_command(command_task_alert_association);
+			dispatch_post_command(command_task_init_i2c_sensors);
 			break;
 		}
 
@@ -575,7 +561,6 @@ irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdat
 
 irom void dispatch_init1(void)
 {
-	bg_action.init_i2c_sensors = 1;
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
 	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
