@@ -102,11 +102,9 @@ static bool_t uart_bridge_active = false;
 static struct
 {
 	unsigned int init_i2c_sensors:1;
-	unsigned int init_displays:1;
 } bg_action =
 {
 	.init_i2c_sensors = 0,
-	.init_displays = 0,
 };
 static bool_t preparing_reset = false;
 
@@ -395,12 +393,6 @@ iram attr_speed static void slow_timer_callback(void *arg)
 		dispatch_post_command(command_task_init_i2c_sensors);
 	}
 
-	if(bg_action.init_displays)
-	{
-		bg_action.init_displays = 0;
-		dispatch_post_command(command_task_init_displays);
-	}
-
 	if(display_detected())
 		dispatch_post_command(command_task_display_update);
 
@@ -584,8 +576,6 @@ irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdat
 irom void dispatch_init1(void)
 {
 	bg_action.init_i2c_sensors = 1;
-	bg_action.init_displays = 1;
-
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
 	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
@@ -630,4 +620,6 @@ irom void dispatch_init2(void)
 
 	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
 	os_timer_arm(&fast_timer, 10, 1); // fast system timer / 100 Hz / 10 ms
+
+	dispatch_post_command(command_task_init_displays);
 }
