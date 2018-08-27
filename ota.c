@@ -422,6 +422,11 @@ irom app_action_t application_function_flash_checksum(const string_t *src, strin
 	return(app_action_normal);
 }
 
+#if IMAGE_OTA == 1
+extern uint8_t rBoot_mmap_1;
+extern uint8_t rBoot_mmap_2;
+#endif
+
 irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
@@ -460,7 +465,7 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 		rrtc.magic		= RBOOT_RTC_MAGIC;
 		rrtc.next_mode	= MODE_STANDARD;
 		rrtc.last_mode	= MODE_STANDARD;
-		rrtc.last_rom	= slot;
+		rrtc.last_rom	= rcfg.current_rom;
 		rrtc.temp_rom	= slot;
 
 		if(!rboot_set_rtc_data(&rrtc))
@@ -473,6 +478,13 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t
 	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
 	{
 		string_format(dst, "ERROR: %s: RTC info signature invalid (1)\n", cmdname);
+		return(app_action_error);
+	}
+
+	if((rBoot_mmap_1 != rrtc.last_rom) || (rBoot_mmap_2 != 0))
+	{
+		string_format(dst, "ERROR %s: current slot according to rboot does not match flash memory map: %u vs. %u/%u\n",
+				cmdname, rcfg.current_rom, rBoot_mmap_1, rBoot_mmap_2);
 		return(app_action_error);
 	}
 

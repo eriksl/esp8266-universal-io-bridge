@@ -124,6 +124,11 @@ irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 	return("unknown");
 }
 
+#if IMAGE_OTA == 1
+extern uint8_t rBoot_mmap_1;
+extern uint8_t rBoot_mmap_2;
+#endif
+
 irom void stats_firmware(string_t *dst)
 {
 #if IMAGE_OTA == 1
@@ -204,6 +209,7 @@ irom void stats_firmware(string_t *dst)
 			"> struct version: %u\n"
 			"> boot mode: %s\n"
 			"> current slot: %u\n"
+			"> flash memory map: %x,%x\n"
 			"> slot count: %u\n"
 			"> slot 0: 0x%06x\n"
 			"> slot 1: 0x%06x\n",
@@ -211,6 +217,7 @@ irom void stats_firmware(string_t *dst)
 			rcfg.version,
 			rboot_boot_mode(rcfg.mode),
 			rcfg.current_rom,
+			rBoot_mmap_1, rBoot_mmap_2,
 			rcfg.count,
 			rcfg.roms[0],
 			rcfg.roms[1]);
