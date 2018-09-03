@@ -2,13 +2,14 @@
 #include "i2c.h"
 #include "util.h"
 #include "uart.h"
+#include "io_gpio.h"
 
 #include <user_interface.h>
 
 #include <stdlib.h>
 
-static int esp8266_pin = -1;
-static int esp8266_uart = -1;
+static bool_t		detected = false;
+static unsigned int	uart;
 
 typedef struct
 {
@@ -58,7 +59,7 @@ irom static void send_byte(unsigned int byte)
 	{
 		by_six = bit_pattern[(byte & 0b11000000) >> 6];
 		byte <<= 2;
-		uart_send(esp8266_uart, by_six);
+		uart_send(uart, by_six);
 	}
 }
 
@@ -90,13 +91,22 @@ irom static void send_all(bool_t force)
 			send_byte((ledpixel_data_pin[pin].value & 0xff000000) >>  24);
 	}
 
-	uart_flush(esp8266_uart);
+	uart_flush(uart);
 }
 
-irom void io_ledpixel_setup(unsigned pin, unsigned uart)
+irom bool_t io_ledpixel_setup(unsigned int io, unsigned int pin)
 {
-	esp8266_pin = pin;
-	esp8266_uart = uart;
+	if((io != io_id_gpio) || (pin >= max_pins_per_io))
+		return(false);
+
+	uart = io_gpio_get_uart_from_pin(pin);
+
+	if((uart != 0) && (uart != 1))
+		return(false);
+
+	detected = true;
+
+	return(true);
 }
 
 irom void io_ledpixel_post_init(const struct io_info_entry_T *info)
@@ -106,13 +116,13 @@ irom void io_ledpixel_post_init(const struct io_info_entry_T *info)
 
 irom io_error_t io_ledpixel_init(const struct io_info_entry_T *info)
 {
-	if((esp8266_pin < 0) || (esp8266_pin > 15) || (esp8266_uart < 0) || (esp8266_uart > 1))
+	if(!detected)
 		return(io_error);
 
-	uart_baudrate(esp8266_uart, 3200000);
-	uart_data_bits(esp8266_uart, 6);
-	uart_stop_bits(esp8266_uart, 1);
-	uart_parity(esp8266_uart, parity_none);
+	uart_baudrate(uart, 3200000);
+	uart_data_bits(uart, 6);
+	uart_stop_bits(uart, 1);
+	uart_parity(uart, parity_none);
 
 	return(io_ok);
 }

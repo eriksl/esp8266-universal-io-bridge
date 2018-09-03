@@ -1461,8 +1461,7 @@ irom void io_init(void)
 
 						case(io_pin_ledpixel):
 						{
-							if(io == 0)
-								io_ledpixel_setup(pin, 0);
+							io_ledpixel_setup(io, pin);
 
 							break;
 						}
