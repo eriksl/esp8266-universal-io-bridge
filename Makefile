@@ -241,7 +241,7 @@ $(LINKMAP):			$(ELF_OTA)
 
 $(ESPTOOL2_BIN):
 						$(VECHO) "MAKE ESPTOOL2"
-						$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2)
+						$(Q) $(MAKE) -C $(ESPTOOL2) $(MAKEMINS) CFLAGS="-O3 -Wall -s -Wno-stringop-truncation"
 
 $(RBOOT_BIN):			$(ESPTOOL2_BIN)
 						$(VECHO) "MAKE RBOOT"
