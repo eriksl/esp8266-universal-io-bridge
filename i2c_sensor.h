@@ -66,6 +66,24 @@ typedef struct
 	bool_t			init_finished;
 } i2c_sensor_info_t;
 
+typedef struct
+{
+	double raw;
+	double cooked;
+} i2c_sensor_value_t;
+
+typedef struct i2c_sensor_device_table_entry_T
+{
+	i2c_sensor_t id;
+	uint8_t address;
+	const char *name;
+	const char *type;
+	const char *unity;
+	uint8_t precision;
+	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *);
+	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *);
+} i2c_sensor_device_table_entry_t;
+
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
 bool_t		i2c_sensors_init(void);
