@@ -2676,13 +2676,29 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 			pin_string_from_flags(dst, pin_config);
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_2]);
 
-			if(pin_config->mode != io_pin_disabled)
-				if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
-					string_append(dst, "\n");
-				else
-					(void)0;
-			else
-				error = io_ok;
+			switch(pin_config->mode)
+			{
+				case(io_pin_input_digital):
+				case(io_pin_counter):
+				case(io_pin_output_digital):
+				case(io_pin_timer):
+				case(io_pin_input_analog):
+				case(io_pin_output_analog):
+				case(io_pin_i2c):
+				case(io_pin_trigger):
+				{
+					if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
+						string_append(dst, "\n");
+
+					break;
+				}
+
+				default:
+				{
+					error = io_ok;
+					break;
+				}
+			}
 
 			switch(pin_config->mode)
 			{
