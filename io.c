@@ -3,6 +3,7 @@
 #include "io_mcp.h"
 #include "io_pcf.h"
 #include "io_ledpixel.h"
+#include "display_cfa634.h"
 #include "io.h"
 #include "i2c.h"
 #include "config.h"
@@ -229,6 +230,7 @@ static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_lcd,				"lcd",			"lcd"					},
 	{ io_pin_trigger,			"trigger",		"trigger"				},
 	{ io_pin_ledpixel,			"ledpixel",		"ledpixel control"		},
+	{ io_pin_cfa634,			"cfa634",		"crystalfontz cfa634"	},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -589,6 +591,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 		case(io_pin_disabled):
 		case(io_pin_error):
 		case(io_pin_ledpixel):
+		case(io_pin_cfa634):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot read from this pin");
@@ -617,6 +620,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 		case(io_pin_disabled):
 		case(io_pin_error):
 		case(io_pin_ledpixel):
+		case(io_pin_cfa634):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot write to this pin");
@@ -1401,6 +1405,18 @@ irom void io_init(void)
 					break;
 				}
 
+				case(io_pin_cfa634):
+				{
+					if(!info->caps.uart)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					break;
+				}
+
 				default:
 				{
 					break;
@@ -1462,6 +1478,13 @@ irom void io_init(void)
 						case(io_pin_ledpixel):
 						{
 							io_ledpixel_setup(io, pin);
+
+							break;
+						}
+
+						case(io_pin_cfa634):
+						{
+							display_cfa634_setup(io, pin);
 
 							break;
 						}
@@ -2099,6 +2122,23 @@ skip:
 			break;
 		}
 
+		case(io_pin_cfa634):
+		{
+			if(!info->caps.uart)
+			{
+				string_append(dst, "cfa634 mode invalid for this io (must be an uart)\n");
+				return(app_action_error);
+			}
+
+			llmode = io_pin_ll_uart;
+
+			config_delete(&varname_io, io, pin, true);
+			config_set_int(&varname_io_mode, io, pin, mode);
+			config_set_int(&varname_io_llmode, io, pin, io_pin_ll_uart);
+
+			break;
+		}
+
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
@@ -2479,6 +2519,7 @@ typedef enum
 	ds_id_i2c_scl,
 	ds_id_uart,
 	ds_id_ledpixel,
+	ds_id_cfa634,
 	ds_id_lcd,
 	ds_id_unknown,
 	ds_id_not_detected,
@@ -2526,6 +2567,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_i2c_scl */			"scl",
 		/* ds_id_uart */			"uart",
 		/* ds_id_ledpixel */		"ledpixel",
+		/* ds_id_cfa634 */			"cfa634",
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_not_detected */	"  not found\n",
@@ -2561,6 +2603,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_i2c_scl */			"<td>scl</td>",
 		/* ds_id_uart */			"<td>uart</td>",
 		/* ds_id_ledpixel */		"<td>ledpixel</td>",
+		/* ds_id_cfa634 */			"<td>cfa634</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_not_detected */	"<tr><td colspan=\"6\">not connected</td></tr>\n",
@@ -2765,6 +2808,13 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
 				case(io_pin_ledpixel):
 				{
 					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_ledpixel]);
+
+					break;
+				}
+
+				case(io_pin_cfa634):
+				{
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_cfa634]);
 
 					break;
 				}

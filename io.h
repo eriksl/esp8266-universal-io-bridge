@@ -80,6 +80,7 @@ typedef enum attr_packed
 	io_pin_lcd,
 	io_pin_trigger,
 	io_pin_ledpixel,
+	io_pin_cfa634,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;

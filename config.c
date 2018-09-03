@@ -75,11 +75,6 @@ irom void config_flags_to_string(string_t *dst)
 	else
 		string_append(dst, " no-wlan-power-save");
 
-	if(flags.flag.enable_cfa634)
-		string_append(dst, " enable-cfa634");
-	else
-		string_append(dst, " no-enable-cfa634");
-
 	if(flags.flag.log_to_buffer)
 		string_append(dst, " log-to-buffer");
 	else
@@ -124,12 +119,6 @@ irom bool_t config_flags_change(const string_t *flag, bool_t add)
 	if(string_match_cstr(flag, "wlan-power-save") || string_match_cstr(flag, "wps"))
 	{
 		flags.flag.wlan_power_save = add ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "enable-cfa634") || string_match_cstr(flag, "ec"))
-	{
-		flags.flag.enable_cfa634 = add ? 1 : 0;
 		rv = true;
 	}
 

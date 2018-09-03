@@ -2,9 +2,11 @@
 #include "display_cfa634.h"
 #include "config.h"
 #include "io.h"
+#include "io_gpio.h"
 #include "uart.h"
 
-static bool_t inited = false;
+static bool_t		detected = false;
+static unsigned int uart;
 
 static const display_map_t cfa634_map[] =
 {
@@ -94,30 +96,45 @@ static const display_udg_t cfa634_udg[] =
 	}
 };
 
+irom bool_t display_cfa634_setup(unsigned int io, unsigned int pin)
+{
+	if((io != io_id_gpio) || (pin >= max_pins_per_io))
+		return(false);
+
+	uart = io_gpio_get_uart_from_pin(pin);
+
+	if((uart != 0) && (uart != 1))
+		return(false);
+
+	detected = true;
+
+	return(true);
+}
+
 irom bool_t display_cfa634_init(void)
 {
 	unsigned int ix, byte, x, y;
 
-	if(!config_flags_get().flag.enable_cfa634)
+	if(!detected)
 		return(false);
 
-	if(io_config[0][1].mode != io_pin_uart)
-		return(false);
+	uart_baudrate(uart, 19200);
+	uart_data_bits(uart, 8);
+	uart_stop_bits(uart, 1);
+	uart_parity(uart, parity_none);
 
 	for(ix = 0; ix < (sizeof(cfa634_udg) / sizeof(*cfa634_udg)); ix++)
 	{
 		msleep(10);
 
-		uart_send(0, 25);	// send UDG
-		uart_send(0, ix);
+		uart_send(uart, 25);	// send UDG
+		uart_send(uart, ix);
 
 		for(byte = 0; byte < display_common_udg_byte_size; byte++)
-			uart_send(0, display_common_udg[ix].pattern[byte]);
+			uart_send(uart, display_common_udg[ix].pattern[byte]);
 
-		uart_flush(0);
+		uart_flush(uart);
 	}
-
-	inited = true;
 
 	for(y = 0; y < display_common_buffer_rows; y++)
 		for(x = 0; x < display_common_buffer_columns; x++)
@@ -133,12 +150,15 @@ attr_const irom bool_t display_cfa634_bright(int brightness)
 {
 	static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
+	if(!detected)
+		return(false);
+
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	uart_send(0, 15); // set contrast
-	uart_send(0, values[brightness]);
-	uart_flush(0);
+	uart_send(uart, 15); // set contrast
+	uart_send(uart, values[brightness]);
+	uart_flush(uart);
 
 	msleep(10);
 
@@ -147,7 +167,7 @@ attr_const irom bool_t display_cfa634_bright(int brightness)
 
 irom bool_t display_cfa634_set(const char *tag, const char *text)
 {
-	if(!inited)
+	if(!detected)
 		return(false);
 
 	return(display_common_set(tag, text,
@@ -160,7 +180,7 @@ irom bool_t display_cfa634_show(void)
 	int x, y;
 	uint8_t c;
 
-	if(!inited)
+	if(!detected)
 		return(false);
 
 	for(y = 0; y < display_common_buffer_rows; y++)
@@ -170,15 +190,15 @@ irom bool_t display_cfa634_show(void)
 	if(y >= display_common_buffer_rows)
 		return(false);
 
-	uart_send(0, 3);	// restore blanked display
-	uart_send(0, 20);	// scroll off
-	uart_send(0, 24);	// wrap off
+	uart_send(uart, 3);	// restore blanked display
+	uart_send(uart, 20);	// scroll off
+	uart_send(uart, 24);	// wrap off
 
-	uart_send(0, 17);	// goto column,row
-	uart_send(0, 0);
-	uart_send(0, y);
+	uart_send(uart, 17);	// goto column,row
+	uart_send(uart, 0);
+	uart_send(uart, y);
 
-	uart_flush(0);
+	uart_flush(uart);
 
 	for(x = 0; x < display_common_buffer_columns; x++)
 	{
@@ -186,14 +206,14 @@ irom bool_t display_cfa634_show(void)
 
 		if((c < 32) || ((c > 128) && (c < 136)))
 		{
-			uart_send(0, 30);	// send data directly to LCD controller
-			uart_send(0, 1);
+			uart_send(uart, 30);	// send data directly to LCD controller
+			uart_send(uart, 1);
 		}
 
-		uart_send(0, c);
+		uart_send(uart, c);
 	}
 
-	uart_flush(0);
+	uart_flush(uart);
 
 	display_common_row_status.row[y].dirty = 0;
 

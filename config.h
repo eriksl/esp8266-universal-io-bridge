@@ -22,8 +22,8 @@ typedef union
 		unsigned int bh_high_sens:1;
 		unsigned int cpu_high_speed:1;
 		unsigned int wlan_power_save:1;
-		unsigned int enable_cfa634:1;
 		unsigned int dummy_1:1;
+		unsigned int dummy_2:1;
 		unsigned int log_to_buffer:1;
 	} flag;
 
