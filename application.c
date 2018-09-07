@@ -1273,15 +1273,27 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 		"WPA PSK + WPA2 PSK"
 	};
 
+	static const char *cipher_type[] =
+	{
+		"NONE",
+		"WEP40",
+		"WEP104",
+		"TKIP",
+		"CCMP/AES",
+		"TKIP_CCMP/AES",
+		"UNKNOWN",
+	};
+
 	logfmt("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
-	logfmt("> %-16s  %-4s  %-4s  %-18s  %-6s  %s\n", "SSID", "CHAN", "RSSI", "AUTH", "OFFSET", "BSSID");
+	logfmt("> %-16s %-4s %-4s %-18s %-13s %-13s %-6s %s\n", "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
-		logfmt("> %-16s  %4u  %4d  %-18s  %6d  %02x:%02x:%02x:%02x:%02x:%02x\n",
+		logfmt("> %-16s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n",
 				bss->ssid,
 				bss->channel,
 				bss->rssi,
 				bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid auth>",
+				cipher_type[bss->pairwise_cipher], cipher_type[bss->group_cipher],
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 }
