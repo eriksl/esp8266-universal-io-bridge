@@ -2,56 +2,13 @@
 
 #include "stats.h"
 #include "util.h"
+#include "esp-alt-register.h"
 
 #include <user_interface.h>
 #include <osapi.h>
 #include <ets_sys.h>
 
 #include <stdlib.h>
-
-enum
-{
-	FUNC_U0RXD = 0,
-	FUNC_GPIO6 = 3,
-	FUNC_GPIO7 = 3,
-	FUNC_GPIO8 = 3,
-	FUNC_GPIO11 = 3
-} FUNC;
-
-enum
-{
-	INT_ENABLE_REG = 0x3ff00004,
-	INT_ENABLE_WDOG = 1 << 0,
-	INT_ENABLE_FRC1 = 1 << 1,
-	INT_ENABLE_FRC2 = 1 << 2,
-} INT_ENABLE;
-
-enum
-{
-	FRC1_LOAD_REG = 0x60000600,
-} FRC1_LOAD;
-
-enum
-{
-	FRC1_COUNT_REG = 0x60000604,
-} FRC1_COUNT;
-
-enum
-{
-	FRC1_CTRL_REG = 0x60000608,
-	FRC1_CTRL_INT_EDGE		= 0 << 0,
-	FRC1_CTRL_INT_LEVEL		= 1 << 0,
-	FRC1_CTRL_DIVIDE_BY_16	= 1 << 2,
-	FRC1_CTRL_DIVIDE_BY_256	= 1 << 3,
-	FRC1_CTRL_AUTO_RELOAD	= 1 << 6,
-	FRC1_CTRL_ENABLE_TIMER	= 1 << 7,
-} FRC1_CTRL;
-
-enum
-{
-	FRC1_INT_REG = 0x6000060c,
-	FRC1_INT_CLEAR = 1 << 0
-} FRC1_INT;
 
 enum
 {
@@ -284,9 +241,9 @@ static void pwm_isr(void);
 irom static void pwm_isr_setup(void)
 {
 	NmiTimSetFunc(pwm_isr);
-	write_peri_reg(FRC1_CTRL_REG, FRC1_CTRL_INT_EDGE | FRC1_CTRL_DIVIDE_BY_16 | FRC1_CTRL_ENABLE_TIMER);
-	clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
-	ets_isr_unmask(1 << ETS_FRC_TIMER1_INUM);
+	write_peri_reg(TIMER0_CTRL_REG, TIMER0_CTRL_INT_EDGE | TIMER0_CTRL_DIVIDE_BY_16 | TIMER0_CTRL_ENABLE_TIMER);
+	clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_TIMER0);
+	ets_isr_unmask(1 << ETS_TIMER0_INUM);
 }
 
 attr_inline bool_t pwm_isr_enabled(void)
@@ -299,23 +256,23 @@ attr_inline void pwm_isr_enable(bool_t enable)
 	if(enable)
 	{
 		io_gpio_flags.pwm_int_enabled = 1;
-		set_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
+		set_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_TIMER0);
 	}
 	else
 	{
-		clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_FRC1);
+		clear_peri_reg_mask(INT_ENABLE_REG, INT_ENABLE_TIMER0);
 		io_gpio_flags.pwm_int_enabled = 0;
 	}
 }
 
 attr_inline void pwm_timer_set(uint32_t value)
 {
-	write_peri_reg(FRC1_LOAD_REG, value);
+	write_peri_reg(TIMER0_LOAD_REG, value);
 }
 
 attr_inline uint32_t pwm_timer_get(void)
 {
-	return(read_peri_reg(FRC1_COUNT_REG));
+	return(read_peri_reg(TIMER0_COUNT_REG));
 }
 
 attr_speed iram static void pwm_isr(void)
