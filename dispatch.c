@@ -35,13 +35,13 @@ _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) !=
 
 enum
 {
-	uart_task_id					= USER_TASK_PRIO_0,
+	uart_task_id					= USER_TASK_PRIO_2,
 	uart_task_queue_length			= 3,
 
 	command_task_id					= USER_TASK_PRIO_1,
 	command_task_queue_length		= 12,
 
-	timer_task_id					= USER_TASK_PRIO_2,
+	timer_task_id					= USER_TASK_PRIO_0,
 	timer_task_queue_length			= 2,
 };
 
