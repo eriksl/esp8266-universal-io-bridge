@@ -50,6 +50,10 @@ typedef enum attr_packed
 	i2c_sensor_sht30_temperature,
 	i2c_sensor_sht30_humidity,
 	i2c_sensor_mcp9808_temperature,
+	i2c_sensor_bme680_temperature,
+	i2c_sensor_bme680_humidity,
+	i2c_sensor_bme680_airpressure,
+	i2c_sensor_bme680_airquality,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;

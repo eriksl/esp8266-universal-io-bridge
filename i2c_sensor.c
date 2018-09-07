@@ -1,4 +1,5 @@
 #include "i2c_sensor.h"
+#include "i2c_sensor_bme680.h"
 
 #include "util.h"
 #include "config.h"
@@ -3381,6 +3382,30 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 		"mcp9808", "temperature", "C", 2,
 		sensor_mcp9808_init,
 		sensor_mcp9808_read,
+	},
+	{
+		i2c_sensor_bme680_temperature, 0x76,
+		"bme680", "temperature", "C", 2,
+		sensor_bme680_temperature_init,
+		sensor_bme680_temperature_read,
+	},
+	{
+		i2c_sensor_bme680_humidity, 0x76,
+		"bme680", "humidity", "%", 0,
+		sensor_bme680_humidity_init,
+		sensor_bme680_humidity_read,
+	},
+	{
+		i2c_sensor_bme680_airpressure, 0x76,
+		"bme680", "air pressure", "hPa", 2,
+		sensor_bme680_airpressure_init,
+		sensor_bme680_airpressure_read,
+	},
+	{
+		i2c_sensor_bme680_airquality, 0x76,
+		"bme680", "air quality", "%", 0,
+		sensor_bme680_airquality_init,
+		sensor_bme680_airquality_read,
 	},
 };
 
