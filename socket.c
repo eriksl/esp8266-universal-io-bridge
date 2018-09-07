@@ -238,10 +238,10 @@ irom bool_t socket_send(socket_t *socket, string_t *buffer)
 
 	socket->state = state_sending;
 
-	if(espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer)) == 0)
+	if((result = espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer))) == 0)
 		return(true);
 
-	log("socket: socket_send: espconn_send returned error\n");
+	logfmt("socket: socket_send: espconn_send returned error: %d\n", result);
 
 error:
 	socket->state = state_idle;
