@@ -144,7 +144,7 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 	return(hash_string.str());
 }
 
-static bool process(GenericSocket &channel, const std::string &send_string, std::string &reply_string, const std::string &match,
+static void process(GenericSocket &channel, const std::string &send_string, std::string &reply_string, const std::string &match,
 		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose, int timeout = 2000)
 {
 	boost::regex re(match);
@@ -197,7 +197,7 @@ static bool process(GenericSocket &channel, const std::string &send_string, std:
 		std::cout << "< receive: " << reply_string << std::endl;
 
 	if(!boost::regex_match(reply_string, capture, re))
-		return(false);
+		throw(std::string("received string does not match: ") + reply_string);
 
 	first = true;
 
@@ -223,14 +223,12 @@ static bool process(GenericSocket &channel, const std::string &send_string, std:
 			int_value.push_back(0);
 		}
 	}
-
-	return(true);
 }
 
 void command_write(GenericSocket &channel, int fd,
 		uint64_t file_length, unsigned int start,
 		int flash_sector_size, int chunk_size,
-		bool verbose, action_t action)
+		bool verbose, action_t action, bool erase_before_write)
 {
 	int64_t file_offset;
 	unsigned char sector_buffer[flash_sector_size];
@@ -259,6 +257,37 @@ void command_write(GenericSocket &channel, int fd,
 
 	if(action != action_simulate)
 		SHA1_Init(&sha_file_ctx);
+
+	if((action == action_write) && (erase_before_write))
+	{
+		std::cout << "erasing " << std::dec << std::setw(0) << file_length <<
+					" bytes from 0x" << std::hex << std::setw(6) << std::setfill('0') << start <<
+					std::dec << std::setw(0) << std::endl;
+
+		send_string = "flash-erase " + std::to_string(start) + " " + std::to_string(file_length);
+
+		process(channel, send_string, reply, "OK flash-erase: erased ([0-9]+) sectors from sector ([0-9]+), in ([0-9]+) milliseconds", string_value, int_value, verbose, 10000);
+
+		sectors_erased = file_length / 4096;
+		current = start / 4096;
+
+		if((start % 4096) != 0)
+		{
+			current--;
+			sectors_erased++;
+		}
+
+		if((file_length % 4096) != 0)
+			sectors_erased++;
+
+		if(int_value[0] != sectors_erased)
+			throw(std::string("flash-erase: erased sectors count don't match"));
+
+		if(int_value[1] != current)
+			throw(std::string("flash-erase: offset of erased sectors don't match"));
+
+		std::cout << "erase finished in " << int_value[2] << " milliseconds" << std::endl;
+	}
 
 	sector = 0;
 	sectors_written = 0;
@@ -307,10 +336,7 @@ void command_write(GenericSocket &channel, int fd,
 
 						send_string = "flash-send " + std::to_string(chunk_offset) + " " + std::to_string(chunk_size) + " ";
 						send_string.append((const char *)&sector_buffer[chunk_offset], chunk_size);
-
-						if(!process(channel, send_string, reply, "OK flash-send: received bytes: ([0-9]+), at offset: ([0-9]+)\\s*",
-									string_value, int_value, verbose))
-							throw(std::string("generic error"));
+						process(channel, send_string, reply, "OK flash-send: received bytes: ([0-9]+), at offset: ([0-9]+)\\s*", string_value, int_value, verbose);
 
 						if(int_value[0] != chunk_size)
 							throw(std::string("local chunk size (") + std::to_string(chunk_size) + ") != remote chunk size (" + std::to_string(int_value[0]) + ")");
@@ -347,11 +373,7 @@ void command_write(GenericSocket &channel, int fd,
 							std::cout << "verify sector at 0x" << std::hex << std::setw(6) << std::setfill('0') << current << std::dec << std::setw(0) << std::endl;
 
 						send_string = std::string("flash-verify ") + std::to_string(current);
-
-						if(!process(channel, send_string, reply,
-								"OK flash-verify: verified bytes: ([0-9]+), at address: ([0-9]+) \\([0-9]+\\), same: (0|1), checksum: ([0-9a-f]+)\\s*",
-								string_value, int_value, verbose))
-							throw(std::string("generic error"));
+						process(channel, send_string, reply, "OK flash-verify: verified bytes: ([0-9]+), at address: ([0-9]+) \\([0-9]+\\), same: (0|1), checksum: ([0-9a-f]+)\\s*", string_value, int_value, verbose);
 
 						sha_remote_hash_text = string_value[3];
 
@@ -382,11 +404,7 @@ void command_write(GenericSocket &channel, int fd,
 							std::cout << "writing sector at 0x" << std::hex << std::setw(6) << std::setfill('0') << current << std::dec << std::setw(0) << std::endl;
 
 						send_string = std::string("flash-write ") + std::to_string(current);
-
-						if(!process(channel, send_string, reply,
-								"OK flash-write: written bytes: ([0-9]+), to address: ([0-9]+) \\([0-9]+\\), same: (0|1), erased: (0|1), checksum: ([0-9a-f]+)\\s*",
-								string_value, int_value, verbose))
-							throw(std::string("generic error"));
+						process(channel, send_string, reply, "OK flash-write: written bytes: ([0-9]+), to address: ([0-9]+) \\([0-9]+\\), same: (0|1), erased: (0|1), checksum: ([0-9a-f]+)\\s*", string_value, int_value, verbose);
 
 						sha_remote_hash_text = string_value[4];
 
@@ -517,11 +535,7 @@ void command_write(GenericSocket &channel, int fd,
 		sha_local_hash_text = sha_hash_to_text(file_hash);
 
 		send_string = std::string("flash-checksum ") + std::to_string(start) + " " + std::to_string(checksummed);
-
-		if(!process(channel, send_string, reply,
-				"OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*",
-				string_value, int_value, verbose))
-			throw(std::string("checksum failed"));
+		process(channel, send_string, reply, "OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*", string_value, int_value, verbose);
 
 		if(verbose)
 		{
@@ -589,11 +603,7 @@ void command_checksum(GenericSocket &channel, int fd, uint64_t file_length, unsi
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("flash-checksum ") + std::to_string(start) + " " + std::to_string(checksummed);
-
-	if(!process(channel, send_string, reply,
-			"OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*",
-			string_value, int_value, verbose))
-		throw(std::string("checksum failed"));
+	process(channel, send_string, reply, "OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*", string_value, int_value, verbose);
 
 	if(verbose)
 	{
@@ -651,11 +661,7 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 				std::cout << "receiving sector: " << sector << ", length: " << flash_sector_size << ", try #" << (max_attempts - sector_attempt) << std::endl;
 
 			send_string = std::string("flash-read ") + std::to_string(current);
-
-			if(!process(channel, send_string, reply,
-					"OK flash-read: read bytes: ([0-9]+), from address: ([0-9]+) \\([0-9]+\\), checksum: ([0-9a-f]+)",
-					string_value, int_value, verbose))
-				throw(std::string("generic error"));
+			process(channel, send_string, reply, "OK flash-read: read bytes: ([0-9]+), from address: ([0-9]+) \\([0-9]+\\), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
 
 			if(int_value[0] != flash_sector_size)
 				throw(std::string("local sector size (") + std::to_string(flash_sector_size) + ") != remote sector size (" + std::to_string(int_value[0]) + ")");
@@ -676,10 +682,7 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 									<< ", length: " << chunk_size << ", try #" << max_attempts - chunk_attempt << std::endl;
 
 						send_string = std::string("flash-receive ") + std::to_string(chunk_offset) + " " + std::to_string(chunk_size);
-
-						if(!process(channel, send_string, reply, "OK flash-receive: sending bytes: ([0-9]+), from offset: ([0-9]+), data: @.*",
-									string_value, int_value, verbose))
-							throw(std::string("generic error"));
+						process(channel, send_string, reply, "OK flash-receive: sending bytes: ([0-9]+), from offset: ([0-9]+), data: @.*", string_value, int_value, verbose);
 
 						if(int_value[0] != chunk_size)
 							throw(std::string("local chunk length (") + std::to_string(chunk_size) + ") != remote chunk length (" + std::to_string(int_value[0]) + ")");
@@ -777,11 +780,7 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("flash-checksum ") + std::to_string(start) +  " " + std::to_string(checksummed);
-
-	if(!process(channel, send_string, reply,
-			"OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*",
-			string_value, int_value, verbose))
-		throw(std::string("checksum failed"));
+	process(channel, send_string, reply, "OK flash-checksum: checksummed bytes: ([0-9]+), from address: ([0-9]+), checksum: ([0-9a-f]+)\\s*", string_value, int_value, verbose);
 
 	if(verbose)
 	{
@@ -822,6 +821,7 @@ int main(int argc, const char **argv)
 		bool noreset = false;
 		bool notemp = false;
 		bool otawrite = false;
+		bool erase_before_write = false;
 		bool cmd_write = false;
 		bool cmd_simulate = false;
 		bool cmd_verify = false;
@@ -832,6 +832,7 @@ int main(int argc, const char **argv)
 		options.add_options()
 			("checksum,C",	po::bool_switch(&cmd_checksum)->implicit_value(true),				"CHECKSUM")
 			("chunksize,c",	po::value<std::string>(&chunk_size_string)->default_value("0x400"),	"send/receive chunk size")
+			("erase,e",		po::bool_switch(&erase_before_write)->implicit_value(true),			"erase before write (instead of during write)")
 			("filename,f",	po::value<std::string>(&filename),									"file name")
 			("host,h",		po::value<std::string>(&host)->required(),							"host to connect to")
 			("length,l",	po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
@@ -909,11 +910,17 @@ int main(int argc, const char **argv)
 
 		GenericSocket channel(host, port, use_udp, verbose);
 
-		if(!process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
-					"slots: ([0-9]+), slot: ([0-9]+), "
-					"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
-					string_value, int_value, verbose))
-			throw(std::string("incompatible image"));
+		try
+		{
+			process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
+						"slots: ([0-9]+), slot: ([0-9]+), "
+						"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
+						string_value, int_value, verbose);
+		}
+		catch(std::string &e)
+		{
+			throw(std::string("incompatible image: ") + e);
+		}
 
 		flash_sector_size = int_value[0];
 		flash_ota = int_value[1];
@@ -1012,7 +1019,7 @@ int main(int argc, const char **argv)
 			case(action_simulate):
 			case(action_verify):
 			{
-				command_write(channel, fd, file_length, start, flash_sector_size, chunk_size, verbose, action);
+				command_write(channel, fd, file_length, start, flash_sector_size, chunk_size, verbose, action, erase_before_write);
 				break;
 			}
 
@@ -1026,58 +1033,25 @@ int main(int argc, const char **argv)
 		{
 			if(!nocommit)
 			{
-				int attempt;
+				std::string send_string;
+				std::string reply;
 
-				for(attempt = max_attempts; attempt > 0; attempt--)
+				if(notemp)
 				{
-					std::string send_string;
-					std::string reply;
-
-					if(attempt != max_attempts)
-						std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
-
-					if(notemp)
-					{
-						send_string = std::string("flash-select ") + std::to_string(flash_slot);
-
-						if(!process(channel, send_string, reply,
-								"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-								string_value, int_value, verbose || verbose2))
-						{
-							std::cout << "flash-select: generic failure";
-							continue;
-						}
-					}
-					else
-					{
-						send_string = std::string("flash-select-once ") + std::to_string(flash_slot);
-
-						if(!process(channel, send_string, reply,
-								"OK flash-select-once: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-								string_value, int_value, verbose ||verbose2))
-						{
-							std::cout << "flash-select-once: generic failure";
-							continue;
-						}
-					}
-
-					if((unsigned int)int_value[0] != flash_slot)
-					{
-						std::cout << "flash-select failed, local slot (" << flash_slot << ") != remote slot (" << int_value[0] << ")";
-						continue;
-					}
-
-					if((unsigned int)int_value[1] != start)
-					{
-						std::cout << "flash-select failed, local address (" << flash_slot << ") != remote address (" << int_value[0] << ")";
-						continue;
-					}
-
-					break;
+					send_string = std::string("flash-select ") + std::to_string(flash_slot);
+					process(channel, send_string, reply, "OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*", string_value, int_value, verbose || verbose2);
+				}
+				else
+				{
+					send_string = std::string("flash-select-once ") + std::to_string(flash_slot);
+					process(channel, send_string, reply, "OK flash-select-once: slot ([0-9]+) selected, address ([0-9]+)\\s*", string_value, int_value, verbose ||verbose2);
 				}
 
-				if(attempt <= 0)
-					throw(std::string("flash-select: no more attempts"));
+				if((unsigned int)int_value[0] != flash_slot)
+					throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
+
+				if((unsigned int)int_value[1] != start)
+					throw(std::string("flash-select failed, local address (") +  std::to_string(flash_slot) + ") != remote address (" + std::to_string(int_value[0]) + ")");
 
 				if(notemp)
 					std::cout << "selected boot slot";
@@ -1090,8 +1064,7 @@ int main(int argc, const char **argv)
 				{
 					std::cout << "rebooting" << std::endl;
 
-					if(!process(channel, "reset", reply, "> reset\\s*", string_value, int_value, verbose || verbose2))
-						throw(std::string("reset: generic failure"));
+					channel.send(1000, std::string("reset"));
 
 					sleep(2);
 
@@ -1101,11 +1074,10 @@ int main(int argc, const char **argv)
 
 					if(!notemp)
 					{
-						if(!process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
+						process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
 									"slots: ([0-9]+), slot: ([0-9]+), "
 									"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
-									string_value, int_value, verbose))
-							throw(std::string("incompatible image"));
+									string_value, int_value, verbose);
 
 						if(int_value[3] != (int)flash_slot)
 							std::cout << "boot failed, requested slot: " << flash_slot << ", active slot: " << int_value[3] << std::endl;
@@ -1113,44 +1085,24 @@ int main(int argc, const char **argv)
 						{
 							std::cout << "boot succeeded, permanently selecting boot slot: " << flash_slot << ", address: 0x" << std::hex << std::setw(6) << std::setfill('0') << start << std::dec << std::setw(0) << std::endl;
 
-							for(attempt = max_attempts; attempt > 0; attempt--)
-							{
-								std::string send_string;
-								std::string reply;
+							std::string send_string;
+							std::string reply;
 
-								if(attempt != max_attempts)
-									std::cout << ", retry #" << (max_attempts - attempt) << std::endl;
+							send_string = std::string("flash-select ") + std::to_string(flash_slot);
+							process(channel, send_string, reply,
+									"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
+									string_value, int_value, verbose || verbose2);
 
-								send_string = std::string("flash-select ") + std::to_string(flash_slot);
+							if((unsigned int)int_value[0] != flash_slot)
+								throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
 
-								if(!process(channel, send_string, reply,
-										"OK flash-select: slot ([0-9]+) selected, address ([0-9]+)\\s*",
-										string_value, int_value, verbose || verbose2))
-								{
-									std::cout << "flash-select: generic failure";
-									continue;
-								}
-
-								if((unsigned int)int_value[0] != flash_slot)
-								{
-									std::cout << "flash-select failed, local slot (" << flash_slot << ") != remote slot (" << int_value[0] << ")";
-									continue;
-								}
-
-								if((unsigned int)int_value[1] != start)
-								{
-									std::cout << "flash-select failed, local address (" << flash_slot << ") != remote address (" << int_value[0] << ")";
-									continue;
-								}
-
-								break;
-							}
+							if((unsigned int)int_value[1] != start)
+								throw(std::string("flash-select failed, local address (") + std::to_string(flash_slot) +  ") != remote address (" + std::to_string(int_value[0]) + ")");
 						}
 					}
 				}
 
-				if(!process(channel, "stats", reply, "> firmware version date: ([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 1000))
-					throw(std::string("stats: generic failure"));
+				process(channel, "stats", reply, "> firmware version date: ([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 1000);
 
 				std::cout << "firmware version: " << string_value[0] << std::endl;
 			}
