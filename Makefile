@@ -36,7 +36,7 @@ link_debug		= $(Q) perl -e '\
 						while(<$$fd>) \
 						{ \
 							chomp; \
-							if(m/^\s+\.$(2)/) \
+							if(m/^\s+\.$(2)(\.[^ ]+)?\s+0x00000000$(4)/) \
 							{ \
 								@_ = split; \
 								$$top = hex($$_[1]) if(hex($$_[1]) > $$top); \
@@ -55,7 +55,7 @@ link_debug		= $(Q) perl -e '\
 									hex($$size{$$size}{"size"}), \
 									$$size{$$size}{"id"}); \
 						} \
-						printf("size: %u, free: %u\n", $$top - hex('$(4)'), ($(3) * 1024) - ($$top - hex('$(4)'))); \
+						printf("size: %u, free: %u\n", $$top - hex('$(4)00000'), ($(3) * 1024) - ($$top - hex('$(4)00000'))); \
 						close($$fd);'
 
 CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
@@ -209,9 +209,9 @@ free:			$(ELF)
 
 linkdebug:		$(LINKMAP)
 				$(Q) echo "IROM:"
-				$(call link_debug,$<,irom0.text,424,40210000)
+				$(call link_debug,$<,irom0.text,424,402)
 				$(Q) echo "IRAM:"
-				$(call link_debug,$<,text,32,40100000)
+				$(call link_debug,$<,text,32,401)
 
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
