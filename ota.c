@@ -52,20 +52,10 @@ irom app_action_t application_function_flash_info(const string_t *src, string_t 
 	return(app_action_normal);
 }
 
-static iram unsigned int flash_erase(unsigned int sector_offset, unsigned int sector_count)
-{
-	unsigned int current;
-
-	for(current = 0; current <= sector_count; current++)
-		spi_flash_erase_sector(sector_offset + current);
-
-	return(current - 1);
-}
-
 irom app_action_t application_function_flash_erase(const string_t *src, string_t *dst)
 {
 	unsigned int address, length;
-	int sector_offset, sector_count, count;
+	int sector_offset, sector_count, erased;
 	uint32_t time_start, time_finish;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
@@ -99,10 +89,17 @@ irom app_action_t application_function_flash_erase(const string_t *src, string_t
 		sector_count++;
 
 	time_start = system_get_time();
-	count = flash_erase(sector_offset, sector_count);
+
+	for(erased = 0; erased <= sector_count; erased++)
+	{
+		system_soft_wdt_feed();
+		if(spi_flash_erase_sector(sector_offset + erased) != SPI_FLASH_RESULT_OK)
+			break;
+	}
+
 	time_finish = system_get_time();
 
-	string_format(dst, "OK flash-erase: erased %d sectors from sector %d, in %d milliseconds\n", count, sector_offset, (time_finish - time_start) / 1000);
+	string_format(dst, "OK flash-erase: erased %d sectors from sector %d, in %d milliseconds\n", erased - 1, sector_offset, (time_finish - time_start) / 1000);
 
 	return(app_action_normal);
 }
