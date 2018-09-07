@@ -15,25 +15,42 @@
 static void user_init2(void);
 void user_init(void);
 
+static const partition_item_t partition_items[] =
+{
+	{	SYSTEM_PARTITION_RF_CAL, 				RFCAL_OFFSET,				RFCAL_SIZE,				},
+	{	SYSTEM_PARTITION_PHY_DATA,				PHYDATA_OFFSET,				PHYDATA_SIZE,			},
+	{	SYSTEM_PARTITION_SYSTEM_PARAMETER,		SYSTEM_CONFIG_OFFSET,		SYSTEM_CONFIG_SIZE,		},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 0,	USER_CONFIG_OFFSET,			USER_CONFIG_SIZE,		},
+#if IMAGE_OTA == 0
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 1,	OFFSET_IRAM_PLAIN,			SIZE_IRAM_PLAIN,		},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 2,	OFFSET_IROM_PLAIN,			SIZE_IROM_PLAIN,		}
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 3,	SEQUENCER_FLASH_OFFSET,		SEQUENCER_FLASH_SIZE,	},
+#else
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 1,	OFFSET_OTA_BOOT,			SIZE_OTA_BOOT,			},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 2,	OFFSET_OTA_RBOOT_CFG,		SIZE_OTA_RBOOT_CFG,		},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 3,	OFFSET_OTA_IMG_0,			SIZE_OTA_IMG,			},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 4,	OFFSET_OTA_IMG_1,			SIZE_OTA_IMG,			},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 5,	SEQUENCER_FLASH_OFFSET_0,	SEQUENCER_FLASH_SIZE,	},
+	{	SYSTEM_PARTITION_CUSTOMER_BEGIN + 6,	SEQUENCER_FLASH_OFFSET_1,	SEQUENCER_FLASH_SIZE,	},
+#endif
+};
+
+uint32_t user_iram_memory_is_enabled(void);
+iram attr_const uint32_t user_iram_memory_is_enabled(void)
+{
+	return(0);
+}
+
+void user_pre_init(void);
+iram void user_pre_init(void)
+{
+	stat_flags.user_pre_init_called = 1;
+	stat_flags.user_pre_init_success = system_partition_table_regist(partition_items, sizeof(partition_items) / sizeof(*partition_items), FLASH_SIZE_SDK);
+}
+
 void user_spi_flash_dio_to_qio_pre_init(void);
 iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
 {
-}
-
-uint32_t user_rf_cal_sector_set(void);
-iram attr_const uint32_t user_rf_cal_sector_set(void)
-{
-	stat_called.user_rf_cal_sector_set = 1;
-	return(RFCAL_ADDRESS / 0x1000);
-}
-
-void user_rf_pre_init(void);
-iram void user_rf_pre_init(void)
-{
-	system_phy_set_powerup_option(0); // default = 0, otherwise 3
-	system_phy_freq_trace_enable(0); // default = 0, otherwise 1
-
-	stat_called.user_rf_pre_init = 1;
 }
 
 irom void user_init(void)

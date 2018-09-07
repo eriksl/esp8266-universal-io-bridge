@@ -13,11 +13,7 @@
 #include <rboot-api.h>
 #endif
 
-stat_called_t stat_called =
-{
-	.user_rf_cal_sector_set = 0,
-	.user_rf_pre_init = 0
-};
+stat_flags_t stat_flags;
 
 int stat_uart0_rx_interrupts;
 int stat_uart0_tx_interrupts;
@@ -144,6 +140,8 @@ irom void stats_firmware(string_t *dst)
 	unsigned int stack_size = stack_bottom - stack_top;
 	int stack_used = -1; // no painted words found, overflow
 	int stack_free = -1;
+	unsigned int current_partition;
+	partition_item_t partition_item;
 	uint32_t *sp;
 
 	for(sp = (typeof(sp))stack_top; sp < (typeof(sp))stack_bottom; sp++)
@@ -164,29 +162,26 @@ irom void stats_firmware(string_t *dst)
 			"> system id: %u\n"
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
 			"> cpu frequency: %u MHz\n"
-			"> flash map: %s\n"
 			"> reset cause: %s, exception: %d, epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n"
-			"> config sector address: %x\n"
-			"> rf calibration sector address: %x\n"
-			"> stack bottom: %p\n"
-			"> stack top: %p\n"
-			"> value of initial stack pointer: %p (%u bytes)\n"
-			"> value of current stack pointer: %p (%u bytes)\n"
-			"> stack painted: %u bytes\n"
-			"> stack not painted: %u bytes\n"
-			"> stack size: %u bytes\n"
-			"> stack used: %d bytes\n"
-			"> stack free: %d bytes\n"
-			"> heap free: %u bytes\n",
+			"> heap free: %u bytes\n"
+			">\n"
+			"> stack:\n"
+			">   bottom: %p\n"
+			">   top: %p\n"
+			">   initial stack pointer: %p (%u bytes)\n"
+			">   current stack pointer: %p (%u bytes)\n"
+			">   painted: %u bytes\n"
+			">   not painted: %u bytes\n"
+			">   size: %u bytes\n"
+			">   used: %d bytes\n"
+			">   free: %d bytes\n",
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
 				flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
-				flash_map[system_get_flash_size_map()],
 				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
-				USER_CONFIG_SECTOR * 0x1000,
-				RFCAL_ADDRESS,
+				system_get_free_heap_size(),
 				(void *)stack_bottom,
 				(void *)stack_top,
 				stat_stack_sp_initial, (typeof(stat_stack_sp_initial))stack_bottom - stat_stack_sp_initial,
@@ -195,8 +190,7 @@ irom void stats_firmware(string_t *dst)
 				stack_size - stat_stack_painted,
 				stack_size,
 				stack_used,
-				stack_free,
-				system_get_free_heap_size());
+				stack_free);
 
 	system_print_meminfo();
 
@@ -205,15 +199,15 @@ irom void stats_firmware(string_t *dst)
 
 	string_format(dst,
 			">\n"
-			"> OTA image information\n"
-			"> magic number: 0x%08x\n"
-			"> struct version: %u\n"
-			"> boot mode: %s\n"
-			"> current slot: %u\n"
-			"> flash memory map: %x,%x\n"
-			"> slot count: %u\n"
-			"> slot 0: 0x%06x\n"
-			"> slot 1: 0x%06x\n",
+			"> OTA image information:\n"
+			">   magic number: 0x%08x\n"
+			">   struct version: %u\n"
+			">   boot mode: %s\n"
+			">   current slot: %u\n"
+			">   flash memory map: %x,%x\n"
+			">   slot count: %u\n"
+			">   slot 0: 0x%06x\n"
+			">   slot 1: 0x%06x\n",
 			rcfg.magic,
 			rcfg.version,
 			rboot_boot_mode(rcfg.mode),
@@ -226,13 +220,13 @@ irom void stats_firmware(string_t *dst)
 	if(rboot_get_rtc_data(&rrtc))
 		string_format(dst,
 				">\n"
-				"> OTA RTC RAM boot config information\n"
-				"> magic number: 0x%08x\n"
-				"> current boot mode: %s\n"
-				"> current slot: %u\n"
-				"> start once boot mode: %s\n"
-				"> start once rom slot: %u\n"
-				"> struct checksum: %x\n",
+				"> OTA RTC RAM boot config information:\n"
+				">   magic number: 0x%08x\n"
+				">   current boot mode: %s\n"
+				">   current slot: %u\n"
+				">   start once boot mode: %s\n"
+				">   start once rom slot: %u\n"
+				">   struct checksum: %x\n",
 			rrtc.magic,
 			rboot_boot_mode(rrtc.last_mode),
 			rrtc.last_rom,
@@ -247,6 +241,44 @@ irom void stats_firmware(string_t *dst)
 #else
 	string_append(dst, ">\n> No OTA image\n");
 #endif
+	string_append(dst, ">\n> flash partition table:\n");
+	string_format(dst, ">   map: %s\n", flash_map[system_get_flash_size_map()]);
+
+	for(current_partition = 0; current_partition < SYSTEM_PARTITION_CUSTOMER_BEGIN + 16; current_partition++)
+	{
+		if(system_partition_get_item((partition_type_t)current_partition, &partition_item))
+		{
+			string_append(dst, ">     ");
+
+			switch(current_partition)
+			{
+				case(SYSTEM_PARTITION_INVALID):							string_append(dst, "invalid partition"); break;
+				case(SYSTEM_PARTITION_BOOTLOADER):						string_append(dst, "bootloader       "); break;
+				case(SYSTEM_PARTITION_OTA_1):							string_append(dst, "SDK OTA 1        "); break;
+				case(SYSTEM_PARTITION_OTA_2):							string_append(dst, "SDK OTA 2        "); break;
+				case(SYSTEM_PARTITION_RF_CAL):							string_append(dst, "RF calibration   "); break;
+				case(SYSTEM_PARTITION_PHY_DATA):						string_append(dst, "PHY config       "); break;
+				case(SYSTEM_PARTITION_SYSTEM_PARAMETER):				string_append(dst, "SYSTEM config    "); break;
+				case(SYSTEM_PARTITION_AT_PARAMETER):					string_append(dst, "AT parameters    "); break;
+				case(SYSTEM_PARTITION_SSL_CLIENT_CERT_PRIVKEY):			string_append(dst, "SSL client key   "); break;
+				case(SYSTEM_PARTITION_SSL_CLIENT_CA):					string_append(dst, "SSL client ca    "); break;
+				case(SYSTEM_PARTITION_SSL_SERVER_CERT_PRIVKEY):			string_append(dst, "SSL server key   "); break;
+				case(SYSTEM_PARTITION_SSL_SERVER_CA):					string_append(dst, "SSL server ca    "); break;
+				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CERT_PRIVKEY):	string_append(dst, "EAP privkey      "); break;
+				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CA):				string_append(dst, "EAP ca           "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+0):				string_append(dst, "USER config      "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "RBOOT OTA boot   "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "RBOOT OTA config "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "OTA image slot 0 "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+4):				string_append(dst, "OTA image slot 1 "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+5):				string_append(dst, "sequencer slot 0 "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+6):				string_append(dst, "sequencer slot 1 "); break;
+				default:												string_append(dst, "unknown partition"); break;
+			}
+
+			string_format(dst, " start: 0x%06x size: %05x\n", partition_item.addr, partition_item.size);
+		}
+	}
 }
 
 irom void stats_time(string_t *dst)
@@ -267,8 +299,8 @@ irom void stats_time(string_t *dst)
 irom void stats_counters(string_t *dst)
 {
 	string_format(dst,
-			"> user_rf_cal_sector_set called: %s\n"
-			"> user_rf_pre_init called: %s\n"
+			"> user_pre_init called: %s\n"
+			"> user_pre_init success: %s\n"
 			"> int uart0 rx: %u\n"
 			"> int uart0 tx: %u\n"
 			"> int uart1 tx: %u\n"
@@ -295,8 +327,8 @@ irom void stats_counters(string_t *dst)
 			"> debug counter 1: 0x%08x %d\n"
 			"> debug counter 2: 0x%08x %d\n"
 			"> debug counter 3: 0x%08x %d\n",
-				yesno(stat_called.user_rf_cal_sector_set),
-				yesno(stat_called.user_rf_pre_init),
+				yesno(stat_flags.user_pre_init_called),
+				yesno(stat_flags.user_pre_init_success),
 				stat_uart0_rx_interrupts,
 				stat_uart0_tx_interrupts,
 				stat_uart1_tx_interrupts,

@@ -62,28 +62,38 @@ CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
 OBJCOPY						:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
+USER_CONFIG_SIZE			:= 0x1000
 SEQUENCER_FLASH_OFFSET_PLAIN:= 0x076000
 SEQUENCER_FLASH_OFFSET_OTA_0:= 0x0f6000
 SEQUENCER_FLASH_OFFSET_OTA_1:= 0x1f6000
+SEQUENCER_FLASH_SIZE		:= 0x4000
 RFCAL_OFFSET_PLAIN			:= 0x7b000
 RFCAL_OFFSET_OTA			:= 0xfb000
-RFCAL_FILE					:= $(SDKROOT)/sdk/bin/blank.bin
-RF_OFFSET_PLAIN				:= 0x07c000
-RF_OFFSET_OTA				:= 0x1fc000
-RF_FILE						:= esp_init_data_default_v08.bin
-SYSTEM_OFFSET_PLAIN			:= 0x07e000
-SYSTEM_OFFSET_OTA			:= 0x1fe000
-SYSTEM_FILE					:= $(SDKROOT)/sdk/bin/blank.bin
+RFCAL_SIZE					:= 0x1000
+RFCAL_FILE					:= blank1.bin
+PHYDATA_OFFSET_PLAIN		:= 0x07c000
+PHYDATA_OFFSET_OTA			:= 0x1fc000
+PHYDATA_SIZE				:= 0x1000
+PHYDATA_FILE				:= esp_init_data_default_v08.bin
+SYSTEM_CONFIG_OFFSET_PLAIN	:= 0x07d000
+SYSTEM_CONFIG_OFFSET_OTA	:= 0x1fd000
+SYSTEM_CONFIG_SIZE			:= 0x3000
+SYSTEM_CONFIG_FILE			:= blank3.bin
 LDSCRIPT_TEMPLATE			:= loadscript-template
 LDSCRIPT					:= loadscript
 ELF_PLAIN					:= espiobridge-plain.o
 ELF_OTA						:= espiobridge-rboot.o
 OFFSET_IRAM_PLAIN			:= 0x000000
+SIZE_IRAM_PLAIN				:= 0x010000
 OFFSET_IROM_PLAIN			:= 0x010000
+SIZE_IROM_PLAIN				:= 0x066000
 OFFSET_OTA_BOOT				:= 0x000000
+SIZE_OTA_BOOT				:= 0x1000
 OFFSET_OTA_RBOOT_CFG		:= 0x001000
+SIZE_OTA_RBOOT_CFG			:= 0x1000
 OFFSET_OTA_IMG_0			:= 0x002000
 OFFSET_OTA_IMG_1			:= 0x102000
+SIZE_OTA_IMG				:= 0x0f4000
 FIRMWARE_PLAIN_IRAM			:= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
 FIRMWARE_PLAIN_IROM			:= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
 FIRMWARE_OTA_RBOOT			:= espiobridge-rboot-boot.bin
@@ -118,12 +128,16 @@ endif
 ifeq ($(IMAGE),plain)
 	IMAGE_OTA := 0
 	FLASH_SIZE_ESPTOOL := 4m
-	FLASH_SIZE_KBYTES := 512
+	FLASH_SIZE_ESPTOOL2 := 512
+	FLASH_SIZE_SDK := FLASH_SIZE_4M_MAP_256_256
 	RBOOT_SPI_SIZE := 512K
 	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_PLAIN)
+	USER_CONFIG_OFFSET := $(USER_CONFIG_SECTOR_PLAIN)000
 	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_PLAIN)
 	SEQUENCER_FLASH_OFFSET_1 := 0x000000
-	RFCAL_ADDRESS=$(RFCAL_OFFSET_PLAIN)
+	RFCAL_OFFSET := $(RFCAL_OFFSET_PLAIN)
+	PHYDATA_OFFSET := $(PHYDATA_OFFSET_PLAIN)
+	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_PLAIN)
 	LD_ADDRESS := 0x40210000
 	LD_LENGTH := 0x79000
 	ELF := $(ELF_PLAIN)
@@ -133,13 +147,17 @@ endif
 
 ifeq ($(IMAGE),ota)
 	IMAGE_OTA := 1
-	FLASH_SIZE_ESPTOOL := 16m
-	FLASH_SIZE_KBYTES := 2048
-	RBOOT_SPI_SIZE := 2M
+	FLASH_SIZE_ESPTOOL := 16m-c1
+	FLASH_SIZE_ESPTOOL2 := 2048b
+	FLASH_SIZE_SDK := FLASH_SIZE_16M_MAP_1024_1024
+	RBOOT_SPI_SIZE := 2Mb
 	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_OTA)
+	USER_CONFIG_OFFSET := $(USER_CONFIG_SECTOR_OTA)000
 	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_OTA_0)
 	SEQUENCER_FLASH_OFFSET_1 := $(SEQUENCER_FLASH_OFFSET_OTA_1)
-	RFCAL_ADDRESS=$(RFCAL_OFFSET_OTA)
+	RFCAL_OFFSET := $(RFCAL_OFFSET_OTA)
+	PHYDATA_OFFSET := $(PHYDATA_OFFSET_OTA)
+	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_OTA)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
@@ -147,25 +165,35 @@ ifeq ($(IMAGE),ota)
 	FLASH_TARGET := flash-ota
 endif
 
-WARNINGS		:= -Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitialized \
-					-Wno-pointer-sign -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement \
-					-Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wwrite-strings \
-					-Wsequence-point -Wclobbered -Wlogical-op -Wmissing-field-initializers -Wpacked \
-					-Wredundant-decls -Wnested-externs -Wvla -Wdisabled-optimization \
-					-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
-					-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
-					-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align \
-					-Wno-format-security -Wno-format-nonliteral \
-					-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
-					-Wsuggest-attribute=const -Wsuggest-attribute=pure
+WARNINGS		:=	-Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitialized \
+						-Wno-pointer-sign -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement \
+						-Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wwrite-strings \
+						-Wsequence-point -Wclobbered -Wlogical-op -Wmissing-field-initializers -Wpacked \
+						-Wredundant-decls -Wnested-externs -Wvla -Wdisabled-optimization \
+						-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
+						-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
+						-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align \
+						-Wno-format-security -Wno-format-nonliteral \
+						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
+						-Wsuggest-attribute=const -Wsuggest-attribute=pure
 
-CFLAGS			:=  -Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
-						-D__ets__ -DICACHE_FLASH \
-						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) -DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) \
-						-DRFCAL_ADDRESS=$(RFCAL_ADDRESS) \
-						-DSEQUENCER_FLASH_OFFSET=$(SEQUENCER_FLASH_OFFSET_0) \
+CFLAGS			:=	-Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
+						-ffunction-sections -fdata-sections \
+						-D__ets__ -DICACHE_FLASH -DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
+						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
+						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
+						-DRFCAL_OFFSET=$(RFCAL_OFFSET) -DRFCAL_SIZE=$(RFCAL_SIZE) \
+						-DPHYDATA_OFFSET=$(PHYDATA_OFFSET) -DPHYDATA_SIZE=$(PHYDATA_SIZE) \
+						-DSYSTEM_CONFIG_OFFSET=$(SYSTEM_CONFIG_OFFSET) -DSYSTEM_CONFIG_SIZE=$(SYSTEM_CONFIG_SIZE) \
+						-DOFFSET_OTA_IMG_0=$(OFFSET_OTA_IMG_0) -DOFFSET_OTA_IMG_1=$(OFFSET_OTA_IMG_1) -DSIZE_OTA_IMG=$(SIZE_OTA_IMG) \
+						-DOFFSET_IRAM_PLAIN=$(OFFSET_IRAM_PLAIN) -DSIZE_IRAM_PLAIN=$(SIZE_IRAM_PLAIN) \
+						-DOFFSET_IROM_PLAIN=$(OFFSET_IROM_PLAIN) -DSIZE_IROM_PLAIN=$(SIZE_IROM_PLAIN) \
+						-DSEQUENCER_FLASH_OFFSET=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_SIZE=$(SEQUENCER_FLASH_SIZE) \
 						-DSEQUENCER_FLASH_OFFSET_0=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_OFFSET_1=$(SEQUENCER_FLASH_OFFSET_1) \
-						-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1
+						-DOFFSET_OTA_BOOT=$(OFFSET_OTA_BOOT) -DSIZE_OTA_BOOT=$(SIZE_OTA_BOOT) \
+						-DOFFSET_OTA_RBOOT_CFG=$(OFFSET_OTA_RBOOT_CFG) -DSIZE_OTA_RBOOT_CFG=$(SIZE_OTA_RBOOT_CFG) \
+						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
+
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
 CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
@@ -265,18 +293,18 @@ $(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
-						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_KBYTES) -$(SPI_FLASH_MODE) -boot0 $< $@ .text .data .rodata
+						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) -boot0 $< $@ .text .data .rodata
 
 $(FIRMWARE_PLAIN_IROM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IROM $@"
-						$(Q) $(ESPTOOL2_BIN) -quiet -lib -$(FLASH_SIZE_KBYTES) -$(SPI_FLASH_MODE) $< $@
+						$(Q) $(ESPTOOL2_BIN) -quiet -lib -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) $< $@
 
 $(FIRMWARE_OTA_RBOOT):	$(RBOOT_BIN)
 						cp $< $@
 
 $(FIRMWARE_OTA_IMG):	$(ELF_OTA) $(ESPTOOL2_BIN)
 						$(VECHO) "RBOOT FIRMWARE $@"
-						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_KBYTES) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
+						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
 
 $(CONFIG_RBOOT_ELF):	$(CONFIG_RBOOT_SRC)
 
@@ -297,9 +325,9 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free resetserial
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
 							$(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM) \
-							$(RF_OFFSET_PLAIN) $(RF_FILE) \
-							$(SYSTEM_OFFSET_PLAIN) $(SYSTEM_FILE) \
+							$(PHYDATA_OFFSET_PLAIN) $(PHYDATA_FILE) \
 							$(RFCAL_OFFSET_PLAIN) $(RFCAL_FILE) \
+							$(SYSTEM_CONFIG_OFFSET_PLAIN) $(SYSTEM_CONFIG_FILE)
 
 flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free resetserial
 						$(VECHO) "FLASH RBOOT"
@@ -307,9 +335,9 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
 							$(OFFSET_OTA_RBOOT_CFG) $(CONFIG_RBOOT_BIN) \
 							$(OFFSET_OTA_IMG_0) $(FIRMWARE_OTA_IMG) \
-							$(RF_OFFSET_OTA) $(RF_FILE) \
-							$(SYSTEM_OFFSET_OTA) $(SYSTEM_FILE) \
-							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE)
+							$(PHYDATA_OFFSET_OTA) $(PHYDATA_FILE) \
+							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE) \
+							$(SYSTEM_CONFIG_OFFSET_OTA) $(SYSTEM_CONFIG_FILE)
 
 ota-compat:				$(FIRMWARE_OTA_IMG) free otapush espflash
 						$(VECHO) "FLASH OTA LEGACY INTERFACE"
@@ -323,12 +351,12 @@ ota-dummy:				$(FIRMWARE_OTA_IMG) free espflash
 						$(VECHO) "FLASH OTA DUMMY"
 						$(Q) espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
-ota-default:			$(RF_FILE) $(SYSTEM_FILE) $(RFCAL_FILE)
+ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "FLASH OTA DEFAULTS"
 						$(VECHO) "* rf config"
-						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RF_FILE) -s $(RF_OFFSET_OTA) -W
+						$(Q)espflash -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET_OTA) -W
 						$(VECHO) "* system_config"
-						$(Q)espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_FILE) -s $(SYSTEM_OFFSET_OTA) -W
+						$(Q)espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET_OTA) -W
 						$(VECHO) "* rf calibiration"
 						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
@@ -340,18 +368,18 @@ ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) free es
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
-						$(Q) $(ESPTOOL) read_flash $(USER_CONFIG_SECTOR)000 0x1000 $(CONFIG_BACKUP_BIN)
+						$(Q) $(ESPTOOL) read_flash $(USER_CONFIG_OFFSET) 0x1000 $(CONFIG_BACKUP_BIN)
 
 restore-config:
 						$(VECHO) "RESTORE CONFIG"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(USER_CONFIG_SECTOR)000 $(CONFIG_BACKUP_BIN)
+							$(USER_CONFIG_OFFSET) $(CONFIG_BACKUP_BIN)
 
 wipe-config:
 						$(VECHO) "WIPE CONFIG"
 						dd if=/dev/zero of=wipe-config.bin bs=4096 count=1
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(USER_CONFIG_SECTOR)000 wipe-config.bin
+							$(USER_CONFIG_OFFSET) wipe-config.bin
 						rm wipe-config.bin
 
 %.o:					%.c

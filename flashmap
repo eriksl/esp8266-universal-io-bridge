@@ -1,35 +1,29 @@
-non-OTA (512 kbyte, 4 Mbit, 1 slot)
+* non-OTA (512 kbyte, 4 Mbit, 1 slot)
 
-	07f000	-	07ffff	unused?														01000	1 sector
-	07e000	-	07efff	default system parameter values, blank.bin					01000	1 sector
-	07d000	-	07dfff	unused?														01000	1 sector
-	07c000	-	07cfff	default RF parameter values, default.bin					01000	1 sector
-	07b000	-	07bfff	RF calibration storage										01000	1 sector
-	07a000	-	07afff	user config													01000	1 sector
-	076000	-	079fff	sequencer storage											04000	4 sectors
-	010000	-	075fff	irom contents												66000	408 kbyte
-	000000	-	00ffff	iram contents												10000	64 kbyte
+07d000-07ffff	03000	3	default system parameter values	SYSTEM_PARTITION_SYSTEM_PARAMETER	SYSTEM_CONFIG_OFFSET/SYSTEM_CONFIG_SIZE		blank.bin
+07c000-07cfff	01000	1	default RF parameter values		SYSTEM_PARTITION_PHY_DATA			PHYDATA_OFFSET/PHYDATA_SIZE					default.bin	
+07b000-07bfff	01000	1	RF calibration storage			SYSTEM_PARTITION_RF_CAL				RFCAL_OFFSET/RFCAL_SIZE
+07a000-07afff	01000	1	user config						SYSTEM_PARTITION_CUSTOMER_BEGIN+0	USER_CONFIG_OFFSET/USER_CONFIG_SIZE
+076000-079fff	04000	4	sequencer storage				SYSTEM_PARTITION_CUSTOMER_BEGIN+3	SEQUENCER_OFFSET/SEQUENCER_SIZE
+010000-075fff	66000	102	irom contents					SYSTEM_PARTITION_CUSTOMER_BEGIN+2
+000000-00ffff	10000	16	iram contents					SYSTEM_PARTITION_CUSTOMER_BEGIN+1
 
-OTA (2048 kbyte, 16 mbit, 2 identical slots)
+* OTA (2048 kbyte, 16 mbit, 2 identical slots)
 
-	1ff000	-	1fffff	used by system												01000	1 sector
-	1fe000	-	1fefff	default system parameter values, blank.bin					01000	1 sector
-	1fd000	-	1fdfff	used by system												01000	1 sector
-	1fc000	-	1fcfff	default RF parameter values, default.bin					01000	1 sector
-	1fb000	-	1fbfff	unused (mirror RF calibration storage in slot 0)			01000	1 sector
-	1fa000	-	1fafff	unused (mirror user config in slot 0)						01000	1 sector
-	1f6000	-	1f9fff	sequencer storage mirror 1									04000	4 sectors
-	102000	-	1f5fff	ota image slot 1											f4000	976 kbyte
-	101000	-	101fff	unused (mirror rboot config in slot 0)						01000	1 sector
-	100000	-	100fff	unused (mirror ota boot in slot 0)							01000	1 sector
+1fd000-1fffff	03000	3	default system parameter values	SYSTEM_PARTITION_SYSTEM_PARAMETER	blank.bin
+1fc000-1fcfff	01000	1	default RF parameter values		SYSTEM_PARTITION_PHY_DATA			default.bin
+1fb000-1fbfff	01000	1	unused (mirror 0fb000)
+1fa000-1fafff	01000	1	unused (mirror 0fa000)
+1f6000-1f9fff	04000	4	sequencer storage mirror 1		SYSTEM_PARTITION_CUSTOMER_BEGIN+6
+102000-1f5fff	f4000	244	ota image slot 1				SYSTEM_PARTITION_CUSTOMER_BEGIN+4
+101000-101fff	01000	1	unused (mirror 001000)
+100000-100fff	01000	1	unused (mirror 000000)
 
-	0ff000	-	0fffff	unused (mirror unused? in slot 1)							01000	1 sector
-	0fe000	-	0fdfff	unused (mirror default system parameter values in slot 1)	01000	1 sector
-	0fd000	-	0fdfff	unused (mirror unused? in slot 1)							01000	1 sector
-	0fc000	-	0fcfff	unused (mirror default RF parameters value in slot 1)		01000	1 sector
-	0fb000	-	0fbfff	RF calibration storage										01000	1 sector
-	0fa000	-	0fafff	user config													01000	1 sector
-	0f6000	-	0f9fff	sequencer storage mirror 0									04000	4 sectors
-	002000	-	0f5fff	ota image slot 0											f8000	976 kbyte
-	001000	-	001fff	rboot config												01000	1 sector
-	000000	-	000fff	ota boot													01000	1 sector
+0fd000-0fffff	03000	3	unused (mirror 1fd000)
+0fc000-0fcfff	01000	1	unused (mirror 1fc000)
+0fb000-0fbfff	01000	1	RF calibration storage			SYSTEM_PARTITION_RF_CAL
+0fa000-0fafff	01000	1	user config						SYSTEM_PARTITION_CUSTOMER_BEGIN+0
+0f6000-0f9fff	04000	4	sequencer storage mirror 0		SYSTEM_PARTITION_CUSTOMER_BEGIN+5
+002000-0f5fff	f4000	244	ota image slot 0				SYSTEM_PARTITION_CUSTOMER_BEGIN+3
+001000-001fff	01000	1	rboot config					SYSTEM_PARTITION_CUSTOMER_BEGIN+2
+000000-000fff	01000	1	rboot ota boot					SYSTEM_PARTITION_CUSOMTER_BEGIN+1

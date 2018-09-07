@@ -13,11 +13,11 @@ enum
 
 typedef struct
 {
-	unsigned int user_rf_cal_sector_set:1;
-	unsigned int user_rf_pre_init:1;
-} stat_called_t;
+	unsigned int user_pre_init_called:1;
+	unsigned int user_pre_init_success:1;
+} stat_flags_t;
 
-extern stat_called_t stat_called;
+extern stat_flags_t stat_flags;
 
 extern int stat_uart0_rx_interrupts;
 extern int stat_uart0_tx_interrupts;

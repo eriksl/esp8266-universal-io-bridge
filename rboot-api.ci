@@ -14,4 +14,5 @@
 
 #define IRAM_CACHE_ATTR irom
 #include <rboot-api.h>
+#define pvPortMalloc(a, b, c) pvPortMalloc(a, b, c, 0)
 #include <rboot-api.c>

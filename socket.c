@@ -5,7 +5,7 @@
 static unsigned int sockets_length = 0;
 static socket_t *sockets[2];
 
-iram static socket_t *find_socket(struct espconn *esp_socket)
+irom static socket_t *find_socket(struct espconn *esp_socket)
 {
 	unsigned int ix;
 
@@ -33,7 +33,7 @@ iram static socket_t *find_socket(struct espconn *esp_socket)
 	return((socket_t *)0);
 }
 
-iram static void set_remote(struct espconn *esp_socket, socket_t *socket)
+irom static void set_remote(struct espconn *esp_socket, socket_t *socket)
 {
 	switch(esp_socket->type)
 	{
@@ -121,7 +121,7 @@ disconnect:
 	espconn_disconnect(new_esp_socket); // actually not allowed but not supposed to occur
 }
 
-iram static void socket_callback_received(void *arg, char *buffer, unsigned short length)
+irom static void socket_callback_received(void *arg, char *buffer, unsigned short length)
 {
 	string_t		string_buffer;
 	socket_t		*socket;
@@ -142,7 +142,7 @@ iram static void socket_callback_received(void *arg, char *buffer, unsigned shor
 	}
 }
 
-iram static void socket_callback_sent(void *arg)
+irom static void socket_callback_sent(void *arg)
 {
 	struct espconn *esp_socket = (struct espconn *)arg;
 	socket_t *socket;
@@ -198,7 +198,7 @@ irom static void socket_callback_disconnect(void *arg)
 	socket->send_busy = false;
 }
 
-iram bool_t socket_send(socket_t *socket, string_t *buffer)
+irom bool_t socket_send(socket_t *socket, string_t *buffer)
 {
 	struct espconn *esp_socket;
 
