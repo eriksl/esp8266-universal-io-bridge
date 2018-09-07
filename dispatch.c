@@ -29,6 +29,7 @@ typedef enum
 	dispatch_socket_state_receiving,
 	dispatch_socket_state_processing,
 	dispatch_socket_state_sending_payload,
+	dispatch_socket_state_sending_payload_terminator,
 } dispatch_socket_state_t;
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
@@ -335,6 +336,27 @@ irom static void command_task(os_event_t *event)
 
 			break;
 		}
+
+		case(command_task_send_payload_terminator):
+		{
+			static uint8_t buffer[2] = { 0, 0 };
+			static string_t terminator = // can't use const
+			{
+				.size = 2,
+				.length = 1,
+				.buffer = buffer,
+			};
+
+			socket_cmd.state = dispatch_socket_state_sending_payload_terminator;
+
+			if(!socket_send(&socket_cmd.socket, &terminator))
+			{
+				log("socket: sending extra payload failed\n");
+				socket_cmd.state = dispatch_socket_state_idle;
+			}
+
+			break;
+		}
 	}
 }
 
@@ -496,6 +518,13 @@ irom static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 {
+	if((socket_cmd.state == dispatch_socket_state_sending_payload) && (socket_proto(socket) == proto_udp))
+	{
+		socket_cmd.state = dispatch_socket_state_sending_payload_terminator;
+		dispatch_post_command(command_task_send_payload_terminator);
+		return;
+	}
+
 	if(preparing_reset && socket_proto(socket) == proto_udp)
 		dispatch_post_command(command_task_reset_finish);
 
