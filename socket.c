@@ -153,10 +153,10 @@ irom static void socket_callback_sent(void *arg)
 		return;
 	}
 
+	socket->state = state_idle;
+
 	if(socket->callback_sent)
 		socket->callback_sent(socket, socket->userdata);
-
-	socket->send_busy = false;
 }
 
 irom static void socket_callback_error(void *arg, int8_t error)
