@@ -2578,7 +2578,16 @@ irom static i2c_error_t ccs811_read(int address, i2c_sensor_value_t *value_co2, 
 		return(error);
 
 	if(value_co2)
-		value_co2->raw = value_co2->cooked = (i2c_buffer[ccs811_algdata_eco2 + 0] << 8) | (i2c_buffer[ccs811_algdata_eco2 + 1] << 0);
+	{
+		value_co2->raw = (i2c_buffer[ccs811_algdata_eco2 + 0] << 8) | (i2c_buffer[ccs811_algdata_eco2 + 1] << 0);
+		value_co2->cooked = 100 - ((value_co2->raw - 400) / 76);
+
+		if(value_co2->cooked < 0)
+			value_co2->cooked = 0;
+
+		if(value_co2->cooked > 100)
+			value_co2->cooked = 100;
+	}
 
 	if(value_tov)
 		value_tov->raw = value_tov->cooked = (i2c_buffer[ccs811_algdata_tvoc + 0] << 8) | (i2c_buffer[ccs811_algdata_tvoc + 1] << 0);
@@ -3303,7 +3312,7 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_ccs811_co2, 0x5a,
-		"ccs811", "co2", "ppm", 0,
+		"ccs811", "air quality", "%", 0,
 		sensor_ccs811_co2_init,
 		sensor_ccs811_co2_read,
 	},
