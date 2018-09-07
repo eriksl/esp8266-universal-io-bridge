@@ -175,7 +175,7 @@ irom static void socket_callback_error(void *arg, int8_t error)
 
 	logfmt("socket: callback error: %d\n", error);
 
-	socket->send_busy = false;
+	socket->state = state_idle;
 }
 
 irom static void socket_callback_disconnect(void *arg)
@@ -195,14 +195,15 @@ irom static void socket_callback_disconnect(void *arg)
 	socket->tcp.child_socket	= (struct espconn *)0;
 	socket->remote.proto		= proto_none;
 
-	socket->send_busy = false;
+	socket->state = state_idle;
 }
 
 irom bool_t socket_send(socket_t *socket, string_t *buffer)
 {
 	struct espconn *esp_socket;
+	int result;
 
-	if(socket->send_busy)
+	if(socket->state != state_idle)
 	{
 		log("socket: socket_send: socket busy\n");
 		goto error;
@@ -235,7 +236,7 @@ irom bool_t socket_send(socket_t *socket, string_t *buffer)
 		}
 	}
 
-	socket->send_busy = true;
+	socket->state = state_sending;
 
 	if(espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer)) == 0)
 		return(true);
@@ -243,7 +244,7 @@ irom bool_t socket_send(socket_t *socket, string_t *buffer)
 	log("socket: socket_send: espconn_send returned error\n");
 
 error:
-	socket->send_busy = false;
+	socket->state = state_idle;
 	return(false);
 }
 
@@ -296,7 +297,7 @@ irom void socket_create(bool tcp, bool udp, socket_t *socket,
 	}
 
 	socket->remote.proto	= proto_none;
-	socket->send_busy		= false;
+	socket->state			= state_idle;
 
 	socket->remote.proto			= proto_none;
 	socket->remote.port				= 0;
@@ -319,7 +320,7 @@ attr_pure socket_proto_t socket_proto(const socket_t *socket)
 
 attr_pure bool_t socket_send_busy(const socket_t *socket)
 {
-	return(socket->send_busy);
+	return(socket->state != state_idle);
 }
 
 attr_pure void *socket_userdata(const socket_t *socket)

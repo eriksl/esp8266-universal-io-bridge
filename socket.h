@@ -13,6 +13,12 @@ typedef enum
 	proto_both,
 } socket_proto_t;
 
+typedef enum
+{
+	state_idle,
+	state_sending,
+} socket_state_t;
+
 typedef struct _socket_t
 {
 	struct
@@ -28,7 +34,7 @@ typedef struct _socket_t
 		struct espconn	*child_socket;
 	} tcp;
 
-	bool_t			send_busy;
+	socket_state_t	state;
 
 	struct
 	{

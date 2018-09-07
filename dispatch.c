@@ -25,11 +25,11 @@ typedef enum
 
 typedef enum
 {
-	socket_state_idle,
-	socket_state_received,
-	socket_state_processing,
-	socket_state_sending,
-} socket_state_t;
+	dispatch_socket_state_idle,
+	dispatch_socket_state_receiving,
+	dispatch_socket_state_processing,
+	dispatch_socket_state_sending_payload,
+} dispatch_socket_state_t;
 
 _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
 
@@ -51,10 +51,10 @@ static os_event_t timer_task_queue[timer_task_queue_length];
 
 typedef struct
 {
-	socket_t		socket;
-	socket_state_t	state;
-	string_t		receive_buffer;
-	string_t		send_buffer;
+	socket_t				socket;
+	dispatch_socket_state_t	state;
+	string_t				receive_buffer;
+	string_t				send_buffer;
 } socket_data_t;
 
 string_new(attr_flash_align, flash_sector_buffer, 4096);
@@ -62,7 +62,7 @@ static char _socket_cmd_send_buffer[4096 + 8];
 
 static socket_data_t socket_cmd =
 {
-	.state = socket_state_idle,
+	.state = dispatch_socket_state_idle,
 	.receive_buffer =
 	{
 		.length = 0,
@@ -81,7 +81,7 @@ static char _socket_uart_send_buffer[1024];
 
 static socket_data_t socket_uart =
 {
-	.state = socket_state_idle,
+	.state = dispatch_socket_state_idle,
 
 	.receive_buffer =
 	{
@@ -129,7 +129,7 @@ iram void dispatch_post_timer(task_command_t command)
 
 irom static void background_task_bridge_uart(void)
 {
-	if(socket_uart.state != socket_state_idle)
+	if(socket_uart.state != dispatch_socket_state_idle)
 	{
 		dispatch_post_command(command_task_uart_bridge);
 		return;
@@ -141,20 +141,20 @@ irom static void background_task_bridge_uart(void)
 	if(string_empty(&socket_uart.send_buffer))
 		return;
 
-	socket_uart.state = socket_state_sending;
+	socket_uart.state = dispatch_socket_state_sending_payload;
 
 	if(socket_send(&socket_uart.socket, &socket_uart.send_buffer))
 		return;
 
 	string_clear(&socket_uart.send_buffer);
-	socket_uart.state = socket_state_idle;
+	socket_uart.state = dispatch_socket_state_idle;
 	stat_uart_send_buffer_overflow++;
 	dispatch_post_command(command_task_uart_bridge);
 }
 
 irom static void background_task_command_handler(void)
 {
-	socket_cmd.state = socket_state_processing;
+	socket_cmd.state = dispatch_socket_state_processing;
 
 	string_clear(&socket_cmd.send_buffer);
 
@@ -182,12 +182,12 @@ irom static void background_task_command_handler(void)
 		}
 	}
 
-	socket_cmd.state = socket_state_sending;
+	socket_cmd.state = dispatch_socket_state_sending_payload;
 
 	if(!socket_send(&socket_cmd.socket, &socket_cmd.send_buffer))
 	{
 		stat_cmd_send_buffer_overflow++;
-		socket_cmd.state = socket_state_idle;
+		socket_cmd.state = dispatch_socket_state_idle;
 	}
 }
 
@@ -433,14 +433,14 @@ irom static void wlan_event_handler(System_Event_t *event)
 
 irom static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
 {
-	if(socket_cmd.state != socket_state_idle)
+	if(socket_cmd.state != dispatch_socket_state_idle)
 	{
 		stat_cmd_receive_buffer_overflow++;
 		return;
 	}
 
 	socket_cmd.receive_buffer = *buffer;
-	socket_cmd.state = socket_state_received;
+	socket_cmd.state = dispatch_socket_state_receiving;
 	dispatch_post_command(command_task_received_command);
 }
 
@@ -499,7 +499,7 @@ irom attr_speed static void callback_sent_cmd(socket_t *socket, void *userdata)
 	if(preparing_reset && socket_proto(socket) == proto_udp)
 		dispatch_post_command(command_task_reset_finish);
 
-	socket_cmd.state = socket_state_idle;
+	socket_cmd.state = dispatch_socket_state_idle;
 }
 
 irom attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
@@ -508,20 +508,20 @@ irom attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 		dispatch_post_command(command_task_uart_bridge); // retry to send data still in the fifo
 
 	string_clear(&socket_uart.send_buffer);
-	socket_uart.state = socket_state_idle;
+	socket_uart.state = dispatch_socket_state_idle;
 }
 
 // error
 
 irom static void callback_error_cmd(socket_t *socket, int error, void *userdata)
 {
-	socket_cmd.state = socket_state_idle;
+	socket_cmd.state = dispatch_socket_state_idle;
 }
 
 irom static void callback_error_uart(socket_t *socket, int error, void *userdata)
 {
 	string_clear(&socket_uart.send_buffer);
-	socket_uart.state = socket_state_idle;
+	socket_uart.state = dispatch_socket_state_idle;
 }
 
 // disconnect
@@ -531,20 +531,20 @@ irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 	if(preparing_reset)
 		dispatch_post_command(command_task_reset_finish);
 
-	socket_cmd.state = socket_state_idle;
+	socket_cmd.state = dispatch_socket_state_idle;
 }
 
 irom static void callback_disconnect_uart(socket_t *socket, void *userdata)
 {
 	string_clear(&socket_uart.send_buffer);
-	socket_uart.state = socket_state_idle;
+	socket_uart.state = dispatch_socket_state_idle;
 }
 
 // accept
 
 irom attr_speed static void callback_accept_cmd(socket_t *socket, void *userdata)
 {
-	socket_cmd.state = socket_state_idle;
+	socket_cmd.state = dispatch_socket_state_idle;
 }
 
 irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdata)
@@ -553,7 +553,7 @@ irom attr_speed static void callback_accept_uart(socket_t *socket, void *userdat
 	uart_clear_receive_queue(0);
 
 	string_clear(&socket_uart.send_buffer);
-	socket_uart.state = socket_state_idle;
+	socket_uart.state = dispatch_socket_state_idle;
 }
 
 irom void dispatch_init1(void)
