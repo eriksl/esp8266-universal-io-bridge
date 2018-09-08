@@ -197,7 +197,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		std::cout << "< receive: " << reply_string << std::endl;
 
 	if(!boost::regex_match(reply_string, capture, re))
-		throw(std::string("received string does not match: ") + reply_string);
+		throw(std::string("received string does not match: \"") + reply_string + "\"");
 
 	first = true;
 
