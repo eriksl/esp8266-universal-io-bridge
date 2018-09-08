@@ -1,6 +1,7 @@
 SPI_FLASH_MODE		?= qio
 IMAGE				?= ota
-SDKROOT				?= /home/erik/src/esp/opensdk
+ESPSDK				?= ./ESP8266_NONOS_SDK
+OPENSDK				?= ../opensdk
 ESPTOOL				?= ~/bin/esptool
 ESPTOOL2			?= ./esptool2
 RBOOT				?= ./rboot
@@ -58,8 +59,8 @@ link_debug		= $(Q) perl -e '\
 						printf("size: %u, free: %u\n", $$top - hex('$(4)00000'), ($(3) * 1024) - ($$top - hex('$(4)00000'))); \
 						close($$fd);'
 
-CC							:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
-OBJCOPY						:= $(SDKROOT)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
+CC							:= $(OPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
+OBJCOPY						:= $(OPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
 USER_CONFIG_SIZE			:= 0x1000
@@ -106,9 +107,8 @@ CONFIG_DEFAULT_ELF			:= default-config.o
 CONFIG_DEFAULT_BIN			:= default-config.bin
 CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
-SDKLIBDIR					:= $(SDKROOT)/sdk/lib
 LIBMAIN_PLAIN				:= main
-LIBMAIN_PLAIN_FILE			:= $(SDKROOT)/sdk/lib/lib$(LIBMAIN_PLAIN).a
+LIBMAIN_PLAIN_FILE			:= $(ESPSDK)/lib/lib$(LIBMAIN_PLAIN).a
 LIBMAIN_RBB					:= main-rbb
 LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
 ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
@@ -172,7 +172,7 @@ WARNINGS		:=	-Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 						-Wredundant-decls -Wnested-externs -Wvla -Wdisabled-optimization \
 						-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
 						-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
-						-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wcast-align \
+						-Wmissing-prototypes -Wold-style-definition -Wcast-align \
 						-Wno-format-security -Wno-format-nonliteral \
 						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
 						-Wsuggest-attribute=const -Wsuggest-attribute=pure
@@ -195,10 +195,12 @@ CFLAGS			:=	-Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serial
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
-CINC			:= -I$(SDKROOT)/lx106-hal/include -I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(SDKROOT)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include \
-					-isystem$(SDKROOT)/sdk/include -I$(RBOOT)/appcode -I$(RBOOT) -I.
-LDFLAGS			:= -L . -L$(SDKLIBDIR) -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+CINC			:= -I$(OPENSDK)/lx106-hal/include \
+					-I$(OPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
+					-I$(ESPSDK)/include \
+					-I$(RBOOT)/appcode -I$(RBOOT) -I.
+
+LDFLAGS			:= -L$(ESPSDK)/lib -L. -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto -lm
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \

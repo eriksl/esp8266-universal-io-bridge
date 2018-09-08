@@ -4,3 +4,6 @@
 [submodule "rboot"]
 	path = rboot
 	url = https://github.com/eriksl/rboot.git
+[submodule "ESP8266_NONOS_SDK"]
+	path = ESP8266_NONOS_SDK
+	url = https://github.com/espressif/ESP8266_NONOS_SDK
