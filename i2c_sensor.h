@@ -76,6 +76,15 @@ typedef struct
 	double cooked;
 } i2c_sensor_value_t;
 
+typedef struct attr_packed
+{
+	unsigned int detected:8;
+	unsigned int lm75_is_ds1621:1;
+	unsigned int high_sensitivity:1;
+} i2c_sensor_device_data_t;
+
+assert_size(i2c_sensor_device_data_t, 2);
+
 typedef struct i2c_sensor_device_table_entry_T
 {
 	i2c_sensor_t id;
@@ -84,8 +93,8 @@ typedef struct i2c_sensor_device_table_entry_T
 	const char *type;
 	const char *unity;
 	uint8_t precision;
-	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *);
-	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *);
+	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
+	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
 } i2c_sensor_device_table_entry_t;
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);

@@ -1821,7 +1821,7 @@ static i2c_sensor_value_t humidity;
 static i2c_sensor_value_t airpressure;
 static i2c_sensor_value_t airquality;
 
-irom i2c_error_t sensor_bme680_temperature_init(int bus, const i2c_sensor_device_table_entry_t *entry)
+irom i2c_error_t sensor_bme680_temperature_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	unsigned int set_required_settings;
 
@@ -1912,7 +1912,7 @@ irom static i2c_error_t sensor_bme680_read(void)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t sensor_bme680_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry)
+irom i2c_error_t sensor_bme680_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	if(!i2c_sensor_detected(bus, i2c_sensor_bme680_temperature))
 		return(i2c_error_address_nak);
@@ -1920,7 +1920,7 @@ irom i2c_error_t sensor_bme680_humidity_init(int bus, const i2c_sensor_device_ta
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t sensor_bme680_airpressure_init(int bus, const i2c_sensor_device_table_entry_t *entry)
+irom i2c_error_t sensor_bme680_airpressure_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	if(!i2c_sensor_detected(bus, i2c_sensor_bme680_temperature))
 		return(i2c_error_address_nak);
@@ -1928,7 +1928,7 @@ irom i2c_error_t sensor_bme680_airpressure_init(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_table_entry_t *entry)
+irom i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	if(!i2c_sensor_detected(bus, i2c_sensor_bme680_temperature))
 		return(i2c_error_address_nak);
@@ -1936,7 +1936,7 @@ irom i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value)
+irom i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 
@@ -1951,7 +1951,7 @@ irom i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value)
+irom attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);
@@ -1961,7 +1961,7 @@ irom attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_senso
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value)
+irom attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);
@@ -1971,7 +1971,7 @@ irom attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_se
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_airquality_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value)
+irom attr_const i2c_error_t sensor_bme680_airquality_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);
