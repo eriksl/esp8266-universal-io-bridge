@@ -53,129 +53,157 @@ irom static i2c_error_t sensor_digipicco_hum_read(int bus, const i2c_sensor_devi
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *)
-{
-	i2c_error_t error;
-
-	//	0xac	select config register
-	//	0x0c	r0=r1=1, max resolution, other bits zero
-
-	if((error = i2c_send2(entry->address, 0xac, 0x0c)) != i2c_error_ok)
-		return(error);
-
-	// start conversions
-
-	if((error = i2c_send1(entry->address, 0x51)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_ds1631_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *)
-{
-	uint8_t i2cbuffer[2];
-	i2c_error_t error;
-	int raw;
-
-	// read temperature
-
-	if((error = i2c_send1(entry->address, 0xaa)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	value->raw = raw = ((unsigned int)(i2cbuffer[0] << 8)) | i2cbuffer[1];
-
-	if(raw & 0x8000)
-	{
-		raw &= ~(uint32_t)0x8000;
-		value->cooked = (double)raw / -256;
-	}
-	else
-		value->cooked = (double)raw / 256;
-
-	return(i2c_error_ok);
-}
-
 enum
 {
-	lm75_reg_temp	= 0x00,
-	lm75_reg_conf	= 0x01,
-	lm75_reg_thyst	= 0x02,
-	lm75_reg_tos	= 0x03,
+	lm75_reg_temp =					0x00,
+	lm75_reg_conf =					0x01,
+	lm75_reg_thyst =				0x02,
+	lm75_reg_tos =					0x03,
+
+	lm75_reg_ds7505_recall_data =	0xb8,
+	lm75_reg_ds7505_copy_data =		0x48,
+	lm75_reg_ds7505_software_por =	0x54,
+
+	ds1621_reg_temp =				0xaa,
+	ds1621_reg_th =					0xa1,
+	ds1621_reg_tl =					0xa2,
+	ds1621_reg_conf =				0xac,
+	ds1621_reg_counter =			0xa8,
+	ds1621_reg_slope =				0xa9,
+	ds1621_reg_start=				0xee,
+	ds1621_reg_stop =				0x22,
+
+	ds1631_reg_temp =				0xaa,
+	ds1631_reg_th =					0xa1,
+	ds1631_reg_tl =					0xa2,
+	ds1631_reg_conf =				0xac,
+	ds1631_reg_start =				0x51,
+	ds1631_reg_stop =				0x22,
+	ds1631_reg_por =				0x54,
 };
 
 enum
 {
-	lm75_reg_conf_reserved			= 0b11100000,
-	lm75_reg_conf_tmp275_res_0		= 0b00000000,
-	lm75_reg_conf_tmp275_res_1		= 0b00100000,
-	lm75_reg_conf_tmp275_res_2		= 0b01000000,
-	lm75_reg_conf_tmp275_res_3		= 0b01100000,
-	lm75_reg_conf_os_f_queue_1		= 0b00000000,
-	lm75_reg_conf_os_f_queue_2		= 0b00001000,
-	lm75_reg_conf_os_f_queue_3		= 0b00010000,
-	lm75_reg_conf_os_f_queue_4		= 0b00011000,
-	lm75_reg_conf_os_pol_low		= 0b00000000,
-	lm75_reg_conf_os_pol_high		= 0b00000100,
-	lm75_reg_conf_os_comp_int_comp	= 0b00000000,
-	lm75_reg_conf_os_comp_int_int	= 0b00000010,
-	lm75_reg_conf_shutdown_enable	= 0b00000001,
-	lm75_reg_conf_shutdown_disable	= 0b00000000,
+	lm75_reg_conf_reserved = 			0b11100000,
+	lm75_reg_conf_tmp75_os = 			0b10000000,
+	lm75_reg_conf_ds7505_nvb =			0b10000000,
+	lm75_reg_conf_ds7505_tmp75_res_0 =	0b00000000,
+	lm75_reg_conf_ds7505_tmp75_res_1 =	0b00100000,
+	lm75_reg_conf_ds7505_tmp75_res_2 =	0b01000000,
+	lm75_reg_conf_ds7505_tmp75_res_3 =	0b01100000,
+	lm75_reg_conf_os_f_queue_1 =		0b00000000,
+	lm75_reg_conf_os_f_queue_2 =		0b00001000,
+	lm75_reg_conf_os_f_queue_3 =		0b00010000,
+	lm75_reg_conf_os_f_queue_4 =		0b00011000,
+	lm75_reg_conf_os_pol_low =			0b00000000,
+	lm75_reg_conf_os_pol_high =			0b00000100,
+	lm75_reg_conf_os_comp_int_comp =	0b00000000,
+	lm75_reg_conf_os_comp_int_int =		0b00000010,
+	lm75_reg_conf_shutdown_enable =		0b00000001,
+	lm75_reg_conf_shutdown_disable =	0b00000000,
+
+	lm75_reg_conf_ds7505_2_cr1 =		0b10000000,
+	lm75_reg_conf_ds7505_2_cr0 =		0b01000000,
+	lm75_reg_conf_ds7505_2_al =			0b00100000,
+	lm75_reg_conf_ds7505_2_em =			0b00010000,
+	lm75_reg_conf_ds7505_2_resvd =		0b00001111,
+
+	ds1621_reg_conf_done =		0b10000000,
+	ds1621_reg_conf_thf =		0b01000000,
+	ds1621_reg_conf_tlf =		0b00100000,
+	ds1621_reg_conf_nvb =		0b00010000,
+	ds1621_reg_conf_xx =		0b00001100,
+	ds1621_reg_conf_pol =		0b00000010,
+	ds1621_reg_conf_1shot =		0b00000001,
+	ds1621_reg_conf_cont =		0b00000000,
+	ds1621_reg_conf_volatile =	0b10011100,
+
+	ds1621_default_th =			0x4b00,
+	ds1621_default_tl =			0x4600,
+
+	ds1631_reg_conf_done =		0b10000000,
+	ds1631_reg_conf_thf =		0b01000000,
+	ds1631_reg_conf_tlf =		0b00100000,
+	ds1631_reg_conf_nvb =		0b00010000,
+	ds1631_reg_conf_res_0 =		0b00000000,
+	ds1631_reg_conf_res_1 =		0b00000100,
+	ds1631_reg_conf_res_2 =		0b00001000,
+	ds1631_reg_conf_res_3 =		0b00001100,
+	ds1631_reg_conf_pol =		0b00000010,
+	ds1631_reg_conf_cont =		0b00000000,
+	ds1631_reg_conf_1shot =		0b00000001,
+	ds1631_reg_conf_volatile =	0b10010000,
+
+	ds1631_default_th =			0b0000111100000000,
+	ds1631_default_tl =			0b0000101000000000,
 };
 
 irom static i2c_error_t sensor_lm75_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
-	uint8_t i2cbuffer[4];
+	uint8_t i2c_buffer[4];
 	i2c_error_t error;
 
-	if((error = i2c_send2(entry->address, lm75_reg_conf, lm75_reg_conf_tmp275_res_3 | lm75_reg_conf_shutdown_disable)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_conf, 1, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((i2cbuffer[0] != lm75_reg_conf_tmp275_res_3 /* most */) && (i2cbuffer[0] != 0x00 /* lm75bd */))
-		return(i2c_error_device_error_1);
-
-	if((error = i2c_send3(entry->address, lm75_reg_tos, 0xff, 0xff)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_tos, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	if((i2cbuffer[0] != 0xff) || ((i2cbuffer[1] & 0x0f) != 0x00))
+	if((i2c_send1_receive(entry->address, ds1631_reg_th, 2, i2c_buffer) == i2c_error_ok) &&
+			(i2c_buffer[0] == ((ds1631_default_th >> 8) & 0xff)) &&
+			(i2c_buffer[1] == ((ds1631_default_th >> 0) & 0xff)) &&
+			(i2c_send1_receive(entry->address, ds1631_reg_tl, 2, i2c_buffer) == i2c_error_ok) &&
+			(i2c_buffer[0] == ((ds1631_default_tl >> 8) & 0xff)) &&
+			(i2c_buffer[1] == ((ds1631_default_tl >> 0) & 0xff)) &&
+			(i2c_send2(entry->address, ds1631_reg_conf, (ds1631_reg_conf_res_3 | ds1631_reg_conf_cont)) == i2c_error_ok) &&
+			(i2c_send1_receive(entry->address, ds1631_reg_conf, 1, i2c_buffer) == i2c_error_ok) &&
+			((i2c_buffer[0] & ~ds1631_reg_conf_volatile) == (ds1631_reg_conf_res_3 | ds1631_reg_conf_cont)) &&
+			(i2c_send1(entry->address, ds1631_reg_start) == i2c_error_ok))
 	{
-		logfmt("\nlm75: [0] = %02x, [1] = %02x\n", i2cbuffer[0], i2cbuffer[1]);
-		return(i2c_error_device_error_2);
+		data->read_command = ds1631_reg_temp;
+		return(i2c_error_ok);
 	}
 
-	if((error = i2c_send3(entry->address, lm75_reg_tos, 0x00, 0x00)) != i2c_error_ok)
-		return(error);
+	if((i2c_send1_receive(entry->address, ds1621_reg_th, 2, i2c_buffer) == i2c_error_ok) &&
+			(i2c_buffer[0] == ((ds1621_default_th >> 8) & 0xff)) &&
+			(i2c_buffer[1] == ((ds1621_default_th >> 0) & 0xff)) &&
+			(i2c_send1_receive(entry->address, ds1621_reg_tl, 2, i2c_buffer) == i2c_error_ok) &&
+			(i2c_buffer[0] == ((ds1621_default_tl >> 8) & 0xff)) &&
+			(i2c_buffer[1] == ((ds1621_default_tl >> 0) & 0xff)) &&
+			(i2c_send2(entry->address, ds1621_reg_conf, ds1621_reg_conf_cont) == i2c_error_ok) &&
+			(i2c_send1_receive(entry->address, ds1621_reg_conf, 1, i2c_buffer) == i2c_error_ok) &&
+			((i2c_buffer[0] & ~ds1621_reg_conf_volatile) == ds1621_reg_conf_cont) &&
+			(i2c_send1(entry->address, ds1621_reg_start) == i2c_error_ok))
+	{
+		data->read_command = ds1621_reg_temp;
+		return(i2c_error_ok);
+	}
 
-	if((error = i2c_send1_receive_repeated_start(entry->address, lm75_reg_tos, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
+	if((i2c_send3(entry->address, lm75_reg_tos, 0xff, 0xff) == i2c_error_ok) &&
+			(i2c_send1_receive(entry->address, lm75_reg_tos, 2, i2c_buffer) == i2c_error_ok) &&
+			((i2c_buffer[0] == 0xff) && ((i2c_buffer[1] & 0x0f) == 0x00)) &&
+			(i2c_send3(entry->address, lm75_reg_tos, 0x00, 0x00) == i2c_error_ok) &&
+			(i2c_send1_receive(entry->address, lm75_reg_tos, 2, i2c_buffer) == i2c_error_ok) &&
+			((i2c_buffer[0] == 0x00) && (i2c_buffer[1] == 0x00)) &&
+			((i2c_send2(entry->address, lm75_reg_conf, lm75_reg_conf_ds7505_tmp75_res_3 | lm75_reg_conf_shutdown_disable)) == i2c_error_ok) &&
+			(i2c_send1_receive(entry->address, lm75_reg_conf, 1, i2c_buffer) == i2c_error_ok) &&
+			(((i2c_buffer[0] == (lm75_reg_conf_ds7505_tmp75_res_3 | lm75_reg_conf_shutdown_disable)) /* most */) || (i2c_buffer[0] == 0x00 /* lm75bd */)))
+	{
+		data->read_command = lm75_reg_temp;
+		return(i2c_error_ok);
+	}
 
-	if((i2cbuffer[0] != 0x00) || (i2cbuffer[1] != 0x00))
-		return(i2c_error_device_error_3);
-
-	return(i2c_error_ok);
+	return(i2c_error_address_nak);
 }
 
 irom static i2c_error_t sensor_lm75_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
+	unsigned int raw_temperature;
 
 	if((error = i2c_send1_receive(entry->address, data->read_command, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
-	value->cooked = value->raw / 256;
-
-	if(value->cooked > 127)
-		value->cooked -= 256;
+	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->cooked = (int16_t)raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -3150,37 +3178,37 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_lm75_0, 0x48,
-		"lm75 compatible #0", "temperature", "C", 2,
+		"lm75 compatible #0", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_1, 0x49,
-		"lm75 compatible #1", "temperature", "C", 2,
+		"lm75 compatible #1", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_2, 0x4a,
-		"lm75 compatible #2", "temperature", "C", 2,
+		"lm75 compatible #2", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_3, 0x4b,
-		"lm75 compatible #3", "temperature", "C", 2,
+		"lm75 compatible #3", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},
 	{
-		i2c_sensor_ds1631_6, 0x4e,
-		"ds1621/ds1631/ds1731", "temperature", "C", 2,
-		sensor_ds1631_init,
-		sensor_ds1631_read
+		i2c_sensor_lm75_4, 0x4c,
+		"lm75 compatible #4", "temperature", "C", 1,
+		sensor_lm75_init,
+		sensor_lm75_read
 	},
 	{
 		i2c_sensor_lm75_7, 0x4f,
-		"lm75 compatible #7", "temperature", "C", 2,
+		"lm75 compatible #7", "temperature", "C", 1,
 		sensor_lm75_init,
 		sensor_lm75_read
 	},

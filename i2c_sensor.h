@@ -15,7 +15,7 @@ typedef enum attr_packed
 	i2c_sensor_lm75_1,
 	i2c_sensor_lm75_2,
 	i2c_sensor_lm75_3,
-	i2c_sensor_ds1631_6,
+	i2c_sensor_lm75_4,
 	i2c_sensor_lm75_7,
 	i2c_sensor_bmp085_temperature,
 	i2c_sensor_bmp085_airpressure,
@@ -78,9 +78,9 @@ typedef struct
 
 typedef struct attr_packed
 {
-	unsigned int detected:8;
-	unsigned int lm75_is_ds1621:1;
+	unsigned int detected:7;
 	unsigned int high_sensitivity:1;
+	unsigned int read_command:8;
 } i2c_sensor_device_data_t;
 
 assert_size(i2c_sensor_device_data_t, 2);
