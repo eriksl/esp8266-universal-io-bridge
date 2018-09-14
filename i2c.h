@@ -74,7 +74,6 @@ void		i2c_get_info(i2c_info_t *);
 i2c_error_t	i2c_send(int address, int length, const uint8_t *bytes);
 i2c_error_t	i2c_receive(int address, int length, uint8_t *bytes);
 i2c_error_t	i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes);
-i2c_error_t	i2c_send_receive_repeated_start(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes);
 
 i2c_error_t	i2c_send1(int address, int byte0);
 i2c_error_t	i2c_send2(int address, int byte0, int byte1);

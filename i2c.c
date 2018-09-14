@@ -14,12 +14,6 @@ typedef enum
 	i2c_direction_send,
 } i2c_direction_t;
 
-typedef enum
-{
-	i2c_sequence_normal,
-	i2c_sequence_repeated_start,
-} i2c_sequence_t;
-
 _Static_assert(sizeof(i2c_direction_t) == 4, "sizeof(i2c_direction_t) != 4");
 
 typedef enum
@@ -432,7 +426,7 @@ iram static i2c_error_t send_header(int address, i2c_direction_t direction)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t i2c_send_sequence(int address, i2c_sequence_t sequence_type, int length, const uint8_t *bytes)
+attr_inline i2c_error_t i2c_send_sequence(int address, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -442,10 +436,7 @@ iram static i2c_error_t i2c_send_sequence(int address, i2c_sequence_t sequence_t
 		return(i2c_error_no_init);
 
 	if(state != i2c_state_idle)
-	{
-		error = i2c_error_invalid_state_not_idle;
-		goto error_reset;
-	}
+		return(i2c_error_invalid_state_not_idle);
 
 	state = i2c_state_start_send;
 
@@ -455,41 +446,31 @@ iram static i2c_error_t i2c_send_sequence(int address, i2c_sequence_t sequence_t
 	state = i2c_state_header_send;
 
 	if((error = send_header(address, i2c_direction_send)) != i2c_error_ok)
-		goto error_reset;
+		return(error);
 
 	for(current = 0; current < length; current++)
 	{
 		state = i2c_state_data_send_data;
 
 		if((error = send_byte(bytes[current])) != i2c_error_ok)
-			goto error_reset;
+			return(error);
 
 		state = i2c_state_data_send_ack_receive;
 
 		// receive ACK
 
 		if((error = receive_bit(&bit)) != i2c_error_ok)
-			goto error_reset;
+			return(error);
 
 		state = i2c_state_data_send_ack_received;
 
 		if(bit)
-		{
-			error = i2c_error_data_nak;
-			goto error_reset;
-		}
+			return(i2c_error_data_nak);
 	}
-
-	if((sequence_type != i2c_sequence_repeated_start) && ((error = send_stop()) != i2c_error_ok))
-		goto error_reset;
 
 	state = i2c_state_idle;
 
 	return(i2c_error_ok);
-
-error_reset:
-	i2c_reset();
-	return(error);
 }
 
 iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
@@ -502,10 +483,7 @@ iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *b
 
 	// state can be idle (normal) or active (repeated start)
 	if((state != i2c_state_idle) && (state != i2c_state_data_send_ack_received))
-	{
-		error = i2c_error_invalid_state_not_idle;
-		goto error_reset;
-	}
+		return(i2c_error_invalid_state_not_idle);
 
 	state = i2c_state_start_send;
 
@@ -515,63 +493,74 @@ iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *b
 	state = i2c_state_header_send;
 
 	if((error = send_header(address, i2c_direction_receive)) != i2c_error_ok)
-		goto error_reset;
+		return(error);
 
 	for(current = 0; current < length; current++)
 	{
 		state = i2c_state_data_receive_data;
 
 		if((error = receive_byte(&bytes[current])) != i2c_error_ok)
-			goto error_reset;
+			return(error);
 
 		// send ack
 
 		state = i2c_state_data_receive_ack_send;
 
 		if((error = send_bit((current + 1) >= length)) != i2c_error_ok)
-			goto error_reset;
+			return(error);
 	}
-
-	if((error = send_stop()) != i2c_error_ok)
-		goto error_reset;
 
 	state = i2c_state_idle;
 
 	return(i2c_error_ok);
-
-error_reset:
-	i2c_reset();
-	return(error);
 }
 
 iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 {
-	return(i2c_send_sequence(address, i2c_sequence_normal, length, bytes));
+	i2c_error_t error;
+
+	if((error = i2c_send_sequence(address, length, bytes)) != i2c_error_ok)
+	{
+		i2c_reset();
+		return(error);
+	}
+
+	if((error = send_stop()) != i2c_error_ok)
+	{
+		i2c_reset();
+		return(error);
+	}
+
+	return(i2c_error_ok);
 }
 
 iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 {
-	return(i2c_receive_sequence(address, length, bytes));
+	i2c_error_t error;
+
+	if((error = i2c_receive_sequence(address, length, bytes)) != i2c_error_ok)
+	{
+		i2c_reset();
+		return(error);
+	}
+
+	if((error = send_stop()) != i2c_error_ok)
+	{
+		i2c_reset();
+		return(error);
+	}
+
+	return(i2c_error_ok);
 }
 
 iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
 {
 	i2c_error_t error;
 
-	if((error = (i2c_send_sequence(address, i2c_sequence_normal, sendlength, sendbytes))) != i2c_error_ok)
+	if((error = (i2c_send(address, sendlength, sendbytes))) != i2c_error_ok)
 		return(error);
 
-	return(i2c_receive_sequence(address, receivelength, receivebytes));
-}
-
-iram i2c_error_t i2c_send_receive_repeated_start(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
-{
-	i2c_error_t error;
-
-	if((error = (i2c_send_sequence(address, i2c_sequence_repeated_start, sendlength, sendbytes))) != i2c_error_ok)
-		return(error);
-
-	return(i2c_receive_sequence(address, receivelength, receivebytes));
+	return(i2c_receive(address, receivelength, receivebytes));
 }
 
 iram i2c_error_t i2c_send1(int address, int byte0)

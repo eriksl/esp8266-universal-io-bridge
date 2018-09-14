@@ -50,7 +50,7 @@ attr_inline io_error_t read_register(string_t *error_message, int address, int r
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive_repeated_start(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -83,7 +83,7 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive_repeated_start(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -123,7 +123,7 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	if(i2c_send2(info->address, IOCON_linear(0), iocon_value) != i2c_error_ok)
 		return(io_error);
 
-	if(i2c_send1_receive_repeated_start(info->address, IOCON_linear(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
+	if(i2c_send1_receive(info->address, IOCON_linear(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
 		return(io_error);
 
 	if(i2c_buffer[0] != iocon_value)
@@ -151,7 +151,7 @@ irom void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_da
 	mcp_data_pin_t *mcp_pin_data;
 	io_config_pin_entry_t *pin_config;
 
-	if(i2c_send1_receive_repeated_start(info->address, INTF(0), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok) // INTFA, INTFB, INTCAPA, INTCAPB
+	if(i2c_send1_receive(info->address, INTF(0), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok) // INTFA, INTFB, INTCAPA, INTCAPB
 		return;
 
 	intf[0] = i2c_buffer[0];

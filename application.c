@@ -961,7 +961,7 @@ irom static app_action_t application_function_i2c_write_read(const string_t *src
 
 	from = system_get_time();
 
-	if((error = i2c_send1_receive_repeated_start(i2c_address, sendbytes[0], size, receivebytes)) != i2c_error_ok)
+	if((error = i2c_send1_receive(i2c_address, sendbytes[0], size, receivebytes)) != i2c_error_ok)
 	{
 		string_append(dst, "i2wr");
 		i2c_error_format_string(dst, error);
