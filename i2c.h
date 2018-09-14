@@ -81,8 +81,6 @@ i2c_error_t	i2c_send3(int address, int byte0, int byte1, int byte2);
 i2c_error_t	i2c_send4(int address, int byte0, int byte1, int byte2, int byte3);
 
 i2c_error_t	i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes);
-i2c_error_t	i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes);
-i2c_error_t	i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes);
 
 i2c_error_t i2c_reset(void);
 

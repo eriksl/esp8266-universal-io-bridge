@@ -598,20 +598,6 @@ irom i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, ui
 	return(i2c_send_receive(address, sizeof(bytes), bytes, receivelength, receivebytes));
 }
 
-iram i2c_error_t i2c_send1_receive_repeated_start(int address, int byte0, int receivelength, uint8_t *receivebytes)
-{
-	uint8_t bytes[1] = { byte0 };
-
-	return(i2c_send_receive_repeated_start(address, sizeof(bytes), bytes, receivelength, receivebytes));
-}
-
-iram i2c_error_t i2c_send2_receive_repeated_start(int address, int byte0, int byte1, int receivelength, uint8_t *receivebytes)
-{
-	uint8_t bytes[2] = { byte0, byte1 };
-
-	return(i2c_send_receive_repeated_start(address, sizeof(bytes), bytes, receivelength, receivebytes));
-}
-
 irom i2c_error_t i2c_select_bus(unsigned int bus)
 {
 	if(!i2c_flags.multiplexer)
