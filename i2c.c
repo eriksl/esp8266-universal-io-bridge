@@ -239,7 +239,7 @@ iram static i2c_error_t scl_set_test(bool_t val, i2c_delay_enum_t delay_index)
 	return(i2c_error_bus_lock);
 }
 
-iram static i2c_error_t send_bit(bool_t bit)
+attr_inline i2c_error_t send_bit(bool_t bit)
 {
 	i2c_error_t error;
 
@@ -260,14 +260,14 @@ iram static i2c_error_t send_bit(bool_t bit)
 
 	if((error = scl_set_test(true, i2c_delay_send_bit_scl_high)) != i2c_error_ok)
 	{
-		log("send_bit 3\n");
+		log("send-bit 3\n");
 		return(error);
 	}
 
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t receive_bit(bool_t *bit)
+attr_inline i2c_error_t receive_bit(bool_t *bit)
 {
 	i2c_error_t error;
 
@@ -373,7 +373,7 @@ iram static i2c_error_t send_byte(int byte)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t receive_byte(uint8_t *byte)
+attr_inline i2c_error_t receive_byte(uint8_t *byte)
 {
 	int current;
 	bool_t bit;
@@ -473,7 +473,7 @@ attr_inline i2c_error_t i2c_send_sequence(int address, int length, const uint8_t
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
+attr_inline i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -563,35 +563,35 @@ iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *se
 	return(i2c_receive(address, receivelength, receivebytes));
 }
 
-iram i2c_error_t i2c_send1(int address, int byte0)
+irom i2c_error_t i2c_send1(int address, int byte0)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-iram i2c_error_t i2c_send2(int address, int byte0, int byte1)
+irom i2c_error_t i2c_send2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2] = { byte0, byte1 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-iram i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
+irom i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3] = { byte0, byte1, byte2 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-iram i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
+irom i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4] = { byte0, byte1, byte2, byte3 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-iram i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
+irom i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[1] = { byte0 };
 
