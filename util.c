@@ -147,27 +147,32 @@ irom attr_const const char *rboot_boot_mode(unsigned int index)
 irom int log_from_flash(const char *fmt_in_flash, ...)
 {
 	va_list ap;
-	int current, n;
+	int current, written;
 	char fmt_in_dram[128];
 
 	strecpy_from_flash(fmt_in_dram, (const uint32_t *)(const void *)fmt_in_flash, sizeof(fmt_in_dram));
 
 	va_start(ap, fmt_in_flash);
-	n = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
+	written = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
 	va_end(ap);
 
 	if(flags_cache.flag.log_to_uart)
 	{
-		for(current = 0; current < n; current++)
+		for(current = 0; current < written; current++)
 			uart_send(0, flash_dram_buffer[current]);
 
 		uart_flush(0);
 	}
 
 	if(flags_cache.flag.log_to_buffer)
-		string_append_cstr(&logbuffer, flash_dram_buffer);
+	{
+		if((string_length(&logbuffer) + written) >= string_size(&logbuffer))
+			string_clear(&logbuffer);
 
-	return(n);
+		string_append_cstr(&logbuffer, flash_dram_buffer);
+	}
+
+	return(written);
 }
 
 iram attr_speed void logchar(char c)
