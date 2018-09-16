@@ -142,6 +142,14 @@ const char *rboot_boot_mode(unsigned int index);
 
 void msleep(int);
 
+attr_inline unsigned int umax(unsigned int a, unsigned int b)
+{
+	if(a > b)
+		return(a);
+
+	return(b);
+}
+
 attr_inline void usleep(int usec)
 {
 	os_delay_us(usec);

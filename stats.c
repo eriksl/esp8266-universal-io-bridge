@@ -44,6 +44,10 @@ unsigned int stat_task_timer_posted;
 unsigned int stat_task_timer_failed;
 
 unsigned int stat_i2c_init_time_us;
+unsigned int stat_i2c_sda_stucks;
+unsigned int stat_i2c_sda_stuck_max_period;
+unsigned int stat_i2c_bus_locks;
+unsigned int stat_i2c_bus_lock_max_period;
 unsigned int stat_i2c_soft_resets;
 unsigned int stat_i2c_hard_resets;
 
@@ -371,6 +375,10 @@ irom void stats_i2c(string_t *dst)
 	string_format(dst,
 			"> display initialisation time: %u us\n"
 			"> i2c initialisation time: %u us\n"
+			"> i2c sda stucks: %u\n"
+			"> i2c sda max stuck periods: %u\n"
+			"> i2c bus locks: %u\n"
+			"> i2c bus max locked periods: %u\n"
 			"> i2c soft resets: %u\n"
 			"> i2c hard resets: %u\n"
 			"> i2c multiplexer found: %s\n"
@@ -383,6 +391,10 @@ irom void stats_i2c(string_t *dst)
 			"> i2c sensors init finished: %s\n",
 				stat_display_init_time_us,
 				stat_i2c_init_time_us,
+				stat_i2c_sda_stucks,
+				stat_i2c_sda_stuck_max_period,
+				stat_i2c_bus_locks,
+				stat_i2c_bus_lock_max_period,
 				stat_i2c_soft_resets,
 				stat_i2c_hard_resets,
 				yesno(i2c_info.multiplexer),

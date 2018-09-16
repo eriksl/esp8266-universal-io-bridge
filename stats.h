@@ -52,6 +52,10 @@ extern int stat_debug_2;
 extern int stat_debug_3;
 
 extern unsigned int stat_i2c_init_time_us;
+extern unsigned int stat_i2c_sda_stucks;
+extern unsigned int stat_i2c_sda_stuck_max_period;
+extern unsigned int stat_i2c_bus_locks;
+extern unsigned int stat_i2c_bus_lock_max_period;
 extern unsigned int stat_i2c_soft_resets;
 extern unsigned int stat_i2c_hard_resets;
 
