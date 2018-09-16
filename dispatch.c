@@ -153,45 +153,6 @@ irom static void background_task_bridge_uart(void)
 	dispatch_post_command(command_task_uart_bridge);
 }
 
-irom static void background_task_command_handler(void)
-{
-	socket_cmd.state = dispatch_socket_state_processing;
-
-	string_clear(&socket_cmd.send_buffer);
-
-	switch(application_content(&socket_cmd.receive_buffer, &socket_cmd.send_buffer))
-	{
-		case(app_action_normal):
-		case(app_action_error):
-		case(app_action_http_ok):
-		{
-			/* no special action for now */
-			break;
-		}
-		case(app_action_empty):
-		{
-			string_clear(&socket_cmd.send_buffer);
-			string_append(&socket_cmd.send_buffer, "> empty command\n");
-			break;
-		}
-		case(app_action_disconnect):
-		{
-			string_clear(&socket_cmd.send_buffer);
-			string_append(&socket_cmd.send_buffer, "> disconnect\n");
-			dispatch_post_command(command_task_disconnect);
-			break;
-		}
-	}
-
-	socket_cmd.state = dispatch_socket_state_sending_payload;
-
-	if(!socket_send(&socket_cmd.socket, &socket_cmd.send_buffer))
-	{
-		stat_cmd_send_buffer_overflow++;
-		socket_cmd.state = dispatch_socket_state_idle;
-	}
-}
-
 irom static void command_task(os_event_t *event)
 {
 	int trigger_io, trigger_pin;
@@ -258,7 +219,41 @@ irom static void command_task(os_event_t *event)
 			else
 				stat_update_command_udp++;
 
-			background_task_command_handler();
+			socket_cmd.state = dispatch_socket_state_processing;
+
+			string_clear(&socket_cmd.send_buffer);
+
+			switch(application_content(&socket_cmd.receive_buffer, &socket_cmd.send_buffer))
+			{
+				case(app_action_normal):
+				case(app_action_error):
+				case(app_action_http_ok):
+				{
+					/* no special action for now */
+					break;
+				}
+				case(app_action_empty):
+				{
+					string_clear(&socket_cmd.send_buffer);
+					string_append(&socket_cmd.send_buffer, "> empty command\n");
+					break;
+				}
+				case(app_action_disconnect):
+				{
+					string_clear(&socket_cmd.send_buffer);
+					string_append(&socket_cmd.send_buffer, "> disconnect\n");
+					dispatch_post_command(command_task_disconnect);
+					break;
+				}
+			}
+
+			socket_cmd.state = dispatch_socket_state_sending_payload;
+
+			if(!socket_send(&socket_cmd.socket, &socket_cmd.send_buffer))
+			{
+				stat_cmd_send_buffer_overflow++;
+				socket_cmd.state = dispatch_socket_state_idle;
+			}
 
 			break;
 		}
