@@ -177,8 +177,6 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 
 iram attr_speed void logchar(char c)
 {
-	string_init(log_ignore_1, "sta trace 0\n");
-
 	if(flags_cache.flag.log_to_uart)
 	{
 		uart_send(0, c);
@@ -191,7 +189,6 @@ iram attr_speed void logchar(char c)
 			string_clear(&logbuffer);
 
 		string_append_char(&logbuffer, c);
-		string_trim_string(&logbuffer, &log_ignore_1);
 	}
 }
 
@@ -519,20 +516,6 @@ irom bool_t string_trim_nl(string_t *dst)
 	}
 
 	return(trimmed);
-}
-
-irom attr_speed void string_trim_string(string_t *haystack_string, const string_t *needle_string)
-{
-	const void *needle, *haystack;
-
-	if((haystack_string->length > 0) && (haystack_string->length < needle_string->length))
-		return;
-
-	haystack = haystack_string->buffer + haystack_string->length - needle_string->length;
-	needle = needle_string->buffer;
-
-	if(!memcmp(needle, haystack, needle_string->length))
-		string_setlength(haystack_string, haystack_string->length - needle_string->length);
 }
 
 irom void string_bin_to_hex(string_t *dst, const char *src, int length)
