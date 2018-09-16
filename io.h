@@ -262,12 +262,12 @@ io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t 
 void		io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html);
 void		io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
-app_action_t application_function_io_mode(const string_t *src, string_t *dst);
-app_action_t application_function_io_read(const string_t *src, string_t *dst);
-app_action_t application_function_io_write(const string_t *src, string_t *dst);
-app_action_t application_function_io_trigger(const string_t *src, string_t *dst);
-app_action_t application_function_io_set_flag(const string_t *src, string_t *dst);
-app_action_t application_function_io_clear_flag(const string_t *src, string_t *dst);
-app_action_t application_function_io_set_mask(const string_t *src, string_t *dst);
+app_action_t application_function_io_mode(string_t *src, string_t *dst);
+app_action_t application_function_io_read(string_t *src, string_t *dst);
+app_action_t application_function_io_write(string_t *src, string_t *dst);
+app_action_t application_function_io_trigger(string_t *src, string_t *dst);
+app_action_t application_function_io_set_flag(string_t *src, string_t *dst);
+app_action_t application_function_io_clear_flag(string_t *src, string_t *dst);
+app_action_t application_function_io_set_mask(string_t *src, string_t *dst);
 
 #endif

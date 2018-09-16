@@ -511,14 +511,14 @@ irom static void display_dump(string_t *dst)
 				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
 }
 
-irom app_action_t application_function_display_dump(const string_t *src, string_t *dst)
+irom app_action_t application_function_display_dump(string_t *src, string_t *dst)
 {
 	display_dump(dst);
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_default_message(const string_t *src, string_t *dst)
+irom app_action_t application_function_display_default_message(string_t *src, string_t *dst)
 {
 	int ix;
 	string_init(varname_defaultmsg, "display.defaultmsg");
@@ -547,7 +547,7 @@ irom app_action_t application_function_display_default_message(const string_t *s
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_flip_timeout(const string_t *src, string_t *dst)
+irom app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
 {
 	unsigned int timeout;
 	string_init(varname_fliptimeout, "display.fliptimeout");
@@ -578,7 +578,7 @@ irom app_action_t application_function_display_flip_timeout(const string_t *src,
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_brightness(const string_t *src, string_t *dst)
+irom app_action_t application_function_display_brightness(string_t *src, string_t *dst)
 {
 	unsigned int value;
 	display_info_t *display_info_entry;
@@ -608,7 +608,7 @@ irom app_action_t application_function_display_brightness(const string_t *src, s
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_set(const string_t *src, string_t *dst)
+irom app_action_t application_function_display_set(string_t *src, string_t *dst)
 {
 	int slot, timeout, current;
 	const char *text;

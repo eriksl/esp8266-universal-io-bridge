@@ -487,10 +487,14 @@ irom void string_splice(string_t *dst, int dst_offset, const string_t *src, int 
 	string_setlength(dst, dst_offset + length);
 }
 
-irom void string_trim_nl(string_t *dst)
+irom bool_t string_trim_nl(string_t *dst)
 {
+	bool_t trimmed = false;
+
 	if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
 	{
+		trimmed = true;
+
 		dst->length--;
 
 		if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\r'))
@@ -500,12 +504,16 @@ irom void string_trim_nl(string_t *dst)
 	{
 		if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\r'))
 		{
+			trimmed = true;
+
 			dst->length--;
 
 			if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
 				dst->length--;
 		}
 	}
+
+	return(trimmed);
 }
 
 irom attr_speed void string_trim_string(string_t *haystack_string, const string_t *needle_string)

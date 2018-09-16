@@ -167,7 +167,7 @@ irom static app_action_t http_error(string_t *dst, const char *error_string, con
 	return(app_action_error);
 }
 
-irom app_action_t application_function_http_get(const string_t *src, string_t *dst)
+irom app_action_t application_function_http_get(string_t *src, string_t *dst)
 {
 	string_new(, url, 64);
 	string_new(, afterslash, 64);

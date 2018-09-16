@@ -50,9 +50,9 @@ bool_t display_common_set(const char *tag, const char *text,
 			int map_size, const display_map_t *map,
 			int udg_size, const display_udg_t *udg);
 
-app_action_t application_function_display_brightness(const string_t *src, string_t *dst);
-app_action_t application_function_display_dump(const string_t *src, string_t *dst);
-app_action_t application_function_display_default_message(const string_t *src, string_t *dst);
-app_action_t application_function_display_flip_timeout(const string_t *src, string_t *dst);
-app_action_t application_function_display_set(const string_t *src, string_t *dst);
+app_action_t application_function_display_brightness(string_t *src, string_t *dst);
+app_action_t application_function_display_dump(string_t *src, string_t *dst);
+app_action_t application_function_display_default_message(string_t *src, string_t *dst);
+app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst);
+app_action_t application_function_display_set(string_t *src, string_t *dst);
 #endif

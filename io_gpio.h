@@ -15,7 +15,7 @@ io_error_t	io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_
 io_error_t	io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
 int			io_gpio_get_uart_from_pin(unsigned int pin);
 
-app_action_t application_function_pwm_period(const string_t *src, string_t *dst);
+app_action_t application_function_pwm_period(string_t *src, string_t *dst);
 
 // generic
 

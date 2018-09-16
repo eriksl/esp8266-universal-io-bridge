@@ -953,7 +953,7 @@ irom attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 	return(gpio_info_table[pin].uart);
 }
 
-irom app_action_t application_function_pwm_period(const string_t *src, string_t *dst)
+irom app_action_t application_function_pwm_period(string_t *src, string_t *dst)
 {
 	unsigned int new_pwm_period;
 	string_init(varname_pwmperiod, "pwm.period");

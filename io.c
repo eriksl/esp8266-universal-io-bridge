@@ -1633,7 +1633,7 @@ irom void io_periodic_slow(void)
 
 /* app commands */
 
-irom app_action_t application_function_io_mode(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_mode(string_t *src, string_t *dst)
 {
 	const io_info_entry_t	*info;
 	io_data_entry_t			*data;
@@ -2178,7 +2178,7 @@ skip:
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_read(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_read(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
@@ -2237,7 +2237,7 @@ irom app_action_t application_function_io_read(const string_t *src, string_t *ds
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_write(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_write(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
@@ -2302,7 +2302,7 @@ irom app_action_t application_function_io_write(const string_t *src, string_t *d
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_set_mask(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
 {
 	unsigned int io, mask, pins;
 
@@ -2341,7 +2341,7 @@ irom app_action_t application_function_io_set_mask(const string_t *src, string_t
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_trigger(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_trigger(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	unsigned int io, pin;
@@ -2485,12 +2485,12 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_set_flag(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_set_flag(string_t *src, string_t *dst)
 {
 	return(application_function_io_clear_set_flag(src, dst, 1));
 }
 
-irom app_action_t application_function_io_clear_flag(const string_t *src, string_t *dst)
+irom app_action_t application_function_io_clear_flag(string_t *src, string_t *dst)
 {
 	return(application_function_io_clear_set_flag(src, dst, 0));
 }

@@ -56,10 +56,13 @@ typedef struct
 	dispatch_socket_state_t	state;
 	string_t				receive_buffer;
 	string_t				send_buffer;
+	int						left_to_read;
 } socket_data_t;
 
 string_new(attr_flash_align, flash_sector_buffer, 4096);
-static char _socket_cmd_send_buffer[4096 + 8];
+
+static char _socket_cmd_receive_buffer[4096 + 64];
+static char _socket_cmd_send_buffer[4096 + 64];
 
 static socket_data_t socket_cmd =
 {
@@ -67,15 +70,16 @@ static socket_data_t socket_cmd =
 	.receive_buffer =
 	{
 		.length = 0,
-		.size = 0,
-		.buffer = (char *)0
+		.size = sizeof(_socket_cmd_receive_buffer),
+		.buffer = _socket_cmd_receive_buffer,
 	},
 	.send_buffer =
 	{
 		.length = 0,
 		.size = sizeof(_socket_cmd_send_buffer),
-		.buffer = _socket_cmd_send_buffer
-	}
+		.buffer = _socket_cmd_send_buffer,
+	},
+	.left_to_read = -1,
 };
 
 static char _socket_uart_send_buffer[1024];
@@ -88,7 +92,7 @@ static socket_data_t socket_uart =
 	{
 		.length = 0,
 		.size = 0,
-		.buffer = (char *)0
+		.buffer = (char *)0,
 	},
 	.send_buffer =
 	{
@@ -247,6 +251,8 @@ irom static void command_task(os_event_t *event)
 				}
 			}
 
+			string_clear(&socket_cmd.receive_buffer);
+			socket_cmd.left_to_read = -1;
 			socket_cmd.state = dispatch_socket_state_sending_payload;
 
 			if(!socket_send(&socket_cmd.socket, &socket_cmd.send_buffer))
@@ -450,15 +456,30 @@ irom static void wlan_event_handler(System_Event_t *event)
 
 irom static void callback_received_cmd(socket_t *socket, const string_t *buffer, void *userdata)
 {
+	static const uint8_t *command_string = "flash-send ";
+	uint32_t chunk_length;
+	int chunk_offset;
+
 	if(socket_cmd.state != dispatch_socket_state_idle)
 	{
 		stat_cmd_receive_buffer_overflow++;
 		return;
 	}
 
-	socket_cmd.receive_buffer = *buffer;
-	socket_cmd.state = dispatch_socket_state_receiving;
-	dispatch_post_command(command_task_received_command);
+	if(string_empty(&socket_cmd.receive_buffer) &&
+			string_nmatch_cstr(buffer, command_string, strlen(command_string)) &&
+			(parse_uint(2, buffer, &chunk_length, 10, ' ') == parse_ok) &&
+			((chunk_offset = string_sep(buffer, 0, 3, ' ')) >= 0))
+		socket_cmd.left_to_read = chunk_offset + chunk_length;
+
+	string_append_string(&socket_cmd.receive_buffer, buffer);
+	socket_cmd.left_to_read -= string_length(buffer);
+
+	if((socket_cmd.left_to_read <= 0) && string_trim_nl(&socket_cmd.receive_buffer))
+	{
+		socket_cmd.state = dispatch_socket_state_receiving;
+		dispatch_post_command(command_task_received_command);
+	}
 }
 
 irom static void callback_received_uart(socket_t *socket, const string_t *buffer, void *userdata)
@@ -539,6 +560,8 @@ irom attr_speed static void callback_sent_uart(socket_t *socket, void *userdata)
 
 irom static void callback_error_cmd(socket_t *socket, int error, void *userdata)
 {
+	string_clear(&socket_cmd.receive_buffer);
+	socket_cmd.left_to_read = -1;
 	socket_cmd.state = dispatch_socket_state_idle;
 }
 
@@ -555,6 +578,8 @@ irom static void callback_disconnect_cmd(socket_t *socket, void *userdata)
 	if(preparing_reset)
 		dispatch_post_command(command_task_reset_finish);
 
+	string_clear(&socket_cmd.receive_buffer);
+	socket_cmd.left_to_read = -1;
 	socket_cmd.state = dispatch_socket_state_idle;
 }
 
