@@ -2769,34 +2769,20 @@ typedef enum
 	hih6130_status_mask =	(1 << 7) | (1 << 6),
 } hih6130_status_t;
 
-enum
-{
-	hih6130_max_attempts = 3,
-};
-
 irom static i2c_error_t sensor_hih6130_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, hih6130_action_t action, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
-	int attempt;
 
 	value->cooked = value->raw = -1;
 
 	if((error = i2c_send(entry->address, 0, 0)) != i2c_error_ok)
 		return(error);
 
-	for(attempt = hih6130_max_attempts; attempt > 0; attempt--)
-	{
-		if((i2c_receive(entry->address, 4, i2c_buffer) == i2c_error_ok) && ((i2c_buffer[0] & hih6130_status_mask) == hih6130_status_normal))
-			break;
+	msleep(50);
 
-		logfmt("hih6130: retry %d\n", attempt);
-
-		msleep(20);
-	}
-
-	if(attempt <= 0)
-		return(i2c_error_device_error_1);
+	if((error = i2c_receive(entry->address, 4, i2c_buffer) != i2c_error_ok) || ((i2c_buffer[0] & hih6130_status_mask) != hih6130_status_normal))
+		return((error == i2c_error_ok) ? i2c_error_device_error_1 : error);
 
 	i2c_buffer[0] &= ~hih6130_status_mask;
 
