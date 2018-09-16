@@ -568,10 +568,8 @@ typedef enum
 	tsl2561_reg_interrupt =			0x06,
 	tsl2561_reg_crc =				0x08,
 	tsl2561_reg_id =				0x0a,
-	tsl2561_reg_data0low =			0x0c,
-	tsl2561_reg_data0high =			0x0d,
-	tsl2561_reg_data1low =			0x0e,
-	tsl2561_reg_data1high =			0x0f,
+	tsl2561_reg_data0 =				0x0c,
+	tsl2561_reg_data1 =				0x0e,
 } tsl2561_reg_t;
 
 typedef enum
@@ -654,20 +652,6 @@ irom static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsi
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2561_read_block(int address, tsl2561_reg_t reg, unsigned int *value1, unsigned int *value2)
-{
-	i2c_error_t error;
-	uint8_t i2cbuffer[4];
-
-	if((error = i2c_send1_receive(address, tsl2561_cmd_cmd | tsl2561_cmd_block | (reg & tsl2561_cmd_address), sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	*value1 = (i2cbuffer[1] << 8) | i2cbuffer[0];
-	*value2 = (i2cbuffer[3] << 8) | i2cbuffer[2];
-
-	return(i2c_error_ok);
-}
-
 irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
@@ -722,6 +706,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
 	unsigned int ch0r, ch1r;
 	double ratio, ch0, ch1;
 	const tsl2561_lookup_t *tsl2561_entry;
@@ -729,8 +714,15 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 
 	value->raw = value->cooked = -1;
 
-	if((error = tsl2561_read_block(entry->address, tsl2561_reg_data0low, &ch0r, &ch1r)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | /*tsl2561_cmd_word |*/ tsl2561_reg_data0, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
+
+	ch0r = (i2c_buffer[1] << 8) | i2c_buffer[0];
+
+	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | /*tsl2561_cmd_word |*/ tsl2561_reg_data1, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	ch1r = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
 	if(ch0r == 0)
 	{
@@ -799,10 +791,7 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 				if(ratio >= 0.50)
 					value->cooked = (0.0224 * ch0) - (0.031 * ch1);
 				else
-				{
-					log("tsl2550: using pow\n");
 					value->cooked = (0.0304 * ch0) - (0.062 * ch0 * pow(ratio, 1.4));
-				}
 
 	return(i2c_error_ok);
 }
