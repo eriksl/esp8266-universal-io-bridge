@@ -19,7 +19,11 @@ namespace po = boost::program_options;
 
 #include <openssl/sha.h>
 
-enum { max_attempts = 16 };
+enum
+{
+	max_attempts = 4,
+	max_udp_packet_size = 1472,
+};
 
 typedef enum
 {
@@ -97,37 +101,65 @@ GenericSocket::~GenericSocket()
 
 bool GenericSocket::send(int timeout, std::string buffer)
 {
-	struct pollfd pfd = { .fd = fd, .events = POLLOUT | POLLERR | POLLHUP, .revents = 0 };
-
-	if(poll(&pfd, 1, timeout) != 1)
-		return(false);
-
-	if(pfd.revents & (POLLERR | POLLHUP))
-		return(false);
+	struct pollfd pfd;
+	ssize_t chunk;
 
 	buffer += "\r\n";
 
-	return(write(fd, buffer.data(), buffer.length()) == (ssize_t)buffer.length());
+	while(buffer.length() > 0)
+	{
+		pfd.fd = fd;
+		pfd.events = POLLOUT | POLLERR | POLLHUP;
+		pfd.revents = 0;
+
+		if(poll(&pfd, 1, timeout) != 1)
+			return(false);
+
+		if(pfd.revents & (POLLERR | POLLHUP))
+			return(false);
+
+		chunk = (ssize_t)buffer.length();
+
+		if(use_udp && (chunk > max_udp_packet_size))
+			chunk = max_udp_packet_size;
+
+		if(write(fd, buffer.data(), chunk) != chunk)
+			return(false);
+
+		buffer.erase(0, chunk);
+	}
+
+	return(true);
 }
 
 bool GenericSocket::receive(int timeout, std::string &reply)
 {
 	int length;
+	int run;
 	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 	char buffer[8192];
 
-	if(poll(&pfd, 1, timeout) != 1)
-		return(false);
+	for(run = 2; run > 0; run--)
+	{
+		if(poll(&pfd, 1, timeout) != 1)
+			return(false);
 
-	if(pfd.revents & (POLLERR | POLLHUP))
-		return(false);
+		if(pfd.revents & (POLLERR | POLLHUP))
+			return(false);
 
-	if((length = read(fd, buffer, sizeof(buffer) - 1)) <= 0)
-		return(false);
+		if((length = read(fd, buffer, sizeof(buffer) - 1)) <= 0)
+			return(false);
+
+		if(!use_udp || (length != 1) || (buffer[0] != '\0'))
+			break;
+	}
 
 	reply.assign(buffer, length);
 
 	if(reply.back() == '\n')
+		reply.pop_back();
+
+	if(reply.back() == '\r')
 		reply.pop_back();
 
 	return(true);
@@ -158,7 +190,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 	{
 		int length = 0;
 
-		std::cout << "> send: ";
+		std::cout << "> send (" << send_string.length() << "): ";
 
 		for(const auto &it : send_string)
 		{
@@ -336,6 +368,7 @@ void command_write(GenericSocket &channel, int fd,
 
 						send_string = "flash-send " + std::to_string(chunk_offset) + " " + std::to_string(chunk_size) + " ";
 						send_string.append((const char *)&sector_buffer[chunk_offset], chunk_size);
+
 						process(channel, send_string, reply, "OK flash-send: received bytes: ([0-9]+), at offset: ([0-9]+)\\s*", string_value, int_value, verbose);
 
 						if(int_value[0] != chunk_size)
