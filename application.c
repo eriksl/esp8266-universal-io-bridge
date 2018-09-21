@@ -1284,11 +1284,11 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 		"UNKNOWN",
 	};
 
-	logfmt("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
-	logfmt("> %-16s %-4s %-4s %-18s %-13s %-13s %-6s %s\n", "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
+	log("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
+	log("> %-16s %-4s %-4s %-18s %-13s %-13s %-6s %s\n", "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
-		logfmt("> %-16s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n",
+		log("> %-16s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n",
 				bss->ssid,
 				bss->channel,
 				bss->rssi,

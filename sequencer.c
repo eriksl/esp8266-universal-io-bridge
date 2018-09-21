@@ -97,7 +97,7 @@ irom static bool_t clear_all_flash_entries(unsigned int mirror)
 			entry->value = current++;
 		}
 
-		logfmt("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %u\n",
+		log("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %u\n",
 				offset + (sector * SPI_FLASH_SEC_SIZE),
 				sector,
 				current,
@@ -160,7 +160,7 @@ irom static bool_t update_flash_entry(unsigned int index, unsigned int mirror, c
 
 	sector = (index * sizeof(sequencer_entry_t)) / SPI_FLASH_SEC_SIZE;
 
-	logfmt("update flash entry: update entry: %u, sector: %u, offset index: %u, flash start offset: %x\n",
+	log("update flash entry: update entry: %u, sector: %u, offset index: %u, flash start offset: %x\n",
 			index,
 			sector,
 			index - (sector * sequencer_flash_entries_per_sector),
@@ -172,12 +172,12 @@ irom static bool_t update_flash_entry(unsigned int index, unsigned int mirror, c
 	entries_in_buffer = (sequencer_entry_t *)(void *)buffer;
 	entry_in_buffer = &entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)];
 
-	logfmt("* buffer offset: %u\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
-	logfmt("* entry1: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* buffer offset: %u\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
+	log("* entry1: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	*entry_in_buffer = *entry;
 
-	logfmt("* entry2: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* entry2: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	if(spi_flash_erase_sector((flash_start_offset + (sector * SPI_FLASH_SEC_SIZE)) / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		return(false);

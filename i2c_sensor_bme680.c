@@ -1783,7 +1783,7 @@ static struct bme680_dev bme680;
 
 irom static void user_delay_ms(unsigned int period)
 {
-	//logfmt("bme680: sleep %u ms\n", period);
+	//log("bme680: sleep %u ms\n", period);
 
 	msleep(period);
 }

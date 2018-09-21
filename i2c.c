@@ -194,7 +194,7 @@ iram static i2c_error_t sda_set_test(bool_t val, i2c_delay_enum_t delay_index)
 	if(current > 0)
 		return(i2c_error_ok);
 
-	logfmt("sda set test: sda still stuck after %u cycles, giving up\n", wait_cycles);
+	log("sda set test: sda still stuck after %u cycles, giving up\n", wait_cycles);
 	return(i2c_error_sda_stuck);
 }
 
@@ -233,7 +233,7 @@ iram static i2c_error_t scl_set_test(bool_t val, i2c_delay_enum_t delay_index)
 	if(current > 0)
 		return(i2c_error_ok);
 
-	logfmt("scl set test: bus still locked after %u cycles, giving up\n", wait_cycles);
+	log("scl set test: bus still locked after %u cycles, giving up\n", wait_cycles);
 	return(i2c_error_bus_lock);
 }
 
@@ -639,16 +639,16 @@ irom noinline static i2c_error_t i2c_reset_fixup_bus(void)
 
 		if(sda_is_low())
 		{
-			logfmt("i2c-reset-fixup-bus: sda stuck still stuck after %u cycles, giving up\n", wait_cycles);
+			log("i2c-reset-fixup-bus: sda stuck still stuck after %u cycles, giving up\n", wait_cycles);
 			return(i2c_error_sda_stuck);
 		}
 
-		logfmt("i2c-reset-fixup-bus: sda stuck resolved after %u cycles\n", wait_cycles);
+		log("i2c-reset-fixup-bus: sda stuck resolved after %u cycles\n", wait_cycles);
 	}
 
 	if((error = scl_set_test(true, i2c_delay_fixup_post_wait)) != i2c_error_ok)
 	{
-		logfmt("i2c-reset-fixup-bus: bus lock: %d\n", error);
+		log("i2c-reset-fixup-bus: bus lock: %d\n", error);
 		return(error);
 	}
 
@@ -678,7 +678,7 @@ iram i2c_error_t i2c_reset(void)
 
 	if((error = send_stop()) != i2c_error_ok)
 	{
-		logfmt("i2c-reset: send_stop error: %d\n", error);
+		log("i2c-reset: send_stop error: %d\n", error);
 		return(error);
 	}
 

@@ -173,7 +173,7 @@ irom static void socket_callback_error(void *arg, int8_t error)
 	if(socket->callback_error)
 		socket->callback_error(socket, error, socket->userdata);
 
-	logfmt("socket: callback error: %d\n", error);
+	log("socket: callback error: %d\n", error);
 
 	socket->state = state_idle;
 }
@@ -241,7 +241,7 @@ irom bool_t socket_send(socket_t *socket, string_t *buffer)
 	if((result = espconn_send(esp_socket, string_buffer_nonconst(buffer), string_length(buffer))) == 0)
 		return(true);
 
-	logfmt("socket: socket_send: espconn_send returned error: %d\n", result);
+	log("socket: socket_send: espconn_send returned error: %d\n", result);
 
 error:
 	socket->state = state_idle;

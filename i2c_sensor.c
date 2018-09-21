@@ -1535,7 +1535,7 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 
 		if(local_response != 0x00)
 		{
-			logfmt("si114x: response not 0: %d\n", local_response);
+			log("si114x: response not 0: %d\n", local_response);
 			goto failed;
 		}
 
@@ -1557,12 +1557,12 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 
 			if((local_response & 0b10001000) == 0b10001000)		// overflow, treat as OK
 			{
-				logfmt("si114x: response overflow: %x\n", local_response);
+				log("si114x: response overflow: %x\n", local_response);
 				break;
 			}
 
-			logfmt("si114x: response invalid command / timeout: %x\n", local_response);
-			logfmt("si114x: attempt2: %d\n", attempt2);
+			log("si114x: response invalid command / timeout: %x\n", local_response);
+			log("si114x: attempt2: %d\n", attempt2);
 
 			msleep(1);
 		}
@@ -1571,7 +1571,7 @@ irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *r
 			break;
 
 failed:
-		logfmt("si114x: attempt1: %d\n", attempt1);
+		log("si114x: attempt1: %d\n", attempt1);
 		msleep(1);
 	}
 

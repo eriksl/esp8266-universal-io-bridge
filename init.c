@@ -147,7 +147,7 @@ irom bool_t wlan_init(void)
 				strecpy(cconf.password, string_to_cstr(&string_passwd), sizeof(cconf.password));
 				cconf.bssid_set = 0;
 
-				logfmt("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\" and reconnect\n", cconf.ssid, cconf.password);
+				log("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\" and reconnect\n", cconf.ssid, cconf.password);
 
 				wifi_station_disconnect();
 				wifi_set_opmode(STATION_MODE);
@@ -156,7 +156,7 @@ irom bool_t wlan_init(void)
 				wifi_station_set_auto_connect(1);
 			}
 			else
-				logfmt("* wlan mode is client, ssid=\"%s\", passwd=\"%s\"\n", cconf.ssid, cconf.password);
+				log("* wlan mode is client, ssid=\"%s\", passwd=\"%s\"\n", cconf.ssid, cconf.password);
 
 			break;
 		}

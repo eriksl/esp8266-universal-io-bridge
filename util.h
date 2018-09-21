@@ -218,7 +218,7 @@ do { \
 #define string_format(dst, fmt, ...) \
 do { \
 	static roflash const char fmt_flash[] = fmt; \
-	string_format_flash_ptr(dst, fmt_flash, __VA_ARGS__); \
+	string_format_flash_ptr(dst, fmt_flash, ## __VA_ARGS__); \
 } while(0)
 
 attr_inline int string_length(const string_t *dst)
@@ -396,16 +396,10 @@ extern string_t logbuffer;
 
 int log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
 
-#define logfmt(fmt, ...) \
+#define log(fmt, ...) \
 do { \
 	static roflash const char fmt_flash[] = fmt; \
-	log_from_flash(fmt_flash, __VA_ARGS__); \
-} while(0)
-
-#define log(str) \
-do { \
-	static roflash const char str_flash[] = str; \
-	log_from_flash(str_flash); \
+	log_from_flash(fmt_flash, ## __VA_ARGS__); \
 } while(0)
 
 void logchar(char c);
