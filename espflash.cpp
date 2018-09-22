@@ -181,7 +181,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 {
 	boost::regex re(match);
 	boost::smatch capture;
-	bool first;
+	unsigned int captures;
 	unsigned int attempt;
 
 	reply_string.clear();
@@ -231,18 +231,14 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 	if(!boost::regex_match(reply_string, capture, re))
 		throw(std::string("received string does not match: \"") + reply_string + "\"");
 
-	first = true;
-
 	string_value.clear();
 	int_value.clear();
+	captures = 0;
 
 	for(const auto &it : capture)
 	{
-		if(first)
-		{
-			first = false;
+		if(captures++ == 0)
 			continue;
-		}
 
 		string_value.push_back(std::string(it));
 
