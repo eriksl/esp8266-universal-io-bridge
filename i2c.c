@@ -551,7 +551,7 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
+iram attr_noinline i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
 {
 	i2c_error_t error;
 

@@ -5,7 +5,7 @@
 #define iram __attribute__((section(".text")))
 #define roflash __attribute__((section(".flash.rodata"))) __attribute__((aligned(sizeof(uint32_t))))
 #define attr_flash_align __attribute__((aligned(4)))
-#define noinline __attribute__ ((noinline))
+#define attr_noinline __attribute__ ((noinline))
 #define attr_inline inline __attribute__((always_inline)) static
 #define attr_unused __attribute__ ((unused))
 #define attr_pure __attribute__ ((pure))
