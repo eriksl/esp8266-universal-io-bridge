@@ -561,42 +561,42 @@ iram attr_noinline i2c_error_t i2c_send_receive(int address, int sendlength, con
 	return(i2c_receive(address, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send1(int address, int byte0)
+iram i2c_error_t i2c_send1(int address, int byte0)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send2(int address, int byte0, int byte1)
+iram i2c_error_t i2c_send2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2] = { byte0, byte1 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
+iram i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3] = { byte0, byte1, byte2 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
+iram i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4] = { byte0, byte1, byte2, byte3 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
+iram i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send_receive(address, sizeof(bytes), bytes, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_select_bus(unsigned int bus)
+iram i2c_error_t i2c_select_bus(unsigned int bus)
 {
 	if(!i2c_flags.multiplexer)
 		return((bus == 0) ? i2c_error_ok : i2c_error_invalid_bus);
