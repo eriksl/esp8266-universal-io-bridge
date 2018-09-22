@@ -496,7 +496,7 @@ irom static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_format(dst, "\nerror in <%s>\n", info);
 }
 
-irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, bool_t value)
+irom static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool value)
 {
 	if(string_match_cstr(flag, "autostart"))
 		pin_config->flags.autostart = value ? 1: 0;
@@ -520,7 +520,7 @@ irom static bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_
 
 irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entry_t *pin_config)
 {
-	bool none = true;
+	_Bool none = true;
 
 	if(pin_config->flags.autostart)
 	{
@@ -1596,7 +1596,7 @@ irom void io_periodic_slow(void)
 	io_flags_t flags = { .counter_triggered = 0 };
 	string_init(varname_trigger_io, "trigger.status.io");
 	string_init(varname_trigger_pin, "trigger.status.pin");
-	static bool_t post_init_run = false;
+	static _Bool post_init_run = false;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -2618,7 +2618,7 @@ static const roflash dump_string_t roflash_dump_strings =
 	}
 };
 
-irom void io_config_dump(string_t *dst, int io_id, int pin_id, bool_t html)
+irom void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;

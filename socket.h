@@ -51,13 +51,13 @@ typedef struct _socket_t
 	void *userdata;
 } socket_t;
 
-bool_t socket_send(socket_t *socket, string_t *);
+_Bool socket_send(socket_t *socket, string_t *);
 socket_proto_t socket_proto(const socket_t *socket);
-bool_t socket_send_busy(const socket_t *socket);
+_Bool socket_send_busy(const socket_t *socket);
 void *socket_userdata(const socket_t *socket);
 void socket_disconnect_accepted(socket_t *socket);
 
-void socket_create(bool tcp, bool udp, socket_t *socket,
+void socket_create(_Bool tcp, _Bool udp, socket_t *socket,
 		int port, int timeout,
 		void (*callback_received)(socket_t *, const string_t *, void *userdata),
 		void (*callback_sent)(socket_t *, void *userdata),

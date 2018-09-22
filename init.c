@@ -99,7 +99,7 @@ irom static void user_init2(void)
 	io_init();
 }
 
-irom bool_t wlan_init(void)
+irom _Bool wlan_init(void)
 {
 	int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;

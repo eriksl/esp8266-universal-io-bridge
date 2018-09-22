@@ -1106,7 +1106,7 @@ irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, in
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *value, bool_t request_humidity, i2c_sensor_device_data_t *data)
+irom static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *value, _Bool request_humidity, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
@@ -3453,7 +3453,7 @@ irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	return(i2c_error_ok);
 }
 
-irom bool_t i2c_sensors_init(void)
+irom _Bool i2c_sensors_init(void)
 {
 	i2c_info_t i2c_info;
 	unsigned int buses;
@@ -3491,7 +3491,7 @@ irom bool_t i2c_sensors_init(void)
 	return(true);
 }
 
-irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t verbose, bool_t html)
+irom _Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose, _Bool html)
 {
 	const i2c_sensor_device_table_entry_t *entry;
 	i2c_error_t error;
@@ -3594,7 +3594,7 @@ irom bool_t i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool_t 
 	return(true);
 }
 
-irom attr_pure bool_t i2c_sensor_detected(int bus, i2c_sensor_t sensor)
+irom attr_pure _Bool i2c_sensor_detected(int bus, i2c_sensor_t sensor)
 {
 	if(sensor > i2c_sensor_size)
 		return(false);

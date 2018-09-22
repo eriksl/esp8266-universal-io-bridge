@@ -1815,7 +1815,7 @@ irom static int user_i2c_write(unsigned int dev_id, unsigned int reg_addr, uint8
 	return(0);
 }
 
-static bool_t values_valid = false;
+static _Bool values_valid = false;
 static i2c_sensor_value_t temperature;
 static i2c_sensor_value_t humidity;
 static i2c_sensor_value_t airpressure;

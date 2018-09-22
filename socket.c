@@ -198,7 +198,7 @@ irom static void socket_callback_disconnect(void *arg)
 	socket->state = state_idle;
 }
 
-irom bool_t socket_send(socket_t *socket, string_t *buffer)
+irom _Bool socket_send(socket_t *socket, string_t *buffer)
 {
 	struct espconn *esp_socket;
 	int result;
@@ -248,7 +248,7 @@ error:
 	return(false);
 }
 
-irom void socket_create(bool tcp, bool udp, socket_t *socket,
+irom void socket_create(_Bool tcp, _Bool udp, socket_t *socket,
 		int port, int timeout,
 		void (*callback_received)(socket_t *, const string_t *, void *userdata),
 		void (*callback_sent)(socket_t *, void *userdata),
@@ -318,7 +318,7 @@ attr_pure socket_proto_t socket_proto(const socket_t *socket)
 	return(socket->remote.proto);
 }
 
-attr_pure bool_t socket_send_busy(const socket_t *socket)
+attr_pure _Bool socket_send_busy(const socket_t *socket)
 {
 	return(socket->state != state_idle);
 }

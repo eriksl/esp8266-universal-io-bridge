@@ -124,7 +124,7 @@ static irom int led_render_char(int character)
 	return(led_charrom[character] | add_dot);
 }
 
-irom bool_t display_saa1064_init(void)
+irom _Bool display_saa1064_init(void)
 {
 	uint8_t i2cdata;
 	int bus;
@@ -157,7 +157,7 @@ irom bool_t display_saa1064_init(void)
 	return(false);
 }
 
-irom bool_t display_saa1064_bright(int bright_in)
+irom _Bool display_saa1064_bright(int bright_in)
 {
 	if(i2c_bus < 0)
 		return(false);
@@ -170,7 +170,7 @@ irom bool_t display_saa1064_bright(int bright_in)
 	return(true);
 }
 
-irom bool_t display_saa1064_set(const char *tag, const char *from)
+irom _Bool display_saa1064_set(const char *tag, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{

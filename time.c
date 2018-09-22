@@ -321,7 +321,7 @@ irom void time_ntp_init(void)
 attr_inline void ntp_periodic(void)
 {
 	static int delay = 0;
-	static bool_t initial_burst = true;
+	static _Bool initial_burst = true;
 	time_t ntp_s;
 
 	if(!time_flags.ntp_server_valid)

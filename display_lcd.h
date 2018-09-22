@@ -1,9 +1,9 @@
 #ifndef display_lcd_h
 #define display_lcd_h
 
-bool_t display_lcd_init(void);
-bool_t display_lcd_bright(int brightness);
-bool_t display_lcd_set(const char *tag, const char *text);
-bool_t display_lcd_show(void);
+_Bool display_lcd_init(void);
+_Bool display_lcd_bright(int brightness);
+_Bool display_lcd_set(const char *tag, const char *text);
+_Bool display_lcd_show(void);
 
 #endif

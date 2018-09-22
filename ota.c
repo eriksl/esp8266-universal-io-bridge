@@ -256,7 +256,7 @@ irom app_action_t application_function_flash_read(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst, bool_t verify)
+irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst, _Bool verify)
 {
 	unsigned int address, sector;
 	int byte;
@@ -422,7 +422,7 @@ extern uint8_t rBoot_mmap_1;
 extern uint8_t rBoot_mmap_2;
 #endif
 
-irom static app_action_t flash_select(const string_t *src, string_t *dst, bool_t once)
+irom static app_action_t flash_select(const string_t *src, string_t *dst, _Bool once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
 

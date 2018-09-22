@@ -5,7 +5,7 @@
 #include "io_gpio.h"
 #include "uart.h"
 
-static bool_t		detected = false;
+static _Bool		detected = false;
 static unsigned int uart;
 
 static const display_map_t cfa634_map[] =
@@ -96,7 +96,7 @@ static const display_udg_t cfa634_udg[] =
 	}
 };
 
-irom bool_t display_cfa634_setup(unsigned int io, unsigned int pin)
+irom _Bool display_cfa634_setup(unsigned int io, unsigned int pin)
 {
 	if((io != io_id_gpio) || (pin >= max_pins_per_io))
 		return(false);
@@ -111,7 +111,7 @@ irom bool_t display_cfa634_setup(unsigned int io, unsigned int pin)
 	return(true);
 }
 
-irom bool_t display_cfa634_init(void)
+irom _Bool display_cfa634_init(void)
 {
 	unsigned int ix, byte, x, y;
 
@@ -146,7 +146,7 @@ irom bool_t display_cfa634_init(void)
 	return(display_cfa634_bright(1));
 }
 
-attr_const irom bool_t display_cfa634_bright(int brightness)
+attr_const irom _Bool display_cfa634_bright(int brightness)
 {
 	static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
@@ -165,7 +165,7 @@ attr_const irom bool_t display_cfa634_bright(int brightness)
 	return(true);
 }
 
-irom bool_t display_cfa634_set(const char *tag, const char *text)
+irom _Bool display_cfa634_set(const char *tag, const char *text)
 {
 	if(!detected)
 		return(false);
@@ -175,7 +175,7 @@ irom bool_t display_cfa634_set(const char *tag, const char *text)
 				sizeof(cfa634_udg) / sizeof(*cfa634_udg), cfa634_udg));
 }
 
-irom bool_t display_cfa634_show(void)
+irom _Bool display_cfa634_show(void)
 {
 	int x, y;
 	uint8_t c;

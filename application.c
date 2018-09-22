@@ -440,7 +440,7 @@ irom static app_action_t application_function_command_timeout(string_t *src, str
 
 irom static app_action_t application_function_sequencer_clear(string_t *src, string_t *dst)
 {
-	bool_t result;
+	_Bool result;
 
 	result = sequencer_clear();
 
@@ -476,7 +476,7 @@ irom static app_action_t application_function_sequencer_add(string_t *src, strin
 	unsigned int io, pin, duration;
 	int	start_in;
 	uint32_t value;
-	bool_t active;
+	_Bool active;
 
 	if((parse_int(1, src, &start_in, 0, ' ') != parse_ok) ||
 			(parse_uint(2, src, &io, 0, ' ') != parse_ok) ||
@@ -515,7 +515,7 @@ irom static app_action_t application_function_sequencer_list(string_t *src, stri
 {
 	static unsigned int start = 0;
 	unsigned int index, io, pin, value, duration;
-	bool_t active;
+	_Bool active;
 
 	if(parse_uint(1, src, &index, 0, ' ') == parse_ok)
 		start = index;
@@ -561,7 +561,7 @@ irom static app_action_t application_function_sequencer_stop(string_t *src, stri
 
 irom static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
 {
-	bool_t running, active;
+	_Bool running, active;
 	unsigned int start, flash_size, flash_size_entries, flash_offset_flash0, flash_offset_flash1, flash_offset_mapped;
 	unsigned int current, io, pin, value, duration;
 
@@ -1161,7 +1161,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 {
 	i2c_sensor_t sensor;
 	unsigned int option, bus;
-	bool_t all, verbose;
+	_Bool all, verbose;
 	int original_length = string_length(dst);
 
 	all = false;
@@ -1196,7 +1196,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t set_unset_flag(string_t *src, string_t *dst, bool_t add)
+irom static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
 {
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{

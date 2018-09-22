@@ -32,7 +32,7 @@ config_flags_t flags_cache;
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
 
-irom static bool_t config_flags_set(config_flags_t flags)
+irom static _Bool config_flags_set(config_flags_t flags)
 {
 	string_init(varname, "flags");
 
@@ -81,10 +81,10 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " no-log-to-buffer");
 }
 
-irom bool_t config_flags_change(const string_t *flag, bool_t add)
+irom _Bool config_flags_change(const string_t *flag, _Bool add)
 {
 	config_flags_t flags = config_flags_get();
-	bool_t rv = false;
+	_Bool rv = false;
 
 	if(string_match_cstr(flag, "strip-telnet") || string_match_cstr(flag, "st"))
 	{
@@ -174,7 +174,7 @@ irom static config_entry_t *find_config_entry(const string_t *id, int index1, in
 	return((config_entry_t *)0);
 }
 
-irom bool_t config_get_string(const string_t *id, int index1, int index2, string_t *value)
+irom _Bool config_get_string(const string_t *id, int index1, int index2, string_t *value)
 {
 	config_entry_t *config_entry;
 
@@ -186,7 +186,7 @@ irom bool_t config_get_string(const string_t *id, int index1, int index2, string
 	return(true);
 }
 
-irom bool_t config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
+irom _Bool config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
 {
 	config_entry_t *config_entry;
 
@@ -198,7 +198,7 @@ irom bool_t config_get_int(const string_t *id, int index1, int index2, uint32_t 
 	return(true);
 }
 
-irom bool_t config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
+irom _Bool config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
 {
 	string_t string;
 	string_t *varid;
@@ -255,7 +255,7 @@ irom bool_t config_set_string(const string_t *id, int index1, int index2, const 
 	return(true);
 }
 
-irom bool_t config_set_int(const string_t *id, int index1, int index2, uint32_t value)
+irom _Bool config_set_int(const string_t *id, int index1, int index2, uint32_t value)
 {
 	string_new(, string, 16);
 
@@ -264,7 +264,7 @@ irom bool_t config_set_int(const string_t *id, int index1, int index2, uint32_t 
 	return(config_set_string(id, index1, index2, &string, 0, -1));
 }
 
-irom unsigned int config_delete(const string_t *id, int index1, int index2, bool_t wildcard)
+irom unsigned int config_delete(const string_t *id, int index1, int index2, _Bool wildcard)
 {
 	const char *varidptr;
 	config_entry_t *config_current;
@@ -290,13 +290,13 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, bool
 	return(amount);
 }
 
-irom bool_t config_read(void)
+irom _Bool config_read(void)
 {
 	string_new(, string, 64);
 	unsigned int current_index, id_index, id_length, value_index, value_length;
 	char current;
 	state_parse_t parse_state;
-	bool_t rv = false;
+	_Bool rv = false;
 
 	string_clear(&flash_sector_buffer);
 

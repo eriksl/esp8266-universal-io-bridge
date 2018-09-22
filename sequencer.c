@@ -5,7 +5,7 @@
 
 typedef struct
 {
-	bool_t		flash_valid;
+	_Bool		flash_valid;
 	int			start;
 	int			current;
 	uint64_t	current_end_time;
@@ -54,7 +54,7 @@ enum
 _Static_assert(sequencer_flash_entries == 2048, "flash sequencer size incorrect");
 _Static_assert(sequencer_flash_entries_per_sector == 512, "flash sequencer per sector size incorrect");
 
-irom static bool_t clear_all_flash_entries(unsigned int mirror)
+irom static _Bool clear_all_flash_entries(unsigned int mirror)
 {
 	sequencer_entry_t *entry;
 	unsigned int offset, sector, current = 0;
@@ -113,7 +113,7 @@ irom static bool_t clear_all_flash_entries(unsigned int mirror)
 	return(true);
 }
 
-irom static bool_t get_flash_entry(unsigned int index, sequencer_entry_t *entry)
+irom static _Bool get_flash_entry(unsigned int index, sequencer_entry_t *entry)
 {
 	const sequencer_entry_t *entries_in_flash;
 
@@ -130,7 +130,7 @@ irom static bool_t get_flash_entry(unsigned int index, sequencer_entry_t *entry)
 	return(true);
 }
 
-irom static bool_t update_flash_entry(unsigned int index, unsigned int mirror, const sequencer_entry_t *entry)
+irom static _Bool update_flash_entry(unsigned int index, unsigned int mirror, const sequencer_entry_t *entry)
 {
 	sequencer_entry_t *entries_in_buffer, *entry_in_buffer;
 	unsigned int flash_start_offset, sector;
@@ -208,7 +208,7 @@ iram attr_pure int sequencer_get_repeats(void)
 	return(sequencer.repeats);
 }
 
-irom void sequencer_get_status(bool_t *running, unsigned int *start, unsigned int *flash_size, unsigned int *flash_size_entries,
+irom void sequencer_get_status(_Bool *running, unsigned int *start, unsigned int *flash_size, unsigned int *flash_size_entries,
 		unsigned int *flash_offset_flash0, unsigned int *flash_offset_flash1, unsigned int *flash_offset_mapped)
 {
 	*running = sequencer.repeats > 0;
@@ -220,7 +220,7 @@ irom void sequencer_get_status(bool_t *running, unsigned int *start, unsigned in
 	*flash_offset_mapped  = sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET;
 }
 
-irom bool_t sequencer_clear(void)
+irom _Bool sequencer_clear(void)
 {
 	if(!clear_all_flash_entries(0))		// OTA image #0 or plain image
 		return(false);
@@ -232,7 +232,7 @@ irom bool_t sequencer_clear(void)
 	return(sequencer.flash_valid);
 }
 
-irom bool_t sequencer_get_entry(unsigned int index, bool_t *active, int *io, int *pin, uint32_t *value, int *duration)
+irom _Bool sequencer_get_entry(unsigned int index, _Bool *active, int *io, int *pin, uint32_t *value, int *duration)
 {
 	sequencer_entry_t entry;
 
@@ -265,7 +265,7 @@ irom bool_t sequencer_get_entry(unsigned int index, bool_t *active, int *io, int
 	return(true);
 }
 
-irom bool_t sequencer_set_entry(unsigned int index, int io, int pin, uint32_t value, int duration)
+irom _Bool sequencer_set_entry(unsigned int index, int io, int pin, uint32_t value, int duration)
 {
 	sequencer_entry_t entry;
 
@@ -289,7 +289,7 @@ irom bool_t sequencer_set_entry(unsigned int index, int io, int pin, uint32_t va
 	return(update_flash_entry(index, 1, &entry));
 }
 
-irom bool_t sequencer_remove_entry(unsigned int index)
+irom _Bool sequencer_remove_entry(unsigned int index)
 {
 	sequencer_entry_t entry;
 
@@ -345,7 +345,7 @@ irom void sequencer_run(void)
 {
 	unsigned int io, pin, duration;
 	uint32_t value;
-	bool_t active;
+	_Bool active;
 
 	sequencer.current++;
 

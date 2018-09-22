@@ -31,15 +31,15 @@ typedef union
 } config_flags_t;
 
 void			config_flags_to_string(string_t *);
-bool_t			config_flags_change(const string_t *, bool_t add);
+_Bool			config_flags_change(const string_t *, _Bool add);
 
-bool_t			config_get_string(const string_t *id, int index1, int index2, string_t *value);
-bool_t			config_get_int(const string_t *id, int index1, int index2, uint32_t *value);
-bool_t			config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
-bool_t			config_set_int(const string_t *id, int index1, int index2, uint32_t value);
-unsigned int	config_delete(const string_t *id, int index1, int index2, bool_t wildcard);
+_Bool			config_get_string(const string_t *id, int index1, int index2, string_t *value);
+_Bool			config_get_int(const string_t *id, int index1, int index2, uint32_t *value);
+_Bool			config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
+_Bool			config_set_int(const string_t *id, int index1, int index2, uint32_t value);
+unsigned int	config_delete(const string_t *id, int index1, int index2, _Bool wildcard);
 
-bool_t			config_read(void);
+_Bool			config_read(void);
 unsigned int	config_write(void);
 void			config_dump(string_t *);
 

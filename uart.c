@@ -10,7 +10,7 @@
 
 typedef struct
 {
-	bool_t			enabled;
+	_Bool			enabled;
 	unsigned int	character;
 } autofill_info_t;
 
@@ -80,7 +80,7 @@ attr_inline int tx_fifo_length(unsigned int uart)
 	return((read_peri_reg(UART_STATUS(uart)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT);
 }
 
-attr_inline void enable_transmit_int(unsigned int uart, bool_t enable)
+attr_inline void enable_transmit_int(unsigned int uart, _Bool enable)
 {
 	if(enable)
 		set_peri_reg_mask(UART_INT_ENA(uart), UART_TXFIFO_EMPTY_INT_ENA);
@@ -88,7 +88,7 @@ attr_inline void enable_transmit_int(unsigned int uart, bool_t enable)
 		clear_peri_reg_mask(UART_INT_ENA(uart), UART_TXFIFO_EMPTY_INT_ENA);
 }
 
-attr_inline void enable_receive_int(unsigned int uart, bool_t enable)
+attr_inline void enable_receive_int(unsigned int uart, _Bool enable)
 {
 	if(enable)
 		set_peri_reg_mask(UART_INT_ENA(uart), UART_RXFIFO_TOUT_INT_ENA | UART_RXFIFO_FULL_INT_ENA);
@@ -260,7 +260,7 @@ irom void uart_parity(unsigned int uart, uart_parity_t parity)
 			(parity_mask & (UART_PARITY_EN | UART_PARITY)));
 }
 
-irom void uart_autofill(unsigned int uart, bool_t enable, unsigned int character)
+irom void uart_autofill(unsigned int uart, _Bool enable, unsigned int character)
 {
 	if((uart == 0) || (uart == 1))
 	{
@@ -271,7 +271,7 @@ irom void uart_autofill(unsigned int uart, bool_t enable, unsigned int character
 	}
 }
 
-irom void uart_is_autofill(unsigned int uart, bool_t *enable, unsigned int *character)
+irom void uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *character)
 {
 	if((uart == 0) || (uart == 1))
 	{
@@ -329,7 +329,7 @@ irom void uart_init(void)
 	ets_isr_unmask(1 << ETS_UART_INUM);
 }
 
-iram attr_pure bool_t uart_full(unsigned int uart)
+iram attr_pure _Bool uart_full(unsigned int uart)
 {
 	return(queue_full(&uart_send_queue[uart]));
 }
@@ -344,7 +344,7 @@ iram void uart_flush(unsigned int uart)
 	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
-iram attr_pure bool_t uart_empty(unsigned int uart)
+iram attr_pure _Bool uart_empty(unsigned int uart)
 {
 	return(queue_empty(&uart_receive_queue));
 }

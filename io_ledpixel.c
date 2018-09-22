@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 
-static bool_t		detected = false;
+static _Bool		detected = false;
 static unsigned int	uart;
 
 typedef struct
@@ -63,7 +63,7 @@ irom static void send_byte(unsigned int byte)
 	}
 }
 
-irom static void send_all(bool_t force)
+irom static void send_all(_Bool force)
 {
 	unsigned int pin;
 
@@ -94,7 +94,7 @@ irom static void send_all(bool_t force)
 	uart_flush(uart);
 }
 
-irom bool_t io_ledpixel_setup(unsigned int io, unsigned int pin)
+irom _Bool io_ledpixel_setup(unsigned int io, unsigned int pin)
 {
 	if((io != io_id_gpio) || (pin >= max_pins_per_io))
 		return(false);

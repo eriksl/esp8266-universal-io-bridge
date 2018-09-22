@@ -25,7 +25,7 @@ typedef enum
 
 typedef const struct
 {
-	const bool_t		valid;
+	const _Bool			valid;
 	const unsigned int	mux;
 	const unsigned int	func;
 	const io_uart_t		uart_pin;
@@ -133,7 +133,7 @@ irom static void gpio_direction(int io, int onoff)
 
 // disable / enable pullup
 
-irom static bool_t gpio_pullup(int pin, int onoff)
+irom static _Bool gpio_pullup(int pin, int onoff)
 {
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
@@ -181,7 +181,7 @@ irom static void gpio_open_drain(int pin, int onoff)
 
 // select pin function
 
-irom static bool_t gpio_func_select(int pin, int func)
+irom static _Bool gpio_func_select(int pin, int func)
 {
 	gpio_info_t *gpio_pin_info;
 	uint32_t value;
@@ -246,12 +246,12 @@ irom static void pwm_isr_setup(void)
 	ets_isr_unmask(1 << ETS_TIMER0_INUM);
 }
 
-attr_inline bool_t pwm_isr_enabled(void)
+attr_inline _Bool pwm_isr_enabled(void)
 {
 	return(io_gpio_flags.pwm_int_enabled);
 }
 
-attr_inline void pwm_isr_enable(bool_t enable)
+attr_inline void pwm_isr_enable(_Bool enable)
 {
 	if(enable)
 	{
@@ -338,7 +338,7 @@ irom static void pwm_go(void)
 	pwm_phases_t *phase_data;
 	unsigned int duty, delta, new_phase_set, pwm_period;
 	uint32_t timer_value;
-	bool_t isr_enabled;
+	_Bool isr_enabled;
 	string_init(varname_pwmperiod, "pwm.period");
 
 	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
@@ -501,7 +501,7 @@ irom static void pwm_go(void)
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
-	bool_t cpu_high_speed = config_flags_get().flag.cpu_high_speed;
+	_Bool cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
 	for(entry = 0; entry < pwm_table_delay_size; entry++)
 		if(cpu_high_speed)
@@ -525,7 +525,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	static uint32_t gpio_pc_pins_previous;
-	static bool_t first_call = true;
+	static _Bool first_call = true;
 
 	int pin;
 	uint32_t gpio_pc_pins_current;
@@ -751,7 +751,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 					{
 						case(io_uart_tx):
 						{
-							bool_t			enabled;
+							_Bool			enabled;
 							unsigned int	character;
 
 							uart_is_autofill(uart, &enabled, &character);
@@ -827,7 +827,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 
 		case(io_pin_ll_uart):
 		{
-			bool_t			enabled;
+			_Bool			enabled;
 			unsigned int	character;
 			int				uart = gpio_info_table[pin].uart;
 

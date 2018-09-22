@@ -43,10 +43,10 @@ extern display_common_row_status_t display_common_row_status;
 extern uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_columns];
 
 void display_init(void);
-bool_t display_periodic(void);
-bool_t display_detected(void);
+_Bool display_periodic(void);
+_Bool display_detected(void);
 
-bool_t display_common_set(const char *tag, const char *text,
+_Bool display_common_set(const char *tag, const char *text,
 			int map_size, const display_map_t *map,
 			int udg_size, const display_udg_t *udg);
 

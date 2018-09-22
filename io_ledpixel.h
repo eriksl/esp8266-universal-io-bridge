@@ -4,7 +4,7 @@
 #include "io.h"
 #include "util.h"
 
-bool_t		io_ledpixel_setup(unsigned int io, unsigned int pin);
+_Bool		io_ledpixel_setup(unsigned int io, unsigned int pin);
 io_error_t	io_ledpixel_init(const struct io_info_entry_T *);
 void		io_ledpixel_post_init(const struct io_info_entry_T *);
 io_error_t	io_ledpixel_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin);

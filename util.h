@@ -9,13 +9,13 @@
 
 #include "attribute.h"
 
-typedef enum
+enum
 {
 	off = 0,
 	no = 0,
 	on = 1,
 	yes = 1
-} bool_t;
+};
 
 typedef enum
 {
@@ -38,7 +38,7 @@ typedef union
 	uint8_t		byte[4];
 } ip_addr_to_bytes_t;
 
-_Static_assert(sizeof(bool_t) == 4, "sizeof(bool_t) != 4");
+_Static_assert(sizeof(_Bool) == 1, "sizeof(_Bool) != 1");
 
 // make sure we don't use the broken memory management
 
@@ -136,8 +136,8 @@ attr_nonnull SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uin
 attr_nonnull int strecpy(char *dst, const char *src, int size);
 attr_nonnull size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
 void reset(void);
-const char *yesno(bool_t value);
-const char *onoff(bool_t value);
+const char *yesno(_Bool value);
+const char *onoff(_Bool value);
 const char *rboot_boot_mode(unsigned int index);
 
 void msleep(int);
@@ -191,12 +191,12 @@ attr_nonnull int string_sep(const string_t *, int offset, int occurrence, char c
 attr_nonnull int string_find(const string_t *, int offset, char c);
 attr_nonnull void string_replace(string_t *, int index, char c);
 attr_nonnull void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
-attr_nonnull bool_t string_trim_nl(string_t *dst);
+attr_nonnull _Bool string_trim_nl(string_t *dst);
 attr_nonnull void string_trim_string(string_t *haystack_string, const string_t *needle_string);
 attr_nonnull void string_bin_to_hex(string_t *dst, const char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, uint8 mac_addr[6]);
-//int string_bin(string_t *dst, unsigned int value, int precision, bool_t add_prefix);
+//int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix);
 attr_nonnull int string_double(string_t *dst, double value, int precision, double top_decimal);
 void string_crc32_init(void);
 attr_nonnull uint32_t string_crc32(const string_t *src, int offset, int length);
@@ -246,7 +246,7 @@ attr_inline attr_nonnull char *string_buffer_nonconst(string_t *string)
 	return(string->buffer);
 }
 
-attr_inline attr_nonnull bool_t string_space(const string_t *dst)
+attr_inline attr_nonnull _Bool string_space(const string_t *dst)
 {
 	return(dst->length < dst->size);
 }
@@ -271,7 +271,7 @@ attr_inline attr_nonnull void string_setlength(string_t *dst, int length)
 	dst->length = length;
 }
 
-attr_inline attr_nonnull bool_t string_match_string(const string_t *s1, const string_t *s2)
+attr_inline attr_nonnull _Bool string_match_string(const string_t *s1, const string_t *s2)
 {
 	if((s1->length == s2->length) && (memcmp(s1->buffer, s2->buffer, s1->length) == 0))
 		return(true);
@@ -279,7 +279,7 @@ attr_inline attr_nonnull bool_t string_match_string(const string_t *s1, const st
 	return(false);
 }
 
-attr_inline bool_t attr_nonnull string_match_cstr(const string_t *s1, const char *s2)
+attr_inline _Bool attr_nonnull string_match_cstr(const string_t *s1, const char *s2)
 {
 	int length = strlen(s2);
 
@@ -289,7 +289,7 @@ attr_inline bool_t attr_nonnull string_match_cstr(const string_t *s1, const char
 	return(false);
 }
 
-attr_inline attr_nonnull bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
+attr_inline attr_nonnull _Bool string_nmatch_string(const string_t *s1, const string_t *s2, int n)
 {
 	if((s1->length >= n) && (s2->length >= n) && (memcmp(s1->buffer, s2->buffer, n) == 0))
 		return(true);
@@ -297,7 +297,7 @@ attr_inline attr_nonnull bool_t string_nmatch_string(const string_t *s1, const s
 	return(false);
 }
 
-attr_inline attr_nonnull bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
+attr_inline attr_nonnull _Bool string_nmatch_cstr(const string_t *s1, const char *s2, int n)
 {
 	int length = strlen(s2);
 
@@ -372,7 +372,7 @@ attr_inline attr_nonnull void string_append_string(string_t *dst, const string_t
 }
 
 attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
-attr_nonnull parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delim, bool_t do_signed);
+attr_nonnull parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delim, _Bool do_signed);
 attr_nonnull parse_error_t parse_float(int index, const string_t *, double *, char delim);
 
 attr_inline attr_nonnull irom parse_error_t parse_uint(int index, const string_t *src, uint32_t *dst, int base, char delimiter)

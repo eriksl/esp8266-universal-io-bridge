@@ -113,7 +113,7 @@ irom void reset(void)
 	system_restart();
 }
 
-irom attr_const const char *yesno(bool_t value)
+irom attr_const const char *yesno(_Bool value)
 {
 	if(!value)
 		return("no");
@@ -121,7 +121,7 @@ irom attr_const const char *yesno(bool_t value)
 	return("yes");
 }
 
-irom attr_const const char *onoff(bool_t value)
+irom attr_const const char *onoff(_Bool value)
 {
 	if(!value)
 		return("off");
@@ -251,9 +251,9 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, c
 	return(parse_ok);
 }
 
-irom parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, bool_t do_signed)
+irom parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, _Bool do_signed)
 {
-	bool_t valid, negative;
+	_Bool valid, negative;
 	uint32_t value;
 	int offset;
 	char current;
@@ -336,8 +336,8 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst, char
 {
 	int offset;
 	int decimal;
-	bool_t negative;
-	bool_t valid;
+	_Bool negative;
+	_Bool valid;
 	double result;
 	char current;
 
@@ -489,9 +489,9 @@ irom void string_splice(string_t *dst, int dst_offset, const string_t *src, int 
 	string_setlength(dst, dst_offset + length);
 }
 
-irom bool_t string_trim_nl(string_t *dst)
+irom _Bool string_trim_nl(string_t *dst)
 {
-	bool_t trimmed = false;
+	_Bool trimmed = false;
 
 	if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
 	{
@@ -575,12 +575,12 @@ irom void string_mac(string_t *dst, uint8 addr[6])
 }
 
 #if 0
-irom int string_bin(string_t *dst, unsigned int value, int precision, bool_t add_prefix)
+irom int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix)
 {
 	int length = 0;
 	int bitpos;
-	bool_t bit;
-	bool_t skip_leading;
+	_Bool bit;
+	_Bool skip_leading;
 
 	if(precision < 1)
 	{
@@ -615,7 +615,7 @@ irom int string_double(string_t *dst, double value, int precision, double top_de
 {
 	double compare;
 	int decimal;
-	bool_t skip_leading_zeroes;
+	_Bool skip_leading_zeroes;
 	int original_length;
 
 	original_length = dst->length;

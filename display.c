@@ -37,10 +37,10 @@ typedef const struct
 	int				const size;
 	const char *	const name;
 	const char *	const type;
-	bool_t			(* const init_fn)(void);
-	bool_t			(* const bright_fn)(int brightness);
-	bool_t			(* const set_fn)(const char *tag, const char *text);
-	bool_t			(* const show_fn)(void);
+	_Bool			(* const init_fn)(void);
+	_Bool			(* const bright_fn)(int brightness);
+	_Bool			(* const set_fn)(const char *tag, const char *text);
+	_Bool			(* const show_fn)(void);
 } display_info_t;
 
 typedef struct
@@ -221,7 +221,7 @@ uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
-irom bool_t display_common_set(const char *tag, const char *text,
+irom _Bool display_common_set(const char *tag, const char *text,
 	int map_size, const display_map_t *map,
 	int udg_size, const display_udg_t *udg)
 {
@@ -330,12 +330,12 @@ irom bool_t display_common_set(const char *tag, const char *text,
 	return(true);
 }
 
-irom attr_pure bool_t display_detected(void)
+irom attr_pure _Bool display_detected(void)
 {
 	return(display_data.detected >= 0);
 }
 
-irom static void display_update(bool_t advance)
+irom static void display_update(_Bool advance)
 {
 	const char *display_text;
 	int slot, hour, minute, month, day;
@@ -425,7 +425,7 @@ irom static void display_expire(void) // call one time per second
 	}
 }
 
-irom bool_t display_periodic(void) // gets called 10 times per second
+irom _Bool display_periodic(void) // gets called 10 times per second
 {
 	static int last_update = 0;
 	static int expire_counter = 0;

@@ -134,22 +134,22 @@ attr_inline void scl_high(void)
 	gpio_set(scl_pin, 1);
 }
 
-attr_inline bool_t sda_is_low(void)
+attr_inline _Bool sda_is_low(void)
 {
 	return(!gpio_get(sda_pin));
 }
 
-attr_inline bool_t sda_is_high(void)
+attr_inline _Bool sda_is_high(void)
 {
 	return(gpio_get(sda_pin));
 }
 
-attr_inline bool_t scl_is_low(void)
+attr_inline _Bool scl_is_low(void)
 {
 	return(!gpio_get(scl_pin));
 }
 
-attr_inline bool_t scl_is_high(void)
+attr_inline _Bool scl_is_high(void)
 {
 	return(gpio_get(scl_pin));
 }
@@ -159,7 +159,7 @@ attr_inline void delay(i2c_delay_enum_t delay_index)
 	csleep(i2c_delay[delay_index].delay);
 }
 
-iram attr_noinline attr_hot static i2c_error_t sda_set_test(bool_t val, i2c_delay_enum_t delay_index)
+iram attr_noinline attr_hot static i2c_error_t sda_set_test(_Bool val, i2c_delay_enum_t delay_index)
 {
 	unsigned int current = i2c_config_sda_wait_cycles;
 	unsigned int wait_cycles = 0;
@@ -198,7 +198,7 @@ iram attr_noinline attr_hot static i2c_error_t sda_set_test(bool_t val, i2c_dela
 	return(i2c_error_sda_stuck);
 }
 
-iram attr_noinline attr_hot static i2c_error_t scl_set_test(bool_t val, i2c_delay_enum_t delay_index)
+iram attr_noinline attr_hot static i2c_error_t scl_set_test(_Bool val, i2c_delay_enum_t delay_index)
 {
 	unsigned int current = i2c_config_scl_wait_cycles;
 	unsigned int wait_cycles = 0;
@@ -237,7 +237,7 @@ iram attr_noinline attr_hot static i2c_error_t scl_set_test(bool_t val, i2c_dela
 	return(i2c_error_bus_lock);
 }
 
-attr_inline i2c_error_t send_bit(bool_t bit)
+attr_inline i2c_error_t send_bit(_Bool bit)
 {
 	i2c_error_t error;
 
@@ -265,7 +265,7 @@ attr_inline i2c_error_t send_bit(bool_t bit)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t receive_bit(bool_t *bit)
+attr_inline i2c_error_t receive_bit(_Bool *bit)
 {
 	i2c_error_t error;
 
@@ -374,7 +374,7 @@ attr_inline i2c_error_t send_byte(int byte)
 attr_inline i2c_error_t receive_byte(uint8_t *byte)
 {
 	int current;
-	bool_t bit;
+	_Bool bit;
 	i2c_error_t error;
 
 	for(*byte = 0, current = 8; current > 0; current--)
@@ -394,7 +394,7 @@ attr_inline i2c_error_t receive_byte(uint8_t *byte)
 attr_inline i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
-	bool_t bit;
+	_Bool bit;
 
 	if(state != i2c_state_header_send)
 		return(i2c_error_invalid_state_not_send_header);
@@ -428,7 +428,7 @@ attr_inline i2c_error_t i2c_send_sequence(int address, int length, const uint8_t
 {
 	int current;
 	i2c_error_t error;
-	bool_t bit;
+	_Bool bit;
 
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);

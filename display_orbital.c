@@ -2,9 +2,9 @@
 #include "display_orbital.h"
 #include "i2c.h"
 
-static bool_t inited = false;
+static _Bool inited = false;
 
-irom bool_t display_orbital_init(void)
+irom _Bool display_orbital_init(void)
 {
 	unsigned int ix, byte, x, y;
 
@@ -40,7 +40,7 @@ irom bool_t display_orbital_init(void)
 	return(display_orbital_bright(1));
 }
 
-irom bool_t display_orbital_bright(int brightness)
+irom _Bool display_orbital_bright(int brightness)
 {
 	switch(brightness)
 	{
@@ -108,7 +108,7 @@ irom bool_t display_orbital_bright(int brightness)
 	return(true);
 }
 
-irom bool_t display_orbital_set(const char *tag, const char *text)
+irom _Bool display_orbital_set(const char *tag, const char *text)
 {
 	if(!inited)
 		return(false);
@@ -118,7 +118,7 @@ irom bool_t display_orbital_set(const char *tag, const char *text)
 				display_common_udg_size, display_common_udg));
 }
 
-irom bool_t display_orbital_show(void)
+irom _Bool display_orbital_show(void)
 {
 	int x, y;
 

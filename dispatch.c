@@ -102,8 +102,8 @@ static socket_data_t socket_uart =
 	}
 };
 
-static bool_t uart_bridge_active = false;
-static bool_t preparing_reset = false;
+static _Bool uart_bridge_active = false;
+static _Bool preparing_reset = false;
 
 static ETSTimer fast_timer;
 static ETSTimer slow_timer;
@@ -486,7 +486,7 @@ irom static void callback_received_uart(socket_t *socket, const string_t *buffer
 {
 	int current, length;
 	uint8_t byte;
-	bool_t strip_telnet;
+	_Bool strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
 
 	length = string_length(buffer);

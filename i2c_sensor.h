@@ -67,7 +67,7 @@ typedef struct
 	unsigned int	init_failed;
 	unsigned int	init_current_bus;
 	i2c_sensor_t	init_current_sensor;
-	bool_t			init_finished;
+	_Bool			init_finished;
 } i2c_sensor_info_t;
 
 typedef struct
@@ -99,8 +99,8 @@ typedef struct i2c_sensor_device_table_entry_T
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
-bool_t		i2c_sensors_init(void);
-bool_t		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool_t verbose, bool_t html);
-bool_t		i2c_sensor_detected(int bus, i2c_sensor_t);
+_Bool		i2c_sensors_init(void);
+_Bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, _Bool verbose, _Bool html);
+_Bool		i2c_sensor_detected(int bus, i2c_sensor_t);
 
 #endif
