@@ -81,31 +81,40 @@ iram int strecpy(char *dst, const char *src, int size)
 	return(length);
 }
 
-iram size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size)
+iram size_t flash_to_dram(_Bool cstr, const void *src_flash_unaligned, char *dst_dram, size_t length)
 {
-	int from, to, byte, current8;
-	uint32_t current32;
+	const uint32_t *src_flash;
+	unsigned int src_flash_index;
+	unsigned int src_flash_sub_index;
+	unsigned int dst_dram_index;
 
-	for(from = 0, to = 0; (int)(from * sizeof(*src_flash)) < (size - 1); from++)
+	src_flash = (const uint32_t *)((uint32_t)src_flash_unaligned & ~0b11);
+	src_flash_sub_index = (uint32_t)src_flash_unaligned & 0b11;
+
+	for(src_flash_index = 0, dst_dram_index = 0; dst_dram_index < length; dst_dram_index++)
 	{
-		current32 = src_flash[from];
+		dst_dram[dst_dram_index] = (src_flash[src_flash_index] >> (src_flash_sub_index << 3)) & 0xff;
 
-		for(byte = 4; byte > 0; byte--)
+		if(cstr)
 		{
-			current8 = current32 & 0x000000ff;
+			if(!dst_dram[dst_dram_index])
+				break;
 
-			if(((to + 1) >= size) || (current8 == '\0'))
-				goto done;
+			if((dst_dram_index + 1) >= length)
+			{
+				dst_dram[dst_dram_index] = 0;
+				break;
+			}
+		}
 
-			dst[to++] = (char)current8;
-			current32 = (current32 >> 8) & 0x00ffffff;
+		if((++src_flash_sub_index & 0b11) == 0)
+		{
+			src_flash_sub_index = 0;
+			src_flash_index++;
 		}
 	}
 
-done:
-	dst[to] = '\0';
-
-	return(to);
+	return(dst_dram_index);
 }
 
 irom void reset(void)
@@ -150,7 +159,7 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 	int current, written;
 	char fmt_in_dram[128];
 
-	strecpy_from_flash(fmt_in_dram, (const uint32_t *)(const void *)fmt_in_flash, sizeof(fmt_in_dram));
+	flash_to_dram(true, fmt_in_flash, fmt_in_dram, sizeof(fmt_in_dram));
 
 	va_start(ap, fmt_in_flash);
 	written = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
@@ -420,7 +429,7 @@ iram attr_speed void string_format_flash_ptr(string_t *dst, const char *fmt_flas
 {
 	va_list ap;
 
-	strecpy_from_flash(flash_dram_buffer, (const uint32_t *)(const void *)fmt_flash, sizeof(flash_dram_buffer));
+	flash_to_dram(true, fmt_flash, flash_dram_buffer, sizeof(flash_dram_buffer));
 
 	va_start(ap, fmt_flash);
 	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, flash_dram_buffer, ap);

@@ -3,7 +3,7 @@
 
 #define irom __attribute__((section(".irom0.text")))
 #define iram __attribute__((section(".text")))
-#define roflash __attribute__((section(".flash.rodata"))) __attribute__((aligned(sizeof(uint32_t))))
+#define roflash __attribute__((section(".flash.rodata")))
 #define attr_flash_align __attribute__((aligned(4)))
 #define attr_noinline __attribute__ ((noinline))
 #define attr_inline inline __attribute__((always_inline)) static

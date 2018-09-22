@@ -96,7 +96,6 @@ struct tm
 void ets_isr_mask(unsigned int);
 void ets_isr_unmask(unsigned int);
 attr_nonnull int ets_vsnprintf(char *, size_t, const char *, va_list);
-attr_nonnull void system_get_string_from_flash(const void *src, char *dst, size_t length);
 attr_nonnull struct tm *sntp_localtime(const time_t *);
 
 attr_nonnull int MD5Init(MD5_CTX *context);
@@ -134,7 +133,7 @@ attr_nonnull SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uin
 // convenience functions
 
 attr_nonnull int strecpy(char *dst, const char *src, int size);
-attr_nonnull size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
+attr_nonnull size_t flash_to_dram(_Bool cstr, const void *src_flash, char *dst_dram, size_t length);
 void reset(void);
 const char *yesno(_Bool value);
 const char *onoff(_Bool value);
@@ -354,9 +353,9 @@ attr_inline attr_nonnull void string_append_cstr(string_t *dst, const char *src)
 	dst->length += strecpy(dst->buffer + dst->length, src, dst->size - dst->length);
 }
 
-attr_inline attr_nonnull void string_append_cstr_flash(string_t *dst, const char *src)
+attr_inline attr_nonnull void string_append_cstr_flash(string_t *dst, const char *src_flash)
 {
-	dst->length += strecpy_from_flash(dst->buffer + dst->length, (const uint32_t *)(const void *)src, dst->size - dst->length);
+	dst->length += flash_to_dram(true, src_flash, dst->buffer + dst->length, dst->size - dst->length);
 }
 
 attr_inline attr_nonnull void string_append_string(string_t *dst, const string_t *src)
