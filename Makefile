@@ -173,9 +173,9 @@ WARNINGS		:=	-Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 						-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
 						-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
 						-Wmissing-prototypes -Wold-style-definition -Wcast-align \
-						-Wno-format-security -Wno-format-nonliteral \
-						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
-						-Wsuggest-attribute=const -Wsuggest-attribute=pure
+						-Wsuggest-attribute=const -Wsuggest-attribute=pure -Winline \
+						-Wno-format-security -Wno-format-nonliteral -Wnonnull \
+						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure
 
 CFLAGS			:=	-Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
 						-ffunction-sections -fdata-sections \

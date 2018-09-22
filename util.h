@@ -95,17 +95,17 @@ struct tm
 
 void ets_isr_mask(unsigned int);
 void ets_isr_unmask(unsigned int);
-int ets_vsnprintf(char *, size_t, const char *, va_list);
-void system_get_string_from_flash(const void *src, char *dst, size_t length);
-struct tm *sntp_localtime(const time_t *);
+attr_nonnull int ets_vsnprintf(char *, size_t, const char *, va_list);
+attr_nonnull void system_get_string_from_flash(const void *src, char *dst, size_t length);
+attr_nonnull struct tm *sntp_localtime(const time_t *);
 
-int MD5Init(MD5_CTX *context);
-int MD5Update(MD5_CTX *context, const void *, unsigned int length);
-int MD5Final(unsigned char *hash, MD5_CTX *context);
+attr_nonnull int MD5Init(MD5_CTX *context);
+attr_nonnull int MD5Update(MD5_CTX *context, const void *, unsigned int length);
+attr_nonnull int MD5Final(unsigned char *hash, MD5_CTX *context);
 
-int SHA1Init(SHA_CTX *context);
-int SHA1Update(SHA_CTX *context, const void *, unsigned int length);
-int SHA1Final(unsigned char *md, SHA_CTX *context);
+attr_nonnull int SHA1Init(SHA_CTX *context);
+attr_nonnull int SHA1Update(SHA_CTX *context, const void *, unsigned int length);
+attr_nonnull int SHA1Final(unsigned char *md, SHA_CTX *context);
 
 enum { SHA_DIGEST_LENGTH = 20 };
 
@@ -128,13 +128,13 @@ extern char flash_dram_buffer[1024];
 #include <spi_flash.h>
 #undef spi_flash_read
 #undef spi_flash_write
-SpiFlashOpResult spi_flash_read(uint32_t src, void *dst, uint32_t size);
-SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uint32_t size);
+attr_nonnull SpiFlashOpResult spi_flash_read(uint32_t src, void *dst, uint32_t size);
+attr_nonnull SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uint32_t size);
 
 // convenience functions
 
-int strecpy(char *dst, const char *src, int size);
-size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
+attr_nonnull int strecpy(char *dst, const char *src, int size);
+attr_nonnull size_t strecpy_from_flash(char *dst, const uint32_t *src_flash, int size);
 void reset(void);
 const char *yesno(bool_t value);
 const char *onoff(bool_t value);
@@ -174,7 +174,7 @@ attr_inline void csleep(volatile uint32_t target)
 		for(start = ccount(); (ccount() - start) < target; );
 }
 
-ip_addr_t ip_addr(const char *);
+attr_nonnull ip_addr_t ip_addr(const char *);
 
 // string functions
 
@@ -185,21 +185,21 @@ typedef struct
 	char *buffer;
 } string_t;
 
-void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
-void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
-int string_sep(const string_t *, int offset, int occurrence, char c);
-int string_find(const string_t *, int offset, char c);
-void string_replace(string_t *, int index, char c);
-void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
-bool_t string_trim_nl(string_t *dst);
-void string_trim_string(string_t *haystack_string, const string_t *needle_string);
-void string_bin_to_hex(string_t *dst, const char *src, int length);
-void string_ip(string_t *dst, ip_addr_t);
-void string_mac(string_t *dst, uint8 mac_addr[6]);
+attr_nonnull void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+attr_nonnull void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));
+attr_nonnull int string_sep(const string_t *, int offset, int occurrence, char c);
+attr_nonnull int string_find(const string_t *, int offset, char c);
+attr_nonnull void string_replace(string_t *, int index, char c);
+attr_nonnull void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
+attr_nonnull bool_t string_trim_nl(string_t *dst);
+attr_nonnull void string_trim_string(string_t *haystack_string, const string_t *needle_string);
+attr_nonnull void string_bin_to_hex(string_t *dst, const char *src, int length);
+attr_nonnull void string_ip(string_t *dst, ip_addr_t);
+attr_nonnull void string_mac(string_t *dst, uint8 mac_addr[6]);
 //int string_bin(string_t *dst, unsigned int value, int precision, bool_t add_prefix);
-int string_double(string_t *dst, double value, int precision, double top_decimal);
+attr_nonnull int string_double(string_t *dst, double value, int precision, double top_decimal);
 void string_crc32_init(void);
-uint32_t string_crc32(const string_t *src, int offset, int length);
+attr_nonnull uint32_t string_crc32(const string_t *src, int offset, int length);
 
 #define string_new(_attributes, _name, _size) \
 	_attributes char _ ## _name ## _buf[_size] = { 0 }; \
@@ -221,49 +221,49 @@ do { \
 	string_format_flash_ptr(dst, fmt_flash, ## __VA_ARGS__); \
 } while(0)
 
-attr_inline int string_length(const string_t *dst)
+attr_inline attr_nonnull int string_length(const string_t *dst)
 {
 	return(dst->length);
 }
 
-attr_inline int string_size(const string_t *dst)
+attr_inline attr_nonnull int string_size(const string_t *dst)
 {
 	return(dst->size);
 }
 
-attr_inline int string_empty(const string_t *dst)
+attr_inline attr_nonnull int string_empty(const string_t *dst)
 {
 	return(dst->length == 0);
 }
 
-attr_inline const char *string_buffer(const string_t *string)
+attr_inline attr_nonnull const char *string_buffer(const string_t *string)
 {
 	return(string->buffer);
 }
 
-attr_inline char *string_buffer_nonconst(string_t *string)
+attr_inline attr_nonnull char *string_buffer_nonconst(string_t *string)
 {
 	return(string->buffer);
 }
 
-attr_inline bool_t string_space(const string_t *dst)
+attr_inline attr_nonnull bool_t string_space(const string_t *dst)
 {
 	return(dst->length < dst->size);
 }
 
-attr_inline void string_clear(string_t *dst)
+attr_inline attr_nonnull void string_clear(string_t *dst)
 {
 	dst->length = 0;
 };
 
-attr_inline void string_set(string_t *dst, char *buffer, int size, int length)
+attr_inline attr_nonnull void string_set(string_t *dst, char *buffer, int size, int length)
 {
 	dst->buffer = buffer;
 	dst->size   = size;
 	dst->length = length;
 }
 
-attr_inline void string_setlength(string_t *dst, int length)
+attr_inline attr_nonnull void string_setlength(string_t *dst, int length)
 {
 	if(length > dst->size)
 		length = dst->size;
@@ -271,7 +271,7 @@ attr_inline void string_setlength(string_t *dst, int length)
 	dst->length = length;
 }
 
-attr_inline bool_t string_match_string(const string_t *s1, const string_t *s2)
+attr_inline attr_nonnull bool_t string_match_string(const string_t *s1, const string_t *s2)
 {
 	if((s1->length == s2->length) && (memcmp(s1->buffer, s2->buffer, s1->length) == 0))
 		return(true);
@@ -279,7 +279,7 @@ attr_inline bool_t string_match_string(const string_t *s1, const string_t *s2)
 	return(false);
 }
 
-attr_inline bool_t string_match_cstr(const string_t *s1, const char *s2)
+attr_inline bool_t attr_nonnull string_match_cstr(const string_t *s1, const char *s2)
 {
 	int length = strlen(s2);
 
@@ -289,7 +289,7 @@ attr_inline bool_t string_match_cstr(const string_t *s1, const char *s2)
 	return(false);
 }
 
-attr_inline bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
+attr_inline attr_nonnull bool_t string_nmatch_string(const string_t *s1, const string_t *s2, int n)
 {
 	if((s1->length >= n) && (s2->length >= n) && (memcmp(s1->buffer, s2->buffer, n) == 0))
 		return(true);
@@ -297,7 +297,7 @@ attr_inline bool_t string_nmatch_string(const string_t *s1, const string_t *s2, 
 	return(false);
 }
 
-attr_inline bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
+attr_inline attr_nonnull bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
 {
 	int length = strlen(s2);
 
@@ -307,14 +307,14 @@ attr_inline bool_t string_nmatch_cstr(const string_t *s1, const char *s2, int n)
 	return(false);
 }
 
-attr_inline string_t string_from_cstr(size_t size, char *cstr)
+attr_inline attr_nonnull string_t string_from_cstr(size_t size, char *cstr)
 {
 	string_t string = { size, strlen(cstr), cstr };
 
 	return(string);
 }
 
-attr_inline const char *string_to_cstr(string_t *string)
+attr_inline attr_nonnull const char *string_to_cstr(string_t *string)
 {
 	if((string == (string_t *)0) || (string->size < 1) || (string->length < 1) || (string->buffer == (const char *)0))
 		return("");
@@ -327,7 +327,7 @@ attr_inline const char *string_to_cstr(string_t *string)
 	return(string->buffer);
 }
 
-attr_inline char string_at(const string_t *s, int at)
+attr_inline attr_nonnull char string_at(const string_t *s, int at)
 {
 	if((unsigned int)at < (unsigned int)s->length)
 		return(s->buffer[at]);
@@ -335,7 +335,7 @@ attr_inline char string_at(const string_t *s, int at)
 		return('\0');
 }
 
-attr_inline void string_append_char(string_t *dst, char c)
+attr_inline attr_nonnull void string_append_char(string_t *dst, char c)
 {
 	if((dst->length + 2) < dst->size)
 		dst->buffer[dst->length++] = c;
@@ -343,23 +343,23 @@ attr_inline void string_append_char(string_t *dst, char c)
 	dst->buffer[dst->length] = '\0';
 }
 
-attr_inline void string_append_byte(string_t *dst, char c)
+attr_inline attr_nonnull void string_append_byte(string_t *dst, char c)
 {
 	if(dst->length < dst->size)
 		dst->buffer[dst->length++] = c;
 }
 
-attr_inline void string_append_cstr(string_t *dst, const char *src)
+attr_inline attr_nonnull void string_append_cstr(string_t *dst, const char *src)
 {
 	dst->length += strecpy(dst->buffer + dst->length, src, dst->size - dst->length);
 }
 
-attr_inline void string_append_cstr_flash(string_t *dst, const char *src)
+attr_inline attr_nonnull void string_append_cstr_flash(string_t *dst, const char *src)
 {
 	dst->length += strecpy_from_flash(dst->buffer + dst->length, (const uint32_t *)(const void *)src, dst->size - dst->length);
 }
 
-attr_inline void string_append_string(string_t *dst, const string_t *src)
+attr_inline attr_nonnull void string_append_string(string_t *dst, const string_t *src)
 {
 	int length = src->length;
 
@@ -371,16 +371,16 @@ attr_inline void string_append_string(string_t *dst, const string_t *src)
 	dst->length += length;
 }
 
-parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
-parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delim, bool_t do_signed);
-parse_error_t parse_float(int index, const string_t *, double *, char delim);
+attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
+attr_nonnull parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delim, bool_t do_signed);
+attr_nonnull parse_error_t parse_float(int index, const string_t *, double *, char delim);
 
-attr_inline irom parse_error_t parse_uint(int index, const string_t *src, uint32_t *dst, int base, char delimiter)
+attr_inline attr_nonnull irom parse_error_t parse_uint(int index, const string_t *src, uint32_t *dst, int base, char delimiter)
 {
 	return(parse_int_all(index, src, dst, base, delimiter, false));
 }
 
-attr_inline parse_error_t parse_int(int index, const string_t *src, int32_t *dst, int base, char delimiter)
+attr_inline attr_nonnull parse_error_t parse_int(int index, const string_t *src, int32_t *dst, int base, char delimiter)
 {
 	parse_error_t error;
 	uint32_t value;
@@ -394,7 +394,7 @@ attr_inline parse_error_t parse_int(int index, const string_t *src, int32_t *dst
 
 extern string_t logbuffer;
 
-int log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
+int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
 
 #define log(fmt, ...) \
 do { \
