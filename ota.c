@@ -43,11 +43,18 @@ irom app_action_t application_function_flash_info(string_t *src, string_t *dst)
 		ota_slot = rrtc.last_rom;
 #endif
 
-	string_format(dst, "OK flash function available, sector size: %u bytes, OTA update available: %d, slots: %d, slot: %d, address: %u, address: %u, address: %u, address: %u\n",
+	string_format(dst, "OK flash function available, "
+				"sector size: %u bytes, "
+				"OTA update available: %d, "
+				"slots: %d, slot: %d, "
+				"address: %u, address: %u, address: %u, address: %u, "
+				"preferred chunk size: %u"
+				"\n",
 			SPI_FLASH_SEC_SIZE,
 			ota_available,
 			ota_slots, ota_slot,
-			ota_address_0, ota_address_1, ota_address_2, ota_address_3);
+			ota_address_0, ota_address_1, ota_address_2, ota_address_3,
+			4096);
 
 	return(app_action_normal);
 }

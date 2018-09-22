@@ -860,7 +860,7 @@ int main(int argc, const char **argv)
 
 		options.add_options()
 			("checksum,C",	po::bool_switch(&cmd_checksum)->implicit_value(true),				"CHECKSUM")
-			("chunksize,c",	po::value<std::string>(&chunk_size_string)->default_value("0x400"),	"send/receive chunk size")
+			("chunksize,c",	po::value<std::string>(&chunk_size_string)->default_value("0"),		"send/receive chunk size")
 			("erase,e",		po::bool_switch(&erase_before_write)->implicit_value(true),			"erase before write (instead of during write)")
 			("filename,f",	po::value<std::string>(&filename),									"file name")
 			("host,h",		po::value<std::string>(&host)->required(),							"host to connect to")
@@ -936,6 +936,7 @@ int main(int argc, const char **argv)
 		std::vector<std::string> string_value;
 		unsigned int flash_sector_size, flash_ota, flash_slots, flash_slot;
 		unsigned int flash_address[4];
+		unsigned int preferred_chunk_size;
 
 		GenericSocket channel(host, port, use_udp, verbose);
 
@@ -943,7 +944,9 @@ int main(int argc, const char **argv)
 		{
 			process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
 						"slots: ([0-9]+), slot: ([0-9]+), "
-						"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
+						"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)"
+						"(?:, preferred chunk size: ([0-9]+))?"
+						"\\s*",
 						string_value, int_value, verbose);
 		}
 		catch(std::string &e)
@@ -959,6 +962,7 @@ int main(int argc, const char **argv)
 		flash_address[1] = int_value[5];
 		flash_address[2] = int_value[6];
 		flash_address[3] = int_value[7];
+		preferred_chunk_size = int_value[8];
 
 		std::cout << "flash operations available, sector size: " << flash_sector_size;
 
@@ -967,15 +971,16 @@ int main(int argc, const char **argv)
 					<< ", address[0]: 0x" << std::setw(6) << std::setfill('0') << std::hex << flash_address[0]
 					<< ", address[1]: 0x" << std::setw(6) << std::setfill('0') << std::hex << flash_address[1]
 					<< ", address[2]: 0x" << std::setw(6) << std::setfill('0') << std::hex << flash_address[2]
-					<< ", address[3]: 0x" << std::setw(6) << std::setfill('0') << std::hex << flash_address[3];
+					<< ", address[3]: 0x" << std::setw(6) << std::setfill('0') << std::hex << flash_address[3]
+					<< ", preferred chunk size: " << std::setw(0) << std::setfill(' ') << std::dec << preferred_chunk_size << std::endl;
 		else
-			std::cout << ", OTA update NOT available";
-
-		std::cout << std::endl;
-		std::cout << std::dec << std::setfill(' ') << std::setw(0);
+			std::cout << ", OTA update NOT available" << std::endl;
 
 		if(chunk_size == 0)
-				throw(std::string("chunk size can't be 0"));
+			chunk_size = preferred_chunk_size;
+
+		if(chunk_size == 0)
+			chunk_size = 512;
 
 		if((flash_sector_size % chunk_size) != 0)
 			throw(std::string("chunk size should be dividable by flash sector size"));
@@ -1105,7 +1110,9 @@ int main(int argc, const char **argv)
 					{
 						process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
 									"slots: ([0-9]+), slot: ([0-9]+), "
-									"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)\\s*",
+									"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)"
+									"(?:, preferred chunk size: ([0-9]+))?"
+									"\\s*",
 									string_value, int_value, verbose);
 
 						if(int_value[3] != (int)flash_slot)
