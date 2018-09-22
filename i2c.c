@@ -352,7 +352,7 @@ iram attr_noinline attr_hot static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_byte(int byte)
+attr_inline i2c_error_t send_byte(int byte)
 {
 	i2c_error_t error;
 	int current;
@@ -391,7 +391,7 @@ attr_inline i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t send_header(int address, i2c_direction_t direction)
+attr_inline i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	bool_t bit;
