@@ -61,8 +61,8 @@ typedef struct
 
 string_new(attr_flash_align, flash_sector_buffer, 4096);
 
-static char _socket_cmd_receive_buffer[4096 + 64];
-static char _socket_cmd_send_buffer[4096 + 64];
+static char _socket_cmd_receive_buffer[4096 + 64] attr_flash_align;
+static char _socket_cmd_send_buffer[4096 + 64] attr_flash_align;
 
 static socket_data_t socket_cmd =
 {
