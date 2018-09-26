@@ -96,6 +96,7 @@ typedef struct attr_packed
 	unsigned int extended:1;
 	unsigned int grb:1;
 	unsigned int linear:1;
+	unsigned int fill8:1;
 } io_pin_flag_t;
 
 assert_size(io_pin_flag_t, 1);

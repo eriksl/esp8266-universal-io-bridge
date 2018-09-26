@@ -16,6 +16,7 @@ typedef struct
 	unsigned int	enabled:1;
 	unsigned int	extended:1;
 	unsigned int	grb:1;
+	unsigned int	fill8:1;
 	uint32_t		value;
 } ledpixel_data_pin_t;
 
@@ -65,33 +66,36 @@ irom static void send_byte(unsigned int byte)
 
 irom static void send_all(_Bool force)
 {
-	unsigned int pin;
+	unsigned int pin, fill;
 
 	for(pin = 0; pin < max_pins_per_io; pin++)
 	{
 		if(!force && !ledpixel_data_pin[pin].enabled)
 			break;
 
-		if(ledpixel_data_pin[pin].grb)
+		for(fill = ledpixel_data_pin[pin].fill8 ? 8 : 1; fill > 0; fill--)
 		{
-			send_byte((ledpixel_data_pin[pin].value & 0x0000ff00) >>   8);
-			send_byte((ledpixel_data_pin[pin].value & 0x00ff0000) >>  16);
+			if(ledpixel_data_pin[pin].grb)
+			{
+				send_byte((ledpixel_data_pin[pin].value & 0x0000ff00) >>   8);
+				send_byte((ledpixel_data_pin[pin].value & 0x00ff0000) >>  16);
+			}
+			else
+			{
+				send_byte((ledpixel_data_pin[pin].value & 0x00ff0000) >>  16);
+				send_byte((ledpixel_data_pin[pin].value & 0x0000ff00) >>   8);
+			}
+
+			send_byte((ledpixel_data_pin[pin].value & 0x000000ff) >>  0);
+
+			// some ws2812's have four leds (including a white one) and need an extra byte to be sent for it
+
+			if(ledpixel_data_pin[pin].extended)
+				send_byte((ledpixel_data_pin[pin].value & 0xff000000) >>  24);
 		}
-		else
-		{
-			send_byte((ledpixel_data_pin[pin].value & 0x00ff0000) >>  16);
-			send_byte((ledpixel_data_pin[pin].value & 0x0000ff00) >>   8);
-		}
 
-		send_byte((ledpixel_data_pin[pin].value & 0x000000ff) >>  0);
-
-		// some ws2812's have four leds (including a white one) and need an extra byte to be sent for it
-
-		if(ledpixel_data_pin[pin].extended)
-			send_byte((ledpixel_data_pin[pin].value & 0xff000000) >>  24);
+		uart_flush(uart);
 	}
-
-	uart_flush(uart);
 }
 
 irom _Bool io_ledpixel_setup(unsigned int io, unsigned int pin)
@@ -132,6 +136,7 @@ irom io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct 
 	ledpixel_data_pin[pin].enabled = pin_config->llmode == io_pin_ll_output_analog;
 	ledpixel_data_pin[pin].extended = pin_config->flags.extended;
 	ledpixel_data_pin[pin].grb = pin_config->flags.grb;
+	ledpixel_data_pin[pin].fill8 = pin_config->flags.fill8;
 	ledpixel_data_pin[pin].value = 0;
 
 	return(io_ok);

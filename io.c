@@ -512,6 +512,8 @@ irom static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry
 		pin_config->flags.grb = value ? 1: 0;
 	else if(string_match_cstr(flag, "linear"))
 		pin_config->flags.linear = value ? 1: 0;
+	else if(string_match_cstr(flag, "fill8"))
+		pin_config->flags.fill8 = value ? 1: 0;
 	else
 		return(false);
 
@@ -576,6 +578,14 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 			string_append(flags, "/");
 		none = false;
 		string_append(flags, "linear");
+	}
+
+	if(pin_config->flags.fill8)
+	{
+		if(!none)
+			string_append(flags, "/");
+		none = false;
+		string_append(flags, "fill8");
 	}
 
 	if(none)
