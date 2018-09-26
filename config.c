@@ -14,7 +14,7 @@
 
 enum
 {
-	config_entries_size = 128,
+	config_entries_size = 160,
 	config_entry_id_size = 28,
 	config_entry_string_size = 20,
 };
