@@ -1896,7 +1896,7 @@ irom static i2c_error_t sensor_bme680_read(void)
 
 		if((data.status & BME680_GASM_VALID_MSK) && (data.status & BME680_HEAT_STAB_MSK))
 		{
-			airquality.cooked = airquality.raw * 100 / 35000;
+			airquality.cooked = airquality.raw * 100 / 200000;
 
 			if(airquality.cooked < 0)
 				airquality.cooked = 0;
