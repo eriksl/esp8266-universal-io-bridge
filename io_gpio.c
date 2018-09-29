@@ -128,7 +128,7 @@ irom static void gpio_direction_set_mask(uint32_t mask)
 	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
 }
 
-irom static void gpio_direction(int io, int onoff)
+irom static void gpio_direction(unsigned int io, _Bool onoff)
 {
 	if(onoff)
 		gpio_direction_set_mask(1 << io);
@@ -138,7 +138,7 @@ irom static void gpio_direction(int io, int onoff)
 
 // disable / enable pullup
 
-irom static _Bool gpio_pullup(int pin, int onoff)
+irom static _Bool gpio_pullup(unsigned int pin, _Bool onoff)
 {
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
@@ -165,7 +165,7 @@ irom static _Bool gpio_pullup(int pin, int onoff)
 
 // clear / set open drain mode
 
-irom static void gpio_enable_open_drain(int pin, int onoff)
+irom static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -186,7 +186,7 @@ irom static void gpio_enable_open_drain(int pin, int onoff)
 
 // select pin function
 
-irom static _Bool gpio_func_select(int pin, int func)
+irom static _Bool gpio_func_select(unsigned int pin, unsigned int func)
 {
 	gpio_info_t *gpio_pin_info;
 	uint32_t value;
