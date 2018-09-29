@@ -202,10 +202,8 @@ typedef enum
 
 irom _Bool display_lcd_bright(int brightness)
 {
-	static const unsigned int bls[5] = { 0, 1024, 4096, 16384, 65535 };
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
-	unsigned int pwm, pwm_period;
-	string_init(varname_pwmperiod, "pwm.period");
+	unsigned int max_value, value;
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
@@ -213,13 +211,17 @@ irom _Bool display_lcd_bright(int brightness)
 	if(!send_byte(cmds[brightness], false))
 		return(false);
 
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
-		pwm_period = 65536;
-
-	pwm = bls[brightness] / (65536 / pwm_period);
-
 	if((bl_io >= 0) && (bl_pin >= 0))
-		io_write_pin((string_t *)0, bl_io, bl_pin, pwm);
+	{
+		max_value = io_pin_max_value(bl_io, bl_pin);
+
+		if(brightness == 0)
+			value = 0;
+		else
+			value = max_value >> ((4 - brightness) << 1);
+
+		io_write_pin((string_t *)0, bl_io, bl_pin, value);
+	}
 
 	return(true);
 }
