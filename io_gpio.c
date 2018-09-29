@@ -23,6 +23,11 @@ typedef enum
 	io_uart_tx,
 } io_uart_t;
 
+enum
+{
+	gpio_open_drain =	1 << 2,
+} gpio_pin_output_mode;
+
 typedef const struct
 {
 	const _Bool			valid;
@@ -160,7 +165,7 @@ irom static _Bool gpio_pullup(int pin, int onoff)
 
 // clear / set open drain mode
 
-irom static void gpio_open_drain(int pin, int onoff)
+irom static void gpio_enable_open_drain(int pin, int onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -172,9 +177,9 @@ irom static void gpio_open_drain(int pin, int onoff)
 	value	= gpio_reg_read(pinaddr);
 
 	if(onoff)
-		value |= GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE);
+		value |= gpio_open_drain;
 	else
-		value &= ~(GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE));
+		value &= ~gpio_open_drain;
 
 	gpio_reg_write(pinaddr, value);
 }
@@ -608,6 +613,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			gpio_direction(pin, 0);
 			gpio_pullup(pin, pin_config->flags.pullup);
+			gpio_enable_open_drain(pin, 0);
 
 			if(pin_config->llmode == io_pin_ll_counter)
 			{
@@ -621,12 +627,14 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		case(io_pin_ll_output_digital):
 		{
 			gpio_direction(pin, 1);
+			gpio_enable_open_drain(pin, 0);
 			break;
 		}
 
 		case(io_pin_ll_output_pwm1):
 		{
 			gpio_direction(pin, 1);
+			gpio_enable_open_drain(pin, 0);
 			gpio_pin_data->pwm.duty = 0;
 			gpio_set(pin, 0);
 			pwm_go();
@@ -639,7 +647,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			gpio_direction(pin, 0);
 			gpio_pullup(pin, 0);
 			gpio_direction(pin, 1);
-			gpio_open_drain(pin, 1);
+			gpio_enable_open_drain(pin, 1);
 			gpio_set(pin, 1);
 
 			break;
