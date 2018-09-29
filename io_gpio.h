@@ -9,6 +9,7 @@
 
 void			io_gpio_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 io_error_t		io_gpio_init(const struct io_info_entry_T *);
+unsigned int	io_gpio_pin_max_value(const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
 io_error_t		io_gpio_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t		io_gpio_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t		io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);

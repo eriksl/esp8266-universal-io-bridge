@@ -33,6 +33,38 @@ irom attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
+irom attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+{
+	unsigned int value = 0;
+
+	switch(pin_config->llmode)
+	{
+		case(io_pin_ll_input_digital):
+		case(io_pin_ll_output_digital):
+		{
+			value = 0x01;
+			break;
+		}
+
+		case(io_pin_ll_input_analog):
+		{
+			value = 0x400;
+			break;
+		}
+
+		case(io_pin_ll_counter):
+		{
+			value = ~0;
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	return(value);
+}
+
 iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	unsigned int pin;

@@ -131,6 +131,16 @@ irom io_error_t io_ledpixel_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
+irom attr_pure unsigned int io_ledpixel_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+{
+	unsigned int value = 0;
+
+	if(pin_config->llmode == io_pin_ll_output_pwm1)
+		value = ledpixel_data_pin[pin].extended ? 0xffffffff : 0x00ffffff;
+
+	return(value);
+}
+
 irom io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	ledpixel_data_pin[pin].enabled = pin_config->llmode == io_pin_ll_output_pwm1;

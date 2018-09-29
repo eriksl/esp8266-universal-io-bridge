@@ -240,6 +240,7 @@ typedef const struct io_info_entry_T
 	const char *name;
 	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
 	void		(* const post_init_fn)		(					const struct io_info_entry_T *);
+	unsigned int(* const pin_max_value_fn)	(					const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
 	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
@@ -258,6 +259,7 @@ assert_size(io_error_t, 4);
 void			io_init(void);
 void			io_periodic_slow(void);
 void			io_periodic_fast(void);
+unsigned int	io_pin_max_value(int io, int pin);
 io_error_t		io_read_pin(string_t *, int, int, uint32_t *);
 io_error_t		io_write_pin(string_t *, int, int, uint32_t);
 io_error_t		io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);

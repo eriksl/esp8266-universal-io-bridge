@@ -36,6 +36,7 @@ static const io_info_t io_info =
 		"Internal GPIO",
 		io_gpio_init,
 		(void *)0, // postinit
+		io_gpio_pin_max_value,
 		(void *)0, // periodic slow
 		io_gpio_periodic_fast,
 		io_gpio_init_pin_mode,
@@ -64,6 +65,7 @@ static const io_info_t io_info =
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
 		(void *)0, // postinit
+		io_aux_pin_max_value,
 		(void *)0, // periodic slow
 		io_aux_periodic_fast,
 		io_aux_init_pin_mode,
@@ -92,6 +94,7 @@ static const io_info_t io_info =
 		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
 		(void *)0, // postinit
+		io_mcp_pin_max_value,
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -120,6 +123,7 @@ static const io_info_t io_info =
 		"MCP23017 I2C I/O expander #2",
 		io_mcp_init,
 		(void *)0, // postinit
+		io_mcp_pin_max_value,
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -148,6 +152,7 @@ static const io_info_t io_info =
 		"MCP23017 I2C I/O expander #3",
 		io_mcp_init,
 		(void *)0, // postinit
+		io_mcp_pin_max_value,
 		io_mcp_periodic_slow,
 		(void *)0, // periodic fast
 		io_mcp_init_pin_mode,
@@ -176,6 +181,7 @@ static const io_info_t io_info =
 		"PCF8574A I2C I/O expander",
 		io_pcf_init,
 		(void *)0, // postinit
+		io_pcf_pin_max_value,
 		(void *)0, // periodic slow
 		(void *)0, // periodic fast
 		io_pcf_init_pin_mode,
@@ -204,6 +210,7 @@ static const io_info_t io_info =
 		"led string",
 		io_ledpixel_init,
 		io_ledpixel_post_init,
+		io_ledpixel_pin_max_value,
 		(void *)0, // periodic slow
 		(void *)0, // periodic fast
 		io_ledpixel_init_pin_mode,
@@ -601,6 +608,17 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 		string_append(flags, "none");
 }
 
+irom static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+{
+	if((pin_config->mode == io_pin_disabled) || (pin_config->mode == io_pin_error))
+		return(0);
+
+	if(!info->pin_max_value_fn)
+		return(0);
+
+	return(info->pin_max_value_fn(info, pin_data, pin_config, pin));
+}
+
 irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	io_error_t error;
@@ -965,6 +983,28 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 	}
 
 	return(io_ok);
+}
+
+irom unsigned int io_pin_max_value(int io, int pin)
+{
+	const io_info_entry_t *info;
+	io_data_entry_t *data;
+	io_config_pin_entry_t *pin_config;
+	io_data_pin_entry_t *pin_data;
+
+	if(io >= io_id_size)
+		return(0);
+
+	info = &io_info[io];
+	data = &io_data[io];
+
+	if(pin >= info->pins)
+		return(0);
+
+	pin_config = &io_config[io][pin];
+	pin_data = &data->pin[pin];
+
+	return(io_pin_max_value_x(info, pin_data, pin_config, pin));
 }
 
 irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
@@ -2632,6 +2672,7 @@ typedef enum
 	ds_id_lcd,
 	ds_id_unknown,
 	ds_id_not_detected,
+	ds_id_max_value,
 	ds_id_info_1,
 	ds_id_info_2,
 	ds_id_pins_header,
@@ -2681,6 +2722,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_not_detected */	"  not found\n",
+		/* ds_id_max_value */		", max value: %u",
 		/* ds_id_info_1 */			", info: ",
 		/* ds_id_info_2 */			"",
 		/* ds_id_pins_header */		"",
@@ -2718,6 +2760,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_not_detected */	"<tr><td colspan=\"6\">not connected</td></tr>\n",
+		/* ds_id_max_value */		"<td>%u</td>",
 		/* ds_id_info_1 */			"<td>",
 		/* ds_id_info 2 */			"</td>",
 		/* ds_id_pins_header */		"<tr><th>pin</th><th>mode</th><th>hw mode</th><th>flags</th><th>pin info</th><th>extra info</th></tr>\n",
@@ -2970,6 +3013,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 				}
 			}
 
+			string_format_flash_ptr(dst, (*roflash_strings)[ds_id_max_value], io_pin_max_value(io, pin));
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_info_1]);
 			if(info->get_pin_info_fn)
 				info->get_pin_info_fn(dst, info, pin_data, pin_config, pin);
