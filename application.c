@@ -1673,6 +1673,23 @@ irom static app_action_t application_function_gpio_assoc_set(string_t *src, stri
 	return(app_action_normal);
 }
 
+irom static app_action_t application_function_pwm_period(string_t *src, string_t *dst)
+{
+	unsigned int period;
+
+	if(parse_uint(1, src, &period, 0, ' ') == parse_ok)
+	{
+		if(!io_gpio_pwm1_period_set(period, /*load*/false, /*save*/true))
+		{
+			string_format(dst, "pwm-period: invalid period: %d\n", period);
+			return(app_action_error);
+		}
+	}
+
+	string_format(dst, "pwm_period: %d\n", io_gpio_pwm1_period_get());
+
+	return(app_action_normal);
+}
 irom static app_action_t application_function_peek(string_t *src, string_t *dst)
 {
 	uint32_t address;

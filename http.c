@@ -5,6 +5,7 @@
 #include "stats.h"
 #include "i2c_sensor.h"
 #include "dispatch.h"
+#include "io_gpio.h"
 
 typedef struct
 {
@@ -109,14 +110,12 @@ roflash static const char roflash_html_table_end[] =
 
 irom static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
 {
-	int pwm_period;
+	unsigned int pwm_period;
 	string_new(, id, 32);
-	string_init(varname_pwmperiod, "pwm.period");
 
 	string_format(&id, "range_%d_%d", io, pin);
 
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
-		pwm_period = 65536;
+	pwm_period = io_gpio_pwm1_period_get();
 
 	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_cstr(&id), "set");
 	string_append(dst,		"	<div class=\"div\">\n");

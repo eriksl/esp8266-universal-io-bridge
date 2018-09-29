@@ -127,6 +127,8 @@ pwm_delay_t pwm_delay_entry[pwm_table_delay_size] =
 	{	23,	320,	686,	},
 };
 
+static void pwm_go(void);
+
 // set GPIO direction
 
 irom static void gpio_direction_clear_mask(uint32_t mask)
@@ -334,8 +336,54 @@ static pwm_phases_t		pwm_phase[2];
 static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
+static unsigned int pwm1_period;
 
 static void pwm_isr(void);
+
+irom _Bool io_gpio_pwm1_period_set(unsigned int period, _Bool load, _Bool save)
+{
+	unsigned int period_load;
+	string_init(varname_pwmperiod, "pwm.period");
+
+	if(load && config_get_int(&varname_pwmperiod, -1, -1, &period_load))
+		period = period_load;
+
+	switch(period)
+	{
+		case(256):
+		case(512):
+		case(1024):
+		case(2048):
+		case(4096):
+		case(8196):
+		case(16384):
+		case(32768):
+		case(65536):
+			break;
+
+		default:
+			return(false);
+	}
+
+	pwm1_period = period;
+
+	if(save)
+	{
+		if(pwm1_period == 65536)
+			config_delete(&varname_pwmperiod, -1, -1, false);
+		else
+			config_set_int(&varname_pwmperiod, -1, -1, pwm1_period);
+	}
+
+	pwm_go();
+
+	return(true);
+}
+
+irom attr_pure unsigned int io_gpio_pwm1_period_get(void)
+{
+	return(pwm1_period);
+}
 
 irom static void pwm_isr_setup(void)
 {
@@ -435,13 +483,9 @@ irom static void pwm_go(void)
 	gpio_data_pin_t *pin1_data, *pin2_data, *pin3_data;
 	int pin1, pin2, pin3;
 	pwm_phases_t *phase_data;
-	unsigned int duty, delta, new_phase_set, pwm_period;
+	unsigned int duty, delta, new_phase_set;
 	uint32_t timer_value;
 	_Bool isr_enabled;
-	string_init(varname_pwmperiod, "pwm.period");
-
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
-		pwm_period = 65536;
 
 	isr_enabled = pwm_isr_enabled();
 	pwm_isr_enable(false);
@@ -450,8 +494,8 @@ irom static void pwm_go(void)
 	if(timer_value < 32)
 		timer_value = 32;
 
-	if(timer_value > pwm_period)
-		timer_value = pwm_period;
+	if(timer_value > pwm1_period)
+		timer_value = pwm1_period;
 
 	// if next set is already active or ISR is off, suspend ISR and re-configure current set
 
@@ -480,8 +524,8 @@ irom static void pwm_go(void)
 			pin1_data->pwm.this = pin1;
 			pin1_data->pwm.next = -1;
 
-			if(pin1_data->pwm.duty >= pwm_period)
-				pin1_data->pwm.duty = pwm_period - 1;
+			if(pin1_data->pwm.duty >= pwm1_period)
+				pin1_data->pwm.duty = pwm1_period - 1;
 		}
 	}
 
@@ -503,7 +547,7 @@ irom static void pwm_go(void)
 		if(pin1_data->pwm.duty == 0)
 			phase_data->static_clear_mask |= 1 << pin1;
 		else
-			if((pin1_data->pwm.duty + 1) >= pwm_period)
+			if((pin1_data->pwm.duty + 1) >= pwm1_period)
 				phase_data->static_set_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
@@ -570,7 +614,7 @@ irom static void pwm_go(void)
 		{
 			phase_data->phase[phase_data->size - 1].delay	= delta;
 			phase_data->phase[phase_data->size].duty		= pin1_data->pwm.duty;
-			phase_data->phase[phase_data->size].delay		= pwm_period - 1 - pin1_data->pwm.duty;
+			phase_data->phase[phase_data->size].delay		= pwm1_period - 1 - pin1_data->pwm.duty;
 			phase_data->phase[phase_data->size].mask		= 1 << pin1;
 			phase_data->size++;
 		}
@@ -609,6 +653,8 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_high_speed;
 		else
 			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_low_speed;
+
+	io_gpio_pwm1_period_set(65536, /*load*/true, /*save*/false);
 
 	pwm_current_phase_set = 0;
 	io_gpio_flags.pwm_reset_phase_set = 0;
@@ -805,13 +851,9 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 {
 	gpio_data_pin_t *gpio_pin_data;
 	unsigned int pwm_period;
-	string_init(varname_pwmperiod, "pwm.period");
 
 	if((pin < 0) || (pin >= io_gpio_pin_size))
 		return(io_error);
-
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
-		pwm_period = 65536;
 
 	gpio_pin_data = &gpio_data[pin];
 
@@ -841,6 +883,8 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 			{
 				unsigned int duty, frequency, dutypct, dutypctfraction;
 
+				pwm_period = io_gpio_pwm1_period_get();
+
 				duty = gpio_pin_data->pwm.duty;
 				frequency = 5000000 / pwm_period;
 
@@ -859,9 +903,9 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 			case(io_pin_ll_output_pwm2):
 			{
-				unsigned int target, prescale, period, frequency;
+				unsigned int target, prescale, frequency;
 
-				period = 0;
+				pwm_period = 0;
 				frequency = 0;
 
 				target = pdm_get_target();
@@ -870,13 +914,13 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				if(target > 0)
 				{
 					if(target <= 128)
-						period = (prescale + 1) * 256 / target;
+						pwm_period = (prescale + 1) * 256 / target;
 					else
-						period = ((prescale + 1) * 256) / (256 - target);
+						pwm_period = ((prescale + 1) * 256) / (256 - target);
 				}
 
-				if(period != 0)
-					frequency = 80000000 / period;
+				if(pwm_period != 0)
+					frequency = 80000000 / pwm_period;
 
 				string_format(dst, "frequency: %u Hz, duty: %u %%, prescale: %u, target: %u, state: %s",
 						frequency, gpio_pin_data->pwm.duty * 100 / 255, prescale, target, onoff(gpio_get(pin)));
@@ -1125,30 +1169,4 @@ irom attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 		return(-1);
 
 	return(gpio_info_table[pin].uart);
-}
-
-irom app_action_t application_function_pwm_period(string_t *src, string_t *dst)
-{
-	unsigned int new_pwm_period;
-	string_init(varname_pwmperiod, "pwm.period");
-
-	if(parse_uint(1, src, &new_pwm_period, 0, ' ') == parse_ok)
-	{
-		if((new_pwm_period < 256) || (new_pwm_period > 65536))
-		{
-			string_format(dst, "pwm-period: invalid period: %d (must be 256-65536)\n", new_pwm_period);
-			return(app_action_error);
-		}
-
-		config_set_int(&varname_pwmperiod, -1, -1, new_pwm_period);
-
-		pwm_go();
-	}
-
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &new_pwm_period))
-		new_pwm_period = 65536;
-
-	string_format(dst, "pwm_period: %d\n", new_pwm_period);
-
-	return(app_action_normal);
 }

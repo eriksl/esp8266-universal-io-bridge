@@ -1087,11 +1087,6 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	unsigned int pwm_period;
-	string_init(varname_pwmperiod, "pwm.period");
-
-	if(!config_get_int(&varname_pwmperiod, -1, -1, &pwm_period))
-		pwm_period = 65536;
 
 	if(io >= io_id_size)
 	{
@@ -1131,12 +1126,6 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 			*lower_bound	= pin_config->shared.output_pwm.lower_bound;
 			*upper_bound	= pin_config->shared.output_pwm.upper_bound;
 			*step			= pin_config->speed;
-
-			if(*lower_bound > pwm_period)
-				*lower_bound = 0;
-
-			if(*upper_bound > pwm_period)
-				*upper_bound = pwm_period - 1;
 
 			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
