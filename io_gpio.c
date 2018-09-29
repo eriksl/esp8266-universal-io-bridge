@@ -138,7 +138,7 @@ irom static void gpio_direction(unsigned int io, _Bool onoff)
 
 // disable / enable pullup
 
-irom static _Bool gpio_pullup(unsigned int pin, _Bool onoff)
+irom static _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 {
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
@@ -612,8 +612,8 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		case(io_pin_ll_counter):
 		{
 			gpio_direction(pin, 0);
-			gpio_pullup(pin, pin_config->flags.pullup);
 			gpio_enable_open_drain(pin, 0);
+			gpio_enable_pullup(pin, pin_config->flags.pullup);
 
 			if(pin_config->llmode == io_pin_ll_counter)
 			{
@@ -645,7 +645,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		case(io_pin_ll_i2c):
 		{
 			gpio_direction(pin, 0);
-			gpio_pullup(pin, 0);
+			gpio_enable_pullup(pin, 0);
 			gpio_direction(pin, 1);
 			gpio_enable_open_drain(pin, 1);
 			gpio_set(pin, 1);
@@ -670,7 +670,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			}
 
 			gpio_func_select(pin, gpio_info->uart_func);
-			gpio_pullup(pin, pin_config->flags.pullup);
+			gpio_enable_pullup(pin, pin_config->flags.pullup);
 
 			break;
 		}
