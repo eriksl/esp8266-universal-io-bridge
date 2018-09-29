@@ -255,16 +255,16 @@ extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
 assert_size(io_error_t, 4);
 
-void		io_init(void);
-void		io_periodic_slow(void);
-void		io_periodic_fast(void);
-io_error_t	io_read_pin(string_t *, int, int, uint32_t *);
-io_error_t	io_write_pin(string_t *, int, int, uint32_t);
-io_error_t	io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
-io_error_t	io_trigger_pin(string_t *, int, int, io_trigger_t);
-io_error_t	io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
-void		io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html);
-void		io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
+void			io_init(void);
+void			io_periodic_slow(void);
+void			io_periodic_fast(void);
+io_error_t		io_read_pin(string_t *, int, int, uint32_t *);
+io_error_t		io_write_pin(string_t *, int, int, uint32_t);
+io_error_t		io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
+io_error_t		io_trigger_pin(string_t *, int, int, io_trigger_t);
+io_error_t		io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
+void			io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html);
+void			io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
 app_action_t application_function_io_mode(string_t *src, string_t *dst);
 app_action_t application_function_io_read(string_t *src, string_t *dst);
