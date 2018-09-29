@@ -27,6 +27,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 0,
 			.output_pwm1 = 1,
+			.output_pwm2 = 1,
 			.i2c = 1,
 			.uart = 1,
 			.ledpixel = 1,
@@ -54,6 +55,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 1,
 			.output_pwm1 = 0,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -81,6 +83,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 0,
 			.output_pwm1 = 0,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -108,6 +111,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 0,
 			.output_pwm1 = 0,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -135,6 +139,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 0,
 			.output_pwm1 = 0,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -162,6 +167,7 @@ static const io_info_t io_info =
 			.output_digital = 1,
 			.input_analog = 0,
 			.output_pwm1 = 0,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -189,6 +195,7 @@ static const io_info_t io_info =
 			.output_digital = 0,
 			.input_analog = 0,
 			.output_pwm1 = 1,
+			.output_pwm2 = 0,
 			.i2c = 0,
 			.uart = 0,
 			.ledpixel = 0,
@@ -231,6 +238,7 @@ static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_trigger,			"trigger",		"trigger"				},
 	{ io_pin_ledpixel,			"ledpixel",		"ledpixel control"		},
 	{ io_pin_cfa634,			"cfa634",		"crystalfontz cfa634"	},
+	{ io_pin_output_pwm2,		"pwm2",			"secondary pwm output"	},
 };
 
 irom static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -307,6 +315,7 @@ static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 	{ io_pin_ll_output_pwm1,		"pwm output"		},
 	{ io_pin_ll_i2c,				"i2c"				},
 	{ io_pin_ll_uart,				"uart"				},
+	{ io_pin_ll_output_pwm2,		"pwm2 output"		},
 };
 
 irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
@@ -789,6 +798,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 		}
 
 		case(io_pin_output_pwm1):
+		case(io_pin_output_pwm2):
 		{
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, &value)) != io_ok)
 				return(error);
@@ -1134,6 +1144,18 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 			break;
 		}
 
+		case(io_pin_output_pwm2):
+		{
+			*lower_bound	= pin_config->shared.output_pwm.lower_bound;
+			*upper_bound	= pin_config->shared.output_pwm.upper_bound;
+			*step			= pin_config->speed;
+
+			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
+				return(error);
+
+			break;
+		}
+
 		default:
 		{
 			if(errormsg)
@@ -1364,6 +1386,48 @@ irom void io_init(void)
 					break;
 				}
 
+				case(io_pin_output_pwm2):
+				{
+					int speed;
+					uint32_t lower_bound, upper_bound;
+
+					if(!info->caps.output_pwm2)
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int(&varname_iooutputa_speed, io, pin, &speed))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int(&varname_iooutputa_lower, io, pin, &lower_bound))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if(!config_get_int(&varname_iooutputa_upper, io, pin, &upper_bound))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					pin_config->shared.output_pwm.lower_bound = lower_bound;
+					pin_config->shared.output_pwm.upper_bound = upper_bound;
+					pin_config->speed = speed;
+
+					llmode = io_pin_ll_output_pwm2;
+
+					break;
+				}
+
 				case(io_pin_i2c):
 				{
 					int pin_mode;
@@ -1460,6 +1524,7 @@ irom void io_init(void)
 						}
 
 						case(io_pin_output_pwm1):
+						case(io_pin_output_pwm2):
 						{
 							// FIXME: add auto-on flag
 							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
@@ -1627,7 +1692,7 @@ irom void io_periodic_slow(void)
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
-			if((pin_config->mode == io_pin_output_pwm1) &&
+			if(((pin_config->mode == io_pin_output_pwm1) || (pin_config->mode == io_pin_output_pwm2)) &&
 					(pin_config->shared.output_pwm.upper_bound > pin_config->shared.output_pwm.lower_bound) &&
 					(pin_config->speed > 0) &&
 					(pin_data->direction != io_dir_none))
@@ -2006,6 +2071,47 @@ skip:
 			break;
 		}
 
+		case(io_pin_output_pwm2):
+		{
+			uint32_t lower_bound = 0;
+			uint32_t upper_bound = 0;
+			uint32_t speed = 0;
+
+			if(!info->caps.output_pwm2)
+			{
+				string_append(dst, "secondary pwm output mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			parse_uint(4, src, &lower_bound, 0, ' ');
+			parse_uint(5, src, &upper_bound, 0, ' ');
+			parse_uint(6, src, &speed, 0, ' ');
+
+			if(upper_bound == 0)
+				upper_bound = ~0;
+
+			if(upper_bound < lower_bound)
+			{
+				string_append(dst, "upper bound below lower bound\n");
+				return(app_action_error);
+			}
+
+			pin_config->shared.output_pwm.lower_bound = lower_bound;
+			pin_config->shared.output_pwm.upper_bound = upper_bound;
+			pin_config->speed = speed;
+
+			llmode = io_pin_ll_output_pwm2;
+
+			config_delete(&varname_io, io, pin, true);
+			config_set_int(&varname_io_mode, io, pin, mode);
+			config_set_int(&varname_io_llmode, io, pin, io_pin_ll_output_pwm2);
+			config_set_int(&varname_io_outputa_lower, io, pin, lower_bound);
+			config_set_int(&varname_io_outputa_upper, io, pin, upper_bound);
+			config_set_int(&varname_io_outputa_speed, io, pin, speed);
+
+			break;
+		}
+
 		case(io_pin_i2c):
 		{
 			io_i2c_t pin_mode;
@@ -2083,16 +2189,19 @@ skip:
 
 			if(pin_mode == io_lcd_bl) // backlight
 			{
-				if(info->caps.output_analog)
-					llmode = io_pin_ll_output_analog;
+				if(info->caps.output_pwm2)
+					llmode = io_pin_ll_output_pwm2;
 				else
-					if(info->caps.output_digital)
-						llmode = io_pin_ll_output_digital;
+					if(info->caps.output_pwm1)
+						llmode = io_pin_ll_output_pwm1;
 					else
-					{
-						string_append(dst, "analog/digital output mode invalid for this io\n");
-						return(app_action_error);
-					}
+						if(info->caps.output_digital)
+							llmode = io_pin_ll_output_digital;
+						else
+						{
+							string_append(dst, "pwm1/digital output mode invalid for this io\n");
+							return(app_action_error);
+						}
 			}
 			else
 			{
@@ -2525,6 +2634,7 @@ typedef enum
 	ds_id_output,
 	ds_id_timer,
 	ds_id_pwm1_output,
+	ds_id_pwm2_output,
 	ds_id_i2c_sda,
 	ds_id_i2c_scl,
 	ds_id_uart,
@@ -2573,6 +2683,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_output */			"output, state: %s",
 		/* ds_id_timer */			"config direction: %s, speed: %d ms, current direction: %s, delay: %d ms, state: %s",
 		/* ds_id_pwm1_output */		"primary pwm output, min/static: %u, max: %u, current speed: %d, direction: %s, value: %u, saved value: %u",
+		/* ds_id_pwm2_output */		"secondary pwm output, min/static: %u, max: %u, current speed: %d, direction: %s, value: %u, saved value: %u",
 		/* ds_id_i2c_sda */			"sda",
 		/* ds_id_i2c_scl */			"scl",
 		/* ds_id_uart */			"uart",
@@ -2609,6 +2720,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_output */			"<td>output</td><td>state: %s</td>",
 		/* ds_id_timer */			"<td>config direction: %s, speed: %d ms, current direction %s, delay: %d ms, state: %s</td>",
 		/* ds_id_pwm1_output */		"<td>min/static: %u, max: %u, speed: %d, current direction: %s, value: %u, saved value: %u",
+		/* ds_id_pwm2_output */		"<td>min/static: %u, max: %u, speed: %d, current direction: %s, value: %u, saved value: %u",
 		/* ds_id_i2c_sda */			"<td>sda</td>",
 		/* ds_id_i2c_scl */			"<td>scl</td>",
 		/* ds_id_uart */			"<td>uart</td>",
@@ -2694,6 +2806,7 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 				case(io_pin_timer):
 				case(io_pin_input_analog):
 				case(io_pin_output_pwm1):
+				case(io_pin_output_pwm2):
 				case(io_pin_i2c):
 				case(io_pin_trigger):
 				{
@@ -2794,6 +2907,21 @@ irom void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 				{
 					if(error == io_ok)
 						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_pwm1_output],
+								pin_config->shared.output_pwm.lower_bound,
+								pin_config->shared.output_pwm.upper_bound,
+								pin_config->speed,
+								pin_data->direction == io_dir_up ? "up" : (pin_data->direction == io_dir_down ? "down" : "none"),
+								value, pin_data->saved_value);
+					else
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
+
+					break;
+				}
+
+				case(io_pin_output_pwm2):
+				{
+					if(error == io_ok)
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_pwm2_output],
 								pin_config->shared.output_pwm.lower_bound,
 								pin_config->shared.output_pwm.upper_bound,
 								pin_config->speed,

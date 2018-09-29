@@ -81,6 +81,7 @@ typedef enum attr_packed
 	io_pin_trigger,
 	io_pin_ledpixel,
 	io_pin_cfa634,
+	io_pin_output_pwm2,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -129,6 +130,7 @@ typedef enum attr_packed
 	io_pin_ll_output_pwm1,
 	io_pin_ll_i2c,
 	io_pin_ll_uart,
+	io_pin_ll_output_pwm2,
 	io_pin_ll_error,
 	io_pin_ll_size = io_pin_ll_error
 } io_pin_ll_mode_t;
@@ -162,6 +164,7 @@ typedef struct
 	unsigned int output_digital:1;
 	unsigned int input_analog:1;
 	unsigned int output_pwm1:1;
+	unsigned int output_pwm2:1;
 	unsigned int i2c:1;
 	unsigned int ledpixel:1;
 	unsigned int uart:1;

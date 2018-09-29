@@ -25,8 +25,19 @@ typedef enum
 
 enum
 {
+	gpio_pdm_source =	1 << 0,
 	gpio_open_drain =	1 << 2,
 } gpio_pin_output_mode;
+
+enum
+{
+	gpio_pdm_reg =				0x60000368,
+	gpio_pdm_enable =			1 << 16,
+	gpio_pdm_prescale_shift =	8,
+	gpio_pdm_prescale_mask =	0xff,
+	gpio_pdm_target_shift =		0,
+	gpio_pdm_target_mask =		0xff,
+} gpio_pdm;
 
 typedef const struct
 {
@@ -163,6 +174,27 @@ irom static _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 	return(true);
 }
 
+// clear / set quasi-PWM using PDM (Pulse Density Modulation, aka "sigma-delta") mode
+
+irom static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
+{
+	uint32_t pinaddr;
+	uint32_t value;
+
+	if(pin >= io_gpio_pin_size)
+		return;
+
+	pinaddr	= gpio_pin_addr(pin);
+	value	= gpio_reg_read(pinaddr);
+
+	if(onoff)
+		value |= gpio_pdm_source;
+	else
+		value &= ~gpio_pdm_source;
+
+	gpio_reg_write(pinaddr, value);
+}
+
 // clear / set open drain mode
 
 irom static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
@@ -209,6 +241,68 @@ irom static _Bool gpio_func_select(unsigned int pin, unsigned int func)
 	write_peri_reg(gpio_pin_info->mux, value);
 
 	return(true);
+}
+
+irom static void pdm_set_prescale(unsigned int value)
+{
+	uint32_t regval;
+
+	regval = read_peri_reg(gpio_pdm_reg);
+	regval &= ~(gpio_pdm_prescale_mask << gpio_pdm_prescale_shift);
+	regval |= (value & gpio_pdm_prescale_mask) << gpio_pdm_prescale_shift;
+
+	write_peri_reg(gpio_pdm_reg, regval);
+}
+
+irom static void pdm_set_target(unsigned int value)
+{
+	uint32_t regval;
+
+	regval = read_peri_reg(gpio_pdm_reg);
+	regval &= ~(gpio_pdm_target_mask << gpio_pdm_target_shift);
+	regval |= (value & gpio_pdm_target_mask) << gpio_pdm_target_shift;
+
+	write_peri_reg(gpio_pdm_reg, regval);
+}
+
+irom static unsigned int pdm_get_prescale(void)
+{
+	uint32_t regval;
+
+	regval = read_peri_reg(gpio_pdm_reg);
+	regval >>= gpio_pdm_prescale_shift;
+	regval &= gpio_pdm_prescale_mask;
+
+	return(regval);
+}
+
+irom static unsigned int pdm_get_target(void)
+{
+	uint32_t regval;
+
+	regval = read_peri_reg(gpio_pdm_reg);
+	regval >>= gpio_pdm_target_shift;
+	regval &= gpio_pdm_target_mask;
+
+	return(regval);
+}
+
+irom static void pdm_enable(_Bool onoff)
+{
+	uint32_t regval;
+
+	regval = read_peri_reg(gpio_pdm_reg);
+
+	if(onoff)
+	{
+		pdm_set_prescale(0);
+		pdm_set_target(0);
+		regval |= gpio_pdm_enable;
+	}
+	else
+		regval &= ~gpio_pdm_enable;
+
+	write_peri_reg(gpio_pdm_reg, regval);
 }
 
 // PWM
@@ -508,6 +602,8 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	unsigned int entry;
 	_Bool cpu_high_speed = config_flags_get().flag.cpu_high_speed;
 
+	pdm_enable(false);
+
 	for(entry = 0; entry < pwm_table_delay_size; entry++)
 		if(cpu_high_speed)
 			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_high_speed;
@@ -613,6 +709,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			gpio_direction(pin, 0);
 			gpio_enable_open_drain(pin, 0);
+			gpio_enable_pdm(pin, 0);
 			gpio_enable_pullup(pin, pin_config->flags.pullup);
 
 			if(pin_config->llmode == io_pin_ll_counter)
@@ -628,6 +725,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			gpio_direction(pin, 1);
 			gpio_enable_open_drain(pin, 0);
+			gpio_enable_pdm(pin, 0);
 			break;
 		}
 
@@ -635,9 +733,22 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		{
 			gpio_direction(pin, 1);
 			gpio_enable_open_drain(pin, 0);
+			gpio_enable_pdm(pin, 0);
 			gpio_pin_data->pwm.duty = 0;
 			gpio_set(pin, 0);
 			pwm_go();
+
+			break;
+		}
+
+		case(io_pin_ll_output_pwm2):
+		{
+			gpio_direction(pin, 1);
+			gpio_enable_open_drain(pin, 0);
+			gpio_set(pin, 0);
+			gpio_enable_pdm(pin, 1);
+			gpio_pin_data->pwm.duty = 0;
+			pdm_enable(true);
 
 			break;
 		}
@@ -648,6 +759,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			gpio_enable_pullup(pin, 0);
 			gpio_direction(pin, 1);
 			gpio_enable_open_drain(pin, 1);
+			gpio_enable_pdm(pin, 0);
 			gpio_set(pin, 1);
 
 			break;
@@ -745,6 +857,33 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				break;
 			}
 
+			case(io_pin_ll_output_pwm2):
+			{
+				unsigned int target, prescale, period, frequency;
+
+				period = 0;
+				frequency = 0;
+
+				target = pdm_get_target();
+				prescale = pdm_get_prescale();
+
+				if(target > 0)
+				{
+					if(target <= 128)
+						period = (prescale + 1) * 256 / target;
+					else
+						period = ((prescale + 1) * 256) / (256 - target);
+				}
+
+				if(period != 0)
+					frequency = 80000000 / period;
+
+				string_format(dst, "frequency: %u Hz, duty: %u %%, prescale: %u, target: %u, state: %s",
+						frequency, gpio_pin_data->pwm.duty * 100 / 255, prescale, target, onoff(gpio_get(pin)));
+
+				break;
+			}
+
 			case(io_pin_ll_uart):
 			{
 				unsigned int uart = gpio_info_table[pin].uart;
@@ -827,6 +966,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 		}
 
 		case(io_pin_ll_output_pwm1):
+		case(io_pin_ll_output_pwm2):
 		{
 			*value = gpio_pin_data->pwm.duty;
 
@@ -904,6 +1044,32 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 				gpio_pin_data->pwm.duty = value;
 				pwm_go();
 			}
+
+			break;
+		}
+
+		case(io_pin_ll_output_pwm2):
+		{
+			unsigned int prescale, target;
+
+			gpio_pin_data->pwm.duty = value;
+
+			if(value > 255)
+				value = 255;
+
+			prescale = 0;
+			target = value;
+
+			if(value > 0)
+			{
+				if(value < 128)
+					prescale = (target * 2) - 1;
+				else
+					prescale = 256 - (target * 2) - 1;
+			}
+
+			pdm_set_prescale(prescale);
+			pdm_set_target(target);
 
 			break;
 		}
