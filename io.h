@@ -74,7 +74,7 @@ typedef enum attr_packed
 	io_pin_output_digital,
 	io_pin_timer,
 	io_pin_input_analog,
-	io_pin_output_analog,
+	io_pin_output_pwm1,
 	io_pin_i2c,
 	io_pin_uart,
 	io_pin_lcd,
@@ -126,7 +126,7 @@ typedef enum attr_packed
 	io_pin_ll_counter,
 	io_pin_ll_output_digital,
 	io_pin_ll_input_analog,
-	io_pin_ll_output_analog,
+	io_pin_ll_output_pwm1,
 	io_pin_ll_i2c,
 	io_pin_ll_uart,
 	io_pin_ll_error,
@@ -161,7 +161,7 @@ typedef struct
 	unsigned int counter:1;
 	unsigned int output_digital:1;
 	unsigned int input_analog:1;
-	unsigned int output_analog:1;
+	unsigned int output_pwm1:1;
 	unsigned int i2c:1;
 	unsigned int ledpixel:1;
 	unsigned int uart:1;
@@ -207,7 +207,7 @@ typedef struct
 		{
 			uint32_t		lower_bound;
 			uint32_t		upper_bound;
-		} output_analog;
+		} output_pwm;
 
 		struct
 		{

@@ -376,7 +376,7 @@ irom static void pwm_go(void)
 		pin1_data	= &gpio_data[pin1];
 
 		if((pin1_info->valid) &&
-				(pin1_config->llmode == io_pin_ll_output_analog))
+				(pin1_config->llmode == io_pin_ll_output_pwm1))
 		{
 			pin1_data->pwm.this = pin1;
 			pin1_data->pwm.next = -1;
@@ -398,7 +398,7 @@ irom static void pwm_go(void)
 		pin1_config	= &io_config[io_id_gpio][pin1];
 		pin1_data	= &gpio_data[pin1];
 
-		if(!pin1_info->valid || (pin1_config->llmode != io_pin_ll_output_analog))
+		if(!pin1_info->valid || (pin1_config->llmode != io_pin_ll_output_pwm1))
 			continue;
 
 		if(pin1_data->pwm.duty == 0)
@@ -624,7 +624,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			break;
 		}
 
-		case(io_pin_ll_output_analog):
+		case(io_pin_ll_output_pwm1):
 		{
 			gpio_direction(pin, 1);
 			gpio_pin_data->pwm.duty = 0;
@@ -717,7 +717,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				break;
 			}
 
-			case(io_pin_ll_output_analog):
+			case(io_pin_ll_output_pwm1):
 			{
 				unsigned int duty, frequency, dutypct, dutypctfraction;
 
@@ -818,7 +818,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 			break;
 		}
 
-		case(io_pin_ll_output_analog):
+		case(io_pin_ll_output_pwm1):
 		{
 			*value = gpio_pin_data->pwm.duty;
 
@@ -889,7 +889,7 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 			break;
 		}
 
-		case(io_pin_ll_output_analog):
+		case(io_pin_ll_output_pwm1):
 		{
 			if(gpio_pin_data->pwm.duty != value)
 			{

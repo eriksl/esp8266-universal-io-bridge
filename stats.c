@@ -310,7 +310,7 @@ irom void stats_counters(string_t *dst)
 			"> int uart1 tx: %u\n"
 			"> fast timer fired: %u\n"
 			"> slow timer fired: %u\n"
-			"> pwm timer int fired: %u\n"
+			"> primary pwm timer int fired: %u\n"
 			"> ... while masked: %u\n"
 			"> pc counts: %u\n"
 			"> uart updated: %u\n"
