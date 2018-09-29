@@ -17,11 +17,11 @@ enum
 
 enum
 {
-	FUNC_U0RXD = 0,
-	FUNC_GPIO6 = 3,
-	FUNC_GPIO7 = 3,
-	FUNC_GPIO8 = 3,
-	FUNC_GPIO11 = 3
+	FUNC_U0RXD =	0,
+	FUNC_GPIO6 =	3,
+	FUNC_GPIO7 =	3,
+	FUNC_GPIO8 =	3,
+	FUNC_GPIO11 =	3
 } FUNC;
 
 enum
