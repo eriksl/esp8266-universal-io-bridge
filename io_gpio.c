@@ -59,9 +59,9 @@ typedef union
 
 	struct
 	{
-		int this;
-		int next;
-		unsigned int duty;
+		int pwm_this;
+		int pwm_next;
+		unsigned int pwm_duty;
 	} pwm;
 } gpio_data_pin_t;
 
@@ -311,18 +311,22 @@ irom static void pdm_enable(_Bool onoff)
 
 typedef struct
 {
-	int			duty;
-	int			delay;
-	uint16_t	mask;
+	uint32_t	phase_duty;
+	uint32_t	phase_delay;
+	uint16_t	phase_mask;
 } pwm_phase_t;
+
+assert_size(pwm_phase_t, 12);
 
 typedef struct
 {
-	unsigned int	size;
-	uint32_t		static_set_mask;
-	uint32_t		static_clear_mask;
+	uint32_t		phases_size;
+	uint32_t		phases_set_mask;
+	uint32_t		phases_clear_mask;
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
+
+assert_size(pwm_phases_t, 72);
 
 typedef struct
 {
@@ -436,7 +440,7 @@ attr_speed iram static void pwm_isr(void)
 
 	for(;;)
 	{
-		if(phase >= pwm_phase[pwm_current_phase_set].size)
+		if(phase >= pwm_phase[pwm_current_phase_set].phases_size)
 			phase = 0;
 
 		if(phase == 0)
@@ -446,24 +450,24 @@ attr_speed iram static void pwm_isr(void)
 
 			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
 			{
-				gpio_set_mask(pwm_phase[pwm_current_phase_set].static_set_mask);
-				gpio_clear_mask(pwm_phase[pwm_current_phase_set].static_clear_mask);
+				gpio_set_mask(pwm_phase[pwm_current_phase_set].phases_set_mask);
+				gpio_clear_mask(pwm_phase[pwm_current_phase_set].phases_clear_mask);
 				io_gpio_flags.pwm_reset_phase_set = 0;
 				io_gpio_flags.pwm_next_phase_set = 0;
 			}
 
-			if(pwm_phase[pwm_current_phase_set].size < 2)
+			if(pwm_phase[pwm_current_phase_set].phases_size < 2)
 			{
 				pwm_isr_enable(false);
 				return;
 			}
 
-			gpio_set_mask(pwm_phase[pwm_current_phase_set].phase[phase].mask);
+			gpio_set_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
 		}
 		else
-			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].mask);
+			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
 
-		ticks_to_next_phase = pwm_phase[pwm_current_phase_set].phase[phase].delay;
+		ticks_to_next_phase = pwm_phase[pwm_current_phase_set].phase[phase].phase_delay;
 		phase++;
 
 		if(ticks_to_next_phase < 2)
@@ -521,19 +525,19 @@ irom static void pwm_go(void)
 		if((pin1_info->valid) &&
 				(pin1_config->llmode == io_pin_ll_output_pwm1))
 		{
-			pin1_data->pwm.this = pin1;
-			pin1_data->pwm.next = -1;
+			pin1_data->pwm.pwm_this = pin1;
+			pin1_data->pwm.pwm_next = -1;
 
-			if(pin1_data->pwm.duty >= pwm1_period)
-				pin1_data->pwm.duty = pwm1_period - 1;
+			if(pin1_data->pwm.pwm_duty >= pwm1_period)
+				pin1_data->pwm.pwm_duty = pwm1_period - 1;
 		}
 	}
 
 	// create linked list
 
 	phase_data = &pwm_phase[new_phase_set];
-	phase_data->static_clear_mask = 0;
-	phase_data->static_set_mask = 0;
+	phase_data->phases_clear_mask = 0;
+	phase_data->phases_set_mask = 0;
 
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
@@ -544,38 +548,38 @@ irom static void pwm_go(void)
 		if(!pin1_info->valid || (pin1_config->llmode != io_pin_ll_output_pwm1))
 			continue;
 
-		if(pin1_data->pwm.duty == 0)
-			phase_data->static_clear_mask |= 1 << pin1;
+		if(pin1_data->pwm.pwm_duty == 0)
+			phase_data->phases_clear_mask |= 1 << pin1;
 		else
-			if((pin1_data->pwm.duty + 1) >= pwm1_period)
-				phase_data->static_set_mask |= 1 << pin1;
+			if((pin1_data->pwm.pwm_duty + 1) >= pwm1_period)
+				phase_data->phases_set_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
 				{
 					pwm_head = pin1;
-					pin1_data->pwm.next = -1;
+					pin1_data->pwm.pwm_next = -1;
 				}
 				else
 				{
 					pin2 = pwm_head;
 					pin2_data = &gpio_data[pin2];
 
-					if(pin2_data->pwm.duty > pin1_data->pwm.duty)
+					if(pin2_data->pwm.pwm_duty > pin1_data->pwm.pwm_duty)
 					{
 						pwm_head = pin1;
-						pin1_data->pwm.next = pin2;
+						pin1_data->pwm.pwm_next = pin2;
 					}
 					else
 					{
 						for(pin2 = pwm_head; pin2 >= 0; pin2 = pin3)
 						{
 							pin2_data	= &gpio_data[pin2];
-							pin3		= pin2_data->pwm.next;
+							pin3		= pin2_data->pwm.pwm_next;
 
 							if(pin3 < 0)
 							{
-								pin1_data->pwm.next = -1;
-								pin2_data->pwm.next = pin1;
+								pin1_data->pwm.pwm_next = -1;
+								pin2_data->pwm.pwm_next = pin1;
 
 								break;
 							}
@@ -583,10 +587,10 @@ irom static void pwm_go(void)
 							{
 								pin3_data = &gpio_data[pin3];
 
-								if(pin3_data->pwm.duty > pin1_data->pwm.duty)
+								if(pin3_data->pwm.pwm_duty > pin1_data->pwm.pwm_duty)
 								{
-									pin1_data->pwm.next = pin3;
-									pin2_data->pwm.next = pin1;
+									pin1_data->pwm.pwm_next = pin3;
+									pin2_data->pwm.pwm_next = pin1;
 
 									break;
 								}
@@ -596,34 +600,34 @@ irom static void pwm_go(void)
 				}
 	}
 
-	phase_data->phase[0].duty = 0;
-	phase_data->phase[0].delay = 0;
-	phase_data->phase[0].mask = 0x0000;
-	phase_data->size = 1;
+	phase_data->phase[0].phase_duty = 0;
+	phase_data->phase[0].phase_delay = 0;
+	phase_data->phase[0].phase_mask = 0x0000;
+	phase_data->phases_size = 1;
 
-	for(pin1 = pwm_head, duty = 0; (phase_data->size < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.next)
+	for(pin1 = pwm_head, duty = 0; (phase_data->phases_size < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.pwm_next)
 	{
 		pin1_data = &gpio_data[pin1];
 
-		phase_data->phase[0].mask |= 1 << pin1;
+		phase_data->phase[0].phase_mask |= 1 << pin1;
 
-		delta = pin1_data->pwm.duty - duty;
-		duty = pin1_data->pwm.duty;
+		delta = pin1_data->pwm.pwm_duty - duty;
+		duty = pin1_data->pwm.pwm_duty;
 
 		if(delta != 0)
 		{
-			phase_data->phase[phase_data->size - 1].delay	= delta;
-			phase_data->phase[phase_data->size].duty		= pin1_data->pwm.duty;
-			phase_data->phase[phase_data->size].delay		= pwm1_period - 1 - pin1_data->pwm.duty;
-			phase_data->phase[phase_data->size].mask		= 1 << pin1;
-			phase_data->size++;
+			phase_data->phase[phase_data->phases_size - 1].phase_delay	= delta;
+			phase_data->phase[phase_data->phases_size].phase_duty		= pin1_data->pwm.pwm_duty;
+			phase_data->phase[phase_data->phases_size].phase_delay		= pwm1_period - 1 - pin1_data->pwm.pwm_duty;
+			phase_data->phase[phase_data->phases_size].phase_mask		= 1 << pin1;
+			phase_data->phases_size++;
 		}
 		else
-			phase_data->phase[phase_data->size - 1].mask |= 1 << pin1;
+			phase_data->phase[phase_data->phases_size - 1].phase_mask |= 1 << pin1;
 	}
 
-	if(phase_data->size < 2)
-		phase_data->size = 0;
+	if(phase_data->phases_size < 2)
+		phase_data->phases_size = 0;
 
 	if(new_phase_set == pwm_current_phase_set)
 	{
@@ -660,8 +664,8 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	io_gpio_flags.pwm_reset_phase_set = 0;
 	io_gpio_flags.pwm_next_phase_set = 0;
 
-	pwm_phase[0].size = 0;
-	pwm_phase[1].size = 0;
+	pwm_phase[0].phases_size = 0;
+	pwm_phase[1].phases_size = 0;
 
 	gpio_init();
 	pwm_isr_setup();
@@ -819,7 +823,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			gpio_direction(pin, 1);
 			gpio_enable_open_drain(pin, 0);
 			gpio_enable_pdm(pin, 0);
-			gpio_pin_data->pwm.duty = 0;
+			gpio_pin_data->pwm.pwm_duty = 0;
 			gpio_set(pin, 0);
 			pwm_go();
 
@@ -832,7 +836,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 			gpio_enable_open_drain(pin, 0);
 			gpio_set(pin, 0);
 			gpio_enable_pdm(pin, 1);
-			gpio_pin_data->pwm.duty = 0;
+			gpio_pin_data->pwm.pwm_duty = 0;
 			pdm_enable(true);
 
 			break;
@@ -924,7 +928,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 				pwm_period = io_gpio_pwm1_period_get();
 
-				duty = gpio_pin_data->pwm.duty;
+				duty = gpio_pin_data->pwm.pwm_duty;
 				frequency = 5000000 / pwm_period;
 
 				dutypct = duty * 100 / (pwm_period - 1);
@@ -962,7 +966,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 					frequency = 80000000 / pwm_period;
 
 				string_format(dst, "frequency: %u Hz, duty: %u %%, prescale: %u, target: %u, state: %s",
-						frequency, gpio_pin_data->pwm.duty * 100 / 255, prescale, target, onoff(gpio_get(pin)));
+						frequency, gpio_pin_data->pwm.pwm_duty * 100 / 255, prescale, target, onoff(gpio_get(pin)));
 
 				break;
 			}
@@ -1051,7 +1055,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 		case(io_pin_ll_output_pwm1):
 		case(io_pin_ll_output_pwm2):
 		{
-			*value = gpio_pin_data->pwm.duty;
+			*value = gpio_pin_data->pwm.pwm_duty;
 
 			break;
 		}
@@ -1122,9 +1126,9 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 
 		case(io_pin_ll_output_pwm1):
 		{
-			if(gpio_pin_data->pwm.duty != value)
+			if(gpio_pin_data->pwm.pwm_duty != value)
 			{
-				gpio_pin_data->pwm.duty = value;
+				gpio_pin_data->pwm.pwm_duty = value;
 				pwm_go();
 			}
 
@@ -1135,7 +1139,7 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 		{
 			unsigned int prescale, target;
 
-			gpio_pin_data->pwm.duty = value;
+			gpio_pin_data->pwm.pwm_duty = value;
 
 			if(value > 255)
 				value = 255;
