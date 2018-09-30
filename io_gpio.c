@@ -101,30 +101,30 @@ enum
 
 pwm_delay_t pwm_delay_entry[pwm_table_delay_size] =
 {
-	{	0,	16,		8,		},	// special case, this entry is only used for the default case (i.e. delay >= pwm_table_delay_size)
+	{	0,	18,		9,		},	// special case, this entry is only used for the default case (i.e. delay >= pwm_table_delay_size)
 	{	1,	0,		0,		},	// special case, not used
-	{	2,	0,		4,		},
-	{	3,	1,		44,		},
-	{	4,	12,		78,		},
-	{	5,	30,		110,	},
-	{	6,	48,		144,	},
-	{	7,	62,		176,	},
-	{	8,	78,		208,	},
-	{	9,	94,		240,	},
-	{	10,	112,	272,	},
-	{	11,	128,	306,	},
-	{	12,	144,	338,	},
-	{	13,	160,	368,	},
-	{	14,	176,	400,	},
-	{	15,	190,	432,	},
-	{	16,	208,	464,	},
-	{	17,	222,	496,	},
-	{	18,	238,	526,	},
-	{	19,	256,	558,	},
-	{	20,	272,	590,	},
-	{	21,	286,	622,	},
-	{	22,	304,	654,	},
-	{	23,	320,	686,	},
+	{	2,	0,		0,		},
+	{	3,	1,		20,		},
+	{	4,	2,		55,		},
+	{	5,	4,		90,		},
+	{	6,	28,		120,	},
+	{	7,	44,		152,	},
+	{	8,	60,		184,	},
+	{	9,	76,		216		},
+	{	10,	94,		248,	},
+	{	11,	110,	284,	},
+	{	12,	126,	314,	},
+	{	13,	142,	344,	},
+	{	14,	158,	376,	},
+	{	15,	172,	408,	},
+	{	16,	190,	440,	},
+	{	17,	200,	472,	},
+	{	18,	220,	502,	},
+	{	19,	238,	534,	},
+	{	20,	254,	566,	},
+	{	21,	268,	598,	},
+	{	22,	286,	630,	},
+	{	23,	302,	662,	},
 };
 
 static void pwm_go(void);
@@ -323,10 +323,11 @@ typedef struct
 	uint32_t		phases_size;
 	uint32_t		phases_set_mask;
 	uint32_t		phases_clear_mask;
+	uint32_t		phases_clear1_mask;	// special case for duty is period 1
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
 
-assert_size(pwm_phases_t, 72);
+assert_size(pwm_phases_t, 76);
 
 typedef struct
 {
@@ -463,6 +464,7 @@ attr_speed iram static void pwm_isr(void)
 			}
 
 			gpio_set_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
+			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phases_clear1_mask);
 		}
 		else
 			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
@@ -604,6 +606,7 @@ irom static void pwm_go(void)
 	phase_data->phase[0].phase_delay = 0;
 	phase_data->phase[0].phase_mask = 0x0000;
 	phase_data->phases_size = 1;
+	phase_data->phases_clear1_mask = 0x0000;
 
 	for(pin1 = pwm_head, duty = 0; (phase_data->phases_size < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.pwm_next)
 	{
@@ -613,6 +616,11 @@ irom static void pwm_go(void)
 
 		delta = pin1_data->pwm.pwm_duty - duty;
 		duty = pin1_data->pwm.pwm_duty;
+
+		/* record pins that have duty period == 1, they need to be reset immediately after they've been set */
+
+		if(duty == 1)
+			phase_data->phases_clear1_mask |= 1 << pin1;
 
 		if(delta != 0)
 		{
