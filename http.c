@@ -115,7 +115,7 @@ irom static void http_range_form(string_t *dst, int io, int pin, int low, int hi
 
 	string_format(&id, "range_%d_%d", io, pin);
 
-	pwm_period = io_gpio_pwm1_period_get();
+	pwm_period = io_gpio_pwm1_width_get();
 
 	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_cstr(&id), "set");
 	string_append(dst,		"	<div class=\"div\">\n");

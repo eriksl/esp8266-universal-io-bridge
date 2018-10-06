@@ -341,43 +341,76 @@ static pwm_phases_t		pwm_phase[2];
 static io_gpio_flags_t	io_gpio_flags;
 
 static int pwm_head;
-static unsigned int pwm1_period;
+static unsigned int pwm1_width;
 
 static void pwm_isr(void);
 
-irom _Bool io_gpio_pwm1_period_set(unsigned int period, _Bool load, _Bool save)
+attr_inline unsigned int pwm1_period(void)
 {
-	unsigned int period_load;
+	return((unsigned int)(1 << pwm1_width));
+}
+
+irom _Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
+{
+	unsigned int current;
 	string_init(varname_pwmperiod, "pwm.period");
-
-	if(load && config_get_int(&varname_pwmperiod, -1, -1, &period_load))
-		period = period_load;
-
-	switch(period)
+	string_init(varname_pwmwidth, "pwm.width");
+	static const unsigned int widths[][2] =
 	{
-		case(256):
-		case(512):
-		case(1024):
-		case(2048):
-		case(4096):
-		case(8196):
-		case(16384):
-		case(32768):
-		case(65536):
-			break;
+		{	6,		6	},
+		{	7,		7	},
+		{	8,		8	},
+		{	9,		9	},
+		{	10,		10	},
+		{	11,		11	},
+		{	12,		12	},
+		{	13,		13	},
+		{	14,		14	},
+		{	15,		15	},
+		{	16,		16	},
+		{	17,		17	},
+		{	18,		18	},
+		{	16,		4	},
+		{	32,		5	},
+		{	64,		6	},
+		{	128,	7	},
+		{	256,	8	},
+		{	512,	9	},
+		{	1024,	10	},
+		{	2048,	11	},
+		{	4096,	12	},
+		{	8192,	13	},
+		{	16384,	14	},
+		{	32768,	15	},
+		{	65536,	16	},
+		{	131072,	17	},
+		{	262144,	18	},
+		{	0,		0	}
+	};
 
-		default:
-			return(false);
+	if(load && !config_get_int(&varname_pwmperiod, -1, -1, &width) && !config_get_int(&varname_pwmwidth, -1, -1, &width))
+		width = 16;
+
+	for(current = 0; widths[current][0] != 0; current++)
+	{
+		if(widths[current][0] == width)
+		{
+			pwm1_width = widths[current][1];
+			break;
+		}
 	}
 
-	pwm1_period = period;
+	if(widths[current][0] == 0)
+		return(false);
 
 	if(save)
 	{
-		if(pwm1_period == 65536)
-			config_delete(&varname_pwmperiod, -1, -1, false);
+		config_delete(&varname_pwmperiod, -1, -1, false);
+
+		if((pwm1_width == 16) || (pwm1_width == 65536))
+			config_delete(&varname_pwmwidth, -1, -1, false);
 		else
-			config_set_int(&varname_pwmperiod, -1, -1, pwm1_period);
+			config_set_int(&varname_pwmwidth, -1, -1, pwm1_width);
 	}
 
 	pwm_go();
@@ -385,9 +418,9 @@ irom _Bool io_gpio_pwm1_period_set(unsigned int period, _Bool load, _Bool save)
 	return(true);
 }
 
-irom attr_pure unsigned int io_gpio_pwm1_period_get(void)
+irom attr_pure unsigned int io_gpio_pwm1_width_get(void)
 {
-	return(pwm1_period);
+	return(pwm1_width);
 }
 
 irom static void pwm_isr_setup(void)
@@ -500,8 +533,8 @@ irom static void pwm_go(void)
 	if(timer_value < 32)
 		timer_value = 32;
 
-	if(timer_value > pwm1_period)
-		timer_value = pwm1_period;
+	if(timer_value > pwm1_period())
+		timer_value = pwm1_period();
 
 	// if next set is already active or ISR is off, suspend ISR and re-configure current set
 
@@ -530,8 +563,8 @@ irom static void pwm_go(void)
 			pin1_data->pwm.pwm_this = pin1;
 			pin1_data->pwm.pwm_next = -1;
 
-			if(pin1_data->pwm.pwm_duty >= pwm1_period)
-				pin1_data->pwm.pwm_duty = pwm1_period - 1;
+			if(pin1_data->pwm.pwm_duty >= pwm1_period())
+				pin1_data->pwm.pwm_duty = pwm1_period() - 1;
 		}
 	}
 
@@ -553,7 +586,7 @@ irom static void pwm_go(void)
 		if(pin1_data->pwm.pwm_duty == 0)
 			phase_data->phases_clear_mask |= 1 << pin1;
 		else
-			if((pin1_data->pwm.pwm_duty + 1) >= pwm1_period)
+			if((pin1_data->pwm.pwm_duty + 1) >= pwm1_period())
 				phase_data->phases_set_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
@@ -626,7 +659,7 @@ irom static void pwm_go(void)
 		{
 			phase_data->phase[phase_data->phases_size - 1].phase_delay	= delta;
 			phase_data->phase[phase_data->phases_size].phase_duty		= pin1_data->pwm.pwm_duty;
-			phase_data->phase[phase_data->phases_size].phase_delay		= pwm1_period - 1 - pin1_data->pwm.pwm_duty;
+			phase_data->phase[phase_data->phases_size].phase_delay		= pwm1_period() - 1 - pin1_data->pwm.pwm_duty;
 			phase_data->phase[phase_data->phases_size].phase_mask		= 1 << pin1;
 			phase_data->phases_size++;
 		}
@@ -666,7 +699,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 		else
 			pwm_delay_entry[entry].delay = pwm_delay_entry[entry].delay_cpu_low_speed;
 
-	io_gpio_pwm1_period_set(65536, /*load*/true, /*save*/false);
+	io_gpio_pwm1_width_set(16, /*load*/true, /*save*/false);
 
 	pwm_current_phase_set = 0;
 	io_gpio_flags.pwm_reset_phase_set = 0;
@@ -709,7 +742,7 @@ irom attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *
 
 		case(io_pin_ll_output_pwm1):
 		{
-			value = io_gpio_pwm1_period_get();
+			value = io_gpio_pwm1_width_get();
 			break;
 		}
 
@@ -901,7 +934,6 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_data_pin_t *gpio_pin_data;
-	unsigned int pwm_period;
 
 	if((pin < 0) || (pin >= io_gpio_pin_size))
 		return(io_error);
@@ -932,15 +964,15 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 			case(io_pin_ll_output_pwm1):
 			{
-				unsigned int duty, frequency, dutypct, dutypctfraction;
+				unsigned int width, duty, frequency, dutypct, dutypctfraction;
 
-				pwm_period = io_gpio_pwm1_period_get();
+				width = io_gpio_pwm1_width_get();
 
 				duty = gpio_pin_data->pwm.pwm_duty;
-				frequency = 5000000 / pwm_period;
+				frequency = 5000000 / (1 << width);
 
-				dutypct = duty * 100 / (pwm_period - 1);
-				dutypctfraction = duty * 10000 / (pwm_period - 1);
+				dutypct = duty * 100 / ((1 << width) - 1);
+				dutypctfraction = duty * 10000 / ((1 << width) - 1);
 				dutypctfraction -= dutypct * 100;
 
 				if(!pwm_isr_enabled())
@@ -954,9 +986,9 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 
 			case(io_pin_ll_output_pwm2):
 			{
-				unsigned int target, prescale, frequency;
+				unsigned int period, target, prescale, frequency;
 
-				pwm_period = 0;
+				period = 0;
 				frequency = 0;
 
 				target = pdm_get_target();
@@ -965,13 +997,13 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 				if(target > 0)
 				{
 					if(target <= 128)
-						pwm_period = (prescale + 1) * 256 / target;
+						period = (prescale + 1) * 256 / target;
 					else
-						pwm_period = ((prescale + 1) * 256) / (256 - target);
+						period = ((prescale + 1) * 256) / (256 - target);
 				}
 
-				if(pwm_period != 0)
-					frequency = 80000000 / pwm_period;
+				if(period != 0)
+					frequency = 80000000 / period;
 
 				string_format(dst, "frequency: %u Hz, duty: %u %%, prescale: %u, target: %u, state: %s",
 						frequency, gpio_pin_data->pwm.pwm_duty * 100 / 255, prescale, target, onoff(gpio_get(pin)));

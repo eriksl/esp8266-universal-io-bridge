@@ -1673,20 +1673,20 @@ irom static app_action_t application_function_gpio_assoc_set(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_pwm_period(string_t *src, string_t *dst)
+irom static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
 {
-	unsigned int period;
+	unsigned int width;
 
-	if(parse_uint(1, src, &period, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &width, 0, ' ') == parse_ok)
 	{
-		if(!io_gpio_pwm1_period_set(period, /*load*/false, /*save*/true))
+		if(!io_gpio_pwm1_width_set(width, /*load*/false, /*save*/true))
 		{
-			string_format(dst, "pwm-period: invalid period: %d\n", period);
+			string_format(dst, "pwm-width: invalid width: %d\n", width);
 			return(app_action_error);
 		}
 	}
 
-	string_format(dst, "pwm_period: %d\n", io_gpio_pwm1_period_get());
+	string_format(dst, "pwm-width: %d\n", io_gpio_pwm1_width_get());
 
 	return(app_action_normal);
 }
@@ -1915,9 +1915,9 @@ static const application_function_table_t application_function_table[] =
 		"set i/o pin flag",
 	},
 	{
-		"pp", "pwm-period",
-		application_function_pwm_period,
-		"set pwm period (rate = 200 ns / period)",
+		"pw", "pwm-width",
+		application_function_pwm_width,
+		"set pwm1 width",
 	},
 	{
 		"icf", "io-clear-flag",
