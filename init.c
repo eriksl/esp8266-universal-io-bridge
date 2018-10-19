@@ -5,6 +5,7 @@
 #include "stats.h"
 #include "time.h"
 #include "dispatch.h"
+#include "sequencer.h"
 
 #include <user_interface.h>
 
@@ -97,6 +98,9 @@ irom static void user_init2(void)
 	wlan_init();
 	time_init();
 	io_init();
+
+	if(config_flags_get().flag.auto_sequencer)
+		sequencer_start(0, 1);
 }
 
 irom _Bool wlan_init(void)

@@ -25,6 +25,7 @@ typedef union
 		unsigned int dummy_1:1;
 		unsigned int dummy_2:1;
 		unsigned int log_to_buffer:1;
+		unsigned int auto_sequencer:1;
 	} flag;
 
 	uint32_t intval;

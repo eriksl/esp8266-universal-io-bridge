@@ -79,6 +79,11 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " log-to-buffer");
 	else
 		string_append(dst, " no-log-to-buffer");
+
+	if(flags.flag.auto_sequencer)
+		string_append(dst, " auto-sequencer");
+	else
+		string_append(dst, " no-auto-sequencer");
 }
 
 irom _Bool config_flags_change(const string_t *flag, _Bool add)
@@ -125,6 +130,12 @@ irom _Bool config_flags_change(const string_t *flag, _Bool add)
 	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, "lb"))
 	{
 		flags.flag.log_to_buffer = add ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match_cstr(flag, "auto-sequencer") || string_match_cstr(flag, "as"))
+	{
+		flags.flag.auto_sequencer = add ? 1 : 0;
 		rv = true;
 	}
 
