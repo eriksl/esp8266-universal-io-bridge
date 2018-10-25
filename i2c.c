@@ -479,8 +479,7 @@ iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *b
 	if(!i2c_flags.init_done)
 		return(i2c_error_no_init);
 
-	// state can be idle (normal) or active (repeated start)
-	if((state != i2c_state_idle) && (state != i2c_state_data_send_ack_received))
+	if(state != i2c_state_idle)
 		return(i2c_error_invalid_state_not_idle);
 
 	state = i2c_state_start_send;
@@ -555,8 +554,11 @@ iram attr_noinline i2c_error_t i2c_send_receive(int address, int sendlength, con
 {
 	i2c_error_t error;
 
-	if((error = (i2c_send(address, sendlength, sendbytes))) != i2c_error_ok)
+	if((error = (i2c_send_sequence(address, sendlength, sendbytes))) != i2c_error_ok)
+	{
+		i2c_reset();
 		return(error);
+	}
 
 	return(i2c_receive(address, receivelength, receivebytes));
 }
