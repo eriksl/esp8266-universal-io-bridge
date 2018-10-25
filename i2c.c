@@ -237,7 +237,7 @@ iram attr_noinline attr_hot static i2c_error_t scl_set_test(_Bool val, i2c_delay
 	return(i2c_error_bus_lock);
 }
 
-attr_inline i2c_error_t send_bit(_Bool bit)
+iram static i2c_error_t send_bit(_Bool bit)
 {
 	i2c_error_t error;
 
@@ -265,7 +265,7 @@ attr_inline i2c_error_t send_bit(_Bool bit)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t receive_bit(_Bool *bit)
+iram static i2c_error_t receive_bit(_Bool *bit)
 {
 	i2c_error_t error;
 
@@ -352,7 +352,7 @@ iram attr_noinline attr_hot static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t send_byte(int byte)
+iram static i2c_error_t send_byte(int byte)
 {
 	i2c_error_t error;
 	int current;
@@ -371,7 +371,7 @@ attr_inline i2c_error_t send_byte(int byte)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t receive_byte(uint8_t *byte)
+iram static i2c_error_t receive_byte(uint8_t *byte)
 {
 	int current;
 	_Bool bit;
@@ -391,7 +391,7 @@ attr_inline i2c_error_t receive_byte(uint8_t *byte)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t send_header(int address, i2c_direction_t direction)
+iram static i2c_error_t send_header(int address, i2c_direction_t direction)
 {
 	i2c_error_t error;
 	_Bool bit;
@@ -424,7 +424,7 @@ attr_inline i2c_error_t send_header(int address, i2c_direction_t direction)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t i2c_send_sequence(int address, int length, const uint8_t *bytes)
+iram static i2c_error_t i2c_send_sequence(int address, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -471,7 +471,7 @@ attr_inline i2c_error_t i2c_send_sequence(int address, int length, const uint8_t
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
+iram static i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
