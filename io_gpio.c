@@ -18,6 +18,12 @@ enum
 
 typedef enum
 {
+	io_gpio_func_gpio = 0,
+	io_gpio_func_uart,
+} io_func_t;
+
+typedef enum
+{
 	io_uart_none = 0,
 	io_uart_rx,
 	io_uart_tx,
@@ -45,7 +51,7 @@ typedef const struct
 	const unsigned int	mux;
 	const unsigned int	func;
 	const io_uart_t		uart_pin;
-	const unsigned int	uart_func;
+	const unsigned int	func_uart;
 	const unsigned int	uart;
 } gpio_info_t;
 
@@ -131,27 +137,27 @@ static void pwm_go(void);
 
 // set GPIO direction
 
-irom static void gpio_direction_clear_mask(uint32_t mask)
+attr_inline void gpio_direction_clear_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TC_ADDRESS, mask);
 }
 
-irom static void gpio_direction_set_mask(uint32_t mask)
+attr_inline void gpio_direction_set_mask(uint32_t mask)
 {
 	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
 }
 
-irom static void gpio_direction(unsigned int io, _Bool onoff)
+attr_inline void gpio_direction(unsigned int pin, _Bool set_on)
 {
-	if(onoff)
-		gpio_direction_set_mask(1 << io);
+	if(set_on)
+		gpio_direction_set_mask(1 << pin);
 	else
-		gpio_direction_clear_mask(1 << io);
+		gpio_direction_clear_mask(1 << pin);
 }
 
 // disable / enable pullup
 
-irom static _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
+attr_inline _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 {
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
@@ -220,10 +226,10 @@ irom static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
 
 // select pin function
 
-irom static _Bool gpio_func_select(unsigned int pin, unsigned int func)
+attr_inline _Bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 {
 	gpio_info_t *gpio_pin_info;
-	uint32_t value;
+	uint32_t value, func;
 
 	if(pin >= io_gpio_pin_size)
 		return(false);
@@ -232,6 +238,13 @@ irom static _Bool gpio_func_select(unsigned int pin, unsigned int func)
 
 	if(!gpio_pin_info->valid)
 		return(false);
+
+	switch(gpio_pin_mode)
+	{
+		case(io_gpio_func_gpio): func = gpio_pin_info->func; break;
+		case(io_gpio_func_uart): func = gpio_pin_info->func_uart; break;
+		default: return(false);
+	}
 
 	value = read_peri_reg(gpio_pin_info->mux);
 
@@ -243,6 +256,21 @@ irom static _Bool gpio_func_select(unsigned int pin, unsigned int func)
 	write_peri_reg(gpio_pin_info->mux, value);
 
 	return(true);
+}
+
+iram void io_gpio_reset_all_pins(void)
+{
+	unsigned int pin;
+
+	for(pin = 0; pin < io_gpio_pin_size; pin++)
+		if(gpio_info_table[pin].valid)
+		{
+			gpio_func_select(pin, io_gpio_func_gpio);
+			gpio_direction(pin, true);
+			gpio_set(pin, false);
+			gpio_direction(pin, false);
+			gpio_enable_pullup(pin, false);
+		}
 }
 
 irom static void pdm_set_prescale(unsigned int value)
@@ -827,7 +855,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		return(io_error);
 	}
 
-	gpio_func_select(pin, gpio_info->func);
+	gpio_func_select(pin, io_gpio_func_gpio);
 	gpio_pin_intr_state_set(pin, GPIO_PIN_INTR_DISABLE);
 
 	gpio_pin_data = &gpio_data[pin];
@@ -837,9 +865,9 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 		case(io_pin_ll_input_digital):
 		case(io_pin_ll_counter):
 		{
-			gpio_direction(pin, 0);
-			gpio_enable_open_drain(pin, 0);
-			gpio_enable_pdm(pin, 0);
+			gpio_direction(pin, false);
+			gpio_enable_open_drain(pin, false);
+			gpio_enable_pdm(pin, false);
 			gpio_enable_pullup(pin, pin_config->flags.pullup);
 
 			if(pin_config->llmode == io_pin_ll_counter)
@@ -853,19 +881,19 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_output_digital):
 		{
-			gpio_direction(pin, 1);
-			gpio_enable_open_drain(pin, 0);
-			gpio_enable_pdm(pin, 0);
+			gpio_direction(pin, true);
+			gpio_enable_open_drain(pin, false);
+			gpio_enable_pdm(pin, false);
 			break;
 		}
 
 		case(io_pin_ll_output_pwm1):
 		{
-			gpio_direction(pin, 1);
-			gpio_enable_open_drain(pin, 0);
-			gpio_enable_pdm(pin, 0);
+			gpio_direction(pin, true);
+			gpio_enable_open_drain(pin, false);
+			gpio_enable_pdm(pin, false);
 			gpio_pin_data->pwm.pwm_duty = 0;
-			gpio_set(pin, 0);
+			gpio_set(pin, false);
 			pwm_go();
 
 			break;
@@ -873,10 +901,10 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_output_pwm2):
 		{
-			gpio_direction(pin, 1);
-			gpio_enable_open_drain(pin, 0);
-			gpio_set(pin, 0);
-			gpio_enable_pdm(pin, 1);
+			gpio_direction(pin, true);
+			gpio_enable_open_drain(pin, false);
+			gpio_set(pin, false);
+			gpio_enable_pdm(pin, true);
 			gpio_pin_data->pwm.pwm_duty = 0;
 			pdm_enable(true);
 
@@ -885,12 +913,12 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 
 		case(io_pin_ll_i2c):
 		{
-			gpio_direction(pin, 0);
+			gpio_direction(pin, false);
 			gpio_enable_pullup(pin, 0);
-			gpio_direction(pin, 1);
-			gpio_enable_open_drain(pin, 1);
-			gpio_enable_pdm(pin, 0);
-			gpio_set(pin, 1);
+			gpio_direction(pin, true);
+			gpio_enable_open_drain(pin, true);
+			gpio_enable_pdm(pin, false);
+			gpio_set(pin, true);
 
 			break;
 		}
@@ -911,7 +939,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 				return(io_error);
 			}
 
-			gpio_func_select(pin, gpio_info->uart_func);
+			gpio_func_select(pin, io_gpio_func_uart);
 			gpio_enable_pullup(pin, pin_config->flags.pullup);
 
 			break;

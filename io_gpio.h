@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <eagle_soc.h>
 
+void			io_gpio_reset_all_pins(void);
 void			io_gpio_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 io_error_t		io_gpio_init(const struct io_info_entry_T *);
 unsigned int	io_gpio_pin_max_value(const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
