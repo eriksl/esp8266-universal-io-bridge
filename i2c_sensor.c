@@ -2282,9 +2282,7 @@ irom static i2c_error_t sensor_veml6075_uvindex_read(int bus, const i2c_sensor_d
 	uvi		= (uvia + uvib) / 2;
 
 	value->raw = (unsigned int)uvia * 10000 + (unsigned int)uvib;
-	value->cooked = uvi * 0.6;
-
-	log("uva_data: %u, uvb_data: %u, uv_comp1_data: %u, uv_comp2_data: %u\n", uva_data, uvb_data, uv_comp1_data, uv_comp2_data);
+	value->cooked = uvi * 1.25;
 
 	return(i2c_error_ok);
 }
@@ -2306,7 +2304,7 @@ irom static i2c_error_t sensor_veml6075_visible_light_read(int bus, const i2c_se
 		return(error);
 
 	value->raw = (i2c_buffer[1] << 8) | i2c_buffer[0];
-	value->cooked = 60 * value->raw;
+	value->cooked = 40 * value->raw;
 
 	return(i2c_error_ok);
 }
