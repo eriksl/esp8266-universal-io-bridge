@@ -93,8 +93,6 @@ struct tm
   int	tm_isdst;
 };
 
-void ets_isr_mask(unsigned int);
-void ets_isr_unmask(unsigned int);
 attr_nonnull int ets_vsnprintf(char *, size_t, const char *, va_list);
 attr_nonnull struct tm *sntp_localtime(const time_t *);
 
