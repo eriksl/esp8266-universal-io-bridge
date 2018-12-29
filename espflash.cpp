@@ -147,10 +147,13 @@ bool GenericSocket::receive(int timeout, std::string &reply)
 		if(pfd.revents & (POLLERR | POLLHUP))
 			return(false);
 
-		if((length = read(fd, buffer, sizeof(buffer) - 1)) <= 0)
+		if((length = read(fd, buffer, sizeof(buffer) - 1)) < 0)
 			return(false);
 
-		if(!use_udp || (length != 1) || (buffer[0] != '\0'))
+		if(length == 0)
+			continue;
+
+		if((length != 1) || (buffer[0] != '\0'))
 			break;
 	}
 
