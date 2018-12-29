@@ -624,6 +624,8 @@ irom static app_action_t application_function_uart_baud_rate(string_t *src, stri
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		uart_baudrate(uart, baud_rate);
 	}
 
 	if(!config_get_int(&varname_baudrate, uart, -1, &baud_rate))
@@ -661,6 +663,8 @@ irom static app_action_t application_function_uart_data_bits(string_t *src, stri
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		uart_data_bits(uart, data_bits);
 	}
 
 	if(!config_get_int(&varname_uartbits, uart, -1, &data_bits))
@@ -698,6 +702,8 @@ irom static app_action_t application_function_uart_stop_bits(string_t *src, stri
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		uart_stop_bits(uart, stop_bits);
 	}
 
 	if(!config_get_int(&varname_stopbits, uart, -1, &stop_bits))
@@ -742,6 +748,8 @@ irom static app_action_t application_function_uart_parity(string_t *src, string_
 				return(app_action_error);
 			}
 		}
+
+		uart_parity(uart, parity);
 	}
 
 	if(config_get_int(&varname_parity, uart, -1, &parity_int))
