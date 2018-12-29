@@ -341,21 +341,22 @@ typedef struct
 {
 	uint32_t	phase_duty;
 	uint32_t	phase_delay;
-	uint16_t	phase_mask;
+	uint16_t	phase_active_pins_clear_mask;
 } pwm_phase_t;
 
 assert_size(pwm_phase_t, 12);
 
 typedef struct
 {
-	uint32_t		phases_size;
-	uint32_t		phases_set_mask;
-	uint32_t		phases_clear_mask;
-	uint32_t		phases_clear1_mask;	// special case for duty is period 1
+	uint32_t		amount_phases;
+	uint32_t		static_pins_on_mask;
+	uint32_t		static_pins_off_mask;
+	uint32_t		active_pins_set_mask;
+	uint32_t		active_pins_duty1_clear_mask;	// special case for duty is 1 period
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
 
-assert_size(pwm_phases_t, 76);
+assert_size(pwm_phases_t, 80);
 
 typedef struct
 {
@@ -491,6 +492,7 @@ attr_inline uint32_t pwm_timer_get(void)
 attr_speed iram static void pwm_isr(void)
 {
 	static unsigned int	phase, ticks_to_next_phase;
+	const pwm_phases_t *current_phase_set;
 
 	stat_pwm_timer_interrupts++;
 
@@ -500,37 +502,42 @@ attr_speed iram static void pwm_isr(void)
 		return;
 	}
 
+	current_phase_set = &pwm_phase[pwm_current_phase_set];
+
 	for(;;)
 	{
-		if(phase >= pwm_phase[pwm_current_phase_set].phases_size)
+		if(phase >= current_phase_set->amount_phases)
 			phase = 0;
 
 		if(phase == 0)
 		{
 			if(io_gpio_flags.pwm_next_phase_set)
+			{
 				pwm_current_phase_set ^= 0x01;
+				current_phase_set = &pwm_phase[pwm_current_phase_set];
+			}
 
 			if(io_gpio_flags.pwm_reset_phase_set || io_gpio_flags.pwm_next_phase_set)
 			{
-				gpio_set_mask(pwm_phase[pwm_current_phase_set].phases_set_mask);
-				gpio_clear_mask(pwm_phase[pwm_current_phase_set].phases_clear_mask);
+				gpio_set_mask(current_phase_set->static_pins_on_mask);
+				gpio_clear_mask(current_phase_set->static_pins_off_mask);
 				io_gpio_flags.pwm_reset_phase_set = 0;
 				io_gpio_flags.pwm_next_phase_set = 0;
 			}
 
-			if(pwm_phase[pwm_current_phase_set].phases_size < 2)
+			if(current_phase_set->amount_phases < 2)
 			{
 				pwm_isr_enable(false);
 				return;
 			}
 
-			gpio_set_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
-			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phases_clear1_mask);
+			gpio_set_mask(current_phase_set->active_pins_set_mask);
+			gpio_clear_mask(current_phase_set->active_pins_duty1_clear_mask);
 		}
 		else
-			gpio_clear_mask(pwm_phase[pwm_current_phase_set].phase[phase].phase_mask);
+			gpio_clear_mask(current_phase_set->phase[phase].phase_active_pins_clear_mask);
 
-		ticks_to_next_phase = pwm_phase[pwm_current_phase_set].phase[phase].phase_delay;
+		ticks_to_next_phase = current_phase_set->phase[phase].phase_delay;
 		phase++;
 
 		if(ticks_to_next_phase < 2)
@@ -599,8 +606,8 @@ irom static void pwm_go(void)
 	// create linked list
 
 	phase_data = &pwm_phase[new_phase_set];
-	phase_data->phases_clear_mask = 0;
-	phase_data->phases_set_mask = 0;
+	phase_data->static_pins_off_mask = 0;
+	phase_data->static_pins_on_mask = 0;
 
 	for(pin1 = 0; pin1 < io_gpio_pin_size; pin1++)
 	{
@@ -612,10 +619,10 @@ irom static void pwm_go(void)
 			continue;
 
 		if(pin1_data->pwm.pwm_duty == 0)
-			phase_data->phases_clear_mask |= 1 << pin1;
+			phase_data->static_pins_off_mask |= 1 << pin1;
 		else
 			if((pin1_data->pwm.pwm_duty + 1) >= pwm1_period())
-				phase_data->phases_set_mask |= 1 << pin1;
+				phase_data->static_pins_on_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
 				{
@@ -665,15 +672,16 @@ irom static void pwm_go(void)
 
 	phase_data->phase[0].phase_duty = 0;
 	phase_data->phase[0].phase_delay = 0;
-	phase_data->phase[0].phase_mask = 0x0000;
-	phase_data->phases_size = 1;
-	phase_data->phases_clear1_mask = 0x0000;
+	phase_data->phase[0].phase_active_pins_clear_mask = 0x0000;
+	phase_data->amount_phases = 1;
+	phase_data->active_pins_set_mask = 0x0000;
+	phase_data->active_pins_duty1_clear_mask = 0x0000;
 
-	for(pin1 = pwm_head, duty = 0; (phase_data->phases_size < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.pwm_next)
+	for(pin1 = pwm_head, duty = 0; (phase_data->amount_phases < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.pwm_next)
 	{
 		pin1_data = &gpio_data[pin1];
 
-		phase_data->phase[0].phase_mask |= 1 << pin1;
+		phase_data->active_pins_set_mask |= 1 << pin1;
 
 		delta = pin1_data->pwm.pwm_duty - duty;
 		duty = pin1_data->pwm.pwm_duty;
@@ -681,22 +689,22 @@ irom static void pwm_go(void)
 		/* record pins that have duty period == 1, they need to be reset immediately after they've been set */
 
 		if(duty == 1)
-			phase_data->phases_clear1_mask |= 1 << pin1;
+			phase_data->active_pins_duty1_clear_mask |= 1 << pin1;
 
 		if(delta != 0)
 		{
-			phase_data->phase[phase_data->phases_size - 1].phase_delay	= delta;
-			phase_data->phase[phase_data->phases_size].phase_duty		= pin1_data->pwm.pwm_duty;
-			phase_data->phase[phase_data->phases_size].phase_delay		= pwm1_period() - 1 - pin1_data->pwm.pwm_duty;
-			phase_data->phase[phase_data->phases_size].phase_mask		= 1 << pin1;
-			phase_data->phases_size++;
+			phase_data->phase[phase_data->amount_phases - 1].phase_delay = delta;
+			phase_data->phase[phase_data->amount_phases].phase_duty = pin1_data->pwm.pwm_duty;
+			phase_data->phase[phase_data->amount_phases].phase_delay = pwm1_period() - 1 - pin1_data->pwm.pwm_duty;
+			phase_data->phase[phase_data->amount_phases].phase_active_pins_clear_mask = 1 << pin1;
+			phase_data->amount_phases++;
 		}
 		else
-			phase_data->phase[phase_data->phases_size - 1].phase_mask |= 1 << pin1;
+			phase_data->phase[phase_data->amount_phases - 1].phase_active_pins_clear_mask |= 1 << pin1;
 	}
 
-	if(phase_data->phases_size < 2)
-		phase_data->phases_size = 0;
+	if(phase_data->amount_phases < 2)
+		phase_data->amount_phases = 0;
 
 	if(new_phase_set == pwm_current_phase_set)
 	{
@@ -733,8 +741,8 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	io_gpio_flags.pwm_reset_phase_set = 0;
 	io_gpio_flags.pwm_next_phase_set = 0;
 
-	pwm_phase[0].phases_size = 0;
-	pwm_phase[1].phases_size = 0;
+	pwm_phase[0].amount_phases = 0;
+	pwm_phase[1].amount_phases = 0;
 
 	gpio_init();
 	pwm_isr_setup();
