@@ -869,10 +869,13 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 
 				case(io_trigger_start):
 				{
-					pin_data->direction = io_dir_up;
-					pin_data->speed = pin_config->speed;
-					value = pin_data->saved_value;
-					pin_data->saved_value = 0;
+					if(pin_data->direction == io_dir_none)
+					{
+						pin_data->direction = io_dir_up;
+						pin_data->speed = pin_config->speed;
+						value = pin_data->saved_value;
+						pin_data->saved_value = 0;
+					}
 
 					break;
 				}
