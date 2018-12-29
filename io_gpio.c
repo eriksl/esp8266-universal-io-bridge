@@ -770,7 +770,7 @@ irom attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *
 
 		case(io_pin_ll_output_pwm1):
 		{
-			value = io_gpio_pwm1_width_get();
+			value = (1 << io_gpio_pwm1_width_get()) - 1;
 			break;
 		}
 
