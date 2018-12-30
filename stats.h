@@ -24,6 +24,7 @@ extern int stat_uart0_tx_interrupts;
 extern int stat_uart1_tx_interrupts;
 extern int stat_fast_timer;
 extern int stat_slow_timer;
+extern int stat_pwm_cycles;;
 extern int stat_pwm_timer_interrupts;
 extern int stat_pwm_timer_interrupts_while_nmi_masked;
 extern int stat_pc_counts;

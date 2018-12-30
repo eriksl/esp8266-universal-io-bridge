@@ -351,12 +351,13 @@ typedef struct
 	uint32_t		amount_phases;
 	uint32_t		static_pins_on_mask;
 	uint32_t		static_pins_off_mask;
-	uint32_t		active_pins_set_mask;
-	uint32_t		active_pins_duty1_clear_mask;	// special case for duty is 1 period
+	uint32_t		active_pins_all_set_mask;
+	uint32_t		active_pins_noduty1_set_mask;	// special case for duty is 1 period, only set intermittently
+	uint32_t		active_pins_duty1_clear_mask;	// special case for duty is 1 period, clear immediately after set
 	pwm_phase_t		phase[io_gpio_pwm_max_channels + 1];
 } pwm_phases_t;
 
-assert_size(pwm_phases_t, 80);
+assert_size(pwm_phases_t, 84);
 
 typedef struct
 {
@@ -531,7 +532,11 @@ attr_speed iram static void pwm_isr(void)
 				return;
 			}
 
-			gpio_set_mask(current_phase_set->active_pins_set_mask);
+			if((++stat_pwm_cycles & 0x07) == 0x00)
+				gpio_set_mask(current_phase_set->active_pins_all_set_mask);
+			else
+				gpio_set_mask(current_phase_set->active_pins_noduty1_set_mask);
+
 			gpio_clear_mask(current_phase_set->active_pins_duty1_clear_mask);
 		}
 		else
@@ -674,22 +679,36 @@ irom static void pwm_go(void)
 	phase_data->phase[0].phase_delay = 0;
 	phase_data->phase[0].phase_active_pins_clear_mask = 0x0000;
 	phase_data->amount_phases = 1;
-	phase_data->active_pins_set_mask = 0x0000;
+	phase_data->active_pins_all_set_mask = 0x0000;
+	phase_data->active_pins_noduty1_set_mask = 0x0000;
 	phase_data->active_pins_duty1_clear_mask = 0x0000;
 
 	for(pin1 = pwm_head, duty = 0; (phase_data->amount_phases < (io_gpio_pwm_max_channels + 1)) && (pin1 >= 0); pin1 = pin1_data->pwm.pwm_next)
 	{
 		pin1_data = &gpio_data[pin1];
 
-		phase_data->active_pins_set_mask |= 1 << pin1;
-
 		delta = pin1_data->pwm.pwm_duty - duty;
 		duty = pin1_data->pwm.pwm_duty;
 
-		/* record pins that have duty period == 1, they need to be reset immediately after they've been set */
+		/*
+		 * treat pins with duty == 1 specially:
+		 * 	- add it to the duty1_clear_mask, so it gets cleared immediately
+		 * 	  after settings to ensure the smallest "on time"
+		 *  - if pwm1_extended is set, don't add it to the noduty1_set_mask,
+		 *    so it only gets set intermittently, to realise an even smaller
+		 *    duty cycle, using an effectively lower refresh cycle
+		 */
+
+		phase_data->active_pins_all_set_mask |= 1 << pin1;
+		phase_data->active_pins_noduty1_set_mask |= 1 << pin1;
 
 		if(duty == 1)
+		{
 			phase_data->active_pins_duty1_clear_mask |= 1 << pin1;
+
+			if(config_flags_get().pwm1_extend)
+				phase_data->active_pins_noduty1_set_mask &= ~(1 << pin1);
+		}
 
 		if(delta != 0)
 		{

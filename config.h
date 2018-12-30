@@ -24,6 +24,7 @@ typedef struct
 	unsigned int dummy_2:1;
 	unsigned int log_to_buffer:1;
 	unsigned int auto_sequencer:1;
+	unsigned int pwm1_extend:1;
 } config_flags_t;
 
 typedef union

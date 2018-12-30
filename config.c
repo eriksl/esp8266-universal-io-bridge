@@ -75,6 +75,11 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " auto-sequencer");
 	else
 		string_append(dst, " no-auto-sequencer");
+
+	if(flags.pwm1_extend)
+		string_append(dst, " pwm1-extend");
+	else
+		string_append(dst, " no-pwm1-extend");
 }
 
 irom _Bool config_flags_change(const string_t *flag, _Bool set)
@@ -126,6 +131,12 @@ irom _Bool config_flags_change(const string_t *flag, _Bool set)
 	if(string_match_cstr(flag, "auto-sequencer") || string_match_cstr(flag, "as"))
 	{
 		flags_cache.flags.auto_sequencer = set ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match_cstr(flag, "pwm1-extend") || string_match_cstr(flag, "pe"))
+	{
+		flags_cache.flags.pwm1_extend = set ? 1 : 0;
 		rv = true;
 	}
 

@@ -20,6 +20,7 @@ int stat_uart0_tx_interrupts;
 int stat_uart1_tx_interrupts;
 int stat_fast_timer;
 int stat_slow_timer;
+int stat_pwm_cycles;
 int stat_timer_interrupts;
 int stat_pwm_timer_interrupts;
 int stat_pwm_timer_interrupts_while_nmi_masked;
@@ -310,7 +311,8 @@ irom void stats_counters(string_t *dst)
 			"> int uart1 tx: %u\n"
 			"> fast timer fired: %u\n"
 			"> slow timer fired: %u\n"
-			"> primary pwm timer int fired: %u\n"
+			"> primary pwm cycles: %u\n"
+			"> ... int fired: %u\n"
 			"> ... while masked: %u\n"
 			"> pc counts: %u\n"
 			"> uart updated: %u\n"
@@ -338,6 +340,7 @@ irom void stats_counters(string_t *dst)
 				stat_uart1_tx_interrupts,
 				stat_fast_timer,
 				stat_slow_timer,
+				stat_pwm_cycles,
 				stat_pwm_timer_interrupts,
 				stat_pwm_timer_interrupts_while_nmi_masked,
 				stat_pc_counts,
