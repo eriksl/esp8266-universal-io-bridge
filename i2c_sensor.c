@@ -479,7 +479,7 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_tab
 	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
 		return(i2c_error_device_error_1);
 
-	data->high_sensitivity = !!config_flags_get().flag.tsl_high_sens;
+	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
 
 	// tsl2550 power up
 
@@ -681,7 +681,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 	if((error = tsl2561_write_check(entry->address, tsl2561_reg_interrupt, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
 
-	data->high_sensitivity = !!config_flags_get().flag.tsl_high_sens;
+	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
 
 	if(data->high_sensitivity)
 		timeint = tsl2561_tim_integ_402ms | tsl2561_tim_high_gain;
@@ -833,7 +833,7 @@ irom static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_tabl
 
 	// set sensitivity
 
-	data->high_sensitivity = !!config_flags_get().flag.bh_high_sens;
+	data->high_sensitivity = !!config_flags_get().bh_high_sens;
 
 	if(data->high_sensitivity)
 	{

@@ -28,119 +28,112 @@ typedef struct
 
 assert_size(config_entry_t, 52);
 
-config_flags_t flags_cache;
+_config_flags_t flags_cache;
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
-
-irom static _Bool config_flags_set(config_flags_t flags)
-{
-	string_init(varname, "flags");
-
-	flags_cache.intval = flags.intval;
-
-	return(config_set_int(&varname, -1, -1, flags.intval));
-}
 
 irom void config_flags_to_string(string_t *dst)
 {
 	config_flags_t flags = config_flags_get();
 
-	if(flags.flag.strip_telnet)
+	if(flags.strip_telnet)
 		string_append(dst, " strip-telnet");
 	else
 		string_append(dst, " no-strip-telnet");
 
-	if(flags.flag.log_to_uart)
+	if(flags.log_to_uart)
 		string_append(dst, " log-to-uart");
 	else
 		string_append(dst, " no-log-to-uart");
 
-	if(flags.flag.tsl_high_sens)
+	if(flags.tsl_high_sens)
 		string_append(dst, " tsl-high-sens");
 	else
 		string_append(dst, " no-tsl-high-sens");
 
-	if(flags.flag.bh_high_sens)
+	if(flags.bh_high_sens)
 		string_append(dst, " bh-high-sens");
 	else
 		string_append(dst, " no-bh-high-sens");
 
-	if(flags.flag.cpu_high_speed)
+	if(flags.cpu_high_speed)
 		string_append(dst, " cpu-high-speed");
 	else
 		string_append(dst, " no-cpu-high-speed");
 
-	if(flags.flag.wlan_power_save)
+	if(flags.wlan_power_save)
 		string_append(dst, " wlan-power-save");
 	else
 		string_append(dst, " no-wlan-power-save");
 
-	if(flags.flag.log_to_buffer)
+	if(flags.log_to_buffer)
 		string_append(dst, " log-to-buffer");
 	else
 		string_append(dst, " no-log-to-buffer");
 
-	if(flags.flag.auto_sequencer)
+	if(flags.auto_sequencer)
 		string_append(dst, " auto-sequencer");
 	else
 		string_append(dst, " no-auto-sequencer");
 }
 
-irom _Bool config_flags_change(const string_t *flag, _Bool add)
+irom _Bool config_flags_change(const string_t *flag, _Bool set)
 {
-	config_flags_t flags = config_flags_get();
 	_Bool rv = false;
 
 	if(string_match_cstr(flag, "strip-telnet") || string_match_cstr(flag, "st"))
 	{
-		flags.flag.strip_telnet = add ? 1 : 0;
+		flags_cache.flags.strip_telnet = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "log-to-uart") || string_match_cstr(flag, "lu"))
 	{
-		flags.flag.log_to_uart = add ? 1 : 0;
+		flags_cache.flags.log_to_uart = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "tsl-high-sens") || string_match_cstr(flag, "ths"))
 	{
-		flags.flag.tsl_high_sens = add ? 1 : 0;
+		flags_cache.flags.tsl_high_sens = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "bh-high-sens") || string_match_cstr(flag, "bhv"))
 	{
-		flags.flag.bh_high_sens = add ? 1 : 0;
+		flags_cache.flags.bh_high_sens = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "cpu-high-speed") || string_match_cstr(flag, "chs"))
 	{
-		flags.flag.cpu_high_speed = add ? 1 : 0;
+		flags_cache.flags.cpu_high_speed = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "wlan-power-save") || string_match_cstr(flag, "wps"))
 	{
-		flags.flag.wlan_power_save = add ? 1 : 0;
+		flags_cache.flags.wlan_power_save = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, "lb"))
 	{
-		flags.flag.log_to_buffer = add ? 1 : 0;
+		flags_cache.flags.log_to_buffer = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(string_match_cstr(flag, "auto-sequencer") || string_match_cstr(flag, "as"))
 	{
-		flags.flag.auto_sequencer = add ? 1 : 0;
+		flags_cache.flags.auto_sequencer = set ? 1 : 0;
 		rv = true;
 	}
 
 	if(rv)
-		rv = config_flags_set(flags);
+	{
+		string_init(varname, "flags");
+		rv = config_set_int(&varname, -1, -1, flags_cache.intval);
+	}
 
 	return(rv);
 }
@@ -418,8 +411,8 @@ done:
 	if(!config_get_int(&varname, -1, -1, &flags_cache.intval))
 	{
 		flags_cache.intval = 0;
-		flags_cache.flag.log_to_uart = 1;
-		flags_cache.flag.log_to_buffer = 1;
+		flags_cache.flags.log_to_uart = 1;
+		flags_cache.flags.log_to_buffer = 1;
 		config_set_int(&varname, -1, -1, flags_cache.intval);
 	}
 

@@ -725,7 +725,7 @@ irom static void pwm_go(void)
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
-	_Bool cpu_high_speed = config_flags_get().flag.cpu_high_speed;
+	_Bool cpu_high_speed = config_flags_get().cpu_high_speed;
 
 	pdm_enable(false);
 

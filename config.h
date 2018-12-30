@@ -12,24 +12,25 @@ typedef enum
 	config_wlan_mode_ap
 } config_wlan_mode_t;
 
+typedef struct
+{
+	unsigned int strip_telnet:1;
+	unsigned int log_to_uart:1;
+	unsigned int tsl_high_sens:1;
+	unsigned int bh_high_sens:1;
+	unsigned int cpu_high_speed:1;
+	unsigned int wlan_power_save:1;
+	unsigned int dummy_1:1;
+	unsigned int dummy_2:1;
+	unsigned int log_to_buffer:1;
+	unsigned int auto_sequencer:1;
+} config_flags_t;
+
 typedef union
 {
-	struct
-	{
-		unsigned int strip_telnet:1;
-		unsigned int log_to_uart:1;
-		unsigned int tsl_high_sens:1;
-		unsigned int bh_high_sens:1;
-		unsigned int cpu_high_speed:1;
-		unsigned int wlan_power_save:1;
-		unsigned int dummy_1:1;
-		unsigned int dummy_2:1;
-		unsigned int log_to_buffer:1;
-		unsigned int auto_sequencer:1;
-	} flag;
-
+	config_flags_t flags;
 	uint32_t intval;
-} config_flags_t;
+} _config_flags_t;
 
 void			config_flags_to_string(string_t *);
 _Bool			config_flags_change(const string_t *, _Bool add);
@@ -44,10 +45,10 @@ _Bool			config_read(void);
 unsigned int	config_write(void);
 void			config_dump(string_t *);
 
-extern config_flags_t flags_cache;
 
 attr_inline config_flags_t config_flags_get(void)
 {
-	return(flags_cache);
+	extern _config_flags_t flags_cache;
+	return(flags_cache.flags);
 }
 #endif
