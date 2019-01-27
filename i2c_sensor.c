@@ -408,155 +408,6 @@ irom static i2c_error_t sensor_bmp085_read_pressure(int bus, const i2c_sensor_de
 	return(bmp085_read(entry->address, 0, value, data));
 }
 
-static const uint16_t tsl2550_count[128] =
-{
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26,
-	28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 49, 53, 57, 61, 65, 69, 73, 77, 81,
-	85, 89, 93, 97, 101, 105, 109, 115, 123, 131, 139, 147, 155, 163, 171, 179,
-	187, 195, 203, 211, 219, 227, 235, 247, 263, 279, 295, 311, 327, 343, 359,
-	375, 391, 407, 423, 439, 455, 471, 487, 511, 543, 575, 607, 639, 671, 703,
-	735, 767, 799, 831, 863, 895, 927, 959, 991,
-	1039,1103,1167,1231,1295,1359,1423,1487,
-	1551,1615,1679,1743,1807,1871,1935,1999,
-	2095,2223,2351,2479,2607,2735,2863,2991,
-	3119,3247,3375,3503,3631,3759,3887,4015
-};
-
-static const uint8_t tsl2550_ratio[129] =
-{
-	100,100,100,100,100,100,100,100,
-	100,100,100,100,100,100,99,99,
-	99,99,99,99,99,99,99,99,
-	99,99,99,98,98,98,98,98,
-	98,98,97,97,97,97,97,96,
-	96,96,96,95,95,95,94,94,
-	93,93,93,92,92,91,91,90,
-	89,89,88,87,87,86,85,84,
-	83,82,81,80,79,78,77,75,
-	74,73,71,69,68,66,64,62,
-	60,58,56,54,52,49,47,44,
-	42,41,40,40,39,39,38,38,
-	37,37,37,36,36,36,35,35,
-	35,35,34,34,34,34,33,33,
-	33,33,32,32,32,32,32,31,
-	31,31,31,31,30,30,30,30,
-	30
-};
-
-irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
-{
-	i2c_error_t error;
-
-	if((error = i2c_send1(address, in)) != i2c_error_ok)
-		return(error);
-
-	if((error = i2c_receive(address, 1, out)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int compare)
-{
-	i2c_error_t error;
-	uint8_t out;
-
-	if((error = sensor_tsl2550_rw(address, in, &out)) != i2c_error_ok)
-		return(error);
-
-	if(out != compare)
-		return(i2c_error_device_error_2);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
-{
-	i2c_error_t error;
-	int sens_command;
-	uint8_t	i2cbuffer[2];
-
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
-		return(i2c_error_device_error_1);
-
-	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
-
-	// tsl2550 power up
-
-	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
-			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
-		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
-
-	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
-		return(error);
-
-	if(data->high_sensitivity)
-		sens_command = 0x18;	// standard range mode
-	else
-		sens_command = 0x1d;	// extended range mode
-
-	if((error = sensor_tsl2550_write_check(entry->address, sens_command, 0x1b)) != i2c_error_ok)
-		return(error);
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_tsl2550_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	i2c_error_t	error;
-	uint8_t		ch0, ch1;
-	int			attempt, ratio;
-
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
-		return(i2c_error_device_error_1);
-
-	error = i2c_error_ok;
-
-	for(attempt = 16; attempt > 0; attempt--)
-	{
-		// read from channel 0
-
-		if((error = sensor_tsl2550_rw(entry->address, 0x43, &ch0)) != i2c_error_ok)
-			goto error;
-
-		// read from channel 1
-
-		if((error = sensor_tsl2550_rw(entry->address, 0x83, &ch1)) != i2c_error_ok)
-			goto error;
-
-		if((ch0 & 0x80) && (ch1 & 0x80))
-			break;
-error:
-		msleep(10);
-	}
-
-	if(error != i2c_error_ok)
-		return(error);
-
-	ch0 &= 0x7f;
-	ch1 &= 0x7f;
-
-	value->raw = (ch0 * 10000.0) + ch1;
-
-	if((tsl2550_count[ch1] <= tsl2550_count[ch0]) && (tsl2550_count[ch0] > 0))
-		ratio = (tsl2550_count[ch1] * 128) / tsl2550_count[ch0];
-	else
-		ratio = 128;
-
-	if(ratio > 128)
-		ratio = 128;
-
-	value->cooked = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
-
-	if(value->cooked < 0)
-		value->cooked = 0;
-
-	if(data->high_sensitivity)
-		value->cooked *= 5;
-
-	return(i2c_error_ok);
-}
-
 typedef enum
 {
 	tsl2561_reg_control =			0x00,
@@ -652,19 +503,22 @@ irom static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsi
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_veml6070_detect(int bus, int address);
+
 irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t regval;
 	tsl2561_timeint_t timeint;
-	uint8_t i2cbuffer[2];
 
-	if((entry->address == 0x39) && i2c_sensor_detected(bus, i2c_sensor_tsl2550))
-		return(i2c_error_device_error_1);
+	if(entry->address == 0x39)
+	{
+		if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
+			return(i2c_error_device_error_1);
 
-	if((i2c_receive(0x39, 1, i2cbuffer) == i2c_error_ok) &&
-			(i2c_receive(0x38, 1, i2cbuffer) == i2c_error_ok))	// try to detect veml6070
-		return(i2c_error_device_error_2);						// which uses both 0x38 and 0x39 addresses
+		if(sensor_veml6070_detect(bus, entry->address) == i2c_error_ok)
+			return(i2c_error_device_error_2);
+	}
 
 	if((error = tsl2561_write_check(entry->address, tsl2561_reg_control, tsl2561_ctrl_power_off)) != i2c_error_ok)
 		return(error);
@@ -673,7 +527,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 		return(error);
 
 	if(regval != 0x50)
-		return(i2c_error_device_error_3);
+		return(i2c_error_device_error_4);
 
 	if(tsl2561_write_check(entry->address, tsl2561_reg_id, 0x00) == i2c_error_ok) // id register should not be writable
 		return(i2c_error_device_error_4);
@@ -698,7 +552,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 		return(error);
 
 	if((regval & 0x0f) != tsl2561_ctrl_power_on)
-		return(i2c_error_device_error_3);
+		return(i2c_error_device_error_5);
 
 	return(i2c_error_ok);
 }
@@ -792,6 +646,150 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 					value->cooked = (0.0224 * ch0) - (0.031 * ch1);
 				else
 					value->cooked = (0.0304 * ch0) - (0.062 * ch0 * pow(ratio, 1.4));
+
+	return(i2c_error_ok);
+}
+
+static const uint16_t tsl2550_count[128] =
+{
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26,
+	28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 49, 53, 57, 61, 65, 69, 73, 77, 81,
+	85, 89, 93, 97, 101, 105, 109, 115, 123, 131, 139, 147, 155, 163, 171, 179,
+	187, 195, 203, 211, 219, 227, 235, 247, 263, 279, 295, 311, 327, 343, 359,
+	375, 391, 407, 423, 439, 455, 471, 487, 511, 543, 575, 607, 639, 671, 703,
+	735, 767, 799, 831, 863, 895, 927, 959, 991,
+	1039,1103,1167,1231,1295,1359,1423,1487,
+	1551,1615,1679,1743,1807,1871,1935,1999,
+	2095,2223,2351,2479,2607,2735,2863,2991,
+	3119,3247,3375,3503,3631,3759,3887,4015
+};
+
+static const uint8_t tsl2550_ratio[129] =
+{
+	100,100,100,100,100,100,100,100,
+	100,100,100,100,100,100,99,99,
+	99,99,99,99,99,99,99,99,
+	99,99,99,98,98,98,98,98,
+	98,98,97,97,97,97,97,96,
+	96,96,96,95,95,95,94,94,
+	93,93,93,92,92,91,91,90,
+	89,89,88,87,87,86,85,84,
+	83,82,81,80,79,78,77,75,
+	74,73,71,69,68,66,64,62,
+	60,58,56,54,52,49,47,44,
+	42,41,40,40,39,39,38,38,
+	37,37,37,36,36,36,35,35,
+	35,35,34,34,34,34,33,33,
+	33,33,32,32,32,32,32,31,
+	31,31,31,31,30,30,30,30,
+	30
+};
+
+irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send1(address, in)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(address, 1, out)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int compare)
+{
+	i2c_error_t error;
+	uint8_t out;
+
+	if((error = sensor_tsl2550_rw(address, in, &out)) != i2c_error_ok)
+		return(error);
+
+	if(out != compare)
+		return(i2c_error_device_error_2);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+
+	if(entry->address == 0x39)
+	{
+		if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
+			return(i2c_error_device_error_1);
+
+		if(sensor_veml6070_detect(bus, entry->address) == i2c_error_ok)
+			return(i2c_error_device_error_2);
+
+		//if(sensor_tmd2771_detect(bus, entry->address) == i2c_error_ok)
+			//return(i2c_error_device_error_3);
+	}
+
+	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
+
+	// tsl2550 power up
+
+	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
+		return(error);
+
+	if((error = sensor_tsl2550_write_check(entry->address, data->high_sensitivity ? 0x18 : 0x1d, 0x1b)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_tsl2550_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t		ch0, ch1;
+	int			attempt, ratio;
+
+	error = i2c_error_ok;
+
+	for(attempt = 16; attempt > 0; attempt--)
+	{
+		// read from channel 0
+
+		if((error = sensor_tsl2550_rw(entry->address, 0x43, &ch0)) != i2c_error_ok)
+			goto error;
+
+		// read from channel 1
+
+		if((error = sensor_tsl2550_rw(entry->address, 0x83, &ch1)) != i2c_error_ok)
+			goto error;
+
+		if((ch0 & 0x80) && (ch1 & 0x80))
+			break;
+error:
+		msleep(10);
+	}
+
+	if(error != i2c_error_ok)
+		return(error);
+
+	ch0 &= 0x7f;
+	ch1 &= 0x7f;
+
+	value->raw = (ch0 * 10000.0) + ch1;
+
+	if((tsl2550_count[ch1] <= tsl2550_count[ch0]) && (tsl2550_count[ch0] > 0))
+		ratio = (tsl2550_count[ch1] * 128) / tsl2550_count[ch0];
+	else
+		ratio = 128;
+
+	if(ratio > 128)
+		ratio = 128;
+
+	value->cooked = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
+
+	if(value->cooked < 0)
+		value->cooked = 0;
+
+	if(data->high_sensitivity)
+		value->cooked *= 5;
 
 	return(i2c_error_ok);
 }
@@ -1215,16 +1213,39 @@ irom static i2c_error_t veml6070_read(unsigned int *rv)
 	return(i2c_error_ok);
 }
 
+irom static i2c_error_t sensor_veml6070_detect(int bus, int address)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[1];
+
+	if(address == 0x39)
+	{
+		if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0))
+			return(i2c_error_device_error_1);
+
+		if(i2c_sensor_detected(bus, i2c_sensor_tsl2550))
+			return(i2c_error_device_error_2);
+
+		//if(sensor_tmd2771_detect(bus, address) == i2c_error_ok)
+			//return(i2c_error_device_error_3);
+	}
+
+	if((error = i2c_receive(veml6070_addr_data_msb, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(veml6070_addr_data_lsb, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
 irom static i2c_error_t sensor_veml6070_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	unsigned int rv;
 
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2550)) // 0x39
-		return(i2c_error_device_error_1);
-
-	if(i2c_sensor_detected(bus, i2c_sensor_tsl2561_0)) // 0x39
-		return(i2c_error_device_error_1);
+	if((error = sensor_veml6070_detect(bus, entry->address)) != i2c_error_ok)
+		return(error);
 
 	if((error = i2c_send1(veml6070_addr_cmd, veml6070_cmd_init)) != i2c_error_ok)
 		return(error);
