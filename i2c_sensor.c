@@ -3135,6 +3135,118 @@ irom static i2c_error_t sensor_mcp9808_read(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
+enum
+{
+	opt3001_reg_result =		0x00,
+	opt3001_reg_conf =			0x01,
+	opt3001_reg_limit_low =		0x02,
+	opt3001_reg_limit_high =	0x03,
+	opt3001_reg_id_manuf =		0x7e,
+	opt3001_reg_id_dev =		0x7f,
+} opt3001_register;
+
+enum
+{
+	opt3001_id_manuf_ti =		0x5449,
+	opt3001_id_dev_opt3001 =	0x3001,
+} opt3001_id;
+
+enum
+{
+	opt3001_conf_fault_count =		0b0000000000000011,
+	opt3001_conf_mask_exp =			0b0000000000000100,
+	opt3001_conf_pol =				0b0000000000001000,
+	opt3001_conf_latch =			0b0000000000010000,
+	opt3001_conf_flag_low =			0b0000000000100000,
+	opt3001_conf_flag_high =		0b0000000001000000,
+	opt3001_conf_flag_ready =		0b0000000010000000,
+	opt3001_conf_flag_ovf =			0b0000000100000000,
+	opt3001_conf_conv_mode =		0b0000011000000000,
+	opt3001_conf_conv_time =		0b0000100000000000,
+	opt3001_conf_range =			0b1111000000000000,
+
+	opt3001_conf_range_auto =		0b1100000000000000,
+	opt3001_conf_conv_time_100 =	0b0000000000000000,
+	opt3001_conf_conv_time_800 =	0b0000100000000000,
+	opt3001_conf_conv_mode_shut =	0b0000000000000000,
+	opt3001_conf_conv_mode_single =	0b0000001000000000,
+	opt3001_conf_conv_mode_cont =	0b0000011000000000,
+} opt3001_conf;
+
+irom static i2c_error_t sensor_opt3001_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
+	unsigned int config;
+
+	if((error = i2c_send1_receive(entry->address, opt3001_reg_id_manuf, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	config = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+
+	if(config != opt3001_id_manuf_ti)
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send1_receive(entry->address, opt3001_reg_id_dev, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	config = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+
+	if(config != opt3001_id_dev_opt3001)
+		return(i2c_error_device_error_2);
+
+	config = opt3001_conf_range_auto | opt3001_conf_conv_time_800 | opt3001_conf_conv_mode_cont;
+
+	i2c_buffer[0] = opt3001_reg_conf;
+	i2c_buffer[1] = (config & 0xff00) >> 8;
+	i2c_buffer[2] = (config & 0x00ff) >> 0;
+
+	if((error = i2c_send(entry->address, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send1_receive(entry->address, opt3001_reg_conf, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	config = ((i2c_buffer[0] << 8) | (i2c_buffer[1] << 0)) & (opt3001_conf_mask_exp | opt3001_conf_conv_mode | opt3001_conf_conv_time | opt3001_conf_range);
+
+	if(config != (opt3001_conf_range_auto | opt3001_conf_conv_time_800 | opt3001_conf_conv_mode_cont))
+		return(i2c_error_device_error_2);
+
+	return(i2c_error_ok);
+}
+
+irom static i2c_error_t sensor_opt3001_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
+	unsigned int config, exponent, mantissa;
+
+	if((error = i2c_send1_receive(entry->address, opt3001_reg_conf, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	config = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
+
+	if(!(config & opt3001_conf_flag_ready))
+		return(i2c_error_device_error_1);
+
+	if(config & opt3001_conf_flag_ovf)
+	{
+		value->raw = value->cooked = -1;
+		return(i2c_error_ok);
+	}
+
+	if((error = i2c_send1_receive(entry->address, opt3001_reg_result, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	exponent = (i2c_buffer[0] & 0xf0) >> 4;
+	mantissa = ((i2c_buffer[0] & 0x0f) << 8) | i2c_buffer[1];
+
+	value->raw = exponent * 10000 + mantissa;
+	value->cooked = 0.01 * (1 << exponent) * mantissa;
+
+	return(i2c_error_ok);
+}
+
 static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
@@ -3406,6 +3518,12 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 		"bme680", "air quality", "%", 0,
 		sensor_bme680_airquality_init,
 		sensor_bme680_airquality_read,
+	},
+	{
+		i2c_sensor_opt3001, 0x45,
+		"opt3001", "visible light", "lux", 2,
+		sensor_opt3001_init,
+		sensor_opt3001_read,
 	},
 };
 
