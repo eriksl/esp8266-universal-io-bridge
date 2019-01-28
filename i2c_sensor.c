@@ -3267,39 +3267,32 @@ irom static i2c_error_t sensor_opt3001_read(int bus, const i2c_sensor_device_tab
 
 enum
 {
-	tmd2771_reg_enable =	0x00,
-	tmd2771_reg_atime =		0x01,
-	tmd2771_reg_ptime =		0x02,
-	tmd2771_reg_wtime =		0x03,
-	tmd2771_reg_ailtl =		0x04,
-	tmd2771_reg_ailth =		0x05,
-	tmd2771_reg_aihtl =		0x06,
-	tmd2771_reg_aihth =		0x07,
-	tmd2771_reg_piltl =		0x08,
-	tmd2771_reg_pilth =		0x09,
-	tmd2771_reg_pihtl =		0x0a,
-	tmd2771_reg_pihth =		0x0b,
-	tmd2771_reg_pers =		0x0c,
-	tmd2771_reg_config =	0x0d,
-	tmd2771_reg_ppulse =	0x0e,
-	tmd2771_reg_control =	0x0f,
-	tmd2771_reg_id =		0x12,
-	tmd2771_reg_status =	0x13,
-	tmd2771_reg_c0data =	0x14,
-	tmd2771_reg_c0datah =	0x15,
-	tmd2771_reg_c1data =	0x16,
-	tmd2771_reg_c1datah =	0x17,
-	tmd2771_reg_pdatal	=	0x18,
-	tmd2771_reg_pdatah	=	0x19,
+	tmd2771_reg_enable =	0x80,
+	tmd2771_reg_atime =		0x81,
+	tmd2771_reg_ptime =		0x82,
+	tmd2771_reg_wtime =		0x83,
+	tmd2771_reg_ailtl =		0x84,
+	tmd2771_reg_ailth =		0x85,
+	tmd2771_reg_aihtl =		0x86,
+	tmd2771_reg_aihth =		0x87,
+	tmd2771_reg_piltl =		0x88,
+	tmd2771_reg_pilth =		0x89,
+	tmd2771_reg_pihtl =		0x8a,
+	tmd2771_reg_pihth =		0x8b,
+	tmd2771_reg_pers =		0x8c,
+	tmd2771_reg_config =	0x8d,
+	tmd2771_reg_ppulse =	0x8e,
+	tmd2771_reg_control =	0x8f,
+	tmd2771_reg_id =		0x92,
+	tmd2771_reg_status =	0x93,
+	tmd2771_reg_c0data =	0x94,
+	tmd2771_reg_c0datah =	0x95,
+	tmd2771_reg_c1data =	0x96,
+	tmd2771_reg_c1datah =	0x97,
+	tmd2771_reg_pdatal	=	0x98,
+	tmd2771_reg_pdatah	=	0x99,
 
-	tmd2771_command =						0b10000000,
-	tmd2771_command_repeated =				0b00000000,
-	tmd2771_command_autoincr =				0b00100000,
-	tmd2771_command_special =				0b01100000,
-	tmd2771_command_special_normal =		0b00000000,
-	tmd2771_command_special_pint_clear =	0b00000101,
-	tmd2771_command_special_alsint_clear =	0b00000110,
-	tmd2771_command_special_all_clear =		0b00000111,
+	tmd2771_command_autoincr = 0b00100000,
 
 	tmd2771_enable_pien =		0b00100000,
 	tmd2771_enable_aien =		0b00010000,
@@ -3307,6 +3300,7 @@ enum
 	tmd2771_enable_pen =		0b00000100,
 	tmd2771_enable_aen =		0b00000010,
 	tmd2771_enable_pon =		0b00000001,
+	tmd2771_enable_poff = 		0b00000000,
 
 	tmd2771_atime_2 =			0xff,
 	tmd2771_atime_27 =			0xf6,
@@ -3321,6 +3315,7 @@ enum
 	tmd2771_wtime_700 =			0x00,
 
 	tmd2771_config_wlong =		0b00000010,
+	tmd2771_config_none =		0b00000000,
 
 	tmd2771_control_pdrive_100 =	0b00000000,
 	tmd2771_control_pdrive_50 =		0b01000000,
@@ -3334,12 +3329,13 @@ enum
 	tmd2771_control_again_16 =		0b00000010,
 	tmd2771_control_again_120 =		0b00000011,
 
-	tmd2771_id_tmd27711 =	0x20,
-	tmd2771_id_tmd27713 =	0x29,
+	tmd2771_id_tmd27711 =		0x20,
+	tmd2771_id_tmd27713 =		0x29,
+	tmd2771_id_apds9930 =		0x30,
 
-	tmd2771_status_pint =			0b00100000,
-	tmd2771_status_aint =			0b00010000,
-	tmd2771_status_avalid =			0b00000001,
+	tmd2771_status_pint =		0b00100000,
+	tmd2771_status_aint =		0b00010000,
+	tmd2771_status_avalid =		0b00000001,
 };
 
 irom static i2c_error_t sensor_tmd2771_detect(int bus, int address)
@@ -3347,11 +3343,16 @@ irom static i2c_error_t sensor_tmd2771_detect(int bus, int address)
 	uint8_t i2c_buffer[1];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive(address, tmd2771_command | tmd2771_reg_id , sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(address, tmd2771_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if((i2c_buffer[0] != tmd2771_id_tmd27711) && (i2c_buffer[0] != tmd2771_id_tmd27713))
+	if((i2c_buffer[0] != tmd2771_id_tmd27711) && (i2c_buffer[0] != tmd2771_id_tmd27713) && (i2c_buffer[0] != tmd2771_id_apds9930))
+	{
+		log("tmp2771 detect reject: %d/%d, id: %x\n", bus, address, i2c_buffer[0]);
 		return(i2c_error_address_nak);
+	}
+
+	log("tmp2771 detect ok: %d/%d, id: %x\n", bus, address, i2c_buffer[0]);
 
 	return(i2c_error_ok);
 }
@@ -3365,21 +3366,24 @@ irom static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_tab
 
 	data->high_sensitivity = !!config_flags_get().tmd_high_sens;
 
-	if((error = i2c_send2(entry->address, tmd2771_command | tmd2771_reg_atime,
+	if((error = i2c_send2(entry->address, tmd2771_reg_enable, tmd2771_enable_poff)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send2(entry->address, tmd2771_reg_atime,
 			(data->high_sensitivity ? tmd2771_atime_696 : tmd2771_atime_174))) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send2(entry->address, tmd2771_command | tmd2771_reg_wtime, tmd2771_wtime_200)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, tmd2771_reg_wtime, tmd2771_wtime_200)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send2(entry->address, tmd2771_command | tmd2771_reg_config, 0x00)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, tmd2771_reg_config, tmd2771_config_none)) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send2(entry->address, tmd2771_command | tmd2771_reg_control, tmd2771_control_pdrive_100 | tmd2771_control_pdiode_pca |
+	if((error = i2c_send2(entry->address, tmd2771_reg_control, tmd2771_control_pdrive_100 | tmd2771_control_pdiode_pca |
 			(data->high_sensitivity ? tmd2771_control_again_16 : tmd2771_control_again_1))) != i2c_error_ok)
 		return(error);
 
-	if((error = i2c_send2(entry->address, tmd2771_command | tmd2771_reg_enable, tmd2771_enable_wen | tmd2771_enable_aen | tmd2771_enable_pon)) != i2c_error_ok)
+	if((error = i2c_send2(entry->address, tmd2771_reg_enable, tmd2771_enable_wen | tmd2771_enable_aen | tmd2771_enable_pon)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -3394,18 +3398,18 @@ irom static i2c_error_t sensor_tmd2771_read(int bus, const i2c_sensor_device_tab
 
 	value->raw = value->cooked = -1;
 
-	if((error = i2c_send1_receive(entry->address, tmd2771_command | tmd2771_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, tmd2771_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(!(i2c_buffer[0] & tmd2771_status_avalid))
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send1_receive(entry->address, tmd2771_command | tmd2771_command_autoincr | tmd2771_reg_c0data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, tmd2771_command_autoincr | tmd2771_reg_c0data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	ch0 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(entry->address, tmd2771_command | tmd2771_command_autoincr | tmd2771_reg_c1data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, tmd2771_command_autoincr | tmd2771_reg_c1data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	ch1 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
@@ -3711,7 +3715,7 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_tmd2771, 0x39,
-		"tmd2771", "visible light", "lux", 2,
+		"tmd2771/apds9930", "visible light", "lux", 2,
 		sensor_tmd2771_init,
 		sensor_tmd2771_read,
 	},
