@@ -590,11 +590,7 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 		// analogue amplification = 16x, scaling factor = 1
 
 		if((ch0r == 65535) || (ch1r == 65535))
-		{
-			value->raw = (100000 * ch0r) + ch1r;
-			value->cooked = 2000;
 			return(i2c_error_ok);
-		}
 
 		ch0 = (double)ch0r * 1.0 * 1.0;
 		ch1 = (double)ch1r * 1.0 * 1.0;
@@ -604,12 +600,8 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 		// low  sensitivity = 101 ms integration time, scaling factor = 3.98 (402 / 101)
 		// analogue amplification = 1x, scaling factor = 16
 
-		if((ch0r == 37177) || (ch1r == 37177))
-		{
-			value->raw = (100000 * ch0r) + ch1r;
-			value->cooked = 43000;
+		if((ch0r >= 37177) || (ch1r >= 37177))
 			return(i2c_error_ok);
-		}
 
 		ch0 = (double)ch0r * 3.98 * 16.0;
 		ch1 = (double)ch1r * 3.98 * 16.0;
@@ -628,10 +620,7 @@ irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_tab
 			break;
 	}
 
-	value->raw = (ch0 * tsl2561_entry->ch0_factor) - (ch1 * tsl2561_entry->ch1_factor);
-
-	if(value->raw < 0)
-		value->raw = 0;
+	value->raw = ch0;
 
 	if(ratio > 1.30)
 		value->cooked = 0;
@@ -880,8 +869,12 @@ irom static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_tabl
 		// hmode =  1 lx / count
 		luxpercount = 1.2;
 
-	value->raw		= (double)((i2cbuffer[0] << 8) | i2cbuffer[1]);
-	value->cooked	= value->raw * luxpercount * 0.6;
+	value->raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+
+	if(value->raw >= 0xffff)
+		value->cooked = -1;
+	else
+		value->cooked = value->raw * luxpercount * 0.6;
 
 	return(i2c_error_ok);
 }
