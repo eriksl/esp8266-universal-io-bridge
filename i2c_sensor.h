@@ -55,6 +55,7 @@ typedef enum attr_packed
 	i2c_sensor_bme680_airpressure,
 	i2c_sensor_bme680_airquality,
 	i2c_sensor_opt3001,
+	i2c_sensor_tmd2771,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;

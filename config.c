@@ -80,6 +80,11 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " pwm1-extend");
 	else
 		string_append(dst, " no-pwm1-extend");
+
+	if(flags.tmd_high_sens)
+		string_append(dst, " tmd-high-sens");
+	else
+		string_append(dst, " no-tmd-high-sens");
 }
 
 irom _Bool config_flags_change(const string_t *flag, _Bool set)
@@ -137,6 +142,12 @@ irom _Bool config_flags_change(const string_t *flag, _Bool set)
 	if(string_match_cstr(flag, "pwm1-extend") || string_match_cstr(flag, "pe"))
 	{
 		flags_cache.flags.pwm1_extend = set ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match_cstr(flag, "tmd-high-sens") || string_match_cstr(flag, "mhs"))
+	{
+		flags_cache.flags.tmd_high_sens = set ? 1 : 0;
 		rv = true;
 	}
 
