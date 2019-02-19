@@ -286,7 +286,7 @@ irom void stats_firmware(string_t *dst)
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06x size: %05x\n", partition_item.addr, partition_item.size);
+			string_format(dst, " start: 0x%06x size: %3u kB\n", partition_item.addr, partition_item.size / 1024);
 		}
 	}
 }
