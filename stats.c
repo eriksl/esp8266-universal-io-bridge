@@ -271,12 +271,18 @@ irom void stats_firmware(string_t *dst)
 				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CERT_PRIVKEY):	string_append(dst, "EAP privkey      "); break;
 				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CA):				string_append(dst, "EAP ca           "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+0):				string_append(dst, "USER config      "); break;
+#if IMAGE_OTA == 0
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "PLAIN image IRAM "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "PLAIN image IROM "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "sequencer        "); break;
+#else
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "RBOOT OTA boot   "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "RBOOT OTA config "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "OTA image slot 0 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+4):				string_append(dst, "OTA image slot 1 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+5):				string_append(dst, "sequencer slot 0 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+6):				string_append(dst, "sequencer slot 1 "); break;
+#endif
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
