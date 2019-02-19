@@ -16,5 +16,6 @@
 #define attr_cold __attribute__ ((cold))
 #define attr_nonnull __attribute__ ((nonnull))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
+#define assert_enum(name, value) _Static_assert((name) == (value), "enum value for " #name " != " #value)
 
 #endif
