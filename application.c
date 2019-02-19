@@ -1191,7 +1191,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 	for(bus = 0; bus < i2c_busses; bus++)
 		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
 		{
-			if(all || i2c_sensor_detected(bus, sensor))
+			if(all || i2c_sensor_registered(bus, sensor))
 			{
 				i2c_sensor_read(dst, bus, sensor, verbose, false);
 				string_append(dst, "\n");

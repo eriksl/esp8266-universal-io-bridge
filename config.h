@@ -26,6 +26,8 @@ typedef struct
 	unsigned int auto_sequencer:1;
 	unsigned int pwm1_extend:1;
 	unsigned int tmd_high_sens:1;
+	unsigned int apds3_high_sens:1;
+	unsigned int apds6_high_sens:1;
 } config_flags_t;
 
 typedef union

@@ -85,6 +85,16 @@ irom void config_flags_to_string(string_t *dst)
 		string_append(dst, " tmd-high-sens");
 	else
 		string_append(dst, " no-tmd-high-sens");
+
+	if(flags.apds3_high_sens)
+		string_append(dst, " apds3-high-sens");
+	else
+		string_append(dst, " no-apds3-high-sens");
+
+	if(flags.apds6_high_sens)
+		string_append(dst, " apds6-high-sens");
+	else
+		string_append(dst, " no-apds6-high-sens");
 }
 
 irom _Bool config_flags_change(const string_t *flag, _Bool set)
@@ -148,6 +158,18 @@ irom _Bool config_flags_change(const string_t *flag, _Bool set)
 	if(string_match_cstr(flag, "tmd-high-sens") || string_match_cstr(flag, "mhs"))
 	{
 		flags_cache.flags.tmd_high_sens = set ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match_cstr(flag, "apds3-high-sens") || string_match_cstr(flag, "a3hs"))
+	{
+		flags_cache.flags.apds3_high_sens = set ? 1 : 0;
+		rv = true;
+	}
+
+	if(string_match_cstr(flag, "apds6-high-sens") || string_match_cstr(flag, "a6hs"))
+	{
+		flags_cache.flags.apds6_high_sens = set ? 1 : 0;
 		rv = true;
 	}
 

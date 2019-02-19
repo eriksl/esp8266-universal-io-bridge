@@ -394,7 +394,7 @@ irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
 
 	for(bus = 0; bus < i2c_busses; bus++)
 		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
-			if(i2c_sensor_detected(bus, sensor))
+			if(i2c_sensor_registered(bus, sensor))
 			{
 				string_append(dst, "<tr><td>");
 				i2c_sensor_read(dst, bus, sensor, false, true);

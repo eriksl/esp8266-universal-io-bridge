@@ -44,7 +44,6 @@ unsigned int stat_task_command_failed;
 unsigned int stat_task_timer_posted;
 unsigned int stat_task_timer_failed;
 
-unsigned int stat_i2c_init_time_us;
 unsigned int stat_i2c_sda_stucks;
 unsigned int stat_i2c_sda_stuck_max_period;
 unsigned int stat_i2c_bus_locks;
@@ -376,8 +375,7 @@ irom void stats_i2c(string_t *dst)
 	i2c_sensor_get_info(&i2c_sensor_info);
 
 	string_format(dst,
-			"> display initialisation time: %u us\n"
-			"> i2c initialisation time: %u us\n"
+			"> display initialisation time: %u ms\n"
 			"> i2c sda stucks: %u\n"
 			"> i2c sda max stuck periods: %u\n"
 			"> i2c bus locks: %u\n"
@@ -388,12 +386,16 @@ irom void stats_i2c(string_t *dst)
 			"> i2c buses: %u\n"
 			"> i2c sensors init called: %u\n"
 			"> i2c sensors init succeeded: %u\n"
+			"> i2c sensors init skip disabled: %u (%u)\n"
+			"> i2c sensors init skip secondary: %u (%u)\n"
+			"> i2c sensors init skip found on bus 0: %u\n"
+			"> i2c sensors init skip dup address: %u\n"
 			"> i2c sensors init failed: %u\n"
 			"> i2c sensors init current bus: %u\n"
 			"> i2c sensors init current sensor id: %u\n"
-			"> i2c sensors init finished: %s\n",
-				stat_display_init_time_us,
-				stat_i2c_init_time_us,
+			"> i2c sensors init finished: %s\n"
+			"> i2c sensors init duration: %u ms\n",
+				stat_display_init_time_us / 1000,
 				stat_i2c_sda_stucks,
 				stat_i2c_sda_stuck_max_period,
 				stat_i2c_bus_locks,
@@ -404,10 +406,17 @@ irom void stats_i2c(string_t *dst)
 				i2c_info.buses,
 				i2c_sensor_info.init_called,
 				i2c_sensor_info.init_succeeded,
+				i2c_sensor_info.init_skip_disabled,
+				i2c_sensor_info.init_skip_disabled / i2c_info.buses,
+				i2c_sensor_info.init_skip_secondary,
+				i2c_sensor_info.init_skip_secondary / i2c_info.buses,
+				i2c_sensor_info.init_skip_found_on_bus_0,
+				i2c_sensor_info.init_skip_duplicate_address,
 				i2c_sensor_info.init_failed,
 				i2c_sensor_info.init_current_bus,
 				i2c_sensor_info.init_current_sensor,
-				yesno(i2c_sensor_info.init_finished));
+				yesno(i2c_sensor_info.init_finished),
+				(uint32_t)((i2c_sensor_info.init_finished_us - i2c_sensor_info.init_started_us) / 1000));
 }
 
 irom void stats_wlan(string_t *dst)

@@ -86,7 +86,7 @@ static roflash const char roflash_state_strings[i2c_state_size][32] =
 	"send stop"
 };
 
-static roflash const char roflash_error_strings[i2c_error_size][32] =
+static roflash const char roflash_error_strings[i2c_error_size + 1][32] =
 {
 	"ok",
 	"uninitialised",
@@ -107,6 +107,13 @@ static roflash const char roflash_error_strings[i2c_error_size][32] =
 	"device specific error 4",
 	"device specific error 5",
 	"invalid bus",
+	"out of range ",
+	"disabled",
+	"init secondary",
+	"in use",
+	"in use on bus 0",
+	"overflow",
+	"error",
 };
 
 static int sda_pin;

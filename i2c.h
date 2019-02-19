@@ -52,6 +52,12 @@ typedef enum
 	i2c_error_device_error_4,
 	i2c_error_device_error_5,
 	i2c_error_invalid_bus,
+	i2c_error_out_of_range,
+	i2c_error_disabled,
+	i2c_error_init_secondary,
+	i2c_error_in_use,
+	i2c_error_in_use_on_bus_0,
+	i2c_error_overflow,
 	i2c_error_error,
 	i2c_error_size = i2c_error_error
 } i2c_error_t;
