@@ -23,7 +23,7 @@ string_t logbuffer =
 	.buffer = (char *)0x3fffe000,
 };
 
-int __errno;
+int __attribute__ ((used)) __errno;
 
 // functions missing from SDK libmain (but declared in headers)
 

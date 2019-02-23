@@ -177,7 +177,11 @@ WARNINGS		:=	-Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitiali
 						-Wno-format-security -Wno-format-nonliteral -Wnonnull \
 						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure
 
-CFLAGS			:=	-Os -std=gnu11 -mlongcalls -fno-builtin -freorder-blocks -mno-serialize-volatile \
+CFLAGS			:=	-Os -std=gnu11 -mlongcalls -mno-serialize-volatile \
+						-fno-unroll-loops -fno-move-loop-invariants -freorder-blocks-and-partition \
+						-fno-keep-static-consts -fuse-linker-plugin -fno-math-errno \
+						-fno-tree-copy-prop -fno-tree-ccp -fno-tree-tail-merge \
+						-flto=8 -flto-partition=none -flto-compression-level=0 \
 						-ffunction-sections -fdata-sections \
 						-D__ets__ -DICACHE_FLASH -DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
