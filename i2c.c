@@ -166,7 +166,7 @@ attr_inline void delay(i2c_delay_enum_t delay_index)
 	csleep(i2c_delay[delay_index].delay);
 }
 
-iram attr_noinline attr_hot static i2c_error_t sda_set_test(_Bool val, i2c_delay_enum_t delay_index)
+iram attr_noinline static i2c_error_t sda_set_test(_Bool val, i2c_delay_enum_t delay_index)
 {
 	unsigned int current = i2c_config_sda_wait_cycles;
 	unsigned int wait_cycles = 0;
@@ -205,7 +205,7 @@ iram attr_noinline attr_hot static i2c_error_t sda_set_test(_Bool val, i2c_delay
 	return(i2c_error_sda_stuck);
 }
 
-iram attr_noinline attr_hot static i2c_error_t scl_set_test(_Bool val, i2c_delay_enum_t delay_index)
+iram attr_noinline static i2c_error_t scl_set_test(_Bool val, i2c_delay_enum_t delay_index)
 {
 	unsigned int current = i2c_config_scl_wait_cycles;
 	unsigned int wait_cycles = 0;
@@ -304,7 +304,7 @@ iram static i2c_error_t receive_bit(_Bool *bit)
 	return(i2c_error_ok);
 }
 
-iram attr_noinline attr_hot static i2c_error_t send_start(void)
+iram attr_noinline static i2c_error_t send_start(void)
 {
 	i2c_error_t error;
 
@@ -330,7 +330,7 @@ iram attr_noinline attr_hot static i2c_error_t send_start(void)
 	return(i2c_error_ok);
 }
 
-iram attr_noinline attr_hot static i2c_error_t send_stop(void)
+iram attr_noinline static i2c_error_t send_stop(void)
 {
 	i2c_error_t error;
 
@@ -619,7 +619,7 @@ iram i2c_error_t i2c_select_bus(unsigned int bus)
 	return(i2c_send1(0x70, bus));
 }
 
-irom attr_cold attr_noinline static i2c_error_t i2c_reset_fixup_bus(void)
+irom attr_noinline static i2c_error_t i2c_reset_fixup_bus(void)
 {
 	i2c_error_t error;
 	int current;
@@ -664,7 +664,7 @@ irom attr_cold attr_noinline static i2c_error_t i2c_reset_fixup_bus(void)
 	return(i2c_error_ok);
 }
 
-iram attr_noinline attr_hot i2c_error_t i2c_reset(void)
+iram attr_noinline i2c_error_t i2c_reset(void)
 {
 	i2c_error_t error;
 

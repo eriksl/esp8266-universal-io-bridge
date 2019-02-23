@@ -12,8 +12,6 @@
 #define attr_const __attribute__ ((const))
 #define attr_packed __attribute__ ((__packed__))
 #define attr_speed __attribute__ ((optimize("O3")))
-#define attr_hot __attribute__ ((hot))
-#define attr_cold __attribute__ ((cold))
 #define attr_nonnull __attribute__ ((nonnull))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 #define assert_enum(name, value) _Static_assert((name) == (value), "enum value for " #name " != " #value)
