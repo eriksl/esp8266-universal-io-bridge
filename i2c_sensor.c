@@ -199,8 +199,6 @@ irom static i2c_error_t sensor_veml6075_uvindex_init(int bus, const i2c_sensor_d
 		return(i2c_error_device_error_3);
 
 	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_veml6075_infrared_light);
-	sensor_register(bus, i2c_sensor_veml6075_visible_light);
 
 	return(i2c_error_ok);
 }
@@ -257,56 +255,6 @@ irom static i2c_error_t sensor_veml6075_uvindex_read(int bus, const i2c_sensor_d
 
 	value->raw = (unsigned int)uvia * 10000 + (unsigned int)uvib;
 	value->cooked = uvi * 1.25;
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_veml6075_visible_light_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	i2c_error_t	error;
-	uint8_t i2c_buffer[2];
-
-	value->cooked = -1;
-
-	if((error = i2c_send1_receive(entry->address, veml6075_reg_uv_uvcomp1_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	value->raw = (i2c_buffer[1] << 8) | i2c_buffer[0];
-
-	if(value->raw < 4)
-		return(i2c_error_overflow);
-
-	value->cooked = 46 * value->raw + 400;
-
-	return(i2c_error_ok);
-}
-
-irom static i2c_error_t sensor_veml6075_infrared_light_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	i2c_error_t	error;
-	uint8_t i2c_buffer[2];
-	unsigned int ir, visible;
-
-	value->cooked = -1;
-
-	if((error = i2c_send1_receive(entry->address, veml6075_reg_uv_uvcomp1_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	visible = (i2c_buffer[1] << 8) | i2c_buffer[0];
-
-	if(visible < 1)
-		visible = 1;
-
-	if((error = i2c_send1_receive(entry->address, veml6075_reg_uv_uvcomp2_data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	ir = (i2c_buffer[1] << 8) | i2c_buffer[0];
-
-	if(ir < 1)
-		ir = 1;
-
-	value->raw = ir * 10000 + visible;
-	value->cooked = ir * 33 / visible;
 
 	return(i2c_error_ok);
 }
@@ -3886,18 +3834,6 @@ static const i2c_sensor_device_table_entry_t device_table[] =
 		"veml6075", "ultraviolet light index", "",
 		sensor_veml6075_uvindex_init,
 		sensor_veml6075_uvindex_read,
-	},
-	{
-		i2c_sensor_veml6075_infrared_light, 0x10, 0, 1,
-		"veml6075", "infrared light", "%",
-		(void *)0,
-		sensor_veml6075_infrared_light_read,
-	},
-	{
-		i2c_sensor_veml6075_visible_light, 0x10, 2, 1,
-		"veml6075", "visible light", "",
-		(void *)0,
-		sensor_veml6075_visible_light_read,
 	},
 	{
 		i2c_sensor_tmd2771, 0x39, 2, 0,

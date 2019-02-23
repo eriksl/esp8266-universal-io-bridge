@@ -11,8 +11,6 @@ typedef enum attr_packed
 {
 	i2c_sensor_opt3001 = 0,
 	i2c_sensor_veml6075_uvindex,
-	i2c_sensor_veml6075_infrared_light,
-	i2c_sensor_veml6075_visible_light,
 	i2c_sensor_tmd2771,
 	i2c_sensor_apds9930,
 	i2c_sensor_apds9960,
