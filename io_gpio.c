@@ -555,7 +555,7 @@ iram attr_speed static void pwm_isr(void)
 	}
 }
 
-irom static void pwm_go(void)
+iram attr_speed static void pwm_go(void)
 {
 	io_config_pin_entry_t *pin1_config;
 	gpio_info_t *pin1_info;

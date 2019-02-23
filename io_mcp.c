@@ -168,7 +168,7 @@ irom attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *i
 	return(value);
 }
 
-irom void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+iram void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
