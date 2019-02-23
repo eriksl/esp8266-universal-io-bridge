@@ -296,6 +296,8 @@ irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T 
 
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
+	tv = 0;
+
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_input_analog):
@@ -353,6 +355,8 @@ iram io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_en
 	bankpin = pin & 0x07;
 
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
+
+	tv = 0;
 
 	switch(pin_config->llmode)
 	{
