@@ -12,7 +12,7 @@ static int lcd_io;
 static int lcd_pin[io_lcd_size];
 static unsigned int pin_mask;
 
-attr_inline unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
+irom static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
 	unsigned int pin = 0;
 

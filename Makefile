@@ -182,7 +182,7 @@ CFLAGS			:=	-Os -std=gnu11 -mlongcalls -mno-serialize-volatile \
 						-fno-keep-static-consts -fuse-linker-plugin -fno-math-errno \
 						-fno-tree-copy-prop -fno-tree-ccp -fno-tree-tail-merge \
 						-flto=8 -flto-partition=none -flto-compression-level=0 \
-						-ffunction-sections -fdata-sections \
+						-ffunction-sections -fdata-sections -fno-inline \
 						-D__ets__ -DICACHE_FLASH -DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
