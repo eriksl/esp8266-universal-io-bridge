@@ -1,8 +1,3 @@
-#include <stdint.h>
-
-typedef uint8_t uint8;
-typedef uint32_t uint32;
-
 #include "rboot/rboot.h"
 
 const rboot_config rboot_config_data =

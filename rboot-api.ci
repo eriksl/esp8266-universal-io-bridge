@@ -4,8 +4,15 @@
 
 #define RBOOT_API_INCLUDED
 
-#include <stdint.h>
+// ugly hack to prevent wrong stdint definitions
+#define int32_t _int32_t_
+#define uint32_t _uint32_t_
 #include <c_types.h>
+#undef int32_t
+#undef uint32_t
+
+#include <stdint.h>
+
 #include <mem.h>
 #include <ets_sys.h>
 #include <user_interface.h>

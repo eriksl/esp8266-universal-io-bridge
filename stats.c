@@ -6,7 +6,6 @@
 #include "i2c.h"
 #include "i2c_sensor.h"
 
-#include <c_types.h>
 #include <user_interface.h>
 
 #if IMAGE_OTA == 1

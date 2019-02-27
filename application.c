@@ -16,7 +16,6 @@
 #include "dispatch.h"
 
 #include <user_interface.h>
-#include <c_types.h>
 #include <sntp.h>
 
 #include <stdlib.h>

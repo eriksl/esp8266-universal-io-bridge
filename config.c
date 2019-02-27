@@ -7,7 +7,6 @@
 #include "dispatch.h"
 
 #include <ets_sys.h>
-#include <c_types.h>
 #include <spi_flash.h>
 
 #define CONFIG_MAGIC "%4afc0002%"

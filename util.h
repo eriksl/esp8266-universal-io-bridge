@@ -1,11 +1,19 @@
 #ifndef util_h
 #define util_h
 
+// ugly workaround for SDK header "c_types.h" that gets included from osapi.h,
+// that defines uint32_t and int32_t to non standard types.
+#define uint32_t _uint32_t_
+#define int32_t _int32_t_
+#include <osapi.h>
+#undef uint32_t
+#undef int32_t
+
+#include <ip_addr.h>
+
+#include <stdint.h>
 #include <sys/types.h>
 #include <stdarg.h>
-#include <stdint.h>
-#include <osapi.h>
-#include <ip_addr.h>
 
 #include "attribute.h"
 
@@ -118,7 +126,6 @@ double pow(double, double);
 extern char flash_dram_buffer[1024];
 
 // ugly kludge for incorrectly declared spi_flash_* functions */
-#include <c_types.h>
 #undef spi_flash_write
 #define spi_flash_read _spi_flash_read
 #define spi_flash_write _spi_flash_write
