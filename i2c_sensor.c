@@ -1227,7 +1227,7 @@ irom static i2c_error_t sensor_max44009_read(int bus, const i2c_sensor_device_ta
 	value->raw = (exponent * 10000) + mantissa;
 
 	if(exponent == 0b1111)
-		return(i2c_error_device_error_2);
+		return(i2c_error_overflow);
 
 	value->cooked = (1 << exponent) * mantissa * 0.045;
 
