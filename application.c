@@ -1216,9 +1216,8 @@ irom static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
 	}
 
 	string_clear(dst);
-	string_append(dst, "flags:");
-	config_flags_to_string(dst);
-	string_append(dst, "\n");
+	string_append(dst, "> flags:\n>\n");
+	config_flags_to_string(true, ">    ", dst);
 
 	return(app_action_normal);
 }

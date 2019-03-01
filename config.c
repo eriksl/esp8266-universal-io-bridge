@@ -27,158 +27,67 @@ typedef struct
 
 assert_size(config_entry_t, 52);
 
-_config_flags_t flags_cache;
+typedef struct
+{
+	uint32_t value;
+	const char *name;
+} config_flag_name_t;
+
+static const config_flag_name_t config_flag_names[] =
+{
+	{	flag_strip_telnet,		"strip-telnet"		},
+	{	flag_log_to_uart,		"log-to-uart"		},
+	{	flag_tsl_high_sens,		"tsl-high-sens"		},
+	{	flag_bh_high_sens,		"bh-high-sens"		},
+	{	flag_cpu_high_speed,	"cpu-high-speed"	},
+	{	flag_wlan_power_save,	"wlan-power-save"	},
+	{	flag_unused_1,			"unused-1",			},
+	{	flag_unused_2,			"unused-2",			},
+	{	flag_log_to_buffer,		"log-to-buffer"		},
+	{	flag_auto_sequencer,	"auto-sequencer"	},
+	{	flag_pwm1_extend,		"pwm1-extend"		},
+	{	flag_tmd_high_sens,		"tmd-high-sens"		},
+	{	flag_apds3_high_sens,	"apds3-high-sens"	},
+	{	flag_apds6_high_sens,	"apds6-high-sens"	},
+	{	flag_none,				""					},
+};
+
+uint32_t flags_cache;
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
 
-irom void config_flags_to_string(string_t *dst)
+irom void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
 {
-	config_flags_t flags = config_flags_get();
+	const config_flag_name_t *entry;
 
-	if(flags.strip_telnet)
-		string_append(dst, " strip-telnet");
-	else
-		string_append(dst, " no-strip-telnet");
-
-	if(flags.log_to_uart)
-		string_append(dst, " log-to-uart");
-	else
-		string_append(dst, " no-log-to-uart");
-
-	if(flags.tsl_high_sens)
-		string_append(dst, " tsl-high-sens");
-	else
-		string_append(dst, " no-tsl-high-sens");
-
-	if(flags.bh_high_sens)
-		string_append(dst, " bh-high-sens");
-	else
-		string_append(dst, " no-bh-high-sens");
-
-	if(flags.cpu_high_speed)
-		string_append(dst, " cpu-high-speed");
-	else
-		string_append(dst, " no-cpu-high-speed");
-
-	if(flags.wlan_power_save)
-		string_append(dst, " wlan-power-save");
-	else
-		string_append(dst, " no-wlan-power-save");
-
-	if(flags.log_to_buffer)
-		string_append(dst, " log-to-buffer");
-	else
-		string_append(dst, " no-log-to-buffer");
-
-	if(flags.auto_sequencer)
-		string_append(dst, " auto-sequencer");
-	else
-		string_append(dst, " no-auto-sequencer");
-
-	if(flags.pwm1_extend)
-		string_append(dst, " pwm1-extend");
-	else
-		string_append(dst, " no-pwm1-extend");
-
-	if(flags.tmd_high_sens)
-		string_append(dst, " tmd-high-sens");
-	else
-		string_append(dst, " no-tmd-high-sens");
-
-	if(flags.apds3_high_sens)
-		string_append(dst, " apds3-high-sens");
-	else
-		string_append(dst, " no-apds3-high-sens");
-
-	if(flags.apds6_high_sens)
-		string_append(dst, " apds6-high-sens");
-	else
-		string_append(dst, " no-apds6-high-sens");
+	for(entry = config_flag_names; entry->value != flag_none; entry++)
+	{
+		string_append_cstr(dst, prefix);
+		string_append_cstr(dst, (flags_cache & entry->value) ? "   " : "no ");
+		string_append_cstr(dst, entry->name);
+		string_append_cstr(dst, nl ? "\n" : " ");
+	}
 }
 
 irom _Bool config_flags_change(const string_t *flag, _Bool set)
 {
-	_Bool rv = false;
+	const config_flag_name_t *entry;
 
-	if(string_match_cstr(flag, "strip-telnet") || string_match_cstr(flag, "st"))
+	for(entry = config_flag_names; entry->value != flag_none; entry++)
 	{
-		flags_cache.flags.strip_telnet = set ? 1 : 0;
-		rv = true;
+		if(string_match_cstr(flag, entry->name))
+		{
+			if(set)
+				flags_cache |= entry->value;
+			else
+				flags_cache &= ~entry->value;
+
+			string_init(varname, "flags");
+			return(config_set_int(&varname, -1, -1, flags_cache));
+		}
 	}
 
-	if(string_match_cstr(flag, "log-to-uart") || string_match_cstr(flag, "lu"))
-	{
-		flags_cache.flags.log_to_uart = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "tsl-high-sens") || string_match_cstr(flag, "ths"))
-	{
-		flags_cache.flags.tsl_high_sens = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "bh-high-sens") || string_match_cstr(flag, "bhv"))
-	{
-		flags_cache.flags.bh_high_sens = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "cpu-high-speed") || string_match_cstr(flag, "chs"))
-	{
-		flags_cache.flags.cpu_high_speed = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "wlan-power-save") || string_match_cstr(flag, "wps"))
-	{
-		flags_cache.flags.wlan_power_save = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "log-to-buffer") || string_match_cstr(flag, "lb"))
-	{
-		flags_cache.flags.log_to_buffer = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "auto-sequencer") || string_match_cstr(flag, "as"))
-	{
-		flags_cache.flags.auto_sequencer = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "pwm1-extend") || string_match_cstr(flag, "pe"))
-	{
-		flags_cache.flags.pwm1_extend = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "tmd-high-sens") || string_match_cstr(flag, "mhs"))
-	{
-		flags_cache.flags.tmd_high_sens = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "apds3-high-sens") || string_match_cstr(flag, "a3hs"))
-	{
-		flags_cache.flags.apds3_high_sens = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(string_match_cstr(flag, "apds6-high-sens") || string_match_cstr(flag, "a6hs"))
-	{
-		flags_cache.flags.apds6_high_sens = set ? 1 : 0;
-		rv = true;
-	}
-
-	if(rv)
-	{
-		string_init(varname, "flags");
-		rv = config_set_int(&varname, -1, -1, flags_cache.intval);
-	}
-
-	return(rv);
+	return(false);
 }
 
 typedef enum
@@ -451,12 +360,10 @@ done:
 
 	string_init(varname, "flags");
 
-	if(!config_get_int(&varname, -1, -1, &flags_cache.intval))
+	if(!config_get_int(&varname, -1, -1, &flags_cache))
 	{
-		flags_cache.intval = 0;
-		flags_cache.flags.log_to_uart = 1;
-		flags_cache.flags.log_to_buffer = 1;
-		config_set_int(&varname, -1, -1, flags_cache.intval);
+		flags_cache = flag_log_to_uart | flag_log_to_buffer;
+		config_set_int(&varname, -1, -1, flags_cache);
 	}
 
 	return(rv);

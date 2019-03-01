@@ -491,7 +491,7 @@ irom static void callback_received_uart(socket_t *socket, const string_t *buffer
 
 	length = string_length(buffer);
 
-	strip_telnet = config_flags_get().strip_telnet;
+	strip_telnet = config_flags_match(flag_strip_telnet);
 	telnet_strip_state = ts_copy;
 
 	for(current = 0; current < length; current++)

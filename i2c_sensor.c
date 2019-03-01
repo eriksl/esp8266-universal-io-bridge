@@ -309,7 +309,7 @@ irom static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_tab
 	if((i2c_buffer[0] != tmd2771_id_tmd27711) && (i2c_buffer[0] != tmd2771_id_tmd27713))
 		return(i2c_error_address_nak);
 
-	data->high_sensitivity = !!config_flags_get().tmd_high_sens;
+	data->high_sensitivity = config_flags_match(flag_tmd_high_sens);
 
 	if((error = i2c_send2(entry->address, tmd2771_reg_enable, tmd2771_enable_poff)) != i2c_error_ok)
 		return(error);
@@ -425,7 +425,7 @@ irom static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_ta
 	if(i2c_buffer[0] != apds9930_id_apds9930)
 		return(i2c_error_address_nak);
 
-	data->high_sensitivity = !!config_flags_get().apds3_high_sens;
+	data->high_sensitivity = config_flags_match(flag_apds3_high_sens);
 
 	if((error = i2c_send2(entry->address, apds9930_reg_enable, apds9930_enable_poff)) != i2c_error_ok)
 		return(error);
@@ -538,7 +538,7 @@ irom static i2c_error_t sensor_apds9960_init(int bus, const i2c_sensor_device_ta
 	if(i2c_buffer[0] != apds9960_id_apds9960)
 		return(i2c_error_address_nak);
 
-	data->high_sensitivity = !!config_flags_get().apds6_high_sens;
+	data->high_sensitivity = config_flags_match(flag_apds6_high_sens);
 
 	if((error = i2c_send2(entry->address, apds9960_reg_enable, apds9960_enable_poff)) != i2c_error_ok)
 		return(error);
@@ -1449,7 +1449,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 	if((error = tsl2561_write_check(entry->address, tsl2561_reg_interrupt, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
 
-	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
+	data->high_sensitivity = config_flags_match(flag_tsl_high_sens);
 
 	if(data->high_sensitivity)
 		timeint = tsl2561_tim_integ_402ms | tsl2561_tim_high_gain;
@@ -1616,7 +1616,7 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_tab
 	if((error = sensor_tsl2550_write_check(entry->address, data->high_sensitivity ? 0x18 : 0x1d, 0x1b)) != i2c_error_ok)
 		return(error);
 
-	data->high_sensitivity = !!config_flags_get().tsl_high_sens;
+	data->high_sensitivity = config_flags_match(flag_tsl_high_sens);
 
 	sensor_register(bus, entry->id);
 
@@ -1713,7 +1713,7 @@ irom static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_tabl
 
 	// set sensitivity
 
-	data->high_sensitivity = !!config_flags_get().bh_high_sens;
+	data->high_sensitivity = config_flags_match(flag_bh_high_sens);
 
 	if(data->high_sensitivity)
 	{

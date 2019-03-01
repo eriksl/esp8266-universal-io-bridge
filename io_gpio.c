@@ -706,7 +706,7 @@ iram attr_speed static void pwm_go(void)
 		{
 			phase_data->active_pins_duty1_clear_mask |= 1 << pin1;
 
-			if(config_flags_get().pwm1_extend)
+			if(config_flags_match(flag_pwm1_extend))
 				phase_data->active_pins_noduty1_set_mask &= ~(1 << pin1);
 		}
 
@@ -744,7 +744,7 @@ iram attr_speed static void pwm_go(void)
 irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
-	_Bool cpu_high_speed = config_flags_get().cpu_high_speed;
+	_Bool cpu_high_speed = config_flags_match(flag_cpu_high_speed);
 
 	pdm_enable(false);
 

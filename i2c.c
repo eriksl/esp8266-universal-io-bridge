@@ -711,7 +711,7 @@ irom void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 	{
 		entry = &i2c_delay[current];
 
-		if(config_flags_get().cpu_high_speed)
+		if(config_flags_match(flag_cpu_high_speed))
 			config_factor = entry->factor_fast;
 		else
 			config_factor = entry->factor_slow;

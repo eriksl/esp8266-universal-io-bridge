@@ -81,7 +81,7 @@ irom void user_init(void)
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
 
-	if(config_flags_get().wlan_power_save)
+	if(config_flags_match(flag_wlan_power_save))
 		wifi_set_sleep_type(MODEM_SLEEP_T);
 	else
 		wifi_set_sleep_type(NONE_SLEEP_T);
@@ -93,7 +93,7 @@ irom static void user_init2(void)
 {
 	dispatch_init2();
 
-	if(config_flags_get().cpu_high_speed)
+	if(config_flags_match(flag_cpu_high_speed))
 		system_update_cpu_freq(160);
 	else
 		system_update_cpu_freq(80);
@@ -104,7 +104,7 @@ irom static void user_init2(void)
 
 	log("* boot done\n");
 
-	if(config_flags_get().auto_sequencer)
+	if(config_flags_match(flag_auto_sequencer))
 		sequencer_start(0, 1);
 }
 

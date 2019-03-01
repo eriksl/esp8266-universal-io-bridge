@@ -165,7 +165,7 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 	written = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
 	va_end(ap);
 
-	if(config_flags_get().log_to_uart)
+	if(config_flags_match(flag_log_to_uart))
 	{
 		for(current = 0; current < written; current++)
 			uart_send(0, flash_dram_buffer[current]);
@@ -173,7 +173,7 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 		uart_flush(0);
 	}
 
-	if(config_flags_get().log_to_buffer)
+	if(config_flags_match(flag_log_to_buffer))
 	{
 		if((string_length(&logbuffer) + written) >= string_size(&logbuffer))
 			string_clear(&logbuffer);
@@ -186,13 +186,13 @@ irom int log_from_flash(const char *fmt_in_flash, ...)
 
 iram attr_speed void logchar(char c)
 {
-	if(config_flags_get().log_to_uart)
+	if(config_flags_match(flag_log_to_uart))
 	{
 		uart_send(0, c);
 		uart_flush(0);
 	}
 
-	if(config_flags_get().log_to_buffer)
+	if(config_flags_match(flag_log_to_buffer))
 	{
 		if((logbuffer.length + 1) >= logbuffer.size)
 			string_clear(&logbuffer);
