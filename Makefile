@@ -119,24 +119,41 @@ ifeq ($(IMAGE),ota)
 	FLASH_TARGET := flash-ota
 endif
 
-WARNINGS		:=	-Wall -Wextra -Werror -Wno-unused-parameter -Wformat=2 -Wuninitialized \
-						-Wno-pointer-sign -Wno-div-by-zero -Wfloat-equal -Wno-declaration-after-statement \
-						-Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wwrite-strings \
-						-Wsequence-point -Wclobbered -Wlogical-op -Wmissing-field-initializers -Wpacked \
+WARNINGS		:=	-Wall -Wextra -Werror \
+						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
+						-Wformat-signedness -Wformat-truncation=2 \
+						-Wstringop-overflow=4 -Wunused-const-variable=2 -Walloca \
+						-Warray-bounds=2 -Wswitch-bool -Wsizeof-array-argument \
+						-Wduplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
+						-Wdangling-else -Wno-incompatible-pointer-types \
+						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs -Wstrict-overflow=2 \
+						-Wno-format -Wmissing-noreturn -Wbool-compare \
+						-Wsuggest-attribute=pure -Wsuggest-attribute=const \
+						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \
+						-Wuninitialized -Wtrampolines -Wframe-larger-than=1024 \
+						-Wunsafe-loop-optimizations -Wshadow -Wpointer-arith -Wbad-function-cast \
+						-Wcast-qual -Wwrite-strings -Wsequence-point -Wlogical-op -Wlogical-not-parentheses \
 						-Wredundant-decls -Wvla -Wdisabled-optimization \
-						-Wunreachable-code -Wtrigraphs -Wreturn-type -Wmissing-braces -Wparentheses \
-						-Wimplicit -Winit-self -Wformat-nonliteral -Wcomment -Wno-packed \
-						-Wmissing-prototypes -Wold-style-definition -Wcast-align \
-						-Wsuggest-attribute=const -Wsuggest-attribute=pure -Winline \
-						-Wno-format-security -Wno-format-nonliteral -Wnonnull \
-						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure
+						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
+						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
+						-Wcast-align -Winline \
+						-Wno-pointer-sign -Wno-unused-parameter \
+						-Wno-attributes -Wno-switch-default \
+						-Wno-nested-externs \
+						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
+						-Wno-error=unsafe-loop-optimizations -Wno-error=maybe-uninitialized
 
-CFLAGS			:=	-Os -std=gnu11 -mlongcalls -mno-serialize-volatile \
-						-fno-unroll-loops -fno-move-loop-invariants -freorder-blocks-and-partition \
-						-fno-keep-static-consts -fuse-linker-plugin -fno-math-errno \
-						-fno-tree-copy-prop -fno-tree-ccp -fno-tree-tail-merge \
-						-flto=8 -flto-partition=none -flto-compression-level=0 \
-						-ffunction-sections -fdata-sections -fno-inline \
+CFLAGS			:=	-pipe \
+						-fdiagnostics-color=always \
+						-std=gnu11 \
+						-ffreestanding -mlongcalls -mno-serialize-volatile -mno-target-align \
+						-Os \
+						-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-objects -flto-partition=max \
+						-fno-math-errno -fno-printf-return-value -fno-tree-tail-merge \
+						-fno-inline \
+						-fno-guess-branch-probability -fno-tree-dominator-opts -fno-tree-forwprop -fno-tree-pta \
+						-fmerge-all-constants -frename-registers \
+						\
 						-D__ets__ -DICACHE_FLASH -DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
@@ -152,14 +169,15 @@ CFLAGS			:=	-Os -std=gnu11 -mlongcalls -mno-serialize-volatile \
 						-DOFFSET_OTA_RBOOT_CFG=$(OFFSET_OTA_RBOOT_CFG) -DSIZE_OTA_RBOOT_CFG=$(SIZE_OTA_RBOOT_CFG) \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
-HOSTCFLAGS		:= -O3 -lssl -lcrypto
+HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(HAL)/include \
 					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(ESPSDK)/include \
 					-I$(RBOOT)/appcode -I$(RBOOT) -I.
 
-LDFLAGS			:= -L$(ESPSDK)/lib -L. -Wl,--gc-sections -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
-SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lcrypto -lm
+LDFLAGS			:= -L$(ESPSDK)/lib -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa
+STDLIBS			:= -lm -lgcc -lcrypto
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
@@ -247,7 +265,7 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 
 $(ELF_PLAIN):			$(OBJS) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) -lgcc -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) -Wl,--end-group -o $@
 
 $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
@@ -255,7 +273,7 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 
 $(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) -lgcc -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
@@ -366,7 +384,7 @@ wipe-config:
 
 otapush:				otapush.c
 						$(VECHO) "HOST CC $<"
-						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
+						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
 
 espflash:				espflash.cpp
 						$(VECHO) "HOST CPP $<"
@@ -374,7 +392,7 @@ espflash:				espflash.cpp
 
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"
-						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
+						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \

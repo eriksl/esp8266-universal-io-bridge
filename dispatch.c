@@ -428,8 +428,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 			mc_ip.byte[2] = 255;
 			mc_ip.byte[3] = 254;
 			espconn_igmp_join(&local_ip.ip_addr, &mc_ip.ip_addr);
-
-			// fall through
+			fallthrough;
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
@@ -440,7 +439,8 @@ irom static void wlan_event_handler(System_Event_t *event)
 
 		case(EVENT_STAMODE_DISCONNECTED):
 		{
-			// fall through
+			fallthrough;
+			/* fall through */
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{

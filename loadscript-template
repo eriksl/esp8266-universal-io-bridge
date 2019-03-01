@@ -72,8 +72,8 @@ SECTIONS
   .data : ALIGN(4)
   {
     _data_start = ABSOLUTE(.);
-	_Pri_3_HandlerAddress = ABSOLUTE(.);
-	. = ABSOLUTE(4);
+/*	_Pri_3_HandlerAddress = ABSOLUTE(.); */
+/*	. = ABSOLUTE(4); */
     *(.data)
     *(.data.*)
     *(.gnu.linkonce.d.*)

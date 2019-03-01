@@ -318,7 +318,7 @@ attr_inline attr_nonnull string_t string_from_cstr(size_t size, char *cstr)
 	return(string);
 }
 
-attr_inline attr_nonnull const char *string_to_cstr(string_t *string)
+attr_inline const char *string_to_cstr(string_t *string)
 {
 	if((string == (string_t *)0) || (string->size < 1) || (string->length < 1) || (string->buffer == (const char *)0))
 		return("");

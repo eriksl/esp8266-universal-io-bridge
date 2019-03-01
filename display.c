@@ -386,7 +386,7 @@ irom static void display_update(_Bool advance)
 
 irom static void display_expire(void) // call one time per second
 {
-	int active_slots, slot;
+	unsigned int active_slots, slot;
 	string_new(, default_message, 64);
 	string_init(varname_defaultmsg, "display.defaultmsg");
 

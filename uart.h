@@ -7,7 +7,7 @@
 #include "esp-uart-register.h"
 #include "queue.h"
 
-typedef enum
+typedef enum attr_packed
 {
 	parity_none,
 	parity_even,
@@ -15,15 +15,17 @@ typedef enum
 	parity_error
 } uart_parity_t;
 
-_Static_assert(sizeof(uart_parity_t) == 4, "sizeof(uart_parity_t) != 4");
+assert_size(uart_parity_t, 1);
 
-typedef struct
+typedef struct attr_packed
 {
-	uint32_t		baud_rate;
 	uint8_t			data_bits;
 	uart_parity_t	parity;
 	uint8_t			stop_bits;
+	uint32_t		baud_rate;
 } uart_parameters_t;
+
+assert_size(uart_parameters_t, 7);
 
 void			uart_task(os_event_t *event);
 void			uart_parity_to_string(string_t *dst, uart_parity_t);

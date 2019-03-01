@@ -97,7 +97,7 @@ irom app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 
 	time_start = system_get_time();
 
-	for(erased = 0; erased <= sector_count; erased++)
+	for(erased = 0; erased < sector_count; erased++)
 	{
 		system_soft_wdt_feed();
 		if(spi_flash_erase_sector(sector_offset + erased) != SPI_FLASH_RESULT_OK)

@@ -729,7 +729,7 @@ irom static app_action_t application_function_uart_parity(string_t *src, string_
 	{
 		parity = uart_string_to_parity(dst);
 
-		if((parity < parity_none) || (parity >= parity_error))
+		if(parity >= parity_error)
 		{
 			string_append(dst, ": invalid parity\n");
 			return(app_action_error);
@@ -1180,6 +1180,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 		{
 			case(2):
 				all = true;
+				fallthrough;
 			case(1):
 				verbose = true;
 			default:

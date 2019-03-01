@@ -359,7 +359,7 @@ iram static i2c_error_t send_stop(void)
 	return(i2c_error_ok);
 }
 
-attr_inline i2c_error_t send_byte(int byte)
+iram static i2c_error_t send_byte(int byte)
 {
 	i2c_error_t error;
 	int current;
@@ -478,7 +478,7 @@ iram static i2c_error_t i2c_send_sequence(int address, int length, const uint8_t
 	return(i2c_error_ok);
 }
 
-iram attr_inline i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
+attr_inline i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;

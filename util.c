@@ -705,7 +705,7 @@ irom void string_crc32_init(void)
 
 		for (bit = 8; bit > 0; --bit)
 		{
-			if (remainder & (1 << 31))
+			if (remainder & (1U << 31))
 				remainder = (remainder << 1) ^ 0x04c11db7;
 			else
 				remainder = (remainder << 1);
