@@ -117,6 +117,7 @@ enum { SHA_DIGEST_LENGTH = 20 };
 // prototypes missing
 
 double pow(double, double);
+double fmax(double, double);
 
 // functions missing from SDK libmain (but declared in headers)
 

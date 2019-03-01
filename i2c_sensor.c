@@ -368,14 +368,7 @@ irom static i2c_error_t sensor_tmd2771_read(int bus, const i2c_sensor_device_tab
 	cpl = ((data->high_sensitivity ? 696 : 174) * (data->high_sensitivity ? 16 : 1)) / (3.5 * 24);
 	lux1 = (ch0 - 2 * ch1) / cpl;
 	lux2 = ((0.6 * ch0) - ch1) / cpl;
-
-	if(lux1 > lux2)
-		lux = lux1;
-	else
-		lux = lux2;
-
-	if(lux < 0)
-		lux = 0;
+	lux = fmax(fmax(lux1, lux2), 0);
 
 	value->raw = ch0;
 	value->cooked = lux;
