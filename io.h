@@ -194,6 +194,8 @@ typedef struct
 
 } io_data_entry_t;
 
+assert_size(io_data_entry_t, sizeof(io_data_pin_entry_t) * max_pins_per_io + 4);
+
 typedef io_data_entry_t io_data_t[io_id_size];
 
 typedef struct

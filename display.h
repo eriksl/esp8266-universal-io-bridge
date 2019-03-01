@@ -21,7 +21,6 @@ typedef struct
 	uint8_t to;
 } display_map_t;
 
-
 typedef struct
 {
 	uint16_t utf16;

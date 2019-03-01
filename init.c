@@ -102,6 +102,8 @@ irom static void user_init2(void)
 	time_init();
 	io_init();
 
+	log("* boot done\n");
+
 	if(config_flags_get().auto_sequencer)
 		sequencer_start(0, 1);
 }
@@ -154,16 +156,12 @@ irom _Bool wlan_init(void)
 				strecpy(cconf.password, string_to_cstr(&string_passwd), sizeof(cconf.password));
 				cconf.bssid_set = 0;
 
-				log("* set wlan mode to client, ssid=\"%s\", passwd=\"%s\" and reconnect\n", cconf.ssid, cconf.password);
-
 				wifi_station_disconnect();
 				wifi_set_opmode(STATION_MODE);
 				wifi_station_set_config(&cconf);
 				wifi_station_connect();
 				wifi_station_set_auto_connect(1);
 			}
-			else
-				log("* wlan mode is client, ssid=\"%s\", passwd=\"%s\"\n", cconf.ssid, cconf.password);
 
 			break;
 		}
