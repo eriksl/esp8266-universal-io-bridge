@@ -307,6 +307,15 @@ irom void uart_init(void)
 	// If the fifo contains less than this numbers of bytes, raise an
 	// interrupt.
 
+	clear_set_peri_reg_mask(UART_CONF0(0),
+			(UART_RXD_INV | UART_TXD_INV),
+			((config_flags_match(flag_uart0_tx_inv)) ? UART_TXD_INV : 0) |
+			((config_flags_match(flag_uart0_rx_inv)) ? UART_RXD_INV : 0));
+
+	clear_set_peri_reg_mask(UART_CONF0(1),
+			(UART_RXD_INV | UART_TXD_INV),
+			((config_flags_match(flag_uart1_tx_inv)) ? UART_TXD_INV : 0));
+
 	write_peri_reg(UART_CONF1(0),
 			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
 			UART_RX_TOUT_EN |

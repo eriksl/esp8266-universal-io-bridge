@@ -21,14 +21,15 @@ enum
 	flag_bh_high_sens =		1 << 3,
 	flag_cpu_high_speed =	1 << 4,
 	flag_wlan_power_save =	1 << 5,
-	flag_unused_1 =			1 << 6,
-	flag_unused_2 =			1 << 7,
+	flag_uart0_tx_inv =		1 << 6,
+	flag_uart0_rx_inv =		1 << 7,
 	flag_log_to_buffer =	1 << 8,
 	flag_auto_sequencer =	1 << 9,
 	flag_pwm1_extend =		1 << 10,
 	flag_tmd_high_sens =	1 << 11,
 	flag_apds3_high_sens =	1 << 12,
 	flag_apds6_high_sens =	1 << 13,
+	flag_uart1_tx_inv =		1 << 14,
 };
 
 void			config_flags_to_string(_Bool nl, const char *, string_t *);

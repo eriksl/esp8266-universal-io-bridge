@@ -41,14 +41,15 @@ static const config_flag_name_t config_flag_names[] =
 	{	flag_bh_high_sens,		"bh-high-sens"		},
 	{	flag_cpu_high_speed,	"cpu-high-speed"	},
 	{	flag_wlan_power_save,	"wlan-power-save"	},
-	{	flag_unused_1,			"unused-1",			},
-	{	flag_unused_2,			"unused-2",			},
+	{	flag_uart0_tx_inv,		"uart0-tx-inv",		},
+	{	flag_uart0_rx_inv,		"uart0-rx-inv",		},
 	{	flag_log_to_buffer,		"log-to-buffer"		},
 	{	flag_auto_sequencer,	"auto-sequencer"	},
 	{	flag_pwm1_extend,		"pwm1-extend"		},
 	{	flag_tmd_high_sens,		"tmd-high-sens"		},
 	{	flag_apds3_high_sens,	"apds3-high-sens"	},
 	{	flag_apds6_high_sens,	"apds6-high-sens"	},
+	{	flag_uart1_tx_inv,		"uart1-tx-inv",		},
 	{	flag_none,				""					},
 };
 
