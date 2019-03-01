@@ -365,7 +365,7 @@ irom static i2c_error_t sensor_tmd2771_read(int bus, const i2c_sensor_device_tab
 	if((ch0 == 0xffff) || (ch1 == 0xffff))
 		return(i2c_error_overflow);
 
-	cpl = ((data->high_sensitivity ? 696 : 174) * (data->high_sensitivity ? 16 : 1)) / (3.5 * 24);
+	cpl = ((data->high_sensitivity ? 696 : 174) * (data->high_sensitivity ? 16 : 1)) / 84;
 	lux1 = (ch0 - 2 * ch1) / cpl;
 	lux2 = ((0.6 * ch0) - ch1) / cpl;
 	lux = fmax(fmax(lux1, lux2), 0);
@@ -397,8 +397,8 @@ enum
 	apds9930_enable_pon =		0b00000001,
 	apds9930_enable_poff =		0b00000000,
 
-	apds9930_atime_174 =		0xc0,
-	apds9930_atime_696 =		0x00,
+	apds9930_atime_175 =		0xc0,
+	apds9930_atime_699 =		0x00,
 
 	apds9930_wtime_200 =		0xb6,
 
@@ -431,7 +431,7 @@ irom static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_ta
 		return(error);
 
 	if((error = i2c_send2(entry->address, apds9930_reg_atime,
-			(data->high_sensitivity ? apds9930_atime_696 : apds9930_atime_174))) != i2c_error_ok)
+			(data->high_sensitivity ? apds9930_atime_699 : apds9930_atime_175))) != i2c_error_ok)
 		return(error);
 
 	if((error = i2c_send2(entry->address, apds9930_reg_wtime, apds9930_wtime_200)) != i2c_error_ok)
@@ -458,7 +458,7 @@ irom static i2c_error_t sensor_apds9930_read(int bus, const i2c_sensor_device_ta
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 	unsigned int ch0, ch1;
-	double cpl, lux1, lux2, lux;
+	double lux, iac1, iac2, iac, lpc;
 
 	value->raw = value->cooked = -1;
 
@@ -481,17 +481,11 @@ irom static i2c_error_t sensor_apds9930_read(int bus, const i2c_sensor_device_ta
 	if((ch0 == 0xffff) || (ch1 == 0xffff))
 		return(i2c_error_overflow);
 
-	cpl = ((data->high_sensitivity ? 256 : 64) * (data->high_sensitivity ? 16 : 1) * 1.5) / 24;
-	lux1 = (ch0 - 2 * ch1) / cpl;
-	lux2 = ((0.6 * ch0) - ch1) / cpl;
-
-	if(lux1 > lux2)
-		lux = lux1;
-	else
-		lux = lux2;
-
-	if(lux < 0)
-		lux = 0;
+	iac1 = ch0 - (1.862 * ch1);
+	iac2 = (0.746 * ch0) - (1.291 * ch1);
+	iac = fmax(fmax(iac1, iac2), 0);
+	lpc = 25.48 / ((data->high_sensitivity ? 699 : 175) * (data->high_sensitivity ? 16 : 1));
+	lux = iac * lpc;
 
 	value->raw = ch0;
 	value->cooked = lux;
