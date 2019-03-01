@@ -1,66 +1,20 @@
 SPI_FLASH_MODE		?= qio
 IMAGE				?= ota
-ESPSDK				?= ./ESP8266_NONOS_SDK
-OPENSDK				?= ../opensdk
 ESPTOOL				?= ~/bin/esptool
-ESPTOOL2			?= ./esptool2
-RBOOT				?= ./rboot
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= esp1
 
 # no user serviceable parts below
 
-section_free	= $(Q) perl -e '\
-						open($$fd, "xtensa-lx106-elf-size -A $(1) |"); \
-						$$available = $(6) * 1024; \
-						$$used = 0; \
-						while(<$$fd>) \
-						{ \
-							chomp; \
-							@_ = split; \
-							if(($$_[0] eq "$(3)") || ($$_[0] eq "$(4)") || ($$_[0] eq "$(5)")) \
-							{ \
-								$$used += $$_[1]; \
-							} \
-						} \
-						$$free = $$available - $$used; \
-						printf("    %-8s available: %3u k, used: %6u, free: %6u, %2u %%\n", "$(2)" . ":", $$available / 1024, $$used, $$free, 100 * $$free / $$available); \
-						close($$fd);'
-
-# use this line if you only want to see your own symbols in the output
-#if((hex($$_[2]) > 0) && !m/\.a\(/)
-
-link_debug		= $(Q) perl -e '\
-						open($$fd, "< $(1)"); \
-						$$top = 0; \
-						while(<$$fd>) \
-						{ \
-							chomp; \
-							if(m/^\s+\.$(2)(\.[^ ]+)?\s+0x00000000$(4)/) \
-							{ \
-								@_ = split; \
-								$$top = hex($$_[1]) if(hex($$_[1]) > $$top); \
-								if(hex($$_[2]) > 0) \
-								{ \
-									$$size = sprintf("%06x", hex($$_[2])); \
-									$$file = $$_[3]; \
-									$$file =~ s/.*\///g; \
-									$$size{"$$size-$$file"} = { size => $$size, id => $$file}; \
-								} \
-							} \
-						} \
-						for $$size (sort(keys(%size))) \
-						{ \
-							printf("%4d: %s\n", \
-									hex($$size{$$size}{"size"}), \
-									$$size{$$size}{"id"}); \
-						} \
-						printf("size: %u, free: %u\n", $$top - hex('$(4)00000'), ($(3) * 1024) - ($$top - hex('$(4)00000'))); \
-						close($$fd);'
-
-CC							:= $(OPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
-OBJCOPY						:= $(OPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
+ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
+ESPOPENSDK					:= $(PWD)/esp-open-sdk
+ESPTOOL2					:= $(PWD)/esptool2
+RBOOT						:= $(PWD)/rboot
+HAL							:= $(ESPOPENSDK)/lx106-hal
+CC							:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
+OBJCOPY						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
+SIZE						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-size
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
 USER_CONFIG_SIZE			:= 0x1000
@@ -199,8 +153,8 @@ CFLAGS			:=	-Os -std=gnu11 -mlongcalls -mno-serialize-volatile \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto
-CINC			:= -I$(OPENSDK)/lx106-hal/include \
-					-I$(OPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
+CINC			:= -I$(HAL)/include \
+					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(ESPSDK)/include \
 					-I$(RBOOT)/appcode -I$(RBOOT) -I.
 
@@ -217,9 +171,9 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						socket.h dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h
 
 .PRECIOUS:		*.c *.h
-.PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota
+.PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota toolchain
 
-all:			$(ALL_TARGETS) free
+all:			toolchain $(ALL_TARGETS) free
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -246,6 +200,12 @@ linkdebug:		$(LINKMAP)
 				$(call link_debug,$<,irom0.text,424,402)
 				$(Q) echo "IRAM:"
 				$(call link_debug,$<,text,32,401)
+
+$(CC) $(OBJCOPY):
+				$(VECHO) "BUILD TOOLCHAIN"
+				$(Q) $(MAKE) -C $(ESPOPENSDK) toolchain
+
+toolchain:		$(CC) $(OBJCOPY)
 
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
@@ -279,7 +239,7 @@ $(ESPTOOL2_BIN):
 
 $(RBOOT_BIN):			$(ESPTOOL2_BIN)
 						$(VECHO) "MAKE RBOOT"
-						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) RBOOT_BIG_FLASH=1 RBOOT_RTC_ENABLED=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
+						$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) CC=$(CC) LD=$(CC) RBOOT_BIG_FLASH=1 RBOOT_RTC_ENABLED=1 SPI_SIZE=$(RBOOT_SPI_SIZE) SPI_MODE=$(SPI_FLASH_MODE)
 
 $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
@@ -415,3 +375,51 @@ espflash:				espflash.cpp
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"
 						$(Q) $(HOSTCC) $(HOSTCFLAGS) $(WARNINGS) $< -o $@
+
+section_free	= $(Q) perl -e '\
+						open($$fd, "$(SIZE) -A $(1) |"); \
+						$$available = $(6) * 1024; \
+						$$used = 0; \
+						while(<$$fd>) \
+						{ \
+							chomp; \
+							@_ = split; \
+							if(($$_[0] eq "$(3)") || ($$_[0] eq "$(4)") || ($$_[0] eq "$(5)")) \
+							{ \
+								$$used += $$_[1]; \
+							} \
+						} \
+						$$free = $$available - $$used; \
+						printf("    %-8s available: %3u k, used: %6u, free: %6u, %2u %%\n", "$(2)" . ":", $$available / 1024, $$used, $$free, 100 * $$free / $$available); \
+						close($$fd);'
+
+# use this line if you only want to see your own symbols in the output
+#if((hex($$_[2]) > 0) && !m/\.a\(/)
+
+link_debug		= $(Q) perl -e '\
+						open($$fd, "< $(1)"); \
+						$$top = 0; \
+						while(<$$fd>) \
+						{ \
+							chomp; \
+							if(m/^\s+\.$(2)(\.[^ ]+)?\s+0x00000000$(4)/) \
+							{ \
+								@_ = split; \
+								$$top = hex($$_[1]) if(hex($$_[1]) > $$top); \
+								if(hex($$_[2]) > 0) \
+								{ \
+									$$size = sprintf("%06x", hex($$_[2])); \
+									$$file = $$_[3]; \
+									$$file =~ s/.*\///g; \
+									$$size{"$$size-$$file"} = { size => $$size, id => $$file}; \
+								} \
+							} \
+						} \
+						for $$size (sort(keys(%size))) \
+						{ \
+							printf("%4d: %s\n", \
+									hex($$size{$$size}{"size"}), \
+									$$size{$$size}{"id"}); \
+						} \
+						printf("size: %u, free: %u\n", $$top - hex('$(4)00000'), ($(3) * 1024) - ($$top - hex('$(4)00000'))); \
+						close($$fd);'
