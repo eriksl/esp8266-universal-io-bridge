@@ -2,10 +2,8 @@
 #include "util.h"
 #include "config.h"
 #include "dispatch.h"
+#include "rboot-interface.h"
 
-#if IMAGE_OTA == 1
-#include <rboot-api.h>
-#endif
 #include <spi_flash.h>
 #include <user_interface.h>
 #include <stdint.h>
@@ -21,26 +19,26 @@ irom app_action_t application_function_flash_info(string_t *src, string_t *dst)
 	int ota_address_2 = 0;
 	int ota_address_3 = 0;
 
-#if IMAGE_OTA != 0
-	rboot_config rcfg = rboot_get_config();
-	rboot_rtc_data rrtc;
+#if IMAGE_OTA == 1
+	rboot_if_config_t		config;
+	rboot_if_rtc_config_t	rtc;
 
-	if((rcfg.magic != BOOT_CONFIG_MAGIC) || (rcfg.count > 3))
+	if(!rboot_if_read_config(&config))
 	{
 		string_append(dst, "ERROR rboot config invalid\n");
 		return(app_action_error);
 	}
 
-	ota_available = 1;
-	ota_slots = rcfg.count;
-	ota_slot = rcfg.current_rom;
-	ota_address_0 = rcfg.roms[0];
-	ota_address_1 = rcfg.roms[1];
-	ota_address_2 = rcfg.roms[2];
-	ota_address_3 = rcfg.roms[3];
+	ota_available =	1;
+	ota_slots =		config.slot_count;
+	ota_slot =		config.slot_current;
+	ota_address_0 = config.slots[0];
+	ota_address_1 = config.slots[1];
+	ota_address_2 = config.slots[2];
+	ota_address_3 = config.slots[3];
 
-	if(rboot_get_rtc_data(&rrtc) && (rrtc.magic == RBOOT_RTC_MAGIC))
-		ota_slot = rrtc.last_rom;
+	if(rboot_if_read_rtc_ram(&rtc))
+		ota_slot = rtc.last_slot;
 #endif
 
 	string_format(dst, "OK flash function available, "
@@ -424,11 +422,6 @@ irom app_action_t application_function_flash_checksum(string_t *src, string_t *d
 	return(app_action_normal);
 }
 
-#if IMAGE_OTA == 1
-extern uint8_t rBoot_mmap_1;
-extern uint8_t rBoot_mmap_2;
-#endif
-
 irom static app_action_t flash_select(const string_t *src, string_t *dst, _Bool once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
@@ -439,10 +432,10 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, _Bool 
 #else
 	unsigned int slot;
 
-	rboot_config rcfg = rboot_get_config();
-	rboot_rtc_data rrtc;
+	rboot_if_config_t config;
+	rboot_if_rtc_config_t rtc;
 
-	if(rcfg.magic != BOOT_CONFIG_MAGIC)
+	if(!rboot_if_read_config(&config))
 	{
 		string_format(dst, "ERROR %s: rboot config invalid\n", cmdname);
 		return(app_action_error);
@@ -454,101 +447,107 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, _Bool 
 		return(app_action_error);
 	}
 
-	if(slot >= rcfg.count)
+	if(slot >= config.slot_count)
 	{
-		string_format(dst, "ERROR %s: invalid slot, valid range = 0 - %d\n", cmdname, rcfg.count - 1);
+		string_format(dst, "ERROR %s: invalid slot, valid range = 0 - %d\n", cmdname, config.slot_count - 1);
 		return(app_action_error);
 	}
 
-	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
+	if(!rboot_if_read_rtc_ram(&rtc))
 	{
-		rrtc.magic		= RBOOT_RTC_MAGIC;
-		rrtc.next_mode	= MODE_STANDARD;
-		rrtc.last_mode	= MODE_STANDARD;
-		rrtc.last_rom	= rcfg.current_rom;
-		rrtc.temp_rom	= slot;
+		rtc.magic = rboot_if_rtc_magic;
+		rtc.next_mode = rboot_if_conf_mode_standard;
+		rtc.last_mode = rboot_if_conf_mode_standard;
+		rtc.last_slot = config.slot_current;
+		rtc.temporary_slot=	slot;
 
-		if(!rboot_set_rtc_data(&rrtc))
+		if(!rboot_if_write_rtc_ram(&rtc))
 		{
-			string_format(dst, "ERROR: %s: RTC info signature absent and can't create a new one\n", cmdname);
+			string_format(dst, "ERROR: %s: RTC RAM config signature absent and can't create a new one\n", cmdname);
 			return(app_action_error);
 		}
 	}
 
-	if(!rboot_get_rtc_data(&rrtc) || (rrtc.magic != RBOOT_RTC_MAGIC))
+	if(!rboot_if_read_rtc_ram(&rtc))
 	{
-		string_format(dst, "ERROR: %s: RTC info signature invalid (1)\n", cmdname);
+		string_format(dst, "ERROR: %s: write initial data to RTC RAM failed\n", cmdname);
 		return(app_action_error);
 	}
 
-	if((rBoot_mmap_1 != rrtc.last_rom) || (rBoot_mmap_2 != 0))
+	if(rboot_if_mapped_slot() != rtc.last_slot)
 	{
-		string_format(dst, "ERROR %s: current slot according to rboot does not match flash memory map: %u vs. %u/%u\n",
-				cmdname, rcfg.current_rom, rBoot_mmap_1, rBoot_mmap_2);
+		string_format(dst, "ERROR %s: current slot according to rboot RTC RAM info does not match flash memory map: %u vs. %u\n",
+				cmdname, config.slot_current, rboot_if_mapped_slot());
 		return(app_action_error);
 	}
 
-	rrtc.next_mode	= once ? MODE_TEMP_ROM : MODE_STANDARD;
-	rrtc.temp_rom	= slot;
+	rtc.next_mode = once ? rboot_if_conf_mode_temp_rom : rboot_if_conf_mode_standard;
+	rtc.temporary_slot = slot;
 
-	if(!rboot_set_rtc_data(&rrtc))
+	if(!rboot_if_write_rtc_ram(&rtc))
 	{
-		string_format(dst, "ERROR: %s: can't write RTC info\n", cmdname);
+		string_format(dst, "ERROR: %s: write data to RTC RAM failed\n", cmdname);
 		return(app_action_error);
 	}
 
-	if(!rboot_get_rtc_data(&rrtc))
+	if(!rboot_if_read_rtc_ram(&rtc))
 	{
-		string_format(dst, "ERROR: %s: get RTC data failed\n", cmdname);
+		string_format(dst, "ERROR: %s: verify RTC data failed\n", cmdname);
 		return(app_action_error);
 	}
 
-	if(rrtc.magic != RBOOT_RTC_MAGIC)
+	if(rtc.next_mode != (once ? rboot_if_conf_mode_temp_rom : rboot_if_conf_mode_standard))
 	{
-		string_format(dst, "ERROR: %s: RTC magic invalid: %x\n", cmdname, rrtc.magic);
+		string_format(dst, "ERROR: %s: RTC data invalid, next boot mode: %s\n", cmdname, rboot_if_boot_mode(rtc.next_mode));
 		return(app_action_error);
 	}
 
-	if(rrtc.next_mode != (once ? MODE_TEMP_ROM : MODE_STANDARD))
+	if(rtc.temporary_slot != slot)
 	{
-		string_format(dst, "ERROR: %s: RTC data invalid, next boot mode: %s\n", cmdname, rboot_boot_mode(rrtc.next_mode));
+		string_format(dst, "ERROR: %s: RTC data invalid, next boot slot: %x\n", cmdname, rtc.temporary_slot);
 		return(app_action_error);
 	}
 
-	if(rrtc.temp_rom != slot)
-	{
-		string_format(dst, "ERROR: %s: RTC data invalid, next boot slot: %x\n", cmdname, rrtc.temp_rom);
-		return(app_action_error);
-	}
-
-	slot = rrtc.temp_rom;
+	slot = rtc.temporary_slot;
 
 	if(!once)
 	{
-		if(!rboot_set_current_rom(slot))
+		_Bool success;
+
+		if(!rboot_if_read_config(&config))
 		{
-			string_format(dst, "ERROR: %s: set current slot to %d failed\n", cmdname, slot);
+			string_format(dst, "ERROR %s: rboot config invalid\n", cmdname);
 			return(app_action_error);
 		}
 
-		rcfg = rboot_get_config();
+		config.slot_current = slot;
 
-		if(rcfg.magic != BOOT_CONFIG_MAGIC)
+		string_clear(dst);
+		success = rboot_if_write_config(&config, dst);
+		string_clear(dst);
+
+		if(!success)
 		{
-			string_format(dst, "ERROR %s: rboot config invalid after write\n", cmdname);
+			string_format(dst, "ERROR %s: update rboot config failed\n", cmdname);
 			return(app_action_error);
 		}
 
-		if(rcfg.current_rom != slot)
+		if(!rboot_if_read_config(&config))
+		{
+			string_format(dst, "ERROR %s: rboot config invalid after update\n", cmdname);
+			return(app_action_error);
+		}
+
+		if(config.slot_current != slot)
 		{
 			string_format(dst, "ERROR %s: slot not selected\n", cmdname);
 			return(app_action_error);
 		}
 
-		slot = rcfg.current_rom;
+		slot = config.slot_current;
 	}
 
-	string_format(dst, "OK %s: slot %d selected, address %d\n", cmdname, slot, rcfg.roms[slot]);
+	string_format(dst, "OK %s: slot %d selected, address %d\n", cmdname, slot, config.slots[slot]);
 
 	return(app_action_normal);
 #endif

@@ -1,13 +1,11 @@
-#include "rboot/rboot.h"
+#include "rboot-interface.h"
 
-const rboot_config rboot_config_data =
+const rboot_if_config_t config =
 {
-	.magic			= BOOT_CONFIG_MAGIC,
-	.version		= BOOT_CONFIG_VERSION,
-	.mode			= MODE_STANDARD,
-	.current_rom	= 0,
-	.gpio_rom		= 0,
-	.count			= 2,
-	.unused			= { 0x4a, 0xfb },
-	.roms			= { 0x02000, 0x102000, 0x00000, 0x00000 }
+	.magic			= rboot_if_conf_magic,
+	.version		= rboot_if_conf_version,
+	.boot_mode		= rboot_if_conf_mode_standard,
+	.slot_current	= 0,
+	.slot_count		= 2,
+	.slots			= { 0x02000, 0x102000, 0x00000, 0x00000 }
 };

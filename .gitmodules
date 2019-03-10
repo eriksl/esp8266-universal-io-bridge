@@ -1,9 +1,9 @@
 [submodule "esptool2"]
 	path = esptool2
-	url = https://github.com/eriksl/esptool2.git
+	url = https://github.com/raburton/esptool2.git
 [submodule "rboot"]
 	path = rboot
-	url = https://github.com/eriksl/rboot.git
+	url = https://github.com/raburton/rboot.git
 [submodule "ESP8266_NONOS_SDK"]
 	path = ESP8266_NONOS_SDK
 	url = https://github.com/espressif/ESP8266_NONOS_SDK

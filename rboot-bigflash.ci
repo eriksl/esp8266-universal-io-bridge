@@ -1,7 +1,0 @@
-#ifdef RBOOT_BIGFLASH_INCLUDED
-#error something went wrong!
-#endif
-
-#define RBOOT_BIGFLASH_INCLUDED
-
-#include <rboot-bigflash.c>

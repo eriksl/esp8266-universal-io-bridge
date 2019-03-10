@@ -143,7 +143,6 @@ attr_nonnull size_t flash_to_dram(_Bool cstr, const void *src_flash, char *dst_d
 void reset(void);
 const char *yesno(_Bool value);
 const char *onoff(_Bool value);
-const char *rboot_boot_mode(unsigned int index);
 
 void msleep(int);
 

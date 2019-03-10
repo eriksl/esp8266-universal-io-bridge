@@ -172,8 +172,7 @@ CFLAGS			:=	-pipe \
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(HAL)/include \
 					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(ESPSDK)/include \
-					-I$(RBOOT)/appcode -I$(RBOOT) -I.
+					-I$(ESPSDK)/include -I .
 
 LDFLAGS			:= -L$(ESPSDK)/lib -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa
@@ -182,11 +181,11 @@ STDLIBS			:= -lm -lgcc -lcrypto
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
 						socket.o stats.o time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o
-OTA_OBJ			:= rboot-bigflash.o rboot-api.o
+OTA_OBJ			:= rboot-interface.o
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
-						socket.h dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h
+						socket.h dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h
 
 .PRECIOUS:		*.c *.h
 .PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota toolchain
@@ -249,6 +248,7 @@ uart.o:				$(HEADERS)
 dispatch.o:			$(HEADERS)
 util.o:				$(HEADERS)
 sequencer.o:		$(HEADERS)
+rboot-interface.o:	$(HEADERS)
 $(LINKMAP):			$(ELF_OTA)
 
 $(ESPTOOL2_BIN):
@@ -377,10 +377,6 @@ wipe-config:
 %.s:					%.c
 						$(VECHO) "CC -S $<"
 						$(Q) $(CC) -S $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
-
-%.o:					%.ci
-						$(VECHO) "CCI $<"
-						$(Q) $(CC) -x c $(WARNINGS) $(CFLAGS) -I$(RBOOT) $(CINC) -c $< -o $@
 
 otapush:				otapush.c
 						$(VECHO) "HOST CC $<"

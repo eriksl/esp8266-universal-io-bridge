@@ -12,10 +12,6 @@
 #include "sequencer.h"
 #include "init.h"
 
-#if IMAGE_OTA == 1
-#include <rboot-api.h>
-#endif
-
 typedef enum
 {
 	ts_copy,

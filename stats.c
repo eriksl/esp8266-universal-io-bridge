@@ -5,12 +5,9 @@
 #include "time.h"
 #include "i2c.h"
 #include "i2c_sensor.h"
+#include "rboot-interface.h"
 
 #include <user_interface.h>
-
-#if IMAGE_OTA == 1
-#include <rboot-api.h>
-#endif
 
 stat_flags_t stat_flags;
 
@@ -124,17 +121,8 @@ irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 	return("unknown");
 }
 
-#if IMAGE_OTA == 1
-extern uint8_t rBoot_mmap_1;
-extern uint8_t rBoot_mmap_2;
-#endif
-
 irom void stats_firmware(string_t *dst)
 {
-#if IMAGE_OTA == 1
-	rboot_config rcfg;
-	rboot_rtc_data rrtc;
-#endif
 	const struct rst_info *rst_info;
 	uint32_t flash_id = spi_flash_get_id();
 	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
@@ -198,49 +186,7 @@ irom void stats_firmware(string_t *dst)
 	system_print_meminfo();
 
 #if IMAGE_OTA == 1
-	rcfg = rboot_get_config();
-
-	string_format(dst,
-			">\n"
-			"> OTA image information:\n"
-			">   magic number: 0x%08x\n"
-			">   struct version: %u\n"
-			">   boot mode: %s\n"
-			">   current slot: %u\n"
-			">   flash memory map: %x,%x\n"
-			">   slot count: %u\n"
-			">   slot 0: 0x%06x\n"
-			">   slot 1: 0x%06x\n",
-			rcfg.magic,
-			rcfg.version,
-			rboot_boot_mode(rcfg.mode),
-			rcfg.current_rom,
-			rBoot_mmap_1, rBoot_mmap_2,
-			rcfg.count,
-			rcfg.roms[0],
-			rcfg.roms[1]);
-
-	if(rboot_get_rtc_data(&rrtc))
-		string_format(dst,
-				">\n"
-				"> OTA RTC RAM boot config information:\n"
-				">   magic number: 0x%08x\n"
-				">   current boot mode: %s\n"
-				">   current slot: %u\n"
-				">   start once boot mode: %s\n"
-				">   start once rom slot: %u\n"
-				">   struct checksum: %x\n",
-			rrtc.magic,
-			rboot_boot_mode(rrtc.last_mode),
-			rrtc.last_rom,
-			rboot_boot_mode(rrtc.next_mode),
-			rrtc.temp_rom,
-			rrtc.chksum);
-	else
-		string_append(dst,
-				"\n"
-				"> RTC RAM boot config invalid\n");
-
+	rboot_if_info(dst);
 #else
 	string_append(dst, ">\n> No OTA image\n");
 #endif

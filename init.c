@@ -10,10 +10,6 @@
 
 #include <user_interface.h>
 
-#if IMAGE_OTA == 1
-#include <rboot-api.h>
-#endif
-
 static void user_init2(void);
 void user_init(void);
 

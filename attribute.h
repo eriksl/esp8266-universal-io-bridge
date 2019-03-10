@@ -8,6 +8,7 @@
 #define attr_flash_align __attribute__((aligned(4)))
 #define attr_inline inline __attribute__((always_inline)) __attribute__((flatten)) static
 #define attr_unused __attribute__ ((unused))
+#define attr_used __attribute__ ((used))
 #define attr_pure __attribute__ ((pure))
 #define attr_const __attribute__ ((const))
 #define attr_packed __attribute__ ((__packed__))
