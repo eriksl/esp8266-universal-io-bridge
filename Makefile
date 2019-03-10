@@ -56,8 +56,6 @@ FIRMWARE_OTA_IMG			:= espiobridge-rboot-image.bin
 CONFIG_RBOOT_SRC			:= rboot-config.c
 CONFIG_RBOOT_ELF			:= rboot-config.o
 CONFIG_RBOOT_BIN			:= rboot-config.bin
-CONFIG_DEFAULT_SRC			:= default-config.c
-CONFIG_DEFAULT_ELF			:= default-config.o
 CONFIG_DEFAULT_BIN			:= default-config.bin
 CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
@@ -203,7 +201,6 @@ clean:
 						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
-						$(CONFIG_DEFAULT_ELF) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush espflash resetserial
 
 free:			$(ELF)
@@ -292,14 +289,8 @@ $(FIRMWARE_OTA_IMG):	$(ELF_OTA) $(ESPTOOL2_BIN)
 
 $(CONFIG_RBOOT_ELF):	$(CONFIG_RBOOT_SRC)
 
-$(CONFIG_DEFAULT_ELF):	always
-
 $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
-						$(Q) $(OBJCOPY) --output-target binary $< $@
-
-$(CONFIG_DEFAULT_BIN):	$(CONFIG_DEFAULT_ELF)
-						$(VECHO) "DEFAULT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
 flash:					$(FLASH_TARGET)
