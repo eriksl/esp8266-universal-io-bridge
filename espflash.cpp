@@ -853,12 +853,14 @@ int main(int argc, const char **argv)
 		bool noreset = false;
 		bool notemp = false;
 		bool otawrite = false;
+		bool use_force = false;
 		bool erase_before_write = false;
 		bool cmd_write = false;
 		bool cmd_simulate = false;
 		bool cmd_verify = false;
 		bool cmd_checksum = false;
 		bool cmd_read = false;
+		bool force_used;
 		action_t action;
 
 		options.add_options()
@@ -866,6 +868,7 @@ int main(int argc, const char **argv)
 			("chunksize,c",	po::value<std::string>(&chunk_size_string)->default_value("0"),		"send/receive chunk size")
 			("erase,e",		po::bool_switch(&erase_before_write)->implicit_value(true),			"erase before write (instead of during write)")
 			("filename,f",	po::value<std::string>(&filename),									"file name")
+			("force,F",		po::bool_switch(&use_force)->implicit_value(true),					"use force if image seems to be incompatible")
 			("host,h",		po::value<std::string>(&host)->required(),							"host to connect to")
 			("length,l",	po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
 			("nocommit,n",	po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
@@ -943,6 +946,8 @@ int main(int argc, const char **argv)
 
 		GenericSocket channel(host, port, use_udp, verbose);
 
+		force_used = false;
+
 		try
 		{
 			process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
@@ -954,18 +959,39 @@ int main(int argc, const char **argv)
 		}
 		catch(std::string &e)
 		{
-			throw(std::string("incompatible image: ") + e);
+			if(use_force)
+			{
+				std::cout << "OTA incompatible image, trying to continue due to force flag: " << e << std::endl;
+				force_used = true;
+			}
+			else
+				throw(std::string("OTA incompatible image: ") + e);
 		}
 
-		flash_sector_size = int_value[0];
-		flash_ota = int_value[1];
-		flash_slots = int_value[2];
-		flash_slot = int_value[3];
-		flash_address[0] = int_value[4];
-		flash_address[1] = int_value[5];
-		flash_address[2] = int_value[6];
-		flash_address[3] = int_value[7];
-		preferred_chunk_size = int_value[8];
+		if(force_used)
+		{
+			flash_sector_size = 4096;
+			flash_ota = 0;
+			flash_slots = 0;
+			flash_slot = 0;
+			flash_address[0] = 0;
+			flash_address[1] = 0;
+			flash_address[2] = 0;
+			flash_address[3] = 0;
+			preferred_chunk_size = 512;
+		}
+		else
+		{
+			flash_sector_size = int_value[0];
+			flash_ota = int_value[1];
+			flash_slots = int_value[2];
+			flash_slot = int_value[3];
+			flash_address[0] = int_value[4];
+			flash_address[1] = int_value[5];
+			flash_address[2] = int_value[6];
+			flash_address[3] = int_value[7];
+			preferred_chunk_size = int_value[8];
+		}
 
 		std::cout << "flash operations available, sector size: " << flash_sector_size;
 
