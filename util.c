@@ -409,15 +409,27 @@ irom void string_format_cstr(string_t *dst, const char *fmt, ...)
 iram attr_speed void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 {
 	va_list ap;
+	int rendered_length, buffer_remaining;
 
 	flash_to_dram(true, fmt_flash, flash_dram_buffer, sizeof(flash_dram_buffer));
 
+	// no space left at all, do nothing
+
+	if((buffer_remaining = dst->size - dst->length - 1) <= 0)
+		return;
+
 	va_start(ap, fmt_flash);
-	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, flash_dram_buffer, ap);
+	rendered_length = ets_vsnprintf(dst->buffer + dst->length, buffer_remaining, flash_dram_buffer, ap);
 	va_end(ap);
 
-	if(dst->length > (dst->size - 1))
-		dst->length = dst->size - 1;
+	// some snprintf implementations can return -1 when output doesn't fit the output buffer
+	// some snprintf implementations can return the original buffer size when the output doesn't fit the output buffer
+	// this means we can't always rely on the return value, assume vsnprintf filled all of the buffer_remaining space in those cases
+
+	if((rendered_length < 0) || (rendered_length > buffer_remaining))
+		rendered_length = buffer_remaining;
+
+	dst->length += rendered_length;
 
 	dst->buffer[dst->length] = '\0';
 }
