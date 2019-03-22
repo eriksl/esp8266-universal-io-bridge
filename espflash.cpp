@@ -819,7 +819,7 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 		}
 	}
 
-	std::cout << "checksumming " << checksummed / flash_sector_size << " sectors..." << std::endl;
+	std::cout << std::endl << "checksumming " << checksummed / flash_sector_size << " sectors..." << std::endl;
 
 	SHA1_Final(file_hash, &sha_file_ctx);
 	sha_local_hash_text = sha_hash_to_text(file_hash);
