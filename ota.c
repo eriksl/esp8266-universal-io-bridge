@@ -276,6 +276,12 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 		return(app_action_error);
 	}
 
+	if(string_size(dst) < SPI_FLASH_SEC_SIZE)
+	{
+		string_format(dst, "ERROR flash-verify: dst buffer too small: %u\n", string_size(dst));
+		return(app_action_error);
+	}
+
 	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
 		if(verify)
