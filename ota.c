@@ -252,7 +252,6 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
 	string_format(dst, "OK flash-read: read bytes: %d, from address: %d (%d), checksum: ", SPI_FLASH_SEC_SIZE, address, sector);
-
 	string_append_string(dst, &sha_string);
 	string_append(dst, "\n");
 
