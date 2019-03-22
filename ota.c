@@ -209,8 +209,6 @@ irom app_action_t application_function_flash_receive(const string_t *src, string
 		return(app_action_error);
 	}
 
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-
 	string_format(dst, "OK flash-receive: sending bytes: %d, from offset: %d, data: @", chunk_length, chunk_offset);
 	string_splice(dst, -1, &flash_sector_buffer, chunk_offset, chunk_length);
 	string_append(dst, "\n");
@@ -246,6 +244,7 @@ irom app_action_t application_function_flash_read(const string_t *src, string_t 
 
 	sector = address / SPI_FLASH_SEC_SIZE;
 	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 
 	SHA1Init(&sha_context);
 	SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
