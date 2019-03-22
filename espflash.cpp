@@ -51,7 +51,7 @@ class GenericSocket
 		~GenericSocket();
 
 		bool send(int timeout_msec, std::string buffer);
-		bool receive(int timeout_msec, std::string &buffer);
+		bool receive(int timeout_msec, std::string &buffer, int expected);
 		void reconnect();
 };
 
@@ -132,14 +132,16 @@ bool GenericSocket::send(int timeout, std::string buffer)
 	return(true);
 }
 
-bool GenericSocket::receive(int timeout, std::string &reply)
+bool GenericSocket::receive(int timeout, std::string &reply, int expected)
 {
 	int length;
 	int run;
 	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 	char buffer[8192];
 
-	for(run = 2; run > 0; run--)
+	reply.clear();
+
+	for(run = 8; run > 0; run--)
 	{
 		if(poll(&pfd, 1, timeout) != 1)
 			return(false);
@@ -151,13 +153,20 @@ bool GenericSocket::receive(int timeout, std::string &reply)
 			return(false);
 
 		if(length == 0)
-			continue;
+		{
+			if(reply.length() == 0) // ignore terminating empty udp packed from previous output
+				continue;
+			else
+				break;
+		}
 
-		if((length != 1) || (buffer[0] != '\0'))
+		reply.append(buffer, (size_t)length);
+
+		if((expected > 0) && (expected > length))
+			expected -= length;
+		else
 			break;
 	}
-
-	reply.assign(buffer, length);
 
 	if(reply.back() == '\n')
 		reply.pop_back();
@@ -180,7 +189,7 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 }
 
 static void process(GenericSocket &channel, const std::string &send_string, std::string &reply_string, const std::string &match,
-		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose, int timeout = 2000)
+		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose, int timeout = 2000, int expected = -1)
 {
 	boost::regex re(match);
 	boost::smatch capture;
@@ -216,8 +225,11 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		send_status = channel.send(timeout, send_string);
 
 		if(send_status)
-			receive_status = channel.receive(timeout, reply_string);
+			receive_status = channel.receive(timeout, reply_string, expected);
 		else
+			receive_status = false;
+
+		if(reply_string.length() == 0)
 			receive_status = false;
 
 		if(send_status && receive_status)
@@ -714,7 +726,8 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 									<< ", length: " << chunk_size << ", try #" << max_attempts - chunk_attempt << std::endl;
 
 						send_string = std::string("flash-receive ") + std::to_string(chunk_offset) + " " + std::to_string(chunk_size);
-						process(channel, send_string, reply, "OK flash-receive: sending bytes: ([0-9]+), from offset: ([0-9]+), data: @.*", string_value, int_value, verbose);
+						process(channel, send_string, reply, "OK flash-receive: sending bytes: ([0-9]+), from offset: ([0-9]+), data: @.*",
+								string_value, int_value, verbose, 2000, chunk_size + 60);
 
 						if(int_value[0] != chunk_size)
 							throw(std::string("local chunk length (") + std::to_string(chunk_size) + ") != remote chunk length (" + std::to_string(int_value[0]) + ")");
