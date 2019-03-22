@@ -347,10 +347,20 @@ attr_inline attr_nonnull void string_append_char(string_t *dst, char c)
 	dst->buffer[dst->length] = '\0';
 }
 
-attr_inline attr_nonnull void string_append_byte(string_t *dst, char c)
+attr_inline attr_nonnull void string_append_byte(string_t *dst, uint8_t c)
 {
 	if(dst->length < dst->size)
 		dst->buffer[dst->length++] = c;
+}
+
+attr_inline attr_nonnull void string_append_bytes(string_t *dst, const uint8_t *src, int length)
+{
+	if((dst->length + length) > dst->size)
+		length = dst->size - dst->length;
+
+	memcpy(dst->buffer + dst->length, src, length);
+
+	dst->length += length;
 }
 
 attr_inline attr_nonnull void string_append_cstr(string_t *dst, const char *src)
@@ -365,14 +375,13 @@ attr_inline attr_nonnull void string_append_cstr_flash(string_t *dst, const char
 
 attr_inline attr_nonnull void string_append_string(string_t *dst, const string_t *src)
 {
-	int length = src->length;
+	string_append_bytes(dst, src->buffer, src->length);
+}
 
-	if((dst->length + length) > dst->size)
-		length = dst->size - dst->length;
-
-	memcpy(dst->buffer + dst->length, src->buffer, length);
-
-	dst->length += length;
+attr_inline attr_nonnull void string_copy_string(string_t *dst, const string_t *src)
+{
+	dst->length = 0;
+	string_append_string(dst, src);
 }
 
 attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
