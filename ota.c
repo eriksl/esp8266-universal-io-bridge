@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-irom app_action_t application_function_flash_info(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_info(const string_t *src, string_t *dst)
 {
 	int ota_available = 0;
 	int ota_slots = 0;
@@ -57,7 +57,7 @@ irom app_action_t application_function_flash_info(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_erase(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_erase(const string_t *src, string_t *dst)
 {
 	unsigned int address, length;
 	int sector_offset, sector_count, erased;
@@ -109,9 +109,8 @@ irom app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_send(string_t *raw_src, string_t *dst)
+irom app_action_t application_function_flash_send(const string_t *src, string_t *dst)
 {
-	string_t src = *raw_src;
 	int chunk_offset;
 	unsigned int offset, length, chunk_length;
 
@@ -121,13 +120,13 @@ irom app_action_t application_function_flash_send(string_t *raw_src, string_t *d
 		return(app_action_error);
 	}
 
-	if(parse_uint(1, &src, &offset, 0, ' ') != parse_ok)
+	if(parse_uint(1, src, &offset, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-send: offset required\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, &src, &length, 0, ' ') != parse_ok)
+	if(parse_uint(2, src, &length, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR flash-send: length required\n");
 		return(app_action_error);
@@ -151,26 +150,26 @@ irom app_action_t application_function_flash_send(string_t *raw_src, string_t *d
 		return(app_action_error);
 	}
 
-	if((chunk_offset = string_sep(&src, 0, 3, ' ')) < 0)
+	if((chunk_offset = string_sep(src, 0, 3, ' ')) < 0)
 	{
 		string_append(dst, "ERROR flash-send: missing data\n");
 		return(app_action_error);
 	}
 
-	if((chunk_length = string_length(&src) - chunk_offset) != length)
+	if((chunk_length = string_length(src) - chunk_offset) != length)
 	{
 		string_format(dst, "ERROR flash-send: data length mismatch: %d != %d\n", length, chunk_length);
 		return(app_action_error);
 	}
 
-	string_splice(&flash_sector_buffer, offset, &src, chunk_offset, chunk_length);
+	string_splice(&flash_sector_buffer, offset, src, chunk_offset, chunk_length);
 
 	string_format(dst, "OK flash-send: received bytes: %d, at offset: %d\n", length, offset);
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_receive(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_receive(const string_t *src, string_t *dst)
 {
 	unsigned int chunk_offset, chunk_length;
 
@@ -219,7 +218,7 @@ irom app_action_t application_function_flash_receive(string_t *src, string_t *ds
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_read(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_read(const string_t *src, string_t *dst)
 {
 	unsigned int address, sector;
 
@@ -355,17 +354,17 @@ irom static app_action_t flash_write_verify_(const string_t *src, string_t *dst,
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_flash_write(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_write(const string_t *src, string_t *dst)
 {
 	return(flash_write_verify_(src, dst, false));
 }
 
-irom app_action_t application_function_flash_verify(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_verify(const string_t *src, string_t *dst)
 {
 	return(flash_write_verify_(src, dst, true));
 }
 
-irom app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_checksum(const string_t *src, string_t *dst)
 {
 	unsigned int address, current, length, done;
 
@@ -553,12 +552,12 @@ irom static app_action_t flash_select(const string_t *src, string_t *dst, _Bool 
 #endif
 }
 
-irom app_action_t application_function_flash_select(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_select(const string_t *src, string_t *dst)
 {
 	return(flash_select(src, dst, false));
 }
 
-irom app_action_t application_function_flash_select_once(string_t *src, string_t *dst)
+irom app_action_t application_function_flash_select_once(const string_t *src, string_t *dst)
 {
 	return(flash_select(src, dst, true));
 }
