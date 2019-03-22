@@ -14,9 +14,7 @@ typedef enum
 	uart_task_fill0_fifo,
 	uart_task_fill1_fifo,
 	command_task_reset,
-	command_task_reset_finish,
 	command_task_uart_bridge,
-	command_task_disconnect,
 	command_task_init_i2c_sensors,
 	command_task_init_displays,
 	command_task_received_command,
@@ -27,7 +25,6 @@ typedef enum
 	command_task_alert_association,
 	command_task_alert_disassociation,
 	command_task_alert_status,
-	command_task_send_payload_terminator,
 	timer_task_io_periodic_slow,
 	timer_task_io_periodic_fast,
 } task_command_t;

@@ -9,13 +9,20 @@
 #undef uint32_t
 #undef int32_t
 
-#include <ip_addr.h>
-
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdarg.h>
 
 #include "attribute.h"
+
+typedef struct
+{
+	int size;
+	int length;
+	char *buffer;
+} string_t;
+
+#include "lwip-interface.h"
 
 enum
 {
@@ -181,13 +188,6 @@ attr_inline void csleep(volatile uint32_t target)
 attr_nonnull ip_addr_t ip_addr(const char *);
 
 // string functions
-
-typedef struct
-{
-	int size;
-	int length;
-	char *buffer;
-} string_t;
 
 attr_nonnull void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 attr_nonnull void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));

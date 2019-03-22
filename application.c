@@ -276,11 +276,7 @@ irom static app_action_t application_function_quit(string_t *src, string_t *dst)
 
 irom static app_action_t application_function_reset(string_t *src, string_t *dst)
 {
-	dispatch_post_command(command_task_reset);
-
-	string_append(dst, "> reset\n");
-
-	return(app_action_normal);
+	return(app_action_reset);
 }
 
 irom static app_action_t application_function_stats_firmware(string_t *src, string_t *dst)

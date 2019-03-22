@@ -30,6 +30,7 @@ enum
 	flag_apds3_high_sens =	1 << 12,
 	flag_apds6_high_sens =	1 << 13,
 	flag_uart1_tx_inv =		1 << 14,
+	flag_udp_term_empty =	1 << 15,
 };
 
 void			config_flags_to_string(_Bool nl, const char *, string_t *);

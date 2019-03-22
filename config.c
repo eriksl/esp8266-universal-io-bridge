@@ -50,6 +50,7 @@ static const config_flag_name_t config_flag_names[] =
 	{	flag_apds3_high_sens,	"apds3-high-sens"	},
 	{	flag_apds6_high_sens,	"apds6-high-sens"	},
 	{	flag_uart1_tx_inv,		"uart1-tx-inv",		},
+	{	flag_udp_term_empty,	"udp-term-empty",	},
 	{	flag_none,				""					},
 };
 

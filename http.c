@@ -490,8 +490,7 @@ config_error:
 
 irom static app_action_t handler_reset(const string_t *src, string_t *dst)
 {
-	dispatch_post_command(command_task_reset);
-	return(app_action_http_ok);
+	return(app_action_reset);
 }
 
 static const http_handler_t handlers[] =
