@@ -51,7 +51,7 @@ class GenericSocket
 		~GenericSocket();
 
 		bool send(int timeout_msec, std::string buffer);
-		bool receive(int timeout_msec, std::string &buffer, int expected);
+		bool receive(int timeout_msec, std::string &buffer, int expected, bool raw);
 		void reconnect();
 };
 
@@ -132,7 +132,7 @@ bool GenericSocket::send(int timeout, std::string buffer)
 	return(true);
 }
 
-bool GenericSocket::receive(int timeout, std::string &reply, int expected)
+bool GenericSocket::receive(int timeout, std::string &reply, int expected, bool raw)
 {
 	int length;
 	int run;
@@ -171,7 +171,7 @@ bool GenericSocket::receive(int timeout, std::string &reply, int expected)
 	if(reply.back() == '\n')
 		reply.pop_back();
 
-	if(reply.back() == '\r')
+	if(!raw && (reply.back() == '\r'))
 		reply.pop_back();
 
 	return(true);
@@ -189,7 +189,7 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 }
 
 static void process(GenericSocket &channel, const std::string &send_string, std::string &reply_string, const std::string &match,
-		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose, int timeout = 2000, int expected = -1)
+		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose, int timeout = 2000, int expected = -1, bool raw = false)
 {
 	boost::regex re(match);
 	boost::smatch capture;
@@ -225,7 +225,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		send_status = channel.send(timeout, send_string);
 
 		if(send_status)
-			receive_status = channel.receive(timeout, reply_string, expected);
+			receive_status = channel.receive(timeout, reply_string, expected, raw);
 		else
 			receive_status = false;
 
@@ -727,7 +727,7 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 
 						send_string = std::string("flash-receive ") + std::to_string(chunk_offset) + " " + std::to_string(chunk_size);
 						process(channel, send_string, reply, "OK flash-receive: sending bytes: ([0-9]+), from offset: ([0-9]+), data: @.*",
-								string_value, int_value, verbose, 2000, chunk_size + 60);
+								string_value, int_value, verbose, 2000, chunk_size + 60, true);
 
 						if(int_value[0] != chunk_size)
 							throw(std::string("local chunk length (") + std::to_string(chunk_size) + ") != remote chunk length (" + std::to_string(int_value[0]) + ")");
@@ -737,6 +737,9 @@ void command_read(GenericSocket &channel, int fd, int start, int length, int fla
 
 						if((data_offset = reply.find('@')) == std::string::npos)
 							throw(std::string("data offset could not be found"));
+
+						if((reply.length() - data_offset - 1) != (unsigned int)chunk_size)
+							throw(std::string("received data != chunk size"));
 
 						memcpy(sector_buffer + chunk_offset, reply.data() + data_offset + 1, chunk_size);
 
