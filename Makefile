@@ -4,6 +4,9 @@ ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= esp1
+# using LTO will yield additional 192 bytes of IRAM, but it
+# takes longer to compile and the linker map will become useless
+USE_LTO				?= 0
 
 # no user serviceable parts below
 
@@ -146,13 +149,17 @@ CFLAGS			:=	-pipe \
 						-std=gnu11 \
 						-ffreestanding -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-Os \
-						-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-objects -flto-partition=max \
 						-fno-math-errno -fno-printf-return-value -fno-tree-tail-merge \
 						-fno-inline \
 						-fno-guess-branch-probability -fno-tree-dominator-opts -fno-tree-forwprop -fno-tree-pta \
 						-fmerge-all-constants -frename-registers \
-						\
-						-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC \
+						-ffunction-sections -fdata-sections
+
+ifeq ($(USE_LTO),1)
+CFLAGS 			+=	-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-objects -flto-partition=max
+endif
+
+CFLAGS			+=	-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC \
 						-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
