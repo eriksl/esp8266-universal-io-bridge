@@ -180,7 +180,7 @@ CINC			:= -I$(HAL)/include \
 					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(ESPSDK)/include -I$(ESPSDK)/third_party/include -I .
 
-LDFLAGS			:= -L$(ESPSDK)/lib -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+LDFLAGS			:= -L. -L$(ESPSDK)/lib -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa
 STDLIBS			:= -lm -lgcc -lcrypto
 
