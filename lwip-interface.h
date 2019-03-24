@@ -2,7 +2,6 @@
 #define lwip_interface_h
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcomment"
 #pragma GCC diagnostic ignored "-Wpacked"
 
 /* workaround Espressif's added inclusion of c_types.h that erronously define (u)intX_t */

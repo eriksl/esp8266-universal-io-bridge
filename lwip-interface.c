@@ -7,13 +7,10 @@
 #include "stats.h"
 
 /* don't bail on wrongly declared functions in old version of lwip, some parameters should be const really */
-#pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic push
-/* don't bail on nested comments in LWIP */
-#pragma GCC diagnostic ignored "-Wcomment"
-/* don't bail on bogus struct pack reports */
+#pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wpacked"
+#pragma GCC diagnostic push
 
 #include <lwip/udp.h>
 #include <lwip/tcp.h>
