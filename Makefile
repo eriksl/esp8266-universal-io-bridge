@@ -145,11 +145,8 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
 						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
 						-Wcast-align -Winline \
-						-Wno-pointer-sign -Wno-unused-parameter -Wno-error=cast-qual \
-						-Wno-attributes -Wno-switch-default \
-						-Wno-nested-externs \
-						-Wno-error=unsafe-loop-optimizations \
-						-Wno-packed
+						-Wno-pointer-sign -Wno-unused-parameter -Wno-attributes \
+						-Wno-error=cast-qual -Wno-error=packed -Wno-error=unsafe-loop-optimizations
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
