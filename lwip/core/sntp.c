@@ -160,6 +160,7 @@ uint8 sntp_receive_time_size = 1;
 //#define SNTP_CALC_TIME_US           0
 //#define SNTP_RECEIVE_TIME_SIZE      sntp_receive_time_size
 //#endif
+void sntp_update_rtc(time_t sec, u32 us);
 
 /** SNTP macro to get system time, used with SNTP_CHECK_RESPONSE >= 2
  * to send in request and compare in response.

@@ -173,6 +173,8 @@ static void dhcp_option_trailer(struct dhcp *dhcp);
 static int vendor_class_len = 0;
 static char * vendor_class_buf = NULL;
 
+void system_station_got_ip_set(const ip_addr_t *ip, const ip_addr_t *mask, const ip_addr_t *gw);
+
 err_t dhcp_set_vendor_class_identifier(uint8_t len, char *str)
 {
 	if (len == 0)

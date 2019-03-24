@@ -98,6 +98,7 @@
  * invocation.
  */
 struct netif *current_netif;
+struct netif *eagle_lwip_getif(uint8 index);
 
 /**
  * Header of the input packet currently being processed.

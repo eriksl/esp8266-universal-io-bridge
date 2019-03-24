@@ -81,6 +81,7 @@
 
 #ifdef EBUF_LWIP
 #define EP_OFFSET 36
+void system_pp_recycle_rx_pkt(void *);
 #else
 #define EP_OFFSET 0
 #endif /* ESF_LWIP */

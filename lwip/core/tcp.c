@@ -104,6 +104,7 @@ struct tcp_pcb *tcp_tmp_pcb;
 /** Timer counter to handle calling slow-timer from tcp_tmr() */
 static u8_t tcp_timer;
 static u16_t tcp_new_port(void);//                 tcp
+int system_get_data_of_array_8(const u8_t haystack[], u8_t needle);
 
 /**
  * Called periodically to dispatch TCP timers.

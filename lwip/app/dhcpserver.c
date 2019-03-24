@@ -32,6 +32,8 @@ uint32 dhcps_lease_time = DHCPS_LEASE_TIME_DEF;  //minute
 
 void wifi_softap_dhcps_client_leave(u8 *bssid, struct ip_addr *ip,bool force);
 uint32 wifi_softap_dhcps_client_update(u8 *bssid, struct ip_addr *ip);
+void wifi_softap_set_station_info(const uint8_t mac[6], const ip_addr_t *ip_address);
+struct netif * eagle_lwip_getif(uint8 index);
 
 /******************************************************************************
  * FunctionName : node_insert_to_list

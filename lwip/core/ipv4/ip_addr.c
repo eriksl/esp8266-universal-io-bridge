@@ -113,6 +113,8 @@ u8_t ip4_addr_netmask_valid(u32_t netmask)
 #define isprint(c)           in_range(c, 0x20, 0x7f)
 //#define isdigit(c)           in_range(c, '0', '9')
 //#define isxdigit(c)          (isdigit(c) || in_range(c, 'a', 'f') || in_range(c, 'A', 'F'))
+int isxdigit(int c);
+int isdigit(int c);
 #define islower(c)           in_range(c, 'a', 'z')
 #define isspace(c)           (c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v')
 #endif
