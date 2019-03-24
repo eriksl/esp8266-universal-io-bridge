@@ -40,7 +40,7 @@
 void system_update_rtc(time_t t, uint32_t us);
 time_t sntp_get_rtc_time(sint32_t *us);
 
-int  gettimeofday(struct timeval* t, void* timezone);
+/*int  gettimeofday(struct timeval* t, void* timezone);*/
 void updateTime(uint32 ms);
 bool configTime(int timezone, int daylightOffset, char *server1, char *server2, char *server3, bool enable);
 time_t time(time_t *t);

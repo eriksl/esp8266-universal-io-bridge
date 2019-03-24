@@ -109,6 +109,7 @@ void tcp_timer_needed(void)
  * @param arg unused argument
  */
 
+#if 0
 static void tcp_timer_coarse(void *arg)
 {
   LWIP_UNUSED_ARG(arg);
@@ -116,6 +117,7 @@ static void tcp_timer_coarse(void *arg)
   tcp_tmr();
   sys_timeout(TCP_TMR_INTERVAL, tcp_timer_coarse, NULL);
 }
+#endif
 
 #endif /* LWIP_TCP */
 
