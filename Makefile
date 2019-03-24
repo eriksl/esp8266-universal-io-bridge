@@ -151,7 +151,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-nested-externs \
 						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
 						-Wno-error=unsafe-loop-optimizations \
-						-Wno-error=empty-body -Wno-error=cast-qual -Wno-error=unused-variable -Wno-error=implicit-function-declaration \
+						-Wno-error=cast-qual -Wno-error=unused-variable -Wno-error=implicit-function-declaration \
 						-Wno-error=bad-function-cast -Wno-packed -Wno-comment \
 						-Wno-error=discarded-qualifiers -Wno-error=implicit-fallthrough \
 						-Wno-error=sign-compare -Wno-error=unused-value -Wno-error=unused-but-set-variable \
