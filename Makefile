@@ -137,7 +137,6 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wdangling-else -Wno-incompatible-pointer-types \
 						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs -Wstrict-overflow=2 \
 						-Wno-format -Wmissing-noreturn -Wbool-compare \
-						-Wsuggest-attribute=pure -Wsuggest-attribute=const \
 						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \
 						-Wuninitialized -Wtrampolines -Wframe-larger-than=1024 \
 						-Wunsafe-loop-optimizations -Wshadow -Wpointer-arith -Wbad-function-cast \
@@ -146,14 +145,11 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
 						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
 						-Wcast-align -Winline \
-						-Wno-pointer-sign -Wno-unused-parameter \
+						-Wno-pointer-sign -Wno-unused-parameter -Wno-error=cast-qual \
 						-Wno-attributes -Wno-switch-default \
 						-Wno-nested-externs \
-						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
 						-Wno-error=unsafe-loop-optimizations \
-						-Wno-error=cast-qual \
-						-Wno-packed -Wno-comment \
-						-Wno-error=discarded-qualifiers
+						-Wno-packed -Wno-comment
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
