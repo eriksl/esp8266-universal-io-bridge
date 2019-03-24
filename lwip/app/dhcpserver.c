@@ -103,12 +103,12 @@ void node_remove_from_list(list_node **phead, list_node* pdelete)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ��DHCP msg��Ϣ�ṹ����������
+ *       DHCP msg                                            
  *
- * @param optptr -- DHCP msg��Ϣλ��
- * @param type -- Ҫ��ӵ�����option
+ * @param optptr -- DHCP msg                
+ * @param type --                          option
  *
- * @return uint8_t* ����DHCP msgƫ�Ƶ�ַ
+ * @return uint8_t*             DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static uint8_t* add_msg_type(uint8_t *optptr, uint8_t type)
@@ -121,11 +121,11 @@ static uint8_t* add_msg_type(uint8_t *optptr, uint8_t type)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ��DHCP msg�ṹ������offerӦ������
+ *       DHCP msg                        offer                    
  *
- * @param optptr -- DHCP msg��Ϣλ��
+ * @param optptr -- DHCP msg                
  *
- * @return uint8_t* ����DHCP msgƫ�Ƶ�ַ
+ * @return uint8_t*             DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static uint8_t* add_offer_options(uint8_t *optptr)
@@ -230,11 +230,11 @@ static uint8_t* add_offer_options(uint8_t *optptr)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ��DHCP msg�ṹ����ӽ����־����
+ *       DHCP msg                                              
  *
- * @param optptr -- DHCP msg��Ϣλ��
+ * @param optptr -- DHCP msg                
  *
- * @return uint8_t* ����DHCP msgƫ�Ƶ�ַ
+ * @return uint8_t*             DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static uint8_t* add_end(uint8_t *optptr)
@@ -275,9 +275,9 @@ static void create_msg(struct dhcps_msg *m)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ����һ��OFFER
+ *                     OFFER
  *
- * @param -- m ָ����Ҫ���͵�DHCP msg����
+ * @param -- m                               DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static void send_offer(struct dhcps_msg *m)
@@ -335,9 +335,9 @@ static void send_offer(struct dhcps_msg *m)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ����һ��NAK��Ϣ
+ *                     NAK        
  *
- * @param m ָ����Ҫ���͵�DHCP msg����
+ * @param m                               DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static void send_nak(struct dhcps_msg *m)
@@ -395,9 +395,9 @@ static void send_nak(struct dhcps_msg *m)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ����һ��ACK��DHCP�ͻ���
+ *                     ACK      DHCP              
  *
- * @param m ָ����Ҫ���͵�DHCP msg����
+ * @param m                               DHCP msg            
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static void send_ack(struct dhcps_msg *m)
@@ -457,12 +457,12 @@ static void send_ack(struct dhcps_msg *m)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * ����DHCP�ͻ��˷�����DHCP����������Ϣ�����Բ�ͬ��DHCP��������������Ӧ��Ӧ��
+ *             DHCP                            DHCP                                                            DHCP                                                          
  *
- * @param optptr DHCP msg�е���������
- * @param len ��������Ĵ��?(byte)
+ * @param optptr DHCP msg                                
+ * @param len                                 ?(byte)
  *
- * @return uint8_t ���ش�����DHCP Server״ֵ̬
+ * @return uint8_t                           DHCP Server      
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static uint8_t parse_options(uint8_t *optptr, sint16_t len)
@@ -471,7 +471,7 @@ static uint8_t parse_options(uint8_t *optptr, sint16_t len)
         bool is_dhcp_parse_end = false;
         struct dhcps_state s;
 
-        client.addr = *( (uint32_t *) &client_address);// Ҫ�����DHCP�ͻ��˵�IP
+        client.addr = *( (uint32_t *) &client_address);//                  DHCP                IP
 
         u8_t *end = optptr + len;
         u16_t type = 0;
@@ -580,14 +580,14 @@ static sint16_t parse_msg(struct dhcps_msg *m, u16_t len)
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*
- * DHCP ��������ݰ���մ���ص�����˺�����LWIP UDPģ������ʱ������
- * ��Ҫ����udp_recv()������LWIP����ע��.
+ * DHCP                                                                                 LWIP UDP                                        
+ *                     udp_recv()                  LWIP                    .
  *
  * @param arg
- * @param pcb ���յ�UDP��Ŀ��ƿ�?
- * @param p ���յ���UDP�е��������?
- * @param addr ���ʹ�UDP���Դ�����IP��ַ
- * @param port ���ʹ�UDP���Դ�����UDPͨ���˿ں�
+ * @param pcb               UDP                   ?
+ * @param p                     UDP                             ?
+ * @param addr               UDP                          IP        
+ * @param port               UDP                          UDP                  
  */
 ///////////////////////////////////////////////////////////////////////////////////
 static void handle_dhcp(void *arg, 
@@ -640,7 +640,7 @@ static void handle_dhcp(void *arg,
         }
 
         /*
-         * DHCP �ͻ���������Ϣ����
+         * DHCP                                               
         */
 #if DHCPS_DEBUG
         os_printf("dhcps: handle_dhcp-> parse_msg(p)\n");

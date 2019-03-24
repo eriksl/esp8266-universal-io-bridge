@@ -328,16 +328,16 @@ static err_t tcp_write_checks(struct tcp_pcb *pcb, u16_t len)
 
 /**
  * Write data for sending (but does not send it immediately).
- *��������һ��������ݣ��ú�����һ�����Ķβ����ڿ��ƿ黺�������
+ *                                                                                                                                              
  * It waits in the expectation of more data being sent soon (as
  * it can send them more efficiently by combining them together).
  * To prompt the system to send data now, call tcp_output() after
  * calling tcp_write().
  *
- * @param pcb Protocol control block for the TCP connection to enqueue data for.��Ӧ���ӿ��ƿ�
- * @param arg Pointer to the data to be enqueued for sending.���������ʼ��ַ
- * @param len Data length in bytes������ݳ���
- * @param apiflags combination of following flags :����Ƿ���п������Լ����Ķ��ײ��Ƿ������PSH��־
+ * @param pcb Protocol control block for the TCP connection to enqueue data for.                              
+ * @param arg Pointer to the data to be enqueued for sending.                                     
+ * @param len Data length in bytes                             
+ * @param apiflags combination of following flags :                                                                                             PSH        
  * - TCP_WRITE_FLAG_COPY (0x01) data will be copied into memory belonging to the stack
  * - TCP_WRITE_FLAG_MORE (0x02) for TCP connection, PSH flag will be set on last segment sent,
  * @return ERR_OK if enqueued, another err_t on error
@@ -880,7 +880,7 @@ err_t tcp_send_empty_ack(struct tcp_pcb *pcb)
 
 /**
  * Find out what we can send and send it
- *���Ϳ��ƿ黺����еı��Ķ�
+ *                                                 
  * @param pcb Protocol control block for the TCP connection to send data
  * @return ERR_OK if data has been sent or nothing to send
  *         another err_t on error
@@ -895,12 +895,12 @@ err_t tcp_output(struct tcp_pcb *pcb)
   /* First, check if we are invoked by the TCP input processing
      code. If so, we do not output anything. Instead, we rely on the
      input processing code to call us when input processing is done
-     with. �����ƿ鵱ǰ������ݱ����?ֱ�ӷ���*/
+     with.                                                       ?                */
   if (tcp_input_pcb == pcb) {
     return ERR_OK;
   }
 
-  wnd = LWIP_MIN(pcb->snd_wnd, pcb->cwnd);//�ӷ��ʹ��ں������ȡС�ߵõ���Ч���ʹ���
+  wnd = LWIP_MIN(pcb->snd_wnd, pcb->cwnd);//                                                                                 
 
   seg = pcb->unsent;
 
@@ -913,13 +913,13 @@ err_t tcp_output(struct tcp_pcb *pcb)
   if (pcb->flags & TF_ACK_NOW &&
      (seg == NULL ||
       ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len > wnd)) {
-     return tcp_send_empty_ack(pcb);//����ֻ��ACK�ı��Ķ�
+     return tcp_send_empty_ack(pcb);//                    ACK                
   }
 
   /* useg should point to last segment on unacked queue */
   useg = pcb->unacked;
   if (useg != NULL) {
-    for (; useg->next != NULL; useg = useg->next);//�õ�β��
+    for (; useg->next != NULL; useg = useg->next);//                
   }
 
 #if TCP_OUTPUT_DEBUG
@@ -944,7 +944,7 @@ err_t tcp_output(struct tcp_pcb *pcb)
   }
 #endif /* TCP_CWND_DEBUG */
   /* data available and window allows it to be sent? 
-    *��ǰ��Ч�������?�ķ��ͣ�ѭ�����ͱ��ģ�ֱ�������*/
+    *                                     ?                                                                     */
   while (seg != NULL &&
          ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len <= wnd
 		 && (seg->p->ref<2) ) {
@@ -973,30 +973,30 @@ err_t tcp_output(struct tcp_pcb *pcb)
     pcb->unsent = seg->next;
 
     if (pcb->state != SYN_SENT) {
-      TCPH_SET_FLAG(seg->tcphdr, TCP_ACK);//��д�ײ�ACK��־
-      pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);//����־λ
+      TCPH_SET_FLAG(seg->tcphdr, TCP_ACK);//                ACK        
+      pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);//                
     }
 
-    tcp_output_segment(seg, pcb);//���ú����ͱ��Ķ�
+    tcp_output_segment(seg, pcb);//                                    
     
-    snd_nxt = ntohl(seg->tcphdr->seqno) + TCP_TCPLEN(seg);//����snd_nxt
+    snd_nxt = ntohl(seg->tcphdr->seqno) + TCP_TCPLEN(seg);//            snd_nxt
     if (TCP_SEQ_LT(pcb->snd_nxt, snd_nxt)) {
-      pcb->snd_nxt = snd_nxt;//����Ҫ���͵���ݱ��
+      pcb->snd_nxt = snd_nxt;//                                          
     }
     /* put segment on unacknowledged list if length > 0
     */
     if (TCP_TCPLEN(seg) > 0) {
       seg->next = NULL;
-      /* unacked list is empty? ֱ�ӹҽ�*/
+      /* unacked list is empty?             */
       if (pcb->unacked == NULL) {
         pcb->unacked = seg;
         useg = seg;
-      /* unacked list is not empty?����ǰ���İ�˳����֯�ڶ����� */
+      /* unacked list is not empty?                                                                 */
       } else {
         /* In the case of fast retransmit, the packet should not go to the tail
          * of the unacked queue, but rather somewhere before it. We need to check for
-         * this case. -STJ Jul 27, 2004 */	//���ǰ���ĵ����кŵ��ڶ���β���������кţ�
-         							//�Ӷ����ײ���ʼ
+         * this case. -STJ Jul 27, 2004 */	//                                                                                           
+         							//                              
 		if (TCP_SEQ_LT(ntohl(seg->tcphdr->seqno), ntohl(useg->tcphdr->seqno))) {
           /* add segment to before tail of unacked list, keeping the list sorted */
           struct tcp_seg **cur_seg = &(pcb->unacked);
@@ -1006,17 +1006,17 @@ err_t tcp_output(struct tcp_pcb *pcb)
           }
           seg->next = (*cur_seg);
           (*cur_seg) = seg;
-        } else {//���������ߣ������δȷ�϶���ĩβ
+        } else {//                                                                     
           /* add segment to tail of unacked list */
           useg->next = seg;
           useg = useg->next;
         }
       }
     /* do not queue empty segments on the unacked list */
-    } else {//���Ķγ���Ϊ0��ֱ��ɾ�������ش�
+    } else {//                        0                                          
 	  tcp_seg_free(seg);
     }
-    seg = pcb->unsent;//������һ�����Ķ�
+    seg = pcb->unsent;//                                        
   }
 #if TCP_OVERSIZE
   if (pcb->unsent == NULL) {
@@ -1025,7 +1025,7 @@ err_t tcp_output(struct tcp_pcb *pcb)
   }
 #endif /* TCP_OVERSIZE */
 
-//���ʹ��������±��Ĳ��ܷ��ͣ��������㴰��̽�⡣
+//                                                                                                      
   if (seg != NULL && pcb->persist_backoff == 0 && 
       ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len > pcb->snd_wnd) {
     /* prepare for persist timer */
@@ -1033,7 +1033,7 @@ err_t tcp_output(struct tcp_pcb *pcb)
     pcb->persist_backoff = 1;
   }
 
-  pcb->flags &= ~TF_NAGLEMEMERR;//���ڴ�����־
+  pcb->flags &= ~TF_NAGLEMEMERR;//                            
   return ERR_OK;
 }
 
