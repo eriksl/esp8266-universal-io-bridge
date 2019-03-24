@@ -96,7 +96,7 @@ ifeq ($(IMAGE),plain)
 	LD_ADDRESS := 0x40210000
 	LD_LENGTH := 0x79000
 	ELF := $(ELF_PLAIN)
-	ALL_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
+	ALL_IMAGE_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
 	FLASH_TARGET := flash-plain
 endif
 
@@ -116,7 +116,7 @@ ifeq ($(IMAGE),ota)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF := $(ELF_OTA)
-	ALL_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) otapush espflash resetserial
+	ALL_IMAGE_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) espflash
 	FLASH_TARGET := flash-ota
 endif
 
@@ -196,8 +196,8 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PRECIOUS:		*.c *.h
 .PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota toolchain
 
-all:			toolchain $(ALL_TARGETS) free
-				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
+all:			toolchain $(ALL_IMAGE_TARGETS) free resetserial
+				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
 				$(VECHO) "CLEAN"
@@ -209,7 +209,8 @@ clean:
 						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
-						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) otapush espflash resetserial
+						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
+						otapush espflash resetserial 2> /dev/null
 
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
