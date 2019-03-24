@@ -153,7 +153,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-error=unsafe-loop-optimizations \
 						-Wno-error=cast-qual \
 						-Wno-packed -Wno-comment \
-						-Wno-error=discarded-qualifiers -Wno-error=implicit-fallthrough
+						-Wno-error=discarded-qualifiers
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
