@@ -152,9 +152,9 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
 						-Wno-error=unsafe-loop-optimizations \
 						-Wno-error=cast-qual \
-						-Wno-error=bad-function-cast -Wno-packed -Wno-comment \
+						-Wno-packed -Wno-comment \
 						-Wno-error=discarded-qualifiers -Wno-error=implicit-fallthrough \
-						-Wno-error=sign-compare -Wno-error=unused-value -Wno-error=unused-but-set-variable \
+						-Wno-error=sign-compare \
 						-Wno-error=inline -Wno-error=type-limits -Wno-error=switch -Wno-error=misleading-indentation \
 						-Wno-error=cast-align
 

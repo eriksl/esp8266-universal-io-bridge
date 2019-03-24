@@ -292,7 +292,6 @@ static void send_offer(struct dhcps_msg *m)
         u8_t *data;
         u16_t cnt=0;
         u16_t i;
-        err_t SendOffer_err_t;
         create_msg(m);
 
         end = add_msg_type(&m->options[4], DHCPOFFER);
@@ -300,16 +299,8 @@ static void send_offer(struct dhcps_msg *m)
         end = add_end(end);
 
         p = pbuf_alloc(PBUF_TRANSPORT, sizeof(struct dhcps_msg), PBUF_RAM);
-#if DHCPS_DEBUG
-        os_printf("udhcp: send_offer>>p->ref = %d\n", p->ref);
-#endif
         if(p != NULL){
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_offer>>pbuf_alloc succeed\n");
-            os_printf("dhcps: send_offer>>p->tot_len = %d\n", p->tot_len);
-            os_printf("dhcps: send_offer>>p->len = %d\n", p->len);
-#endif
             q = p;
             while(q != NULL){
                 data = (u8_t *)q->payload;
@@ -322,19 +313,10 @@ static void send_offer(struct dhcps_msg *m)
             }
         }else{
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_offer>>pbuf_alloc failed\n");
-#endif
             return;
         }
-        SendOffer_err_t = udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_offer>>udp_sendto result %x\n",SendOffer_err_t);
-#endif
+        udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
         if(p->ref != 0){
-#if DHCPS_DEBUG
-            os_printf("udhcp: send_offer>>free pbuf\n");
-#endif
             pbuf_free(p);
         }
 }
@@ -353,23 +335,14 @@ static void send_nak(struct dhcps_msg *m)
         u8_t *data;
         u16_t cnt=0;
         u16_t i;
-        err_t SendNak_err_t;
         create_msg(m);
 
         end = add_msg_type(&m->options[4], DHCPNAK);
         end = add_end(end);
 
         p = pbuf_alloc(PBUF_TRANSPORT, sizeof(struct dhcps_msg), PBUF_RAM);
-#if DHCPS_DEBUG
-        os_printf("udhcp: send_nak>>p->ref = %d\n", p->ref);
-#endif
         if(p != NULL){
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_nak>>pbuf_alloc succeed\n");
-            os_printf("dhcps: send_nak>>p->tot_len = %d\n", p->tot_len);
-            os_printf("dhcps: send_nak>>p->len = %d\n", p->len);
-#endif
             q = p;
             while(q != NULL){
                 data = (u8_t *)q->payload;
@@ -382,19 +355,10 @@ static void send_nak(struct dhcps_msg *m)
             }
         }else{
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_nak>>pbuf_alloc failed\n");
-#endif
             return;
         }
-        SendNak_err_t = udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_nak>>udp_sendto result %x\n",SendNak_err_t);
-#endif
+        udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
         if(p->ref != 0){
-#if DHCPS_DEBUG
-            os_printf("udhcp: send_nak>>free pbuf\n");
-#endif
             pbuf_free(p);
         }
 }
@@ -413,7 +377,6 @@ static void send_ack(struct dhcps_msg *m)
         u8_t *data;
         u16_t cnt=0;
         u16_t i;
-        err_t SendAck_err_t;
         create_msg(m);
 
         end = add_msg_type(&m->options[4], DHCPACK);
@@ -421,16 +384,9 @@ static void send_ack(struct dhcps_msg *m)
         end = add_end(end);
 
         p = pbuf_alloc(PBUF_TRANSPORT, sizeof(struct dhcps_msg), PBUF_RAM);
-#if DHCPS_DEBUG
-        os_printf("udhcp: send_ack>>p->ref = %d\n", p->ref);
-#endif
+
         if(p != NULL){
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_ack>>pbuf_alloc succeed\n");
-            os_printf("dhcps: send_ack>>p->tot_len = %d\n", p->tot_len);
-            os_printf("dhcps: send_ack>>p->len = %d\n", p->len);
-#endif
             q = p;
             while(q != NULL){
                 data = (u8_t *)q->payload;
@@ -443,20 +399,11 @@ static void send_ack(struct dhcps_msg *m)
             }
         }else{
 
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_ack>>pbuf_alloc failed\n");
-#endif
             return;
         }
-        SendAck_err_t = udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
-#if DHCPS_DEBUG
-            os_printf("dhcps: send_ack>>udp_sendto result %x\n",SendAck_err_t);
-#endif
+        udp_sendto( pcb_dhcps, p, &broadcast_dhcps, DHCPS_CLIENT_PORT );
 
         if(p->ref != 0){
-#if DHCPS_DEBUG
-            os_printf("udhcp: send_ack>>free pbuf\n");
-#endif
             pbuf_free(p);
         }
 }
@@ -484,9 +431,6 @@ static uint8_t parse_options(uint8_t *optptr, sint16_t len)
         s.state = DHCPS_STATE_IDLE;
 
         while (optptr < end) {
-#if DHCPS_DEBUG
-            os_printf("dhcps: (sint16_t)*optptr = %d\n", (sint16_t)*optptr);
-#endif
             switch ((sint16_t) *optptr) {
 
                 case DHCP_OPTION_MSG_TYPE:  //53
@@ -496,14 +440,8 @@ static uint8_t parse_options(uint8_t *optptr, sint16_t len)
                 case DHCP_OPTION_REQ_IPADDR://50
                         //os_printf("dhcps:0x%08x,0x%08x\n",client.addr,*(uint32*)(optptr+2));
                         if( os_memcmp( (char *) &client.addr, (char *) optptr+2,4)==0 ) {
-#if DHCPS_DEBUG
-                            os_printf("dhcps: DHCP_OPTION_REQ_IPADDR = 0 ok\n");
-#endif
                             s.state = DHCPS_STATE_ACK;
                         }else {
-#if DHCPS_DEBUG
-                            os_printf("dhcps: DHCP_OPTION_REQ_IPADDR != 0 err\n");
-#endif
                             s.state = DHCPS_STATE_NAK;
                         }
                         break;
@@ -524,9 +462,6 @@ static uint8_t parse_options(uint8_t *optptr, sint16_t len)
         switch (type){
             case DHCPDISCOVER://1
                 s.state = DHCPS_STATE_OFFER;
-#if DHCPS_DEBUG
-                os_printf("dhcps: DHCPD_STATE_OFFER\n");
-#endif
                 break;
 
             case DHCPREQUEST://3
@@ -536,29 +471,17 @@ static uint8_t parse_options(uint8_t *optptr, sint16_t len)
                     } else {
                         s.state = DHCPS_STATE_NAK;
                     }
-#if DHCPS_DEBUG
-                        os_printf("dhcps: DHCPD_STATE_NAK\n");
-#endif
                 }
                 break;
 
             case DHCPDECLINE://4
                 s.state = DHCPS_STATE_IDLE;
-#if DHCPS_DEBUG
-                os_printf("dhcps: DHCPD_STATE_IDLE\n");
-#endif
                 break;
 
             case DHCPRELEASE://7
                 s.state = DHCPS_STATE_RELEASE;
-#if DHCPS_DEBUG
-                os_printf("dhcps: DHCPD_STATE_IDLE\n");
-#endif
                 break;
         }
-#if DHCPS_DEBUG
-        os_printf("dhcps: return s.state = %d\n", s.state);
-#endif
         return s.state;
 }
 ///////////////////////////////////////////////////////////////////////////////////
@@ -608,9 +531,6 @@ static void handle_dhcp(void *arg,
         u8_t *p_dhcps_msg = NULL;
         u8_t *data = NULL;
 
-#if DHCPS_DEBUG
-        os_printf("dhcps: handle_dhcp-> receive a packet\n");
-#endif
         if (p==NULL) return;
 
         pmsg_dhcps = (struct dhcps_msg *)os_zalloc(sizeof(struct dhcps_msg));
@@ -622,22 +542,11 @@ static void handle_dhcp(void *arg,
         tlen = p->tot_len;
         data = p->payload;
 
-#if DHCPS_DEBUG
-        os_printf("dhcps: handle_dhcp-> p->tot_len = %d\n", tlen);
-        os_printf("dhcps: handle_dhcp-> p->len = %d\n", p->len);
-#endif
-
         for(i=0; i<p->len; i++){
             p_dhcps_msg[dhcps_msg_cnt++] = data[i];
         }
 
         if(p->next != NULL) {
-#if DHCPS_DEBUG
-            os_printf("dhcps: handle_dhcp-> p->next != NULL\n");
-            os_printf("dhcps: handle_dhcp-> p->next->tot_len = %d\n",p->next->tot_len);
-            os_printf("dhcps: handle_dhcp-> p->next->len = %d\n",p->next->len);
-#endif
-
             data = p->next->payload;
             for(i=0; i<p->next->len; i++){
                 p_dhcps_msg[dhcps_msg_cnt++] = data[i];
@@ -647,37 +556,23 @@ static void handle_dhcp(void *arg,
         /*
          * DHCP
         */
-#if DHCPS_DEBUG
-        os_printf("dhcps: handle_dhcp-> parse_msg(p)\n");
-#endif
 
         switch(parse_msg(pmsg_dhcps, tlen - 240)) {
 
             case DHCPS_STATE_OFFER://1
-#if DHCPS_DEBUG
-                 os_printf("dhcps: handle_dhcp-> DHCPD_STATE_OFFER\n");
-#endif
                  send_offer(pmsg_dhcps);
                  break;
             case DHCPS_STATE_ACK://3
-#if DHCPS_DEBUG
-                 os_printf("dhcps: handle_dhcp-> DHCPD_STATE_ACK\n");
-#endif
                  send_ack(pmsg_dhcps);
+
                  wifi_softap_set_station_info(pmsg_dhcps->chaddr, &client_address.addr);
                  break;
             case DHCPS_STATE_NAK://4
-#if DHCPS_DEBUG
-                 os_printf("dhcps: handle_dhcp-> DHCPD_STATE_NAK\n");
-#endif
                  send_nak(pmsg_dhcps);
                  break;
             default :
                  break;
         }
-#if DHCPS_DEBUG
-        os_printf("dhcps: handle_dhcp-> pbuf_free(p)\n");
-#endif
         pbuf_free(p);
         os_free(pmsg_dhcps);
         pmsg_dhcps = NULL;
@@ -748,10 +643,6 @@ void dhcps_start(struct ip_info *info)
 
     udp_bind(pcb_dhcps, IP_ADDR_ANY, DHCPS_SERVER_PORT);
     udp_recv(pcb_dhcps, handle_dhcp, NULL);
-#if DHCPS_DEBUG
-    os_printf("dhcps:dhcps_start->udp_recv function Set a receive callback handle_dhcp for UDP_PCB pcb_dhcps\n");
-#endif
-
 }
 
 void dhcps_stop(void)
