@@ -340,7 +340,6 @@ static err_t dhcp_select(struct netif *netif)
 
     if (vendor_class_buf != NULL) {
       const char *p = (const char*)vendor_class_buf;
-      u8_t namelen = (u8_t)os_strlen(p);
       if (vendor_class_len > 0) {
         LWIP_ASSERT("DHCP: vendor_class_len is too long!", vendor_class_len < 255);
         dhcp_option(dhcp, DHCP_OPTION_US, vendor_class_len);
@@ -938,7 +937,6 @@ static err_t dhcp_discover(struct netif *netif)
 
     if (vendor_class_buf != NULL) {
       const char *p = (const char*)vendor_class_buf;
-      u8_t namelen = (u8_t)os_strlen(p);
       if (vendor_class_len > 0) {
         LWIP_ASSERT("DHCP: vendor_class_len is too long!", vendor_class_len < 255);
         dhcp_option(dhcp, DHCP_OPTION_US, vendor_class_len);
@@ -1129,7 +1127,6 @@ err_t dhcp_renew(struct netif *netif)
 
     if (vendor_class_buf != NULL) {
       const char *p = (const char*)vendor_class_buf;
-      u8_t namelen = (u8_t)os_strlen(p);
       if (vendor_class_len > 0) {
         LWIP_ASSERT("DHCP: vendor_class_len is too long!", vendor_class_len < 255);
         dhcp_option(dhcp, DHCP_OPTION_US, vendor_class_len);
@@ -1203,7 +1200,6 @@ static err_t dhcp_rebind(struct netif *netif)
 
     if (vendor_class_buf != NULL) {
       const char *p = (const char*)vendor_class_buf;
-      u8_t namelen = (u8_t)os_strlen(p);
       if (vendor_class_len > 0) {
         LWIP_ASSERT("DHCP: vendor_class_len is too long!", vendor_class_len < 255);
         dhcp_option(dhcp, DHCP_OPTION_US, vendor_class_len);

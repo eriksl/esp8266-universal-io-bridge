@@ -940,7 +940,6 @@ void dhcps_coarse_tmr(void)
 bool wifi_softap_set_dhcps_offer_option(uint8 level, void* optarg)
 {
     bool offer_flag = true;
-    uint8 option = 0;
     if (optarg == NULL && wifi_softap_dhcps_status() == false)
         return false;
 
