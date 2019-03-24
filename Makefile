@@ -149,7 +149,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-attributes -Wno-switch-default \
 						-Wno-nested-externs \
 						-Wno-error=unsafe-loop-optimizations \
-						-Wno-packed -Wno-comment
+						-Wno-packed
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
