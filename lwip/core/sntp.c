@@ -341,6 +341,7 @@ struct tm res_buf;
 
 __tzrule_type sntp__tzrule[2];
 
+struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime);
 struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime)
 {
   long days, rem;
@@ -504,8 +505,8 @@ struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime)
   return (res);
 }
 
-struct tm *sntp_localtime_r(const time_t * tim_p ,
-		struct tm *res)
+struct tm *sntp_localtime_r(const time_t * tim_p, struct tm *res);
+struct tm *sntp_localtime_r(const time_t * tim_p, struct tm *res)
 {
   return sntp_mktm_r (tim_p, res, 0);
 }
@@ -515,6 +516,7 @@ struct tm *sntp_localtime(const time_t * tim_p)
   return sntp_localtime_r (tim_p, &res_buf);
 }
 
+int sntp__tzcalc_limits(int year);
 int sntp__tzcalc_limits(int year)
 {
   int days, year_days, years;
@@ -570,7 +572,8 @@ int sntp__tzcalc_limits(int year)
   return 1;
 }
 
-char *sntp_asctime_r(struct tm *tim_p ,char *result)
+char *sntp_asctime_r(struct tm *tim_p, char *result);
+char *sntp_asctime_r(struct tm *tim_p, char *result)
 {
   static const char day_name[7][4] = {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
@@ -587,12 +590,13 @@ char *sntp_asctime_r(struct tm *tim_p ,char *result)
   return result;
 }
 
+char *sntp_asctime(struct tm *tim_p);
 char *sntp_asctime(struct tm *tim_p)
 {
     return sntp_asctime_r (tim_p, reult);
 }
 
-uint64 sntp_get_current_timestamp()
+uint64 sntp_get_current_timestamp(void)
 {
 	if(realtime_stamp == 0){
 		os_printf("please start sntp first !\n");
@@ -631,6 +635,7 @@ bool sntp_set_timezone(sint8 timezone)
 
 }
 
+void sntp_set_daylight(int daylight);
 void sntp_set_daylight(int daylight)
 {
 	if (sntp_get_timetype()){
@@ -638,6 +643,7 @@ void sntp_set_daylight(int daylight)
 	}
 }
 
+void sntp_time_inc(void);
 void sntp_time_inc(void)
 {
 	realtime_stamp++;
@@ -1111,11 +1117,13 @@ char *sntp_getservername(u8_t idx)
 }
 #endif /* SNTP_SERVER_DNS */
 
+void sntp_set_update_delay(uint32 ms);
 void sntp_set_update_delay(uint32 ms)
 {
 	sntp_update_delay = ms > 15000?ms:15000;
 }
 
+void sntp_set_timetype(bool type);
 void sntp_set_timetype(bool type)
 {
 	sntp_time_flag = type;

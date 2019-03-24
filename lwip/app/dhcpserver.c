@@ -39,6 +39,8 @@ uint32 wifi_softap_dhcps_client_update(u8 *bssid, struct ip_addr *ip);
  * Parameters   : arg -- Additional argument to pass to the callback function
  * Returns      : none
 *******************************************************************************/
+
+void node_insert_to_list(list_node **phead, list_node* pinsert);
 void node_insert_to_list(list_node **phead, list_node* pinsert)
 {
     list_node *plist = NULL;
@@ -79,6 +81,7 @@ void node_insert_to_list(list_node **phead, list_node* pinsert)
  * Parameters   : arg -- Additional argument to pass to the callback function
  * Returns      : none
 *******************************************************************************/
+void node_remove_from_list(list_node **phead, list_node* pdelete);
 void node_remove_from_list(list_node **phead, list_node* pdelete)
 {
     list_node *plist = NULL;
@@ -903,6 +906,7 @@ static void kill_oldest_dhcps_pool(void)
     minp = NULL;
 }
 
+void dhcps_coarse_tmr(void);
 void dhcps_coarse_tmr(void)
 {
     uint8 num_dhcps_pool = 0;

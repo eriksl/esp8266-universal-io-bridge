@@ -73,7 +73,7 @@ irom void *memchr(const void *s, int c, size_t n)
 }
 
 void irom espconn_init(void);
-void irom espconn_init(void)
+attr_const void irom espconn_init(void)
 {
 }
 

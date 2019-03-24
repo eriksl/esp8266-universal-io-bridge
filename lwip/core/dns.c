@@ -228,7 +228,7 @@ static u16_t					  dns_random;
  * Initialize the resolver: set up the UDP pcb and configure the default server
  * (DNS_SERVER_ADDRESS).
  */
-void dns_init()
+void dns_init(void)
 {
   ip_addr_t dnsserver;
 

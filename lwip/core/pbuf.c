@@ -96,6 +96,7 @@
  * if we're running out.
  */
 #if TCP_QUEUE_OOSEQ
+void pbuf_free_ooseq_new(void* arg);
 void pbuf_free_ooseq_new(void* arg)
 {
   struct tcp_pcb* pcb;

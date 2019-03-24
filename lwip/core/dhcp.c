@@ -365,7 +365,7 @@ static err_t dhcp_select(struct netif *netif)
 /**
  * The DHCP timer that checks for lease renewal/rebind timeouts.
  */
-void dhcp_coarse_tmr()
+void dhcp_coarse_tmr(void)
 {
   struct netif *netif = netif_list;
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_coarse_tmr()\n"));
@@ -396,7 +396,7 @@ void dhcp_coarse_tmr()
  * A DHCP server is expected to respond within a short period of time.
  * This timer checks whether an outstanding DHCP request is timed out.
  */
-void dhcp_fine_tmr()
+void dhcp_fine_tmr(void)
 {
   struct netif *netif = netif_list;
   /* loop through netif's */

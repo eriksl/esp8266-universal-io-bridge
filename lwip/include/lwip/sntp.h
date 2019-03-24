@@ -42,7 +42,7 @@ void sntp_set_receive_time_size(void);
 /** One server address/name can be defined as default if SNTP_SERVER_DNS == 1:
  * #define SNTP_SERVER_ADDRESS "pool.ntp.org"
  */
-uint64 sntp_get_current_timestamp();
+uint64 sntp_get_current_timestamp(void);
 char* sntp_get_real_time(long t);
 
 void sntp_init(void);
