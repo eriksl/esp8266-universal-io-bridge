@@ -172,19 +172,25 @@ static void dhcp_option_trailer(struct dhcp *dhcp);
 
 static int vendor_class_len = 0;
 static char * vendor_class_buf = NULL;
-err_t dhcp_set_vendor_class_identifier(uint8_t len, char *str) {
-  if (len == 0)
-    return ERR_ARG;
 
-  if (str == NULL)
-    return ERR_ARG;
+err_t dhcp_set_vendor_class_identifier(uint8_t len, char *str)
+{
+	if (len == 0)
+		return ERR_ARG;
 
-  vendor_class_buf = (char *)mem_zalloc(len + 1);
-  if (vendor_class_buf == NULL) {
-    return ERR_MEM;
-  }
-  vendor_class_len = len;
-  memcpy(vendor_class_buf, str, len);
+	if (str == NULL)
+		return ERR_ARG;
+
+	vendor_class_buf = (char *)mem_zalloc(len + 1);
+
+	if (vendor_class_buf == NULL) {
+		return ERR_MEM;
+	}
+
+	vendor_class_len = len;
+	memcpy(vendor_class_buf, str, len);
+
+	return(ERR_OK);
 }
 
 /**
