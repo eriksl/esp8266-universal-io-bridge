@@ -47,35 +47,35 @@ typedef size_t mem_size_t;
 /* aliases for C library malloc() */
 #define mem_init()
 
-static inline void mem_free(void *chunk)
+static __attribute__((always_inline)) inline void mem_free(void *chunk)
 {
 	extern void vPortFree (void *chunk, const char *file, unsigned int line);
 
 	vPortFree(chunk, "", 0);
 }
 
-static inline void *mem_malloc(mem_size_t size)
+static __attribute__((always_inline)) inline void *mem_malloc(mem_size_t size)
 {
 	extern void *pvPortMalloc(size_t size, const char *file, unsigned int line, unsigned char use_iram);
 
 	return(pvPortMalloc(size, "", 0, false));
 }
 
-static inline void *mem_calloc(mem_size_t amount, mem_size_t size)
+static __attribute__((always_inline)) inline void *mem_calloc(mem_size_t amount, mem_size_t size)
 {
 	extern void *pvPortCalloc(size_t count, size_t size, const char *file, unsigned int line);
 
 	return(pvPortCalloc(amount, size, "", 0));
 }
 
-static inline void *mem_realloc(void *previous, mem_size_t amount)
+static __attribute__((always_inline)) inline void *mem_realloc(void *previous, mem_size_t amount)
 {
 	extern void *pvPortRealloc(void *chunk, size_t size, const char *file, unsigned int line);
 
 	return(pvPortRealloc(previous, amount, "", 0));
 }
 
-static inline void *mem_zalloc(mem_size_t size)
+static __attribute__((always_inline)) inline void *mem_zalloc(mem_size_t size)
 {
 	extern void *pvPortZalloc(size_t size, const char *file, unsigned int line);
 
@@ -83,13 +83,13 @@ static inline void *mem_zalloc(mem_size_t size)
 }
 
 #undef os_zalloc
-static inline void *os_zalloc(size_t size)
+static __attribute__((always_inline)) inline void *os_zalloc(size_t size)
 {
 	return(mem_zalloc(size));
 }
 
 #undef os_free
-static inline void os_free(void *chunk)
+static __attribute__((always_inline)) inline void os_free(void *chunk)
 {
 	mem_free(chunk);
 }

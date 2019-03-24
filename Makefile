@@ -155,8 +155,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-packed -Wno-comment \
 						-Wno-error=discarded-qualifiers -Wno-error=implicit-fallthrough \
 						-Wno-error=sign-compare \
-						-Wno-error=inline -Wno-error=type-limits -Wno-error=switch -Wno-error=misleading-indentation \
-						-Wno-error=cast-align
+						-Wno-error=misleading-indentation
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
