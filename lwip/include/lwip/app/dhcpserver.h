@@ -7,7 +7,7 @@ typedef struct dhcps_state{
         sint16_t state;
 } dhcps_state;
 
-//             dhcpclient                         DHCP msg            
+//             dhcpclient                         DHCP msg
 typedef struct dhcps_msg {
         uint8_t op, htype, hlen, hops;
         uint8_t xid[4];

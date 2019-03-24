@@ -103,7 +103,7 @@ void icmp_input(struct pbuf *p, struct netif *inp)
   case ICMP_ER:
     /* This is OK, echo reply might have been parsed by a raw PCB
        (as obviously, an echo request has been sent, too). */
-    break; 
+    break;
 #if ESP_SYSTEM_APP /* by LiuHan: change the current MTU on the interface */
   case ICMP_DUR:
     {
@@ -239,7 +239,7 @@ void icmp_input(struct pbuf *p, struct netif *inp)
     }
     break;
   default:
-    LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ICMP type %"S16_F" code %"S16_F" not supported.\n", 
+    LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ICMP type %"S16_F" code %"S16_F" not supported.\n",
                 (s16_t)type, (s16_t)code));
     ICMP_STATS_INC(icmp.proterr);
     ICMP_STATS_INC(icmp.drop);
@@ -306,28 +306,28 @@ static void icmp_send_response(struct pbuf *p, u8_t type, u8_t code)
   ip_addr_t iphdr_src;
 
   /* ICMP header + IP header + 8 bytes of data */
-  //              pbuf      pbuf      IP                      pbuf      
+  //              pbuf      pbuf      IP                      pbuf
   //    =            +                (IP        +8)
   q = pbuf_alloc(PBUF_IP, sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE,
                  PBUF_RAM);
-  if (q == NULL) {//          
+  if (q == NULL) {//
     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded: failed to allocate pbuf for ICMP packet.\n"));
     return;
   }
   LWIP_ASSERT("check that first pbuf can hold icmp message",
              (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
 
-  iphdr = (struct ip_hdr *)p->payload;//              IP          
+  iphdr = (struct ip_hdr *)p->payload;//              IP
   LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded from "));
   ip_addr_debug_print(ICMP_DEBUG, &(iphdr->src));
   LWIP_DEBUGF(ICMP_DEBUG, (" to "));
   ip_addr_debug_print(ICMP_DEBUG, &(iphdr->dest));
   LWIP_DEBUGF(ICMP_DEBUG, ("\n"));
 
-  icmphdr = (struct icmp_echo_hdr *)q->payload;//                
-  icmphdr->type = type;//            
-  icmphdr->code = code;//            
-  icmphdr->id = 0;//                          
+  icmphdr = (struct icmp_echo_hdr *)q->payload;//
+  icmphdr->type = type;//
+  icmphdr->code = code;//
+  icmphdr->id = 0;//
   icmphdr->seqno = 0;//                4          0
 
   /* copy fields from original packet             IP        IP    +8                            */
@@ -336,14 +336,14 @@ static void icmp_send_response(struct pbuf *p, u8_t type, u8_t code)
 
   /* calculate checksum */
   icmphdr->chksum = 0;//                0
-  icmphdr->chksum = inet_chksum(icmphdr, q->len);//              
+  icmphdr->chksum = inet_chksum(icmphdr, q->len);//
   ICMP_STATS_INC(icmp.xmit);
   /* increase number of messages attempted to send */
   snmp_inc_icmpoutmsgs();
   /* increase number of destination unreachable messages attempted to send */
   snmp_inc_icmpouttimeexcds();
   ip_addr_copy(iphdr_src, iphdr->src);
-  ip_output(q, NULL, &iphdr_src, ICMP_TTL, 0, IP_PROTO_ICMP);//    IP          ICMP    
+  ip_output(q, NULL, &iphdr_src, ICMP_TTL, 0, IP_PROTO_ICMP);//    IP          ICMP
   pbuf_free(q);
 }
 

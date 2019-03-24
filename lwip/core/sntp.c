@@ -4,7 +4,7 @@
  *
  * This is simple "SNTP" client for the lwIP raw API.
  * It is a minimal implementation of SNTPv4 as specified in RFC 4330.
- * 
+ *
  * For a list of some public NTP servers, see this link :
  * http://support.ntp.org/bin/view/Servers/NTPPoolServers
  *
@@ -15,7 +15,7 @@
  */
 
 /*
- * Redistribution and use in source and binary forms, with or without modification, 
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -24,21 +24,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Simon Goldschmidt (lwIP raw API part)
  */
 
@@ -208,7 +208,7 @@ uint8 sntp_receive_time_size = 1;
 #define SNTP_LI_ALARM_CONDITION     0x03 /* (clock not synchronized) */
 
 #define SNTP_VERSION_MASK           0x38
-#define SNTP_VERSION                (4/* NTP Version 4*/<<3) 
+#define SNTP_VERSION                (4/* NTP Version 4*/<<3)
 
 #define SNTP_MODE_MASK              0x07
 #define SNTP_MODE_CLIENT            0x03
@@ -884,7 +884,7 @@ static void sntp_send_request(ip_addr_t *server_addr)
     /* set up receive timeout: try next server or retry on timeout */
     sys_timeout((u32_t)SNTP_RECV_TIMEOUT, sntp_try_next_server, NULL);
 #if SNTP_CHECK_RESPONSE >= 1
-    /* save server address to verify it in sntp_recv */ 
+    /* save server address to verify it in sntp_recv */
     ip_addr_set(&sntp_last_server_address, server_addr);
 #endif /* SNTP_CHECK_RESPONSE >= 1 */
   } else {
@@ -1066,7 +1066,7 @@ void dhcp_set_ntp_servers(u8_t num, ip_addr_t *server)
 #endif /* LWIP_DHCP && SNTP_GET_SERVERS_FROM_DHCP */
 
 /**
- * Obtain one of the currently configured by IP address (or DHCP) NTP servers 
+ * Obtain one of the currently configured by IP address (or DHCP) NTP servers
  *
  * @param numdns the index of the NTP server
  * @return IP address of the indexed NTP server or "ip_addr_any" if the NTP
