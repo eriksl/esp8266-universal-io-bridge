@@ -42,6 +42,19 @@ irom attr_const int isxdigit(int c)
 	return(0);
 }
 
+#ifdef isdigit
+undef isdigit
+#endif
+
+attr_const int isdigit(int c);
+irom attr_const int isdigit(int c)
+{
+	if((c >= '0' && (c <= '9')))
+		return(1);
+
+	return(0);
+}
+
 /* from http://www.leidinger.net/freebsd/dox/libkern/html/d9/dd9/memchr_8c_source.html */
 irom void *memchr(const void *s, int c, size_t n)
 {
@@ -57,6 +70,11 @@ irom void *memchr(const void *s, int c, size_t n)
 	}
 
 	return(0);
+}
+
+void irom espconn_init(void);
+void irom espconn_init(void)
+{
 }
 
 // convenience functions

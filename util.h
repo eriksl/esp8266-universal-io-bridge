@@ -129,6 +129,7 @@ double fmax(double, double);
 // functions missing from SDK libmain (but declared in headers)
 
 /* int isxdigit(int c); */
+/* int isdigit(int c); */
 /* void *memchr(const void *s, int c, size_t n); */
 
 extern char flash_dram_buffer[1024];

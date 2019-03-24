@@ -13,6 +13,7 @@ USE_LTO				?= 0
 ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
 ESPOPENSDK					:= $(PWD)/esp-open-sdk
 ESPTOOL2					:= $(PWD)/esptool2
+LWIP						:= $(PWD)/lwip
 RBOOT						:= $(PWD)/rboot
 HAL							:= $(ESPOPENSDK)/lx106-hal
 CC							:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
@@ -68,6 +69,13 @@ LIBMAIN_RBB					:= main_rbb
 LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
 ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
 RBOOT_BIN					:= $(RBOOT)/firmware/rboot.bin
+LIBLWIPAPP					:= lwip_app
+LIBLWIPAPP_FILE				:= lib$(LIBLWIPAPP).a
+LIBLWIPCORE					:= lwip_core
+LIBLWIPCORE_FILE			:= lib$(LIBLWIPCORE).a
+LIBLWIPNETIF				:= lwip_netif
+LIBLWIPNETIF_FILE			:= lib$(LIBLWIPNETIF).a
+LWIP_LIBS_FILES				:= $(LIBLWIPAPP_FILE) $(LIBLWIPCORE_FILE) $(LIBLWIPNETIF_FILE)
 
 V ?= $(VERBOSE)
 ifeq ($(V),1)
@@ -142,7 +150,13 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-attributes -Wno-switch-default \
 						-Wno-nested-externs \
 						-Wno-error=suggest-attribute=const -Wno-error=suggest-attribute=pure \
-						-Wno-error=unsafe-loop-optimizations -Wno-error=maybe-uninitialized
+						-Wno-error=unsafe-loop-optimizations -Wno-error=maybe-uninitialized \
+						-Wno-error=return-type -Wno-error=empty-body -Wno-error=cast-qual -Wno-error=unused-variable -Wno-error=implicit-function-declaration \
+						-Wno-error=bad-function-cast -Wno-error=old-style-definition -Wno-packed -Wno-comment -Wno-unused-function \
+						-Wno-error=missing-prototypes -Wno-error=discarded-qualifiers -Wno-error=implicit-fallthrough \
+						-Wno-error=redundant-decls -Wno-error=sign-compare -Wno-error=unused-value -Wno-error=unused-but-set-variable \
+						-Wno-error=shadow -Wno-error=inline -Wno-error=type-limits -Wno-error=switch -Wno-error=misleading-indentation \
+						-Wno-error=cast-align
 
 CFLAGS			:=	-pipe \
 						-fdiagnostics-color=always \
@@ -159,7 +173,7 @@ ifeq ($(USE_LTO),1)
 CFLAGS 			+=	-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-objects -flto-partition=max
 endif
 
-CFLAGS			+=	-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC \
+CFLAGS			+=	-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
 						-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
@@ -178,10 +192,11 @@ CFLAGS			+=	-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC \
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(HAL)/include \
 					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(ESPSDK)/include -I$(ESPSDK)/third_party/include -I .
+					-I$(ESPSDK)/include -I$(LWIP)/include -I$(LWIP)/include/lwip -I .
 
 LDFLAGS			:= -L. -L$(ESPSDK)/lib -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
-SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -llwip -lwpa
+SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -lwpa
+LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
 STDLIBS			:= -lm -lgcc -lcrypto
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
@@ -192,6 +207,23 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
 						dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h lwip-interface.h
+
+LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
+
+LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWIP)/core/init.o \
+						$(LWIP)/core/mem.o $(LWIP)/core/memp.o \
+						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o $(LWIP)/core/raw.o \
+						$(LWIP)/core/sntp.o \
+						$(LWIP)/core/sys.o $(LWIP)/core/sys_arch.o \
+						$(LWIP)/core/tcp.o $(LWIP)/core/tcp_in.o $(LWIP)/core/tcp_out.o \
+						$(LWIP)/core/timers.o \
+						$(LWIP)/core/udp.o \
+						$(LWIP)/core/ipv4/icmp.o \
+						$(LWIP)/core/ipv4/igmp.o \
+						$(LWIP)/core/ipv4/inet.o $(LWIP)/core/ipv4/inet_chksum.o \
+						$(LWIP)/core/ipv4/ip.o $(LWIP)/core/ipv4/ip_addr.o
+
+LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
 
 .PRECIOUS:		*.c *.h
 .PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota toolchain
@@ -210,6 +242,8 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
+						$(LWIP_LIBS_FILES) \
+						$(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) \
 						otapush espflash resetserial 2> /dev/null
 
 free:			$(ELF)
@@ -270,17 +304,17 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
 						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS)/' -e 's/@IROM_SEG_LENGTH@/$(LD_LENGTH)/' < $< > $@
 
-$(ELF_PLAIN):			$(OBJS) $(LDSCRIPT)
+$(ELF_PLAIN):			$(OBJS) $(LWIP_LIBS_FILES) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
 $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
+$(ELF_OTA):				$(OBJS) $(LWIP_LIBS_FILES) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
@@ -302,6 +336,21 @@ $(CONFIG_RBOOT_ELF):	$(CONFIG_RBOOT_SRC)
 $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
+
+$(LIBLWIPAPP_FILE):		$(LWIP_APP_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_APP_OBJ)
+
+$(LIBLWIPCORE_FILE):	$(LWIP_CORE_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_CORE_OBJ)
+
+$(LIBLWIPNETIF_FILE):	$(LWIP_NETIF_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_NETIF_OBJ)
 
 flash:					$(FLASH_TARGET)
 
