@@ -33,7 +33,6 @@
 #define __LWIP_MEM_H__
 
 #include "lwip/opt.h"
-//#include "mem_manager.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,61 +46,53 @@ typedef size_t mem_size_t;
 
 /* aliases for C library malloc() */
 #define mem_init()
-/* in case C library malloc() needs extra protection,
- * allow these defines to be overridden.
- */
-#ifndef MEMLEAK_DEBUG
-#ifndef mem_free
-#define mem_free(s)        vPortFree(s, "", __LINE__)
-#endif
-#ifndef mem_malloc
-#define mem_malloc(s)      pvPortMalloc(s, "", __LINE__,false)
-#endif
-#ifndef mem_calloc
-#define mem_calloc(l, s)   pvPortCalloc(l, s, "", __LINE__)
-#endif
-#ifndef mem_realloc
-#define mem_realloc(p, s)  pvPortRealloc(p, s, "", __LINE__)
-#endif
-#ifndef mem_zalloc
-#define mem_zalloc(s)     pvPortZalloc(s, "", __LINE__)
-#endif
-#else
-#ifndef mem_free
-#define mem_free(s)      vPortFree(s, mem_debug_file, __LINE__)
-#endif
 
-#ifndef mem_malloc
-#define mem_malloc(s)   pvPortMalloc(s, mem_debug_file, __LINE__,false)
-#endif
-#ifndef mem_calloc
-#define mem_calloc(l, s)  pvPortCalloc(l, s, mem_debug_file, __LINE__)
-#endif
-#ifndef mem_realloc
-#define mem_realloc(p, s) pvPortRealloc(p, s, mem_debug_file, __LINE__)
-#endif
-#ifndef mem_zalloc
-#define mem_zalloc(s)   pvPortZalloc(s, mem_debug_file, __LINE__)
-#endif
+static inline void mem_free(void *chunk)
+{
+	extern void vPortFree (void *chunk, const char *file, unsigned int line);
 
-#endif
+	vPortFree(chunk, "", 0);
+}
 
-#ifndef os_malloc
-#ifndef MEMLEAK_DEBUG
-#define os_malloc(s) pvPortMalloc(s, "", __LINE__,true)
-#else
-#define os_malloc(s) pvPortMalloc(s, mem_debug_file, __LINE__,true)
-#endif
-#endif
-#ifndef os_realloc
-#define os_realloc(p, s) mem_realloc((p), (s))
-#endif
-#ifndef os_zalloc
-#define os_zalloc(s) mem_zalloc((s))
-#endif
-#ifndef os_free
-#define os_free(p) mem_free((p))
-#endif
+static inline void *mem_malloc(mem_size_t size)
+{
+	extern void *pvPortMalloc(size_t size, const char *file, unsigned int line, unsigned char use_iram);
+
+	return(pvPortMalloc(size, "", 0, false));
+}
+
+static inline void *mem_calloc(mem_size_t amount, mem_size_t size)
+{
+	extern void *pvPortCalloc(size_t count, size_t size, const char *file, unsigned int line);
+
+	return(pvPortCalloc(amount, size, "", 0));
+}
+
+static inline void *mem_realloc(void *previous, mem_size_t amount)
+{
+	extern void *pvPortRealloc(void *chunk, size_t size, const char *file, unsigned int line);
+
+	return(pvPortRealloc(previous, amount, "", 0));
+}
+
+static inline void *mem_zalloc(mem_size_t size)
+{
+	extern void *pvPortZalloc(size_t size, const char *file, unsigned int line);
+
+	return(pvPortZalloc(size, "", 0));
+}
+
+#undef os_zalloc
+static inline void *os_zalloc(size_t size)
+{
+	return(mem_zalloc(size));
+}
+
+#undef os_free
+static inline void os_free(void *chunk)
+{
+	mem_free(chunk);
+}
 
 /* Since there is no C library allocation function to shrink memory without
    moving it, define this to nothing. */

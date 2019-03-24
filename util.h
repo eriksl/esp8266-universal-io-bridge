@@ -57,22 +57,17 @@ _Static_assert(sizeof(_Bool) == 1, "sizeof(_Bool) != 1");
 
 // make sure we don't use the broken memory management
 
-#undef pvPortMalloc
-#undef pvPortZalloc
-#undef pvPortRealloc
-#undef vPortFree
-
+#define vPortFree _x_vPortFree
+#define pvPortMalloc _x_pvPortMalloc
+#define pvPortCalloc _x_pvPortCalloc
+#define pvPortRealloc _x_pvPortRealloc
+#define pvPortZalloc _x_pvPortZalloc
 #include <mem.h>
-
-#undef pvPortMalloc
-#undef pvPortZalloc
-#undef pvPortRealloc
 #undef vPortFree
-
-#define pvPortMalloc #error dont use pvPortMalloc
-#define pvPortZalloc #error dont use pvPortZalloc
-#define pvPortRealloc #error dont use pvPortRealloc
-#define vPortFree #error dont use vPortFree
+#undef pvPortMalloc
+#undef pvPortCalloc
+#undef pvPortRealloc
+#undef pvPortZalloc
 
 #define strcpy #pragma error strcpy unsafe
 #define strncpy #pragma error strncpy unsafe
