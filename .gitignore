@@ -1,13 +1,13 @@
 *.o
 *.bin
 *.elf
+*.a
 /doc
 /ap_auth.h
 /linkmap
 /t
 /session
 /test*
-/libmain-rbb.a
 /loadscript
 /otapush
 /espflash
