@@ -236,9 +236,11 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						$(LWIP_LIBS_FILES) \
-						$(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) \
 						otapush espflash resetserial 2> /dev/null
+
+veryclean:		clean
+				$(VECHO) "VERY CLEAN"
+				$(Q) rm -f $(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) $(LWIP_LIBS_FILES) 2> /dev/null
 
 free:			$(ELF)
 				$(VECHO) "MEMORY USAGE"
