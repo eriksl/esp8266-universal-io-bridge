@@ -192,7 +192,11 @@ STDLIBS			:= -lm -lgcc -lcrypto
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
 						stats.o time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o lwip-interface.o
-OTA_OBJ			:= rboot-interface.o
+
+ifeq ($(IMAGE),ota)
+OBJS			+= rboot-interface.o
+endif
+
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
@@ -225,7 +229,7 @@ clean:
 				$(VECHO) "CLEAN"
 				$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2) clean
 				$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) clean
-				$(Q) rm -f $(OBJS) $(OTA_OBJ) \
+				$(Q) rm -f $(OBJS) \
 						$(ELF_PLAIN) $(ELF_OTA) \
 						$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) \
 						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
@@ -302,9 +306,9 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(LWIP_LIBS_FILES) $(OTA_OBJ) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
+$(ELF_OTA):				$(OBJS) $(LWIP_LIBS_FILES) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OTA_OBJ) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
+						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
 $(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
 						$(VECHO) "PLAIN FIRMWARE IRAM $@"
