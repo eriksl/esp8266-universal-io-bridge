@@ -184,7 +184,7 @@ attr_inline _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 
 // clear / set quasi-PWM using PDM (Pulse Density Modulation, aka "sigma-delta") mode
 
-irom static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
+static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -205,7 +205,7 @@ irom static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
 
 // clear / set open drain mode
 
-irom static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
+static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -273,7 +273,7 @@ iram void io_gpio_reset_all_pins(void)
 		}
 }
 
-irom static void pdm_set_prescale(unsigned int value)
+static void pdm_set_prescale(unsigned int value)
 {
 	uint32_t regval;
 
@@ -284,7 +284,7 @@ irom static void pdm_set_prescale(unsigned int value)
 	write_peri_reg(gpio_pdm_reg, regval);
 }
 
-irom static void pdm_set_target(unsigned int value)
+static void pdm_set_target(unsigned int value)
 {
 	uint32_t regval;
 
@@ -295,7 +295,7 @@ irom static void pdm_set_target(unsigned int value)
 	write_peri_reg(gpio_pdm_reg, regval);
 }
 
-irom static unsigned int pdm_get_prescale(void)
+static unsigned int pdm_get_prescale(void)
 {
 	uint32_t regval;
 
@@ -306,7 +306,7 @@ irom static unsigned int pdm_get_prescale(void)
 	return(regval);
 }
 
-irom static unsigned int pdm_get_target(void)
+static unsigned int pdm_get_target(void)
 {
 	uint32_t regval;
 
@@ -317,7 +317,7 @@ irom static unsigned int pdm_get_target(void)
 	return(regval);
 }
 
-irom static void pdm_enable(_Bool onoff)
+static void pdm_enable(_Bool onoff)
 {
 	uint32_t regval;
 
@@ -380,7 +380,7 @@ attr_inline unsigned int pwm1_period(void)
 	return((unsigned int)(1 << pwm1_width));
 }
 
-irom _Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
+_Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
 {
 	unsigned int current;
 	string_init(varname_pwmperiod, "pwm.period");
@@ -448,12 +448,12 @@ irom _Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
 	return(true);
 }
 
-irom attr_pure unsigned int io_gpio_pwm1_width_get(void)
+attr_pure unsigned int io_gpio_pwm1_width_get(void)
 {
 	return(pwm1_width);
 }
 
-irom static void pwm_isr_setup(void)
+static void pwm_isr_setup(void)
 {
 	NmiTimSetFunc(pwm_isr);
 	write_peri_reg(TIMER0_CTRL_REG, TIMER0_CTRL_INT_EDGE | TIMER0_CTRL_DIVIDE_BY_16 | TIMER0_CTRL_ENABLE_TIMER);
@@ -741,7 +741,7 @@ iram attr_speed static void pwm_go(void)
 
 // other
 
-irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
+io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
 	_Bool cpu_high_speed = config_flags_match(flag_cpu_high_speed);
@@ -769,7 +769,7 @@ irom io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -854,7 +854,7 @@ iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_d
 	gpio_pc_pins_previous = gpio_pc_pins_current;
 }
 
-irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_info_t *gpio_info;
 	gpio_data_pin_t *gpio_pin_data;
@@ -986,7 +986,7 @@ irom io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_i
 	return(io_ok);
 }
 
-irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1116,7 +1116,7 @@ irom io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T
 	return(io_ok);
 }
 
-iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1190,7 +1190,7 @@ iram io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1298,7 +1298,7 @@ iram io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_
 	return(io_ok);
 }
 
-irom attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
+attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 {
 	if(pin >= max_pins_per_io)
 		return(-1);

@@ -21,7 +21,7 @@ static unsigned int uptime_last_us;
 static unsigned int uptime_base_us;
 static unsigned int uptime_wraps;
 
-irom static void uptime_init(void)
+static void uptime_init(void)
 {
 	uptime_last_us = 0;
 	uptime_wraps = 0;
@@ -44,7 +44,7 @@ iram uint64_t time_get_us(void)
 	return((((uint64_t)system_get_time()) | ((uint64_t)uptime_wraps << 32)) - uptime_base_us);
 }
 
-irom static void uptime_get(unsigned int *s, unsigned int *ms,
+static void uptime_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -69,7 +69,7 @@ irom static void uptime_get(unsigned int *s, unsigned int *ms,
 		*wraps = uptime_wraps;
 }
 
-irom string_t *time_uptime_stats(void)
+string_t *time_uptime_stats(void)
 {
 	int secs, msecs, raw1, raw2, base, wraps;
 
@@ -84,7 +84,7 @@ static unsigned int system_last_us;
 static unsigned int system_base_us;
 static unsigned int system_wraps;
 
-irom static void system_init(void)
+static void system_init(void)
 {
 	system_last_us = 0;
 	system_wraps = 0;
@@ -102,7 +102,7 @@ attr_inline void system_periodic(void)
 	system_last_us = system_now;
 }
 
-irom static void system_get(unsigned int *s, unsigned int *ms,
+static void system_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -129,7 +129,7 @@ irom static void system_get(unsigned int *s, unsigned int *ms,
 		*wraps = system_wraps;
 }
 
-irom string_t *time_system_stats(void)
+string_t *time_system_stats(void)
 {
 	int secs, msecs, raw1, raw2, base, wraps;
 
@@ -145,7 +145,7 @@ static unsigned int rtc_base_s;
 static unsigned int rtc_last_value;
 static unsigned int rtc_wraps;
 
-irom static void rtc_init(void)
+static void rtc_init(void)
 {
 	unsigned int rtc_current_value;
 	uint64_t calvalue_ns;
@@ -183,7 +183,7 @@ attr_inline void rtc_periodic(void)
 	rtc_last_value = rtc_current_value;
 }
 
-irom static void rtc_get(unsigned int *s, unsigned int *ms,
+static void rtc_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -210,7 +210,7 @@ irom static void rtc_get(unsigned int *s, unsigned int *ms,
 		*wraps = rtc_wraps;
 }
 
-irom string_t *time_rtc_stats(void)
+string_t *time_rtc_stats(void)
 {
 	int secs, msecs, raw1, raw2, base, wraps;
 
@@ -225,7 +225,7 @@ static unsigned int timer_s;
 static unsigned int timer_ms;
 static unsigned int timer_wraps;
 
-irom static void timer_init(void)
+static void timer_init(void)
 {
 	timer_s = 0;
 	timer_ms = 0;
@@ -245,7 +245,7 @@ attr_inline void timer_periodic(void)
 	}
 }
 
-irom static void timer_get(unsigned int *s, unsigned int *ms,
+static void timer_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -268,7 +268,7 @@ irom static void timer_get(unsigned int *s, unsigned int *ms,
 		*wraps = timer_wraps;
 }
 
-irom string_t *time_timer_stats(void)
+string_t *time_timer_stats(void)
 {
 	int secs, msecs, raw1, raw2, base, wraps;
 
@@ -283,7 +283,7 @@ static unsigned int ntp_base_s = 0;
 static ip_addr_to_bytes_t ntp_server;
 static int ntp_timezone;
 
-irom void time_ntp_init(void)
+void time_ntp_init(void)
 {
 	int ix;
 	int byte;
@@ -349,7 +349,7 @@ attr_inline void ntp_periodic(void)
 		ntp_base_s = ntp_s;
 }
 
-irom static void ntp_get(unsigned int *s, unsigned int *ms,
+static void ntp_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
@@ -404,7 +404,7 @@ irom static void ntp_get(unsigned int *s, unsigned int *ms,
 	}
 }
 
-irom string_t *time_ntp_stats(void)
+string_t *time_ntp_stats(void)
 {
 	int secs, msecs, raw1, raw2, base, wraps;
 
@@ -415,7 +415,7 @@ irom string_t *time_ntp_stats(void)
 
 // generic interface
 
-irom static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
+static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
 {
 	string_new(static, value, 64);
 	int d, h, m;
@@ -436,7 +436,7 @@ irom static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
 
 static unsigned int time_base_s;
 
-irom void time_init(void)
+void time_init(void)
 {
 	time_base_s = 0;
 
@@ -456,7 +456,7 @@ iram void time_periodic(void)
 	ntp_periodic();
 }
 
-irom void time_set_stamp(unsigned int stamp)
+void time_set_stamp(unsigned int stamp)
 {
 	time_base_s = stamp;
 	system_init();
@@ -464,12 +464,12 @@ irom void time_set_stamp(unsigned int stamp)
 	timer_init();
 }
 
-irom void time_set_hms(unsigned int h, unsigned int m, unsigned int s)
+void time_set_hms(unsigned int h, unsigned int m, unsigned int s)
 {
 	time_set_stamp((h * 3600) + (m * 60) + s);
 }
 
-irom const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
+const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 			unsigned int *Y, unsigned int *M, unsigned int *D)
 {
 	unsigned int time_s = 0;

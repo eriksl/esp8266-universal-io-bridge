@@ -1,8 +1,7 @@
 #ifndef attribute_h
 #define attribute_h
 
-#define irom __attribute__((section(".irom0.text")))
-#define iram __attribute__((section(".text")))
+#define iram __attribute__((section(".iram_text")))
 #define roflash __attribute__((section(".flash.rodata")))
 #define fallthrough __attribute__((fallthrough))
 #define attr_flash_align __attribute__((aligned(4)))

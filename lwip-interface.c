@@ -65,27 +65,27 @@ static void log_error(err_t error)
 	log("\n");
 }
 
-irom _Bool attr_nonnull attr_pure lwip_if_received_tcp(lwip_if_socket_t *socket)
+_Bool attr_nonnull attr_pure lwip_if_received_tcp(lwip_if_socket_t *socket)
 {
 	return(socket->peer.port == 0);
 }
 
-irom _Bool attr_nonnull attr_pure lwip_if_received_udp(lwip_if_socket_t *socket)
+_Bool attr_nonnull attr_pure lwip_if_received_udp(lwip_if_socket_t *socket)
 {
 	return(socket->peer.port != 0);
 }
 
-irom attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket)
+attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket)
 {
 	socket->receive_buffer_locked = 0;
 }
 
-irom attr_nonnull attr_pure _Bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
+attr_nonnull attr_pure _Bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 {
 	return((socket->sending_remaining > 0) || (socket->sent_remaining > 0));
 }
 
-irom static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
 	unsigned int length;
@@ -112,7 +112,7 @@ irom static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct p
 	socket->callback_data_received(socket, length);
 }
 
-irom static void *udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static void *udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
@@ -121,7 +121,7 @@ irom static void *udp_received_callback(void *callback_arg, struct udp_pcb *pcb,
 	return((void *)0);
 }
 
-irom static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, struct pbuf *pbuf, err_t error)
+static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, struct pbuf *pbuf, err_t error)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct pcb_tcp **)&socket->tcp.pcb;
@@ -180,7 +180,7 @@ irom static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb,
 	return(ERR_OK);
 }
 
-irom static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t len)
+static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t len)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	err_t error = ERR_OK;
@@ -236,7 +236,7 @@ error:
 	return(error);
 }
 
-irom static void tcp_error_callback(void *callback_arg, err_t error)
+static void tcp_error_callback(void *callback_arg, err_t error)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct pcb_tcp **)&socket->tcp.pcb;
@@ -252,7 +252,7 @@ irom static void tcp_error_callback(void *callback_arg, err_t error)
 	socket->sent_remaining = 0;
 }
 
-irom static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_t error)
+static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_t error)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
@@ -281,7 +281,7 @@ irom static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb,
 	return(ERR_OK);
 }
 
-irom attr_nonnull _Bool lwip_if_close(lwip_if_socket_t *socket)
+attr_nonnull _Bool lwip_if_close(lwip_if_socket_t *socket)
 {
 	err_t error;
 
@@ -314,7 +314,7 @@ irom attr_nonnull _Bool lwip_if_close(lwip_if_socket_t *socket)
 	return(true);
 }
 
-irom attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
+attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 {
 	err_t error;
 
@@ -419,7 +419,7 @@ error:
 	return(false);
 }
 
-irom attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
+attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
 {
 	/* reset after socket close, to be able to flush remaining data in buffer */
 
@@ -433,7 +433,7 @@ irom attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
 	return(true);
 }
 
-irom attr_nonnull _Bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
+attr_nonnull _Bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
 		unsigned int port, _Bool udp_term_empty, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
@@ -498,7 +498,7 @@ irom attr_nonnull _Bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t
 	return(true);
 }
 
-irom _Bool attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4)
+_Bool attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4)
 {
 	struct ip_info info;
 	ip_addr_to_bytes_t local_ip;

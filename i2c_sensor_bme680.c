@@ -798,7 +798,7 @@ static int boundary_check(unsigned int *value, unsigned int min, unsigned int ma
  *@brief This API is the entry point.
  *It reads the chip-id and calibration data from the sensor.
  */
-irom static int bme680_init(struct bme680_dev *dev)
+static int bme680_init(struct bme680_dev *dev)
 {
 	int rslt;
 
@@ -826,7 +826,7 @@ irom static int bme680_init(struct bme680_dev *dev)
 /*!
  * @brief This API reads the data from the given register address of the sensor.
  */
-irom static int bme680_get_regs(unsigned int reg_addr, uint8_t *reg_data, unsigned int len, struct bme680_dev *dev)
+static int bme680_get_regs(unsigned int reg_addr, uint8_t *reg_data, unsigned int len, struct bme680_dev *dev)
 {
 	int rslt;
 
@@ -851,7 +851,7 @@ irom static int bme680_get_regs(unsigned int reg_addr, uint8_t *reg_data, unsign
  * @brief This API writes the given data to the register address
  * of the sensor.
  */
-irom static int bme680_set_regs(const unsigned int *reg_addr, const uint8_t *reg_data, unsigned int len, struct bme680_dev *dev)
+static int bme680_set_regs(const unsigned int *reg_addr, const uint8_t *reg_data, unsigned int len, struct bme680_dev *dev)
 {
 	int rslt;
 	/* Length of the temporary buffer is 2*(length of register)*/
@@ -890,7 +890,7 @@ irom static int bme680_set_regs(const unsigned int *reg_addr, const uint8_t *reg
 /*!
  * @brief This API performs the soft reset of the sensor.
  */
-irom static int bme680_soft_reset(struct bme680_dev *dev)
+static int bme680_soft_reset(struct bme680_dev *dev)
 {
 	int rslt;
 	unsigned int reg_addr = BME680_SOFT_RESET_ADDR;
@@ -924,7 +924,7 @@ irom static int bme680_soft_reset(struct bme680_dev *dev)
  * @brief This API is used to set the oversampling, filter and T,P,H, gas selection
  * settings in the sensor.
  */
-irom static int bme680_set_sensor_settings(unsigned int desired_settings, struct bme680_dev *dev)
+static int bme680_set_sensor_settings(unsigned int desired_settings, struct bme680_dev *dev)
 {
 	int rslt;
 	unsigned int reg_addr;
@@ -1049,7 +1049,7 @@ irom static int bme680_set_sensor_settings(unsigned int desired_settings, struct
  * settings in the sensor.
  */
 #if 0 // never used
-irom static int bme680_get_sensor_settings(unsigned int desired_settings, struct bme680_dev *dev)
+static int bme680_get_sensor_settings(unsigned int desired_settings, struct bme680_dev *dev)
 {
 	int rslt;
 	/* starting address of the register array for burst read*/
@@ -1102,7 +1102,7 @@ irom static int bme680_get_sensor_settings(unsigned int desired_settings, struct
 /*!
  * @brief This API is used to set the power mode of the sensor.
  */
-irom static int bme680_set_sensor_mode(struct bme680_dev *dev)
+static int bme680_set_sensor_mode(struct bme680_dev *dev)
 {
 	int rslt;
 	uint8_t tmp_pow_mode;
@@ -1142,7 +1142,7 @@ irom static int bme680_set_sensor_mode(struct bme680_dev *dev)
  * @brief This API is used to get the power mode of the sensor.
  */
 #if 0 // unused
-irom static int bme680_get_sensor_mode(struct bme680_dev *dev)
+static int bme680_get_sensor_mode(struct bme680_dev *dev)
 {
 	int rslt;
 	unsigned int mode;
@@ -1163,7 +1163,7 @@ irom static int bme680_get_sensor_mode(struct bme680_dev *dev)
  * @brief This API is used to set the profile duration of the sensor.
  */
 #if 0 // never used
-irom static void bme680_set_profile_dur(unsigned int duration, struct bme680_dev *dev)
+static void bme680_set_profile_dur(unsigned int duration, struct bme680_dev *dev)
 {
 	unsigned int tph_dur; /* Calculate in us */
 	unsigned int meas_cycles;
@@ -1189,7 +1189,7 @@ irom static void bme680_set_profile_dur(unsigned int duration, struct bme680_dev
 /*!
  * @brief This API is used to get the profile duration of the sensor.
  */
-irom static void bme680_get_profile_dur(unsigned int *duration, const struct bme680_dev *dev)
+static void bme680_get_profile_dur(unsigned int *duration, const struct bme680_dev *dev)
 {
 	unsigned int tph_dur; /* Calculate in us */
 	unsigned int meas_cycles;
@@ -1222,7 +1222,7 @@ irom static void bme680_get_profile_dur(unsigned int *duration, const struct bme
  * from the sensor, compensates the data and store it in the bme680_data
  * structure instance passed by the user.
  */
-irom static int bme680_get_sensor_data(struct bme680_field_data *data, struct bme680_dev *dev)
+static int bme680_get_sensor_data(struct bme680_field_data *data, struct bme680_dev *dev)
 {
 	int rslt;
 
@@ -1245,7 +1245,7 @@ irom static int bme680_get_sensor_data(struct bme680_field_data *data, struct bm
 /*!
  * @brief This internal API is used to read the calibrated data from the sensor.
  */
-irom static int get_calib_data(struct bme680_dev *dev)
+static int get_calib_data(struct bme680_dev *dev)
 {
 	int rslt;
 	uint8_t coeff_array[BME680_COEFF_SIZE] = { 0 };
@@ -1324,7 +1324,7 @@ irom static int get_calib_data(struct bme680_dev *dev)
 /*!
  * @brief This internal API is used to set the gas configuration of the sensor.
  */
-irom static int set_gas_config(struct bme680_dev *dev)
+static int set_gas_config(struct bme680_dev *dev)
 {
 	int rslt;
 
@@ -1357,7 +1357,7 @@ irom static int set_gas_config(struct bme680_dev *dev)
  * and not the actual values set
  */
 #if 0 // never used
-irom static int get_gas_config(struct bme680_dev *dev)
+static int get_gas_config(struct bme680_dev *dev)
 {
 	int rslt;
 	/* starting address of the register array for burst read*/
@@ -1394,7 +1394,7 @@ irom static int get_gas_config(struct bme680_dev *dev)
  * @brief This internal API is used to calculate the
  * temperature value in float format
  */
-irom static double calc_temperature(unsigned int temp_adc, struct bme680_dev *dev)
+static double calc_temperature(unsigned int temp_adc, struct bme680_dev *dev)
 {
 	double var1 = 0;
 	double var2 = 0;
@@ -1422,7 +1422,7 @@ irom static double calc_temperature(unsigned int temp_adc, struct bme680_dev *de
  * @brief This internal API is used to calculate the
  * pressure value in float format
  */
-irom static double calc_pressure(unsigned int pres_adc, const struct bme680_dev *dev)
+static double calc_pressure(unsigned int pres_adc, const struct bme680_dev *dev)
 {
 	double var1 = 0;
 	double var2 = 0;
@@ -1457,7 +1457,7 @@ irom static double calc_pressure(unsigned int pres_adc, const struct bme680_dev 
  * @brief This internal API is used to calculate the
  * humidity value in float format
  */
-irom static double calc_humidity(unsigned int hum_adc, const struct bme680_dev *dev)
+static double calc_humidity(unsigned int hum_adc, const struct bme680_dev *dev)
 {
 	double calc_hum = 0;
 	double var1 = 0;
@@ -1493,7 +1493,7 @@ irom static double calc_humidity(unsigned int hum_adc, const struct bme680_dev *
  * @brief This internal API is used to calculate the
  * gas resistance value in float format
  */
-irom static double calc_gas_resistance(unsigned int gas_res_adc, unsigned int gas_range, const struct bme680_dev *dev)
+static double calc_gas_resistance(unsigned int gas_res_adc, unsigned int gas_range, const struct bme680_dev *dev)
 {
 	double calc_gas_res;
 	double var1 = 0;
@@ -1521,7 +1521,7 @@ irom static double calc_gas_resistance(unsigned int gas_res_adc, unsigned int ga
  * @brief This internal API is used to calculate the
  * heater resistance value in double format
  */
-irom static double calc_heater_res(unsigned int temp, const struct bme680_dev *dev)
+static double calc_heater_res(unsigned int temp, const struct bme680_dev *dev)
 {
 	double var1 = 0;
 	double var2 = 0;
@@ -1547,7 +1547,7 @@ irom static double calc_heater_res(unsigned int temp, const struct bme680_dev *d
 /*!
  * @brief This internal API is used to calculate the Heat duration value.
  */
-irom attr_const static unsigned int calc_heater_dur(unsigned int dur)
+attr_const static unsigned int calc_heater_dur(unsigned int dur)
 {
 	unsigned int factor = 0;
 	unsigned int durval;
@@ -1568,7 +1568,7 @@ irom attr_const static unsigned int calc_heater_dur(unsigned int dur)
 /*!
  * @brief This internal API is used to calculate the field data of sensor.
  */
-irom static int read_field_data(struct bme680_field_data *data, struct bme680_dev *dev)
+static int read_field_data(struct bme680_field_data *data, struct bme680_dev *dev)
 {
 	int rslt;
 	uint8_t buff[BME680_FIELD_LENGTH] = { 0 };
@@ -1624,7 +1624,7 @@ irom static int read_field_data(struct bme680_field_data *data, struct bme680_de
 /*!
  * @brief This internal API is used to set the memory page based on register address.
  */
-irom static int set_mem_page(unsigned int reg_addr, struct bme680_dev *dev)
+static int set_mem_page(unsigned int reg_addr, struct bme680_dev *dev)
 {
 	int rslt;
 	uint8_t reg;
@@ -1663,7 +1663,7 @@ irom static int set_mem_page(unsigned int reg_addr, struct bme680_dev *dev)
 /*!
  * @brief This internal API is used to get the memory page based on register address.
  */
-irom static int get_mem_page(struct bme680_dev *dev)
+static int get_mem_page(struct bme680_dev *dev)
 {
 	int rslt;
 	uint8_t reg;
@@ -1685,7 +1685,7 @@ irom static int get_mem_page(struct bme680_dev *dev)
  * @brief This internal API is used to validate the boundary
  * conditions.
  */
-irom static int boundary_check(unsigned int *value, unsigned int min, unsigned int max, struct bme680_dev *dev)
+static int boundary_check(unsigned int *value, unsigned int min, unsigned int max, struct bme680_dev *dev)
 {
 	int rslt = BME680_OK;
 
@@ -1713,7 +1713,7 @@ irom static int boundary_check(unsigned int *value, unsigned int min, unsigned i
  * @brief This internal API is used to validate the device structure pointer for
  * null conditions.
  */
-irom static int null_ptr_check(const struct bme680_dev *dev)
+static int null_ptr_check(const struct bme680_dev *dev)
 {
 	int rslt;
 
@@ -1781,14 +1781,14 @@ irom static int null_ptr_check(const struct bme680_dev *dev)
 
 static struct bme680_dev bme680;
 
-irom static void user_delay_ms(unsigned int period)
+static void user_delay_ms(unsigned int period)
 {
 	//log("bme680: sleep %u ms\n", period);
 
 	msleep(period);
 }
 
-irom static int user_i2c_read(unsigned int dev_id, unsigned int reg_addr, uint8_t *reg_data, unsigned int len)
+static int user_i2c_read(unsigned int dev_id, unsigned int reg_addr, uint8_t *reg_data, unsigned int len)
 {
 	if(i2c_send1(dev_id, reg_addr) != i2c_error_ok)
 		return(-1);
@@ -1799,7 +1799,7 @@ irom static int user_i2c_read(unsigned int dev_id, unsigned int reg_addr, uint8_
 	return(0);
 }
 
-irom static int user_i2c_write(unsigned int dev_id, unsigned int reg_addr, uint8_t *reg_data, unsigned int len)
+static int user_i2c_write(unsigned int dev_id, unsigned int reg_addr, uint8_t *reg_data, unsigned int len)
 {
 	uint8_t i2c_buffer[32];
 
@@ -1821,7 +1821,7 @@ static i2c_sensor_value_t humidity;
 static i2c_sensor_value_t airpressure;
 static i2c_sensor_value_t airquality;
 
-irom i2c_error_t sensor_bme680_all_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+i2c_error_t sensor_bme680_all_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	unsigned int set_required_settings;
 
@@ -1864,7 +1864,7 @@ irom i2c_error_t sensor_bme680_all_init(int bus, const i2c_sensor_device_table_e
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bme680_read(void)
+static i2c_error_t sensor_bme680_read(void)
 {
 	/* Get the total measurement duration so as to sleep or wait till the
 	* measurement is complete */
@@ -1909,7 +1909,7 @@ irom static i2c_error_t sensor_bme680_read(void)
 	return(i2c_error_ok);
 }
 
-irom i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 
@@ -1924,7 +1924,7 @@ irom i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);
@@ -1934,7 +1934,7 @@ irom attr_const i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_senso
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);
@@ -1944,7 +1944,7 @@ irom attr_const i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_se
 	return(i2c_error_ok);
 }
 
-irom attr_const i2c_error_t sensor_bme680_airquality_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+attr_const i2c_error_t sensor_bme680_airquality_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	if(!values_valid)
 		return(i2c_error_device_error_4);

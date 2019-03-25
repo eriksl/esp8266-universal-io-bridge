@@ -384,7 +384,7 @@ attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t 
 attr_nonnull parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delim, _Bool do_signed);
 attr_nonnull parse_error_t parse_float(int index, const string_t *, double *, char delim);
 
-attr_inline attr_nonnull irom parse_error_t parse_uint(int index, const string_t *src, uint32_t *dst, int base, char delimiter)
+attr_inline attr_nonnull parse_error_t parse_uint(int index, const string_t *src, uint32_t *dst, int base, char delimiter)
 {
 	return(parse_int_all(index, src, dst, base, delimiter, false));
 }

@@ -108,7 +108,7 @@ roflash static const char roflash_html_table_end[] =
 	"</table>\n"
 };
 
-irom static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
+static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
 {
 	unsigned int pwm_period;
 	string_new(, id, 32);
@@ -133,7 +133,7 @@ irom static void http_range_form(string_t *dst, int io, int pin, int low, int hi
 	string_append(dst,		"</form>\n");
 }
 
-irom static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
+static app_action_t http_error(string_t *dst, const char *error_string, const char *info)
 {
 	static const char delim[] = ": ";
 	int content_length = sizeof(roflash_html_header) - 1 + sizeof(roflash_html_p1) - 1 +
@@ -166,7 +166,7 @@ irom static app_action_t http_error(string_t *dst, const char *error_string, con
 	return(app_action_error);
 }
 
-irom app_action_t application_function_http_get(string_t *src, string_t *dst)
+app_action_t application_function_http_get(string_t *src, string_t *dst)
 {
 	string_new(, url, 64);
 	string_new(, afterslash, 64);
@@ -224,7 +224,7 @@ irom app_action_t application_function_http_get(string_t *src, string_t *dst)
 	return(error);
 }
 
-irom static app_action_t handler_root(const string_t *src, string_t *dst)
+static app_action_t handler_root(const string_t *src, string_t *dst)
 {
 	const http_handler_t *handler;
 
@@ -240,7 +240,7 @@ irom static app_action_t handler_root(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_controls(const string_t *src, string_t *dst)
+static app_action_t handler_controls(const string_t *src, string_t *dst)
 {
 	int				io, pin;
 	int				low, high, step, current;
@@ -255,7 +255,7 @@ irom static app_action_t handler_controls(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_set(const string_t *src, string_t *dst)
+static app_action_t handler_set(const string_t *src, string_t *dst)
 {
 	string_new(, getparam, 32);
 	string_new(, param1, 16);
@@ -316,12 +316,12 @@ error:
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_favicon(const string_t *src, string_t *dst)
+static app_action_t handler_favicon(const string_t *src, string_t *dst)
 {
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_info_fw(const string_t *src, string_t *dst)
+static app_action_t handler_info_fw(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><td><pre>");
@@ -332,7 +332,7 @@ irom static app_action_t handler_info_fw(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
+static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><td><pre>");
@@ -343,7 +343,7 @@ irom static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_info_time(const string_t *src, string_t *dst)
+static app_action_t handler_info_time(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><td><pre>");
@@ -354,7 +354,7 @@ irom static app_action_t handler_info_time(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_info_stats(const string_t *src, string_t *dst)
+static app_action_t handler_info_stats(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><td><pre>");
@@ -365,7 +365,7 @@ irom static app_action_t handler_info_stats(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
+static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><td><pre>");
@@ -376,14 +376,14 @@ irom static app_action_t handler_info_wlan(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_io(const string_t *src, string_t *dst)
+static app_action_t handler_io(const string_t *src, string_t *dst)
 {
 	io_config_dump(dst, -1, -1, true);
 
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
+static app_action_t handler_sensors(const string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
 	int bus;
@@ -410,7 +410,7 @@ irom static app_action_t handler_sensors(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *dst)
+static app_action_t handler_resetwlanscreen(const string_t *src, string_t *dst)
 {
 	string_append(dst, "<p>Reset WLAN configuration.</p>\n");
 	string_append(dst, "<p>Type the SSID (network name) and password and click \"set\".</p>\n");
@@ -423,7 +423,7 @@ irom static app_action_t handler_resetwlanscreen(const string_t *src, string_t *
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
+static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 {
 	string_new(, getparam, 64);
 	string_new(, param1, 32);
@@ -488,7 +488,7 @@ config_error:
 	return(app_action_http_ok);
 }
 
-irom static app_action_t handler_reset(const string_t *src, string_t *dst)
+static app_action_t handler_reset(const string_t *src, string_t *dst)
 {
 	return(app_action_reset);
 }

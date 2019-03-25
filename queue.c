@@ -1,6 +1,6 @@
 #include "queue.h"
 
-irom void queue_new(queue_t *queue, int size, char *buffer)
+void queue_new(queue_t *queue, int size, char *buffer)
 {
 	queue->data = buffer;
 	queue->size = size;

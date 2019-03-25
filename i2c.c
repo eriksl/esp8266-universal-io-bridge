@@ -570,35 +570,35 @@ iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *se
 	return(i2c_receive(address, receivelength, receivebytes));
 }
 
-irom i2c_error_t i2c_send1(int address, int byte0)
+i2c_error_t i2c_send1(int address, int byte0)
 {
 	uint8_t bytes[1] = { byte0 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send2(int address, int byte0, int byte1)
+i2c_error_t i2c_send2(int address, int byte0, int byte1)
 {
 	uint8_t bytes[2] = { byte0, byte1 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
+i2c_error_t i2c_send3(int address, int byte0, int byte1, int byte2)
 {
 	uint8_t bytes[3] = { byte0, byte1, byte2 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
+i2c_error_t i2c_send4(int address, int byte0, int byte1, int byte2, int byte3)
 {
 	uint8_t bytes[4] = { byte0, byte1, byte2, byte3 };
 
 	return(i2c_send(address, sizeof(bytes), bytes));
 }
 
-irom i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
+i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t *receivebytes)
 {
 	uint8_t bytes[1] = { byte0 };
 
@@ -619,7 +619,7 @@ iram i2c_error_t i2c_select_bus(unsigned int bus)
 	return(i2c_send1(0x70, bus));
 }
 
-irom static i2c_error_t i2c_reset_fixup_bus(void)
+static i2c_error_t i2c_reset_fixup_bus(void)
 {
 	i2c_error_t error;
 	int current;
@@ -694,7 +694,7 @@ iram i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-irom void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
+void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 {
 	uint8_t byte;
 	i2c_delay_enum_t current;
@@ -730,13 +730,13 @@ irom void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 	}
 }
 
-irom void i2c_get_info(i2c_info_t *i2c_info)
+void i2c_get_info(i2c_info_t *i2c_info)
 {
 	i2c_info->multiplexer = i2c_flags.multiplexer ? 1 : 0;
 	i2c_info->buses = i2c_flags.multiplexer ? i2c_busses : 1;
 }
 
-irom void i2c_error_format_string(string_t *dst, i2c_error_t error)
+void i2c_error_format_string(string_t *dst, i2c_error_t error)
 {
 	if(error != i2c_error_ok)
 		string_append(dst, ": i2c bus error: ");

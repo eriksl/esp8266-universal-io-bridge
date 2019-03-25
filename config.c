@@ -58,7 +58,7 @@ uint32_t flags_cache;
 static unsigned int config_entries_length = 0;
 static config_entry_t config_entries[config_entries_size];
 
-irom void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
+void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
 {
 	const config_flag_name_t *entry;
 
@@ -71,7 +71,7 @@ irom void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
 	}
 }
 
-irom _Bool config_flags_change(const string_t *flag, _Bool set)
+_Bool config_flags_change(const string_t *flag, _Bool set)
 {
 	const config_flag_name_t *entry;
 
@@ -99,7 +99,7 @@ typedef enum
 	state_parse_eol,
 } state_parse_t;
 
-irom static string_t *expand_varid(const string_t *varid, int index1, int index2)
+static string_t *expand_varid(const string_t *varid, int index1, int index2)
 {
 	string_new(static, varid_in, config_entry_id_size);
 	string_new(static, varid_out, config_entry_id_size);
@@ -113,7 +113,7 @@ irom static string_t *expand_varid(const string_t *varid, int index1, int index2
 	return(&varid_out);
 }
 
-irom static config_entry_t *find_config_entry(const string_t *id, int index1, int index2)
+static config_entry_t *find_config_entry(const string_t *id, int index1, int index2)
 {
 	config_entry_t *config_entry;
 	const string_t *varid;
@@ -132,7 +132,7 @@ irom static config_entry_t *find_config_entry(const string_t *id, int index1, in
 	return((config_entry_t *)0);
 }
 
-irom _Bool config_get_string(const string_t *id, int index1, int index2, string_t *value)
+_Bool config_get_string(const string_t *id, int index1, int index2, string_t *value)
 {
 	config_entry_t *config_entry;
 
@@ -144,7 +144,7 @@ irom _Bool config_get_string(const string_t *id, int index1, int index2, string_
 	return(true);
 }
 
-irom _Bool config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
+_Bool config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
 {
 	config_entry_t *config_entry;
 
@@ -156,7 +156,7 @@ irom _Bool config_get_int(const string_t *id, int index1, int index2, uint32_t *
 	return(true);
 }
 
-irom _Bool config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
+_Bool config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
 {
 	string_t string;
 	string_t *varid;
@@ -213,7 +213,7 @@ irom _Bool config_set_string(const string_t *id, int index1, int index2, const s
 	return(true);
 }
 
-irom _Bool config_set_int(const string_t *id, int index1, int index2, uint32_t value)
+_Bool config_set_int(const string_t *id, int index1, int index2, uint32_t value)
 {
 	string_new(, string, 16);
 
@@ -222,7 +222,7 @@ irom _Bool config_set_int(const string_t *id, int index1, int index2, uint32_t v
 	return(config_set_string(id, index1, index2, &string, 0, -1));
 }
 
-irom unsigned int config_delete(const string_t *id, int index1, int index2, _Bool wildcard)
+unsigned int config_delete(const string_t *id, int index1, int index2, _Bool wildcard)
 {
 	const char *varidptr;
 	config_entry_t *config_current;
@@ -248,7 +248,7 @@ irom unsigned int config_delete(const string_t *id, int index1, int index2, _Boo
 	return(amount);
 }
 
-irom _Bool config_read(void)
+_Bool config_read(void)
 {
 	string_new(, string, 64);
 	unsigned int current_index, id_index, id_length, value_index, value_length;
@@ -371,7 +371,7 @@ done:
 	return(rv);
 }
 
-irom unsigned int config_write(void)
+unsigned int config_write(void)
 {
 	config_entry_t *entry;
 	unsigned int ix, length = 0;
@@ -431,7 +431,7 @@ error:
 	return(0);
 }
 
-irom void config_dump(string_t *dst)
+void config_dump(string_t *dst)
 {
 	config_entry_t *config_current;
 	unsigned int ix, in_use = 0;

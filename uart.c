@@ -23,7 +23,7 @@ static autofill_info_t autofill_info[2] =
 static queue_t uart_send_queue[2];
 static queue_t uart_receive_queue;
 
-irom attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
+attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
 {
 	uart_parity_t rv;
 
@@ -39,7 +39,7 @@ irom attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
 	return(rv);
 }
 
-irom void uart_parity_to_string(string_t *dst, uart_parity_t ix)
+void uart_parity_to_string(string_t *dst, uart_parity_t ix)
 {
 	static const char *parity[] =
 	{
@@ -51,7 +51,7 @@ irom void uart_parity_to_string(string_t *dst, uart_parity_t ix)
 	string_format(dst, "%s", ix <= parity_odd ? parity[ix] : "<error>");
 }
 
-irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
+attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 {
 	static const char *parity = "NEO";
 
@@ -61,7 +61,7 @@ irom attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 	return(parity[ix]);
 }
 
-irom void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
+void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
 {
 	string_format(dst, "%u %u%c%u",
 			params->baud_rate,
@@ -101,13 +101,13 @@ attr_inline void clear_interrupts(unsigned int uart)
 	write_peri_reg(UART_INT_CLR(uart), 0xffff);
 }
 
-irom static void clear_fifos(unsigned int uart)
+static void clear_fifos(unsigned int uart)
 {
 	set_peri_reg_mask(UART_CONF0(uart), UART_RXFIFO_RST | UART_TXFIFO_RST);
 	clear_peri_reg_mask(UART_CONF0(uart), UART_RXFIFO_RST | UART_TXFIFO_RST);
 }
 
-irom static void fetch_queue(unsigned int uart)
+static void fetch_queue(unsigned int uart)
 {
 	unsigned int byte;
 
@@ -126,7 +126,7 @@ irom static void fetch_queue(unsigned int uart)
 	enable_receive_int(uart, true);
 }
 
-irom static void fill_queue(unsigned int uart)
+static void fill_queue(unsigned int uart)
 {
 	if(autofill_info[uart].enabled)
 	{
@@ -146,7 +146,7 @@ irom static void fill_queue(unsigned int uart)
 	}
 }
 
-irom void uart_task(os_event_t *event)
+void uart_task(os_event_t *event)
 {
 	switch(event->sig)
 	{
@@ -208,13 +208,13 @@ iram static void uart_callback(void *p)
 	ets_isr_unmask(1 << ETS_UART_INUM);
 }
 
-irom void uart_baudrate(unsigned int uart, unsigned int baudrate)
+void uart_baudrate(unsigned int uart, unsigned int baudrate)
 {
 	clear_fifos(uart);
 	write_peri_reg(UART_CLKDIV(uart), UART_CLK_FREQ / baudrate);
 }
 
-irom void uart_data_bits(unsigned int uart, unsigned int data_bits)
+void uart_data_bits(unsigned int uart, unsigned int data_bits)
 {
 	if((data_bits > 4) && (data_bits < 9))
 		data_bits -= 5;
@@ -228,7 +228,7 @@ irom void uart_data_bits(unsigned int uart, unsigned int data_bits)
 			(data_bits	& UART_BIT_NUM) << UART_BIT_NUM_S);
 }
 
-irom void uart_stop_bits(unsigned int uart, unsigned int stop_bits)
+void uart_stop_bits(unsigned int uart, unsigned int stop_bits)
 {
 	switch(stop_bits)
 	{
@@ -243,7 +243,7 @@ irom void uart_stop_bits(unsigned int uart, unsigned int stop_bits)
 			(stop_bits &	UART_STOP_BIT_NUM) << UART_STOP_BIT_NUM_S);
 }
 
-irom void uart_parity(unsigned int uart, uart_parity_t parity)
+void uart_parity(unsigned int uart, uart_parity_t parity)
 {
 	unsigned int parity_mask;
 
@@ -260,7 +260,7 @@ irom void uart_parity(unsigned int uart, uart_parity_t parity)
 			(parity_mask & (UART_PARITY_EN | UART_PARITY)));
 }
 
-irom void uart_autofill(unsigned int uart, _Bool enable, unsigned int character)
+void uart_autofill(unsigned int uart, _Bool enable, unsigned int character)
 {
 	if((uart == 0) || (uart == 1))
 	{
@@ -271,7 +271,7 @@ irom void uart_autofill(unsigned int uart, _Bool enable, unsigned int character)
 	}
 }
 
-irom void uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *character)
+void uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *character)
 {
 	if((uart == 0) || (uart == 1))
 	{
@@ -280,7 +280,7 @@ irom void uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *chara
 	}
 }
 
-irom void uart_init(void)
+void uart_init(void)
 {
 	static char uart_send_queue_buffer0[1024];
 	static char uart_send_queue_buffer1[1024];
@@ -373,7 +373,7 @@ iram void uart_clear_receive_queue(unsigned int uart)
 	queue_flush(&uart_receive_queue);
 }
 
-irom void uart_set_initial(unsigned int uart)
+void uart_set_initial(unsigned int uart)
 {
 	int baud;
 	int data;

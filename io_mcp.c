@@ -105,7 +105,7 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 	return(io_ok);
 }
 
-irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
+io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
 	unsigned int pin;
 	unsigned int iocon_value = (1 << DISSLW) | (1 << INTPOL | (0 << BANK));
@@ -142,7 +142,7 @@ irom io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -168,7 +168,7 @@ irom attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *i
 	return(value);
 }
 
-irom void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
@@ -215,7 +215,7 @@ irom void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_da
 	}
 }
 
-irom io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin;
 
@@ -285,7 +285,7 @@ irom io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_in
 	return(io_ok);
 }
 
-irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin, tv;
 	int io, olat, cached;
@@ -346,7 +346,7 @@ irom io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T 
 	return(io_ok);
 }
 
-irom io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	int bank, bankpin, tv;
 	mcp_data_pin_t *mcp_pin_data;
@@ -390,7 +390,7 @@ irom io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	int bank, bankpin;
 	mcp_data_pin_t *mcp_pin_data;
@@ -435,7 +435,7 @@ irom io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-irom io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
 {
 	unsigned int index = instance_index(info);
 

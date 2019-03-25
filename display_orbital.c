@@ -4,7 +4,7 @@
 
 static _Bool inited = false;
 
-irom _Bool display_orbital_init(void)
+_Bool display_orbital_init(void)
 {
 	unsigned int ix, byte, x, y;
 
@@ -40,7 +40,7 @@ irom _Bool display_orbital_init(void)
 	return(display_orbital_bright(1));
 }
 
-irom _Bool display_orbital_bright(int brightness)
+_Bool display_orbital_bright(int brightness)
 {
 	switch(brightness)
 	{
@@ -108,7 +108,7 @@ irom _Bool display_orbital_bright(int brightness)
 	return(true);
 }
 
-irom _Bool display_orbital_set(const char *tag, const char *text)
+_Bool display_orbital_set(const char *tag, const char *text)
 {
 	if(!inited)
 		return(false);
@@ -118,7 +118,7 @@ irom _Bool display_orbital_set(const char *tag, const char *text)
 				display_common_udg_size, display_common_udg));
 }
 
-irom _Bool display_orbital_show(void)
+_Bool display_orbital_show(void)
 {
 	int x, y;
 

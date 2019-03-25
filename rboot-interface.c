@@ -52,7 +52,7 @@ iram attr_used void Cache_Read_Enable_New(void)
 	Cache_Read_Enable(cache_map_entry[0], cache_map_entry[1], 1);
 }
 
-irom attr_const unsigned int rboot_if_mapped_slot(void)
+attr_const unsigned int rboot_if_mapped_slot(void)
 {
 	unsigned int rv = 0;
 
@@ -65,7 +65,7 @@ irom attr_const unsigned int rboot_if_mapped_slot(void)
 	return(rv);
 }
 
-irom attr_const const char *rboot_if_boot_mode(unsigned int index)
+attr_const const char *rboot_if_boot_mode(unsigned int index)
 {
 	if(index == rboot_if_conf_mode_standard)
 		return("standard");
@@ -76,7 +76,7 @@ irom attr_const const char *rboot_if_boot_mode(unsigned int index)
 	return("unknown");
 }
 
-irom _Bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buffer)
+_Bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buffer)
 {
 	uint32_t *buffer = (uint32_t *)(void *)string_buffer_nonconst(string_buffer);
 
@@ -97,7 +97,7 @@ irom _Bool rboot_if_write_config(const rboot_if_config_t *config, string_t *stri
 	return(true);
 }
 
-irom _Bool rboot_if_read_config(rboot_if_config_t *config)
+_Bool rboot_if_read_config(rboot_if_config_t *config)
 {
 	if(spi_flash_read(OFFSET_OTA_RBOOT_CFG, (uint32_t *)config, sizeof(*config)) != SPI_FLASH_RESULT_OK)
 		return(false);
@@ -108,7 +108,7 @@ irom _Bool rboot_if_read_config(rboot_if_config_t *config)
 	return(true);
 }
 
-irom static uint8_t checksum(const uint8_t *start, const uint8_t *end)
+static uint8_t checksum(const uint8_t *start, const uint8_t *end)
 {
     uint8_t cs;
 
@@ -118,7 +118,7 @@ irom static uint8_t checksum(const uint8_t *start, const uint8_t *end)
     return(cs);
 }
 
-irom _Bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
+_Bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
 {
 	config->checksum = checksum((const uint8_t *)config, (const uint8_t *)&config->checksum);
 
@@ -128,7 +128,7 @@ irom _Bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
 	return(true);
 }
 
-irom _Bool rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config)
+_Bool rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config)
 {
 	if(!system_rtc_mem_read(rboot_if_rtc_address, config, sizeof(*config)))
 		return(false);
@@ -139,7 +139,7 @@ irom _Bool rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config)
 	return(config->checksum == checksum((const uint8_t *)config, (const uint8_t *)&config->checksum));
 }
 
-irom void rboot_if_info(string_t *dst)
+void rboot_if_info(string_t *dst)
 {
 	rboot_if_config_t config;
 	rboot_if_rtc_config_t rrtc;

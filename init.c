@@ -53,7 +53,7 @@ iram attr_const uint32_t user_iram_memory_is_enabled(void)
 	return(0);
 }
 
-irom void user_init(void)
+void user_init(void)
 {
 	// don't declare stack variables here, they will get overwritten
 
@@ -85,7 +85,7 @@ irom void user_init(void)
 	system_init_done_cb(user_init2);
 }
 
-irom static void user_init2(void)
+static void user_init2(void)
 {
 	dispatch_init2();
 
@@ -104,7 +104,7 @@ irom static void user_init2(void)
 		sequencer_start(0, 1);
 }
 
-irom _Bool wlan_init(void)
+_Bool wlan_init(void)
 {
 	int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;

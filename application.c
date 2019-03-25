@@ -30,7 +30,7 @@ typedef struct
 
 static const application_function_table_t application_function_table[];
 
-irom app_action_t application_content(string_t *src, string_t *dst)
+app_action_t application_content(string_t *src, string_t *dst)
 {
 	string_init(varname_io, "trigger.status.io");
 	string_init(varname_pin, "trigger.status.pin");
@@ -63,13 +63,13 @@ irom app_action_t application_content(string_t *src, string_t *dst)
 	return(app_action_error);
 }
 
-irom static app_action_t application_function_config_dump(string_t *src, string_t *dst)
+static app_action_t application_function_config_dump(string_t *src, string_t *dst)
 {
 	config_dump(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_write(string_t *src, string_t *dst)
+static app_action_t application_function_config_write(string_t *src, string_t *dst)
 {
 	unsigned int size;
 
@@ -83,7 +83,7 @@ irom static app_action_t application_function_config_write(string_t *src, string
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_query_int(string_t *src, string_t *dst)
+static app_action_t application_function_config_query_int(string_t *src, string_t *dst)
 {
 	int index1 = -1;
 	int index2 = -1;
@@ -112,7 +112,7 @@ irom static app_action_t application_function_config_query_int(string_t *src, st
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_query_string(string_t *src, string_t *dst)
+static app_action_t application_function_config_query_string(string_t *src, string_t *dst)
 {
 	string_new(, varid, 64);
 	int index1 = -1;
@@ -147,7 +147,7 @@ irom static app_action_t application_function_config_query_string(string_t *src,
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_set(string_t *src, string_t *dst)
+static app_action_t application_function_config_set(string_t *src, string_t *dst)
 {
 	int index1, index2, offset;
 	string_new(, varid, 64);
@@ -187,7 +187,7 @@ irom static app_action_t application_function_config_set(string_t *src, string_t
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_config_delete(string_t *src, string_t *dst)
+static app_action_t application_function_config_delete(string_t *src, string_t *dst)
 {
 	int index1, index2;
 	unsigned int wildcard;
@@ -216,7 +216,7 @@ irom static app_action_t application_function_config_delete(string_t *src, strin
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_help(string_t *src, string_t *dst)
+static app_action_t application_function_help(string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
 
@@ -228,7 +228,7 @@ irom static app_action_t application_function_help(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_identification(string_t *src, string_t *dst)
+static app_action_t application_function_identification(string_t *src, string_t *dst)
 {
 	int start, length;
 	char last;
@@ -269,47 +269,47 @@ irom static app_action_t application_function_identification(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_quit(string_t *src, string_t *dst)
+static app_action_t application_function_quit(string_t *src, string_t *dst)
 {
 	return(app_action_disconnect);
 }
 
-irom static app_action_t application_function_reset(string_t *src, string_t *dst)
+static app_action_t application_function_reset(string_t *src, string_t *dst)
 {
 	return(app_action_reset);
 }
 
-irom static app_action_t application_function_stats_firmware(string_t *src, string_t *dst)
+static app_action_t application_function_stats_firmware(string_t *src, string_t *dst)
 {
 	stats_firmware(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_stats_time(string_t *src, string_t *dst)
+static app_action_t application_function_stats_time(string_t *src, string_t *dst)
 {
 	stats_time(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_stats_counters(string_t *src, string_t *dst)
+static app_action_t application_function_stats_counters(string_t *src, string_t *dst)
 {
 	stats_counters(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_stats_i2c(string_t *src, string_t *dst)
+static app_action_t application_function_stats_i2c(string_t *src, string_t *dst)
 {
 	stats_i2c(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_stats_wlan(string_t *src, string_t *dst)
+static app_action_t application_function_stats_wlan(string_t *src, string_t *dst)
 {
 	stats_wlan(dst);
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_port(string_t *src, string_t *dst)
+static app_action_t application_function_bridge_port(string_t *src, string_t *dst)
 {
 	unsigned int port;
 	string_init(varname_bridgeport, "bridge.port");
@@ -340,7 +340,7 @@ irom static app_action_t application_function_bridge_port(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_bridge_timeout(string_t *src, string_t *dst)
+static app_action_t application_function_bridge_timeout(string_t *src, string_t *dst)
 {
 	string_init(varname_bridgetimeout, "bridge.timeout");
 	unsigned int timeout;
@@ -371,7 +371,7 @@ irom static app_action_t application_function_bridge_timeout(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_command_port(string_t *src, string_t *dst)
+static app_action_t application_function_command_port(string_t *src, string_t *dst)
 {
 	string_init(varname_cmdport, "cmd.port");
 	unsigned int port;
@@ -402,7 +402,7 @@ irom static app_action_t application_function_command_port(string_t *src, string
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_command_timeout(string_t *src, string_t *dst)
+static app_action_t application_function_command_timeout(string_t *src, string_t *dst)
 {
 	string_init(varname_cmdtimeout, "cmd.timeout");
 	unsigned int timeout;
@@ -433,7 +433,7 @@ irom static app_action_t application_function_command_timeout(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_clear(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_clear(string_t *src, string_t *dst)
 {
 	_Bool result;
 
@@ -444,7 +444,7 @@ irom static app_action_t application_function_sequencer_clear(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_remove(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_remove(string_t *src, string_t *dst)
 {
 	unsigned int current;
 
@@ -465,7 +465,7 @@ irom static app_action_t application_function_sequencer_remove(string_t *src, st
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_add(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_add(string_t *src, string_t *dst)
 {
 	static unsigned int start = 0;
 	unsigned int io, pin, duration;
@@ -506,7 +506,7 @@ irom static app_action_t application_function_sequencer_add(string_t *src, strin
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_list(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_list(string_t *src, string_t *dst)
 {
 	static unsigned int start = 0;
 	unsigned int index, io, pin, value, duration;
@@ -528,7 +528,7 @@ irom static app_action_t application_function_sequencer_list(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_start(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_start(string_t *src, string_t *dst)
 {
 	unsigned int start, repeats;
 
@@ -545,7 +545,7 @@ irom static app_action_t application_function_sequencer_start(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_sequencer_stop(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_stop(string_t *src, string_t *dst)
 {
 	sequencer_stop();
 
@@ -554,7 +554,7 @@ irom static app_action_t application_function_sequencer_stop(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
+static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
 {
 	_Bool running, active;
 	unsigned int start, flash_size, flash_size_entries, flash_offset_flash0, flash_offset_flash1, flash_offset_mapped;
@@ -598,7 +598,7 @@ irom static app_action_t application_function_stats_sequencer(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
+static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
 {
 	string_init(varname_baudrate, "uart.baud.%u");
 	unsigned int uart, baud_rate;
@@ -631,7 +631,7 @@ irom static app_action_t application_function_uart_baud_rate(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
+static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
 {
 	unsigned int uart, data_bits;
 	string_init(varname_uartbits, "uart.bits.%u");
@@ -670,7 +670,7 @@ irom static app_action_t application_function_uart_data_bits(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
+static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
 {
 	unsigned int uart, stop_bits;
 	string_init(varname_stopbits, "uart.stop.%u");
@@ -709,7 +709,7 @@ irom static app_action_t application_function_uart_stop_bits(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_parity(string_t *src, string_t *dst)
+static app_action_t application_function_uart_parity(string_t *src, string_t *dst)
 {
 	uart_parity_t parity;
 	unsigned int uart, parity_int;
@@ -760,7 +760,7 @@ irom static app_action_t application_function_uart_parity(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_uart_write(string_t *src, string_t *dst)
+static app_action_t application_function_uart_write(string_t *src, string_t *dst)
 {
 	unsigned int uart;
 	int start, length;
@@ -795,7 +795,7 @@ irom static app_action_t application_function_uart_write(string_t *src, string_t
 static int i2c_address = 0;
 static int i2c_bus = 0;
 
-irom static app_action_t application_function_i2c_address(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_address(string_t *src, string_t *dst)
 {
 	unsigned int intin;
 
@@ -815,7 +815,7 @@ irom static app_action_t application_function_i2c_address(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_bus(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_bus(string_t *src, string_t *dst)
 {
 	unsigned int intin;
 	i2c_error_t error;
@@ -836,7 +836,7 @@ irom static app_action_t application_function_i2c_bus(string_t *src, string_t *d
 	return(app_action_normal);
 }
 
-irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, int length, int extra_clocks)
+static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, int length, int extra_clocks)
 {
 	unsigned int clocks, spent_us, speed;
 
@@ -851,7 +851,7 @@ irom static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_
 	string_format(dst, "> time spent: %u microseconds, makes %u Hz i2c bus", spent_us, speed);
 }
 
-irom static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
 {
 	unsigned int size, current;
 	i2c_error_t error;
@@ -896,7 +896,7 @@ irom static app_action_t application_function_i2c_read(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
 {
 	i2c_error_t error;
 	static uint8_t bytes[32];
@@ -932,7 +932,7 @@ irom static app_action_t application_function_i2c_write(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_write_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_write_read(string_t *src, string_t *dst)
 {
 	i2c_error_t error;
 	uint8_t sendbytes[1];
@@ -986,7 +986,7 @@ irom static app_action_t application_function_i2c_write_read(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 {
 	unsigned int speed_delay;
 	string_init(varname_i2c_speed, "i2c.speed_delay");
@@ -1019,7 +1019,7 @@ irom static app_action_t application_function_i2c_speed(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_init(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_init(string_t *src, string_t *dst)
 {
 	unsigned int intin, bus;
 	i2c_error_t error;
@@ -1055,7 +1055,7 @@ irom static app_action_t application_function_i2c_sensor_init(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
 {
 	unsigned int intin, bus;
 	i2c_sensor_t sensor;
@@ -1089,7 +1089,7 @@ irom static app_action_t application_function_i2c_sensor_read(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_calibrate(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_calibrate(string_t *src, string_t *dst)
 {
 	unsigned int intin, bus;
 	i2c_sensor_t sensor;
@@ -1160,7 +1160,7 @@ irom static app_action_t application_function_i2c_sensor_calibrate(string_t *src
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
 {
 	i2c_sensor_t sensor;
 	unsigned int option, bus;
@@ -1200,7 +1200,7 @@ irom static app_action_t application_function_i2c_sensor_dump(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
+static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
 {
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{
@@ -1218,17 +1218,17 @@ irom static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_flag_set(string_t *src, string_t *dst)
+static app_action_t application_function_flag_set(string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, true));
 }
 
-irom static app_action_t application_function_flag_unset(string_t *src, string_t *dst)
+static app_action_t application_function_flag_unset(string_t *src, string_t *dst)
 {
 	return(set_unset_flag(src, dst, false));
 }
 
-irom static app_action_t application_function_time_set(string_t *src, string_t *dst)
+static app_action_t application_function_time_set(string_t *src, string_t *dst)
 {
 	unsigned int Y, M, D, h, m, s;
 	const char *source;
@@ -1254,7 +1254,7 @@ irom static app_action_t application_function_time_set(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-irom static void wlan_scan_done_callback(void *arg, STATUS status)
+static void wlan_scan_done_callback(void *arg, STATUS status)
 {
 	struct bss_info *bss;
 
@@ -1301,7 +1301,7 @@ irom static void wlan_scan_done_callback(void *arg, STATUS status)
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 }
 
-irom static app_action_t application_function_wlan_ap_configure(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_ap_configure(string_t *src, string_t *dst)
 {
 	unsigned int channel;
 	string_new(, ssid, 64);
@@ -1369,7 +1369,7 @@ irom static app_action_t application_function_wlan_ap_configure(string_t *src, s
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_wlan_client_configure(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_client_configure(string_t *src, string_t *dst)
 {
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
@@ -1418,7 +1418,7 @@ irom static app_action_t application_function_wlan_client_configure(string_t *sr
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 {
 	unsigned int int_mode;
 	config_wlan_mode_t mode;
@@ -1504,7 +1504,7 @@ irom static app_action_t application_function_wlan_mode(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_log_display(string_t *src, string_t *dst)
+static app_action_t application_function_log_display(string_t *src, string_t *dst)
 {
 	if(string_length(&logbuffer) == 0)
 		string_append(dst, "<log empty>\n");
@@ -1517,7 +1517,7 @@ irom static app_action_t application_function_log_display(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_log_clear(string_t *src, string_t *dst)
+static app_action_t application_function_log_clear(string_t *src, string_t *dst)
 {
 	app_action_t rv;
 
@@ -1528,7 +1528,7 @@ irom static app_action_t application_function_log_clear(string_t *src, string_t 
 	return(rv);
 }
 
-irom static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 {
 	wifi_station_scan(0, wlan_scan_done_callback);
 	string_append(dst, "wlan scan started, use log-display to retrieve the results\n");
@@ -1536,7 +1536,7 @@ irom static app_action_t application_function_wlan_scan(string_t *src, string_t 
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_ntp_dump(string_t *src, string_t *dst)
+static app_action_t application_function_ntp_dump(string_t *src, string_t *dst)
 {
 	ip_addr_t addr;
 	int timezone;
@@ -1555,7 +1555,7 @@ irom static app_action_t application_function_ntp_dump(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
+static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
 {
 	unsigned int timezone, ix;
 	ip_addr_to_bytes_t a2b;
@@ -1596,7 +1596,7 @@ irom static app_action_t application_function_ntp_set(string_t *src, string_t *d
 	return(application_function_ntp_dump(src, dst));
 }
 
-irom static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
+static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
 {
 	int trigger_io, trigger_pin;
 	string_init(varname_trig_stat_io, "trigger.status.io");
@@ -1636,7 +1636,7 @@ irom static app_action_t application_function_gpio_status_set(string_t *src, str
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_gpio_assoc_set(string_t *src, string_t *dst)
+static app_action_t application_function_gpio_assoc_set(string_t *src, string_t *dst)
 {
 	int trigger_io, trigger_pin;
 	string_init(varname_trig_assoc_io, "trigger.assoc.io");
@@ -1676,7 +1676,7 @@ irom static app_action_t application_function_gpio_assoc_set(string_t *src, stri
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
+static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
 {
 	unsigned int width;
 
@@ -1693,7 +1693,7 @@ irom static app_action_t application_function_pwm_width(string_t *src, string_t 
 
 	return(app_action_normal);
 }
-irom static app_action_t application_function_peek(string_t *src, string_t *dst)
+static app_action_t application_function_peek(string_t *src, string_t *dst)
 {
 	uint32_t address;
 
@@ -1710,7 +1710,7 @@ irom static app_action_t application_function_peek(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_poke(string_t *src, string_t *dst)
+static app_action_t application_function_poke(string_t *src, string_t *dst)
 {
 	uint32_t address;
 	uint32_t value;

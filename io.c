@@ -248,7 +248,7 @@ static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_output_pwm2,		"pwm2",			"secondary pwm output"	},
 };
 
-irom static io_pin_mode_t io_mode_from_string(const string_t *src)
+static io_pin_mode_t io_mode_from_string(const string_t *src)
 {
 	unsigned int ix;
 	const io_mode_trait_t *entry;
@@ -264,7 +264,7 @@ irom static io_pin_mode_t io_mode_from_string(const string_t *src)
 	return(io_pin_error);
 }
 
-irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad)
+static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad)
 {
 	unsigned int ix;
 	const io_mode_trait_t *entry;
@@ -290,7 +290,7 @@ irom static void io_string_from_mode(string_t *name, io_pin_mode_t mode, int pad
 	string_append(name, "error");
 }
 
-irom static void io_strings_from_modes(string_t *dst)
+static void io_strings_from_modes(string_t *dst)
 {
 	unsigned int ix;
 	const io_mode_trait_t *entry;
@@ -325,7 +325,7 @@ static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 	{ io_pin_ll_output_pwm2,		"pwm2 output"		},
 };
 
-irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
+void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 {
 	unsigned int ix;
 	const io_ll_mode_trait_t *entry;
@@ -350,7 +350,7 @@ irom void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
 	string_append(name, "error");
 }
 
-irom static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
+static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
 {
 	if(string_match_cstr(pin, "sda"))
 		return(io_i2c_sda);
@@ -360,7 +360,7 @@ irom static io_i2c_t io_i2c_pin_from_string(const string_t *pin)
 		return(io_i2c_error);
 }
 
-irom static void io_string_from_i2c_type(string_t *name, io_i2c_t type)
+static void io_string_from_i2c_type(string_t *name, io_i2c_t type)
 {
 	switch(type)
 	{
@@ -392,7 +392,7 @@ static io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
 	{ io_lcd_bl,	"bl"	}
 };
 
-irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
+static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
 {
 	unsigned int ix;
 	const io_lcd_mode_trait_t *entry;
@@ -408,7 +408,7 @@ irom static io_lcd_mode_t io_lcd_mode_from_string(const string_t *src)
 	return(io_lcd_error);
 }
 
-irom static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
+static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 {
 	unsigned int ix;
 	const io_lcd_mode_trait_t *entry;
@@ -445,7 +445,7 @@ static io_trigger_action_t io_trigger_action[io_trigger_size] =
 	{ io_trigger_start,		"start"		},
 };
 
-irom static io_trigger_t string_to_trigger_action(const string_t *src)
+static io_trigger_t string_to_trigger_action(const string_t *src)
 {
 	unsigned int ix;
 	const io_trigger_action_t *entry;
@@ -461,7 +461,7 @@ irom static io_trigger_t string_to_trigger_action(const string_t *src)
 	return(io_trigger_error);
 }
 
-irom static void trigger_actions_to_string(string_t *dst)
+static void trigger_actions_to_string(string_t *dst)
 
 {
 	unsigned int ix;
@@ -478,7 +478,7 @@ irom static void trigger_actions_to_string(string_t *dst)
 	}
 }
 
-irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
+static void trigger_action_to_string(string_t *name, io_trigger_t id)
 {
 	unsigned int ix;
 	const io_trigger_action_t *entry;
@@ -497,14 +497,14 @@ irom static void trigger_action_to_string(string_t *name, io_trigger_t id)
 	string_append(name, "error");
 }
 
-irom static void trigger_usage(string_t *dst)
+static void trigger_usage(string_t *dst)
 {
 	string_append(dst, "usage: io-trigger <io> <pin> <action>\n");
 	string_append(dst, "    action: ");
 	trigger_actions_to_string(dst);
 }
 
-irom static void iomode_trigger_usage(string_t *dst, const char *info)
+static void iomode_trigger_usage(string_t *dst, const char *info)
 {
 	string_append(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
 	string_append(dst, "    action: ");
@@ -512,7 +512,7 @@ irom static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_format(dst, "\nerror in <%s>\n", info);
 }
 
-irom static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool value)
+static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool value)
 {
 	if(string_match_cstr(flag, "autostart"))
 		pin_config->flags.autostart = value ? 1: 0;
@@ -536,7 +536,7 @@ irom static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry
 	return(true);
 }
 
-irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entry_t *pin_config)
+static void pin_string_from_flags(string_t *flags, const io_config_pin_entry_t *pin_config)
 {
 	_Bool none = true;
 
@@ -608,7 +608,7 @@ irom static void pin_string_from_flags(string_t *flags, const io_config_pin_entr
 		string_append(flags, "none");
 }
 
-irom static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	if((pin_config->mode == io_pin_disabled) || (pin_config->mode == io_pin_error))
 		return(0);
@@ -619,7 +619,7 @@ irom static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data
 	return(info->pin_max_value_fn(info, pin_data, pin_config, pin));
 }
 
-irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	io_error_t error;
 
@@ -648,7 +648,7 @@ irom static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *
 	return(io_ok);
 }
 
-irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	io_error_t error;
 
@@ -677,7 +677,7 @@ irom static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t 
 	return(io_ok);
 }
 
-irom static io_error_t io_set_mask_x(string_t *errormsg, const io_info_entry_t *info, unsigned int mask, unsigned int pins)
+static io_error_t io_set_mask_x(string_t *errormsg, const io_info_entry_t *info, unsigned int mask, unsigned int pins)
 {
 	if(!info->set_mask_fn)
 	{
@@ -690,7 +690,7 @@ irom static io_error_t io_set_mask_x(string_t *errormsg, const io_info_entry_t *
 	return(info->set_mask_fn(errormsg, info, mask, pins));
 }
 
-irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
+static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
 	uint32_t value = 0, old_value, trigger;
@@ -988,7 +988,7 @@ irom static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_
 	return(io_ok);
 }
 
-irom unsigned int io_pin_max_value(int io, int pin)
+unsigned int io_pin_max_value(int io, int pin)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1010,7 +1010,7 @@ irom unsigned int io_pin_max_value(int io, int pin)
 	return(io_pin_max_value_x(info, pin_data, pin_config, pin));
 }
 
-irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
+io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1047,7 +1047,7 @@ irom io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *valu
 	return(error);
 }
 
-irom io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
+io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1077,7 +1077,7 @@ irom io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
 	return(io_write_pin_x(error, info, pin_data, pin_config, pin, value));
 }
 
-irom io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins)
+io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins)
 {
 	const io_info_entry_t *info;
 
@@ -1093,7 +1093,7 @@ irom io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned
 	return(io_set_mask_x(error, info, mask, pins));
 }
 
-irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger_type)
+io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger_type)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1123,7 +1123,7 @@ irom io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t tr
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
 }
 
-irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
+io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
 {
 	io_error_t error;
 	const io_info_entry_t *info;
@@ -1199,7 +1199,7 @@ irom io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pi
 	return(io_ok);
 }
 
-irom void io_init(void)
+void io_init(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1693,7 +1693,7 @@ iram void io_periodic_fast(void)
 		dispatch_post_command(command_task_alert_status);
 }
 
-irom void io_periodic_slow(void)
+void io_periodic_slow(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1740,7 +1740,7 @@ irom void io_periodic_slow(void)
 
 /* app commands */
 
-irom app_action_t application_function_io_mode(string_t *src, string_t *dst)
+app_action_t application_function_io_mode(string_t *src, string_t *dst)
 {
 	const io_info_entry_t	*info;
 	io_data_entry_t			*data;
@@ -2329,7 +2329,7 @@ skip:
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_read(string_t *src, string_t *dst)
+app_action_t application_function_io_read(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
@@ -2388,7 +2388,7 @@ irom app_action_t application_function_io_read(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_write(string_t *src, string_t *dst)
+app_action_t application_function_io_write(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
@@ -2453,7 +2453,7 @@ irom app_action_t application_function_io_write(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
+app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
 {
 	unsigned int io, mask, pins;
 
@@ -2492,7 +2492,7 @@ irom app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_trigger(string_t *src, string_t *dst)
+app_action_t application_function_io_trigger(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	unsigned int io, pin;
@@ -2557,7 +2557,7 @@ irom app_action_t application_function_io_trigger(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-irom static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, uint32_t value)
+static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, uint32_t value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -2636,12 +2636,12 @@ irom static app_action_t application_function_io_clear_set_flag(const string_t *
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_io_set_flag(string_t *src, string_t *dst)
+app_action_t application_function_io_set_flag(string_t *src, string_t *dst)
 {
 	return(application_function_io_clear_set_flag(src, dst, 1));
 }
 
-irom app_action_t application_function_io_clear_flag(string_t *src, string_t *dst)
+app_action_t application_function_io_clear_flag(string_t *src, string_t *dst)
 {
 	return(application_function_io_clear_set_flag(src, dst, 0));
 }
@@ -2775,7 +2775,7 @@ static const roflash dump_string_t roflash_dump_strings =
 	}
 };
 
-irom void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
+void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;

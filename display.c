@@ -221,7 +221,7 @@ uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
-irom _Bool display_common_set(const char *tag, const char *text,
+_Bool display_common_set(const char *tag, const char *text,
 	int map_size, const display_map_t *map,
 	int udg_size, const display_udg_t *udg)
 {
@@ -330,12 +330,12 @@ irom _Bool display_common_set(const char *tag, const char *text,
 	return(true);
 }
 
-irom attr_pure _Bool display_detected(void)
+attr_pure _Bool display_detected(void)
 {
 	return(display_data.detected >= 0);
 }
 
-irom static void display_update(_Bool advance)
+static void display_update(_Bool advance)
 {
 	const char *display_text;
 	int slot, hour, minute, month, day;
@@ -384,7 +384,7 @@ irom static void display_update(_Bool advance)
 		display_info_entry->set_fn((char *)0, display_text);
 }
 
-irom static void display_expire(void) // call one time per second
+static void display_expire(void) // call one time per second
 {
 	unsigned int active_slots, slot;
 	string_new(, default_message, 64);
@@ -425,7 +425,7 @@ irom static void display_expire(void) // call one time per second
 	}
 }
 
-irom _Bool display_periodic(void) // gets called 10 times per second
+_Bool display_periodic(void) // gets called 10 times per second
 {
 	static int last_update = 0;
 	static int expire_counter = 0;
@@ -461,7 +461,7 @@ irom _Bool display_periodic(void) // gets called 10 times per second
 	return(false);
 }
 
-irom void display_init(void)
+void display_init(void)
 {
 	display_info_t *display_info_entry;
 	int current, slot;
@@ -489,7 +489,7 @@ irom void display_init(void)
 	}
 }
 
-irom static void display_dump(string_t *dst)
+static void display_dump(string_t *dst)
 {
 	display_info_t *display_info_entry;
 	int slot;
@@ -511,14 +511,14 @@ irom static void display_dump(string_t *dst)
 				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
 }
 
-irom app_action_t application_function_display_dump(string_t *src, string_t *dst)
+app_action_t application_function_display_dump(string_t *src, string_t *dst)
 {
 	display_dump(dst);
 
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_default_message(string_t *src, string_t *dst)
+app_action_t application_function_display_default_message(string_t *src, string_t *dst)
 {
 	int ix;
 	string_init(varname_defaultmsg, "display.defaultmsg");
@@ -547,7 +547,7 @@ irom app_action_t application_function_display_default_message(string_t *src, st
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
+app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
 {
 	unsigned int timeout;
 	string_init(varname_fliptimeout, "display.fliptimeout");
@@ -578,7 +578,7 @@ irom app_action_t application_function_display_flip_timeout(string_t *src, strin
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_brightness(string_t *src, string_t *dst)
+app_action_t application_function_display_brightness(string_t *src, string_t *dst)
 {
 	unsigned int value;
 	display_info_t *display_info_entry;
@@ -608,7 +608,7 @@ irom app_action_t application_function_display_brightness(string_t *src, string_
 	return(app_action_normal);
 }
 
-irom app_action_t application_function_display_set(string_t *src, string_t *dst)
+app_action_t application_function_display_set(string_t *src, string_t *dst)
 {
 	int slot, timeout, current;
 	const char *text;

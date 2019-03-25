@@ -28,7 +28,7 @@ undef isxdigit
 #endif
 
 attr_const int isxdigit(int c);
-irom attr_const int isxdigit(int c)
+attr_const int isxdigit(int c)
 {
 	if((c >= '0' && (c <= '9')))
 		return(1);
@@ -47,7 +47,7 @@ undef isdigit
 #endif
 
 attr_const int isdigit(int c);
-irom attr_const int isdigit(int c)
+attr_const int isdigit(int c)
 {
 	if((c >= '0' && (c <= '9')))
 		return(1);
@@ -56,7 +56,7 @@ irom attr_const int isdigit(int c)
 }
 
 /* from http://www.leidinger.net/freebsd/dox/libkern/html/d9/dd9/memchr_8c_source.html */
-irom void *memchr(const void *s, int c, size_t n)
+void *memchr(const void *s, int c, size_t n)
 {
 	if(n != 0)
 	{
@@ -72,8 +72,8 @@ irom void *memchr(const void *s, int c, size_t n)
 	return(0);
 }
 
-void irom espconn_init(void);
-attr_const void irom espconn_init(void)
+void espconn_init(void);
+attr_const void espconn_init(void)
 {
 }
 
@@ -131,12 +131,12 @@ iram size_t flash_to_dram(_Bool cstr, const void *src_flash_unaligned, char *dst
 	return(dst_dram_index);
 }
 
-irom void reset(void)
+void reset(void)
 {
 	system_restart();
 }
 
-irom attr_const const char *yesno(_Bool value)
+attr_const const char *yesno(_Bool value)
 {
 	if(!value)
 		return("no");
@@ -144,7 +144,7 @@ irom attr_const const char *yesno(_Bool value)
 	return("yes");
 }
 
-irom attr_const const char *onoff(_Bool value)
+attr_const const char *onoff(_Bool value)
 {
 	if(!value)
 		return("off");
@@ -152,7 +152,7 @@ irom attr_const const char *onoff(_Bool value)
 	return("on");
 }
 
-irom int log_from_flash(const char *fmt_in_flash, ...)
+int log_from_flash(const char *fmt_in_flash, ...)
 {
 	va_list ap;
 	int current, written;
@@ -200,7 +200,7 @@ iram attr_speed void logchar(char c)
 	}
 }
 
-irom void msleep(int msec)
+void msleep(int msec)
 {
 	while(msec-- > 0)
 	{
@@ -209,7 +209,7 @@ irom void msleep(int msec)
 	}
 }
 
-irom attr_pure ip_addr_t ip_addr(const char *src)
+attr_pure ip_addr_t ip_addr(const char *src)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
 	int ix, current;
@@ -237,7 +237,7 @@ irom attr_pure ip_addr_t ip_addr(const char *src)
 	return(ip_addr_to_bytes.ip_addr);
 }
 
-irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, char delimiter)
+parse_error_t parse_string(int index, const string_t *src, string_t *dst, char delimiter)
 {
 	uint8_t current;
 	int offset;
@@ -259,7 +259,7 @@ irom parse_error_t parse_string(int index, const string_t *src, string_t *dst, c
 	return(parse_ok);
 }
 
-irom parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, _Bool do_signed)
+parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, _Bool do_signed)
 {
 	_Bool valid, negative;
 	uint32_t value;
@@ -340,7 +340,7 @@ irom parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, 
 	return(parse_ok);
 }
 
-irom parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter)
+parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter)
 {
 	int offset;
 	int decimal;
@@ -410,7 +410,7 @@ irom parse_error_t parse_float(int index, const string_t *src, double *dst, char
 	return(parse_ok);
 }
 
-irom void string_format_cstr(string_t *dst, const char *fmt, ...)
+void string_format_cstr(string_t *dst, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -452,7 +452,7 @@ iram attr_speed void string_format_flash_ptr(string_t *dst, const char *fmt_flas
 	dst->buffer[dst->length] = '\0';
 }
 
-irom int attr_pure string_sep(const string_t *src, int offset, int occurrence, char c)
+int attr_pure string_sep(const string_t *src, int offset, int occurrence, char c)
 {
 	for(; (offset < src->size) && (offset < src->length) && (occurrence > 0); offset++)
 		if(string_at(src, offset) == c)
@@ -464,7 +464,7 @@ irom int attr_pure string_sep(const string_t *src, int offset, int occurrence, c
 	return(offset);
 }
 
-irom int attr_pure string_find(const string_t *src, int offset, char c)
+int attr_pure string_find(const string_t *src, int offset, char c)
 {
 	for(; offset < src->length; offset++)
 		if(string_at(src, offset) == c)
@@ -473,7 +473,7 @@ irom int attr_pure string_find(const string_t *src, int offset, char c)
 	return(-1);
 }
 
-irom void string_replace(string_t *dst, int offset, char c)
+void string_replace(string_t *dst, int offset, char c)
 {
 	if((offset + 1) < dst->size)
 	{
@@ -487,7 +487,7 @@ irom void string_replace(string_t *dst, int offset, char c)
 	}
 }
 
-irom void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length)
+void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length)
 {
 	if(dst_offset < 0)
 		dst_offset = dst->length;
@@ -509,7 +509,7 @@ irom void string_splice(string_t *dst, int dst_offset, const string_t *src, int 
 	string_setlength(dst, dst_offset + length);
 }
 
-irom _Bool string_trim_nl(string_t *dst)
+_Bool string_trim_nl(string_t *dst)
 {
 	_Bool trimmed = false;
 
@@ -538,7 +538,7 @@ irom _Bool string_trim_nl(string_t *dst)
 	return(trimmed);
 }
 
-irom void string_bin_to_hex(string_t *dst, const char *src, int length)
+void string_bin_to_hex(string_t *dst, const char *src, int length)
 {
 	int offset;
 	uint8_t out;
@@ -565,7 +565,7 @@ irom void string_bin_to_hex(string_t *dst, const char *src, int length)
 	}
 }
 
-irom void string_ip(string_t *dst, ip_addr_t addr)
+void string_ip(string_t *dst, ip_addr_t addr)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
 	ip_addr_to_bytes.ip_addr = addr;
@@ -577,7 +577,7 @@ irom void string_ip(string_t *dst, ip_addr_t addr)
 		ip_addr_to_bytes.byte[3]);
 }
 
-irom void string_mac(string_t *dst, uint8 addr[6])
+void string_mac(string_t *dst, uint8 addr[6])
 {
 	int ix;
 	mac_addr_to_bytes_t mac_addr_to_bytes;
@@ -595,7 +595,7 @@ irom void string_mac(string_t *dst, uint8 addr[6])
 }
 
 #if 0
-irom int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix)
+int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix)
 {
 	int length = 0;
 	int bitpos;
@@ -631,7 +631,7 @@ irom int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_
 }
 #endif
 
-irom int string_double(string_t *dst, double value, int precision, double top_decimal)
+int string_double(string_t *dst, double value, int precision, double top_decimal)
 {
 	double compare;
 	int decimal;
@@ -705,7 +705,7 @@ irom int string_double(string_t *dst, double value, int precision, double top_de
 
 static uint32_t string_crc_table[256];
 
-irom void string_crc32_init(void)
+void string_crc32_init(void)
 {
 	unsigned int dividend, bit;
 	uint32_t remainder;
@@ -726,7 +726,7 @@ irom void string_crc32_init(void)
 	}
 }
 
-irom attr_pure uint32_t string_crc32(const string_t *src, int offset, int length)
+attr_pure uint32_t string_crc32(const string_t *src, int offset, int length)
 {
 	uint32_t remainder = 0xffffffff;
 	uint8_t data;

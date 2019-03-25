@@ -8,7 +8,7 @@
 
 static uint8 pcf_data_pin_table[io_pcf_instance_size];
 
-irom io_error_t io_pcf_init(const struct io_info_entry_T *info)
+io_error_t io_pcf_init(const struct io_info_entry_T *info)
 {
 	uint8_t i2cbuffer[1];
 
@@ -20,7 +20,7 @@ irom io_error_t io_pcf_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-irom attr_pure unsigned int io_pcf_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+attr_pure unsigned int io_pcf_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -40,7 +40,7 @@ irom attr_pure unsigned int io_pcf_pin_max_value(const struct io_info_entry_T *i
 	return(value);
 }
 
-irom io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	uint8_t *pcf_pin_data = &pcf_data_pin_table[info->instance];
 	i2c_error_t error;
@@ -86,7 +86,7 @@ irom io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_in
 	return(io_ok);
 }
 
-irom io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
 {
 	uint8_t i2c_data[1];
 	i2c_error_t error;
@@ -119,7 +119,7 @@ irom io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-irom io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	i2c_error_t error;
 	uint8_t *pcf_pin_data = &pcf_data_pin_table[info->instance];

@@ -77,7 +77,7 @@ iram void dispatch_post_timer(task_command_t command)
 		stat_task_timer_failed++;
 }
 
-irom static void background_task_bridge_uart(void)
+static void background_task_bridge_uart(void)
 {
 	if(uart_empty(0) || lwip_if_send_buffer_locked(&uart_socket))
 		return;
@@ -97,7 +97,7 @@ irom static void background_task_bridge_uart(void)
 	}
 }
 
-irom static void command_task(os_event_t *event)
+static void command_task(os_event_t *event)
 {
 	int trigger_io, trigger_pin;
 	string_init(varname_alert_assoc_io, "trigger.assoc.io");
@@ -326,7 +326,7 @@ iram attr_speed static void slow_timer_callback(void *arg)
 	dispatch_post_timer(timer_task_io_periodic_slow);
 }
 
-irom static void wlan_event_handler(System_Event_t *event)
+static void wlan_event_handler(System_Event_t *event)
 {
 	string_init(varname_alert_assoc_io, "trigger.assoc.io");
 	string_init(varname_alert_assoc_pin, "trigger.assoc.pin");
@@ -359,7 +359,7 @@ irom static void wlan_event_handler(System_Event_t *event)
 	}
 }
 
-irom static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
+static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
 	static const uint8_t command_string[] = "flash-send ";
 	uint32_t chunk_length;
@@ -385,7 +385,7 @@ irom static void socket_command_callback_data_received(lwip_if_socket_t *socket,
 		lwip_if_receive_buffer_unlock(&command_socket);
 }
 
-irom static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
+static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
 {
 	int current, length;
 	uint8_t byte;
@@ -435,14 +435,14 @@ irom static void socket_uart_callback_data_received(lwip_if_socket_t *socket, un
 	uart_flush(0);
 }
 
-irom void dispatch_init1(void)
+void dispatch_init1(void)
 {
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
 	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
 }
 
-irom void dispatch_init2(void)
+void dispatch_init2(void)
 {
 	int cmd_port, cmd_timeout;
 	int uart_port, uart_timeout;

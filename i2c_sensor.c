@@ -7,7 +7,7 @@
 
 static i2c_sensor_device_data_t device_data[i2c_sensor_size];
 
-irom static void sensor_register(int bus, i2c_sensor_t sensor_id)
+static void sensor_register(int bus, i2c_sensor_t sensor_id)
 {
 	if(sensor_id >= i2c_sensor_size)
 		return;
@@ -15,7 +15,7 @@ irom static void sensor_register(int bus, i2c_sensor_t sensor_id)
 	device_data[sensor_id].registered |= (1 << bus);
 }
 
-irom static void sensor_deregister(int bus, i2c_sensor_t sensor_id)
+static void sensor_deregister(int bus, i2c_sensor_t sensor_id)
 {
 	if(sensor_id >= i2c_sensor_size)
 		return;
@@ -23,7 +23,7 @@ irom static void sensor_deregister(int bus, i2c_sensor_t sensor_id)
 	device_data[sensor_id].registered &= ~(1 << bus);
 }
 
-irom attr_pure _Bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
+attr_pure _Bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
 {
 	if(sensor >= i2c_sensor_size)
 		return(false);
@@ -69,7 +69,7 @@ enum
 	opt3001_conf_conv_mode_cont =	0b0000011000000000,
 } opt3001_conf;
 
-irom static i2c_error_t sensor_opt3001_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_opt3001_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
@@ -113,7 +113,7 @@ irom static i2c_error_t sensor_opt3001_init(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_opt3001_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_opt3001_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t i2c_buffer[2];
@@ -181,7 +181,7 @@ typedef enum
 } veml6075_id_t;
 
 
-irom static i2c_error_t sensor_veml6075_uvindex_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6075_uvindex_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[2];
@@ -203,7 +203,7 @@ irom static i2c_error_t sensor_veml6075_uvindex_init(int bus, const i2c_sensor_d
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6075_uvindex_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6075_uvindex_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	/* "no teflon" values */
 	static const double a = 2.22;
@@ -298,7 +298,7 @@ enum
 	tmd2771_status_avalid =		0b00000001,
 };
 
-irom static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[1];
 	i2c_error_t error;
@@ -337,7 +337,7 @@ irom static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tmd2771_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmd2771_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -414,7 +414,7 @@ enum
 	apds9930_status_avalid =	0b00000001,
 };
 
-irom static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[1];
 	i2c_error_t error;
@@ -453,7 +453,7 @@ irom static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_ta
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_apds9930_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_apds9930_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -527,7 +527,7 @@ enum
 	apds9960_status_avalid =	0b00000001,
 };
 
-irom static i2c_error_t sensor_apds9960_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_apds9960_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[1];
 	i2c_error_t error;
@@ -566,7 +566,7 @@ irom static i2c_error_t sensor_apds9960_init(int bus, const i2c_sensor_device_ta
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_apds9960_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_apds9960_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -769,10 +769,9 @@ typedef struct
 enum
 {
 	si114x_attempt_count = 16,
-	si114x_measure_delay = 32768,
 };
 
-irom static i2c_error_t si114x_read_register(si114x_register_t reg, unsigned int length, uint8_t *bytes)
+static i2c_error_t si114x_read_register(si114x_register_t reg, unsigned int length, uint8_t *bytes)
 {
 	i2c_error_t error;
 
@@ -782,7 +781,7 @@ irom static i2c_error_t si114x_read_register(si114x_register_t reg, unsigned int
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_read_register_1(si114x_register_t reg, unsigned int *value)
+static i2c_error_t si114x_read_register_1(si114x_register_t reg, unsigned int *value)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
@@ -795,7 +794,7 @@ irom static i2c_error_t si114x_read_register_1(si114x_register_t reg, unsigned i
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_read_register_2(si114x_register_t reg, unsigned int *value)
+static i2c_error_t si114x_read_register_2(si114x_register_t reg, unsigned int *value)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
@@ -808,12 +807,12 @@ irom static i2c_error_t si114x_read_register_2(si114x_register_t reg, unsigned i
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_write_register_1(si114x_register_t reg, unsigned int value)
+static i2c_error_t si114x_write_register_1(si114x_register_t reg, unsigned int value)
 {
 	return(i2c_send2(0x60, (uint8_t)reg, (uint8_t)value));
 }
 
-irom static i2c_error_t si114x_write_register_2(si114x_register_t reg, unsigned int value)
+static i2c_error_t si114x_write_register_2(si114x_register_t reg, unsigned int value)
 {
 	uint8_t i2c_buffer[3];
 
@@ -824,7 +823,7 @@ irom static i2c_error_t si114x_write_register_2(si114x_register_t reg, unsigned 
 	return(i2c_send(0x60, 3, i2c_buffer));
 }
 
-irom static i2c_error_t si114x_write_register_4(si114x_register_t reg, uint8_t val0, uint8_t val1, uint8_t val2, uint8_t val3)
+static i2c_error_t si114x_write_register_4(si114x_register_t reg, uint8_t val0, uint8_t val1, uint8_t val2, uint8_t val3)
 {
 	uint8_t i2c_buffer[5];
 
@@ -837,7 +836,7 @@ irom static i2c_error_t si114x_write_register_4(si114x_register_t reg, uint8_t v
 	return(i2c_send(0x60, 5, i2c_buffer));
 }
 
-irom static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *response)
+static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *response)
 {
 	unsigned int attempt1, attempt2, local_response;
 	i2c_error_t error;
@@ -909,7 +908,7 @@ failed:
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_get_param(si114x_parameter_t param, unsigned int *value)
+static i2c_error_t si114x_get_param(si114x_parameter_t param, unsigned int *value)
 {
 	i2c_error_t error;
 
@@ -922,7 +921,7 @@ irom static i2c_error_t si114x_get_param(si114x_parameter_t param, unsigned int 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t si114x_set_param(si114x_parameter_t param, unsigned int value)
+static i2c_error_t si114x_set_param(si114x_parameter_t param, unsigned int value)
 {
 	unsigned int response;
 	i2c_error_t error;
@@ -942,7 +941,7 @@ irom static i2c_error_t si114x_set_param(si114x_parameter_t param, unsigned int 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_si114x_ultraviolet_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_si114x_ultraviolet_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	unsigned int value;
@@ -1028,7 +1027,7 @@ irom static i2c_error_t sensor_si114x_ultraviolet_init(int bus, const i2c_sensor
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	unsigned int regval;
@@ -1051,7 +1050,7 @@ irom static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const i2c_sensor
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_si114x_visible_light_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_si114x_visible_light_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	int visible;
@@ -1085,7 +1084,7 @@ irom static i2c_error_t sensor_si114x_visible_light_read(int bus, const i2c_sens
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_si114x_infrared_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_si114x_infrared_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	int visible, ir;
@@ -1123,7 +1122,7 @@ irom static i2c_error_t sensor_si114x_infrared_read(int bus, const i2c_sensor_de
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_si114x_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_si114x_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	unsigned int regval;
@@ -1178,7 +1177,7 @@ enum
 	max44009_probe_thresh_timer =	0xff,
 };
 
-irom static i2c_error_t sensor_max44009_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_max44009_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -1211,7 +1210,7 @@ irom static i2c_error_t sensor_max44009_init(int bus, const i2c_sensor_device_ta
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_max44009_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_max44009_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[2];
@@ -1254,7 +1253,7 @@ enum
 	veml6070_probe_data =		0xff,
 };
 
-irom static i2c_error_t sensor_veml6070_38_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6070_38_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
@@ -1285,7 +1284,7 @@ irom static i2c_error_t sensor_veml6070_38_init(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6070_38_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6070_38_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
@@ -1310,7 +1309,7 @@ irom static i2c_error_t sensor_veml6070_38_read(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6070_39_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6070_39_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	if(!i2c_sensor_registered(bus, i2c_sensor_veml6070_38))
 		return(i2c_error_address_nak);
@@ -1320,7 +1319,7 @@ irom static i2c_error_t sensor_veml6070_39_init(int bus, const i2c_sensor_device
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_veml6070_39_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_veml6070_39_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_veml6070_38_read(bus, entry, value, data));
 }
@@ -1365,7 +1364,7 @@ enum
 	tsl2561_probe_threshold =	0x00,
 };
 
-irom static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned int value)
+static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned int value)
 {
 	i2c_error_t error;
 
@@ -1375,7 +1374,7 @@ irom static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned i
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2561_read_byte(int address, tsl2561_reg_t reg, uint8_t *byte)
+static i2c_error_t tsl2561_read_byte(int address, tsl2561_reg_t reg, uint8_t *byte)
 {
 	i2c_error_t error;
 
@@ -1385,7 +1384,7 @@ irom static i2c_error_t tsl2561_read_byte(int address, tsl2561_reg_t reg, uint8_
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2561_read_word(int address, tsl2561_reg_t reg, uint16_t *word)
+static i2c_error_t tsl2561_read_word(int address, tsl2561_reg_t reg, uint16_t *word)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -1398,7 +1397,7 @@ irom static i2c_error_t tsl2561_read_word(int address, tsl2561_reg_t reg, uint16
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned int value)
+static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned int value)
 {
 	i2c_error_t error;
 	uint8_t rv;
@@ -1415,7 +1414,7 @@ irom static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsi
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t regval;
@@ -1473,7 +1472,7 @@ irom static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t i2c_buffer[2];
@@ -1577,7 +1576,7 @@ static const uint8_t tsl2550_ratio[129] =
 	30
 };
 
-irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
+static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
 {
 	i2c_error_t error;
 
@@ -1590,7 +1589,7 @@ irom static i2c_error_t sensor_tsl2550_rw(int address, int in, uint8_t *out)
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int compare)
+static i2c_error_t sensor_tsl2550_write_check(int address, int in, int compare)
 {
 	i2c_error_t error;
 	uint8_t out;
@@ -1604,7 +1603,7 @@ irom static i2c_error_t sensor_tsl2550_write_check(int address, int in, int comp
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 
@@ -1623,7 +1622,7 @@ irom static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tsl2550_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2550_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		ch0, ch1;
@@ -1691,7 +1690,7 @@ typedef enum
 	bh1750_opcode_change_meas_lo =	0b01100000,	// 0x60
 } bh1740_opcode_t;
 
-irom static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	int timing;
@@ -1745,7 +1744,7 @@ irom static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[2];
@@ -1806,7 +1805,7 @@ enum
 	tmp75_probe_conf_mask =	0b10000000,
 };
 
-irom static i2c_error_t sensor_tmp75_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmp75_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -1840,7 +1839,7 @@ irom static i2c_error_t sensor_tmp75_init(int bus, const i2c_sensor_device_table
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tmp75_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmp75_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -1892,7 +1891,7 @@ enum
 	ds7505_probe_conf_mask =	0b10011111,
 };
 
-irom static i2c_error_t sensor_ds7505_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds7505_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -1931,7 +1930,7 @@ irom static i2c_error_t sensor_ds7505_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds7505_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds7505_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -1981,7 +1980,7 @@ enum
 	ds1631_probe_conf_mask =	0b11111100,
 };
 
-irom static i2c_error_t sensor_ds1631_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds1631_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -2028,7 +2027,7 @@ irom static i2c_error_t sensor_ds1631_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1631_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds1631_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2077,7 +2076,7 @@ enum
 	ds1621_probe_conf_mask =	0b01111100,
 };
 
-irom static i2c_error_t sensor_ds1621_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds1621_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -2119,7 +2118,7 @@ irom static i2c_error_t sensor_ds1621_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ds1621_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ds1621_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2180,7 +2179,7 @@ enum
 	tmp102_probe_conf_l_mask =	0b11111111,
 };
 
-irom static i2c_error_t sensor_tmp102_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmp102_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -2218,7 +2217,7 @@ irom static i2c_error_t sensor_tmp102_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_tmp102_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tmp102_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2257,7 +2256,7 @@ enum
 	lm75_probe_conf_mask =		0b10011111,
 };
 
-irom static i2c_error_t sensor_lm75_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_lm75_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error = i2c_error_ok;
@@ -2286,7 +2285,7 @@ irom static i2c_error_t sensor_lm75_init(int bus, const i2c_sensor_device_table_
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_lm75_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_lm75_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2343,7 +2342,7 @@ enum
 	mpl3115_crtl2_load =		(1 << 5),
 };
 
-irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer;
@@ -2388,7 +2387,7 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const i2c_sen
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2402,7 +2401,7 @@ irom static i2c_error_t sensor_mpl3115a2_temperature_read(int bus, const i2c_sen
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_mpl3115a2_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[3];
 	i2c_error_t error;
@@ -2452,7 +2451,7 @@ enum
 	ccs811_reset_seq_3 =		0x8a,
 };
 
-irom static i2c_error_t sensor_ccs811_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ccs811_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[8];
@@ -2504,7 +2503,7 @@ irom static i2c_error_t sensor_ccs811_init(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_ccs811_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_ccs811_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
@@ -2580,7 +2579,7 @@ enum
 	sht30_inter_access_delay = 500,
 };
 
-irom attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
+attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit, crc;
 
@@ -2602,7 +2601,7 @@ irom attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *result1, int *result2)
+static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *result1, int *result2)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[8];	// 2 + 3 + 3
@@ -2646,7 +2645,7 @@ irom static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_sht30_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_sht30_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	int result;
 	i2c_error_t error;
@@ -2684,7 +2683,7 @@ irom static i2c_error_t sensor_sht30_humidity_init(int bus, const i2c_sensor_dev
 static i2c_sensor_value_t sht30_humidity_cache = { -1, -1 };
 static i2c_sensor_value_t sht30_temperature_cache = { 0, 0 };
 
-irom static i2c_error_t sht30_read(int address, i2c_sensor_value_t *value_humidity, i2c_sensor_value_t *value_temperature)
+static i2c_error_t sht30_read(int address, i2c_sensor_value_t *value_humidity, i2c_sensor_value_t *value_temperature)
 {
 	i2c_error_t error;
 	int result1, result2;
@@ -2726,12 +2725,12 @@ irom static i2c_error_t sht30_read(int address, i2c_sensor_value_t *value_humidi
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_sht30_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_sht30_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sht30_read(entry->address, value, (i2c_sensor_value_t *)0));
 }
 
-irom static i2c_error_t sensor_sht30_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_sht30_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sht30_read(entry->address, (i2c_sensor_value_t *)0, value));
 }
@@ -2772,7 +2771,7 @@ enum
 	mcp9808_device_id =				0x04,
 };
 
-irom static i2c_error_t sensor_mcp9808_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_mcp9808_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
@@ -2800,7 +2799,7 @@ irom static i2c_error_t sensor_mcp9808_init(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_mcp9808_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_mcp9808_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
@@ -2856,7 +2855,7 @@ enum
 	hdc1080_max_attempts = 16
 };
 
-irom static i2c_error_t sensor_hdc1080_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, hdc1080_action_t action, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hdc1080_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, hdc1080_action_t action, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	int attempt;
@@ -2904,7 +2903,7 @@ irom static i2c_error_t sensor_hdc1080_read(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_hdc1080_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hdc1080_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
@@ -2933,12 +2932,12 @@ irom static i2c_error_t sensor_hdc1080_humidity_init(int bus, const i2c_sensor_d
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_hdc1080_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hdc1080_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_hdc1080_read(bus, entry, value, hdc1080_action_temperature, data));
 }
 
-irom static i2c_error_t sensor_hdc1080_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hdc1080_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_hdc1080_read(bus, entry, value, hdc1080_action_humidity, data));
 }
@@ -2966,7 +2965,7 @@ enum
 	htu21_delay_measurement =				8,
 };
 
-irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
+attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit, crc;
 
@@ -2988,7 +2987,7 @@ irom attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sensor_htu21_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_htu21_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
@@ -3030,7 +3029,7 @@ irom static i2c_error_t sensor_htu21_humidity_init(int bus, const i2c_sensor_dev
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_read(const i2c_sensor_device_table_entry_t *entry, uint8_t command, uint16_t *result, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_htu21_read(const i2c_sensor_device_table_entry_t *entry, uint8_t command, uint16_t *result, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -3056,7 +3055,7 @@ irom static i2c_error_t sensor_htu21_read(const i2c_sensor_device_table_entry_t 
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_htu21_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -3070,7 +3069,7 @@ irom static i2c_error_t sensor_htu21_temperature_read(int bus, const i2c_sensor_
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_htu21_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_htu21_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint16_t result;
@@ -3094,7 +3093,7 @@ irom static i2c_error_t sensor_htu21_humidity_read(int bus, const i2c_sensor_dev
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 
@@ -3140,7 +3139,7 @@ static struct
 	int8_t		dig_H6;		//	e7
 } bme280;
 
-irom static i2c_error_t bme280_read_register_1(int address, int reg, uint8_t *value)
+static i2c_error_t bme280_read_register_1(int address, int reg, uint8_t *value)
 {
 	i2c_error_t error;
 
@@ -3153,7 +3152,7 @@ irom static i2c_error_t bme280_read_register_1(int address, int reg, uint8_t *va
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t bme280_read_register_2(int address, int reg, uint16_t *value)
+static i2c_error_t bme280_read_register_2(int address, int reg, uint16_t *value)
 {
 	i2c_error_t error;
 
@@ -3166,7 +3165,7 @@ irom static i2c_error_t bme280_read_register_2(int address, int reg, uint16_t *v
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t bme280_read(int address, i2c_sensor_value_t *rv_temperature, i2c_sensor_value_t *rv_pressure, i2c_sensor_value_t *rv_humidity)
+static i2c_error_t bme280_read(int address, i2c_sensor_value_t *rv_temperature, i2c_sensor_value_t *rv_pressure, i2c_sensor_value_t *rv_humidity)
 {
 	i2c_error_t		error;
 	uint8_t			i2c_buffer[8];
@@ -3244,7 +3243,7 @@ irom static i2c_error_t bme280_read(int address, i2c_sensor_value_t *rv_temperat
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bme280_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bme280_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[1];
@@ -3361,17 +3360,17 @@ irom static i2c_error_t sensor_bme280_humidity_init(int bus, const i2c_sensor_de
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bme280_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bme280_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(bme280_read(entry->address, 0, 0, value));
 }
 
-irom static i2c_error_t sensor_bme280_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bme280_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(bme280_read(entry->address, 0, value, 0));
 }
 
-irom static i2c_error_t sensor_bme280_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bme280_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(bme280_read(entry->address, value, 0, 0));
 }
@@ -3390,7 +3389,7 @@ static struct
 	int16_t		md;
 } bmp085;
 
-irom static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int value)
+static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int value)
 {
 	i2c_error_t error;
 
@@ -3400,7 +3399,7 @@ irom static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int va
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read_reg_2(int address, int reg, uint16_t *value)
+static i2c_error_t bmp085_read_reg_2(int address, int reg, uint16_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[2];
@@ -3416,7 +3415,7 @@ irom static i2c_error_t bmp085_read_reg_2(int address, int reg, uint16_t *value)
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read_reg_3(int address, int reg, uint32_t *value)
+static i2c_error_t bmp085_read_reg_3(int address, int reg, uint32_t *value)
 {
 	i2c_error_t error;
 	uint8_t i2cbuffer[4];
@@ -3432,7 +3431,7 @@ irom static i2c_error_t bmp085_read_reg_3(int address, int reg, uint32_t *value)
 	return(0);
 }
 
-irom static i2c_error_t bmp085_read(int address, i2c_sensor_value_t *rv_airpressure, i2c_sensor_value_t *rv_temperature, i2c_sensor_device_data_t *data)
+static i2c_error_t bmp085_read(int address, i2c_sensor_value_t *rv_airpressure, i2c_sensor_value_t *rv_temperature, i2c_sensor_device_data_t *data)
 {
 	uint16_t	ut;
 	uint32_t	up = 0;
@@ -3518,7 +3517,7 @@ irom static i2c_error_t bmp085_read(int address, i2c_sensor_value_t *rv_airpress
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_init_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bmp085_init_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 
@@ -3560,12 +3559,12 @@ irom static i2c_error_t sensor_bmp085_init_airpressure(int bus, const i2c_sensor
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_bmp085_read_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bmp085_read_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(bmp085_read(entry->address, value, (i2c_sensor_value_t *)0, data));
 }
 
-irom static i2c_error_t sensor_bmp085_read_temperature(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_bmp085_read_temperature(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(bmp085_read(entry->address, (i2c_sensor_value_t *)0, value, data));
 }
@@ -3579,7 +3578,7 @@ typedef enum
 static i2c_sensor_value_t sensor_am2320_cached_temperature;
 static i2c_sensor_value_t sensor_am2320_cached_humidity;
 
-irom attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
+attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit;
 	uint16_t crc;
@@ -3602,7 +3601,7 @@ irom attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, int length, uint8_t *values)
+static i2c_error_t sensor_am2320_read_registers(int address, int offset, int length, uint8_t *values)
 {
 	i2c_error_t	error;
 	uint8_t		i2c_buffer[32];
@@ -3632,7 +3631,7 @@ irom static i2c_error_t sensor_am2320_read_registers(int address, int offset, in
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *value, am2320_action_t action, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *value, am2320_action_t action, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		values[4];
@@ -3673,7 +3672,7 @@ irom static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *valu
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2320_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_am2320_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		values[2];
@@ -3690,12 +3689,12 @@ irom static i2c_error_t sensor_am2320_humidity_init(int bus, const i2c_sensor_de
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_am2320_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_am2320_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_am2320_read(entry->address, value, am2320_action_humidity, data));
 }
 
-irom static i2c_error_t sensor_am2320_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_am2320_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_am2320_read(entry->address, value, am2320_action_temperature, data));
 }
@@ -3714,7 +3713,7 @@ typedef enum
 	hih6130_status_mask =	(1 << 7) | (1 << 6),
 } hih6130_status_t;
 
-irom static i2c_error_t sensor_hih6130_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, hih6130_action_t action, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hih6130_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, hih6130_action_t action, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
@@ -3745,7 +3744,7 @@ irom static i2c_error_t sensor_hih6130_read(int bus, const i2c_sensor_device_tab
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_hih6130_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hih6130_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
@@ -3759,17 +3758,17 @@ irom static i2c_error_t sensor_hih6130_humidity_init(int bus, const i2c_sensor_d
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_hih6130_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hih6130_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_hih6130_read(bus, entry, value, hih6130_action_temperature, data));
 }
 
-irom static i2c_error_t sensor_hih6130_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hih6130_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_hih6130_read(bus, entry, value, hih6130_action_humidity, data));
 }
 
-irom static i2c_error_t sensor_digipicco_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_digipicco_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
@@ -3780,7 +3779,7 @@ irom static i2c_error_t sensor_digipicco_humidity_init(int bus, const i2c_sensor
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_digipicco_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -3794,7 +3793,7 @@ irom static i2c_error_t sensor_digipicco_humidity_read(int bus, const i2c_sensor
 	return(i2c_error_ok);
 }
 
-irom static i2c_error_t sensor_digipicco_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_digipicco_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
@@ -4196,12 +4195,12 @@ static i2c_sensor_info_t sensor_info =
 	.init_finished = 0,
 };
 
-irom void i2c_sensor_get_info(i2c_sensor_info_t *sensor_info_ptr)
+void i2c_sensor_get_info(i2c_sensor_info_t *sensor_info_ptr)
 {
 	*sensor_info_ptr = sensor_info;
 }
 
-irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
+i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 {
 	const i2c_sensor_device_table_entry_t *device_table_entry, *device_table_check_entry;
 	unsigned int device_table_check_index;
@@ -4265,7 +4264,7 @@ irom i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	return(i2c_error_ok);
 }
 
-irom _Bool i2c_sensors_init(void)
+_Bool i2c_sensors_init(void)
 {
 	i2c_info_t i2c_info;
 	unsigned int buses;
@@ -4341,7 +4340,7 @@ irom _Bool i2c_sensors_init(void)
 	return(true);
 }
 
-irom _Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose, _Bool html)
+_Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose, _Bool html)
 {
 	const i2c_sensor_device_table_entry_t *entry;
 	i2c_error_t error;

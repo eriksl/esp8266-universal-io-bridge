@@ -110,7 +110,7 @@ static const manufacturer_t manufacturers[] =
 	{	0,		(const char *)0	}
 };
 
-irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
+attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 {
 	const manufacturer_t *manufacturer;
 
@@ -121,7 +121,7 @@ irom attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 	return("unknown");
 }
 
-irom void stats_firmware(string_t *dst)
+void stats_firmware(string_t *dst)
 {
 	const struct rst_info *rst_info;
 	uint32_t flash_id = spi_flash_get_id();
@@ -236,7 +236,7 @@ irom void stats_firmware(string_t *dst)
 	}
 }
 
-irom void stats_time(string_t *dst)
+void stats_time(string_t *dst)
 {
 	unsigned int Y, M, D, h, m, s;
 	const char *time_source;
@@ -251,7 +251,7 @@ irom void stats_time(string_t *dst)
 	string_format(dst, "> time:   %04u/%02u/%02u %02u:%02u:%02u, source: %s\n", Y, M, D, h, m, s, time_source);
 }
 
-irom void stats_counters(string_t *dst)
+void stats_counters(string_t *dst)
 {
 	string_format(dst,
 			"> user_pre_init called: %s\n"
@@ -317,7 +317,7 @@ irom void stats_counters(string_t *dst)
 				stat_debug_3);
 }
 
-irom void stats_i2c(string_t *dst)
+void stats_i2c(string_t *dst)
 {
 	i2c_info_t			i2c_info;
 	i2c_sensor_info_t	i2c_sensor_info;
@@ -370,7 +370,7 @@ irom void stats_i2c(string_t *dst)
 				(uint32_t)((i2c_sensor_info.init_finished_us - i2c_sensor_info.init_started_us) / 1000));
 }
 
-irom void stats_wlan(string_t *dst)
+void stats_wlan(string_t *dst)
 {
 	uint8 mac_addr[6];
 	struct ip_info ip_addr_info;

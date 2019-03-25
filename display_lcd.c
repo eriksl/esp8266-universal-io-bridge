@@ -12,7 +12,7 @@ static int lcd_io;
 static int lcd_pin[io_lcd_size];
 static unsigned int pin_mask;
 
-irom static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
+static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
 	unsigned int pin = 0;
 
@@ -22,7 +22,7 @@ irom static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitinde
 	return(pin << lcd_pin[function]);
 }
 
-irom static _Bool send_byte_raw(int byte, _Bool data)
+static _Bool send_byte_raw(int byte, _Bool data)
 {
 	unsigned int pins = 0;
 
@@ -45,7 +45,7 @@ irom static _Bool send_byte_raw(int byte, _Bool data)
 	return(true);
 }
 
-irom static _Bool send_byte(int byte, _Bool data)
+static _Bool send_byte(int byte, _Bool data)
 {
 	if(nibble_mode)
 	{
@@ -61,7 +61,7 @@ irom static _Bool send_byte(int byte, _Bool data)
 	return(send_byte_raw(byte, data));
 }
 
-irom _Bool display_lcd_init(void)
+_Bool display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
 	int io, pin, ix, byte, x, y;
@@ -200,7 +200,7 @@ typedef enum
 	cmd_on_off_off = 0b00001100,	// display on, cursor off, blink off
 } cmd_t;
 
-irom _Bool display_lcd_bright(int brightness)
+_Bool display_lcd_bright(int brightness)
 {
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
 	unsigned int max_value, value;
@@ -226,7 +226,7 @@ irom _Bool display_lcd_bright(int brightness)
 	return(true);
 }
 
-irom _Bool display_lcd_set(const char *tag, const char *text)
+_Bool display_lcd_set(const char *tag, const char *text)
 {
 	if(!inited)
 		return(false);
@@ -236,7 +236,7 @@ irom _Bool display_lcd_set(const char *tag, const char *text)
 				display_common_udg_size, display_common_udg));
 }
 
-irom _Bool display_lcd_show(void)
+_Bool display_lcd_show(void)
 {
 	static const uint8_t offset[4][2] =
 	{
