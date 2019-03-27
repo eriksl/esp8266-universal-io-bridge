@@ -595,7 +595,7 @@ char *sntp_asctime(struct tm *tim_p)
     return sntp_asctime_r (tim_p, reult);
 }
 
-uint64 sntp_get_current_timestamp(void)
+uint32 sntp_get_current_timestamp(void)
 {
 	if(realtime_stamp == 0){
 		os_printf("please start sntp first !\n");
