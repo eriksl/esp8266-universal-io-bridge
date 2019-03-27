@@ -792,10 +792,18 @@ static void kill_oldest_dhcps_pool(void)
         pre = p;
         p = p->pnext;
     }
-    minpre->pnext = minp->pnext;pdhcps_pool->state = DHCPS_STATE_OFFLINE;
-    os_free(minp->pnode);
-    minp->pnode = NULL;
-    os_free(minp);
+
+	if(minp)
+		minpre->pnext = minp->pnext;
+
+	pdhcps_pool->state = DHCPS_STATE_OFFLINE;
+
+	if(minp)
+	{
+		os_free(minp->pnode);
+		minp->pnode = NULL;
+		os_free(minp);
+	}
     minp = NULL;
 }
 
