@@ -490,7 +490,7 @@ attr_inline uint32_t pwm_timer_get(void)
 	return(read_peri_reg(TIMER0_COUNT_REG));
 }
 
-iram attr_speed static void pwm_isr(void)
+iram static void pwm_isr(void)
 {
 	static unsigned int	phase, ticks_to_next_phase;
 	const pwm_phases_t *current_phase_set;
@@ -555,7 +555,7 @@ iram attr_speed static void pwm_isr(void)
 	}
 }
 
-iram attr_speed static void pwm_go(void)
+iram static void pwm_go(void)
 {
 	io_config_pin_entry_t *pin1_config;
 	gpio_info_t *pin1_info;

@@ -4,7 +4,7 @@ ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= esp1
-# using LTO will yield additional 192 bytes of IRAM, but it
+# using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
 USE_LTO				?= 0
 
@@ -148,15 +148,10 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-pointer-sign -Wno-unused-parameter -Wno-attributes \
 						-Wno-error=cast-qual -Wno-error=packed -Wno-error=unsafe-loop-optimizations
 
-CFLAGS			:=	-pipe \
-						-fdiagnostics-color=always \
-						-std=gnu11 \
-						-ffreestanding -mlongcalls -mno-serialize-volatile -mno-target-align \
-						-Os \
-						-fno-math-errno -fno-printf-return-value -fno-tree-tail-merge \
-						-fno-inline \
-						-fno-guess-branch-probability -fno-tree-dominator-opts -fno-tree-forwprop -fno-tree-pta \
-						-fmerge-all-constants -frename-registers \
+CFLAGS			:=	-pipe -O3 -std=gnu11 -fdiagnostics-color=always \
+						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
+						-fno-math-errno -fno-printf-return-value \
+						-fno-tree-forwprop \
 						-ffunction-sections -fdata-sections
 
 ifeq ($(USE_LTO),1)

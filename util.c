@@ -183,7 +183,7 @@ int log_from_flash(const char *fmt_in_flash, ...)
 	return(written);
 }
 
-iram attr_speed void logchar(char c)
+iram void logchar(char c)
 {
 	if(config_flags_match(flag_log_to_uart))
 	{
@@ -424,7 +424,7 @@ void string_format_cstr(string_t *dst, const char *fmt, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
-iram attr_speed void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
+iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 {
 	va_list ap;
 	int rendered_length, buffer_remaining;

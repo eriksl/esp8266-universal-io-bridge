@@ -296,7 +296,7 @@ iram static void timer_task(os_event_t *event)
 	}
 }
 
-iram attr_speed static void fast_timer_callback(void *arg)
+iram static void fast_timer_callback(void *arg)
 {
 	// timer runs every 10 ms = 100 Hz
 
@@ -304,7 +304,7 @@ iram attr_speed static void fast_timer_callback(void *arg)
 	dispatch_post_timer(timer_task_io_periodic_fast);
 }
 
-iram attr_speed static void slow_timer_callback(void *arg)
+iram static void slow_timer_callback(void *arg)
 {
 	// run background task every ~100 ms = ~10 Hz
 
