@@ -230,23 +230,14 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 
 static app_action_t application_function_identification(string_t *src, string_t *dst)
 {
-	int start, length;
-	char last;
+	int start;
 	string_init(varname_identification, "identification");
 
 	if((start = string_sep(src, 0, 1, ' ')) > 0)
 	{
-		length = string_length(src) - 1;
+		string_trim_nl(src);
 
-		if(length > 0)
-		{
-			last = string_at(src, length - 1);
-
-			if((last == '\n') || (last == '\r'))
-				length--;
-		}
-
-		if(!config_set_string(&varname_identification, -1, -1, src, start, length - start))
+		if(!config_set_string(&varname_identification, -1, -1, src, start, string_length(src) - start))
 		{
 			string_append(dst, "> cannot set identification\n");
 			return(app_action_error);
