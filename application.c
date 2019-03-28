@@ -625,7 +625,7 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
 {
 	unsigned int uart, data_bits;
-	string_init(varname_uartbits, "uart.bits.%u");
+	string_init(varname_uartdata, "uart.data.%u");
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
@@ -642,9 +642,9 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 		}
 
 		if(data_bits == 8)
-			config_delete(&varname_uartbits, uart, -1, false);
+			config_delete(&varname_uartdata, uart, -1, false);
 		else
-			if(!config_set_int(&varname_uartbits, uart, -1, data_bits))
+			if(!config_set_int(&varname_uartdata, uart, -1, data_bits))
 			{
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
@@ -653,7 +653,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 		uart_data_bits(uart, data_bits);
 	}
 
-	if(!config_get_int(&varname_uartbits, uart, -1, &data_bits))
+	if(!config_get_int(&varname_uartdata, uart, -1, &data_bits))
 		data_bits = 8;
 
 	string_format(dst, "data bits[%d]: %d\n", uart, data_bits);
