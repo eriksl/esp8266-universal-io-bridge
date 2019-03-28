@@ -668,7 +668,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-stop-bits <uart [0|1]> <stop bits>\n");
+		string_append(dst, "> usage uart-stop-bits <uart [1|2]> <stop bits>\n");
 		return(app_action_error);
 	}
 
