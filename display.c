@@ -14,7 +14,7 @@
 enum
 {
 	display_slot_amount = 8,
-	display_slot_tag_size = 32,
+	display_slot_tag_size = 12,
 	display_slot_content_size = 64
 };
 
