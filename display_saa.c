@@ -26,7 +26,7 @@
 
 */
 
-static const uint8_t led_charrom[] =
+roflash static const uint32_t led_charrom[] =
 {
 	0x00,		/*	32	SPC	*/
 	0x31,		/*	33	!	*/
@@ -118,7 +118,7 @@ static int led_render_char(int character)
 
 	character -= 0x20;		// skip control characters 0x00 - 0x20
 
-	if(character >= (int)sizeof(led_charrom))
+	if(character >= (int)(sizeof(led_charrom) / sizeof(*led_charrom)))
 		return(0xff);		// this should never happen
 
 	return(led_charrom[character] | add_dot);
