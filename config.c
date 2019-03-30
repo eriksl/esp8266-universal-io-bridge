@@ -29,11 +29,13 @@ assert_size(config_entry_t, 52);
 
 typedef struct
 {
-	uint32_t value;
-	const char *name;
+	attr_flash_align uint32_t value;
+	attr_flash_align const char *name;
 } config_flag_name_t;
 
-static const config_flag_name_t config_flag_names[] =
+assert_size(config_flag_name_t, 8);
+
+roflash static const config_flag_name_t config_flag_names[] =
 {
 	{	flag_strip_telnet,		"strip-telnet"		},
 	{	flag_log_to_uart,		"log-to-uart"		},
