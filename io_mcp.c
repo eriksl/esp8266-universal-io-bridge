@@ -12,6 +12,8 @@ typedef struct
 	uint32_t debounce;
 } mcp_data_pin_t;
 
+assert_size(mcp_data_pin_t, 8);
+
 enum
 {
 	UNUSED = 0,
