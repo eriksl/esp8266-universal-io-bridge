@@ -3806,7 +3806,7 @@ static i2c_error_t sensor_digipicco_temperature_read(int bus, const i2c_sensor_d
 	return(i2c_error_ok);
 }
 
-static const i2c_sensor_device_table_entry_t device_table[] =
+roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
 		i2c_sensor_opt3001, 0x45, 2, 0,
@@ -4216,7 +4216,7 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 		return(i2c_error_out_of_range);
 	}
 
-	if(device_table_entry->secondary)
+	if(device_table_entry->flags & sdte_secondary)
 		return(i2c_error_init_secondary);
 
 	sensor_deregister(bus, sensor);
@@ -4226,7 +4226,7 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 
 	for(device_table_check_index = 0, device_table_check_entry = device_table; device_table_check_index < i2c_sensor_size; device_table_check_index++, device_table_check_entry++)
 	{
-		if(device_table_check_entry->init_fn && !device_table_check_entry->secondary &&
+		if(device_table_check_entry->init_fn && !(device_table_check_entry->flags & sdte_secondary) &&
 				(device_table_check_entry->address == device_table_entry->address))
 		{
 			if(i2c_sensor_registered(0, device_table_check_entry->id))

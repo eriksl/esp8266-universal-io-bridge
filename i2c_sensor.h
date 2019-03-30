@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-typedef enum attr_packed
+typedef enum
 {
 	i2c_sensor_opt3001 = 0,
 	i2c_sensor_veml6075_uvindex,
@@ -76,7 +76,7 @@ typedef enum attr_packed
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
 
-assert_size(i2c_sensor_t, 1);
+assert_size(i2c_sensor_t, 4);
 
 typedef struct
 {
@@ -95,6 +95,8 @@ typedef struct
 	unsigned int	init_finished:1;
 } i2c_sensor_info_t;
 
+assert_size(i2c_sensor_info_t, 56);
+
 typedef struct
 {
 	double raw;
@@ -109,18 +111,25 @@ typedef struct attr_packed
 
 assert_size(i2c_sensor_device_data_t, 1);
 
+enum
+{
+	sdte_secondary = 1 << 0,
+};
+
 typedef struct i2c_sensor_device_table_entry_T
 {
-	i2c_sensor_t id;
-	uint8_t address;
-	uint8_t precision;
-	unsigned int secondary:1;
-	const char *name;
-	const char *type;
-	const char *unity;
-	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
-	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
+	attr_flash_align	i2c_sensor_t id;
+	attr_flash_align	uint32_t address;
+	attr_flash_align	uint32_t precision;
+	attr_flash_align	uint32_t flags;
+	attr_flash_align	const char *name;
+	attr_flash_align	const char *type;
+	attr_flash_align	const char *unity;
+	attr_flash_align	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
+	attr_flash_align	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
 } i2c_sensor_device_table_entry_t;
+
+assert_size(i2c_sensor_device_table_entry_t, 36);
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
