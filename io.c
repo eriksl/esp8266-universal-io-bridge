@@ -169,12 +169,14 @@ static io_data_t io_data;
 
 typedef struct
 {
-	io_pin_mode_t	mode;
-	const char		*short_name;
-	const char		*long_name;
+	attr_flash_align	uint32_t	mode;
+	attr_flash_align	const char	*short_name;
+	attr_flash_align	const char	*long_name;
 } io_mode_trait_t;
 
-static const io_mode_trait_t io_mode_traits[io_pin_size] =
+assert_size(io_mode_trait_t, 12);
+
+roflash static const io_mode_trait_t io_mode_traits[io_pin_size] =
 {
 	{ io_pin_disabled,			"disabled",		"disabled"				},
 	{ io_pin_input_digital,		"dinput",		"digital input"			},
