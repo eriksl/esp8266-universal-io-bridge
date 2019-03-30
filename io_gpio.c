@@ -385,7 +385,7 @@ _Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
 	unsigned int current;
 	string_init(varname_pwmperiod, "pwm.period");
 	string_init(varname_pwmwidth, "pwm.width");
-	static const unsigned int widths[][2] =
+	roflash static const uint32_t pwm_widths[][2] =
 	{
 		{	6,		6	},
 		{	7,		7	},
@@ -421,16 +421,16 @@ _Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
 	if(load && !config_get_int(&varname_pwmperiod, -1, -1, &width) && !config_get_int(&varname_pwmwidth, -1, -1, &width))
 		width = 16;
 
-	for(current = 0; widths[current][0] != 0; current++)
+	for(current = 0; pwm_widths[current][0] != 0; current++)
 	{
-		if(widths[current][0] == width)
+		if(pwm_widths[current][0] == width)
 		{
-			pwm1_width = widths[current][1];
+			pwm1_width = pwm_widths[current][1];
 			break;
 		}
 	}
 
-	if(widths[current][0] == 0)
+	if(pwm_widths[current][0] == 0)
 		return(false);
 
 	if(save)
