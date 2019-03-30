@@ -56,7 +56,7 @@ typedef struct
 	char	content[display_slot_content_size];
 } display_slot_t;
 
-const display_map_t display_common_map[display_common_map_size] =
+roflash const display_map_t display_common_map[display_common_map_size] =
 {
 	{	0x00b0, 0xdf },	// °
 	{	0x03b1, 0xe0 },	// α
@@ -75,7 +75,7 @@ const display_map_t display_common_map[display_common_map_size] =
 	{	0x03c0, 0xf7 },	// π
 };
 
-const display_udg_t display_common_udg[display_common_udg_size] =
+roflash const display_udg_t display_common_udg[display_common_udg_size] =
 {
 	{
 		0x00e9,		// é	0
@@ -183,7 +183,7 @@ const display_udg_t display_common_udg[display_common_udg_size] =
 	}
 };
 
-static roflash display_info_t display_info[display_size] =
+roflash static display_info_t display_info[display_size] =
 {
 	{
 		4, "saa1064", "4 digit led display",

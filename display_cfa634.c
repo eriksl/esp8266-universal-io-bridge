@@ -8,7 +8,7 @@
 static _Bool		detected = false;
 static unsigned int uart;
 
-static const display_map_t cfa634_map[] =
+roflash static const display_map_t cfa634_map[] =
 {
 	{	0x00c4, 91	},	// Ä
 	{	0x00d6, 92	},	// Ö
@@ -66,7 +66,7 @@ static const display_map_t cfa634_map[] =
 	{	0x007d,	255	}, 	// }
 };
 
-static const display_udg_t cfa634_udg[] =
+roflash static const display_udg_t cfa634_udg[] =
 {
 	{
 		0x00eb,	// ë	0

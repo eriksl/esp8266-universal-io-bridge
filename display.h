@@ -17,14 +17,14 @@ enum
 
 typedef struct
 {
-	uint16_t utf16;
-	uint8_t to;
+	uint32_t utf16;
+	uint32_t to;
 } display_map_t;
 
 typedef struct
 {
-	uint16_t utf16;
-	uint8_t pattern[display_common_udg_byte_size];
+	uint32_t utf16;
+	uint32_t pattern[display_common_udg_byte_size];
 } display_udg_t;
 
 typedef struct
@@ -35,8 +35,8 @@ typedef struct
 	} row[display_common_buffer_rows];
 } display_common_row_status_t;
 
-extern const display_map_t display_common_map[display_common_map_size];
-extern const display_udg_t display_common_udg[display_common_udg_size];
+extern roflash const display_map_t display_common_map[display_common_map_size];
+extern roflash const display_udg_t display_common_udg[display_common_udg_size];
 
 extern display_common_row_status_t display_common_row_status;
 extern uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_columns];
