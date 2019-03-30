@@ -9,12 +9,14 @@
 
 typedef struct
 {
-	const char *description;
-	const char *action;
-	app_action_t (*handler)(const string_t *src, string_t *dst);
+	attr_flash_align const char *description;
+	attr_flash_align const char *action;
+	attr_flash_align app_action_t (*handler)(const string_t *src, string_t *dst);
 } http_handler_t;
 
-static const http_handler_t handlers[];
+assert_size(http_handler_t, 12);
+
+roflash static const http_handler_t http_handlers[];
 
 roflash static const char roflash_http_header_pre[] =
 {
@@ -190,7 +192,7 @@ app_action_t application_function_http_get(string_t *src, string_t *dst)
 		string_append_string(&action, &afterslash);
 	}
 
-	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
+	for(handler = &http_handlers[0]; handler->action && handler->handler; handler++)
 		if(string_match_cstr(&action, handler->action))
 			break;
 
@@ -231,7 +233,7 @@ static app_action_t handler_root(const string_t *src, string_t *dst)
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst, "<tr><th colspan=\"2\">ESP8266 Universal I/O bridge</th></tr>\n");
 
-	for(handler = &handlers[0]; handler->action && handler->handler; handler++)
+	for(handler = &http_handlers[0]; handler->action && handler->handler; handler++)
 		if(handler->description)
 			string_format(dst, "<tr><td>%s</td><td><a href=\"/%s\">/%s</a></td></tr>\n", handler->description, handler->action, handler->action);
 
@@ -493,7 +495,7 @@ static app_action_t handler_reset(const string_t *src, string_t *dst)
 	return(app_action_reset);
 }
 
-static const http_handler_t handlers[] =
+static const http_handler_t http_handlers[] =
 {
 	{
 		"Home",
