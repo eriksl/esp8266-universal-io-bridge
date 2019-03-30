@@ -405,8 +405,8 @@ int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((f
 
 #define log(fmt, ...) \
 do { \
-	static roflash const char fmt_flash[] = fmt; \
-	log_from_flash(fmt_flash, ## __VA_ARGS__); \
+	static roflash const char log_flash[] = fmt; \
+	log_from_flash(log_flash, ## __VA_ARGS__); \
 } while(0)
 
 void logchar(char c);
