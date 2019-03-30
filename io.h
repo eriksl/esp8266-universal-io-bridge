@@ -187,6 +187,8 @@ typedef struct
 	io_direction_t	direction;
 } io_data_pin_entry_t;
 
+assert_size(io_data_pin_entry_t, 12);
+
 typedef struct
 {
 	unsigned int detected:1;
@@ -231,6 +233,8 @@ typedef struct
 		} trigger[max_triggers_per_pin];
 	} shared;
 } io_config_pin_entry_t;
+
+assert_size(io_config_pin_entry_t, 16);
 
 typedef const struct io_info_entry_T
 {

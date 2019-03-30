@@ -11,16 +11,14 @@
 
 #include <user_interface.h>
 
-typedef enum
+enum
 {
 	display_slot_amount = 8,
 	display_slot_tag_size = 32,
 	display_slot_content_size = 64
-} display_slot_enum_t;
+};
 
-assert_size(display_slot_enum_t, 4);
-
-typedef enum
+enum
 {
 	display_saa1064 = 0,
 	display_lcd = 1,
@@ -28,9 +26,7 @@ typedef enum
 	display_cfa634 = 3,
 	display_error,
 	display_size = display_error
-} display_id_t;
-
-assert_size(display_id_t, 4);
+};
 
 typedef const struct
 {
@@ -43,11 +39,15 @@ typedef const struct
 	_Bool			(* const show_fn)(void);
 } display_info_t;
 
+assert_size(display_info_t, 28);
+
 typedef struct
 {
 	int	detected;
 	int	current_slot;
 } display_data_t;
+
+assert_size(display_data_t, 8);
 
 typedef struct
 {
@@ -55,6 +55,8 @@ typedef struct
 	char	tag[display_slot_tag_size];
 	char	content[display_slot_content_size];
 } display_slot_t;
+
+assert_size(display_slot_t, 80);
 
 roflash const display_map_t display_common_map[display_common_map_size] =
 {
@@ -220,6 +222,8 @@ uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_
 
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
+
+assert_size(display_slot, 640);
 
 _Bool display_common_set(const char *tag, const char *text,
 	int map_size, const display_map_t *map,
