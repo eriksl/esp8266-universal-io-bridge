@@ -103,7 +103,7 @@ ifeq ($(IMAGE),plain)
 	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_PLAIN)
 	LD_ADDRESS := 0x40210000
 	LD_LENGTH := 0x79000
-	ELF := $(ELF_PLAIN)
+	ELF_IMAGE := $(ELF_PLAIN)
 	ALL_IMAGE_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
 	FLASH_TARGET := flash-plain
 endif
@@ -123,7 +123,7 @@ ifeq ($(IMAGE),ota)
 	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_OTA)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
-	ELF := $(ELF_OTA)
+	ELF_IMAGE := $(ELF_OTA)
 	ALL_IMAGE_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) espflash
 	FLASH_TARGET := flash-ota
 endif
@@ -148,7 +148,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-pointer-sign -Wno-unused-parameter -Wno-attributes \
 						-Wno-error=cast-qual -Wno-error=packed -Wno-error=unsafe-loop-optimizations
 
-CFLAGS			:=	-pipe -O3 -std=gnu11 -fdiagnostics-color=always \
+CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
 						-fno-tree-forwprop \
@@ -215,7 +215,7 @@ LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWI
 LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
 
 .PRECIOUS:		*.c *.h
-.PHONY:			all flash flash-plain flash-ota clean free linkdebug always ota toolchain
+.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols
 
 all:			toolchain $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -237,17 +237,14 @@ veryclean:		clean
 				$(VECHO) "VERY CLEAN"
 				$(Q) rm -f $(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) $(LWIP_LIBS_FILES) 2> /dev/null
 
-free:			$(ELF)
+free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
-				$(call section_free,$(ELF),iram,.text,,,32)
-				$(call section_free,$(ELF),dram,.bss,.data,.rodata,77)
-				$(call section_free,$(ELF),irom,.irom0.text,,,408)
+				$(call section_free,$(ELF_IMAGE),iram,.text,,,32)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,77)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,408)
 
-linkdebug:		$(LINKMAP)
-				$(Q) echo "IROM:"
-				$(call link_debug,$<,irom0.text,424,402)
-				$(Q) echo "IRAM:"
-				$(call link_debug,$<,text,32,401)
+showsymbols:	$(ELF_IMAGE)
+				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
 
 $(CC) $(OBJCOPY):
 				$(VECHO) "BUILD TOOLCHAIN"
@@ -446,35 +443,4 @@ section_free	= $(Q) perl -e '\
 						} \
 						$$free = $$available - $$used; \
 						printf("    %-8s available: %3u k, used: %6u, free: %6u, %2u %%\n", "$(2)" . ":", $$available / 1024, $$used, $$free, 100 * $$free / $$available); \
-						close($$fd);'
-
-# use this line if you only want to see your own symbols in the output
-#if((hex($$_[2]) > 0) && !m/\.a\(/)
-
-link_debug		= $(Q) perl -e '\
-						open($$fd, "< $(1)"); \
-						$$top = 0; \
-						while(<$$fd>) \
-						{ \
-							chomp; \
-							if(m/^\s+\.$(2)(\.[^ ]+)?\s+0x00000000$(4)/) \
-							{ \
-								@_ = split; \
-								$$top = hex($$_[1]) if(hex($$_[1]) > $$top); \
-								if(hex($$_[2]) > 0) \
-								{ \
-									$$size = sprintf("%06x", hex($$_[2])); \
-									$$file = $$_[3]; \
-									$$file =~ s/.*\///g; \
-									$$size{"$$size-$$file"} = { size => $$size, id => $$file}; \
-								} \
-							} \
-						} \
-						for $$size (sort(keys(%size))) \
-						{ \
-							printf("%4d: %s\n", \
-									hex($$size{$$size}{"size"}), \
-									$$size{$$size}{"id"}); \
-						} \
-						printf("size: %u, free: %u\n", $$top - hex('$(4)00000'), ($(3) * 1024) - ($$top - hex('$(4)00000'))); \
 						close($$fd);'
