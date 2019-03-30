@@ -29,6 +29,8 @@ typedef enum
 	io_uart_tx,
 } io_uart_t;
 
+assert_size(io_uart_t, 4);
+
 enum
 {
 	gpio_pdm_source =	1 << 0,
@@ -45,15 +47,23 @@ enum
 	gpio_pdm_target_mask =		0xff,
 } gpio_pdm;
 
+enum
+{
+	gi_valid = 1 << 0,
+};
+
 typedef const struct
 {
-	const _Bool			valid;
-	const unsigned int	mux;
-	const unsigned int	func;
+	const uint32_t		flags;
+	const uint32_t		mux;
+	const uint32_t		func;
 	const io_uart_t		uart_pin;
-	const unsigned int	func_uart;
-	const unsigned int	uart;
+	const uint32_t		func_uart;
+	const uint32_t		uart;
 } gpio_info_t;
+
+assert_size(_Bool, 1);
+assert_size(gpio_info_t, 24);
 
 typedef union
 {
@@ -73,24 +83,24 @@ typedef union
 
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
-static gpio_info_t gpio_info_table[io_gpio_pin_size] =
+roflash static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ true, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,		0	},
-	{ true,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_tx,		FUNC_U1TXD_BK,	1	},
-	{ true,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD,		0	},
-	{ true,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	0,				0	},
-	{ false,	PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	0,				0	},
-	{ true,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	0,				0	},
+	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,		0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_tx,		FUNC_U1TXD_BK,	1	},
+	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD,		0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	0,				0	},
+	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	0,				0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	0,				0	},
 };
 
 typedef struct
@@ -167,7 +177,7 @@ attr_inline _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 
 	gpio_pin_info = &gpio_info_table[pin];
 
-	if(!gpio_pin_info->valid)
+	if(!(gpio_pin_info->flags & gi_valid))
 		return(false);
 
 	value = read_peri_reg(gpio_pin_info->mux);
@@ -236,7 +246,7 @@ attr_inline _Bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 
 	gpio_pin_info = &gpio_info_table[pin];
 
-	if(!gpio_pin_info->valid)
+	if(!(gpio_pin_info->flags & gi_valid))
 		return(false);
 
 	switch(gpio_pin_mode)
@@ -263,7 +273,7 @@ iram void io_gpio_reset_all_pins(void)
 	unsigned int pin;
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
-		if(gpio_info_table[pin].valid)
+		if(gpio_info_table[pin].flags & gi_valid)
 		{
 			gpio_func_select(pin, io_gpio_func_gpio);
 			gpio_direction(pin, true);
@@ -597,7 +607,7 @@ iram static void pwm_go(void)
 		pin1_info	= &gpio_info_table[pin1];
 		pin1_data	= &gpio_data[pin1];
 
-		if((pin1_info->valid) &&
+		if((pin1_info->flags & gi_valid) &&
 				(pin1_config->llmode == io_pin_ll_output_pwm1))
 		{
 			pin1_data->pwm.pwm_this = pin1;
@@ -620,7 +630,7 @@ iram static void pwm_go(void)
 		pin1_config	= &io_config[io_id_gpio][pin1];
 		pin1_data	= &gpio_data[pin1];
 
-		if(!pin1_info->valid || (pin1_config->llmode != io_pin_ll_output_pwm1))
+		if(!(pin1_info->flags & gi_valid) || (pin1_config->llmode != io_pin_ll_output_pwm1))
 			continue;
 
 		if(pin1_data->pwm.pwm_duty == 0)
@@ -868,7 +878,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 
 	gpio_info = &gpio_info_table[pin];
 
-	if(!gpio_info->valid)
+	if(!(gpio_info->flags & gi_valid))
 	{
 		if(error_message)
 			string_append(error_message, "io invalid\n");
@@ -995,7 +1005,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 
 	gpio_pin_data = &gpio_data[pin];
 
-	if(!gpio_info_table[pin].valid)
+	if(!(gpio_info_table[pin].flags & gi_valid))
 		string_append(dst, "unusable i/o pin");
 	else
 	{
@@ -1120,7 +1130,7 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 {
 	gpio_data_pin_t *gpio_pin_data;
 
-	if(!gpio_info_table[pin].valid)
+	if(!(gpio_info_table[pin].flags & gi_valid))
 	{
 		if(error_message)
 			string_format(error_message, "gpio %d invalid\n", pin);
@@ -1194,7 +1204,7 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 {
 	gpio_data_pin_t *gpio_pin_data;
 
-	if(!gpio_info_table[pin].valid)
+	if(!(gpio_info_table[pin].flags & gi_valid))
 	{
 		if(error_message)
 			string_format(error_message, "gpio %d invalid\n", pin);
