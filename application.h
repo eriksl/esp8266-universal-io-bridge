@@ -13,7 +13,7 @@ typedef enum
 	app_action_reset,
 } app_action_t;
 
-_Static_assert(sizeof(app_action_t) == 4, "sizeof(app_action_t) != 4");
+assert_size(app_action_t, 4);
 
 app_action_t application_content(string_t *src, string_t *dst);
 #endif

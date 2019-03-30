@@ -22,13 +22,15 @@
 
 typedef struct
 {
-	const char		*command1;
-	const char		*command2;
-	app_action_t	(*function)(string_t *, string_t *);
-	const char		*description;
+	attr_flash_align	const char		*command_short;
+	attr_flash_align	const char		*command_long;
+	attr_flash_align	app_action_t	(*function)(string_t *, string_t *);
+	attr_flash_align	const char		*description;
 } application_function_table_t;
 
-static const application_function_table_t application_function_table[];
+assert_size(application_function_table_t, 16);
+
+roflash static const application_function_table_t application_function_table[];
 
 app_action_t application_content(string_t *src, string_t *dst)
 {
@@ -49,8 +51,8 @@ app_action_t application_content(string_t *src, string_t *dst)
 		return(app_action_empty);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		if(string_match_cstr(dst, tableptr->command1) ||
-				string_match_cstr(dst, tableptr->command2))
+		if(string_match_cstr(dst, tableptr->command_short) ||
+				string_match_cstr(dst, tableptr->command_long))
 			break;
 
 	if(tableptr->function)
@@ -222,7 +224,7 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 		string_format(dst, "> %s/%s: %s\n",
-				tableptr->command1, tableptr->command2,
+				tableptr->command_short, tableptr->command_long,
 				tableptr->description);
 
 	return(app_action_normal);
@@ -1721,7 +1723,7 @@ static app_action_t application_function_poke(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static const application_function_table_t application_function_table[] =
+roflash static const application_function_table_t application_function_table[] =
 {
 	{
 		"?", "help",
