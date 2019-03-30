@@ -54,7 +54,7 @@ int stat_debug_3;
 volatile uint32_t	*stat_stack_sp_initial;
 int					stat_stack_painted;
 
-static const char *flash_map[] =
+roflash static const char *const flash_map[] =
 {
 	"4 Mb map 256/256",
 	"2 Mb no map",
@@ -67,7 +67,7 @@ static const char *flash_map[] =
 	"unknown",
 };
 
-static const char *reset_map[] =
+roflash static const char *const reset_map[] =
 {
 	"power on",
 	"hardware watchdog",
@@ -80,7 +80,7 @@ static const char *reset_map[] =
 	"unknown2"
 };
 
-static const char *phy[] = {
+roflash static const char *const phy[] = {
 	"unknown",
 	"802.11b",
 	"802.11g",
@@ -88,7 +88,7 @@ static const char *phy[] = {
 	"unknown"
 };
 
-static const char *slp[] =
+roflash static const char *const slp[] =
 {
 	"none",
 	"light",
@@ -98,11 +98,13 @@ static const char *slp[] =
 
 typedef struct
 {
-	unsigned int id;
-	const char *name;
+	attr_flash_align	uint32_t	id;
+	attr_flash_align	const char *name;
 } manufacturer_t;
 
-static const manufacturer_t manufacturers[] =
+assert_size(manufacturer_t, 8);
+
+roflash static const manufacturer_t manufacturers[] =
 {
 	{	0xc8,	"GigaDevice"	},
 	{	0xe0,	"Berg Micro"	},
