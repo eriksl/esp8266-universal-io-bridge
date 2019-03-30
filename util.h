@@ -198,8 +198,6 @@ attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, uint8 mac_addr[6]);
 //int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix);
 attr_nonnull int string_double(string_t *dst, double value, int precision, double top_decimal);
-void string_crc32_init(void);
-attr_nonnull uint32_t string_crc32(const string_t *src, int offset, int length);
 
 #define string_new(_attributes, _name, _size) \
 	_attributes char _ ## _name ## _buf[_size] = { 0 }; \

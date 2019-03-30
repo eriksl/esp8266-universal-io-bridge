@@ -371,15 +371,20 @@ done:
 	return(rv);
 }
 
-unsigned int config_write(void)
+unsigned int config_write(string_t *flash_verify_buffer)
 {
 	config_entry_t *entry;
 	unsigned int ix, length = 0;
-	uint32_t crc1, crc2;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
-		log("config_write: buffer too small\n");
+		log("config_write: flash write buffer too small\n");
+		goto error;
+	}
+
+	if(string_size(flash_verify_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("config_write: flash verify buffer too small\n");
 		goto error;
 	}
 
@@ -404,31 +409,31 @@ unsigned int config_write(void)
 	while(string_length(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		string_append_byte(&flash_sector_buffer, '.');
 
-	string_crc32_init();
-	crc1 = string_crc32(&flash_sector_buffer, 0, SPI_FLASH_SEC_SIZE);
-
 	if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
 		goto error;
 
 	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(flash_verify_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;
 
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+	string_setlength(flash_verify_buffer, SPI_FLASH_SEC_SIZE);
 
-	crc2 = string_crc32(&flash_sector_buffer, 0, SPI_FLASH_SEC_SIZE);
-
-	if(crc1 != crc2)
+	if(!string_match_string(&flash_sector_buffer, flash_verify_buffer))
+	{
+		log("config_write: verify failed\n");
 		goto error;
-
-	string_clear(&flash_sector_buffer);
-	return(length);
+	}
+	goto ok;
 
 error:
+	length = 0;
+	log("config_write: flash failed\n");
+ok:
 	string_clear(&flash_sector_buffer);
-	return(0);
+	string_clear(flash_verify_buffer);
+	return(length);
 }
 
 void config_dump(string_t *dst)

@@ -43,7 +43,7 @@ _Bool			config_set_int(const string_t *id, int index1, int index2, uint32_t valu
 unsigned int	config_delete(const string_t *id, int index1, int index2, _Bool wildcard);
 
 _Bool			config_read(void);
-unsigned int	config_write(void);
+unsigned int	config_write(string_t *);
 void			config_dump(string_t *);
 
 attr_inline uint32_t config_flags_match(uint32_t match_flags)

@@ -467,7 +467,7 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(!config_set_int(&varname_wlan_mode, -1, -1, config_wlan_mode_client))
 		goto config_error;
 
-	if(config_write() == 0)
+	if(config_write(dst) == 0)
 		goto config_error;
 
 	string_append_cstr_flash(dst, roflash_html_table_start);

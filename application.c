@@ -73,7 +73,7 @@ static app_action_t application_function_config_write(string_t *src, string_t *d
 {
 	unsigned int size;
 
-	if((size = config_write()) == 0)
+	if((size = config_write(dst)) == 0)
 	{
 		string_append(dst, "> failed\n");
 		return(app_action_error);
