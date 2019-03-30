@@ -14,25 +14,22 @@
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
-static const io_info_t io_info =
+roflash static const io_info_t io_info =
 {
 	{
 		io_id_gpio, /* = 0 */
 		0x00,
 		0,
 		16,
-		{
-			.input_digital = 1,
-			.counter = 1,
-			.output_digital = 1,
-			.input_analog = 0,
-			.output_pwm1 = 1,
-			.output_pwm2 = 1,
-			.i2c = 1,
-			.uart = 1,
-			.ledpixel = 1,
-			.pullup = 1,
-		},
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_output_pwm1 |
+			caps_output_pwm2 |
+			caps_i2c |
+			caps_uart |
+			caps_ledpixel |
+			caps_pullup,
 		"Internal GPIO",
 		io_gpio_init,
 		(void *)0, // postinit
@@ -50,18 +47,10 @@ static const io_info_t io_info =
 		0x01,
 		0,
 		2,
-		{
-			.input_digital = 1,
-			.counter = 1,
-			.output_digital = 1,
-			.input_analog = 1,
-			.output_pwm1 = 0,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 0,
-		},
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_input_analog,
 		"Auxilliary GPIO (RTC+ADC)",
 		io_aux_init,
 		(void *)0, // postinit
@@ -79,18 +68,10 @@ static const io_info_t io_info =
 		0x20,
 		io_mcp_instance_20,
 		16,
-		{
-			.input_digital = 1,
-			.counter = 1,
-			.output_digital = 1,
-			.input_analog = 0,
-			.output_pwm1 = 0,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 1,
-		},
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_pullup,
 		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
 		(void *)0, // postinit
@@ -108,18 +89,10 @@ static const io_info_t io_info =
 		0x21,
 		io_mcp_instance_21,
 		16,
-		{
-			.input_digital = 1,
-			.counter = 1,
-			.output_digital = 1,
-			.input_analog = 0,
-			.output_pwm1 = 0,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 1,
-		},
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_pullup,
 		"MCP23017 I2C I/O expander #2",
 		io_mcp_init,
 		(void *)0, // postinit
@@ -137,18 +110,10 @@ static const io_info_t io_info =
 		0x22,
 		io_mcp_instance_22,
 		16,
-		{
-			.input_digital = 1,
-			.counter = 1,
-			.output_digital = 1,
-			.input_analog = 0,
-			.output_pwm1 = 0,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 1,
-		},
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_pullup,
 		"MCP23017 I2C I/O expander #3",
 		io_mcp_init,
 		(void *)0, // postinit
@@ -166,18 +131,8 @@ static const io_info_t io_info =
 		0x3a,
 		io_pcf_instance_3a,
 		8,
-		{
-			.input_digital = 1,
-			.counter = 0,
-			.output_digital = 1,
-			.input_analog = 0,
-			.output_pwm1 = 0,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 0,
-		},
+		caps_input_digital |
+			caps_output_digital,
 		"PCF8574A I2C I/O expander",
 		io_pcf_init,
 		(void *)0, // postinit
@@ -195,18 +150,7 @@ static const io_info_t io_info =
 		0x00,
 		0,
 		16,
-		{
-			.input_digital = 0,
-			.counter = 0,
-			.output_digital = 0,
-			.input_analog = 0,
-			.output_pwm1 = 1,
-			.output_pwm2 = 0,
-			.i2c = 0,
-			.uart = 0,
-			.ledpixel = 0,
-			.pullup = 0,
-		},
+		caps_output_pwm1,
 		"led string",
 		io_ledpixel_init,
 		io_ledpixel_post_init,
@@ -988,7 +932,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 	return(io_ok);
 }
 
-unsigned int io_pin_max_value(int io, int pin)
+unsigned int io_pin_max_value(unsigned int io, unsigned int pin)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1010,7 +954,7 @@ unsigned int io_pin_max_value(int io, int pin)
 	return(io_pin_max_value_x(info, pin_data, pin_config, pin));
 }
 
-io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
+io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, uint32_t *value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1047,7 +991,7 @@ io_error_t io_read_pin(string_t *error_msg, int io, int pin, uint32_t *value)
 	return(error);
 }
 
-io_error_t io_write_pin(string_t *error, int io, int pin, uint32_t value)
+io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, uint32_t value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1093,7 +1037,7 @@ io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int 
 	return(io_set_mask_x(error, info, mask, pins));
 }
 
-io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger_type)
+io_error_t io_trigger_pin(string_t *error, unsigned int io, unsigned int pin, io_trigger_t trigger_type)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1123,7 +1067,7 @@ io_error_t io_trigger_pin(string_t *error, int io, int pin, io_trigger_t trigger
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
 }
 
-io_error_t io_traits(string_t *errormsg, int io, int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
+io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
 {
 	io_error_t error;
 	const io_info_entry_t *info;
@@ -1206,7 +1150,8 @@ void io_init(void)
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
 	io_pin_flag_to_int_t flags;
-	int io, pin, mode, llmode;
+	unsigned int io, pin;
+	int mode, llmode;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
 	unsigned int i2c_speed_delay;
@@ -1292,7 +1237,7 @@ void io_init(void)
 				{
 					int debounce, trigger_io, trigger_pin, trigger_type;
 
-					if(!info->caps.counter)
+					if(!(info->caps & caps_counter))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1349,7 +1294,7 @@ void io_init(void)
 				{
 					int direction, speed;
 
-					if(!info->caps.output_digital)
+					if(!(info->caps & caps_output_digital))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1381,7 +1326,7 @@ void io_init(void)
 					int speed;
 					uint32_t lower_bound, upper_bound;
 
-					if(!info->caps.output_pwm1)
+					if(!(info->caps & caps_output_pwm1))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1423,7 +1368,7 @@ void io_init(void)
 					int speed;
 					uint32_t lower_bound, upper_bound;
 
-					if(!info->caps.output_pwm2)
+					if(!(info->caps & caps_output_pwm2))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1464,7 +1409,7 @@ void io_init(void)
 				{
 					int pin_mode;
 
-					if(!info->caps.i2c)
+					if(!(info->caps & caps_i2c))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1501,7 +1446,7 @@ void io_init(void)
 
 				case(io_pin_ledpixel):
 				{
-					if(!info->caps.ledpixel)
+					if(!(info->caps & caps_ledpixel))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1513,7 +1458,7 @@ void io_init(void)
 
 				case(io_pin_cfa634):
 				{
-					if(!info->caps.uart)
+					if(!(info->caps & caps_uart))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1615,7 +1560,7 @@ iram void io_periodic_fast(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin, trigger;
+	unsigned int io, pin, trigger;
 	uint32_t value;
 	io_flags_t flags = { .counter_triggered = 0 };
 
@@ -1699,7 +1644,7 @@ void io_periodic_slow(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	int io, pin;
+	unsigned int io, pin;
 	io_flags_t flags = { .counter_triggered = 0 };
 	string_init(varname_trigger_io, "trigger.status.io");
 	string_init(varname_trigger_pin, "trigger.status.pin");
@@ -1828,7 +1773,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 	{
 		case(io_pin_input_digital):
 		{
-			if(!info->caps.input_digital)
+			if(!(info->caps & caps_input_digital))
 			{
 				string_append(dst, "digital input mode invalid for this io\n");
 				return(app_action_error);
@@ -1845,7 +1790,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 		case(io_pin_counter):
 		{
-			if(!info->caps.counter)
+			if(!(info->caps & caps_counter))
 			{
 				string_append(dst, "counter mode invalid for this io\n");
 				return(app_action_error);
@@ -1875,7 +1820,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 			unsigned int debounce, trigger_io, trigger_pin;
 			io_trigger_t trigger_type;
 
-			if(!info->caps.counter)
+			if(!(info->caps & caps_counter))
 			{
 				string_append(dst, "trigger mode invalid for this io\n");
 				return(app_action_error);
@@ -1973,7 +1918,7 @@ skip:
 
 		case(io_pin_output_digital):
 		{
-			if(!info->caps.output_digital)
+			if(!(info->caps & caps_output_digital))
 			{
 				string_append(dst, "digital output mode invalid for this io\n");
 				return(app_action_error);
@@ -1993,7 +1938,7 @@ skip:
 			io_direction_t direction;
 			uint32_t speed;
 
-			if(!info->caps.output_digital)
+			if(!(info->caps & caps_output_digital))
 			{
 				string_append(dst, "timer mode invalid for this io\n");
 				return(app_action_error);
@@ -2047,7 +1992,7 @@ skip:
 
 		case(io_pin_input_analog):
 		{
-			if(!info->caps.input_analog)
+			if(!(info->caps & caps_input_analog))
 			{
 				string_append(dst, "analog input mode invalid for this io\n");
 				return(app_action_error);
@@ -2068,7 +2013,7 @@ skip:
 			uint32_t upper_bound = 0;
 			uint32_t speed = 0;
 
-			if(!info->caps.output_pwm1)
+			if(!(info->caps & caps_output_pwm1))
 			{
 				string_append(dst, "primary pwm output mode invalid for this io\n");
 				return(app_action_error);
@@ -2109,7 +2054,7 @@ skip:
 			uint32_t upper_bound = 0;
 			uint32_t speed = 0;
 
-			if(!info->caps.output_pwm2)
+			if(!(info->caps & caps_output_pwm2))
 			{
 				string_append(dst, "secondary pwm output mode invalid for this io\n");
 				return(app_action_error);
@@ -2148,7 +2093,7 @@ skip:
 		{
 			io_i2c_t pin_mode;
 
-			if(!info->caps.i2c)
+			if(!(info->caps & caps_i2c))
 			{
 				string_append(dst, "i2c mode invalid for this io\n");
 				return(app_action_error);
@@ -2184,7 +2129,7 @@ skip:
 
 		case(io_pin_uart):
 		{
-			if(!info->caps.uart)
+			if(!(info->caps & caps_uart))
 			{
 				string_append(dst, "uart mode invalid for this io\n");
 				return(app_action_error);
@@ -2221,13 +2166,13 @@ skip:
 
 			if(pin_mode == io_lcd_bl) // backlight
 			{
-				if(info->caps.output_pwm2)
+				if(info->caps & caps_output_pwm2)
 					llmode = io_pin_ll_output_pwm2;
 				else
-					if(info->caps.output_pwm1)
+					if(info->caps & caps_output_pwm1)
 						llmode = io_pin_ll_output_pwm1;
 					else
-						if(info->caps.output_digital)
+						if(info->caps & caps_output_digital)
 							llmode = io_pin_ll_output_digital;
 						else
 						{
@@ -2237,7 +2182,7 @@ skip:
 			}
 			else
 			{
-				if(!info->caps.output_digital)
+				if(!(info->caps & caps_output_digital))
 				{
 					string_append(dst, "digital output mode invalid for this io\n");
 					return(app_action_error);
@@ -2258,7 +2203,7 @@ skip:
 
 		case(io_pin_ledpixel):
 		{
-			if(!info->caps.ledpixel)
+			if(!(info->caps & caps_ledpixel))
 			{
 				string_append(dst, "ledpixel mode invalid for this io\n");
 				return(app_action_error);
@@ -2275,7 +2220,7 @@ skip:
 
 		case(io_pin_cfa634):
 		{
-			if(!info->caps.uart)
+			if(!(info->caps & caps_uart))
 			{
 				string_append(dst, "cfa634 mode invalid for this io (must be an uart)\n");
 				return(app_action_error);
@@ -2607,7 +2552,7 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 		return(app_action_error);
 	}
 
-	if(pin_config->flags.pullup && !info->caps.pullup)
+	if(pin_config->flags.pullup && !(info->caps & caps_pullup))
 	{
 		pin_config->flags = saved_flags;
 		string_clear(dst);
@@ -2782,7 +2727,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 	io_data_pin_entry_t *pin_data;
 	const io_config_pin_entry_t *pin_config;
 	const string_array_t *roflash_strings;
-	int io, pin;
+	unsigned int io, pin;
 	uint32_t value;
 	io_error_t error;
 
@@ -2795,7 +2740,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 
 	for(io = 0; io < io_id_size; io++)
 	{
-		if((io_id >= 0) && (io_id != io))
+		if((io_id >= 0) && (io_id != (int)io))
 			continue;
 
 		info = &io_info[io];
@@ -2813,7 +2758,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
-			if((pin_id >= 0) && (pin_id != pin))
+			if((pin_id >= 0) && (pin_id != (int)pin))
 				continue;
 
 			pin_config = &io_config[io][pin];

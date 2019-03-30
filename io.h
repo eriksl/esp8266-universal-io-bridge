@@ -13,6 +13,8 @@ typedef enum
 	io_error,
 } io_error_t;
 
+assert_size(io_error_t, 4);
+
 enum
 {
 	max_pins_per_io = 16,
@@ -32,6 +34,8 @@ typedef enum
 	io_id_ledpixel,
 	io_id_size,
 } io_id_t;
+
+assert_size(io_id_t, 4);
 
 typedef struct
 {
@@ -157,18 +161,18 @@ typedef enum attr_packed
 
 assert_size(io_lcd_mode_t, 1);
 
-typedef struct
+typedef enum
 {
-	unsigned int input_digital:1;
-	unsigned int counter:1;
-	unsigned int output_digital:1;
-	unsigned int input_analog:1;
-	unsigned int output_pwm1:1;
-	unsigned int output_pwm2:1;
-	unsigned int i2c:1;
-	unsigned int ledpixel:1;
-	unsigned int uart:1;
-	unsigned int pullup:1;
+	caps_input_digital =	1 << 0,
+	caps_counter =			1 << 1,
+	caps_output_digital =	1 << 2,
+	caps_input_analog =		1 << 3,
+	caps_output_pwm1 =		1 << 4,
+	caps_output_pwm2 =		1 << 5,
+	caps_i2c =				1 << 6,
+	caps_ledpixel =			1 << 7,
+	caps_uart =				1 << 8,
+	caps_pullup =			1 << 9,
 } io_caps_t;
 
 assert_size(io_caps_t, 4);
@@ -238,39 +242,39 @@ assert_size(io_config_pin_entry_t, 16);
 
 typedef const struct io_info_entry_T
 {
-	io_id_t	id;
-	uint8_t address;
-	uint8_t	instance;
-	uint8_t pins;
-	io_caps_t caps;
-	const char *name;
-	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
-	void		(* const post_init_fn)		(					const struct io_info_entry_T *);
-	unsigned int(* const pin_max_value_fn)	(					const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
-	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
-	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
-	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
-	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
-	io_error_t	(* const set_mask_fn)		(string_t *error,	const struct io_info_entry_T *, unsigned int mask, unsigned int pins);
+	attr_flash_align	io_id_t	id;
+	attr_flash_align	uint32_t address;
+	attr_flash_align	uint32_t instance;
+	attr_flash_align	uint32_t pins;
+	attr_flash_align	io_caps_t caps;
+	attr_flash_align	const char *name;
+	attr_flash_align	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
+	attr_flash_align	void		(* const post_init_fn)		(					const struct io_info_entry_T *);
+	attr_flash_align	unsigned int(* const pin_max_value_fn)	(					const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
+	attr_flash_align	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
+	attr_flash_align	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
+	attr_flash_align	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
+	attr_flash_align	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
+	attr_flash_align	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
+	attr_flash_align	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
+	attr_flash_align	io_error_t	(* const set_mask_fn)		(string_t *error,	const struct io_info_entry_T *, unsigned int mask, unsigned int pins);
 } io_info_entry_t;
+
+assert_size(io_info_entry_t, 64);
 
 typedef const io_info_entry_t io_info_t[io_id_size];
 
 extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
-assert_size(io_error_t, 4);
-
 void			io_init(void);
 void			io_periodic_slow(void);
 void			io_periodic_fast(void);
-unsigned int	io_pin_max_value(int io, int pin);
-io_error_t		io_read_pin(string_t *, int, int, uint32_t *);
-io_error_t		io_write_pin(string_t *, int, int, uint32_t);
+unsigned int	io_pin_max_value(unsigned int io, unsigned int pin);
+io_error_t		io_read_pin(string_t *, unsigned int, unsigned int, uint32_t *);
+io_error_t		io_write_pin(string_t *, unsigned int, unsigned int, uint32_t);
 io_error_t		io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
-io_error_t		io_trigger_pin(string_t *, int, int, io_trigger_t);
-io_error_t		io_traits(string_t *, int io, int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
+io_error_t		io_trigger_pin(string_t *, unsigned int, unsigned int, io_trigger_t);
+io_error_t		io_traits(string_t *, unsigned int io, unsigned int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
 void			io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html);
 void			io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
