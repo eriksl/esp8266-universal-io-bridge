@@ -180,11 +180,50 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 	return(ERR_OK);
 }
 
+static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket)
+{
+	struct tcp_pcb *pcb_tcp = (struct pcb_tcp *)socket->tcp.pcb;
+	unsigned int chunk_size, offset, apiflags;
+	_Bool sent_one = false;
+	err_t error;
+
+	while(socket->sending_remaining > 0)
+	{
+		chunk_size = socket->sending_remaining;
+
+		apiflags = 0;
+		if(chunk_size > lwip_tcp_max_payload)
+		{
+			chunk_size = lwip_tcp_max_payload;
+			apiflags |= TCP_WRITE_FLAG_MORE;
+		}
+
+		offset = string_length(socket->send_buffer) - socket->sending_remaining;
+
+		if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
+		{
+			log("lwip: tcp write: error: ");
+			log_error(error);
+			break;
+		}
+
+		sent_one = true;
+		socket->sending_remaining -= chunk_size;
+		socket->sent_remaining += chunk_size;
+	}
+
+	if((error = tcp_output(pcb_tcp)) != ERR_OK)
+	{
+		log("lwip: tcp send: tcp_output: error: ");
+		log_error(error);
+	}
+
+	return(sent_one);
+}
+
 static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t len)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
-	err_t error = ERR_OK;
-	int apiflags, offset, chunk_size;
 
 	if(len > socket->sent_remaining)
 	{
@@ -194,46 +233,10 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 	else
 		socket->sent_remaining -= len;
 
-	if(socket->sent_remaining > 0)
-		return(ERR_OK);
-
-	if(socket->sending_remaining > 0)
-	{
-		apiflags = 0;
-
-		chunk_size = socket->sending_remaining;
-
-		if(chunk_size > lwip_tcp_max_payload)
-		{
-			chunk_size = lwip_tcp_max_payload;
-			apiflags |= TCP_WRITE_FLAG_MORE;
-		}
-
-		offset = string_length(socket->send_buffer) - socket->sending_remaining;
-
-		if((error = tcp_write(pcb, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
-		{
-			log("tcp sent callback: tcp_write error: ");
-			log_error(error);
-			goto error;
-		}
-
-		if((error = tcp_output(pcb)) != ERR_OK)
-		{
-			log("tcp sent callback: tcp_output error: ");
-			log_error(error);
-			goto error;
-		}
-
-		socket->sent_remaining = chunk_size;
-		socket->sending_remaining -= chunk_size;
-	}
+	if((socket->sending_remaining > 0) && (!tcp_try_send_buffer(socket)))
+		socket->sending_remaining = 0;
 
 	return(ERR_OK);
-
-error:
-	socket->sending_remaining = socket->sent_remaining = 0;
-	return(error);
 }
 
 static void tcp_error_callback(void *callback_arg, err_t error)
@@ -375,7 +378,6 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 	else // received packet from TCP, reply using TCP
 	{
 		struct tcp_pcb *pcb_tcp = (struct pcb_tcp *)socket->tcp.pcb;
-		int chunk_size, apiflags;
 
 		if(pcb_tcp == (struct tcp_pcb *)0)
 		{
@@ -383,40 +385,18 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 			return(false);
 		}
 
-		apiflags = 0;
+		socket->sending_remaining = string_length(socket->send_buffer);
+		socket->sent_remaining = 0;
 
-		chunk_size = socket->sent_remaining = string_length(socket->send_buffer);
-
-		if(chunk_size > lwip_tcp_max_payload)
+		if(!tcp_try_send_buffer(socket))
 		{
-			chunk_size = lwip_tcp_max_payload;
-			apiflags |= TCP_WRITE_FLAG_MORE;
+			log("lwip if send: tcp try send buffer failed\n");
+			socket->sending_remaining = 0;
+			return(false);
 		}
-
-		if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer), chunk_size, apiflags)) != ERR_OK)
-		{
-			log("lwip if send: tcp_send: error: ");
-			log_error(error);
-			goto error;
-		}
-
-		if((error = tcp_output(pcb_tcp)) != ERR_OK)
-		{
-			log("lwip if send: tcp send: tcp_output: error: ");
-			log_error(error);
-			goto error;
-		}
-
-		socket->sent_remaining = chunk_size;
-		socket->sending_remaining = string_length(socket->send_buffer) - chunk_size;
 	}
 
 	return(true);
-
-error:
-	socket->sending_remaining = 0;
-	socket->sent_remaining = 0;
-	return(false);
 }
 
 attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
