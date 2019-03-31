@@ -1142,7 +1142,7 @@ err_t etharp_query(struct netif *netif, ip_addr_t *ipaddr, struct pbuf *q)
         	old = arp_table[i].q;
         	arp_table[i].q = arp_table[i].q->next;
         	pbuf_free(old->p);
-        	memp_free(MEM_ARP_QUEUE, old);
+			memp_free(MEMP_ARP_QUEUE, old);
         }
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_query: queued packet %p on ARP entry %"S16_F"\n", (void *)q, (s16_t)i));
         result = ERR_OK;
