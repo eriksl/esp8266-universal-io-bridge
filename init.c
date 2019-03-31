@@ -87,6 +87,8 @@ void user_init(void)
 
 static void user_init2(void)
 {
+	stat_heap_min = system_get_free_heap_size();
+
 	dispatch_init2();
 
 	if(config_flags_match(flag_cpu_high_speed))

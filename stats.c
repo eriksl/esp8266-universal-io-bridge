@@ -53,6 +53,7 @@ int stat_debug_3;
 
 volatile uint32_t	*stat_stack_sp_initial;
 int					stat_stack_painted;
+unsigned int		stat_heap_min;
 
 roflash static const char *const flash_map[] =
 {
@@ -156,7 +157,7 @@ void stats_firmware(string_t *dst)
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
 			"> cpu frequency: %u MHz\n"
 			"> reset cause: %s, exception: %d, epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n"
-			"> heap free: %u bytes\n"
+			"> heap free current: %u, min: %u bytes\n"
 			">\n"
 			"> stack:\n"
 			">   bottom: %p\n"
@@ -175,6 +176,7 @@ void stats_firmware(string_t *dst)
 				system_get_cpu_freq(),
 				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
 				system_get_free_heap_size(),
+				stat_heap_min,
 				(void *)stack_bottom,
 				(void *)stack_top,
 				stat_stack_sp_initial, (typeof(stat_stack_sp_initial))stack_bottom - stat_stack_sp_initial,

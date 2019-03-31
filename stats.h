@@ -62,6 +62,7 @@ extern unsigned int stat_i2c_hard_resets;
 
 extern volatile uint32_t *stat_stack_sp_initial;
 extern int stat_stack_painted;
+extern unsigned int stat_heap_min;
 
 void stats_firmware(string_t *dst);
 void stats_time(string_t *dst);
