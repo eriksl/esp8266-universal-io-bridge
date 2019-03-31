@@ -988,7 +988,7 @@
  * TCP_SND_BUF: TCP sender buffer space (bytes).
  */
 #ifndef TCP_SND_BUF
-#define TCP_SND_BUF                     2 * TCP_MSS
+#define TCP_SND_BUF                     4 * TCP_MSS
 #endif
 
 /**
