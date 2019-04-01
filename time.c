@@ -1,10 +1,7 @@
 #include "time.h"
-
 #include "config.h"
 #include "stats.h"
-
-#include <user_interface.h>
-#include <sntp.h>
+#include "sdk.h"
 
 typedef struct
 {

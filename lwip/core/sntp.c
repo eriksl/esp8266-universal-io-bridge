@@ -43,8 +43,6 @@
  */
 
 #include "lwip/sntp.h"
-#include "osapi.h"
-#include "os_type.h"
 #include "lwip/opt.h"
 #include "lwip/timers.h"
 #include "lwip/udp.h"
@@ -52,7 +50,15 @@
 #include "lwip/ip_addr.h"
 #include "lwip/pbuf.h"
 #include "lwip/app/time.h"
-//#include <string.h>
+#include <sdk.h>
+
+#define PERIPHS_RTC_BASEADDR	0x60000700
+#define REG_RTC_BASE			PERIPHS_RTC_BASEADDR
+#define RTC_STORE3				(REG_RTC_BASE + 0x03C)
+
+#define ETS_UNCACHED_ADDR(addr) (addr)
+#define READ_PERI_REG(addr) (*((volatile uint32_t *)ETS_UNCACHED_ADDR(addr)))
+
 #if LWIP_UDP
 
 /**
@@ -148,7 +154,7 @@
 #endif
 
 /** SNTP macro to change system time including microseconds */
-uint8 sntp_receive_time_size = 1;
+uint8_t sntp_receive_time_size = 1;
 #define SNTP_RECEIVE_TIME_SIZE      sntp_receive_time_size
 #define SNTP_SET_SYSTEM_TIME_US(sec, us)	sntp_update_rtc(sec, us)
 //#ifdef SNTP_SET_SYSTEM_TIME_US
@@ -160,7 +166,7 @@ uint8 sntp_receive_time_size = 1;
 //#define SNTP_CALC_TIME_US           0
 //#define SNTP_RECEIVE_TIME_SIZE      sntp_receive_time_size
 //#endif
-void sntp_update_rtc(time_t sec, u32 us);
+void sntp_update_rtc(uint32_t sec, uint32_t us);
 
 /** SNTP macro to get system time, used with SNTP_CHECK_RESPONSE >= 2
  * to send in request and compare in response.
@@ -263,7 +269,7 @@ static void sntp_request(void *arg);
 /** The UDP pcb used by the SNTP client */
 static struct udp_pcb* sntp_pcb;
 
-sint8 time_zone = 8;
+int8_t time_zone = 8;
 /** Names/Addresses of servers */
 struct sntp_server {
 #if SNTP_SERVER_DNS
@@ -300,12 +306,12 @@ static ip_addr_t sntp_last_server_address;
 static u32_t sntp_last_timestamp_sent[2];
 #endif /* SNTP_CHECK_RESPONSE >= 2 */
 
-//uint32 current_stamp_1 = 0;
-//uint32 current_stamp_2 = 0;
+//uint32_t current_stamp_1 = 0;
+//uint32_t current_stamp_2 = 0;
 static bool sntp_time_flag = false;
-static uint32 sntp_update_delay = SNTP_UPDATE_DELAY;
-static uint64 realtime_stamp = 0;
-LOCAL os_timer_t sntp_timer;
+static uint32_t sntp_update_delay = SNTP_UPDATE_DELAY;
+static uint64_t realtime_stamp = 0;
+static os_timer_t sntp_timer;
 /*****************************************/
 #define SECSPERMIN	60L
 #define MINSPERHOUR	60L
@@ -341,11 +347,11 @@ struct tm res_buf;
 
 __tzrule_type sntp__tzrule[2];
 
-struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime);
-struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime)
+struct tm *sntp_mktm_r(const uint32_t * tim_p ,struct tm *res ,int is_gmtime);
+struct tm *sntp_mktm_r(const uint32_t * tim_p ,struct tm *res ,int is_gmtime)
 {
   long days, rem;
-  time_t lcltime;
+  uint32_t lcltime;
   int y;
   int yleap;
   const int *ip;
@@ -504,13 +510,13 @@ struct tm *sntp_mktm_r(const time_t * tim_p ,struct tm *res ,int is_gmtime)
   return (res);
 }
 
-struct tm *sntp_localtime_r(const time_t * tim_p, struct tm *res);
-struct tm *sntp_localtime_r(const time_t * tim_p, struct tm *res)
+struct tm *sntp_localtime_r(const uint32_t * tim_p, struct tm *res);
+struct tm *sntp_localtime_r(const uint32_t * tim_p, struct tm *res)
 {
   return sntp_mktm_r (tim_p, res, 0);
 }
 
-struct tm *sntp_localtime(const time_t * tim_p)
+struct tm *sntp_localtime(const uint32_t * tim_p)
 {
   return sntp_localtime_r (tim_p, &res_buf);
 }
@@ -571,6 +577,8 @@ int sntp__tzcalc_limits(int year)
   return 1;
 }
 
+int ets_sprintf(char *str, const char *format, ...)  __attribute__ ((format (printf, 2, 3)));
+
 char *sntp_asctime_r(struct tm *tim_p, char *result);
 char *sntp_asctime_r(struct tm *tim_p, char *result)
 {
@@ -581,7 +589,7 @@ char *sntp_asctime_r(struct tm *tim_p, char *result)
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   };
-  os_sprintf (result, "%s %s %02d %02d:%02d:%02d %02d\n",
+  ets_sprintf (result, "%s %s %02d %02d:%02d:%02d %02d\n",
 	   day_name[tim_p->tm_wday],
 	   mon_name[tim_p->tm_mon],
 	   tim_p->tm_mday, tim_p->tm_hour, tim_p->tm_min,
@@ -595,24 +603,19 @@ char *sntp_asctime(struct tm *tim_p)
     return sntp_asctime_r (tim_p, reult);
 }
 
-uint32 sntp_get_current_timestamp(void)
+uint32_t sntp_get_current_timestamp(void)
 {
-	if(realtime_stamp == 0){
-		os_printf("please start sntp first !\n");
-		return 0;
-	} else {
-		return realtime_stamp;
-	}
+	return realtime_stamp;
 }
 
-char *sntp_get_real_time(time_t t)
+const char *sntp_get_real_time(uint32_t t)
 {
 	return sntp_asctime(sntp_localtime (&t));
 }
 /**
  * SNTP get time_zone default GMT + 8
  */
-sint8 sntp_get_timezone(void)
+int8_t sntp_get_timezone(void)
 {
 	return time_zone;
 }
@@ -620,7 +623,7 @@ sint8 sntp_get_timezone(void)
  * SNTP set time_zone default GMT + 8
  */
 
-bool sntp_set_timezone(sint8 timezone)
+bool sntp_set_timezone(int8_t timezone)
 {
 	if((timezone >= -11) && (timezone <= 13)) {
 		if (sntp_get_timetype()){
@@ -655,7 +658,7 @@ static void sntp_process(u32_t *receive_timestamp)
   /* convert SNTP time (1900-based) to unix GMT time (1970-based)
    * @todo: if MSB is 1, SNTP time is 2036-based!
    */
-  time_t t = (ntohl(receive_timestamp[0]) - DIFF_SEC_1900_1970);
+  uint32_t t = (ntohl(receive_timestamp[0]) - DIFF_SEC_1900_1970);
   if (sntp_get_timetype()){
 	  u32_t us = ntohl(receive_timestamp[1]) / 4295;
 	    SNTP_SET_SYSTEM_TIME_US(t, us);
@@ -668,7 +671,7 @@ static void sntp_process(u32_t *receive_timestamp)
 	    t += time_zone * 60 * 60;// format GMT + time_zone TIME ZONE
 	    realtime_stamp = t;
 	    os_timer_disarm(&sntp_timer);
-	    os_timer_setfn(&sntp_timer, (os_timer_func_t *)sntp_time_inc, NULL);
+	    os_timer_setfn(&sntp_timer, (ETSTimerFunc *)sntp_time_inc, NULL);
 	    os_timer_arm(&sntp_timer, 1000, 1);
   }
 #if 0
@@ -686,7 +689,7 @@ static void sntp_process(u32_t *receive_timestamp)
   t += time_zone * 60 * 60;// format GMT + time_zone TIME ZONE
   realtime_stamp = t;
   os_timer_disarm(&sntp_timer);
-  os_timer_setfn(&sntp_timer, (os_timer_func_t *)sntp_time_inc, NULL);
+  os_timer_setfn(&sntp_timer, (ETSTimerFunc *)sntp_time_inc, NULL);
   os_timer_arm(&sntp_timer, 1000, 1);
 #endif /* SNTP_CALC_TIME_US */
 #endif
@@ -697,7 +700,7 @@ static void sntp_process(u32_t *receive_timestamp)
  */
 static void sntp_initialize_request(struct sntp_msg *req)
 {
-  os_memset(req, 0, SNTP_MSG_LEN);
+  memset(req, 0, SNTP_MSG_LEN);
   req->li_vn_mode = SNTP_LI_NO_WARNING | SNTP_VERSION | SNTP_MODE_CLIENT;
 
 #if SNTP_CHECK_RESPONSE >= 2
@@ -765,7 +768,7 @@ static void sntp_try_next_server(void* arg)
     }
     if (!ip_addr_isany(&sntp_servers[sntp_current_server].addr)
 #if SNTP_SERVER_DNS
-        || ((sntp_servers[sntp_current_server].name != NULL) && os_strlen(sntp_servers[sntp_current_server].name))
+        || ((sntp_servers[sntp_current_server].name != NULL) && strlen(sntp_servers[sntp_current_server].name))
 #endif
         ) {
       LWIP_DEBUGF(SNTP_DEBUG_STATE, ("sntp_try_next_server: Sending request to server %"U16_F"\n",
@@ -936,7 +939,7 @@ static void sntp_request(void *arg)
   /* initialize SNTP server address */
 #if SNTP_SERVER_DNS
 
-  if (sntp_servers[sntp_current_server].name && os_strlen(sntp_servers[sntp_current_server].name)) {
+  if (sntp_servers[sntp_current_server].name && strlen(sntp_servers[sntp_current_server].name)) {
     /* always resolve the name and rely on dns-internal caching & timeout */
     ip_addr_set_any(&sntp_servers[sntp_current_server].addr);
     err = dns_gethostbyname(sntp_servers[sntp_current_server].name, &sntp_server_address,
@@ -1041,7 +1044,7 @@ void sntp_setserver(u8_t idx, ip_addr_t *server)
     }
 #if SNTP_SERVER_DNS
     //sntp_servers[idx].name = NULL;
-    os_memset(sntp_servers[idx].name,0x0,sizeof(sntp_servers[idx].name));
+    memset(sntp_servers[idx].name,0x0,sizeof(sntp_servers[idx].name));
 #endif
   }
 }
@@ -1096,7 +1099,7 @@ void sntp_setservername(u8_t idx, char *server)
 {
   if (idx < SNTP_MAX_SERVERS) {
     // sntp_servers[idx].name = server;
-      os_strcpy(sntp_servers[idx].name,server);
+      strcpy(sntp_servers[idx].name,server);
   }
 }
 
@@ -1116,8 +1119,8 @@ char *sntp_getservername(u8_t idx)
 }
 #endif /* SNTP_SERVER_DNS */
 
-void sntp_set_update_delay(uint32 ms);
-void sntp_set_update_delay(uint32 ms)
+void sntp_set_update_delay(uint32_t ms);
+void sntp_set_update_delay(uint32_t ms)
 {
 	sntp_update_delay = ms > 15000?ms:15000;
 }

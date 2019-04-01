@@ -95,12 +95,7 @@ Steve Reynolds
 
 #include "string.h"
 
-//#define DYC_IGMP_DEBUG
-#ifdef DYC_IGMP_DEBUG
-#define IGMP_LOG		os_printf
-#else
 #define IGMP_LOG(...)	do { (void)0; } while(0);
-#endif
 
 /*
  * IGMP constants

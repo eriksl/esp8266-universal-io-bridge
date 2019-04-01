@@ -3,10 +3,8 @@
 #include "dispatch.h"
 #include "stats.h"
 #include "io_gpio.h"
-
-#include <os_type.h>
-#include <ets_sys.h>
-#include <user_interface.h>
+#include "sdk.h"
+#include "eagle.h"
 
 typedef struct
 {

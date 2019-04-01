@@ -7,9 +7,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <mem.h>
-#include <user_interface.h>
-
 char flash_dram_buffer[1024];
 
 string_t logbuffer =
@@ -21,7 +18,7 @@ string_t logbuffer =
 
 int attr_used __errno;
 
-// functions missing from SDK libmain (but declared in headers)
+// functions used in SDK libmain and coming from libc (which we don't use)
 
 #ifdef isxdigit
 undef isxdigit
@@ -577,7 +574,7 @@ void string_ip(string_t *dst, ip_addr_t addr)
 		ip_addr_to_bytes.byte[3]);
 }
 
-void string_mac(string_t *dst, uint8 addr[6])
+void string_mac(string_t *dst, mac_addr_t addr)
 {
 	int ix;
 	mac_addr_to_bytes_t mac_addr_to_bytes;

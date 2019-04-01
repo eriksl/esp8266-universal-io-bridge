@@ -1,0 +1,380 @@
+#ifndef _eagle_h_
+#define _eagle_h_
+
+#include "attribute.h"
+
+#include <stdint.h>
+
+enum
+{
+	PERIPHS_GPIO_BASEADDR =		0x60000300,
+	GPIO_OUT_W1TS_ADDRESS =		0x04,
+	GPIO_OUT_W1TC_ADDRESS =		0x08,
+	GPIO_ENABLE_W1TS_ADDRESS =	0x10,
+	GPIO_ENABLE_W1TC_ADDRESS =	0x14,
+	GPIO_IN_ADDRESS =			0x18,
+	GPIO_PIN0_ADDRESS =			0x28,
+};
+
+enum
+{
+	PERIPHS_IO_MUX_FUNC =			0x13,
+	PERIPHS_IO_MUX_FUNC_S =			4,
+	PERIPHS_IO_MUX_PULLUP =			1 << 7,
+	PERIPHS_IO_MUX_PULLUP2 =		1 << 6,
+	PERIPHS_IO_MUX_SLEEP_PULLUP =	1 << 3,
+	PERIPHS_IO_MUX_SLEEP_PULLUP2 =	1 << 2,
+	PERIPHS_IO_MUX_SLEEP_OE =		1 << 1,
+	PERIPHS_IO_MUX_OE =				1 << 0,
+};
+
+enum
+{
+	PERIPHS_IO_MUX =			0x60000800,
+	PERIPHS_IO_MUX_MTDI_U =		PERIPHS_IO_MUX + 0x04,
+	PERIPHS_IO_MUX_MTCK_U =		PERIPHS_IO_MUX + 0x08,
+	PERIPHS_IO_MUX_MTMS_U =		PERIPHS_IO_MUX + 0x0c,
+	PERIPHS_IO_MUX_MTDO_U =		PERIPHS_IO_MUX + 0x10,
+	PERIPHS_IO_MUX_U0RXD_U =	PERIPHS_IO_MUX + 0x14,
+	PERIPHS_IO_MUX_U0TXD_U =	PERIPHS_IO_MUX + 0x18,
+	PERIPHS_IO_MUX_SD_CLK_U =	PERIPHS_IO_MUX + 0x1c,
+	PERIPHS_IO_MUX_SD_DATA0_U =	PERIPHS_IO_MUX + 0x20,
+	PERIPHS_IO_MUX_SD_DATA1_U =	PERIPHS_IO_MUX + 0x24,
+	PERIPHS_IO_MUX_SD_DATA2_U =	PERIPHS_IO_MUX + 0x28,
+	PERIPHS_IO_MUX_SD_DATA3_U =	PERIPHS_IO_MUX + 0x2c,
+	PERIPHS_IO_MUX_SD_CMD_U =	PERIPHS_IO_MUX + 0x30,
+	PERIPHS_IO_MUX_GPIO0_U =	PERIPHS_IO_MUX + 0x34,
+	PERIPHS_IO_MUX_GPIO2_U =	PERIPHS_IO_MUX + 0x38,
+	PERIPHS_IO_MUX_GPIO4_U =	PERIPHS_IO_MUX + 0x3c,
+	PERIPHS_IO_MUX_GPIO5_U =	PERIPHS_IO_MUX + 0x40,
+};
+
+enum
+{
+	ETS_SLC_INUM =			1,
+	ETS_SPI_INUM =			2,
+	ETS_RTC_INUM =			3,
+	ETS_GPIO_INUM =			4,
+	ETS_UART_INUM =			5,
+	ETS_CCOMPARE0_INUM =	6,
+	ETS_SOFT_INUM =			7,
+	ETS_WDT_INUM =			8,
+	ETS_TIMER0_INUM =		9,
+	ETS_NMI_INUM =			14,
+};
+
+enum
+{
+	FUNC_GPIO0 =	0,
+	FUNC_GPIO1 =	3,
+	FUNC_GPIO2 =	0,
+	FUNC_GPIO3 =	3,
+	FUNC_GPIO4 =	0,
+	FUNC_GPIO5 =	0,
+	FUNC_GPIO6 =	3,
+	FUNC_GPIO7 =	3,
+	FUNC_GPIO8 =	3,
+	FUNC_GPIO9 =	3,
+	FUNC_GPIO10 =	3,
+	FUNC_GPIO11 =	3,
+	FUNC_GPIO12 =	3,
+	FUNC_GPIO13 =	3,
+	FUNC_GPIO14 =	3,
+	FUNC_GPIO15 =	3,
+	FUNC_U0RXD =	0,
+	FUNC_U0TXD =	0,
+	FUNC_U1TXD_BK =	2,
+} FUNC;
+
+enum
+{
+	PERIPHS_RTC_BASEADDR =	0x60000700,
+	RTC_GPIO_OUT =			PERIPHS_RTC_BASEADDR + 0x68,
+	RTC_GPIO_ENABLE =		PERIPHS_RTC_BASEADDR + 0x74,
+	RTC_GPIO_IN_DATA =		PERIPHS_RTC_BASEADDR + 0x8c,
+	RTC_GPIO_CONF =			PERIPHS_RTC_BASEADDR + 0x90,
+	PAD_XPD_DCDC_CONF =		PERIPHS_RTC_BASEADDR + 0xa0,
+};
+
+enum
+{
+	INT_NMI_INT_ENT =	0x3ff00000,
+	INT_ENABLE_REG =	0x3ff00004,
+	INT_ENABLE_WDOG =	1 << 0,
+	INT_ENABLE_TIMER0 =	1 << 1,
+	INT_ENABLE_TIMER1 =	1 << 2,
+} INT_ENABLE;
+
+enum
+{
+	CLK_PRE_PORT_REG =	0x3ff00014,
+	CLK_160 =			1 << 0,
+} CLK_PRE_PORT;
+
+enum
+{
+	ISR_FLAGS_REG =		0x3ff00020,
+	ISR_FLAGS_UART0 =	1 << 0,
+	ISR_FLAGS_UART1 =	1 << 2,
+	ISR_FLAGS_SPI =		1 << 4,
+	ISR_FLAGS_HSPI =	1 << 7,
+	ISR_FLAGS_I2S =		1 << 9,
+} ISR_FLAGS;
+
+enum
+{
+	IRAM_BASE_REG =			0x3ff00024,
+	IRAM_MAP_0x40108000 =	1 << 7,
+	IRAM_MAP_0x4010c000 =	1 << 8,
+} IRAM_BASE;
+
+enum
+{
+	TIMER0_LOAD_REG = 0x60000600,
+} TIMER0_LOAD;
+
+enum
+{
+	TIMER0_COUNT_REG = 0x60000604,
+} TIMER0_COUNT;
+
+enum
+{
+	TIMER0_CTRL_REG =			0x60000608,
+	TIMER0_CTRL_INT_EDGE =		0 << 0,
+	TIMER0_CTRL_INT_LEVEL =		1 << 0,
+	TIMER0_CTRL_DIVIDE_BY_16 =	1 << 2,
+	TIMER0_CTRL_DIVIDE_BY_256 =	1 << 3,
+	TIMER0_CTRL_AUTO_RELOAD =	1 << 6,
+	TIMER0_CTRL_ENABLE_TIMER =	1 << 7,
+	TIMER0_CTRL_INT_STATUS =	1 << 8,
+} TIMER0_CTRL;
+
+enum
+{
+	TIMER0_INT_REG =	0x6000060c,
+	TIMER0_INT_CLEAR =	1 << 0
+} TIMER0_INT;
+
+enum
+{
+	TIMER1_LOAD_REG = 0x60000620,
+} TIMER1_LOAD;
+
+enum
+{
+	TIMER1_COUNT_REG = 0x60000624,
+} TIMER1_COUNT;
+
+enum
+{
+	TIMER1_CTRL_REG = 0x60000628,
+	TIMER1_CTRL_INT_EDGE =		0 << 0,
+	TIMER1_CTRL_INT_LEVEL =		1 << 0,
+	TIMER1_CTRL_DIVIDE_BY_16 =	1 << 2,
+	TIMER1_CTRL_DIVIDE_BY_256 =	1 << 3,
+	TIMER1_CTRL_AUTO_RELOAD =	1 << 6,
+	TIMER1_CTRL_ENABLE_TIMER =	1 << 7,
+	TIMER1_CTRL_INT_STATUS =	1 << 8,
+} TIMER1_CTRL;
+
+enum
+{
+	WDT_CNTL =			0x60000900,
+	WDT_STAGE0_RELOAD =	0x60000904,
+	WDT_STAGE1_RELOAD =	0x60000908,
+	WDT_COUNTER =		0x6000090c,
+	WDT_STAGE =			0x60000910,
+	WDT_RESET =			0x60000914,
+	WDT_RESET_STAGE =	0x60000918,
+	WDT_SDK_TIMER_REG = 0x3ff20c00,
+};
+
+enum
+{
+	UART_CLK_FREQ = 80000000,
+};
+
+attr_inline uint32_t REG_UART_BASE(uint32_t i)	{ return(0x60000000 + (i * 0xf00)); }
+attr_inline uint32_t UART_FIFO(uint32_t i)		{ return(REG_UART_BASE(i) + 0x0); }
+
+enum
+{
+	UART_RXFIFO_RD_BYTE =	0xff,
+	UART_RXFIFO_RD_BYTE_S =	0,
+};
+
+attr_inline uint32_t UART_INT_RAW(uint32_t i)	{ return(REG_UART_BASE(i) + 0x4); }
+
+enum
+{
+	UART_RXFIFO_TOUT_INT_RAW =	1U << 8,
+	UART_BRK_DET_INT_RAW =		1U << 7,
+	UART_CTS_CHG_INT_RAW =		1U << 6,
+	UART_DSR_CHG_INT_RAW =		1U << 5,
+	UART_RXFIFO_OVF_INT_RAW =	1U << 4,
+	UART_FRM_ERR_INT_RAW =		1U << 3,
+	UART_PARITY_ERR_INT_RAW =	1U << 2,
+	UART_TXFIFO_EMPTY_INT_RAW =	1U << 1,
+	UART_RXFIFO_FULL_INT_RAW =	1U << 0,
+};
+
+attr_inline uint32_t UART_INT_ST(uint32_t i )	{ return(REG_UART_BASE(i) + 0x8); }
+
+enum
+{
+	UART_RXFIFO_TOUT_INT_ST =	1U << 8,
+	UART_BRK_DET_INT_ST =		1U << 7,
+	UART_CTS_CHG_INT_ST =		1U << 6,
+	UART_DSR_CHG_INT_ST =		1U << 5,
+	UART_RXFIFO_OVF_INT_ST =	1U << 4,
+	UART_FRM_ERR_INT_ST =		1U << 3,
+	UART_PARITY_ERR_INT_ST =	1U << 2,
+	UART_TXFIFO_EMPTY_INT_ST =	1U << 1,
+	UART_RXFIFO_FULL_INT_ST =	1U << 0,
+};
+
+attr_inline uint32_t UART_INT_ENA(uint32_t i)	{ return(REG_UART_BASE(i) + 0xc); }
+
+enum
+{
+	UART_RXFIFO_TOUT_INT_ENA =	1U << 8,
+	UART_BRK_DET_INT_ENA =		1U << 7,
+	UART_CTS_CHG_INT_ENA =		1U << 6,
+	UART_DSR_CHG_INT_ENA =		1U << 5,
+	UART_RXFIFO_OVF_INT_ENA =	1U << 4,
+	UART_FRM_ERR_INT_ENA =		1U << 3,
+	UART_PARITY_ERR_INT_ENA =	1U << 2,
+	UART_TXFIFO_EMPTY_INT_ENA =	1U << 1,
+	UART_RXFIFO_FULL_INT_ENA =	1U << 0,
+};
+
+attr_inline uint32_t UART_INT_CLR(uint32_t i)	{ return(REG_UART_BASE(i) + 0x10); }
+
+enum
+{
+	UART_RXFIFO_TOUT_INT_CLR =	1U << 8,
+	UART_BRK_DET_INT_CLR =		1U << 7,
+	UART_CTS_CHG_INT_CLR =		1U << 6,
+	UART_DSR_CHG_INT_CLR =		1U << 5,
+	UART_RXFIFO_OVF_INT_CLR =	1U << 4,
+	UART_FRM_ERR_INT_CLR =		1U << 3,
+	UART_PARITY_ERR_INT_CLR =	1U << 2,
+	UART_TXFIFO_EMPTY_INT_CLR =	1U << 1,
+	UART_RXFIFO_FULL_INT_CLR =	1U << 0,
+};
+
+attr_inline uint32_t UART_CLKDIV(uint32_t i)	{ return(REG_UART_BASE(i) + 0x14); }
+
+enum
+{
+	UART_CLKDIV_CNT =			0x000fffff,
+	UART_CLKDIV_S =				0,
+};
+
+attr_inline uint32_t UART_AUTOBAUD(uint32_t i)	{ return(REG_UART_BASE(i) + 0x18); }
+
+enum
+{
+	UART_GLITCH_FILT =			0x000000ff,
+	UART_GLITCH_FILT_S =		8,
+	UART_AUTOBAUD_EN =			1U << 0,
+};
+
+attr_inline uint32_t UART_STATUS(uint32_t i)	{ return(REG_UART_BASE(i) + 0x1c); }
+
+enum
+{
+	UART_TXD =					1U << 31,
+	UART_RTSN =					1U << 30,
+	UART_DTRN =					1U << 29,
+	UART_TXFIFO_CNT =			0x000000ff,
+	UART_TXFIFO_CNT_S =			16,
+	UART_RXD =					1U << 15,
+	UART_CTSN =					1U << 14,
+	UART_DSRN =					1U << 13,
+	UART_RXFIFO_CNT =			0x000000ff,
+	UART_RXFIFO_CNT_S =			0,
+};
+
+attr_inline uint32_t UART_CONF0(uint32_t i)		{ return(REG_UART_BASE(i) + 0x20); }
+
+enum
+{
+	UART_DTR_INV =						1U << 24,
+	UART_RTS_INV =						1U << 23,
+	UART_TXD_INV =						1U << 22,
+	UART_DSR_INV =						1U << 21,
+	UART_CTS_INV =						1U << 20,
+	UART_RXD_INV =						1U << 19,
+	UART_TXFIFO_RST =					1U << 18,
+	UART_RXFIFO_RST =					1U << 17,
+	UART_IRDA_EN =						1U << 16,
+	UART_TX_FLOW_EN =					1U << 15,
+	UART_LOOPBACK =						1U << 14,
+	UART_IRDA_RX_INV =					1U << 13,
+	UART_IRDA_TX_INV =					1U << 12,
+	UART_IRDA_WCTL =					1U << 11,
+	UART_IRDA_TX_EN =					1U << 10,
+	UART_IRDA_DPLX =					1U << 9,
+	UART_TXD_BRK =						1U << 8,
+	UART_SW_DTR =						1U << 7,
+	UART_SW_RTS =						1U << 6,
+	UART_STOP_BIT_NUM =					0x00000003,
+	UART_STOP_BIT_NUM_S =				4,
+	UART_BIT_NUM =						0x00000003,
+	UART_BIT_NUM_S =					2,
+	UART_PARITY_EN =					1U << 1,
+	UART_PARITY =						1U << 0,
+};
+
+attr_inline uint32_t UART_CONF1(uint32_t i)		{ return(REG_UART_BASE(i) + 0x24); }
+enum
+{
+	UART_RX_TOUT_EN =						1U << 31,
+	UART_RX_TOUT_THRHD =					0x7f,
+	UART_RX_TOUT_THRHD_S =					24,
+	UART_RX_FLOW_EN =						1 << 23,
+	UART_RX_FLOW_THRHD =					0x7f,
+	UART_RX_FLOW_THRHD_S =					16,
+	UART_TXFIFO_EMPTY_THRHD =				0x7f,
+	UART_TXFIFO_EMPTY_THRHD_S =				8,
+	UART_RXFIFO_FULL_THRHD =				0x7f,
+	UART_RXFIFO_FULL_THRHD_S =				0,
+};
+
+attr_inline uint32_t UART_LOWPULSE(uint32_t i)	{ return(REG_UART_BASE(i) + 0x28); }
+
+enum
+{
+	UART_LOWPULSE_MIN_CNT =					0x000fffff,
+	UART_LOWPULSE_MIN_CNT_S =				0,
+};
+
+attr_inline uint32_t UART_HIGHPULSE(uint32_t i)	{ return(REG_UART_BASE(i) + 0x2c); }
+
+enum
+{
+	UART_HIGHPULSE_MIN_CNT =				0x000fffff,
+	UART_HIGHPULSE_MIN_CNT_S =				0,
+};
+
+attr_inline uint32_t UART_PULSE_NUM(uint32_t i)	{ return(REG_UART_BASE(i) + 0x30); }
+
+enum
+{
+	UART_PULSE_NUM_CNT =					0x0003ff,
+	UART_PULSE_NUM_CNT_S =					0,
+};
+
+attr_inline uint32_t UART_DATE(uint32_t i)		{ return(REG_UART_BASE(i) + 0x78); }
+attr_inline uint32_t UART_ID(uint32_t i)		{ return(REG_UART_BASE(i) + 0x7c); }
+
+typedef void (*ets_isr_t)(void *);
+
+void NmiTimSetFunc(void(*func)(void));
+void ets_isr_mask(uint32_t);
+void ets_isr_unmask(uint32_t);
+void ets_isr_attach(int, ets_isr_t func, void *arg);
+
+#endif

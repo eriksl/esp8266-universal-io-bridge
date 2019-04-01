@@ -177,7 +177,7 @@ CFLAGS			+=	-D__ets__ -DICACHE_FLASH -DLWIP_OPEN_SRC -DPBUF_RSV_FOR_WLAN -DEBUF_
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(HAL)/include \
 					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(ESPSDK)/include -I$(LWIP)/include -I$(LWIP)/include/lwip -I .
+					-I$(LWIP)/include -I$(LWIP)/include/lwip -I .
 
 LDFLAGS			:= -L. -L$(ESPSDK)/lib -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -lwpa
@@ -193,9 +193,10 @@ OBJS			+= rboot-interface.o
 endif
 
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
-						esp-uart-register.h http.h i2c.h i2c_sensor.h io.h io_gpio.h \
+						http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
-						dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h lwip-interface.h
+						dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h lwip-interface.h \
+						eagle.h sdk.h
 
 LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
 

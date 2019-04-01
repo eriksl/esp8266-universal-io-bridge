@@ -629,7 +629,7 @@ void *mem_calloc(mem_size_t count, mem_size_t size)
   p = mem_malloc(count * size);
   if (p) {
     /* zero the memory */
-    os_memset(p, 0, count * size);
+    memset(p, 0, count * size);
   }
   return p;
 }

@@ -1,7 +1,5 @@
 #include "i2c.h"
 
-#include <user_interface.h>
-
 #include "config.h"
 #include "util.h"
 #include "io_gpio.h"

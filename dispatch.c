@@ -50,8 +50,8 @@ static lwip_if_socket_t uart_socket;
 
 static _Bool uart_bridge_active = false;
 
-static ETSTimer fast_timer;
-static ETSTimer slow_timer;
+static os_timer_t fast_timer;
+static os_timer_t slow_timer;
 
 iram void dispatch_post_uart(task_command_t command)
 {

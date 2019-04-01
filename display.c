@@ -9,8 +9,6 @@
 #include "config.h"
 #include "time.h"
 
-#include <user_interface.h>
-
 enum
 {
 	display_slot_amount = 8,

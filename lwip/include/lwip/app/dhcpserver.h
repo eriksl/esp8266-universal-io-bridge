@@ -4,7 +4,7 @@
 #define USE_DNS
 
 typedef struct dhcps_state{
-        sint16_t state;
+        int16_t state;
 } dhcps_state;
 
 //             dhcpclient                         DHCP msg
@@ -48,8 +48,8 @@ typedef enum {
 
 struct dhcps_pool{
     struct ip_addr ip;
-    uint8 mac[6];
-    uint32 lease_timer;
+    uint8_t mac[6];
+    uint32_t lease_timer;
     dhcps_type_t type;
     dhcps_state_t state;
 
@@ -60,7 +60,7 @@ typedef struct _list_node{
     struct _list_node *pnext;
 }list_node;
 
-extern uint32 dhcps_lease_time;
+extern uint32_t dhcps_lease_time;
 #define DHCPS_LEASE_TIMER  dhcps_lease_time  //0x05A0
 #define DHCPS_MAX_LEASE 0x64
 #define BOOTP_BROADCAST 0x8000

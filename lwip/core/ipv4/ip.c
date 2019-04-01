@@ -98,7 +98,7 @@
  * invocation.
  */
 struct netif *current_netif;
-struct netif *eagle_lwip_getif(uint8 index);
+struct netif *eagle_lwip_getif(uint8_t index);
 
 /**
  * Header of the input packet currently being processed.
@@ -195,7 +195,6 @@ struct netif *ip_router(ip_addr_t *dest, ip_addr_t *source)
 	    return NULL;
   	}
   	/* no matching netif found, use default netif */
-  	os_printf("ip_router %d %p\n", __LINE__, netif_default);
   	return netif_default;
 }
 
@@ -672,7 +671,7 @@ err_t ip_output_if_opt(struct pbuf *p, ip_addr_t *src, ip_addr_t *dest,
       MEMCPY(p->payload, ip_options, optlen);
       if (optlen < optlen_aligned) {
         /* zero the remaining bytes */
-        os_memset(((char*)p->payload) + optlen, 0, optlen_aligned - optlen);
+        memset(((char*)p->payload) + optlen, 0, optlen_aligned - optlen);
       }
 #if CHECKSUM_GEN_IP_INLINE
       for (i = 0; i < optlen_aligned/2; i++) {

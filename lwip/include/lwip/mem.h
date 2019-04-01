@@ -41,6 +41,8 @@ extern "C" {
 #if MEM_LIBC_MALLOC
 
 #include <stddef.h> /* for size_t */
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef size_t mem_size_t;
 
@@ -73,25 +75,6 @@ static __attribute__((always_inline)) inline void *mem_realloc(void *previous, m
 	extern void *pvPortRealloc(void *chunk, size_t size, const char *file, unsigned int line);
 
 	return(pvPortRealloc(previous, amount, "", 0));
-}
-
-static __attribute__((always_inline)) inline void *mem_zalloc(mem_size_t size)
-{
-	extern void *pvPortZalloc(size_t size, const char *file, unsigned int line);
-
-	return(pvPortZalloc(size, "", 0));
-}
-
-#undef os_zalloc
-static __attribute__((always_inline)) inline void *os_zalloc(size_t size)
-{
-	return(mem_zalloc(size));
-}
-
-#undef os_free
-static __attribute__((always_inline)) inline void os_free(void *chunk)
-{
-	mem_free(chunk);
 }
 
 /* Since there is no C library allocation function to shrink memory without

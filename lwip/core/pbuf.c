@@ -1225,7 +1225,7 @@ u16_t pbuf_strstr(struct pbuf* p, const char* substr)
   if ((substr == NULL) || (substr[0] == 0) || (p->tot_len == 0xFFFF)) {
     return 0xFFFF;
   }
-  substr_len = os_strlen(substr);
+  substr_len = strlen(substr);
   if (substr_len >= 0xFFFF) {
     return 0xFFFF;
   }

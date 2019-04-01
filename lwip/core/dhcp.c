@@ -83,6 +83,7 @@
 #include "netif/etharp.h"
 
 #include <string.h>
+#include <sdk.h>
 
 /** Default for DHCP_GLOBAL_XID is 0xABCD0000
  * This can be changed by defining DHCP_GLOBAL_XID and DHCP_GLOBAL_XID_HEADER, e.g.
@@ -131,7 +132,7 @@ u8_t  dhcp_rx_options_given[DHCP_OPTION_IDX_MAX];
 #define dhcp_option_given(dhcp, idx)          (dhcp_rx_options_given[idx] != 0)
 #define dhcp_got_option(dhcp, idx)            (dhcp_rx_options_given[idx] = 1)
 #define dhcp_clear_option(dhcp, idx)          (dhcp_rx_options_given[idx] = 0)
-#define dhcp_clear_all_options(dhcp)          (os_memset(dhcp_rx_options_given, 0, sizeof(dhcp_rx_options_given)))
+#define dhcp_clear_all_options(dhcp)          (memset(dhcp_rx_options_given, 0, sizeof(dhcp_rx_options_given)))
 #define dhcp_get_option_value(dhcp, idx)      (dhcp_rx_options_val[idx])
 #define dhcp_set_option_value(dhcp, idx, val) (dhcp_rx_options_val[idx] = (val))
 
@@ -183,7 +184,7 @@ err_t dhcp_set_vendor_class_identifier(uint8_t len, char *str)
 	if (str == NULL)
 		return ERR_ARG;
 
-	vendor_class_buf = (char *)mem_zalloc(len + 1);
+	vendor_class_buf = (char *)mem_calloc(1, len + 1);
 
 	if (vendor_class_buf == NULL) {
 		return ERR_MEM;
@@ -329,7 +330,7 @@ static err_t dhcp_select(struct netif *netif)
 #if LWIP_NETIF_HOSTNAME
     if (netif->hostname != NULL) {
       const char *p = (const char*)netif->hostname;
-      u8_t namelen = (u8_t)os_strlen(p);
+      u8_t namelen = (u8_t)strlen(p);
       if (namelen > 0) {
         LWIP_ASSERT("DHCP: hostname is too long!", namelen < 255);
         dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, namelen);
@@ -413,7 +414,6 @@ void dhcp_fine_tmr(void)
       /*add DHCP retries processing by LiuHan*/
       if (DHCP_MAXRTX != 0 && netif->dhcp->state != DHCP_RENEWING) {
     	  if (netif->dhcp->tries >= DHCP_MAXRTX){
-			  os_printf("DHCP timeout\n");
 			  if (netif->dhcp_event != NULL)
 				  netif->dhcp_event();
 			  break;
@@ -635,7 +635,7 @@ void dhcp_set_struct(struct netif *netif, struct dhcp *dhcp)
   LWIP_ASSERT("netif already has a struct dhcp set", netif->dhcp == NULL);
 
   /* clear data structure */
-  os_memset(dhcp, 0, sizeof(struct dhcp));
+  memset(dhcp, 0, sizeof(struct dhcp));
   /* dhcp_set_state(&dhcp, DHCP_OFF); */
   netif->dhcp = dhcp;
 }
@@ -714,7 +714,7 @@ err_t dhcp_start(struct netif *netif)
   }
 
   /* clear data structure */
-  os_memset(dhcp, 0, sizeof(struct dhcp));
+  memset(dhcp, 0, sizeof(struct dhcp));
   /* dhcp_set_state(&dhcp, DHCP_OFF); */
   /* allocate UDP PCB */
   dhcp->pcb = udp_new();
@@ -758,7 +758,7 @@ void dhcp_inform(struct netif *netif)
 
   LWIP_ERROR("netif != NULL", (netif != NULL), return;);
 
-  os_memset(&dhcp, 0, sizeof(struct dhcp));
+  memset(&dhcp, 0, sizeof(struct dhcp));
   dhcp_set_state(&dhcp, DHCP_INFORM);
 
   if ((netif->dhcp != NULL) && (netif->dhcp->pcb != NULL)) {
@@ -926,7 +926,7 @@ static err_t dhcp_discover(struct netif *netif)
 #if LWIP_NETIF_HOSTNAME
     if (netif->hostname != NULL) {
       const char *p = (const char*)netif->hostname;
-      u8_t namelen = (u8_t)os_strlen(p);
+      u8_t namelen = (u8_t)strlen(p);
       if (namelen > 0) {
         LWIP_ASSERT("DHCP: hostname is too long!", namelen < 255);
         dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, namelen);
@@ -1116,7 +1116,7 @@ err_t dhcp_renew(struct netif *netif)
 #if LWIP_NETIF_HOSTNAME
     if (netif->hostname != NULL) {
       const char *p = (const char*)netif->hostname;
-      u8_t namelen = (u8_t)os_strlen(p);
+      u8_t namelen = (u8_t)strlen(p);
       if (namelen > 0) {
         LWIP_ASSERT("DHCP: hostname is too long!", namelen < 255);
         dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, namelen);
@@ -1189,7 +1189,7 @@ static err_t dhcp_rebind(struct netif *netif)
 #if LWIP_NETIF_HOSTNAME
     if (netif->hostname != NULL) {
       const char *p = (const char*)netif->hostname;
-      u8_t namelen = (u8_t)os_strlen(p);
+      u8_t namelen = (u8_t)strlen(p);
       if (namelen > 0) {
         LWIP_ASSERT("DHCP: hostname is too long!", namelen < 255);
         dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, namelen);

@@ -613,6 +613,9 @@ void tcp_recved(struct tcp_pcb *pcb, u16_t len)
  *
  * @return a new (free) local TCP port number
  */
+
+uint32_t os_random(void);
+
 static u16_t tcp_new_port(void)
 {
   int i;
@@ -1208,7 +1211,7 @@ struct tcp_pcb *tcp_alloc(u8_t prio)
     }
   }
   if (pcb != NULL) {
-    os_memset(pcb, 0, sizeof(struct tcp_pcb));						//      0
+    memset(pcb, 0, sizeof(struct tcp_pcb));						//      0
     pcb->prio = prio;											//
     pcb->snd_buf = TCP_SND_BUF;							//
     pcb->snd_queuelen = 0;									//                                  pbuf

@@ -3,9 +3,10 @@
 
 #include "io.h"
 #include "util.h"
+#include "eagle.h"
 
 #include <stdint.h>
-#include <eagle_soc.h>
+#include <stdbool.h>
 
 void			io_gpio_reset_all_pins(void);
 void			io_gpio_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);

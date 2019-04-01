@@ -35,15 +35,7 @@
 #define __ARCH_CC_H__
 
 //#include <string.h>
-#undef uint32_t
-#undef int32_t
-#define uint32_t _x_uint32_t_
-#define int32_t _x_int32_t_
-#include "ets_sys.h"
-#undef uint32_t
-#undef int32_t
-#include "stdint.h"
-#include "osapi.h"
+#include <stdint.h>
 #define EFAULT 14
 
 //#define LWIP_PROVIDE_ERRNO
@@ -82,8 +74,8 @@ typedef unsigned long   mem_ptr_t;
 //#define LWIP_DEBUG
 
 #ifdef LWIP_DEBUG
-#define LWIP_PLATFORM_DIAG(x) os_printf x
-#define LWIP_PLATFORM_ASSERT(x) ETS_ASSERT(x)
+#define LWIP_PLATFORM_DIAG(x)
+#define LWIP_PLATFORM_ASSERT(x)
 #else
 #define LWIP_PLATFORM_DIAG(x)
 #define LWIP_PLATFORM_ASSERT(x)

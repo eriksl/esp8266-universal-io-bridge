@@ -8,8 +8,6 @@
 #include "sequencer.h"
 #include "io_gpio.h"
 
-#include <user_interface.h>
-
 static void user_init2(void);
 void user_init(void);
 

@@ -5,9 +5,7 @@
 #include "i2c_sensor.h"
 #include "ota.h"
 #include "dispatch.h"
-
-#include <ets_sys.h>
-#include <spi_flash.h>
+#include "sdk.h"
 
 #define CONFIG_MAGIC "%4afc0002%"
 

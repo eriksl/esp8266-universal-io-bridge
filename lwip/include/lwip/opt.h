@@ -79,17 +79,13 @@
  * MEMCPY: override this if you have a faster implementation at hand than the
  * one included in your C library
  */
-#ifndef MEMCPY
-#define MEMCPY(dst,src,len)             os_memcpy(dst,src,len)
-#endif
+#define MEMCPY(dst,src,len)		memcpy(dst,src,len)
 
 /**
  * SMEMCPY: override this with care! Some compilers (e.g. gcc) can inline a
  * call to memcpy() if the length is known at compile time and is small.
  */
-#ifndef SMEMCPY
-#define SMEMCPY(dst,src,len)            os_memcpy(dst,src,len)
-#endif
+#define SMEMCPY(dst,src,len)	memcpy(dst,src,len)
 
 /*
    ------------------------------------

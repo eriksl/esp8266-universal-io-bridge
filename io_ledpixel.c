@@ -4,8 +4,6 @@
 #include "uart.h"
 #include "io_gpio.h"
 
-#include <user_interface.h>
-
 #include <stdlib.h>
 
 static _Bool		detected = false;

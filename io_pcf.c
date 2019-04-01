@@ -2,11 +2,9 @@
 #include "i2c.h"
 #include "util.h"
 
-#include <user_interface.h>
-
 #include <stdlib.h>
 
-static uint8 pcf_data_pin_table[io_pcf_instance_size];
+static uint8_t pcf_data_pin_table[io_pcf_instance_size];
 
 io_error_t io_pcf_init(const struct io_info_entry_T *info)
 {

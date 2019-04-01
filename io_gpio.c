@@ -2,11 +2,7 @@
 
 #include "stats.h"
 #include "util.h"
-#include "esp-alt-register.h"
-
-#include <user_interface.h>
-#include <osapi.h>
-#include <ets_sys.h>
+#include "eagle.h"
 
 #include <stdlib.h>
 

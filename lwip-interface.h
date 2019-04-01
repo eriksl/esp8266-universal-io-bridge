@@ -1,21 +1,14 @@
 #ifndef lwip_interface_h
 #define lwip_interface_h
 
+#include "util.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpacked"
 
-/* workaround Espressif's added inclusion of c_types.h that erronously define (u)intX_t */
-#undef int32_t
-#undef uint32_t
-#define int32_t _x_int32_t
-#define uint32_t _x_uint32_t
 #include <lwip/ip_addr.h>
-#undef int32_t
-#undef uint32_t
 
 #pragma GCC diagnostic pop
-
-#include "util.h"
 
 struct _lwip_if_socket_t;
 

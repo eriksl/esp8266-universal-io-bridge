@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #include "util.h"
-#include "esp-uart-register.h"
 #include "queue.h"
+#include "sdk.h"
 
 typedef enum attr_packed
 {

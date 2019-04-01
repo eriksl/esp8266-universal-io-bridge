@@ -1,10 +1,9 @@
 #include "lwip-interface.h"
 
-#include <user_interface.h>
-
 #include "attribute.h"
 #include "util.h"
 #include "stats.h"
+#include "sdk.h"
 
 /* don't bail on wrongly declared functions in old version of lwip, some parameters should be const really */
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"

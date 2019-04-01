@@ -2609,14 +2609,14 @@ static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *resu
 	i2c_buffer[0] = (cmd & 0xff00) >> 8;
 	i2c_buffer[1] = (cmd & 0x00ff) >> 0;
 
-	usleep(sht30_inter_access_delay);
+	os_delay_us(sht30_inter_access_delay);
 
 	if((error = i2c_send(address, 2, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
 	if(result1)
 	{
-		usleep(sht30_inter_access_delay);
+		os_delay_us(sht30_inter_access_delay);
 
 		if((error = i2c_receive(address, result2 ? 6 : 3, &i2c_buffer[2])) != i2c_error_ok)
 			return(error);

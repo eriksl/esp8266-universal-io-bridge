@@ -1,19 +1,18 @@
 #ifndef util_h
 #define util_h
 
-// ugly workaround for SDK header "c_types.h" that gets included from osapi.h,
-// that defines uint32_t and int32_t to non standard types.
-#define uint32_t _uint32_t_
-#define int32_t _int32_t_
-#include <osapi.h>
-#undef uint32_t
-#undef int32_t
+#pragma GCC diagnostic ignored "-Wpacked"
+#pragma GCC diagnostic push
+#include "lwip/ip_addr.h"
+#pragma GCC diagnostic pop
+
+#include "attribute.h"
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <stdarg.h>
+#include <string.h>
+#include <stdbool.h>
 
-#include "attribute.h"
 
 typedef struct
 {
@@ -21,8 +20,6 @@ typedef struct
 	int length;
 	char *buffer;
 } string_t;
-
-#include "lwip-interface.h"
 
 enum
 {
@@ -43,7 +40,7 @@ typedef uint8_t mac_addr_t[6];
 
 typedef union
 {
-	uint8 		mac_addr[6];
+	mac_addr_t	mac_addr;
 	uint8_t		byte[6];
 } mac_addr_to_bytes_t;
 
@@ -55,89 +52,10 @@ typedef union
 
 _Static_assert(sizeof(_Bool) == 1, "sizeof(_Bool) != 1");
 
-// make sure we don't use the broken memory management
-
-#define vPortFree _x_vPortFree
-#define pvPortMalloc _x_pvPortMalloc
-#define pvPortCalloc _x_pvPortCalloc
-#define pvPortRealloc _x_pvPortRealloc
-#define pvPortZalloc _x_pvPortZalloc
-#include <mem.h>
-#undef vPortFree
-#undef pvPortMalloc
-#undef pvPortCalloc
-#undef pvPortRealloc
-#undef pvPortZalloc
-
-#define strcpy #pragma error strcpy unsafe
-#define strncpy #pragma error strncpy unsafe
-#define strcat #pragma error strcat unsafe
-#define strncat #pragma error strncat unsafe
-
-// prototypes missing and undocumented ROM functions
-
-typedef struct {
-  uint32_t i[2];
-  uint32_t buf[4];
-  unsigned char in[64];
-  unsigned char digest[16];
-} MD5_CTX;
-
-typedef struct {
-    unsigned int h0, h1, h2, h3, h4;
-    unsigned int Nl, Nh;
-    unsigned int data[16];
-    unsigned int num;
-} SHA_CTX;
-
-struct tm
-{
-  int	tm_sec;
-  int	tm_min;
-  int	tm_hour;
-  int	tm_mday;
-  int	tm_mon;
-  int	tm_year;
-  int	tm_wday;
-  int	tm_yday;
-  int	tm_isdst;
-};
-
-attr_nonnull int ets_vsnprintf(char *, size_t, const char *, va_list);
-attr_nonnull struct tm *sntp_localtime(const time_t *);
-
-attr_nonnull int MD5Init(MD5_CTX *context);
-attr_nonnull int MD5Update(MD5_CTX *context, const void *, unsigned int length);
-attr_nonnull int MD5Final(unsigned char *hash, MD5_CTX *context);
-
-attr_nonnull int SHA1Init(SHA_CTX *context);
-attr_nonnull int SHA1Update(SHA_CTX *context, const void *, unsigned int length);
-attr_nonnull int SHA1Final(unsigned char *md, SHA_CTX *context);
-
-enum { SHA_DIGEST_LENGTH = 20 };
-
-// prototypes missing
-
 double pow(double, double);
 double fmax(double, double);
 
-// functions missing from SDK libmain (but declared in headers)
-
-/* int isxdigit(int c); */
-/* int isdigit(int c); */
-/* void *memchr(const void *s, int c, size_t n); */
-
 extern char flash_dram_buffer[1024];
-
-// ugly kludge for incorrectly declared spi_flash_* functions */
-#undef spi_flash_write
-#define spi_flash_read _spi_flash_read
-#define spi_flash_write _spi_flash_write
-#include <spi_flash.h>
-#undef spi_flash_read
-#undef spi_flash_write
-attr_nonnull SpiFlashOpResult spi_flash_read(uint32_t src, void *dst, uint32_t size);
-attr_nonnull SpiFlashOpResult spi_flash_write(uint32_t dst, const void *src, uint32_t size);
 
 // convenience functions
 
@@ -155,11 +73,6 @@ attr_inline unsigned int umax(unsigned int a, unsigned int b)
 		return(a);
 
 	return(b);
-}
-
-attr_inline void usleep(int usec)
-{
-	os_delay_us(usec);
 }
 
 attr_inline uint32_t ccount(void)
@@ -195,7 +108,7 @@ attr_nonnull _Bool string_trim_nl(string_t *dst);
 attr_nonnull void string_trim_string(string_t *haystack_string, const string_t *needle_string);
 attr_nonnull void string_bin_to_hex(string_t *dst, const char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
-attr_nonnull void string_mac(string_t *dst, uint8 mac_addr[6]);
+attr_nonnull void string_mac(string_t *dst, mac_addr_t);
 //int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix);
 attr_nonnull int string_double(string_t *dst, double value, int precision, double top_decimal);
 

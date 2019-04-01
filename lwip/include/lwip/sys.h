@@ -34,8 +34,6 @@
 
 #include "lwip/opt.h"
 
-#include "eagle_soc.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -229,9 +227,18 @@ void sys_init(void);
 u32_t sys_jiffies(void);
 #endif
 
+#define ETS_UNCACHED_ADDR(addr)		(addr)
+#define READ_PERI_REG(addr)			(*((volatile uint32_t *)ETS_UNCACHED_ADDR(addr)))
+#define PERIPHS_TIMER_BASEDDR		0x60000600
+#define RTC_REG_READ(addr)			READ_PERI_REG(PERIPHS_TIMER_BASEDDR + addr)
+#define FRC2_COUNT_ADDRESS			0x24
+#define NOW()						RTC_REG_READ(FRC2_COUNT_ADDRESS)
+#define APB_CLK_FREQ				80*1000000
+#define TIMER_CLK_FREQ				(APB_CLK_FREQ>>8)
+
 /** Returns the current time in milliseconds,
  * may be the same as sys_jiffies or at least based on it. */
-static inline u32_t sys_now(void) ;
+static inline u32_t sys_now(void);
 static inline u32_t sys_now(void)
 {
 	return NOW()/(TIMER_CLK_FREQ/1000);

@@ -14,11 +14,7 @@
 #include "sequencer.h"
 #include "init.h"
 #include "dispatch.h"
-
-#include <user_interface.h>
-#include <sntp.h>
-
-#include <stdlib.h>
+#include "sdk.h"
 
 typedef struct
 {

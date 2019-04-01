@@ -1,7 +1,6 @@
 #include "rboot-interface.h"
 #include "util.h"
-
-#include <user_interface.h>
+#include "sdk.h"
 
 static unsigned int cache_map_entry[2] = { 0xffff, 0xffff };
 

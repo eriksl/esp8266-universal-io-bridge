@@ -3,8 +3,6 @@
 #include "io_gpio.h"
 #include "util.h"
 
-#include <user_interface.h>
-
 #include <stdlib.h>
 
 typedef union

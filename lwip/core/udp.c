@@ -931,7 +931,7 @@ struct udp_pcb *udp_new(void)
      * which means checksum is generated over the whole datagram per default
      * (recommended as default by RFC 3828). */
     /* initialize PCB to all zeroes */
-    os_memset(pcb, 0, sizeof(struct udp_pcb));
+    memset(pcb, 0, sizeof(struct udp_pcb));
     pcb->ttl = UDP_TTL;
   }
   return pcb;

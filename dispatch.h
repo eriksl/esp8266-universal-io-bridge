@@ -3,10 +3,6 @@
 
 #include "config.h"
 
-#include <os_type.h>
-#include <ets_sys.h>
-#include <user_interface.h>
-
 typedef enum
 {
 	uart_task_invalid,

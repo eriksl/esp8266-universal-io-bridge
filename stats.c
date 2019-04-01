@@ -6,8 +6,7 @@
 #include "i2c.h"
 #include "i2c_sensor.h"
 #include "rboot-interface.h"
-
-#include <user_interface.h>
+#include "sdk.h"
 
 stat_flags_t stat_flags;
 
@@ -376,7 +375,7 @@ void stats_i2c(string_t *dst)
 
 void stats_wlan(string_t *dst)
 {
-	uint8 mac_addr[6];
+	mac_addr_t mac_addr;
 	struct ip_info ip_addr_info;
 	struct station_config config;
 

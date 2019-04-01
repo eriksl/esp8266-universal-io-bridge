@@ -3,9 +3,8 @@
 #include "config.h"
 #include "dispatch.h"
 #include "rboot-interface.h"
+#include "sdk.h"
 
-#include <spi_flash.h>
-#include <user_interface.h>
 #include <stdint.h>
 #include <stdlib.h>
 
