@@ -52,7 +52,7 @@ int stat_debug_3;
 
 volatile uint32_t	*stat_stack_sp_initial;
 int					stat_stack_painted;
-unsigned int		stat_heap_min;
+unsigned int		stat_heap_min, stat_heap_max;
 
 roflash static const char *const flash_map[] =
 {
@@ -134,6 +134,7 @@ void stats_firmware(string_t *dst)
 	int stack_used = -1; // no painted words found, overflow
 	int stack_free = -1;
 	unsigned int current_partition;
+	unsigned int heap;
 	partition_item_t partition_item;
 	uint32_t *sp;
 
@@ -147,6 +148,14 @@ void stats_firmware(string_t *dst)
 		stack_used = stack_bottom - (unsigned int)sp;
 	}
 
+	heap = system_get_free_heap_size();
+
+	if(heap < stat_heap_min)
+		stat_heap_min = heap;
+
+	if(heap > stat_heap_max)
+		stat_heap_max = heap;
+
 	rst_info = system_get_rst_info();
 
 	string_format(dst,
@@ -156,7 +165,7 @@ void stats_firmware(string_t *dst)
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
 			"> cpu frequency: %u MHz\n"
 			"> reset cause: %s, exception: %d, epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n"
-			"> heap free current: %u, min: %u bytes\n"
+			"> heap free current: %u, min: %u, max: %u bytes\n"
 			">\n"
 			"> stack:\n"
 			">   bottom: %p\n"
@@ -174,8 +183,7 @@ void stats_firmware(string_t *dst)
 				flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
 				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
-				system_get_free_heap_size(),
-				stat_heap_min,
+				heap, stat_heap_min, stat_heap_max,
 				(void *)stack_bottom,
 				(void *)stack_top,
 				stat_stack_sp_initial, (typeof(stat_stack_sp_initial))stack_bottom - stat_stack_sp_initial,
