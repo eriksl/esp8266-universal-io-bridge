@@ -108,9 +108,9 @@
 #if (LWIP_TCP && (TCP_SND_QUEUELEN < 2))
   #error "TCP_SND_QUEUELEN must be at least 2 for no-copy TCP writes to work"
 #endif
-//#if (LWIP_TCP && ((TCP_MAXRTX > 12) || (TCP_SYNMAXRTX > 12)))
-//  #error "If you want to use TCP, TCP_MAXRTX and TCP_SYNMAXRTX must less or equal to 12 (due to tcp_backoff table), so, you have to reduce them in your lwipopts.h"
-//#endif
+#if (LWIP_TCP && ((TCP_MAXRTX > 12) || (TCP_SYNMAXRTX > 12)))
+  #error "If you want to use TCP, TCP_MAXRTX and TCP_SYNMAXRTX must less or equal to 12 (due to tcp_backoff table), so, you have to reduce them in your lwipopts.h"
+#endif
 #if (LWIP_TCP && TCP_LISTEN_BACKLOG && (TCP_DEFAULT_LISTEN_BACKLOG < 0) || (TCP_DEFAULT_LISTEN_BACKLOG > 0xff))
   #error "If you want to use TCP backlog, TCP_DEFAULT_LISTEN_BACKLOG must fit into an u8_t"
 #endif
@@ -258,8 +258,6 @@ static void lwip_sanity_check(void)
 void lwip_init(void)
 {
   MEMP_NUM_TCP_PCB = 5;
-  TCP_SYNMAXRTX = 6;
-
   /* Sanity check user-configurable values */
   lwip_sanity_check();
 
