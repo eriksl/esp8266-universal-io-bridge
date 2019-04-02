@@ -22,20 +22,6 @@ typedef struct dhcps_msg {
         uint8_t options[312];
 }dhcps_msg;
 
-#ifndef LWIP_OPEN_SRC
-struct dhcps_lease {
-    bool enable;
-    struct ip_addr start_ip;
-    struct ip_addr end_ip;
-};
-
-enum dhcps_offer_option{
-    OFFER_START = 0x00,
-    OFFER_ROUTER = 0x01,
-    OFFER_END
-};
-#endif
-
 typedef enum {
     DHCPS_TYPE_DYNAMIC,
     DHCPS_TYPE_STATIC

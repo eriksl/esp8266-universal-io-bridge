@@ -6,10 +6,6 @@
 //#include "crypto/common.h"
 #include "lwip/app/dhcpserver.h"
 
-#ifndef LWIP_OPEN_SRC
-#include "net80211/ieee80211_var.h"
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
