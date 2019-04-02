@@ -426,7 +426,7 @@ static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
 	m = s / 60;
 	s -= m * 60;
 
-	string_format(&value, "%2u %02u:%02u:%02u.%03u (r1=%u,r2=%u,b=%u,w=%u)", d, h, m, s, ms, r1, r2, b, w);
+	string_format(&value, "%2d %02d:%02d:%02d.%03d (r1=%d,r2=%d,b=%d,w=%d)", d, h, m, s, ms, r1, r2, b, w);
 
 	return(&value);
 }

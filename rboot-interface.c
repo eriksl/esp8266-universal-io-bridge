@@ -153,8 +153,8 @@ void rboot_if_info(string_t *dst)
 				">  current slot: %u\n"
 				">  mapped slot: %u\n"
 				">  slot count: %u\n"
-				">  slot 0: 0x%06x\n"
-				">  slot 1: 0x%06x\n",
+				">  slot 0: 0x%06lx\n"
+				">  slot 1: 0x%06lx\n",
 				config.magic,
 				config.version,
 				rboot_if_boot_mode(config.boot_mode),
@@ -170,7 +170,7 @@ void rboot_if_info(string_t *dst)
 
 	if(rboot_if_read_rtc_ram(&rrtc))
 		string_format(dst,
-				">   magic number: 0x%08x\n"
+				">   magic number: 0x%08lx\n"
 				">   current boot mode: %s\n"
 				">   current slot: %u\n"
 				">   start once boot mode: %s\n"

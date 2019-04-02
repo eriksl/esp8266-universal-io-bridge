@@ -105,7 +105,7 @@ static app_action_t application_function_config_query_int(string_t *src, string_
 		return(app_action_error);
 	}
 
-	string_format(dst, "=%d OK\n", value);
+	string_format(dst, "=%lu OK\n", value);
 
 	return(app_action_normal);
 }
@@ -209,7 +209,7 @@ static app_action_t application_function_config_delete(string_t *src, string_t *
 
 	index1 = config_delete(&varid, index1, index2, wildcard != 0);
 
-	string_format(dst, "%u config entries deleted\n", index1);
+	string_format(dst, "%d config entries deleted\n", index1);
 
 	return(app_action_normal);
 }
@@ -307,7 +307,7 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 	{
 		if(port > 65535)
 		{
-			string_format(dst, "> invalid port %d\n", port);
+			string_format(dst, "> invalid port %u\n", port);
 			return(app_action_error);
 		}
 
@@ -324,7 +324,7 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 	if(!config_get_int(&varname_bridgeport, -1, -1, &port))
 		port = 0;
 
-	string_format(dst, "> port: %d\n", port);
+	string_format(dst, "> port: %u\n", port);
 
 	return(app_action_normal);
 }
@@ -338,7 +338,7 @@ static app_action_t application_function_bridge_timeout(string_t *src, string_t 
 	{
 		if(timeout > 65535)
 		{
-			string_format(dst, "> invalid timeout: %d\n", timeout);
+			string_format(dst, "> invalid timeout: %u\n", timeout);
 			return(app_action_error);
 		}
 
@@ -355,7 +355,7 @@ static app_action_t application_function_bridge_timeout(string_t *src, string_t 
 	if(!config_get_int(&varname_bridgetimeout, -1, -1, &timeout))
 		timeout = 90;
 
-	string_format(dst, "> timeout: %d\n", timeout);
+	string_format(dst, "> timeout: %u\n", timeout);
 
 	return(app_action_normal);
 }
@@ -369,7 +369,7 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 	{
 		if(port > 65535)
 		{
-			string_format(dst, "> invalid port %d\n", port);
+			string_format(dst, "> invalid port %u\n", port);
 			return(app_action_error);
 		}
 
@@ -386,7 +386,7 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 	if(!config_get_int(&varname_cmdport, -1, -1, &port))
 		port = 24;
 
-	string_format(dst, "> port: %d\n", port);
+	string_format(dst, "> port: %u\n", port);
 
 	return(app_action_normal);
 }
@@ -400,7 +400,7 @@ static app_action_t application_function_command_timeout(string_t *src, string_t
 	{
 		if(timeout > 65535)
 		{
-			string_format(dst, "> invalid timeout: %d\n", timeout);
+			string_format(dst, "> invalid timeout: %u\n", timeout);
 			return(app_action_error);
 		}
 
@@ -417,7 +417,7 @@ static app_action_t application_function_command_timeout(string_t *src, string_t
 	if(!config_get_int(&varname_cmdtimeout, -1, -1, &timeout))
 		timeout = 90;
 
-	string_format(dst, "> timeout: %d\n", timeout);
+	string_format(dst, "> timeout: %u\n", timeout);
 
 	return(app_action_normal);
 }
@@ -487,7 +487,7 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	string_format(dst, "> sequencer-set: %d: %u/%u %u %u ms %s\n",
+	string_format(dst, "> sequencer-set: %u: %u/%u %lu %u ms %s\n",
 			start, io, pin, value, duration, onoff(active));
 
 	start++;
@@ -511,7 +511,7 @@ static app_action_t application_function_sequencer_list(string_t *src, string_t 
 		if(!sequencer_get_entry(start, &active, &io, &pin, &value, &duration))
 			break;
 
-		string_format(dst, "> %5d %2d %3d %5d       %5d %s\n", start, io, pin, value, duration, onoff(active));
+		string_format(dst, "> %5u %2u %3u %5u       %5u %s\n", start, io, pin, value, duration, onoff(active));
 	}
 
 	return(app_action_normal);
@@ -567,8 +567,8 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 
 	if(running)
 	{
-		string_format(dst, "> starting from entry: %u\n"
-				"> repeats left: %u\n"
+		string_format(dst, "> starting from entry: %d\n"
+				"> repeats left: %d\n"
 				"> remaining duration from current entry: %u\n",
 			sequencer_get_start(),
 			sequencer_get_repeats() - 1,
@@ -580,7 +580,7 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 		{
 			string_append(dst, "> now playing:\n");
 			string_append(dst, "> index io pin value duration_ms\n");
-			string_format(dst, "> %5d %2d %3d %5d       %5d %s\n", current, io, pin, value, duration, onoff(active));
+			string_format(dst, "> %5u %2u %3u %5u       %5u %s\n", current, io, pin, value, duration, onoff(active));
 		}
 	}
 
@@ -615,7 +615,7 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 	if(!config_get_int(&varname_baudrate, uart, -1, &baud_rate))
 		baud_rate = 115200;
 
-	string_format(dst, "> baudrate[%d]: %d\n", uart, baud_rate);
+	string_format(dst, "> baudrate[%u]: %u\n", uart, baud_rate);
 
 	return(app_action_normal);
 }
@@ -635,7 +635,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 	{
 		if((data_bits < 5) || (data_bits > 8))
 		{
-			string_format(dst, "> invalid data bits: %d\n", data_bits);
+			string_format(dst, "> invalid data bits: %u\n", data_bits);
 			return(app_action_error);
 		}
 
@@ -654,7 +654,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 	if(!config_get_int(&varname_uartdata, uart, -1, &data_bits))
 		data_bits = 8;
 
-	string_format(dst, "data bits[%d]: %d\n", uart, data_bits);
+	string_format(dst, "data bits[%u]: %u\n", uart, data_bits);
 
 	return(app_action_normal);
 }
@@ -674,7 +674,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 	{
 		if((stop_bits < 1) || (stop_bits > 2))
 		{
-			string_format(dst, "> stop bits out of range: %d\n", stop_bits);
+			string_format(dst, "> stop bits out of range: %u\n", stop_bits);
 			return(app_action_error);
 		}
 
@@ -693,7 +693,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 	if(!config_get_int(&varname_stopbits, uart, -1, &stop_bits))
 		stop_bits = 1;
 
-	string_format(dst, "> stop bits[%d]: %d\n", uart, stop_bits);
+	string_format(dst, "> stop bits[%u]: %u\n", uart, stop_bits);
 
 	return(app_action_normal);
 }
@@ -742,7 +742,7 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 		parity = parity_none;
 
 	string_clear(dst);
-	string_format(dst, "parity[%d]: ", uart);
+	string_format(dst, "parity[%u]: ", uart);
 	uart_parity_to_string(dst, parity);
 	string_append(dst, "\n");
 
@@ -799,7 +799,7 @@ static app_action_t application_function_i2c_address(string_t *src, string_t *ds
 		i2c_address = intin;
 	}
 
-	string_format(dst, "i2c-address: address: 0x%02x\n", i2c_address);
+	string_format(dst, "i2c-address: address: 0x%02x\n", (unsigned int)i2c_address);
 
 	return(app_action_normal);
 }
@@ -836,7 +836,7 @@ static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, i
 
 	speed = 1000000000ULL / ((spent_us * 1000) / clocks);
 
-	string_format(dst, "> transferred %u bytes in %u scl clocks\n", length, clocks);
+	string_format(dst, "> transferred %d bytes in %u scl clocks\n", length, clocks);
 	string_format(dst, "> time spent: %u microseconds, makes %u Hz i2c bus", spent_us, speed);
 }
 
@@ -855,7 +855,7 @@ static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
 
 	if(size > (int)sizeof(bytes))
 	{
-		string_format(dst, "i2c-read: read max %d bytes\n", sizeof(bytes));
+		string_format(dst, "i2c-read: read max %u bytes\n", sizeof(bytes));
 		return(app_action_error);
 	}
 
@@ -873,7 +873,7 @@ static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
 
 	to = system_get_time();
 
-	string_format(dst, "> i2c_read: read %d bytes from %02x:", size, i2c_address);
+	string_format(dst, "> i2c_read: read %u bytes from %02x:", size, (unsigned int)i2c_address);
 
 	for(current = 0; current < size; current++)
 		string_format(dst, " %02x", bytes[current]);
@@ -914,7 +914,7 @@ static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
 
 	to = system_get_time();
 
-	string_format(dst, "i2c_write: written %d bytes to %02x\n", size, i2c_address);
+	string_format(dst, "i2c_write: written %u bytes to %02x\n", size, (unsigned int)i2c_address);
 
 	i2c_timing_report(dst, from, to, size, 0);
 
@@ -947,7 +947,7 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 
 	if(size >= (int)sizeof(receivebytes))
 	{
-		string_format(dst, "i2wr: max read %d bytes\n", sizeof(receivebytes));
+		string_format(dst, "i2wr: max read %u bytes\n", sizeof(receivebytes));
 		return(app_action_error);
 	}
 
@@ -963,7 +963,7 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 
 	to = system_get_time();
 
-	string_format(dst, "> i2wr: read %d bytes from %02x:", size, i2c_address);
+	string_format(dst, "> i2wr: read %u bytes from %02x:", size, (unsigned int)i2c_address);
 
 	for(current = 0; current < size; current++)
 		string_format(dst, " %02x", receivebytes[current]);
@@ -984,7 +984,7 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 	{
 		if(speed_delay > 65535)
 		{
-			string_format(dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %d\n", speed_delay);
+			string_format(dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %u\n", speed_delay);
 			return(app_action_error);
 		}
 
@@ -1003,7 +1003,7 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 
 	i2c_init(-1, -1, speed_delay);
 
-	string_format(dst, "> i2c speed delay: %d\n", speed_delay);
+	string_format(dst, "> i2c speed delay: %u\n", speed_delay);
 
 	return(app_action_normal);
 }
@@ -1033,7 +1033,7 @@ static app_action_t application_function_i2c_sensor_init(string_t *src, string_t
 
 	if((error = i2c_sensor_init(bus, sensor)) != i2c_error_ok)
 	{
-		string_format(dst, "sensor init %d:%d", bus, sensor);
+		string_format(dst, "sensor init %u:%u", bus, sensor);
 		i2c_error_format_string(dst, error);
 		string_append(dst, "\n");
 		return(app_action_error);
@@ -1069,7 +1069,7 @@ static app_action_t application_function_i2c_sensor_read(string_t *src, string_t
 	if(!i2c_sensor_read(dst, bus, sensor, true, false))
 	{
 		string_clear(dst);
-		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, (int)sensor);
+		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, sensor);
 		return(app_action_error);
 	}
 
@@ -1140,7 +1140,7 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 	if(!config_get_int(&varname_i2s_offset, bus, sensor, &int_offset))
 		int_offset = 0;
 
-	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, (int)sensor);
+	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, sensor);
 	string_double(dst, int_factor / 1000.0, 4, 1e10);
 	string_append(dst, ", offset: ");
 	string_double(dst, int_offset / 1000.0, 4, 1e10);
@@ -1304,7 +1304,7 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 	{
 		if((channel < 1) || (channel > 13))
 		{
-			string_format(dst, "> channel %d out of range (1-13)\n", channel);
+			string_format(dst, "> channel %u out of range (1-13)\n", channel);
 			return(app_action_error);
 		}
 
@@ -1352,7 +1352,7 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 	if(!config_get_int(&varname_wlan_ap_channel, -1, -1, &channel))
 		channel = 0;
 
-	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %d\n",
+	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %u\n",
 			string_to_cstr(&ssid), string_to_cstr(&passwd), channel);
 
 	return(app_action_normal);
@@ -1673,12 +1673,12 @@ static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
 	{
 		if(!io_gpio_pwm1_width_set(width, /*load*/false, /*save*/true))
 		{
-			string_format(dst, "pwm-width: invalid width: %d\n", width);
+			string_format(dst, "pwm-width: invalid width: %u\n", width);
 			return(app_action_error);
 		}
 	}
 
-	string_format(dst, "pwm-width: %d\n", io_gpio_pwm1_width_get());
+	string_format(dst, "pwm-width: %u\n", io_gpio_pwm1_width_get());
 
 	return(app_action_normal);
 }
@@ -1694,7 +1694,7 @@ static app_action_t application_function_peek(string_t *src, string_t *dst)
 
 	address &= ~0x03; // ensure proper alignment
 
-	string_format(dst, "> peek (0x%x) = 0x%x\n", address, *(uint32_t *)address);
+	string_format(dst, "> peek (0x%lx) = 0x%lx\n", address, *(uint32_t *)address);
 
 	return(app_action_normal);
 }
@@ -1714,7 +1714,7 @@ static app_action_t application_function_poke(string_t *src, string_t *dst)
 
 	*(uint32_t *)address = value;
 
-	string_format(dst, "> poke (0x%x,0x%x) = 0x%x\n", address, value, *(uint32_t *)address);
+	string_format(dst, "> poke (0x%lx,0x%lx) = 0x%lx\n", address, value, *(uint32_t *)address);
 
 	return(app_action_normal);
 }

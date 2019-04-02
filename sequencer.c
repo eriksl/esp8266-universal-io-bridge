@@ -97,7 +97,7 @@ static _Bool clear_all_flash_entries(unsigned int mirror)
 			entry->value = current++;
 		}
 
-		log("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %u\n",
+		log("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %d\n",
 				offset + (sector * SPI_FLASH_SEC_SIZE),
 				sector,
 				current,
@@ -172,12 +172,12 @@ static _Bool update_flash_entry(unsigned int index, unsigned int mirror, const s
 	entries_in_buffer = (sequencer_entry_t *)(void *)buffer;
 	entry_in_buffer = &entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)];
 
-	log("* buffer offset: %u\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
-	log("* entry1: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* buffer offset: %d\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
+	log("* entry1: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	*entry_in_buffer = *entry;
 
-	log("* entry2: io: %u, pin: %u, duration: %u, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* entry2: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	if(spi_flash_erase_sector((flash_start_offset + (sector * SPI_FLASH_SEC_SIZE)) / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		return(false);

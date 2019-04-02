@@ -125,7 +125,7 @@ static void http_range_form(string_t *dst, int io, int pin, int low, int high, i
 	string_append(dst,		"	</div>\n");
 	string_format(dst,	"	<input name=\"io\" type=\"hidden\" value=\"%d\" />\n", io);
 	string_format(dst,	"	<input name=\"pin\" type=\"hidden\" value=\"%d\" />\n", pin);
-	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%d\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_cstr(&id));
+	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%u\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_cstr(&id));
 	string_append(dst,		"	<script type=\"text/javascript\">\n");
 	string_format(dst,	"	function changed_%s(value)\n", string_to_cstr(&id));
 	string_append(dst,		"	{\n");
@@ -304,7 +304,7 @@ static app_action_t handler_set(const string_t *src, string_t *dst)
 		string_append(dst, "<script>location.replace(\"/controls\");</script>\n");
 	else
 	{
-		string_format(dst, "<tr><td>%s: io=%d pin=%d value=%d</td></tr>\n<tr><td>",
+		string_format(dst, "<tr><td>%s: io=%u pin=%u value=%lu</td></tr>\n<tr><td>",
 				string_to_cstr(&getparam), io, pin, value);
 		string_append(dst, "</td></tr>\n");
 	}

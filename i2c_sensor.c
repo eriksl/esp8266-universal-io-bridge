@@ -889,7 +889,7 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 			}
 
 			log("si114x: response invalid command / timeout: %x\n", local_response);
-			log("si114x: attempt2: %d\n", attempt2);
+			log("si114x: attempt2: %u\n", attempt2);
 
 			msleep(1);
 		}
@@ -898,7 +898,7 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 			break;
 
 failed:
-		log("si114x: attempt1: %d\n", attempt1);
+		log("si114x: attempt1: %u\n", attempt1);
 		msleep(1);
 	}
 
@@ -4212,7 +4212,7 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 
 	if(device_table_entry->id != sensor)
 	{
-		log("*** i2c_sensor_init: sensor id != index: %d, %d\n", device_table_entry->id, sensor);
+		log("*** i2c_sensor_init: sensor id != index: %u, %u\n", device_table_entry->id, sensor);
 		return(i2c_error_out_of_range);
 	}
 
@@ -4366,7 +4366,7 @@ _Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose
 
 	if((error = i2c_select_bus(bus)) != i2c_error_ok)
 	{
-		string_format(dst, "i2c sensor read: select bus #%u error", bus);
+		string_format(dst, "i2c sensor read: select bus #%d error", bus);
 		i2c_error_format_string(dst, error);
 		i2c_select_bus(0);
 		return(false);
@@ -4375,9 +4375,9 @@ _Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose
 	error = i2c_error_ok;
 
 	if(html)
-		string_format(dst, "%u</td><td align=\"right\">%u</td><td align=\"right\">0x%02x</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%d</td><td align=\"right\">%u</td><td align=\"right\">0x%02lx</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
 	else
-		string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].registered ? "+" : " ", bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%s sensor %u/%02u@%02lx: %s, %s: ", device_data[sensor].registered ? "+" : " ", (unsigned int)bus, sensor, entry->address, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value, &device_data[current])) == i2c_error_ok)
 	{

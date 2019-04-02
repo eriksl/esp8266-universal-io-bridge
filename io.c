@@ -1723,7 +1723,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -1732,7 +1732,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 	if(!data->detected)
 	{
-		string_format(dst, "io %d not detected\n", io);
+		string_format(dst, "io %u not detected\n", io);
 		return(app_action_error);
 	}
 
@@ -1974,7 +1974,7 @@ skip:
 
 			if(speed < ms_per_slow_tick)
 			{
-				string_format(dst, "timer: speed too small: must be >= %u ms\n", ms_per_slow_tick);
+				string_format(dst, "timer: speed too small: must be >= %d ms\n", ms_per_slow_tick);
 				return(app_action_error);
 			}
 
@@ -2291,7 +2291,7 @@ app_action_t application_function_io_read(string_t *src, string_t *dst)
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -2330,7 +2330,7 @@ app_action_t application_function_io_read(string_t *src, string_t *dst)
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
 		return(app_action_error);
 
-	string_format(dst, "[%u]\n", value);
+	string_format(dst, "[%lu]\n", value);
 
 	return(app_action_normal);
 }
@@ -2350,7 +2350,7 @@ app_action_t application_function_io_write(string_t *src, string_t *dst)
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -2395,7 +2395,7 @@ app_action_t application_function_io_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	string_format(dst, "[%d]\n", value);
+	string_format(dst, "[%lu]\n", value);
 
 	return(app_action_normal);
 }
@@ -2412,7 +2412,7 @@ app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -2454,7 +2454,7 @@ app_action_t application_function_io_trigger(string_t *src, string_t *dst)
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -2523,7 +2523,7 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %d\n", io);
+		string_format(dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -2574,7 +2574,7 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 	config_set_int(&varname_io_flags, io, pin, io_pin_flag_to_int.intvalue);
 
 	string_clear(dst);
-	string_format(dst, "flags for pin %d/%d:", io, pin);
+	string_format(dst, "flags for pin %u/%u:", io, pin);
 
 	pin_string_from_flags(dst, pin_config);
 

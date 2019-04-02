@@ -378,7 +378,7 @@ static void display_update(_Bool advance)
 
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
-		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+		string_format(&tag_text, "%02d:%02d %02d/%02d ", hour, minute, day, month);
 		string_append_cstr_flash(&tag_text, display_slot[slot].tag);
 		display_info_entry->set_fn(string_to_cstr(&tag_text), display_text);
 	}
@@ -504,11 +504,11 @@ static void display_dump(string_t *dst)
 
 	display_info_entry = &display_info[display_data.detected];
 
-	string_format(dst, "> display type #%u (%s: %s)\n", display_data.detected,
+	string_format(dst, "> display type #%d (%s: %s)\n", display_data.detected,
 			display_info_entry->name, display_info_entry->type);
 
 	for(slot = 0; slot < display_slot_amount; slot++)
-		string_format(dst, ">> %c slot %u: timeout %u, tag: \"%s\", text: \"%s\"\n",
+		string_format(dst, ">> %c slot %d: timeout %d, tag: \"%s\", text: \"%s\"\n",
 				slot == display_data.current_slot ? '+' : ' ',
 				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
 }
@@ -601,7 +601,7 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 
 	if(!display_info_entry->bright_fn || !display_info_entry->bright_fn(value))
 	{
-		string_format(dst, "display-brightness: invalid brightness value: %d\n", value);
+		string_format(dst, "display-brightness: invalid brightness value: %u\n", value);
 		return(app_action_error);
 	}
 

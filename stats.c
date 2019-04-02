@@ -161,18 +161,18 @@ void stats_firmware(string_t *dst)
 	string_format(dst,
 			"> firmware version date: %s\n"
 			"> SDK version: %s\n"
-			"> system id: %u\n"
-			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %u kib / %u MiB\n"
+			"> system id: %lu\n"
+			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %d kib / %d MiB\n"
 			"> cpu frequency: %u MHz\n"
-			"> reset cause: %s, exception: %d, epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n"
+			"> reset cause: %s, exception: %lu, epc1: %lx, epc2: %lx, epc3: %lx, excvaddr: %lx, depc: %lx\n"
 			"> heap free current: %u, min: %u, max: %u bytes\n"
 			">\n"
 			"> stack:\n"
 			">   bottom: %p\n"
 			">   top: %p\n"
-			">   initial stack pointer: %p (%u bytes)\n"
-			">   current stack pointer: %p (%u bytes)\n"
-			">   painted: %u bytes\n"
+			">   initial stack pointer: %p (%d bytes)\n"
+			">   current stack pointer: %p (%d bytes)\n"
+			">   painted: %d bytes\n"
 			">   not painted: %u bytes\n"
 			">   size: %u bytes\n"
 			">   used: %d bytes\n"
@@ -180,7 +180,7 @@ void stats_firmware(string_t *dst)
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
-				flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
+				(unsigned int)flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
 				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
 				heap, stat_heap_min, stat_heap_max,
@@ -242,7 +242,7 @@ void stats_firmware(string_t *dst)
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06x size: %3u kB\n", partition_item.addr, partition_item.size / 1024);
+			string_format(dst, " start: 0x%06lx size: %3lu kB\n", (unsigned long int)partition_item.addr, partition_item.size / 1024);
 		}
 	}
 }
@@ -267,24 +267,24 @@ void stats_counters(string_t *dst)
 	string_format(dst,
 			"> user_pre_init called: %s\n"
 			"> user_pre_init success: %s\n"
-			"> int uart0 rx: %u\n"
-			"> int uart0 tx: %u\n"
-			"> int uart1 tx: %u\n"
-			"> fast timer fired: %u\n"
-			"> slow timer fired: %u\n"
-			"> primary pwm cycles: %u\n"
-			"> ... int fired: %u\n"
-			"> ... while masked: %u\n"
-			"> pc counts: %u\n"
-			"> uart updated: %u\n"
-			"> commands/udp processed: %u\n"
-			"> commands/tcp processed: %u\n"
-			"> display updated: %u\n"
-			"> ntp updated: %u\n"
-			"> cmd receive buffer overflow events: %u\n"
-			"> cmd send buffer overflow events: %u\n"
-			"> uart receive buffer overflow events: %u\n"
-			"> uart send buffer overflow events: %u\n"
+			"> int uart0 rx: %d\n"
+			"> int uart0 tx: %d\n"
+			"> int uart1 tx: %d\n"
+			"> fast timer fired: %d\n"
+			"> slow timer fired: %d\n"
+			"> primary pwm cycles: %d\n"
+			"> ... int fired: %d\n"
+			"> ... while masked: %d\n"
+			"> pc counts: %d\n"
+			"> uart updated: %d\n"
+			"> commands/udp processed: %d\n"
+			"> commands/tcp processed: %d\n"
+			"> display updated: %d\n"
+			"> ntp updated: %d\n"
+			"> cmd receive buffer overflow events: %d\n"
+			"> cmd send buffer overflow events: %d\n"
+			"> uart receive buffer overflow events: %d\n"
+			"> uart send buffer overflow events: %d\n"
 			"> task uart posted: %u\n"
 			"> task uart failed: %u\n"
 			"> task command posted: %u\n"
@@ -320,11 +320,11 @@ void stats_counters(string_t *dst)
 				stat_task_command_failed,
 				stat_task_timer_posted,
 				stat_task_timer_failed,
+				(unsigned int)stat_debug_1,
 				stat_debug_1,
-				stat_debug_1,
+				(unsigned int)stat_debug_2,
 				stat_debug_2,
-				stat_debug_2,
-				stat_debug_3,
+				(unsigned int)stat_debug_3,
 				stat_debug_3);
 }
 
@@ -337,7 +337,7 @@ void stats_i2c(string_t *dst)
 	i2c_sensor_get_info(&i2c_sensor_info);
 
 	string_format(dst,
-			"> display initialisation time: %u ms\n"
+			"> display initialisation time: %d ms\n"
 			"> i2c sda stucks: %u\n"
 			"> i2c sda max stuck periods: %u\n"
 			"> i2c bus locks: %u\n"
@@ -345,7 +345,7 @@ void stats_i2c(string_t *dst)
 			"> i2c soft resets: %u\n"
 			"> i2c hard resets: %u\n"
 			"> i2c multiplexer found: %s\n"
-			"> i2c buses: %u\n"
+			"> i2c buses: %d\n"
 			"> i2c sensors init called: %u\n"
 			"> i2c sensors init succeeded: %u\n"
 			"> i2c sensors init skip disabled: %u (%u)\n"
@@ -356,7 +356,7 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors init current bus: %u\n"
 			"> i2c sensors init current sensor id: %u\n"
 			"> i2c sensors init finished: %s\n"
-			"> i2c sensors init duration: %u ms\n",
+			"> i2c sensors init duration: %lu ms\n",
 				stat_display_init_time_us / 1000,
 				stat_i2c_sda_stucks,
 				stat_i2c_sda_stuck_max_period,

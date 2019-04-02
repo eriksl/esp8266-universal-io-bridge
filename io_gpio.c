@@ -1009,7 +1009,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 		{
 			case(io_pin_ll_counter):
 			{
-				string_format(dst, "current state: %s, debounce delay: %d",
+				string_format(dst, "current state: %s, debounce delay: %u",
 						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce);
 
 				break;

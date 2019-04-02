@@ -315,7 +315,7 @@ io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
-			string_format(dst, "current io: %s, debounce: %d", onoff(tv & (1 << bankpin)), mcp_pin_data->debounce);
+			string_format(dst, "current io: %s, debounce: %lu", onoff(tv & (1 << bankpin)), mcp_pin_data->debounce);
 
 			break;
 		}

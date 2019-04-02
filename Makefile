@@ -134,9 +134,9 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wstringop-overflow=4 -Wunused-const-variable=2 -Walloca \
 						-Warray-bounds=2 -Wswitch-bool -Wsizeof-array-argument \
 						-Wduplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
-						-Wdangling-else -Wno-incompatible-pointer-types \
+						-Wdangling-else \
 						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs -Wstrict-overflow=2 \
-						-Wno-format -Wmissing-noreturn -Wbool-compare \
+						-Wmissing-noreturn -Wbool-compare \
 						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \
 						-Wuninitialized -Wtrampolines -Wframe-larger-than=1024 \
 						-Wunsafe-loop-optimizations -Wshadow -Wpointer-arith -Wbad-function-cast \
@@ -145,8 +145,14 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
 						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
 						-Wcast-align -Winline \
-						-Wno-pointer-sign -Wno-unused-parameter -Wno-attributes \
-						-Wno-error=cast-qual -Wno-error=packed -Wno-error=unsafe-loop-optimizations
+						-Wno-incompatible-pointer-types \
+						\
+						-Wno-pointer-sign \
+						-Wno-unused-parameter \
+						-Wno-attributes \
+						-Wno-error=cast-qual \
+						-Wno-error=packed \
+						 -Wno-error=unsafe-loop-optimizations
 
 CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \

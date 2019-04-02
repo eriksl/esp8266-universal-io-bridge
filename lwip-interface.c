@@ -204,7 +204,7 @@ static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket, const char *caller)
 		heap = system_get_free_heap_size();
 
 		if(tcp_debug)
-			log("lwip %s: sending tcp chunk size %d from offset %d, heap free: %d\n", caller, chunk_size, offset, heap);
+			log("lwip %s: sending tcp chunk size %u from offset %u, heap free: %u\n", caller, chunk_size, offset, heap);
 
 		if(heap < stat_heap_min)
 			stat_heap_min = heap;
@@ -223,7 +223,7 @@ static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket, const char *caller)
 		heap = system_get_free_heap_size();
 
 		if(tcp_debug)
-			log("lwip %s: sent    tcp chunk size %d from offset %d, heap free: %d\n", caller, chunk_size, offset, heap);
+			log("lwip %s: sent    tcp chunk size %u from offset %u, heap free: %u\n", caller, chunk_size, offset, heap);
 
 		if(heap < stat_heap_min)
 			stat_heap_min = heap;
@@ -243,11 +243,11 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
 	if(tcp_debug)
-		log("tcp sent callback: acked %u bytes from %u remaining\n", len, socket->sent_remaining);
+		log("tcp sent callback: acked %d bytes from %d remaining\n", len, socket->sent_remaining);
 
 	if(len > socket->sent_remaining)
 	{
-		log("tcp sent callback: acked (%u) > sent_remaining (%u)\n", len, socket->sent_remaining);
+		log("tcp sent callback: acked (%u) > sent_remaining (%d)\n", len, socket->sent_remaining);
 		socket->sent_remaining = 0;
 	}
 	else
@@ -259,7 +259,7 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 
 	if(tcp_debug)
 	{
-		log("tcp sent callback: sent remaining: %u, sending remaining: %u\n",
+		log("tcp sent callback: sent remaining: %d, sending remaining: %d\n",
 				socket->sent_remaining, socket->sending_remaining);
 
 		if((socket->sent_remaining == 0) && (socket->sending_remaining == 0))
@@ -356,13 +356,13 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 
 	if(socket->sending_remaining > 0)
 	{
-		log("lwip if send: still sending %u bytes\n", socket->sending_remaining);
+		log("lwip if send: still sending %d bytes\n", socket->sending_remaining);
 		return(false);
 	}
 
 	if(socket->sent_remaining > 0)
 	{
-		log("lwip if send: still waiting for %u bytes to be sent\n", socket->sent_remaining);
+		log("lwip if send: still waiting for %d bytes to be sent\n", socket->sent_remaining);
 		return(false);
 	}
 

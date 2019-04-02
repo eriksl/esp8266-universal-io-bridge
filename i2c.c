@@ -655,7 +655,7 @@ static i2c_error_t i2c_reset_fixup_bus(void)
 
 	if((error = scl_set_test(true, i2c_delay_fixup_post_wait)) != i2c_error_ok)
 	{
-		log("i2c-reset-fixup-bus: bus lock: %d\n", error);
+		log("i2c-reset-fixup-bus: bus lock: %u\n", error);
 		return(error);
 	}
 
@@ -685,7 +685,7 @@ iram i2c_error_t i2c_reset(void)
 
 	if((error = send_stop()) != i2c_error_ok)
 	{
-		log("i2c-reset: send_stop error: %d\n", error);
+		log("i2c-reset: send_stop error: %u\n", error);
 		return(error);
 	}
 
@@ -751,7 +751,7 @@ void i2c_error_format_string(string_t *dst, i2c_error_t error)
 	if(error_state < i2c_state_size)
 		string_append_cstr_flash(dst, roflash_state_strings[error_state]);
 	else
-		string_format(dst, "<unknown state %d>", error_state);
+		string_format(dst, "<unknown state %u>", error_state);
 
 	string_append(dst, ")");
 }

@@ -217,7 +217,7 @@ _Bool config_set_int(const string_t *id, int index1, int index2, uint32_t value)
 {
 	string_new(, string, 16);
 
-	string_format(&string, "%u", value);
+	string_format(&string, "%lu", value);
 
 	return(config_set_string(id, index1, index2, &string, 0, -1));
 }
@@ -450,8 +450,8 @@ void config_dump(string_t *dst)
 
 		in_use++;
 
-		string_format(dst, "%s=%s (%u/%d)\n", config_current->id, config_current->string_value, config_current->uint_value, (int)config_current->uint_value);
+		string_format(dst, "%s=%s (%lu/%d)\n", config_current->id, config_current->string_value, config_current->uint_value, (int)config_current->uint_value);
 	}
 
-	string_format(dst, "\nslots total: %u, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
+	string_format(dst, "\nslots total: %d, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
 }

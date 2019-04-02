@@ -61,7 +61,7 @@ attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 
 void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
 {
-	string_format(dst, "%u %u%c%u",
+	string_format(dst, "%lu %u%c%u",
 			params->baud_rate,
 			params->data_bits,
 			uart_parity_to_char(params->parity),
