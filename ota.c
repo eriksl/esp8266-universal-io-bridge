@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-app_action_t application_function_flash_info(const string_t *src, string_t *dst)
+app_action_t application_function_flash_info(string_t *src, string_t *dst)
 {
 	int ota_available = 0;
 	int ota_slots = 0;
@@ -56,7 +56,7 @@ app_action_t application_function_flash_info(const string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_flash_erase(const string_t *src, string_t *dst)
+app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 {
 	unsigned int address, length;
 	int sector_offset, sector_count, erased;
@@ -108,7 +108,7 @@ app_action_t application_function_flash_erase(const string_t *src, string_t *dst
 	return(app_action_normal);
 }
 
-app_action_t application_function_flash_send(const string_t *src, string_t *dst)
+app_action_t application_function_flash_send(string_t *src, string_t *dst)
 {
 	int chunk_offset;
 	unsigned int offset, length, chunk_length;
@@ -168,7 +168,7 @@ app_action_t application_function_flash_send(const string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_flash_receive(const string_t *src, string_t *dst)
+app_action_t application_function_flash_receive(string_t *src, string_t *dst)
 {
 	unsigned int chunk_offset, chunk_length;
 
@@ -215,7 +215,7 @@ app_action_t application_function_flash_receive(const string_t *src, string_t *d
 	return(app_action_normal);
 }
 
-app_action_t application_function_flash_read(const string_t *src, string_t *dst)
+app_action_t application_function_flash_read(string_t *src, string_t *dst)
 {
 	unsigned int address, sector;
 
@@ -257,7 +257,7 @@ app_action_t application_function_flash_read(const string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static app_action_t flash_write_verify_(const string_t *src, string_t *dst, _Bool verify)
+static app_action_t flash_write_verify_(string_t *src, string_t *dst, _Bool verify)
 {
 	unsigned int address, sector;
 	int byte;
@@ -357,17 +357,17 @@ static app_action_t flash_write_verify_(const string_t *src, string_t *dst, _Boo
 	return(app_action_normal);
 }
 
-app_action_t application_function_flash_write(const string_t *src, string_t *dst)
+app_action_t application_function_flash_write(string_t *src, string_t *dst)
 {
 	return(flash_write_verify_(src, dst, false));
 }
 
-app_action_t application_function_flash_verify(const string_t *src, string_t *dst)
+app_action_t application_function_flash_verify(string_t *src, string_t *dst)
 {
 	return(flash_write_verify_(src, dst, true));
 }
 
-app_action_t application_function_flash_checksum(const string_t *src, string_t *dst)
+app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 {
 	unsigned int address, current, length, done;
 
@@ -424,7 +424,7 @@ app_action_t application_function_flash_checksum(const string_t *src, string_t *
 	return(app_action_normal);
 }
 
-static app_action_t flash_select(const string_t *src, string_t *dst, _Bool once)
+static app_action_t flash_select(string_t *src, string_t *dst, _Bool once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
 
@@ -555,12 +555,12 @@ static app_action_t flash_select(const string_t *src, string_t *dst, _Bool once)
 #endif
 }
 
-app_action_t application_function_flash_select(const string_t *src, string_t *dst)
+app_action_t application_function_flash_select(string_t *src, string_t *dst)
 {
 	return(flash_select(src, dst, false));
 }
 
-app_action_t application_function_flash_select_once(const string_t *src, string_t *dst)
+app_action_t application_function_flash_select_once(string_t *src, string_t *dst)
 {
 	return(flash_select(src, dst, true));
 }

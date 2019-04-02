@@ -128,6 +128,7 @@ ifeq ($(IMAGE),ota)
 	FLASH_TARGET := flash-ota
 endif
 
+# FIXME: -Wno-incompatible-pointer-types
 WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
 						-Wformat-signedness -Wformat-truncation=2 \
@@ -145,13 +146,14 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
 						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
 						-Wcast-align -Winline \
-						-Wno-incompatible-pointer-types \
 						\
+						-Wno-error=cast-qual \
+						-Wno-error=unsafe-loop-optimizations \
+						\
+						-Wno-incompatible-pointer-types \
 						-Wno-packed \
 						-Wno-pointer-sign \
 						-Wno-unused-parameter \
-						-Wno-error=cast-qual \
-						-Wno-error=unsafe-loop-optimizations
 
 CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
