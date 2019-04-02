@@ -236,7 +236,6 @@ void sys_timeouts_init(void)
   sys_timeout(ARP_TMR_INTERVAL, arp_timer, NULL);
 #endif /* LWIP_ARP */
 #if LWIP_DHCP
-  DHCP_MAXRTX = 0;
   sys_timeout(DHCP_COARSE_TIMER_MSECS, dhcp_timer_coarse, NULL);
   sys_timeout(DHCP_FINE_TIMER_MSECS, dhcp_timer_fine, NULL);
 #endif /* LWIP_DHCP */
