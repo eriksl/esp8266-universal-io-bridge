@@ -150,9 +150,8 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-packed \
 						-Wno-pointer-sign \
 						-Wno-unused-parameter \
-						-Wno-attributes \
 						-Wno-error=cast-qual \
-						 -Wno-error=unsafe-loop-optimizations
+						-Wno-error=unsafe-loop-optimizations
 
 CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
