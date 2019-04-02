@@ -161,7 +161,7 @@
  * MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections.
  * (requires the LWIP_TCP option)
  */
-#define MEMP_NUM_TCP_PCB                (*(volatile uint32*)0x600011FC)
+#define MEMP_NUM_TCP_PCB                4
 
 /*
  * MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections.
