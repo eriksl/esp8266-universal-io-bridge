@@ -147,11 +147,11 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wcast-align -Winline \
 						-Wno-incompatible-pointer-types \
 						\
+						-Wno-packed \
 						-Wno-pointer-sign \
 						-Wno-unused-parameter \
 						-Wno-attributes \
 						-Wno-error=cast-qual \
-						-Wno-error=packed \
 						 -Wno-error=unsafe-loop-optimizations
 
 CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
