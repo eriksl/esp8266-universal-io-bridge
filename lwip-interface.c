@@ -31,23 +31,22 @@ enum
 
 static const char * const lwip_error_strings[] roflash =
 {
-	"ok",
-	"out of memory",
-	"buffer error",
-	"timeout",
-	"routing error",
-	"in progress",
-	"illegal value",
-	"operation would block",
-	"address in use",
-	"already connecting",
-	"already connected",
-	"not connected",
-	"low level netif error",
-	"connection aborted",
-	"connection reset",
-	"connection closed",
-	"illegal argument",
+	"ok",						// 0		ERR_OK
+	"out of memory",			// -1		ERR_MEM
+	"buffer error",				// -2		ERR_BUF
+	"timeout",					// -3		ERR_TIMEOUT
+	"routing error",			// -4		ERR_RTE
+	"in progress",				// -5		ERR_INPROGRESS
+	"illegal value",			// -6		ERR_VAL
+	"operation would block",	// -7		ERR_WOULDBLOCK
+	"connection aborted",		// -8		ERR_ABRT
+	"connection reset",			// -9		ERR_RST
+	"connection closed",		// -10		ERR_CLSD
+	"not connected",			// -11		ERR_CONN
+	"illegal argument",			// -12		ERR_ARG
+	"address in use",			// -13		ERR_USE
+	"low level netif error",	// -14		ERR_IF
+	"already connected",		// -15		ERR_ISCONN
 	"unknown",
 };
 
