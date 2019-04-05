@@ -157,8 +157,7 @@ struct mem {
   mem_size_t prev;
   /** 1: this area is used; 0: this area is unused */
   u8_t used;
-  u8_t pad[3];  /* XXX: pad here instead use global ALIGN */
-} __ATTRIB_PACK;
+};
 
 /** All allocated blocks will be MIN_SIZE bytes big, at least!
  * MIN_SIZE can be overridden to suit your needs. Smaller values save space,
@@ -178,7 +177,7 @@ struct mem {
 #ifndef LWIP_RAM_HEAP_POINTER
 /** the heap. we need one struct mem at the end and some room for alignment */
 /* enlarge heap as tx pbuf payload is allocate from heap as well */
-u8_t ram_heap[MEM_SIZE_ALIGNED + (2*SIZEOF_STRUCT_MEM) + MEM_ALIGNMENT] SHMEM_ATTR;
+u8_t ram_heap[MEM_SIZE_ALIGNED + (2*SIZEOF_STRUCT_MEM) + MEM_ALIGNMENT];
 #define LWIP_RAM_HEAP_POINTER ram_heap
 #endif /* LWIP_RAM_HEAP_POINTER */
 
@@ -190,7 +189,9 @@ static struct mem *ram_end;
 static struct mem *lfree;
 
 /** concurrent access protection */
-//static sys_mutex_t mem_mutex;
+#if !NO_SYS
+static sys_mutex_t mem_mutex;
+#endif
 
 #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
 

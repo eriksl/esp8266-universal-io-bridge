@@ -126,29 +126,26 @@ static struct memp *memp_tab[MEMP_MAX];
 #if !MEM_USE_POOLS && !MEMP_MEM_MALLOC
 static
 #endif
-const u32_t memp_sizes[MEMP_MAX] __attribute__((section(".irom.text"))) = { //LWIP_MEM_ALIGN_SIZE
-#define LWIP_MEMPOOL(name,num,size,desc,attr)  LWIP_MEM_ALIGN_SIZE(size),
+const u16_t memp_sizes[MEMP_MAX] = {
+#define LWIP_MEMPOOL(name,num,size,desc)  LWIP_MEM_ALIGN_SIZE(size),
 #include "lwip/memp_std.h"
 };
-
-u16_t memp_sizes_test[1] = {PBUF_POOL_BUFSIZE,};
 
 #if !MEMP_MEM_MALLOC /* don't build if not configured for use in lwipopts.h */
 
 /** This array holds the number of elements in each pool. */
 static const u16_t memp_num[MEMP_MAX] = {
-#define LWIP_MEMPOOL(name,num,size,desc,attr)  (num),
+#define LWIP_MEMPOOL(name,num,size,desc)  (num),
 #include "lwip/memp_std.h"
 };
 
 /** This array holds a textual description of each pool. */
-//#ifdef LWIP_DEBUG
-//static const char *memp_desc[MEMP_MAX] = {
-const char *memp_desc[MEMP_MAX] = {
-#define LWIP_MEMPOOL(name,num,size,desc,attr)  (desc),
+#ifdef LWIP_DEBUG
+static const char *memp_desc[MEMP_MAX] = {
+#define LWIP_MEMPOOL(name,num,size,desc)  (desc),
 #include "lwip/memp_std.h"
 };
-//#endif /* LWIP_DEBUG */
+#endif /* LWIP_DEBUG */
 
 #if MEMP_SEPARATE_POOLS
 
@@ -157,21 +154,21 @@ const char *memp_desc[MEMP_MAX] = {
  * To relocate a pool, declare it as extern in cc.h. Example for GCC:
  *   extern u8_t __attribute__((section(".onchip_mem"))) memp_memory_UDP_PCB_base[];
  */
-#define LWIP_MEMPOOL(name,num,size,desc,attr) u8_t memp_memory_ ## name ## _base \
-  [((num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size)))] attr;
+#define LWIP_MEMPOOL(name,num,size,desc) u8_t memp_memory_ ## name ## _base \
+  [((num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size)))];
 #include "lwip/memp_std.h"
 
 /** This array holds the base of each memory pool. */
 static u8_t *const memp_bases[] = {
-#define LWIP_MEMPOOL(name,num,size,desc,attr) memp_memory_ ## name ## _base,
+#define LWIP_MEMPOOL(name,num,size,desc) memp_memory_ ## name ## _base,
 #include "lwip/memp_std.h"
 };
 
-#else /* MEMP_SEPARATE_POOLS */
+#else /* !MEMP_SEPARATE_POOLS */
 
 /** This is the actual memory used by the pools (all pools in one big block). */
 static u8_t memp_memory[MEM_ALIGNMENT - 1
-#define LWIP_MEMPOOL(name,num,size,desc, attr) + ( (num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size) ) )
+#define LWIP_MEMPOOL(name,num,size,desc) + ( (num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size) ) )
 #include "lwip/memp_std.h"
 ];
 
@@ -203,7 +200,7 @@ static int memp_sanity(void)
 #if MEMP_OVERFLOW_CHECK
 #if defined(LWIP_DEBUG) && MEMP_STATS
 static const char * memp_overflow_names[] = {
-#define LWIP_MEMPOOL(name,num,size,desc,attr) "/"desc,
+#define LWIP_MEMPOOL(name,num,size,desc) "/"desc,
 #include "lwip/memp_std.h"
   };
 #endif
@@ -355,7 +352,7 @@ void memp_init(void)
 #endif /* MEMP_SEPARATE_POOLS */
     /* create a linked list of memp elements */
     for (j = 0; j < memp_num[i]; ++j) {
-      memp->next = (struct memp *)memp_tab[i];
+      memp->next = memp_tab[i];
       memp_tab[i] = memp;
       memp = (struct memp *)(void *)((u8_t *)memp + MEMP_SIZE + memp_sizes[i]
 #if MEMP_OVERFLOW_CHECK
@@ -464,20 +461,3 @@ void memp_free(memp_t type, void *mem)
 }
 
 #endif /* MEMP_MEM_MALLOC */
-#if 0
-void memp_dump(void)
-{
-	  printf("sizeof raw_pcb %u, memp_s1 %u, %s\n", sizeof(struct raw_pcb), memp_sizes[0], memp_desc[0]);
-	  printf("sizeof udp_pcb %u, memp_s2 %u, %s\n", sizeof(struct udp_pcb), memp_sizes[1], memp_desc[1]);
-	  printf("sizeof tcp_pcb %u, memp_s3 %u, %s\n", sizeof(struct tcp_pcb), memp_sizes[2], memp_desc[2]);
-	  printf("sizeof tcp_pcb_listen %u, memp_s4 %u, %s\n", sizeof(struct tcp_pcb_listen), memp_sizes[3], memp_desc[3]);
-	  printf("sizeof tcp_seg %u, memp_s5 %u, %s\n", sizeof(struct tcp_seg), memp_sizes[4], memp_desc[4]);
-	  printf("sizeof sys_timeo %u, memp_s6 %u, %s\n", sizeof(struct sys_timeo), memp_sizes[5], memp_desc[5]);
-	  printf("sizeof pbuf %u, memp_s7 %u, %s\n", sizeof(struct pbuf), memp_sizes[6], memp_desc[6]);
-	  printf("align pbuf size %u, memp_s8 %u, %s\n", (PBUF_POOL_BUFSIZE), memp_sizes[7], memp_desc[7]);
-	  printf("TCP_MSS %d PBUF_LINK_HLEN %d ETH_PAD_SIZE %d\n", TCP_MSS, PBUF_LINK_HLEN, ETH_PAD_SIZE);
-	  printf("TCP_MSS + PBUF_LINK_HLEN + ETH_PAD_SIZE %d \n", TCP_MSS+PBUF_LINK_HLEN+ETH_PAD_SIZE+40);
-	  printf("test size %u\n",memp_sizes_test[0]);
-	  printf("sizeof memp_memory_PBUF_pool %u \n", sizeof(memp_memory_PBUF_POOL_base));
-}
-#endif //0000
