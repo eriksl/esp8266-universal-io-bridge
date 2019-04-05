@@ -17,8 +17,6 @@
 
 #pragma GCC diagnostic pop
 
-static const int tcp_debug = 1;
-
 enum
 {
 	lwip_ethernet_max_payload =	1500,
@@ -180,10 +178,10 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 	return(ERR_OK);
 }
 
-static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket, const char *caller)
+static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
 	struct tcp_pcb *pcb_tcp = (struct pcb_tcp *)socket->tcp.pcb;
-	unsigned int chunk_size, offset, apiflags, heap;
+	unsigned int chunk_size, offset, apiflags;
 	_Bool sent_one = false;
 	err_t error;
 
@@ -200,17 +198,16 @@ static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket, const char *caller)
 
 		offset = string_length(socket->send_buffer) - socket->sending_remaining;
 
-		heap = system_get_free_heap_size();
-
-		if(tcp_debug)
-			log("lwip %s: sending tcp chunk size %u from offset %u, heap free: %u\n", caller, chunk_size, offset, heap);
-
-		if(heap < stat_heap_min)
-			stat_heap_min = heap;
-
 		if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
 		{
-			log("lwip %s: tcp write: error: ", caller);
+			if(error == ERR_MEM)
+				stat_lwip_tcp_send_segmentation++;
+			else
+			{
+				stat_lwip_tcp_send_error++;
+				log("lwip tcp write: error: ");
+			}
+
 			log_error(error);
 			break;
 		}
@@ -218,19 +215,11 @@ static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket, const char *caller)
 		sent_one = true;
 		socket->sending_remaining -= chunk_size;
 		socket->sent_remaining += chunk_size;
-
-		heap = system_get_free_heap_size();
-
-		if(tcp_debug)
-			log("lwip %s: sent    tcp chunk size %u from offset %u, heap free: %u\n", caller, chunk_size, offset, heap);
-
-		if(heap < stat_heap_min)
-			stat_heap_min = heap;
 	}
 
 	if((error = tcp_output(pcb_tcp)) != ERR_OK)
 	{
-		log("lwip %s: tcp send: tcp_output: error: ", caller);
+		log("lwip: tcp send: tcp_output: error: ");
 		log_error(error);
 	}
 
@@ -241,9 +230,6 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
-	if(tcp_debug)
-		log("tcp sent callback: acked %d bytes from %d remaining\n", len, socket->sent_remaining);
-
 	if(len > socket->sent_remaining)
 	{
 		log("tcp sent callback: acked (%u) > sent_remaining (%d)\n", len, socket->sent_remaining);
@@ -253,17 +239,8 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 		socket->sent_remaining -= len;
 
 	if(socket->sending_remaining > 0)
-		if(!tcp_try_send_buffer(socket, "tcp sent callback"))
+		if(!tcp_try_send_buffer(socket))
 			socket->sending_remaining = 0;
-
-	if(tcp_debug)
-	{
-		log("tcp sent callback: sent remaining: %d, sending remaining: %d\n",
-				socket->sent_remaining, socket->sending_remaining);
-
-		if((socket->sent_remaining == 0) && (socket->sending_remaining == 0))
-			log("tcp sent callback: buffer completely sent\n");
-	}
 
 	return(ERR_OK);
 }
@@ -273,8 +250,11 @@ static void tcp_error_callback(void *callback_arg, err_t error)
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct pcb_tcp **)&socket->tcp.pcb;
 
-	log("tcp error callback: socket %p, tcp pcb: %p, error: ", socket, *pcb_tcp);
-	log_error(error);
+	if(error != ERR_ISCONN)
+	{
+		log("tcp error callback: socket %p, tcp pcb: %p, error: ", socket, *pcb_tcp);
+		log_error(error);
+	}
 
 	if(socket->reboot_pending)
 		reset();
@@ -386,6 +366,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 
 			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
 			{
+				stat_lwip_udp_send_error++;
 				log("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
 				log_error(error);
 			}
@@ -399,6 +380,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 
 			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
 			{
+				stat_lwip_udp_send_error++;
 				log("lwip if send: udp terminate failed, error: ");
 				log_error(error);
 			}
@@ -417,7 +399,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 		socket->sending_remaining = string_length(socket->send_buffer);
 		socket->sent_remaining = 0;
 
-		if(!tcp_try_send_buffer(socket, "if send"))
+		if(!tcp_try_send_buffer(socket))
 		{
 			log("lwip if send: tcp try send buffer failed\n");
 			socket->sending_remaining = 0;

@@ -34,6 +34,10 @@ extern int stat_cmd_send_buffer_overflow;
 extern int stat_uart_receive_buffer_overflow;
 extern int stat_uart_send_buffer_overflow;
 
+extern unsigned int stat_lwip_tcp_send_segmentation;
+extern unsigned int stat_lwip_tcp_send_error;
+extern unsigned int stat_lwip_udp_send_error;
+
 extern int stat_update_uart;
 extern int stat_update_longop;
 extern int stat_update_command_udp;

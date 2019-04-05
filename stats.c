@@ -39,6 +39,10 @@ unsigned int stat_task_command_failed;
 unsigned int stat_task_timer_posted;
 unsigned int stat_task_timer_failed;
 
+unsigned int stat_lwip_tcp_send_segmentation;
+unsigned int stat_lwip_tcp_send_error;
+unsigned int stat_lwip_udp_send_error;
+
 unsigned int stat_i2c_sda_stucks;
 unsigned int stat_i2c_sda_stuck_max_period;
 unsigned int stat_i2c_bus_locks;
@@ -285,6 +289,9 @@ void stats_counters(string_t *dst)
 			"> cmd send buffer overflow events: %d\n"
 			"> uart receive buffer overflow events: %d\n"
 			"> uart send buffer overflow events: %d\n"
+			"> lwip tcp send segmentation events: %u\n"
+			"> lwip tcp send error events: %u\n"
+			"> lwip udp send error events: %u\n"
 			"> task uart posted: %u\n"
 			"> task uart failed: %u\n"
 			"> task command posted: %u\n"
@@ -314,6 +321,9 @@ void stats_counters(string_t *dst)
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
 				stat_uart_send_buffer_overflow,
+				stat_lwip_tcp_send_segmentation,
+				stat_lwip_tcp_send_error,
+				stat_lwip_udp_send_error,
 				stat_task_uart_posted,
 				stat_task_uart_failed,
 				stat_task_command_posted,
