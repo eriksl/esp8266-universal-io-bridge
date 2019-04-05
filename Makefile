@@ -248,7 +248,7 @@ veryclean:		clean
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32)
-				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,77)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,78)
 				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,408)
 
 showsymbols:	$(ELF_IMAGE)

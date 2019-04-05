@@ -292,9 +292,7 @@ lwip_init(void)
 #if !NO_SYS
   sys_init();
 #endif /* !NO_SYS */
-#if 0
-  mem_init(&_bss_end);
-#endif
+  mem_init();
   memp_init();
   pbuf_init();
   netif_init();
