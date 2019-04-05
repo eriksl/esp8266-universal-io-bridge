@@ -6,6 +6,9 @@
 #include "sdk.h"
 #include "eagle.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct
 {
 	_Bool			enabled;
@@ -256,6 +259,14 @@ void uart_parity(unsigned int uart, uart_parity_t parity)
 
 	clear_set_peri_reg_mask(UART_CONF0(uart), UART_PARITY_EN | UART_PARITY,
 			(parity_mask & (UART_PARITY_EN | UART_PARITY)));
+}
+
+void uart_loopback(unsigned int uart, bool enable)
+{
+	clear_fifos(uart);
+
+	clear_set_peri_reg_mask(UART_CONF0(uart), UART_LOOPBACK,
+			enable ? UART_LOOPBACK : 0);
 }
 
 void uart_autofill(unsigned int uart, _Bool enable, unsigned int character)

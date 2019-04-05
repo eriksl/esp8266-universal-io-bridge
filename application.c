@@ -687,6 +687,34 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 	return(app_action_normal);
 }
 
+static app_action_t application_function_uart_loopback(string_t *src, string_t *dst)
+{
+	unsigned int uart, mode;
+
+	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	{
+		string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+		return(app_action_error);
+	}
+
+	if(parse_uint(2, src, &mode, 0, ' ') == parse_ok)
+	{
+		if(mode > 1)
+		{
+			string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+			return(app_action_error);
+		}
+
+		uart_loopback(uart, mode ? true : false);
+
+		string_format(dst, "> uart loopback %s for uart %u\n", onoff(mode), uart);
+	}
+	else
+		string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_uart_write(string_t *src, string_t *dst)
 {
 	unsigned int uart;
@@ -1933,6 +1961,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"up", "uart-parity",
 		application_function_uart_parity,
 		"set uart parity [none/even/odd]",
+	},
+	{
+		"ul", "uart-loopback",
+		application_function_uart_loopback,
+		"set uart loopback mode [0/1]",
 	},
 	{
 		"uw", "uart-write",

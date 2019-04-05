@@ -2,6 +2,7 @@
 #define uart_h
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "util.h"
 #include "queue.h"
@@ -37,6 +38,7 @@ void			uart_baudrate(unsigned int uart, unsigned int baudrate);
 void 			uart_data_bits(unsigned int uart, unsigned int data_bits);
 void			uart_stop_bits(unsigned int uart, unsigned int stop_bits);
 void			uart_parity(unsigned int uart, uart_parity_t parity);
+void			uart_loopback(unsigned int, bool);
 void			uart_autofill(unsigned int uart, _Bool enable, unsigned int character);
 void			uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *character);
 _Bool			uart_full(unsigned int uart);
