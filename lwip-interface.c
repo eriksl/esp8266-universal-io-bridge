@@ -94,20 +94,27 @@ static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct pbuf *
 		return;
 	}
 
-	socket->peer.address = *address;
-	socket->peer.port = port;
-
-	for(pbuf = pbuf_received, length = 0; pbuf; pbuf = pbuf->next)
+	if(((unsigned int)address >= 0x3ffe8000) && ((unsigned int)address < 0x40000000))
 	{
-		length += pbuf->len;
-		string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
+		socket->peer.address = *address;
+		socket->peer.port = port;
 	}
+	else
+	{
+		socket->peer.address = *IP_ADDR_ANY;
+		socket->peer.port = 0;
+	}
+
+	length = string_length(socket->receive_buffer);
+
+	for(pbuf = pbuf_received; pbuf; pbuf = pbuf->next)
+		string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
 
     pbuf_free(pbuf_received);
 
 	socket->receive_buffer_locked = 1;
 
-	socket->callback_data_received(socket, length);
+	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
 }
 
 static void *udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
@@ -171,7 +178,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 	if(pcb != *pcb_tcp)
 		log("tcp received callback: pcb != *pcb_tcp\n");
 
-	received_callback(true, socket, pbuf, IP_ADDR_ANY, 0);
+	received_callback(true, socket, pbuf, 0, 0);
 
 	tcp_recved(pcb, pbuf->tot_len);
 
