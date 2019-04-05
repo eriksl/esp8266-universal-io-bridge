@@ -329,37 +329,6 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 	return(app_action_normal);
 }
 
-static app_action_t application_function_bridge_timeout(string_t *src, string_t *dst)
-{
-	string_init(varname_bridgetimeout, "bridge.timeout");
-	unsigned int timeout;
-
-	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
-	{
-		if(timeout > 65535)
-		{
-			string_format(dst, "> invalid timeout: %u\n", timeout);
-			return(app_action_error);
-		}
-
-		if(timeout == 90)
-			config_delete(&varname_bridgetimeout, -1, -1, false);
-		else
-			if(!config_set_int(&varname_bridgetimeout, -1, -1, timeout))
-			{
-				string_append(dst, "> cannot set config\n");
-				return(app_action_error);
-			}
-	}
-
-	if(!config_get_int(&varname_bridgetimeout, -1, -1, &timeout))
-		timeout = 90;
-
-	string_format(dst, "> timeout: %u\n", timeout);
-
-	return(app_action_normal);
-}
-
 static app_action_t application_function_command_port(string_t *src, string_t *dst)
 {
 	string_init(varname_cmdport, "cmd.port");
@@ -387,37 +356,6 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 		port = 24;
 
 	string_format(dst, "> port: %u\n", port);
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_command_timeout(string_t *src, string_t *dst)
-{
-	string_init(varname_cmdtimeout, "cmd.timeout");
-	unsigned int timeout;
-
-	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
-	{
-		if(timeout > 65535)
-		{
-			string_format(dst, "> invalid timeout: %u\n", timeout);
-			return(app_action_error);
-		}
-
-		if(timeout == 90)
-			config_delete(&varname_cmdtimeout, -1, -1, false);
-		else
-			if(!config_set_int(&varname_cmdtimeout, -1, -1, timeout))
-			{
-				string_append(dst, "> cannot set config\n");
-				return(app_action_error);
-			}
-	}
-
-	if(!config_get_int(&varname_cmdtimeout, -1, -1, &timeout))
-		timeout = 90;
-
-	string_format(dst, "> timeout: %u\n", timeout);
 
 	return(app_action_normal);
 }
@@ -1777,19 +1715,9 @@ roflash static const application_function_table_t application_function_table[] =
 		"set uart bridge tcp/udp port (default 23)"
 	},
 	{
-		"bt", "bridge-timeout",
-		application_function_bridge_timeout,
-		"set uart bridge tcp connection timeout (default 0)"
-	},
-	{
 		"cp", "command-port",
 		application_function_command_port,
 		"set command tcp/udp port (default 24)"
-	},
-	{
-		"ct", "command-timeout",
-		application_function_command_timeout,
-		"set command tcp connection timeout (default 0)"
 	},
 	{
 		"cd", "config-dump",
