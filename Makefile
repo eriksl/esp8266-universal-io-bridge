@@ -223,7 +223,7 @@ LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWI
 LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
 
 .PRECIOUS:		*.c *.h
-.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols
+.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols udprxtest tcprxtest udptxtest tcptxtest test
 
 all:			toolchain $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -377,10 +377,6 @@ ota:					$(FIRMWARE_OTA_IMG) free espflash
 						$(VECHO) "FLASH OTA"
 						espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
 
-ota-dummy:				$(FIRMWARE_OTA_IMG) free espflash
-						$(VECHO) "FLASH OTA DUMMY"
-						$(Q) espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
-
 ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "FLASH OTA DEFAULTS"
 						$(VECHO) "* rf config"
@@ -435,6 +431,20 @@ espflash:				espflash.cpp
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"
 						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
+
+udprxtest:
+						espflash -u -f test -h $(OTA_HOST) --length 390352 --start 0x002000 -R
+
+tcprxtest:
+						espflash -t -f test -h $(OTA_HOST) --length 390352 --start 0x002000 -R
+
+udptxtest:
+						espflash -u -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+
+tcptxtest:
+						espflash -t -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+
+test:					udprxtest tcprxtest udptxtest tcptxtest
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \
