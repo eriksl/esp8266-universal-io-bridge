@@ -55,6 +55,7 @@
 #include "netif/etharp.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 /* Define some copy-macros for checksum-on-copy so that the code looks
    nicer by preventing too many ifdef's. */

@@ -176,9 +176,10 @@ static u8_t memp_memory[MEM_ALIGNMENT - 1
 
 #if MEMP_SANITY_CHECK
 /**
- * Check that memp-lists don't form a circle, modify by ives at 2014.4.23.
+ * Check that memp-lists don't form a circle, using "Floyd's cycle-finding algorithm".
  */
-static int memp_sanity(void)
+static int
+memp_sanity(void)
 {
   s16_t i;
   struct memp *t, *h;
@@ -212,7 +213,8 @@ static const char * memp_overflow_names[] = {
  * @param p the memp element to check
  * @param memp_type the pool p comes from
  */
-static void memp_overflow_check_element_overflow(struct memp *p, u16_t memp_type)
+static void
+memp_overflow_check_element_overflow(struct memp *p, u16_t memp_type)
 {
   u16_t k;
   u8_t *m;
@@ -244,7 +246,8 @@ static void memp_overflow_check_element_overflow(struct memp *p, u16_t memp_type
  * @param p the memp element to check
  * @param memp_type the pool p comes from
  */
-static void memp_overflow_check_element_underflow(struct memp *p, u16_t memp_type)
+static void
+memp_overflow_check_element_underflow(struct memp *p, u16_t memp_type)
 {
   u16_t k;
   u8_t *m;
@@ -274,7 +277,8 @@ static void memp_overflow_check_element_underflow(struct memp *p, u16_t memp_typ
  *
  * @see memp_overflow_check_element for a description of the check
  */
-static void memp_overflow_check_all(void)
+static void
+memp_overflow_check_all(void)
 {
   u16_t i, j;
   struct memp *p;
@@ -300,7 +304,8 @@ static void memp_overflow_check_all(void)
 /**
  * Initialize the restricted areas of all memp elements in every pool.
  */
-static void memp_overflow_init(void)
+static void
+memp_overflow_init(void)
 {
   u16_t i, j;
   struct memp *p;
@@ -329,7 +334,8 @@ static void memp_overflow_init(void)
  *
  * Carves out memp_memory into linked lists for each pool-type.
  */
-void memp_init(void)
+void
+memp_init(void)
 {
   struct memp *memp;
   u16_t i, j;
@@ -425,7 +431,8 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
  * @param type the pool where to put mem
  * @param mem the memp element to free
  */
-void memp_free(memp_t type, void *mem)
+void
+memp_free(memp_t type, void *mem)
 {
   struct memp *memp;
   SYS_ARCH_DECL_PROTECT(old_level);
