@@ -189,7 +189,7 @@ static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 	{
 		chunk_size = socket->sending_remaining;
 
-		apiflags = 0;
+		apiflags = TCP_WRITE_FLAG_COPY;
 		if(chunk_size > lwip_tcp_max_payload)
 		{
 			chunk_size = lwip_tcp_max_payload;
