@@ -256,6 +256,14 @@ _Bool config_read(void)
 	state_parse_t parse_state;
 	_Bool rv = false;
 
+	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("config_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_config;
+
 	string_clear(&flash_sector_buffer);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
@@ -360,6 +368,8 @@ _Bool config_read(void)
 done:
 	string_clear(&flash_sector_buffer);
 
+	flash_sector_buffer_use = fsb_free_empty;
+
 	string_init(varname, "flags");
 
 	if(!config_get_int(&varname, -1, -1, &flags_cache))
@@ -375,6 +385,14 @@ unsigned int config_write(string_t *flash_verify_buffer)
 {
 	config_entry_t *entry;
 	unsigned int ix, length = 0;
+
+	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("config_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_config;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -433,6 +451,7 @@ error:
 ok:
 	string_clear(&flash_sector_buffer);
 	string_clear(flash_verify_buffer);
+	flash_sector_buffer_use = fsb_free_empty;
 	return(length);
 }
 

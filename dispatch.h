@@ -25,7 +25,17 @@ typedef enum
 	timer_task_io_periodic_fast,
 } task_command_t;
 
-extern string_t flash_sector_buffer;
+typedef enum
+{
+	fsb_free_empty,
+	fsb_config_cache,
+	fsb_config,
+	fsb_ota,
+	fsb_sequencer,
+} flash_sector_buffer_use_t;
+
+extern	string_t					flash_sector_buffer;
+extern	flash_sector_buffer_use_t	flash_sector_buffer_use;
 
 void	dispatch_init1(void);
 void	dispatch_init2(void);

@@ -504,6 +504,13 @@ void command_write(GenericSocket &channel, int fd,
 			}
 			else
 			{
+				// reset sector buffer use status
+				process(channel, "flash-info", reply, "OK [^,]+, sector size: ([0-9]+)[^,]+, OTA update available: ([0-9]+), "
+							"slots: ([0-9]+), slot: ([0-9]+), "
+							"address: ([0-9]+), address: ([0-9]+), address: ([0-9]+), address: ([0-9]+)"
+							"(?:, preferred chunk size: ([0-9]+))?"
+							"\\s*",
+							string_value, int_value, verbose);
 				sectors_skipped++;
 				break;
 			}

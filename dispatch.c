@@ -37,6 +37,7 @@ static os_event_t uart_task_queue[uart_task_queue_length];
 static os_event_t command_task_queue[command_task_queue_length];
 static os_event_t timer_task_queue[timer_task_queue_length];
 
+flash_sector_buffer_use_t flash_sector_buffer_use;
 string_new(attr_flash_align, flash_sector_buffer, 4096);
 
 string_new(static attr_flash_align, command_socket_receive_buffer, 4096 + 64);
@@ -437,6 +438,8 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 
 void dispatch_init1(void)
 {
+	flash_sector_buffer_use = fsb_free_empty;
+
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
 	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
