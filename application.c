@@ -1415,14 +1415,14 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 			return(app_action_error);
 		}
 
-		if(!config_set_string("wlan.ap.ssid", &ssid, -1, -1))
+		if(!config_set_string("wlan.ap.ssid", string_to_cstr(&ssid), -1, -1))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set config (set ssid)\n");
 			return(app_action_error);
 		}
 
-		if(!config_set_string("wlan.ap.passwd", &passwd, -1, -1))
+		if(!config_set_string("wlan.ap.passwd", string_to_cstr(&passwd), -1, -1))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set config (passwd)\n");
@@ -1486,14 +1486,14 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 			return(app_action_error);
 		}
 
-		if(!config_set_string("wlan.client.ssid", &ssid, -1, -1))
+		if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set config (write ssid)\n");
 			return(app_action_error);
 		}
 
-		if(!config_set_string("wlan.client.passwd", &passwd, -1, -1))
+		if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set config (write passwd)\n");

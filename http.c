@@ -460,13 +460,13 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(!config_open_write())
 		goto config_error;
 
-	if(!config_set_string("wlan.client.ssid", &ssid, -1, -1))
+	if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
 	{
 		config_abort_write();
 		goto config_error;
 	}
 
-	if(!config_set_string("wlan.client.passwd", &passwd, -1, -1))
+	if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
 	{
 		config_abort_write();
 		goto config_error;

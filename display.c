@@ -528,7 +528,7 @@ app_action_t application_function_display_default_message(string_t *src, string_
 		string_splice(&message, 0, src, string_length(src) - ix - 1, -1);
 
 		if(!config_open_write() ||
-				!config_set_string("display.defaultmsg", &message, -1, -1) ||
+				!config_set_string("display.defaultmsg", string_to_cstr(&message), -1, -1) ||
 				!config_close_write())
 		{
 			config_abort_write();
