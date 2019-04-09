@@ -41,7 +41,7 @@ app_action_t application_function_flash_info(string_t *src, string_t *dst)
 #endif
 
 	if(flash_sector_buffer_use == fsb_ota)
-		flash_sector_buffer_use = fsb_free_empty;
+		flash_sector_buffer_use = fsb_free;
 
 	string_format(dst, "OK flash function available, "
 				"sector size: %d bytes, "
@@ -158,7 +158,7 @@ app_action_t application_function_flash_send(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
 	{
 		string_format(dst, "ERROR flash_send: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
@@ -213,7 +213,7 @@ app_action_t application_function_flash_receive(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
 	{
 		string_format(dst, "ERROR: flash_send: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
@@ -226,7 +226,7 @@ app_action_t application_function_flash_receive(string_t *src, string_t *dst)
 	string_append(dst, "\n");
 
 	if((chunk_offset + chunk_length) >= SPI_FLASH_SEC_SIZE)
-		flash_sector_buffer_use = fsb_free_empty;
+		flash_sector_buffer_use = fsb_free;
 
 	return(app_action_normal);
 }
@@ -257,7 +257,7 @@ app_action_t application_function_flash_read(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
 	{
 		string_format(dst, "ERROR: flash-read: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
@@ -365,7 +365,7 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, _Bool veri
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 
 	if(verify)
 		string_format(dst, "OK flash-verify: verified bytes: %d, at address: %u (%u), same: %d, checksum: ", SPI_FLASH_SEC_SIZE, address, sector, same);

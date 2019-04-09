@@ -3,6 +3,7 @@
 
 #include "uart.h"
 #include "util.h"
+#include "stats.h"
 
 #include <stdint.h>
 
@@ -36,19 +37,69 @@ enum
 void			config_flags_to_string(_Bool nl, const char *, string_t *);
 _Bool			config_flags_change(const string_t *, _Bool add);
 
-_Bool			config_get_string(const string_t *id, int index1, int index2, string_t *value);
-_Bool			config_get_int(const string_t *id, int index1, int index2, uint32_t *value);
-_Bool			config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length);
-_Bool			config_set_int(const string_t *id, int index1, int index2, uint32_t value);
-unsigned int	config_delete(const string_t *id, int index1, int index2, _Bool wildcard);
+_Bool			config_init(void);
+_Bool			config_dump(string_t *);
+_Bool			config_open_read(void);
+_Bool			config_walk(string_t *id, string_t *value);
+_Bool			config_close_read(void);
 
-_Bool			config_read(void);
-unsigned int	config_write(string_t *);
-void			config_dump(string_t *);
+_Bool			config_open_write(void);
+unsigned int	config_delete_flashptr(const char *match_name, _Bool wildcard, int index1, int index2);
+_Bool			config_set_string_flashptr(const char *id, const char *value, int param1, int param2);
+_Bool			config_set_int_flashptr(const char *match_name, int value, int index1, int index2);
+_Bool			config_set_uint_flashptr(const char *match_name, unsigned int value, int index1, int index2);
+_Bool			config_close_write(void);
+void			config_abort_write(void);
+
+_Bool			config_get_string_flashptr(const char *id, string_t *value, int param1, int param2);
+_Bool			config_get_int_flashptr(const char *match_name, int *return_value, int param1, int param2);
+_Bool			config_get_uint_flashptr(const char *match_name, unsigned int *return_value, int param1, int param2);
+
+#define config_get_string(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_get_string_flashptr(name_flash, value, p1, p2); \
+})
+
+#define config_get_int(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_get_int_flashptr(name_flash, value, p1, p2); \
+})
+
+#define config_get_uint(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_get_uint_flashptr(name_flash, value, p1, p2); \
+})
+
+#define config_delete(name, wildcard, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_delete_flashptr(name_flash, wildcard, p1, p2); \
+})
+
+#define config_set_string(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_set_string_flashptr(name_flash, value, p1, p2); \
+})
+
+#define config_set_int(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_set_int_flashptr(name_flash, value, p1, p2); \
+})
+
+#define config_set_uint(name, value, p1, p2) \
+({ \
+	static roflash const char name_flash[] = name; \
+	config_set_uint_flashptr(name_flash, value, p1, p2); \
+})
 
 attr_inline uint32_t config_flags_match(uint32_t match_flags)
 {
-	extern uint32_t flags_cache;
-	return(!!(flags_cache & match_flags));
+	extern uint32_t config_flags;
+	return(!!(config_flags & match_flags));
 }
 #endif

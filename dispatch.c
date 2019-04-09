@@ -54,6 +54,15 @@ static _Bool uart_bridge_active = false;
 static os_timer_t fast_timer;
 static os_timer_t slow_timer;
 
+typedef struct
+{
+	int	io;
+	int	pin;
+} trigger_t;
+
+static trigger_t trigger_alert = { -1, -1 };
+static trigger_t assoc_alert = { -1, -1 };
+
 iram void dispatch_post_uart(task_command_t command)
 {
 	if(system_os_post(uart_task_id, command, 0))
@@ -100,12 +109,6 @@ static void background_task_bridge_uart(void)
 
 static void command_task(os_event_t *event)
 {
-	int trigger_io, trigger_pin;
-	string_init(varname_alert_assoc_io, "trigger.assoc.io");
-	string_init(varname_alert_assoc_pin, "trigger.assoc.pin");
-	string_init(varname_alert_status_io, "trigger.status.io");
-	string_init(varname_alert_status_pin, "trigger.status.pin");
-
 	switch(event->sig)
 	{
 		case(command_task_reset):
@@ -216,19 +219,20 @@ static void command_task(os_event_t *event)
 		case(command_task_fallback_wlan):
 		{
 			config_wlan_mode_t wlan_mode;
-			int wlan_mode_int;
-			string_init(varname_wlan_mode, "wlan.mode");
+			unsigned int wlan_mode_int;
 
-			if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
+			if(config_get_uint("wlan.mode", &wlan_mode_int, -1, -1))
 				wlan_mode = (config_wlan_mode_t)wlan_mode_int;
 			else
 				wlan_mode = config_wlan_mode_client;
 
 			if(wlan_mode == config_wlan_mode_client)
 			{
-				wlan_mode_int = (int)config_wlan_mode_ap;
-				config_set_int(&varname_wlan_mode, -1, -1, wlan_mode_int);
-				config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int);
+				wlan_mode_int = config_wlan_mode_ap;
+				config_open_write();
+				config_set_uint("wlan.mode", wlan_mode_int, -1, -1);
+				config_close_write();
+				config_get_uint("wlan.mode", &wlan_mode_int, -1, -1);
 				wlan_init();
 			}
 
@@ -249,30 +253,24 @@ static void command_task(os_event_t *event)
 
 		case(command_task_alert_association):
 		{
-			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
-					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
-					(trigger_io >= 0) && (trigger_pin >= 0)))
-				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
+			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
+				io_trigger_pin((string_t *)0, assoc_alert.io, assoc_alert.pin, io_trigger_on);
 
 			break;
 		}
 
 		case(command_task_alert_disassociation):
 		{
-			if((config_get_int(&varname_alert_assoc_io, -1, -1, &trigger_io) &&
-					config_get_int(&varname_alert_assoc_pin, -1, -1, &trigger_pin) &&
-					(trigger_io >= 0) && (trigger_pin >= 0)))
-				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_off);
+			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
+				io_trigger_pin((string_t *)0, assoc_alert.io, assoc_alert.pin, io_trigger_off);
 
 			break;
 		}
 
 		case(command_task_alert_status):
 		{
-			if((config_get_int(&varname_alert_status_io, -1, -1, &trigger_io) &&
-					config_get_int(&varname_alert_status_pin, -1, -1, &trigger_pin) &&
-					(trigger_io >= 0) && (trigger_pin >= 0)))
-				io_trigger_pin((string_t *)0, trigger_io, trigger_pin, io_trigger_on);
+			if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
+				io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
 
 			break;
 		}
@@ -329,9 +327,6 @@ iram static void slow_timer_callback(void *arg)
 
 static void wlan_event_handler(System_Event_t *event)
 {
-	string_init(varname_alert_assoc_io, "trigger.assoc.io");
-	string_init(varname_alert_assoc_pin, "trigger.assoc.pin");
-
 	switch(event->event)
 	{
 		case(EVENT_STAMODE_GOT_IP):
@@ -438,7 +433,7 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 
 void dispatch_init1(void)
 {
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
@@ -447,24 +442,28 @@ void dispatch_init1(void)
 
 void dispatch_init2(void)
 {
-	int cmd_port, cmd_timeout;
-	int uart_port, uart_timeout;
-	string_init(varname_cmd_port, "cmd.port");
-	string_init(varname_cmd_timeout, "cmd.timeout");
-	string_init(varname_bridge_port, "bridge.port");
-	string_init(varname_bridge_timeout, "bridge.timeout");
+	int io, pin;
+	unsigned int cmd_port, uart_port;
 
-	if(!config_get_int(&varname_cmd_port, -1, -1, &cmd_port))
+	if(config_get_int("trigger.status.io", &io, -1, -1) &&
+			config_get_int("trigger.status.pin", &pin, -1, -1))
+	{
+		trigger_alert.io = io;
+		trigger_alert.pin = pin;
+	}
+
+	if(config_get_int("trigger.assoc.io", &io, -1, -1) &&
+			config_get_int("trigger.assoc.pin", &pin, -1, -1))
+	{
+		assoc_alert.io = io;
+		assoc_alert.pin = pin;
+	}
+
+	if(!config_get_uint("cmd.port", &cmd_port, -1, -1))
 		cmd_port = 24;
 
-	if(!config_get_int(&varname_cmd_timeout, -1, -1, &cmd_timeout))
-		cmd_timeout = 90;
-
-	if(!config_get_int(&varname_bridge_port, -1, -1, &uart_port))
+	if(!config_get_uint("bridge.port", &uart_port, -1, -1))
 		uart_port = 0;
-
-	if(!config_get_int(&varname_bridge_timeout, -1, -1, &uart_timeout))
-		uart_timeout = 90;
 
 	wifi_set_event_handler_cb(wlan_event_handler);
 

@@ -27,9 +27,11 @@ typedef enum
 
 typedef enum
 {
-	fsb_free_empty,
+	fsb_free,
+	fsb_config_read,
+	fsb_config_write,
+	fsb_config_write_dirty,
 	fsb_config_cache,
-	fsb_config,
 	fsb_ota,
 	fsb_sequencer,
 } flash_sector_buffer_use_t;

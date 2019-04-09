@@ -28,7 +28,10 @@ extern int stat_pwm_cycles;;
 extern int stat_pwm_timer_interrupts;
 extern int stat_pwm_timer_interrupts_while_nmi_masked;
 extern int stat_pc_counts;
-extern int stat_display_init_time_us;
+
+extern unsigned int stat_display_init_time_us;
+extern unsigned int stat_io_init_time_us;
+
 extern int stat_cmd_receive_buffer_overflow;
 extern int stat_cmd_send_buffer_overflow;
 extern int stat_uart_receive_buffer_overflow;
@@ -37,6 +40,12 @@ extern int stat_uart_send_buffer_overflow;
 extern unsigned int stat_lwip_tcp_send_segmentation;
 extern unsigned int stat_lwip_tcp_send_error;
 extern unsigned int stat_lwip_udp_send_error;
+
+extern unsigned int stat_config_read_requests;
+extern unsigned int stat_config_read_loads;
+extern unsigned int stat_config_write_requests;
+extern unsigned int stat_config_write_saved;
+extern unsigned int stat_config_write_aborted;
 
 extern int stat_update_uart;
 extern int stat_update_longop;

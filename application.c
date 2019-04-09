@@ -28,19 +28,37 @@ assert_size(application_function_table_t, 16);
 
 roflash static const application_function_table_t application_function_table[];
 
+typedef struct
+{
+	int	io;
+	int	pin;
+} trigger_t;
+
+static trigger_t trigger_alert = { -1, -1 };
+
+void application_init(void)
+{
+	int io, pin;
+
+	trigger_alert.io = -1;
+	trigger_alert.pin = -1;
+
+	if(config_get_int("trigger.status.io", &io, -1, -1) &&
+			config_get_int("trigger.status.pin", &pin, -1, -1))
+	{
+		trigger_alert.io = io;
+		trigger_alert.pin = pin;
+	}
+}
+
 app_action_t application_content(string_t *src, string_t *dst)
 {
-	string_init(varname_io, "trigger.status.io");
-	string_init(varname_pin, "trigger.status.pin");
-
 	const application_function_table_t *tableptr;
-	int status_io, status_pin;
 
-	if(config_get_int(&varname_io, -1, -1, &status_io) &&
-			config_get_int(&varname_pin, -1, -1, &status_pin) &&
-			(status_io != -1) && (status_pin != -1))
+	if((trigger_alert.io >= 0) &&
+			(trigger_alert.pin >= 0))
 	{
-		io_trigger_pin((string_t *)0, status_io, status_pin, io_trigger_on);
+		io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
 	}
 
 	if(parse_string(0, src, dst, ' ') != parse_ok)
@@ -63,21 +81,12 @@ app_action_t application_content(string_t *src, string_t *dst)
 
 static app_action_t application_function_config_dump(string_t *src, string_t *dst)
 {
-	config_dump(dst);
-	return(app_action_normal);
-}
-
-static app_action_t application_function_config_write(string_t *src, string_t *dst)
-{
-	unsigned int size;
-
-	if((size = config_write(dst)) == 0)
+	if(!config_dump(dst))
 	{
-		string_append(dst, "> failed\n");
+		string_append(dst, "config-dump: failed\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "> config write done, space used: %u, free: %u\n", size, SPI_FLASH_SEC_SIZE - size);
 	return(app_action_normal);
 }
 
@@ -98,7 +107,7 @@ static app_action_t application_function_config_query_int(string_t *src, string_
 		if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
 			index2 = -1;
 
-	if(!config_get_int(dst, index1, index2, &value))
+	if(!config_get_uint_flashptr(string_to_cstr(dst), &value, index1, index2))
 	{
 		string_clear(dst);
 		string_append(dst, "ERROR\n");
@@ -133,7 +142,7 @@ static app_action_t application_function_config_query_string(string_t *src, stri
 	string_append_string(dst, &varid);
 	string_append(dst, "=");
 
-	if(!config_get_string(&varid, index1, index2, dst))
+	if(!config_get_string_flashptr(string_to_cstr(&varid), dst, index1, index2))
 	{
 		string_clear(dst);
 		string_append(dst, "ERROR\n");
@@ -148,50 +157,58 @@ static app_action_t application_function_config_query_string(string_t *src, stri
 static app_action_t application_function_config_set(string_t *src, string_t *dst)
 {
 	int index1, index2, offset;
-	string_new(, varid, 64);
+	string_new(, name, 64);
+	string_new(, value, 64);
 
-	if(parse_string(1, src, &varid, ' ') != parse_ok)
-	{
-		string_append(dst, "missing variable name\n");
-		return(app_action_error);
-	}
+	if(parse_string(1, src, &name, ' ') != parse_ok)
+		goto usage;
 
 	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
-	{
-		string_append(dst, "missing index1\n");
-		return(app_action_error);
-	}
+		goto usage;
 
 	if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
-	{
-		string_append(dst, "missing index2\n");
-		return(app_action_error);
-	}
+		goto usage;
 
 	if((offset = string_sep(src, 0, 4, ' ')) < 0)
+		goto usage;
+
+	string_splice(&value, 0, src, offset, -1);
+
+	if(!config_open_write())
 	{
-		string_append(dst, "missing variable value\n");
+		string_append(dst, "config set failure (open)\n");
 		return(app_action_error);
 	}
 
-	if(!config_set_string(&varid, index1, index2, src, offset, -1))
+	if(!config_set_string_flashptr(string_to_cstr(&name), string_to_cstr(&value), index1, index2))
 	{
-		string_append(dst, "ERROR\n");
+		config_abort_write();
+		string_append(dst, "config set failure (set)\n");
+		return(app_action_error);
+	}
+
+	if(!config_close_write())
+	{
+		string_append(dst, "config set failure (close)\n");
 		return(app_action_error);
 	}
 
 	string_append(dst, "OK\n");
 
 	return(app_action_normal);
+
+usage:
+	string_append(dst, "usage: config-set <variable name pattern> <index1> <index2> <value>\n");
+	return(app_action_error);
 }
 
 static app_action_t application_function_config_delete(string_t *src, string_t *dst)
 {
 	int index1, index2;
 	unsigned int wildcard;
-	string_new(, varid, 64);
+	string_new(, name, 64);
 
-	if(parse_string(1, src, &varid, ' ') != parse_ok)
+	if(parse_string(1, src, &name, ' ') != parse_ok)
 	{
 		string_clear(dst);
 		string_append(dst, "missing variable name\n");
@@ -207,11 +224,22 @@ static app_action_t application_function_config_delete(string_t *src, string_t *
 	if(parse_uint(4, src, &wildcard, 0, ' ') != parse_ok)
 		wildcard = 0;
 
-	index1 = config_delete(&varid, index1, index2, wildcard != 0);
+	if(config_open_write())
+	{
+		index1 = config_delete_flashptr(string_to_cstr(&name), wildcard != 0, index1, index2);
 
-	string_format(dst, "%d config entries deleted\n", index1);
+		if(config_close_write())
+		{
+			string_format(dst, "%d config entries deleted\n", index1);
+			return(app_action_normal);
+		}
+		else
+			string_append(dst, "config-delete: config close failure\n");
+	}
+	else
+		string_append(dst, "config-delete: config open failure\n");
 
-	return(app_action_normal);
+	return(app_action_error);
 }
 
 static app_action_t application_function_help(string_t *src, string_t *dst)
@@ -229,31 +257,42 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 static app_action_t application_function_identification(string_t *src, string_t *dst)
 {
 	int start;
-	string_init(varname_identification, "identification");
+	string_new(, text, 64);
 
 	if((start = string_sep(src, 0, 1, ' ')) > 0)
 	{
-		string_trim_nl(src);
+		string_splice(&text, 0, src, start, -1);
 
-		if(!config_set_string(&varname_identification, -1, -1, src, start, string_length(src) - start))
+		if(!config_open_write() ||
+				!config_set_string("identification", string_to_cstr(&text), -1, -1) ||
+				!config_close_write())
 		{
+			config_abort_write();
 			string_append(dst, "> cannot set identification\n");
 			return(app_action_error);
 		}
 	}
 
-	string_clear(dst);
+	string_clear(&text);
 
-	if(config_get_string(&varname_identification, -1, -1, dst) && string_empty(dst))
-		config_delete(&varname_identification, -1, -1, false);
+	if(config_get_string("identification", &text, -1, -1) && string_empty(&text))
+	{
+		if(!config_open_write() ||
+				!config_delete("identification", false, -1, -1) ||
+				!config_close_write())
+		{
+			config_abort_write();
+			string_append(dst, "> config delete failure\n");
+			return(app_action_error);
+		}
+	}
 
-	string_clear(dst);
-	string_append(dst, "identification is \"");
+	string_clear(&text);
 
-	if(!config_get_string(&varname_identification, -1, -1, dst))
-		string_append(dst, "<unset>");
+	if(!config_get_string("identification", &text, -1, -1))
+		string_append(&text, "<unset>");
 
-	string_append(dst, "\"\n");
+	string_format(dst, "identification is \"%s\"\n", string_to_cstr(&text));
 
 	return(app_action_normal);
 }
@@ -301,7 +340,6 @@ static app_action_t application_function_stats_wlan(string_t *src, string_t *dst
 static app_action_t application_function_bridge_port(string_t *src, string_t *dst)
 {
 	unsigned int port;
-	string_init(varname_bridgeport, "bridge.port");
 
 	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
 	{
@@ -312,16 +350,28 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 		}
 
 		if(port == 0)
-			config_delete(&varname_bridgeport, -1, -1, false);
-		else
-			if(!config_set_int(&varname_bridgeport, -1, -1, port))
+		{
+			if(!config_open_write() ||
+					!config_delete("bridge.port", -1, -1, false) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("bridge.port", -1, -1, port) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_bridgeport, -1, -1, &port))
+	if(!config_get_uint("bridge.port", &port, -1, -1))
 		port = 0;
 
 	string_format(dst, "> port: %u\n", port);
@@ -331,7 +381,6 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 
 static app_action_t application_function_command_port(string_t *src, string_t *dst)
 {
-	string_init(varname_cmdport, "cmd.port");
 	unsigned int port;
 
 	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
@@ -343,16 +392,28 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 		}
 
 		if(port == 24)
-			config_delete(&varname_cmdport, -1, -1, false);
-		else
-			if(!config_set_int(&varname_cmdport, -1, -1, port))
+		{
+			if(!config_open_write() ||
+					!config_delete("cmd.port", false, -1, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("cmd.port", port, -1, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_cmdport, -1, -1, &port))
+	if(!config_get_uint("cmd.port", &port, -1, -1))
 		port = 24;
 
 	string_format(dst, "> port: %u\n", port);
@@ -527,7 +588,6 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 
 static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
 {
-	string_init(varname_baudrate, "uart.baud.%u");
 	unsigned int uart, baud_rate;
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
@@ -539,10 +599,22 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 	if(parse_uint(2, src, &baud_rate, 0, ' ') == parse_ok)
 	{
 		if(baud_rate == 115200)
-			config_delete(&varname_baudrate, uart, -1, false);
-		else
-			if(!config_set_int(&varname_baudrate, uart, -1, baud_rate))
+		{
+			if(!config_open_write() ||
+					!config_delete("uart.baud.%u", false, uart, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("uart.baud.%u", baud_rate, uart, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -550,7 +622,7 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 		uart_baudrate(uart, baud_rate);
 	}
 
-	if(!config_get_int(&varname_baudrate, uart, -1, &baud_rate))
+	if(!config_get_uint("uart.baud.%u", &baud_rate, uart, -1))
 		baud_rate = 115200;
 
 	string_format(dst, "> baudrate[%u]: %u\n", uart, baud_rate);
@@ -561,7 +633,6 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
 {
 	unsigned int uart, data_bits;
-	string_init(varname_uartdata, "uart.data.%u");
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
@@ -578,10 +649,23 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 		}
 
 		if(data_bits == 8)
-			config_delete(&varname_uartdata, uart, -1, false);
-		else
-			if(!config_set_int(&varname_uartdata, uart, -1, data_bits))
+		{
+			if(!config_open_write() ||
+					!config_delete("uart.data.%u", false, uart, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("uart.data.%u", data_bits, uart, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -589,7 +673,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 		uart_data_bits(uart, data_bits);
 	}
 
-	if(!config_get_int(&varname_uartdata, uart, -1, &data_bits))
+	if(!config_get_uint("uart.data.%u", &data_bits, uart, -1))
 		data_bits = 8;
 
 	string_format(dst, "data bits[%u]: %u\n", uart, data_bits);
@@ -600,7 +684,6 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
 {
 	unsigned int uart, stop_bits;
-	string_init(varname_stopbits, "uart.stop.%u");
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
@@ -617,10 +700,22 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 		}
 
 		if(stop_bits == 1)
-			config_delete(&varname_stopbits, uart, -1, false);
-		else
-			if(!config_set_int(&varname_stopbits, uart, -1, stop_bits))
+		{
+			if(!config_open_write() ||
+					!config_delete("uart.stop.%u", false, uart, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("uart.stop.%u", stop_bits, uart, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -628,7 +723,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 		uart_stop_bits(uart, stop_bits);
 	}
 
-	if(!config_get_int(&varname_stopbits, uart, -1, &stop_bits))
+	if(!config_get_uint("uart.stop.%u", &stop_bits, uart, -1))
 		stop_bits = 1;
 
 	string_format(dst, "> stop bits[%u]: %u\n", uart, stop_bits);
@@ -640,7 +735,6 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 {
 	uart_parity_t parity;
 	unsigned int uart, parity_int;
-	string_init(varname_parity, "uart.parity.%u");
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
@@ -659,13 +753,26 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 		}
 
 		if(parity == parity_none)
-			config_delete(&varname_parity, uart, -1, false);
+		{
+			if(!config_open_write() ||
+					!config_delete("uart.parity.%u", false, uart, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
+				string_append(dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+
+		}
 		else
 		{
 			parity_int = (int)parity;
 
-			if(!config_set_int(&varname_parity, uart, -1, parity_int))
+			if(!config_open_write() ||
+					!config_set_int("uart.parity.%u", parity_int, uart, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -674,7 +781,7 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 		uart_parity(uart, parity);
 	}
 
-	if(config_get_int(&varname_parity, uart, -1, &parity_int))
+	if(config_get_uint("uart.parity.%u", &parity_int, uart, -1))
 		parity = (uart_parity_t)parity_int;
 	else
 		parity = parity_none;
@@ -944,7 +1051,6 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 {
 	unsigned int speed_delay;
-	string_init(varname_i2c_speed, "i2c.speed_delay");
 
 	if(parse_uint(1, src, &speed_delay, 0, ' ') == parse_ok)
 	{
@@ -955,16 +1061,29 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 		}
 
 		if(speed_delay == 1000)
-			config_delete(&varname_i2c_speed, -1, -1, false);
-		else
-			if(!config_set_int(&varname_i2c_speed, -1, -1, speed_delay))
+		{
+			if(!config_open_write() ||
+					!config_delete("i2c.speed_delay", false, -1, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+
+		}
+		else
+			if(!config_open_write() ||
+					!config_set_int("i2c.speed_delay", speed_delay, -1, -1) ||
+					!config_close_write())
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
 
-	if(!config_get_int(&varname_i2c_speed, -1, -1, &speed_delay))
+	if(!config_get_uint("i2c.speed_delay", &speed_delay, -1, -1))
 		speed_delay = 1000;
 
 	i2c_init(-1, -1, speed_delay);
@@ -1050,9 +1169,6 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 	i2c_sensor_t sensor;
 	double factor, offset;
 	int int_factor, int_offset;
-	string_init(varname_i2s, "i2s.%u.%u.");
-	string_init(varname_i2s_factor, "i2s.%u.%u.factor");
-	string_init(varname_i2s_offset, "i2s.%u.%u.offset");
 
 	if(parse_uint(1, src, &bus, 0, ' ') != parse_ok)
 	{
@@ -1085,25 +1201,40 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 		int_factor = (int)(factor * 1000.0);
 		int_offset = (int)(offset * 1000.0);
 
-		config_delete(&varname_i2s, bus, sensor, true);
-
-		if((int_factor != 1000) && !config_set_int(&varname_i2s_factor, bus, sensor, int_factor))
+		if(!config_open_write() ||
+				!config_delete("i2s.%u.%u.", true, bus, sensor) ||
+				!config_close_write())
 		{
+			config_abort_write();
+			string_append(dst, "cannot delete old factor values\n");
+			return(app_action_error);
+		}
+
+		if((int_factor != 1000) &&
+				(!config_open_write() ||
+				 !config_set_int("i2s.%u.%u.factor", int_factor, bus, sensor) ||
+				 !config_close_write()))
+		{
+			config_abort_write();
 			string_append(dst, "> cannot set factor\n");
 			return(app_action_error);
 		}
 
-		if((int_offset != 0) && !config_set_int(&varname_i2s_offset, bus, sensor, int_offset))
+		if((int_offset != 0) &&
+				(!config_open_write() ||
+				 !config_set_int("i2s.%u.%u.offset", int_offset, bus, sensor) ||
+				 !config_close_write()))
 		{
+			config_abort_write();
 			string_append(dst, "> cannot set offset\n");
 			return(app_action_error);
 		}
 	}
 
-	if(!config_get_int(&varname_i2s_factor, bus, sensor, &int_factor))
+	if(!config_get_int("i2s.%u.%u.factor", &int_factor, bus, sensor))
 		int_factor = 1000;
 
-	if(!config_get_int(&varname_i2s_offset, bus, sensor, &int_offset))
+	if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 		int_offset = 0;
 
 	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, sensor);
@@ -1261,9 +1392,6 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 	unsigned int channel;
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
-	string_init(varname_wlan_ap_ssid, "wlan.ap.ssid");
-	string_init(varname_wlan_ap_passwd, "wlan.ap.passwd");
-	string_init(varname_wlan_ap_channel, "wlan.ap.channel");
 
 	if((parse_string(1, src, &ssid, ' ') == parse_ok) && (parse_string(2, src, &passwd, ' ') == parse_ok) &&
 			(parse_uint(3, src, &channel, 0, ' ') == parse_ok))
@@ -1281,21 +1409,36 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 			return(app_action_error);
 		}
 
-		if(!config_set_string(&varname_wlan_ap_ssid, -1, -1, &ssid, -1, -1))
+		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
-		if(!config_set_string(&varname_wlan_ap_passwd, -1, -1, &passwd, -1, -1))
+		if(!config_set_string("wlan.ap.ssid", &ssid, -1, -1))
 		{
-			string_append(dst, "> cannot set config\n");
+			config_abort_write();
+			string_append(dst, "> cannot set config (set ssid)\n");
 			return(app_action_error);
 		}
 
-		if(!config_set_int(&varname_wlan_ap_channel, -1, -1, channel))
+		if(!config_set_string("wlan.ap.passwd", &passwd, -1, -1))
 		{
-			string_append(dst, "> cannot set config\n");
+			config_abort_write();
+			string_append(dst, "> cannot set config (passwd)\n");
+			return(app_action_error);
+		}
+
+		if(!config_set_int("wlan.ap.channel", channel, -1, -1))
+		{
+			config_abort_write();
+			string_append(dst, "> cannot set config (channel)\n");
+			return(app_action_error);
+		}
+
+		if(!config_open_write())
+		{
+			string_append(dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -1303,19 +1446,19 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 	string_clear(&ssid);
 	string_clear(&passwd);
 
-	if(!config_get_string(&varname_wlan_ap_ssid, -1, -1, &ssid))
+	if(!config_get_string("wlan.ap.ssid", &ssid, -1, -1))
 	{
 		string_clear(&ssid);
 		string_append(&ssid, "<empty>");
 	}
 
-	if(!config_get_string(&varname_wlan_ap_passwd, -1, -1, &passwd))
+	if(!config_get_string("wlan.ap.passwd", &passwd, -1, -1))
 	{
 		string_clear(&passwd);
 		string_append(&passwd, "<empty>");
 	}
 
-	if(!config_get_int(&varname_wlan_ap_channel, -1, -1, &channel))
+	if(!config_get_uint("wlan.ap.channel", &channel, -1, -1))
 		channel = 0;
 
 	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %u\n",
@@ -1328,8 +1471,6 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 {
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
-	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
-	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
 
 	if((parse_string(1, src, &ssid, ' ') == parse_ok) && (parse_string(2, src, &passwd, ' ') == parse_ok))
 	{
@@ -1339,15 +1480,29 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 			return(app_action_error);
 		}
 
-		if(!config_set_string(&varname_wlan_client_ssid, -1, -1, &ssid, -1, -1))
+		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config\n");
+			string_append(dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
-		if(!config_set_string(&varname_wlan_client_passwd, -1, -1, &passwd, -1, -1))
+		if(!config_set_string("wlan.client.ssid", &ssid, -1, -1))
 		{
-			string_append(dst, "> cannot set config\n");
+			config_abort_write();
+			string_append(dst, "> cannot set config (write ssid)\n");
+			return(app_action_error);
+		}
+
+		if(!config_set_string("wlan.client.passwd", &passwd, -1, -1))
+		{
+			config_abort_write();
+			string_append(dst, "> cannot set config (write passwd)\n");
+			return(app_action_error);
+		}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -1355,13 +1510,13 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 	string_clear(&ssid);
 	string_clear(&passwd);
 
-	if(!config_get_string(&varname_wlan_client_ssid, -1, -1, &ssid))
+	if(!config_get_string("wlan.client.ssid", &ssid, -1, -1))
 	{
 		string_clear(&ssid);
 		string_append(&ssid, "<empty>");
 	}
 
-	if(!config_get_string(&varname_wlan_client_passwd, -1, -1, &passwd))
+	if(!config_get_string("wlan.client.passwd", &passwd, -1, -1))
 	{
 		string_clear(&passwd);
 		string_append(&passwd, "<empty>");
@@ -1377,7 +1532,6 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 {
 	unsigned int int_mode;
 	config_wlan_mode_t mode;
-	string_init(varname_wlan_mode, "wlan.mode");
 
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{
@@ -1385,8 +1539,11 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 		{
 			string_clear(dst);
 
-			if(!config_set_int(&varname_wlan_mode, -1, -1, config_wlan_mode_client))
+			if(!config_open_write() ||
+					!config_set_int("wlan.mode", config_wlan_mode_client, -1, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -1404,8 +1561,11 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 		{
 			string_clear(dst);
 
-			if(!config_set_int(&varname_wlan_mode, -1, -1, config_wlan_mode_ap))
+			if(!config_open_write() ||
+					!config_set_int("wlan.mode", config_wlan_mode_ap, -1, -1) ||
+					!config_close_write())
 			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
@@ -1426,7 +1586,7 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 	string_clear(dst);
 	string_append(dst, "> current mode: ");
 
-	if(config_get_int(&varname_wlan_mode, -1, -1, &int_mode))
+	if(config_get_uint("wlan.mode", &int_mode, -1, -1))
 	{
 		mode = (config_wlan_mode_t)int_mode;
 
@@ -1516,8 +1676,13 @@ static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
 	ip_addr_to_bytes_t a2b;
 
 	string_new(, ip, 32);
-	string_init(varname_ntp_server, "ntp.server.%u");
-	string_init(varname_ntp_tz, "ntp.tz");
+
+	if(!config_open_write())
+	{
+		string_clear(dst);
+		string_append(dst, "cannot set config (open)\n");
+		return(app_action_error);
+	}
 
 	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_uint(2, src, &timezone, 0, ' ') == parse_ok))
 	{
@@ -1525,27 +1690,36 @@ static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
 
 		if((a2b.byte[0] == 0) && (a2b.byte[1] == 0) && (a2b.byte[2] == 0) && (a2b.byte[3] == 0))
 			for(ix = 0; ix < 4; ix++)
-				config_delete(&varname_ntp_server, ix, -1, false);
+				config_delete("ntp.server.%u", false, ix, -1);
 		else
 			for(ix = 0; ix < 4; ix++)
-				if(!config_set_int(&varname_ntp_server, ix, -1, a2b.byte[ix]))
+				if(!config_set_int("ntp.server.%u", a2b.byte[ix], ix, -1))
 				{
+					config_abort_write();
 					string_clear(dst);
-					string_append(dst, "cannot set config\n");
+					string_append(dst, "cannot set config (set ntp server)\n");
 					return(app_action_error);
 				}
 
 		if(timezone == 0)
-			config_delete(&varname_ntp_tz, -1, -1, false);
+			config_delete("ntp.tz", false, -1, -1);
 		else
-			if(!config_set_int(&varname_ntp_tz, -1, -1, timezone))
+			if(!config_set_int("ntp.tz", timezone, -1, -1))
 			{
+				config_abort_write();
 				string_clear(dst);
-				string_append(dst, "cannot set config\n");
+				string_append(dst, "cannot set config (set ntp timezone)\n");
 				return(app_action_error);
 			}
 
 		time_ntp_init();
+	}
+
+	if(!config_close_write())
+	{
+		string_clear(dst);
+		string_append(dst, "cannot set config (close)\n");
+		return(app_action_error);
 	}
 
 	return(application_function_ntp_dump(src, dst));
@@ -1554,8 +1728,6 @@ static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
 static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
 {
 	int trigger_io, trigger_pin;
-	string_init(varname_trig_stat_io, "trigger.status.io");
-	string_init(varname_trig_stat_pin, "trigger.status.pin");
 
 	if((parse_int(1, src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, src, &trigger_pin, 0, ' ') == parse_ok))
 	{
@@ -1565,24 +1737,42 @@ static app_action_t application_function_gpio_status_set(string_t *src, string_t
 			return(app_action_error);
 		}
 
+		if(!config_open_write())
+		{
+			string_append(dst, "> cannot set config (open)\n");
+			return(app_action_error);
+		}
+
 		if((trigger_io < 0) || (trigger_pin < 0))
 		{
-			config_delete(&varname_trig_stat_io, -1, -1, false);
-			config_delete(&varname_trig_stat_pin, -1, -1, false);
+			if(!config_delete("trigger.status.io", false, -1, -1) ||
+					!config_delete("trigger.status.pin", false, -1, -1))
+			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
 		}
 		else
-			if(!config_set_int(&varname_trig_stat_io, -1, -1, trigger_io) ||
-					!config_set_int(&varname_trig_stat_pin, -1, -1, trigger_pin))
+			if(!config_set_int("trigger.status.io", trigger_io, -1, -1) ||
+					!config_set_int("trigger.status.pin", trigger_pin, -1, -1))
 			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "> cannot set config (close)\n");
+			return(app_action_error);
+		}
 	}
 
-	if(!config_get_int(&varname_trig_stat_io, -1, -1, &trigger_io))
+	if(!config_get_int("trigger.status.io", &trigger_io, -1, -1))
 		trigger_io = -1;
 
-	if(!config_get_int(&varname_trig_stat_pin, -1, -1, &trigger_pin))
+	if(!config_get_int("trigger.status.pin", &trigger_pin, -1, -1))
 		trigger_pin = -1;
 
 	string_format(dst, "status trigger at io %d/%d (-1 is disabled)\n",
@@ -1594,11 +1784,15 @@ static app_action_t application_function_gpio_status_set(string_t *src, string_t
 static app_action_t application_function_gpio_assoc_set(string_t *src, string_t *dst)
 {
 	int trigger_io, trigger_pin;
-	string_init(varname_trig_assoc_io, "trigger.assoc.io");
-	string_init(varname_trig_assoc_pin, "trigger.assoc.pin");
 
 	if((parse_int(1, src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, src, &trigger_pin, 0, ' ') == parse_ok))
 	{
+		if(!config_open_write())
+		{
+			string_append(dst, "> cannot set config (open)\n");
+			return(app_action_error);
+		}
+
 		if((trigger_io < -1) || (trigger_io > io_id_size))
 		{
 			string_format(dst, "association trigger io %d/%d invalid\n", trigger_io, trigger_pin);
@@ -1607,22 +1801,34 @@ static app_action_t application_function_gpio_assoc_set(string_t *src, string_t 
 
 		if((trigger_io < 0) || (trigger_pin < 0))
 		{
-			config_delete(&varname_trig_assoc_io, -1, -1, false);
-			config_delete(&varname_trig_assoc_pin, -1, -1, false);
+			if(!config_delete("trigger.assoc.io", false, -1, -1) ||
+					!config_delete("trigger.assoc.pin", false, -1, -1))
+			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
 		}
 		else
-			if(!config_set_int(&varname_trig_assoc_io, -1, -1, trigger_io) ||
-					!config_set_int(&varname_trig_assoc_pin, -1, -1, trigger_pin))
+			if(!config_set_int("trigger.assoc.io", trigger_io, -1, -1) ||
+					!config_set_int("trigger.assoc.pin", trigger_pin, -1, -1))
 			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "> cannot set config (close)\n");
+			return(app_action_error);
+		}
 	}
 
-	if(!config_get_int(&varname_trig_assoc_io, -1, -1, &trigger_io))
+	if(!config_get_int("trigger.assoc.io", &trigger_io, -1, -1))
 		trigger_io = -1;
 
-	if(!config_get_int(&varname_trig_assoc_pin, -1, -1, &trigger_pin))
+	if(!config_get_int("trigger.assoc.pin", &trigger_pin, -1, -1))
 		trigger_pin = -1;
 
 	string_format(dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
@@ -1751,11 +1957,6 @@ roflash static const application_function_table_t application_function_table[] =
 		"cd", "config-dump",
 		application_function_config_dump,
 		"dump config contents (stored in flash)"
-	},
-	{
-		"cw", "config-write",
-		application_function_config_write,
-		"write config to non-volatile storage"
 	},
 	{
 		"db", "display-brightness",

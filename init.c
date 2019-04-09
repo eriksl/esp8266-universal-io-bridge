@@ -68,7 +68,7 @@ void user_init(void)
 
 	system_set_os_print(0);
 	dispatch_init1();
-	config_read();
+	config_init();
 	uart_init();
 	uart_set_initial(0);
 	uart_set_initial(1);
@@ -94,6 +94,7 @@ static void user_init2(void)
 	else
 		system_update_cpu_freq(80);
 
+	application_init();
 	wlan_init();
 	time_init();
 	io_init();
@@ -106,21 +107,15 @@ static void user_init2(void)
 
 _Bool wlan_init(void)
 {
-	int wlan_mode_int;
+	unsigned int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;
 	string_new(, string_ssid, 64);
 	string_new(, string_passwd, 64);
-	int channel;
+	unsigned int channel;
 	struct station_config cconf;
 	struct softap_config saconf;
-	string_init(varname_wlan_mode, "wlan.mode");
-	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
-	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
-	string_init(varname_wlan_ap_ssid, "wlan.ap.ssid");
-	string_init(varname_wlan_ap_passwd, "wlan.ap.passwd");
-	string_init(varname_wlan_ap_channel, "wlan.ap.channel");
 
-	if(config_get_int(&varname_wlan_mode, -1, -1, &wlan_mode_int))
+	if(config_get_uint("wlan.mode", &wlan_mode_int, -1, -1))
 		wlan_mode = (config_wlan_mode_t)wlan_mode_int;
 	else
 		wlan_mode = config_wlan_mode_client;
@@ -129,13 +124,13 @@ _Bool wlan_init(void)
 	{
 		case(config_wlan_mode_client):
 		{
-			if(!config_get_string(&varname_wlan_client_ssid, -1, -1, &string_ssid))
+			if(!config_get_string("wlan.client.ssid", &string_ssid, -1, -1))
 			{
 				string_clear(&string_ssid);
 				string_append(&string_ssid, "esp");
 			}
 
-			if(!config_get_string(&varname_wlan_client_passwd, -1, -1, &string_passwd))
+			if(!config_get_string("wlan.client.passwd", &string_passwd, -1, -1))
 			{
 				string_clear(&string_passwd);
 				string_append(&string_passwd, "espespesp");
@@ -166,17 +161,17 @@ _Bool wlan_init(void)
 		{
 			memset(&saconf, 0, sizeof(saconf));
 
-			if(config_get_string(&varname_wlan_ap_ssid, -1, -1, &string_ssid))
+			if(config_get_string("wlan.ap.ssid", &string_ssid, -1, -1))
 				strecpy(saconf.ssid, string_to_cstr(&string_ssid), sizeof(saconf.ssid));
 			else
 				strecpy(saconf.ssid, "esp", sizeof(saconf.ssid));
 
-			if(config_get_string(&varname_wlan_ap_passwd, -1, -1, &string_passwd))
+			if(config_get_string("wlan.ap.passwd", &string_passwd, -1, -1))
 				strecpy(saconf.password, string_to_cstr(&string_passwd), sizeof(saconf.password));
 			else
 				strecpy(saconf.password, "espespesp", sizeof(saconf.password));
 
-			if(!config_get_int(&varname_wlan_ap_channel, -1, -1, &channel))
+			if(!config_get_uint("wlan.ap.channel", &channel, -1, -1))
 				channel = 1;
 
 			saconf.ssid_len = strlen(saconf.ssid);

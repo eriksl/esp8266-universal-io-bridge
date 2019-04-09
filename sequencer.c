@@ -74,7 +74,7 @@ static _Bool clear_all_flash_entries(unsigned int mirror)
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		return(false);
 
-	if(flash_sector_buffer_use != fsb_free_empty)
+	if(flash_sector_buffer_use != fsb_free)
 	{
 		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);
@@ -118,11 +118,11 @@ static _Bool clear_all_flash_entries(unsigned int mirror)
 			goto error;
 	}
 
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 	return(true);
 
 error:
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 	return(false);
 }
 
@@ -161,7 +161,7 @@ static _Bool update_flash_entry(unsigned int index, unsigned int mirror, const s
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		return(false);
 
-	if(flash_sector_buffer_use != fsb_free_empty)
+	if(flash_sector_buffer_use != fsb_free)
 	{
 		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);
@@ -207,11 +207,11 @@ static _Bool update_flash_entry(unsigned int index, unsigned int mirror, const s
 		goto error;
 
 ok:
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 	return(true);
 
 error:
-	flash_sector_buffer_use = fsb_free_empty;
+	flash_sector_buffer_use = fsb_free;
 	return(false);
 }
 

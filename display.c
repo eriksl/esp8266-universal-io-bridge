@@ -56,6 +56,8 @@ typedef struct
 
 assert_size(display_slot_t, 80);
 
+static unsigned int flip_timeout;
+
 roflash const display_map_t display_common_map[display_common_map_size] =
 {
 	{	0x00b0, 0xdf },	// °
@@ -369,9 +371,7 @@ static void display_update(_Bool advance)
 
 	if(!strcmp(display_text, "%%%%"))
 	{
-		string_init(varname_identification, "identification");
-
-		config_get_string(&varname_identification, -1, -1, &info_text);
+		config_get_string("identification", &info_text, -1, -1);
 		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->type);
 		display_text = string_to_cstr(&info_text);
 	}
@@ -386,11 +386,10 @@ static void display_update(_Bool advance)
 		display_info_entry->set_fn((char *)0, display_text);
 }
 
-static void display_expire(void) // call one time per second
+static void display_expire(void) // called one time per second
 {
 	unsigned int active_slots, slot;
 	string_new(, default_message, 64);
-	string_init(varname_defaultmsg, "display.defaultmsg");
 
 	if(!display_detected())
 		return;
@@ -417,7 +416,7 @@ static void display_expire(void) // call one time per second
 		display_slot[0].timeout = 1;
 		strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
 		
-		if(!config_get_string(&varname_defaultmsg, -1, -1, &default_message))
+		if(!config_get_string("display.defaultmsg", &default_message, -1, -1))
 		{
 			string_clear(&default_message);
 			string_append(&default_message, "%%%%");
@@ -429,11 +428,10 @@ static void display_expire(void) // call one time per second
 
 _Bool display_periodic(void) // gets called 10 times per second
 {
-	static int last_update = 0;
-	static int expire_counter = 0;
-	int now, flip_timeout;
+	static unsigned int last_update = 0;
+	static unsigned int expire_counter = 0;
+	unsigned int now;
 	display_info_t *display_info_entry;
-	string_init(varname_fliptimeout, "display.fliptimeout");
 
 	if(!display_detected())
 		return(false);
@@ -446,9 +444,6 @@ _Bool display_periodic(void) // gets called 10 times per second
 	{
 		expire_counter = 0;
 		display_expire();
-
-		if(!config_get_int(&varname_fliptimeout, 0, 0, &flip_timeout))
-			flip_timeout = 4;
 
 		if((last_update > now) || ((last_update + flip_timeout) < now))
 		{
@@ -489,6 +484,9 @@ void display_init(void)
 		display_slot[slot].tag[0] = '\0';
 		display_slot[slot].content[0] = '\0';
 	}
+
+	if(!config_get_uint("display.fliptimeout", &flip_timeout, -1, -1))
+		flip_timeout = 4;
 }
 
 static void display_dump(string_t *dst)
@@ -523,59 +521,95 @@ app_action_t application_function_display_dump(string_t *src, string_t *dst)
 app_action_t application_function_display_default_message(string_t *src, string_t *dst)
 {
 	int ix;
-	string_init(varname_defaultmsg, "display.defaultmsg");
+	string_new(, message, 64);
 
-	if(((ix = string_sep(src, 0, 1, ' ')) > 0) &&
-			!config_set_string(&varname_defaultmsg, -1, -1, src, ix, string_length(src) - ix - 1))
+	if((ix = string_sep(src, 0, 1, ' ')) > 0)
 	{
-		string_append(dst, "> cannot set config\n");
-		return(app_action_error);
+		string_splice(&message, 0, src, string_length(src) - ix - 1, -1);
+
+		if(!config_open_write() ||
+				!config_set_string("display.defaultmsg", &message, -1, -1) ||
+				!config_close_write())
+		{
+			config_abort_write();
+			string_append(dst, "> cannot set config\n");
+			return(app_action_error);
+		}
 	}
 
 	string_clear(dst);
 
-	if(config_get_string(&varname_defaultmsg, -1, -1, dst) && string_match_cstr(dst, "%%%%"))
-		config_delete(&varname_defaultmsg, -1, -1, false);
+	if(config_get_string("display.defaultmsg", dst, -1, -1) && string_match_cstr(dst, "%%%%"))
+	{
+		if(!config_open_write() ||
+				!config_delete("display.defaultmsg", false, -1, -1) ||
+				!config_close_write())
+		{
+			config_abort_write();
+			string_append(dst, "> cannot delete config (default values)\n");
+			return(app_action_error);
+		}
+	}
 
 	string_clear(dst);
 	string_append(dst, "set default display message to \"");
 
-	if(!config_get_string(&varname_defaultmsg, -1, -1, dst))
+	if(!config_get_string("display.defaultmsg", dst, -1, -1))
 		string_append(dst, "%%%%");
 
 	string_append(dst, "\"\n");
-
 
 	return(app_action_normal);
 }
 
 app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
 {
-	unsigned int timeout;
-	string_init(varname_fliptimeout, "display.fliptimeout");
+	int timeout;
 
 	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
-			string_format(dst, "> invalid timeout: %u\n", timeout);
+			string_format(dst, "> invalid timeout: %d\n", timeout);
+			return(app_action_error);
+		}
+
+		if(!config_open_write())
+		{
+			string_append(dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
 		if(timeout == 4)
-			config_delete(&varname_fliptimeout, -1, -1, false);
-		else
-			if(!config_set_int(&varname_fliptimeout, -1, -1, timeout))
+		{
+			if(!config_delete("display.fliptimeout", false, -1, -1))
 			{
+				config_abort_write();
+				string_append(dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_set_int("display.fliptimeout", timeout, -1, -1))
+			{
+				config_abort_write();
 				string_append(dst, "> cannot set config\n");
 				return(app_action_error);
 			}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "> cannot set config (close)\n");
+			return(app_action_error);
+		}
 	}
 
-	if(!config_get_int(&varname_fliptimeout, -1, -1, &timeout))
+	if(!config_get_uint("display.fliptimeout", &timeout, -1, -1))
 		timeout = 4;
 
-	string_format(dst, "> timeout: %u s\n", timeout);
+	flip_timeout = timeout;
+
+	string_format(dst, "> timeout: %u s\n", flip_timeout);
 
 	return(app_action_normal);
 }

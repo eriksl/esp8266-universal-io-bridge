@@ -20,11 +20,13 @@ int stat_timer_interrupts;
 int stat_pwm_timer_interrupts;
 int stat_pwm_timer_interrupts_while_nmi_masked;
 int stat_pc_counts;
-int stat_display_init_time_us;
 int stat_cmd_receive_buffer_overflow;
 int stat_cmd_send_buffer_overflow;
 int stat_uart_receive_buffer_overflow;
 int stat_uart_send_buffer_overflow;
+
+unsigned int stat_display_init_time_us;
+unsigned int stat_io_init_time_us;
 
 int stat_update_uart;
 int stat_update_command_udp;
@@ -38,6 +40,12 @@ unsigned int stat_task_command_posted;
 unsigned int stat_task_command_failed;
 unsigned int stat_task_timer_posted;
 unsigned int stat_task_timer_failed;
+
+unsigned int stat_config_read_requests;
+unsigned int stat_config_read_loads;
+unsigned int stat_config_write_requests;
+unsigned int stat_config_write_saved;
+unsigned int stat_config_write_aborted;
 
 unsigned int stat_lwip_tcp_send_segmentation;
 unsigned int stat_lwip_tcp_send_error;
@@ -270,7 +278,7 @@ void stats_counters(string_t *dst)
 {
 	string_format(dst,
 			"> user_pre_init called: %s\n"
-			"> user_pre_init success: %s\n"
+			"> ... success: %s\n"
 			"> int uart0 rx: %d\n"
 			"> int uart0 tx: %d\n"
 			"> int uart1 tx: %d\n"
@@ -289,18 +297,25 @@ void stats_counters(string_t *dst)
 			"> cmd send buffer overflow events: %d\n"
 			"> uart receive buffer overflow events: %d\n"
 			"> uart send buffer overflow events: %d\n"
+			"> config read requests: %u\n"
+			"> ... loads: %u\n"
+			"> config write requests: %u\n"
+			"> ... saved: %u\n"
+			"> ... aborted: %u\n"
 			"> lwip tcp send segmentation events: %u\n"
-			"> lwip tcp send error events: %u\n"
+			"> ... error events: %u\n"
 			"> lwip udp send error events: %u\n"
 			"> task uart posted: %u\n"
-			"> task uart failed: %u\n"
+			"> ... failed: %u\n"
 			"> task command posted: %u\n"
-			"> task command failed: %u\n"
+			"> ... failed: %u\n"
 			"> task timer posted: %u\n"
-			"> task timer failed: %u\n"
-			"> debug counter 1: 0x%08x %d\n"
-			"> debug counter 2: 0x%08x %d\n"
-			"> debug counter 3: 0x%08x %d\n",
+			"> ... failed: %u\n"
+			"> io init time: %u ms\n"
+			"> display init time: %u ms\n"
+			"> debug 1: 0x%08x %d\n"
+			"> debug 2: 0x%08x %d\n"
+			"> debug 3: 0x%08x %d\n",
 				yesno(stat_flags.user_pre_init_called),
 				yesno(stat_flags.user_pre_init_success),
 				stat_uart0_rx_interrupts,
@@ -321,6 +336,11 @@ void stats_counters(string_t *dst)
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
 				stat_uart_send_buffer_overflow,
+				stat_config_read_requests,
+				stat_config_read_loads,
+				stat_config_write_requests,
+				stat_config_write_saved,
+				stat_config_write_aborted,
 				stat_lwip_tcp_send_segmentation,
 				stat_lwip_tcp_send_error,
 				stat_lwip_udp_send_error,
@@ -330,6 +350,8 @@ void stats_counters(string_t *dst)
 				stat_task_command_failed,
 				stat_task_timer_posted,
 				stat_task_timer_failed,
+				stat_io_init_time_us / 1000,
+				stat_display_init_time_us / 1000,
 				(unsigned int)stat_debug_1,
 				stat_debug_1,
 				(unsigned int)stat_debug_2,
@@ -347,7 +369,6 @@ void stats_i2c(string_t *dst)
 	i2c_sensor_get_info(&i2c_sensor_info);
 
 	string_format(dst,
-			"> display initialisation time: %d ms\n"
 			"> i2c sda stucks: %u\n"
 			"> i2c sda max stuck periods: %u\n"
 			"> i2c bus locks: %u\n"
@@ -367,7 +388,6 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors init current sensor id: %u\n"
 			"> i2c sensors init finished: %s\n"
 			"> i2c sensors init duration: %lu ms\n",
-				stat_display_init_time_us / 1000,
 				stat_i2c_sda_stucks,
 				stat_i2c_sda_stuck_max_period,
 				stat_i2c_bus_locks,

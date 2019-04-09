@@ -15,5 +15,6 @@ typedef enum
 
 assert_size(app_action_t, 4);
 
-app_action_t application_content(string_t *src, string_t *dst);
+void			application_init(void);
+app_action_t	application_content(string_t *src, string_t *dst);
 #endif

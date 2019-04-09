@@ -283,14 +283,12 @@ static int ntp_timezone;
 void time_ntp_init(void)
 {
 	int ix;
-	int byte;
-	string_init(varname_ntp_server, "ntp.server.%u");
-	string_init(varname_ntp_tz, "ntp.tz");
+	unsigned int byte;
 
 	sntp_stop();
 
 	for(ix = 0; ix < 4; ix++)
-		if(!config_get_int(&varname_ntp_server, ix, 0, &byte))
+		if(!config_get_uint("ntp.server.%u", &byte, ix, 0))
 			break;
 		else
 			ntp_server.byte[ix] = (uint8_t)byte;
@@ -305,7 +303,7 @@ void time_ntp_init(void)
 			ntp_server.byte[ix] = 0;
 	}
 
-	if(!config_get_int(&varname_ntp_tz, -1, -1, &ntp_timezone))
+	if(!config_get_int("ntp.tz", &ntp_timezone, -1, -1))
 		ntp_timezone = 0;
 
 	sntp_setserver(0, &ntp_server.ip_addr);

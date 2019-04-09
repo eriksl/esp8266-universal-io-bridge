@@ -409,27 +409,22 @@ void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
 
 void uart_set_initial(unsigned int uart)
 {
-	int baud;
-	int data;
-	int stop;
-	int parity_int;
+	unsigned int baud;
+	unsigned int data;
+	unsigned int stop;
+	unsigned int parity_int;
 	uart_parity_t parity;
 
-	string_init(varname_uart_baud, "uart.baud.%u");
-	string_init(varname_uart_data, "uart.data.%u");
-	string_init(varname_uart_stop, "uart.stop.%u");
-	string_init(varname_uart_parity, "uart.parity.%u");
-
-	if(!config_get_int(&varname_uart_baud, uart, -1, &baud))
+	if(!config_get_uint("uart.baud.%u", &baud, uart, -1))
 		baud = 115200;
 
-	if(!config_get_int(&varname_uart_data, uart, -1, &data))
+	if(!config_get_uint("uart.data.%u", &data, uart, -1))
 		data = 8;
 
-	if(!config_get_int(&varname_uart_stop, uart, -1, &stop))
+	if(!config_get_uint("uart.stop.%u", &stop, uart, -1))
 		stop = 1;
 
-	if(config_get_int(&varname_uart_parity, uart, -1, &parity_int))
+	if(config_get_uint("uart.parity.%u", &parity_int, uart, -1))
 		parity = (uart_parity_t)parity_int;
 	else
 		parity = parity_none;

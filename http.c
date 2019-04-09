@@ -432,9 +432,6 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	string_new(, param2, 32);
 	string_new(, ssid, 32);
 	string_new(, passwd, 32);
-	string_init(varname_wlan_client_ssid, "wlan.client.ssid");
-	string_init(varname_wlan_client_passwd, "wlan.client.passwd");
-	string_init(varname_wlan_mode, "wlan.mode");
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
 		goto parameter_error;
@@ -460,16 +457,28 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if((string_length(&ssid) < 4) || (string_length(&passwd) < 8))
 		goto parameter_error;
 
-	if(!config_set_string(&varname_wlan_client_ssid, -1, -1, &ssid, -1, -1))
+	if(!config_open_write())
 		goto config_error;
 
-	if(!config_set_string(&varname_wlan_client_passwd, -1, -1, &passwd, -1, -1))
+	if(!config_set_string("wlan.client.ssid", &ssid, -1, -1))
+	{
+		config_abort_write();
 		goto config_error;
+	}
 
-	if(!config_set_int(&varname_wlan_mode, -1, -1, config_wlan_mode_client))
+	if(!config_set_string("wlan.client.passwd", &passwd, -1, -1))
+	{
+		config_abort_write();
 		goto config_error;
+	}
 
-	if(config_write(dst) == 0)
+	if(!config_set_int("wlan.mode", config_wlan_mode_client, -1, -1))
+	{
+		config_abort_write();
+		goto config_error;
+	}
+
+	if(!config_close_write())
 		goto config_error;
 
 	string_append_cstr_flash(dst, roflash_html_table_start);

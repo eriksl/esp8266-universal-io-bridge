@@ -9,22 +9,6 @@
 
 #define CONFIG_MAGIC "%4afc0002%"
 
-enum
-{
-	config_entries_size = 160,
-	config_entry_id_size = 28,
-	config_entry_string_size = 20,
-};
-
-typedef struct
-{
-	char		id[config_entry_id_size];
-	char		string_value[config_entry_string_size];
-	uint32_t	uint_value;
-} config_entry_t;
-
-assert_size(config_entry_t, 52);
-
 typedef struct
 {
 	attr_flash_align uint32_t value;
@@ -54,21 +38,394 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_none,				""					},
 };
 
-uint32_t flags_cache;
-static unsigned int config_entries_length = 0;
-static config_entry_t config_entries[config_entries_size];
+uint32_t config_flags;
 
-void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
+static unsigned int config_current_index;
+
+static int config_tail(void)
 {
-	const config_flag_name_t *entry;
+	int current;
 
-	for(entry = config_flag_names; entry->value != flag_none; entry++)
+	for(current = sizeof(CONFIG_MAGIC) + 1; (current + 1) < string_size(&flash_sector_buffer); current++)
+		if((string_at(&flash_sector_buffer, current) == '\n') &&
+				(string_at(&flash_sector_buffer, current + 1) == '\n'))
+			break;
+
+	if((current + 1) >= string_size(&flash_sector_buffer))
+		current = sizeof(CONFIG_MAGIC) + 1;
+	else
+		current++;
+
+	return(current);
+}
+
+_Bool config_init(void)
+{
+	config_flags = flag_log_to_uart | flag_log_to_buffer;
+
+	if(!config_get_uint("flags", &config_flags, -1, -1))
+		return(false);
+
+	return(true);
+}
+
+_Bool config_open_read(void)
+{
+	string_new(, magic_string, 16);
+
+	stat_config_read_requests++;
+
+	if(flash_sector_buffer_use != fsb_config_cache)
 	{
-		string_append_cstr(dst, prefix);
-		string_append_cstr(dst, (flags_cache & entry->value) ? "   " : "no ");
-		string_append_cstr(dst, entry->name);
-		string_append_cstr(dst, nl ? "\n" : " ");
+		if(flash_sector_buffer_use != fsb_free)
+		{
+			log("config_open_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+			return(false);
+		}
+
+		if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+		{
+			log("config_open_read: sector buffer too small: %u\n", flash_sector_buffer_use);
+			return(false);
+		}
+
+		flash_sector_buffer_use = fsb_config_read;
+
+		if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		{
+			log("config_open_read: failed to read config sector 0x%x\n", (unsigned int)USER_CONFIG_SECTOR);
+			flash_sector_buffer_use = fsb_free;
+			return(false);
+		}
+
+		string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+
+		stat_config_read_loads++;
 	}
+
+	string_format(&magic_string, "%s\n", CONFIG_MAGIC);
+
+	if(!string_nmatch_string(&flash_sector_buffer, &magic_string, string_length(&magic_string)))
+	{
+		log("config_open_read: magic mismatch\n");
+		string_clear(&flash_sector_buffer);
+		string_append_string(&flash_sector_buffer, &magic_string);
+		string_append(&flash_sector_buffer, "\n");
+	}
+
+	config_current_index = string_length(&magic_string);
+	flash_sector_buffer_use = fsb_config_read;
+
+	return(true);
+}
+
+_Bool config_close_read(void)
+{
+	if(flash_sector_buffer_use != fsb_config_read)
+	{
+		log("config_close_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_config_cache;
+
+	return(true);
+}
+
+_Bool config_open_write(void)
+{
+	if(!config_open_read())
+		return(false);
+
+	if(flash_sector_buffer_use != fsb_config_read)
+		return(false);
+
+	stat_config_write_requests++;
+	flash_sector_buffer_use = fsb_config_write;
+
+	return(true);
+}
+
+_Bool config_close_write(void)
+{
+	int tail;
+
+	SHA_CTX sha_context;
+	uint8_t sha_result1[SHA_DIGEST_LENGTH];
+	uint8_t sha_result2[SHA_DIGEST_LENGTH];
+
+	if(flash_sector_buffer_use == fsb_config_write_dirty)
+	{
+		stat_config_write_saved++;
+
+		tail = config_tail();
+
+		memset(string_buffer_nonconst(&flash_sector_buffer) + tail + 1, '.', string_size(&flash_sector_buffer) - tail - 1);
+
+		SHA1Init(&sha_context);
+		SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+		SHA1Final(sha_result1, &sha_context);
+
+		if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
+		{
+			log("config close write: write failed, erase failed\n");
+			goto error;
+		}
+
+		if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		{
+			log("config close write: write failed, write failed\n");
+			goto error;
+		}
+
+		if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+		{
+			log("config close write: write failed, verify failed\n");
+			goto error;
+		}
+
+		SHA1Init(&sha_context);
+		SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+		SHA1Final(sha_result2, &sha_context);
+
+		if(memcmp(sha_result1, sha_result2, SHA_DIGEST_LENGTH))
+		{
+			log("config close write: write failed, sha mismatch\n");
+			goto error;
+		}
+
+		flash_sector_buffer_use = fsb_config_write;
+	}
+
+	if(flash_sector_buffer_use != fsb_config_write)
+	{
+		log("config_close_write: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_config_cache;
+	return(true);
+
+error:
+	flash_sector_buffer_use = fsb_free;
+	return(false);
+}
+
+void config_abort_write(void)
+{
+	stat_config_write_aborted++;
+
+	if(flash_sector_buffer_use == fsb_config_write)
+		flash_sector_buffer_use = fsb_config_cache;
+
+	if(flash_sector_buffer_use == fsb_config_write_dirty)
+		flash_sector_buffer_use = fsb_free;
+}
+
+_Bool config_walk(string_t *id, string_t *value)
+{
+	int id_start_index, id_end_index, value_start_index, value_end_index;
+
+	if(flash_sector_buffer_use != fsb_config_read)
+	{
+		log("config get entry: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	if((id_start_index = config_current_index) >= string_length(&flash_sector_buffer))
+	{
+		log("config get entry: sector length overrun\n");
+		return(false);
+	}
+
+	if(((value_start_index = string_sep(&flash_sector_buffer, id_start_index, 1, '=')) > 0) &&
+		((value_end_index = string_sep(&flash_sector_buffer, value_start_index, 1, '\n')) > 0))
+	{
+		id_end_index = value_start_index - 1;
+
+		string_splice(id, 0, &flash_sector_buffer, id_start_index, id_end_index - id_start_index);
+		string_splice(value, 0, &flash_sector_buffer, value_start_index, value_end_index - value_start_index - 1);
+
+		config_current_index = value_end_index;
+
+		return(true);
+	}
+
+	return(false);
+}
+
+_Bool config_get_string_flashptr(const char *match_name_flash, string_t *return_value, int param1, int param2)
+{
+	string_new(, match_name, 64);
+	string_new(, name, 64);
+	string_new(, value, 64);
+
+	if(!config_open_read())
+		return(false);
+
+	string_format_flash_ptr(&match_name, match_name_flash, param1, param2);
+
+	while(config_walk(&name, &value))
+	{
+		if(string_match_string(&match_name, &name))
+		{
+			string_append_string(return_value, &value);
+			config_close_read();
+			return(true);
+		}
+	}
+
+	config_close_read();
+	return(false);
+}
+
+_Bool config_get_int_flashptr(const char *match_name_flash, int *return_value, int param1, int param2)
+{
+	string_new(, value, 16);
+
+	if(!config_get_string_flashptr(match_name_flash, &value, param1, param2))
+		return(false);
+
+	return(parse_int(0, &value, return_value, 0, '\n') == parse_ok);
+}
+
+_Bool config_get_uint_flashptr(const char *match_name_flash, unsigned int *return_value, int param1, int param2)
+{
+	string_new(, value, 16);
+
+	if(!config_get_string_flashptr(match_name_flash, &value, param1, param2))
+		return(false);
+
+	return(parse_uint(0, &value, return_value, 0, '\n') == parse_ok);
+}
+
+unsigned int config_delete_flashptr(const char *match_name_flash, _Bool wildcard, int param1, int param2)
+{
+	string_new(, name, 64);
+	string_new(, match_name, 64);
+	unsigned int deleted;
+	int name_start_index, value_start_index, next_name_start_index;
+	char *flash_sector_buffer_buffer;
+
+	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
+	{
+		log("config delete: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(0);
+	}
+
+	flash_sector_buffer_buffer = string_buffer_nonconst(&flash_sector_buffer);
+	string_format_flash_ptr(&match_name, match_name_flash, param1, param2);
+
+	deleted = 0;
+	name_start_index = config_current_index;
+
+	if(name_start_index  >= string_length(&flash_sector_buffer))
+	{
+		log("config delete: sector length overrun\n");
+		return(0);
+	}
+
+	while(((value_start_index = string_sep(&flash_sector_buffer, name_start_index, 1, '=')) > 0) &&
+			((next_name_start_index = string_sep(&flash_sector_buffer, value_start_index, 1, '\n')) > 0))
+	{
+		string_splice(&name, 0, &flash_sector_buffer, name_start_index, value_start_index - name_start_index - 1);
+
+		if((!wildcard && string_match_string(&match_name, &name)) ||
+				(wildcard && string_nmatch_string(&match_name, &name, string_length(&match_name))))
+		{
+			memmove(&flash_sector_buffer_buffer[name_start_index], &flash_sector_buffer_buffer[next_name_start_index], SPI_FLASH_SEC_SIZE - next_name_start_index);
+			deleted++;
+		}
+		else
+			name_start_index = next_name_start_index;
+	}
+
+	if(deleted > 0)
+		flash_sector_buffer_use = fsb_config_write_dirty;
+
+	return(deleted);
+}
+
+_Bool config_set_string_flashptr(const char *match_name_flash, const char *value, int param1, int param2)
+{
+	int current;
+
+	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
+	{
+		log("config set string: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	config_delete_flashptr(match_name_flash, false, param1, param2);
+
+	current = config_tail();
+
+	string_setlength(&flash_sector_buffer, current);
+	string_format_flash_ptr(&flash_sector_buffer, match_name_flash, param1, param2);
+	string_format(&flash_sector_buffer, "=%s\n\n", value);
+
+	flash_sector_buffer_use = fsb_config_write_dirty;
+
+	return(true);
+}
+
+_Bool config_set_int_flashptr(const char *match_name_flash, int value, int param1, int param2)
+{
+	string_new(, string_value, 16);
+
+	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
+	{
+		log("config set int: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	string_format(&string_value, "%d", value);
+
+	return(config_set_string_flashptr(match_name_flash, string_buffer(&string_value), param1, param2));
+}
+
+_Bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value, int param1, int param2)
+{
+	string_new(, string_value, 16);
+
+	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
+	{
+		log("config set uint: sector buffer in use: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	string_format(&string_value, "%u", value);
+
+	return(config_set_string_flashptr(match_name_flash, string_buffer(&string_value), param1, param2));
+}
+
+_Bool config_dump(string_t *dst)
+{
+	int int_value, amount;
+	unsigned int uint_value;
+	string_new(, name, 64);
+	string_new(, value, 64);
+
+	if(!config_open_read())
+		return(app_action_error);
+
+	amount = 0;
+
+	while(config_walk(&name, &value))
+	{
+		string_format(dst, "%s=%s", string_to_cstr(&name), string_to_cstr(&value));
+
+		if((parse_int(0, &value, &int_value, 0, 0) == parse_ok) && parse_uint(0, &value, &uint_value, 0, 0) == parse_ok)
+			string_format(dst, " (%d/%u/0x%x)", int_value, uint_value, uint_value);
+
+		string_append(dst, "\n");
+
+		amount++;
+	}
+
+	string_format(dst, "\ntotal config entries: %d, flags: %04lx\n", amount, config_flags);
+
+	return(config_close_read());
 }
 
 _Bool config_flags_change(const string_t *flag, _Bool set)
@@ -80,397 +437,32 @@ _Bool config_flags_change(const string_t *flag, _Bool set)
 		if(string_match_cstr(flag, entry->name))
 		{
 			if(set)
-				flags_cache |= entry->value;
+				config_flags |= entry->value;
 			else
-				flags_cache &= ~entry->value;
+				config_flags &= ~entry->value;
 
-			string_init(varname, "flags");
-			return(config_set_int(&varname, -1, -1, flags_cache));
+			if(config_open_write() &&
+					config_set_int("flags", config_flags, -1, -1) &&
+					config_close_write())
+				return(true);
+
+			config_abort_write();
+			return(false);
 		}
 	}
 
 	return(false);
 }
 
-typedef enum
+void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
 {
-	state_parse_id,
-	state_parse_value,
-	state_parse_eol,
-} state_parse_t;
+	const config_flag_name_t *entry;
 
-static string_t *expand_varid(const string_t *varid, int index1, int index2)
-{
-	string_new(static, varid_in, config_entry_id_size);
-	string_new(static, varid_out, config_entry_id_size);
-
-	string_clear(&varid_in);
-	string_clear(&varid_out);
-
-	string_append_string(&varid_in, varid);
-	string_format_cstr(&varid_out, string_to_cstr(&varid_in), index1, index2);
-
-	return(&varid_out);
-}
-
-static config_entry_t *find_config_entry(const string_t *id, int index1, int index2)
-{
-	config_entry_t *config_entry;
-	const string_t *varid;
-	unsigned int ix;
-
-	varid = expand_varid(id, index1, index2);
-
-	for(ix = 0; ix < config_entries_length; ix++)
+	for(entry = config_flag_names; entry->value != flag_none; entry++)
 	{
-		config_entry = &config_entries[ix];
-
-		if(string_match_cstr(varid, config_entry->id))
-			return(config_entry);
+		string_append_cstr(dst, prefix);
+		string_append_cstr(dst, (config_flags & entry->value) ? "   " : "no ");
+		string_append_cstr(dst, entry->name);
+		string_append_cstr(dst, nl ? "\n" : " ");
 	}
-
-	return((config_entry_t *)0);
-}
-
-_Bool config_get_string(const string_t *id, int index1, int index2, string_t *value)
-{
-	config_entry_t *config_entry;
-
-	if(!(config_entry = find_config_entry(id, index1, index2)))
-		return(false);
-
-	string_format(value, "%s", config_entry->string_value);
-
-	return(true);
-}
-
-_Bool config_get_int(const string_t *id, int index1, int index2, uint32_t *value)
-{
-	config_entry_t *config_entry;
-
-	if(!(config_entry = find_config_entry(id, index1, index2)))
-		return(false);
-
-	*value = config_entry->uint_value;
-
-	return(true);
-}
-
-_Bool config_set_string(const string_t *id, int index1, int index2, const string_t *value, int value_offset, int value_length)
-{
-	string_t string;
-	string_t *varid;
-	config_entry_t *config_current;
-	unsigned int ix;
-
-	if(value_offset >= string_length(value))
-		value_offset = string_length(value) - 1;
-
-	if(value_offset < 0)
-		value_offset = 0;
-
-	if(value_length < 0)
-		value_length = string_length(value) - value_offset;
-
-	if((value_offset + value_length) > string_length(value))
-		value_length = string_length(value) - value_offset;
-
-	if(value_length >= config_entry_string_size)
-		value_length = config_entry_string_size - 1;
-
-	if(value_length < 0)
-		value_length = 0;
-
-	if(!(config_current = find_config_entry(id, index1, index2)))
-	{
-		for(ix = 0; ix < config_entries_length; ix++)
-		{
-			config_current = &config_entries[ix];
-
-			if(!config_current->id[0])
-				break;
-		}
-
-		if(ix >= config_entries_length)
-		{
-			if((config_entries_length + 1) >= config_entries_size)
-				return(false);
-
-			config_current = &config_entries[config_entries_length++];
-		}
-
-		varid = expand_varid(id, index1, index2);
-		strecpy(config_current->id, string_to_cstr(varid), config_entry_id_size);
-	}
-
-	strecpy(config_current->string_value, string_buffer(value) + value_offset, value_length + 1);
-
-	string = string_from_cstr(value_length + 1, config_current->string_value);
-
-	if(parse_uint(0, &string, &config_current->uint_value, 0, ' ') != parse_ok)
-		config_current->uint_value = 0;
-
-	return(true);
-}
-
-_Bool config_set_int(const string_t *id, int index1, int index2, uint32_t value)
-{
-	string_new(, string, 16);
-
-	string_format(&string, "%lu", value);
-
-	return(config_set_string(id, index1, index2, &string, 0, -1));
-}
-
-unsigned int config_delete(const string_t *id, int index1, int index2, _Bool wildcard)
-{
-	const char *varidptr;
-	config_entry_t *config_current;
-	unsigned int ix, amount, length;
-
-	varidptr = string_to_cstr(expand_varid(id, index1, index2));
-	length = strlen(varidptr);
-
-	for(ix = 0, amount = 0; ix < config_entries_length; ix++)
-	{
-		config_current = &config_entries[ix];
-
-		if((wildcard && !strncmp(config_current->id, varidptr, length)) ||
-			(!wildcard && !strcmp(config_current->id, varidptr)))
-		{
-			amount++;
-			config_current->id[0] = '\0';
-			config_current->string_value[0] = '\0';
-			config_current->uint_value = 0;
-		}
-	}
-
-	return(amount);
-}
-
-_Bool config_read(void)
-{
-	string_new(, string, 64);
-	unsigned int current_index, id_index, id_length, value_index, value_length;
-	char current;
-	state_parse_t parse_state;
-	_Bool rv = false;
-
-	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("config_read: sector buffer in use: %u\n", flash_sector_buffer_use);
-		return(false);
-	}
-
-	flash_sector_buffer_use = fsb_config;
-
-	string_clear(&flash_sector_buffer);
-
-	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-		goto done;
-
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto done;
-
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-
-	string_append(&string, CONFIG_MAGIC);
-	string_append(&string, "\n");
-
-	current_index = string_length(&string);
-
-	if(!string_nmatch_string(&flash_sector_buffer, &string, current_index))
-		goto done;
-
-	id_index = current_index;
-	id_length = 0;
-	value_index = 0;
-	value_length = 0;
-
-	config_entries_length = 0;
-
-	for(parse_state = state_parse_id; current_index < SPI_FLASH_SEC_SIZE; current_index++)
-	{
-		current = string_at(&flash_sector_buffer, current_index);
-
-		if(current == '\0')
-		{
-			rv = true;
-			goto done;
-		}
-
-		if(current == '\r')
-			continue;
-
-		switch(parse_state)
-		{
-			case(state_parse_id):
-			{
-				if(current == '=')
-				{
-					id_length = current_index - id_index;
-
-					value_index = current_index + 1;
-					value_length = 0;
-
-					parse_state = state_parse_value;
-					continue;
-				}
-
-				if(current == '\n')
-				{
-					parse_state = state_parse_eol;
-					continue;
-				}
-
-				break;
-			}
-
-			case(state_parse_value):
-			{
-				if(current == '\n')
-				{
-					if((id_index > 0) && (id_length > 0) && (value_index > 0))
-					{
-						value_length = current_index - value_index;
-						string_splice(&string, 0, &flash_sector_buffer, id_index, id_length);
-						config_set_string(&string, -1, -1, &flash_sector_buffer, value_index, value_length);
-					}
-
-					parse_state = state_parse_eol;
-					continue;
-				}
-
-				break;
-			}
-
-			case(state_parse_eol):
-			{
-				if(current == '\n')
-				{
-					rv = true;
-					goto done;
-				}
-
-				id_index = current_index;
-				parse_state = state_parse_id;
-
-				break;
-			}
-
-			default:
-			{
-				goto done;
-			}
-		}
-	}
-
-done:
-	string_clear(&flash_sector_buffer);
-
-	flash_sector_buffer_use = fsb_free_empty;
-
-	string_init(varname, "flags");
-
-	if(!config_get_int(&varname, -1, -1, &flags_cache))
-	{
-		flags_cache = flag_log_to_uart | flag_log_to_buffer;
-		config_set_int(&varname, -1, -1, flags_cache);
-	}
-
-	return(rv);
-}
-
-unsigned int config_write(string_t *flash_verify_buffer)
-{
-	config_entry_t *entry;
-	unsigned int ix, length = 0;
-
-	if((flash_sector_buffer_use != fsb_free_empty) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("config_read: sector buffer in use: %u\n", flash_sector_buffer_use);
-		return(false);
-	}
-
-	flash_sector_buffer_use = fsb_config;
-
-	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-	{
-		log("config_write: flash write buffer too small\n");
-		goto error;
-	}
-
-	if(string_size(flash_verify_buffer) < SPI_FLASH_SEC_SIZE)
-	{
-		log("config_write: flash verify buffer too small\n");
-		goto error;
-	}
-
-	string_clear(&flash_sector_buffer);
-	string_append(&flash_sector_buffer, CONFIG_MAGIC);
-	string_append(&flash_sector_buffer, "\n");
-
-	for(ix = 0; ix < config_entries_length; ix++)
-	{
-		entry = &config_entries[ix];
-
-		if(entry->id[0] == '\0')
-			continue;
-
-		string_format(&flash_sector_buffer, "%s=%s\n", entry->id, entry->string_value);
-	}
-
-	string_append(&flash_sector_buffer, "\n");
-
-	length = string_length(&flash_sector_buffer);
-
-	while(string_length(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-		string_append_byte(&flash_sector_buffer, '.');
-
-	if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
-		goto error;
-
-	if(spi_flash_write(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto error;
-
-	if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(flash_verify_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto error;
-
-	string_setlength(flash_verify_buffer, SPI_FLASH_SEC_SIZE);
-
-	if(!string_match_string(&flash_sector_buffer, flash_verify_buffer))
-	{
-		log("config_write: verify failed\n");
-		goto error;
-	}
-	goto ok;
-
-error:
-	length = 0;
-	log("config_write: flash failed\n");
-ok:
-	string_clear(&flash_sector_buffer);
-	string_clear(flash_verify_buffer);
-	flash_sector_buffer_use = fsb_free_empty;
-	return(length);
-}
-
-void config_dump(string_t *dst)
-{
-	config_entry_t *config_current;
-	unsigned int ix, in_use = 0;
-
-	for(ix = 0; ix < config_entries_length; ix++)
-	{
-		config_current = &config_entries[ix];
-
-		if(!config_current->id[0])
-			continue;
-
-		in_use++;
-
-		string_format(dst, "%s=%s (%lu/%d)\n", config_current->id, config_current->string_value, config_current->uint_value, (int)config_current->uint_value);
-	}
-
-	string_format(dst, "\nslots total: %d, config items: %u, free slots: %u\n", config_entries_size, in_use, config_entries_size - in_use);
 }
