@@ -196,7 +196,7 @@ iram void uart_clear_receive_queue(unsigned int uart)
 	queue_flush(&uart_receive_queue);
 }
 
-void uart_task(os_event_t *event)
+void uart_task(struct ETSEventTag *event)
 {
 	switch(event->sig)
 	{

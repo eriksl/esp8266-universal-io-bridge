@@ -150,14 +150,14 @@ io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct io_in
 	return(io_ok);
 }
 
-io_error_t io_ledpixel_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+io_error_t io_ledpixel_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	*value = ledpixel_data_pin[pin].value;
 
 	return(io_ok);
 }
 
-io_error_t io_ledpixel_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+io_error_t io_ledpixel_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	ledpixel_data_pin[pin].value = value;
 

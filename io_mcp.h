@@ -21,8 +21,8 @@ unsigned int	io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pi
 io_error_t		io_mcp_init(const struct io_info_entry_T *);
 io_error_t		io_mcp_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t		io_mcp_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-io_error_t		io_mcp_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
-io_error_t		io_mcp_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
+io_error_t		io_mcp_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
+io_error_t		io_mcp_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
 io_error_t		io_mcp_set_mask(string_t *, const struct io_info_entry_T *, unsigned int, unsigned int);
 
 #endif

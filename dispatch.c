@@ -107,7 +107,7 @@ static void background_task_bridge_uart(void)
 	}
 }
 
-static void command_task(os_event_t *event)
+static void command_task(struct ETSEventTag *event)
 {
 	switch(event->sig)
 	{
@@ -277,7 +277,7 @@ static void command_task(os_event_t *event)
 	}
 }
 
-iram static void timer_task(os_event_t *event)
+iram static void timer_task(struct ETSEventTag *event)
 {
 	switch(event->sig)
 	{
@@ -358,7 +358,7 @@ static void wlan_event_handler(System_Event_t *event)
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
 	static const uint8_t command_string[] = "flash-send ";
-	uint32_t chunk_length;
+	unsigned int chunk_length;
 	int chunk_offset;
 
 	if((command_left_to_read == 0) &&

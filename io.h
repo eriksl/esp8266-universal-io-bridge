@@ -109,7 +109,7 @@ assert_size(io_pin_flag_t, 1);
 typedef union
 {
 	io_pin_flag_t	io_pin_flags;
-	uint32_t		intvalue;
+	unsigned int	intvalue;
 } io_pin_flag_to_int_t;
 
 assert_size(io_pin_flag_to_int_t, 4);
@@ -255,8 +255,8 @@ typedef const struct io_info_entry_T
 	attr_flash_align	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
 	attr_flash_align	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	attr_flash_align	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-	attr_flash_align	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t *);
-	attr_flash_align	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, uint32_t);
+	attr_flash_align	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
+	attr_flash_align	io_error_t	(* const write_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
 	attr_flash_align	io_error_t	(* const set_mask_fn)		(string_t *error,	const struct io_info_entry_T *, unsigned int mask, unsigned int pins);
 } io_info_entry_t;
 
@@ -270,11 +270,11 @@ void			io_init(void);
 void			io_periodic_slow(void);
 void			io_periodic_fast(void);
 unsigned int	io_pin_max_value(unsigned int io, unsigned int pin);
-io_error_t		io_read_pin(string_t *, unsigned int, unsigned int, uint32_t *);
-io_error_t		io_write_pin(string_t *, unsigned int, unsigned int, uint32_t);
+io_error_t		io_read_pin(string_t *, unsigned int, unsigned int, unsigned int *);
+io_error_t		io_write_pin(string_t *, unsigned int, unsigned int, unsigned int);
 io_error_t		io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
 io_error_t		io_trigger_pin(string_t *, unsigned int, unsigned int, io_trigger_t);
-io_error_t		io_traits(string_t *, unsigned int io, unsigned int pin, io_pin_mode_t *mode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value);
+io_error_t		io_traits(string_t *, unsigned int io, unsigned int pin, io_pin_mode_t *mode, unsigned int *lower_bound, unsigned int *upper_bound, int *step, unsigned int *value);
 void			io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html);
 void			io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 

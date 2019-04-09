@@ -522,11 +522,11 @@ uint32_t			os_random(void);
 
 uint32_t			spi_flash_get_id(void);
 SpiFlashOpResult	spi_flash_erase_sector(uint16_t);
-SpiFlashOpResult	spi_flash_write(uint32_t, const uint32_t *, uint32_t);
-SpiFlashOpResult	spi_flash_read(uint32_t, uint32_t *, uint32_t);
+SpiFlashOpResult	spi_flash_write(uint32_t, const void * attr_flash_align, uint32_t);
+SpiFlashOpResult	spi_flash_read(uint32_t, void * attr_flash_align, uint32_t);
 
 uint8_t				wifi_get_channel(void);
-bool				wifi_get_macaddr(uint8_t if_index, sdk_mac_addr_t *);
+bool				wifi_get_macaddr(uint8_t if_index, sdk_mac_addr_t);
 uint8_t				wifi_get_opmode(void);
 bool				wifi_get_ip_info(uint8_t if_index, struct ip_info *);
 enum phy_mode		wifi_get_phy_mode(void);

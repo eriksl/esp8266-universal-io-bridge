@@ -244,8 +244,8 @@ static app_action_t handler_root(const string_t *src, string_t *dst)
 
 static app_action_t handler_controls(const string_t *src, string_t *dst)
 {
-	int				io, pin;
-	int				low, high, step, current;
+	int				io, pin, step;
+	unsigned int	low, high, current;
 	io_pin_mode_t	mode;
 
 	for(io = 0; io < io_id_size; io++)
@@ -264,8 +264,8 @@ static app_action_t handler_set(const string_t *src, string_t *dst)
 	string_new(, param2, 16);
 	string_new(, param3, 16);
 
-	unsigned int io, pin;
-	uint32_t value;
+	int io, pin;
+	unsigned int value;
 	io_error_t error;
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
@@ -289,10 +289,10 @@ static app_action_t handler_set(const string_t *src, string_t *dst)
 	if(!string_nmatch_cstr(&param3, "value=", 6))
 		goto error;
 
-	if(parse_uint(1, &param1, &io, 10, '=') != parse_ok)
+	if(parse_int(1, &param1, &io, 10, '=') != parse_ok)
 		goto error;
 
-	if(parse_uint(1, &param2, &pin, 10, '=') != parse_ok)
+	if(parse_int(1, &param2, &pin, 10, '=') != parse_ok)
 		goto error;
 
 	if(parse_uint(1, &param3, &value, 10, '=') != parse_ok)
@@ -304,7 +304,7 @@ static app_action_t handler_set(const string_t *src, string_t *dst)
 		string_append(dst, "<script>location.replace(\"/controls\");</script>\n");
 	else
 	{
-		string_format(dst, "<tr><td>%s: io=%u pin=%u value=%lu</td></tr>\n<tr><td>",
+		string_format(dst, "<tr><td>%s: io=%d pin=%d value=%u</td></tr>\n<tr><td>",
 				string_to_cstr(&getparam), io, pin, value);
 		string_append(dst, "</td></tr>\n");
 	}

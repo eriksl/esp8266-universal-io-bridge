@@ -565,7 +565,7 @@ static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_
 	return(info->pin_max_value_fn(info, pin_data, pin_config, pin));
 }
 
-static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	io_error_t error;
 
@@ -639,7 +639,8 @@ static io_error_t io_set_mask_x(string_t *errormsg, const io_info_entry_t *info,
 static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, io_trigger_t trigger_type)
 {
 	io_error_t error;
-	uint32_t value = 0, old_value, trigger;
+	unsigned int old_value, trigger;
+	unsigned int value = 0;
 
 	switch(pin_config->mode)
 	{
@@ -956,7 +957,7 @@ unsigned int io_pin_max_value(unsigned int io, unsigned int pin)
 	return(io_pin_max_value_x(info, pin_data, pin_config, pin));
 }
 
-io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, uint32_t *value)
+io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, unsigned int *value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -993,7 +994,7 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 	return(error);
 }
 
-io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, uint32_t value)
+io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, unsigned int value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1069,7 +1070,7 @@ io_error_t io_trigger_pin(string_t *error, unsigned int io, unsigned int pin, io
 	return(io_trigger_pin_x(error, info, pin_data, pin_config, pin, trigger_type));
 }
 
-io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_pin_mode_t *pinmode, uint32_t *lower_bound, uint32_t *upper_bound, int *step, uint32_t *value)
+io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_pin_mode_t *pinmode, unsigned int *lower_bound, unsigned int *upper_bound, int *step, unsigned int *value)
 {
 	io_error_t error;
 	const io_info_entry_t *info;
@@ -1543,7 +1544,7 @@ iram void io_periodic_fast(void)
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
 	unsigned int io, pin, trigger;
-	uint32_t value;
+	unsigned int value;
 	io_flags_t flags = { .counter_triggered = 0 };
 
 	for(io = 0; io < io_id_size; io++)
@@ -1914,7 +1915,7 @@ skip:
 		case(io_pin_timer):
 		{
 			io_direction_t direction;
-			uint32_t speed;
+			unsigned int speed;
 
 			if(!(info->caps & caps_output_digital))
 			{
@@ -1993,9 +1994,9 @@ skip:
 
 		case(io_pin_output_pwm1):
 		{
-			uint32_t lower_bound = 0;
-			uint32_t upper_bound = 0;
-			uint32_t speed = 0;
+			unsigned int lower_bound = 0;
+			unsigned int upper_bound = 0;
+			int speed = 0;
 
 			if(!(info->caps & caps_output_pwm1))
 			{
@@ -2006,7 +2007,7 @@ skip:
 
 			parse_uint(4, src, &lower_bound, 0, ' ');
 			parse_uint(5, src, &upper_bound, 0, ' ');
-			parse_uint(6, src, &speed, 0, ' ');
+			parse_int(6, src, &speed, 0, ' ');
 
 			if(upper_bound == 0)
 				upper_bound = ~0;
@@ -2036,9 +2037,9 @@ skip:
 
 		case(io_pin_output_pwm2):
 		{
-			uint32_t lower_bound = 0;
-			uint32_t upper_bound = 0;
-			uint32_t speed = 0;
+			unsigned int lower_bound = 0;
+			unsigned int upper_bound = 0;
+			int speed = 0;
 
 			if(!(info->caps & caps_output_pwm2))
 			{
@@ -2049,7 +2050,7 @@ skip:
 
 			parse_uint(4, src, &lower_bound, 0, ' ');
 			parse_uint(5, src, &upper_bound, 0, ' ');
-			parse_uint(6, src, &speed, 0, ' ');
+			parse_int(6, src, &speed, 0, ' ');
 
 			if(upper_bound == 0)
 				upper_bound = ~0;
@@ -2279,8 +2280,7 @@ app_action_t application_function_io_read(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
-	unsigned int io, pin;
-	uint32_t value;
+	unsigned int io, pin, value;
 
 	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
@@ -2329,7 +2329,7 @@ app_action_t application_function_io_read(string_t *src, string_t *dst)
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
 		return(app_action_error);
 
-	string_format(dst, "[%lu]\n", value);
+	string_format(dst, "[%u]\n", value);
 
 	return(app_action_normal);
 }
@@ -2338,8 +2338,7 @@ app_action_t application_function_io_write(string_t *src, string_t *dst)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
-	unsigned int io, pin;
-	uint32_t value;
+	unsigned int io, pin, value;
 
 	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
 	{
@@ -2394,7 +2393,7 @@ app_action_t application_function_io_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	string_format(dst, "[%lu]\n", value);
+	string_format(dst, "[%u]\n", value);
 
 	return(app_action_normal);
 }
@@ -2729,8 +2728,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 	io_data_pin_entry_t *pin_data;
 	const io_config_pin_entry_t *pin_config;
 	const string_array_t *roflash_strings;
-	unsigned int io, pin;
-	uint32_t value;
+	unsigned int io, pin, value;
 	io_error_t error;
 
 	if(html)

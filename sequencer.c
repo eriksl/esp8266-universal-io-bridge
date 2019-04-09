@@ -259,7 +259,7 @@ _Bool sequencer_clear(void)
 	return(sequencer.flash_valid);
 }
 
-_Bool sequencer_get_entry(unsigned int index, _Bool *active, int *io, int *pin, uint32_t *value, int *duration)
+_Bool sequencer_get_entry(unsigned int index, _Bool *active, int *io, int *pin, unsigned int *value, int *duration)
 {
 	sequencer_entry_t entry;
 
@@ -371,7 +371,7 @@ void sequencer_stop(void)
 void sequencer_run(void)
 {
 	unsigned int io, pin, duration;
-	uint32_t value;
+	unsigned int value;
 	_Bool active;
 
 	sequencer.current++;

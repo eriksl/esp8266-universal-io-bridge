@@ -18,7 +18,7 @@ _Bool		sequencer_clear(void);
 void		sequencer_start(unsigned int start, unsigned int repeats);
 void		sequencer_stop(void);
 _Bool		sequencer_set_entry(unsigned int entry, int io, int pin, uint32_t value, int duration);
-_Bool		sequencer_get_entry(unsigned int entry, _Bool *active, int *io, int *pin, uint32_t *value, int *duration);
+_Bool		sequencer_get_entry(unsigned int entry, _Bool *active, int *io, int *pin, unsigned int *value, int *duration);
 _Bool		sequencer_remove_entry(unsigned int entry);
 
 #endif

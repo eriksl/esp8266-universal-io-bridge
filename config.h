@@ -99,7 +99,7 @@ _Bool			config_get_uint_flashptr(const char *match_name, unsigned int *return_va
 
 attr_inline uint32_t config_flags_match(uint32_t match_flags)
 {
-	extern uint32_t config_flags;
+	extern unsigned int config_flags;
 	return(!!(config_flags & match_flags));
 }
 #endif

@@ -117,19 +117,17 @@ static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct pbuf *
 	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
 }
 
-static void *udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static void udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, ip_addr_t *address, u16_t port)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
 	received_callback(false, socket, pbuf_received, address, port);
-
-	return((void *)0);
 }
 
 static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, struct pbuf *pbuf, err_t error)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
-	struct tcp_pcb **pcb_tcp = (struct pcb_tcp **)&socket->tcp.pcb;
+	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
 
 	/* connection closed */
 	if((pcb == (struct tcp_pcb *)0) || (pbuf == (struct pbuf *)0))
@@ -152,7 +150,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 			}
 		}
 
-		*pcb_tcp = (struct pcb_tcp *)0;
+		*pcb_tcp = (struct tcp_pcb *)0;
 		socket->sending_remaining = 0;
 		socket->sent_remaining = 0;
 		return(ERR_OK);
@@ -169,7 +167,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 		if(*pcb_tcp)
 			tcp_abort(*pcb_tcp);
 
-		*pcb_tcp = (struct pcb_tcp *)0;
+		*pcb_tcp = (struct tcp_pcb *)0;
 		socket->sending_remaining = 0;
 		socket->sent_remaining = 0;
 		return(ERR_ABRT);
@@ -187,7 +185,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 
 static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
-	struct tcp_pcb *pcb_tcp = (struct pcb_tcp *)socket->tcp.pcb;
+	struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 	unsigned int chunk_size, offset, apiflags;
 	_Bool sent_one = false;
 	err_t error;
@@ -255,7 +253,7 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 static void tcp_error_callback(void *callback_arg, err_t error)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
-	struct tcp_pcb **pcb_tcp = (struct pcb_tcp **)&socket->tcp.pcb;
+	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
 
 	if(error != ERR_ISCONN)
 	{
@@ -355,7 +353,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 	if(socket->peer.port) // received packet from UDP, reply using UDP
 	{
 		struct pbuf *pbuf = (struct pbuf *)socket->udp.pbuf_send;
-		struct udp_pcb *pcb_udp = (struct pcb_udp *)socket->udp.pcb;
+		struct udp_pcb *pcb_udp = (struct udp_pcb *)socket->udp.pcb;
 		unsigned int offset, length, total_length;
 
 		total_length = string_length(socket->send_buffer);
@@ -395,7 +393,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 	}
 	else // received packet from TCP, reply using TCP
 	{
-		struct tcp_pcb *pcb_tcp = (struct pcb_tcp *)socket->tcp.pcb;
+		struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 
 		if(pcb_tcp == (struct tcp_pcb *)0)
 		{

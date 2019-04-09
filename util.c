@@ -256,7 +256,7 @@ parse_error_t parse_string(int index, const string_t *src, string_t *dst, char d
 	return(parse_ok);
 }
 
-parse_error_t parse_int_all(int index, const string_t *src, uint32_t *dst, int base, char delimiter, _Bool do_signed)
+parse_error_t parse_int_all(int index, const string_t *src, unsigned int *dst, int base, char delimiter, _Bool do_signed)
 {
 	_Bool valid, negative;
 	uint32_t value;

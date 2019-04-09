@@ -563,7 +563,7 @@ static void handle_dhcp(void *arg,
             case DHCPS_STATE_ACK://3
                  send_ack(pmsg_dhcps);
 
-                 wifi_softap_set_station_info(pmsg_dhcps->chaddr, &client_address.addr);
+                 wifi_softap_set_station_info(pmsg_dhcps->chaddr, (void *)&client_address.addr);
                  break;
             case DHCPS_STATE_NAK://4
                  send_nak(pmsg_dhcps);

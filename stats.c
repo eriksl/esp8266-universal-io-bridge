@@ -413,7 +413,7 @@ void stats_i2c(string_t *dst)
 
 void stats_wlan(string_t *dst)
 {
-	mac_addr_t mac_addr;
+	sdk_mac_addr_t mac_addr;
 	struct ip_info ip_addr_info;
 	struct station_config config;
 

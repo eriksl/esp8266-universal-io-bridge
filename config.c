@@ -38,7 +38,7 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_none,				""					},
 };
 
-uint32_t config_flags;
+unsigned int config_flags;
 
 static unsigned int config_current_index;
 
@@ -423,7 +423,7 @@ _Bool config_dump(string_t *dst)
 		amount++;
 	}
 
-	string_format(dst, "\ntotal config entries: %d, flags: %04lx\n", amount, config_flags);
+	string_format(dst, "\ntotal config entries: %d, flags: %04x\n", amount, config_flags);
 
 	return(config_close_read());
 }

@@ -28,7 +28,8 @@ typedef struct attr_packed
 
 assert_size(uart_parameters_t, 7);
 
-void			uart_task(os_event_t *event);
+
+void			uart_task(struct ETSEventTag *event);
 void			uart_parity_to_string(string_t *dst, uart_parity_t);
 char			uart_parity_to_char(uart_parity_t);
 uart_parity_t	uart_string_to_parity(const string_t *src);

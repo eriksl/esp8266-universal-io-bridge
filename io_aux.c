@@ -226,7 +226,7 @@ io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	return(io_ok);
 }
 
-iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t *value)
+iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	switch(pin)
 	{
@@ -296,7 +296,7 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, uint32_t value)
+iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	switch(pin)
 	{

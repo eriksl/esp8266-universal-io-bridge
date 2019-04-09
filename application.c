@@ -94,7 +94,7 @@ static app_action_t application_function_config_query_int(string_t *src, string_
 {
 	int index1 = -1;
 	int index2 = -1;
-	uint32_t value;
+	unsigned int value;
 
 	string_clear(dst);
 
@@ -114,7 +114,7 @@ static app_action_t application_function_config_query_int(string_t *src, string_
 		return(app_action_error);
 	}
 
-	string_format(dst, "=%lu OK\n", value);
+	string_format(dst, "=%u OK\n", value);
 
 	return(app_action_normal);
 }
@@ -458,7 +458,7 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 	static unsigned int start = 0;
 	unsigned int io, pin, duration;
 	int	start_in;
-	uint32_t value;
+	unsigned int value;
 	_Bool active;
 
 	if((parse_int(1, src, &start_in, 0, ' ') != parse_ok) ||
@@ -486,7 +486,7 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	string_format(dst, "> sequencer-set: %u: %u/%u %lu %u ms %s\n",
+	string_format(dst, "> sequencer-set: %u: %u/%u %u %u ms %s\n",
 			start, io, pin, value, duration, onoff(active));
 
 	start++;
@@ -1856,7 +1856,7 @@ static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
 }
 static app_action_t application_function_peek(string_t *src, string_t *dst)
 {
-	uint32_t address;
+	unsigned int address;
 
 	if(parse_uint(1, src, &address, 16, ' ') != parse_ok)
 	{
@@ -1866,15 +1866,15 @@ static app_action_t application_function_peek(string_t *src, string_t *dst)
 
 	address &= ~0x03; // ensure proper alignment
 
-	string_format(dst, "> peek (0x%lx) = 0x%lx\n", address, *(uint32_t *)address);
+	string_format(dst, "> peek (0x%x) = 0x%x\n", address, *(unsigned int *)address);
 
 	return(app_action_normal);
 }
 
 static app_action_t application_function_poke(string_t *src, string_t *dst)
 {
-	uint32_t address;
-	uint32_t value;
+	unsigned int address;
+	unsigned int value;
 
 	if((parse_uint(1, src, &address, 16, ' ') != parse_ok) || (parse_uint(2, src, &value, 16, ' ') != parse_ok))
 	{
@@ -1886,7 +1886,7 @@ static app_action_t application_function_poke(string_t *src, string_t *dst)
 
 	*(uint32_t *)address = value;
 
-	string_format(dst, "> poke (0x%lx,0x%lx) = 0x%lx\n", address, value, *(uint32_t *)address);
+	string_format(dst, "> poke (0x%x,0x%x) = 0x%x\n", address, value, *(unsigned int *)address);
 
 	return(app_action_normal);
 }
