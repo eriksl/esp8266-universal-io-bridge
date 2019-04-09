@@ -116,10 +116,6 @@ attr_nonnull int string_double(string_t *dst, double value, int precision, doubl
 	_attributes char _ ## _name ## _buf[_size] = { 0 }; \
 	_attributes string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
-#define string_init(_name, _string) \
-	string_new(, _name, sizeof(_string)); \
-	string_append(&_name, _string);
-
 #define string_append(dst, src) \
 do { \
 	static roflash const char src_flash[] = src; \
