@@ -13,7 +13,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 typedef struct
 {
 	int size;
