@@ -15,6 +15,8 @@ typedef struct
 	unsigned int	character;
 } autofill_info_t;
 
+static _Bool init_done = false;
+
 static autofill_info_t autofill_info[2] =
 {
 	{ false, 0 },
@@ -23,53 +25,6 @@ static autofill_info_t autofill_info[2] =
 
 static queue_t uart_send_queue[2];
 static queue_t uart_receive_queue;
-
-attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
-{
-	uart_parity_t rv;
-
-	if(string_match_cstr(src, "none"))
-		rv = parity_none;
-	else if(string_match_cstr(src, "even"))
-		rv = parity_even;
-	else if(string_match_cstr(src, "odd"))
-		rv = parity_odd;
-	else
-		rv = parity_error;
-
-	return(rv);
-}
-
-void uart_parity_to_string(string_t *dst, uart_parity_t ix)
-{
-	static const char *parity[] =
-	{
-		"none",
-		"even",
-		"odd",
-	};
-
-	string_format(dst, "%s", ix <= parity_odd ? parity[ix] : "<error>");
-}
-
-attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
-{
-	static const char *parity = "NEO";
-
-	if(ix > parity_odd)
-		return('-');
-
-	return(parity[ix]);
-}
-
-void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
-{
-	string_format(dst, "%lu %u%c%u",
-			params->baud_rate,
-			params->data_bits,
-			uart_parity_to_char(params->parity),
-			params->stop_bits);
-}
 
 attr_inline int rx_fifo_length(unsigned int uart)
 {
@@ -147,30 +102,6 @@ static void fill_queue(unsigned int uart)
 	}
 }
 
-void uart_task(os_event_t *event)
-{
-	switch(event->sig)
-	{
-		case(uart_task_fetch_fifo):
-		{
-			fetch_queue(0);
-			break;
-		}
-
-		case(uart_task_fill0_fifo):
-		{
-			fill_queue(0);
-			break;
-		}
-
-		case(uart_task_fill1_fifo):
-		{
-			fill_queue(1);
-			break;
-		}
-	}
-}
-
 iram static void uart_callback(void *p)
 {
 	unsigned int uart0_int_status, uart1_int_status;
@@ -207,6 +138,86 @@ iram static void uart_callback(void *p)
 	clear_interrupts(1);
 
 	ets_isr_unmask(1 << ETS_UART_INUM);
+}
+
+iram attr_pure _Bool uart_full(unsigned int uart)
+{
+	if(!init_done)
+		return(true);
+
+	return(queue_full(&uart_send_queue[uart]));
+}
+
+iram void uart_send(unsigned int uart, unsigned int byte)
+{
+	if(!init_done)
+		return;
+
+	queue_push(&uart_send_queue[uart], byte);
+}
+
+iram void uart_flush(unsigned int uart)
+{
+	if(!init_done)
+		return;
+
+	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
+}
+
+iram attr_pure _Bool uart_empty(unsigned int uart)
+{
+	if(!init_done)
+		return(false);
+
+	return(queue_empty(&uart_receive_queue));
+}
+
+iram unsigned int uart_receive(unsigned int uart)
+{
+	if(!init_done)
+		return(-1);
+
+	return(queue_pop(&uart_receive_queue));
+}
+
+iram void uart_clear_send_queue(unsigned int uart)
+{
+	if(!init_done)
+		return;
+
+	queue_flush(&uart_send_queue[uart]);
+}
+
+iram void uart_clear_receive_queue(unsigned int uart)
+{
+	if(!init_done)
+		return;
+
+	queue_flush(&uart_receive_queue);
+}
+
+void uart_task(os_event_t *event)
+{
+	switch(event->sig)
+	{
+		case(uart_task_fetch_fifo):
+		{
+			fetch_queue(0);
+			break;
+		}
+
+		case(uart_task_fill0_fifo):
+		{
+			fill_queue(0);
+			break;
+		}
+
+		case(uart_task_fill1_fifo):
+		{
+			fill_queue(1);
+			break;
+		}
+	}
 }
 
 void uart_baudrate(unsigned int uart, unsigned int baudrate)
@@ -345,41 +356,55 @@ void uart_init(void)
 	enable_transmit_int(1, false);
 
 	ets_isr_unmask(1 << ETS_UART_INUM);
+
+	init_done = true;
 }
 
-iram attr_pure _Bool uart_full(unsigned int uart)
+attr_pure uart_parity_t uart_string_to_parity(const string_t *src)
 {
-	return(queue_full(&uart_send_queue[uart]));
+	uart_parity_t rv;
+
+	if(string_match_cstr(src, "none"))
+		rv = parity_none;
+	else if(string_match_cstr(src, "even"))
+		rv = parity_even;
+	else if(string_match_cstr(src, "odd"))
+		rv = parity_odd;
+	else
+		rv = parity_error;
+
+	return(rv);
 }
 
-iram void uart_send(unsigned int uart, unsigned int byte)
+void uart_parity_to_string(string_t *dst, uart_parity_t ix)
 {
-	queue_push(&uart_send_queue[uart], byte);
+	static const char *parity[] =
+	{
+		"none",
+		"even",
+		"odd",
+	};
+
+	string_format(dst, "%s", ix <= parity_odd ? parity[ix] : "<error>");
 }
 
-iram void uart_flush(unsigned int uart)
+attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
 {
-	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
+	static const char *parity = "NEO";
+
+	if(ix > parity_odd)
+		return('-');
+
+	return(parity[ix]);
 }
 
-iram attr_pure _Bool uart_empty(unsigned int uart)
+void uart_parameters_to_string(string_t *dst, const uart_parameters_t *params)
 {
-	return(queue_empty(&uart_receive_queue));
-}
-
-iram unsigned int uart_receive(unsigned int uart)
-{
-	return(queue_pop(&uart_receive_queue));
-}
-
-iram void uart_clear_send_queue(unsigned int uart)
-{
-	queue_flush(&uart_send_queue[uart]);
-}
-
-iram void uart_clear_receive_queue(unsigned int uart)
-{
-	queue_flush(&uart_receive_queue);
+	string_format(dst, "%lu %u%c%u",
+			params->baud_rate,
+			params->data_bits,
+			uart_parity_to_char(params->parity),
+			params->stop_bits);
 }
 
 void uart_set_initial(unsigned int uart)
