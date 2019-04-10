@@ -430,10 +430,10 @@ resetserial:			resetserial.c
 						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
 
 udprxtest:
-						espflash -u -f test -h $(OTA_HOST) --length 390352 --start 0x002000 -R
+						espflash -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 tcprxtest:
-						espflash -t -f test -h $(OTA_HOST) --length 390352 --start 0x002000 -R
+						espflash -t -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 udptxtest:
 						espflash -u -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
