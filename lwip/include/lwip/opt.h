@@ -44,8 +44,8 @@
 #define MEM_ALIGNMENT			4
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
- * a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE				5200
+ * a lot of data that needs to be copied, this should be set high. @@@ */
+#define MEM_SIZE				8192
 
 /* MEMP_SEPARATE_POOLS: if defined to 1, each pool is placed in its own array.
  * This can be used to individually change the location of each pool.
@@ -106,29 +106,29 @@
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs (used for PBUF_ROM and PBUF_REF).
  * If the application sends a lot of data out of ROM (or other static memory),
- * this should be set high. 20 bytes per pbuf = 80 bytes */
-#define MEMP_NUM_PBUF		4
+ * this should be set high. 20 bytes per pbuf @@@ */
+#define MEMP_NUM_PBUF		32
 
 /* MEMP_NUM_RAW_PCB: Number of raw connection PCBs
- * (requires the LWIP_RAW option) 28 bytes per pbuf = 56 bytes */
-#define MEMP_NUM_RAW_PCB	2
+ * (requires the LWIP_RAW option) 28 bytes per pbuf @@@ */
+#define MEMP_NUM_RAW_PCB	4
 
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
  * per active UDP "connection".
- * (requires the LWIP_UDP option) 36 bytes per pbuf = 144 bytes */
-#define MEMP_NUM_UDP_PCB	4
+ * (requires the LWIP_UDP option) 36 bytes per pbuf @@@ */
+#define MEMP_NUM_UDP_PCB	8
 
 /* MEMP_NUM_TCP_PCB: the number of simultanuously active TCP connections.
- * (requires the LWIP_TCP option) 176 bytes per pbuf = 352 bytes */
-#define MEMP_NUM_TCP_PCB	2
+ * (requires the LWIP_TCP option) 176 bytes per pbuf @@@ */
+#define MEMP_NUM_TCP_PCB	4
 
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections.
- * (requires the LWIP_TCP option) */
-#define MEMP_NUM_TCP_PCB_LISTEN	2
+ * (requires the LWIP_TCP option) 32 per pbuf @@@ */
+#define MEMP_NUM_TCP_PCB_LISTEN	4
 
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP segments.
- * (requires the LWIP_TCP option) 20 bytes per segment = 120 bytes */
-#define MEMP_NUM_TCP_SEG	6
+ * (requires the LWIP_TCP option) 20 bytes per segment @@@ */
+#define MEMP_NUM_TCP_SEG	16
 
 /* MEMP_NUM_REASSDATA: the number of IP packets simultaneously queued for
  * reassembly (whole packets, not fragments!) */
@@ -153,8 +153,8 @@
 #define MEMP_NUM_IGMP_GROUP	4
 
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts.
- * (requires NO_SYS==0). 16 bytes per timeout = 128 */
-#define MEMP_NUM_SYS_TIMEOUT	8
+ * (requires NO_SYS==0). 16 bytes per timeout @@@ */
+#define MEMP_NUM_SYS_TIMEOUT	16
 
 /* MEMP_NUM_NETBUF: the number of struct netbufs.
  * (only needed if you use the sequential API, like api_lib.c) */
@@ -210,7 +210,7 @@
 /* LWIP_ARP==1: Enable ARP functionality. */
 #define LWIP_ARP				1
 
-/* ARP_TABLE_SIZE: Number of active MAC-IP address pairs cached. 24 bytes per entry = 120 bytes */
+/* ARP_TABLE_SIZE: Number of active MAC-IP address pairs cached. 24 bytes per entry @@@ */
 #define ARP_TABLE_SIZE			5
 
 /* ARP_QUEUEING==1: Multiple outgoing packets are queued during hardware address
@@ -218,7 +218,7 @@
  * This is sufficient for most protocols and mainly reduces TCP connection
  * startup time. Set this to 1 if you know your application sends more than one
  * packet in a row to an IP address that is not in the ARP cache. = 72 bytes */
-#define ARP_QUEUEING			0
+#define ARP_QUEUEING			1
 
 /* ETHARP_TRUST_IP_MAC==1: Incoming IP packets cause the ARP table to be
  * updated with the source MAC and IP addresses supplied in the packet.
@@ -320,10 +320,10 @@
 #define ICMP_TTL			(IP_DEFAULT_TTL)
 
 /* LWIP_BROADCAST_PING==1: respond to broadcast pings (default is unicast only) */
-#define LWIP_BROADCAST_PING	1
+#define LWIP_BROADCAST_PING	0
 
 /* LWIP_MULTICAST_PING==1: respond to multicast pings (default is unicast only) */
-#define LWIP_MULTICAST_PING	1
+#define LWIP_MULTICAST_PING	0
 
 /*	---------------------------------
 	---------- RAW options ----------
@@ -482,8 +482,8 @@
 /* TCP_TTL: Default Time-To-Live value. */
 #define TCP_TTL					(IP_DEFAULT_TTL)
 
-/* TCP_WND: The size of a TCP window. This must be at least (2 * TCP_MSS) for things to work well */
-#define TCP_WND					(2 * TCP_MSS)
+/* TCP_WND: The size of a TCP window. This must be at least (2 * TCP_MSS) for things to work well @@@ */
+#define TCP_WND					(4 * TCP_MSS)
 
 /* TCP_MAXRTX: Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX				4
@@ -517,12 +517,12 @@
  * netif used for a connection and limits the MSS if it would be too big otherwise. */
 #define TCP_CALCULATE_EFF_SEND_MSS	1
 
-/* TCP_SND_BUF: TCP sender buffer space (bytes). */
-#define TCP_SND_BUF			(3 * TCP_MSS)
+/* TCP_SND_BUF: TCP sender buffer space (bytes). @@@ */
+#define TCP_SND_BUF			(4 * TCP_MSS)
 
 /* TCP_SND_QUEUELEN: TCP sender buffer space (pbufs). This must be at least
- * as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work. */
-#define TCP_SND_QUEUELEN	6
+ * as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work. @@@ */
+#define TCP_SND_QUEUELEN	8
 
 /* TCP_SNDLOWAT: TCP writable space (bytes). This must be less than
  * TCP_SND_BUF. It is the amount of space which must be available in the
@@ -585,8 +585,8 @@
  * TCP_MSS, IP header, and link header. */
 #define PBUF_POOL_BUFSIZE	LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN)
 
-/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE		2
+/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. @@@ */
+#define PBUF_POOL_SIZE		4
 
 /*	------------------------------------------------
 	---------- Network Interfaces options ----------
