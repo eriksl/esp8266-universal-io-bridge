@@ -198,8 +198,8 @@ typedef union
 
 struct scan_config
 {
-	uint8_t				*ssid;			// ssid == NULL, don't filter ssid.
-	uint8_t				*bssid;			// bssid == NULL, don't filter bssid.
+	char				*ssid;			// ssid == NULL, don't filter ssid.
+	char				*bssid;			// bssid == NULL, don't filter bssid.
 	uint8_t				channel;		// channel == 0, scan all channels, otherwise scan set channel.
 	uint8_t				show_hidden;	// show_hidden == 1, can get hidden ssid routers' info.
 	wifi_scan_type_t	scan_type;		// scan type, active or passive
@@ -214,8 +214,8 @@ typedef struct
 
 struct station_config
 {
-	uint8_t						ssid[32];
-	uint8_t						password[64];
+	char						ssid[32];
+	char						password[64];
 	uint8_t						bssid_set;	// if bssid_set is 1, station will just connect to the router with both ssid[] and bssid[] matched.
 	uint8_t						bssid[6];
 	wifi_fast_scan_threshold_t	threshold;

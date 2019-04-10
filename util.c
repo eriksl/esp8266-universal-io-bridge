@@ -535,7 +535,7 @@ _Bool string_trim_nl(string_t *dst)
 	return(trimmed);
 }
 
-void string_bin_to_hex(string_t *dst, const char *src, int length)
+void string_bin_to_hex(string_t *dst, const unsigned char *src, int length)
 {
 	int offset;
 	uint8_t out;

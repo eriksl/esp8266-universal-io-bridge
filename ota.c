@@ -234,9 +234,8 @@ app_action_t application_function_flash_receive(string_t *src, string_t *dst)
 app_action_t application_function_flash_read(string_t *src, string_t *dst)
 {
 	unsigned int address, sector;
-
 	SHA_CTX sha_context;
-	uint8_t sha_result[SHA_DIGEST_LENGTH];
+	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
@@ -287,11 +286,10 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, _Bool veri
 	int byte;
 	int same = 0;
 	int erase = 1;
-	const uint8_t *ptr;
+	const char *ptr;
 	const char *caller = verify ? "verify" : "write";
-
 	SHA_CTX sha_context;
-	uint8_t sha_result[SHA_DIGEST_LENGTH];
+	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
@@ -344,7 +342,7 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, _Bool veri
 		{
 			for(byte = 0, ptr = string_buffer(dst); byte < SPI_FLASH_SEC_SIZE; byte++, ptr++)
 			{
-				if(*ptr != 0xff)
+				if(*(const uint8_t *)ptr != 0xff)
 				{
 					erase = 1;
 					break;
@@ -393,7 +391,7 @@ app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 	unsigned int address, current, length, done;
 
 	SHA_CTX sha_context;
-	uint8_t sha_result[SHA_DIGEST_LENGTH];
+	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)

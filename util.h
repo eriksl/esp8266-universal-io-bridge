@@ -105,7 +105,7 @@ attr_nonnull void string_replace(string_t *, int index, char c);
 attr_nonnull void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
 attr_nonnull _Bool string_trim_nl(string_t *dst);
 attr_nonnull void string_trim_string(string_t *haystack_string, const string_t *needle_string);
-attr_nonnull void string_bin_to_hex(string_t *dst, const char *src, int length);
+attr_nonnull void string_bin_to_hex(string_t *dst, const unsigned char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, mac_addr_t);
 //int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix);
@@ -255,7 +255,7 @@ attr_inline attr_nonnull void string_append_byte(string_t *dst, uint8_t c)
 		dst->buffer[dst->length++] = c;
 }
 
-attr_inline attr_nonnull void string_append_bytes(string_t *dst, const uint8_t *src, int length)
+attr_inline attr_nonnull void string_append_bytes(string_t *dst, const char *src, int length)
 {
 	if((dst->length + length) > dst->size)
 		length = dst->size - dst->length;

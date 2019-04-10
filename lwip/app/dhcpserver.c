@@ -491,12 +491,12 @@ static int16_t parse_msg(struct dhcps_msg *m, u16_t len)
             sizeof(magic_cookie)) == 0){
         struct ip_addr ip;
         MEMCPY(&ip.addr,m->ciaddr,sizeof(ip.addr));
-        client_address.addr = wifi_softap_dhcps_client_update(m->chaddr,&ip);
+        client_address.addr = wifi_softap_dhcps_client_update((char *)m->chaddr,&ip);
 
         int16_t ret = parse_options(&m->options[4], len);
 
         if(ret == DHCPS_STATE_RELEASE) {
-            wifi_softap_dhcps_client_leave(m->chaddr,&ip,true); // force to delete
+            wifi_softap_dhcps_client_leave((char *)m->chaddr,&ip,true); // force to delete
             client_address.addr = ip.addr;
         }
 
@@ -923,7 +923,7 @@ void wifi_softap_dhcps_client_leave(char *bssid, struct ip_addr *ip,bool force)
 
                 struct ip_addr ip_zero;
                 memset(&ip_zero,0x0,sizeof(ip_zero));
-                wifi_softap_set_station_info(bssid, &ip_zero);
+                wifi_softap_set_station_info((const uint8_t *)bssid, &ip_zero);
                 break;
             }
         }

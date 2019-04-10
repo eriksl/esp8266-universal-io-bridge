@@ -456,14 +456,13 @@ static app_action_t application_function_sequencer_remove(string_t *src, string_
 static app_action_t application_function_sequencer_add(string_t *src, string_t *dst)
 {
 	static unsigned int start = 0;
-	unsigned int io, pin, duration;
-	int	start_in;
-	unsigned int value;
+	int io, pin, start_in;
+	unsigned int duration, value;
 	_Bool active;
 
 	if((parse_int(1, src, &start_in, 0, ' ') != parse_ok) ||
-			(parse_uint(2, src, &io, 0, ' ') != parse_ok) ||
-			(parse_uint(3, src, &pin, 0, ' ') != parse_ok) ||
+			(parse_int(2, src, &io, 0, ' ') != parse_ok) ||
+			(parse_int(3, src, &pin, 0, ' ') != parse_ok) ||
 			(parse_uint(4, src, &value, 0, ' ') != parse_ok) ||
 			(parse_uint(5, src, &duration, 0, ' ') != parse_ok))
 	{
@@ -486,7 +485,7 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	string_format(dst, "> sequencer-set: %u: %u/%u %u %u ms %s\n",
+	string_format(dst, "> sequencer-set: %u: %d/%d %u %u ms %s\n",
 			start, io, pin, value, duration, onoff(active));
 
 	start++;
@@ -497,7 +496,8 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 static app_action_t application_function_sequencer_list(string_t *src, string_t *dst)
 {
 	static unsigned int start = 0;
-	unsigned int index, io, pin, value, duration;
+	unsigned int index, value, duration;
+	int io, pin;
 	_Bool active;
 
 	if(parse_uint(1, src, &index, 0, ' ') == parse_ok)
@@ -510,7 +510,7 @@ static app_action_t application_function_sequencer_list(string_t *src, string_t 
 		if(!sequencer_get_entry(start, &active, &io, &pin, &value, &duration))
 			break;
 
-		string_format(dst, "> %5u %2u %3u %5u       %5u %s\n", start, io, pin, value, duration, onoff(active));
+		string_format(dst, "> %5u %2d %3d %5u       %5u %s\n", start, io, pin, value, duration, onoff(active));
 	}
 
 	return(app_action_normal);
@@ -545,8 +545,9 @@ static app_action_t application_function_sequencer_stop(string_t *src, string_t 
 static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
 {
 	_Bool running, active;
+	int io, pin;
 	unsigned int start, flash_size, flash_size_entries, flash_offset_flash0, flash_offset_flash1, flash_offset_mapped;
-	unsigned int current, io, pin, value, duration;
+	unsigned int current, value, duration;
 
 	sequencer_get_status(&running, &start, &flash_size, &flash_size_entries, &flash_offset_flash0, &flash_offset_flash1, &flash_offset_mapped);
 
@@ -579,7 +580,7 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 		{
 			string_append(dst, "> now playing:\n");
 			string_append(dst, "> index io pin value duration_ms\n");
-			string_format(dst, "> %5u %2u %3u %5u       %5u %s\n", current, io, pin, value, duration, onoff(active));
+			string_format(dst, "> %5u %2d %3d %5u       %5u %s\n", current, io, pin, value, duration, onoff(active));
 		}
 	}
 

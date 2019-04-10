@@ -68,7 +68,7 @@ static void uptime_get(unsigned int *s, unsigned int *ms,
 
 string_t *time_uptime_stats(void)
 {
-	int secs, msecs, raw1, raw2, base, wraps;
+	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	uptime_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
 
@@ -128,7 +128,7 @@ static void system_get(unsigned int *s, unsigned int *ms,
 
 string_t *time_system_stats(void)
 {
-	int secs, msecs, raw1, raw2, base, wraps;
+	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	system_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
 
@@ -209,7 +209,7 @@ static void rtc_get(unsigned int *s, unsigned int *ms,
 
 string_t *time_rtc_stats(void)
 {
-	int secs, msecs, raw1, raw2, base, wraps;
+	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	rtc_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
 
@@ -267,7 +267,7 @@ static void timer_get(unsigned int *s, unsigned int *ms,
 
 string_t *time_timer_stats(void)
 {
-	int secs, msecs, raw1, raw2, base, wraps;
+	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	timer_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
 
@@ -401,7 +401,7 @@ static void ntp_get(unsigned int *s, unsigned int *ms,
 
 string_t *time_ntp_stats(void)
 {
-	int secs, msecs, raw1, raw2, base, wraps;
+	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	ntp_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
 
@@ -468,7 +468,7 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 			unsigned int *Y, unsigned int *M, unsigned int *D)
 {
 	unsigned int time_s = 0;
-	time_t ticks_s;
+	uint32_t ticks_s;
 	const char *source;
 	struct tm *tm;
 

@@ -177,7 +177,7 @@ _Bool display_saa1064_set(const char *tag, const char *from)
 		0x00, 0x10, 0x30, 0x50, 0x70
 	};
 
-	uint8_t text[4];
+	char text[4];
 	uint8_t i2cdata[6];
 	int current;
 

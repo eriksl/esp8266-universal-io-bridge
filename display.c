@@ -342,7 +342,8 @@ attr_pure _Bool display_detected(void)
 static void display_update(_Bool advance)
 {
 	const char *display_text;
-	int slot, hour, minute, month, day;
+	int slot;
+	unsigned int hour, minute, month, day;
 	display_info_t *display_info_entry;
 	string_new(, tag_text, 32);
 	string_new(, info_text, 64);
@@ -378,7 +379,7 @@ static void display_update(_Bool advance)
 
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
-		string_format(&tag_text, "%02d:%02d %02d/%02d ", hour, minute, day, month);
+		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
 		string_append_cstr_flash(&tag_text, display_slot[slot].tag);
 		display_info_entry->set_fn(string_to_cstr(&tag_text), display_text);
 	}
@@ -564,13 +565,13 @@ app_action_t application_function_display_default_message(string_t *src, string_
 
 app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
 {
-	int timeout;
+	unsigned int timeout;
 
 	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
-			string_format(dst, "> invalid timeout: %d\n", timeout);
+			string_format(dst, "> invalid timeout: %u\n", timeout);
 			return(app_action_error);
 		}
 

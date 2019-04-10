@@ -1789,7 +1789,8 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 		case(io_pin_trigger):
 		{
-			unsigned int debounce, trigger_io, trigger_pin;
+			unsigned int debounce;
+			int trigger_io, trigger_pin;
 			io_trigger_t trigger_type;
 
 			if(!(info->caps & caps_counter))
@@ -1824,14 +1825,14 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 				return(app_action_error);
 			}
 
-			if((parse_uint(6, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(6, src, &trigger_io, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
 				iomode_trigger_usage(dst, "io");
 				return(app_action_error);
 			}
 
-			if((parse_uint(7, src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_int(7, src, &trigger_pin, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
 				iomode_trigger_usage(dst, "pin");
@@ -1860,7 +1861,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 				goto skip;
 			}
 
-			if((parse_uint(9, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(9, src, &trigger_io, 0, ' ') != parse_ok))
 				goto skip;
 
 			if((parse_int(10, src, &trigger_pin, 0, ' ') != parse_ok))
