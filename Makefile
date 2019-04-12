@@ -14,7 +14,7 @@ MAKEFLAGS += --no-builtin-rules
 
 ARCH						:= xtensa-lx106-elf
 THIRDPARTY					:= $(PWD)/third-party
-ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
+ESPSDK						:= $(THIRDPARTY)/ESP8266_NONOS_SDK
 ESPSDK_LIB					:= $(ESPSDK)/lib
 ESPTOOL2					:= $(PWD)/esptool2
 RBOOT						:= $(PWD)/rboot

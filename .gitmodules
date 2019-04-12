@@ -5,7 +5,7 @@
 	path = rboot
 	url = https://github.com/raburton/rboot.git
 [submodule "ESP8266_NONOS_SDK"]
-	path = ESP8266_NONOS_SDK
+	path = third-party/ESP8266_NONOS_SDK
 	url = https://github.com/espressif/ESP8266_NONOS_SDK
 [submodule "third-party/lx106-hal"]
 	path = third-party/lx106-hal
