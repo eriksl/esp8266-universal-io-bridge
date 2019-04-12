@@ -388,7 +388,7 @@ void uart_parity_to_string(string_t *dst, uart_parity_t ix)
 	string_format(dst, "%s", ix <= parity_odd ? parity[ix] : "<error>");
 }
 
-attr_pure attr_const char uart_parity_to_char(uart_parity_t ix)
+attr_const char uart_parity_to_char(uart_parity_t ix)
 {
 	static const char *parity = "NEO";
 

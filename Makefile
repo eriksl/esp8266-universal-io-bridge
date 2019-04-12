@@ -147,7 +147,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Warray-bounds=2 -Wswitch-bool -Wsizeof-array-argument \
 						-Wduplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
 						-Wdangling-else \
-						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs -Wstrict-overflow=2 \
+						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs \
 						-Wmissing-noreturn -Wbool-compare \
 						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \
 						-Wuninitialized -Wtrampolines -Wframe-larger-than=1024 \
@@ -156,7 +156,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wredundant-decls -Wvla -Wdisabled-optimization \
 						-Wunreachable-code -Wparentheses -Wdiscarded-array-qualifiers \
 						-Wmissing-prototypes -Wold-style-definition -Wold-style-declaration -Wmissing-declarations \
-						-Wcast-align -Winline \
+						-Wcast-align -Winline -Wmultistatement-macros -Warray-bounds=2 \
 						\
 						-Wno-error=cast-qual \
 						-Wno-error=unsafe-loop-optimizations \
@@ -167,6 +167,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
+						-ftree-vrp \
 						-fno-tree-forwprop \
 						-ffunction-sections -fdata-sections
 

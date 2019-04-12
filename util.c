@@ -71,7 +71,7 @@ void *memchr(const void *s, int c, size_t n)
 }
 
 void espconn_init(void);
-attr_const void espconn_init(void)
+void espconn_init(void)
 {
 }
 

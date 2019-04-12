@@ -32,7 +32,7 @@ static const partition_item_t partition_items[] =
 };
 
 void user_spi_flash_dio_to_qio_pre_init(void);
-iram attr_const void user_spi_flash_dio_to_qio_pre_init(void)
+iram void user_spi_flash_dio_to_qio_pre_init(void)
 {
 }
 
