@@ -791,7 +791,8 @@ static void kill_oldest_dhcps_pool(void)
 	if(minp)
 		minpre->pnext = minp->pnext;
 
-	pdhcps_pool->state = DHCPS_STATE_OFFLINE;
+	if(pdhcps_pool)
+		pdhcps_pool->state = DHCPS_STATE_OFFLINE;
 
 	if(minp)
 	{

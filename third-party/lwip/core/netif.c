@@ -419,6 +419,7 @@ void netif_set_default(struct netif *netif)
   if (netif == NULL) {
     /* remove default route */
     snmp_delete_iprteidx_tree(1, netif);
+	(void)0;
   } else {
     /* install default route */
     snmp_insert_iprteidx_tree(1, netif);
