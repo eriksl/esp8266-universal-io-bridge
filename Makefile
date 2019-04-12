@@ -10,6 +10,8 @@ USE_LTO				?= 0
 
 # no user serviceable parts below
 
+MAKEFLAGS += --no-builtin-rules
+
 ARCH						:= xtensa-lx106-elf
 THIRDPARTY					:= $(PWD)/third-party
 ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
