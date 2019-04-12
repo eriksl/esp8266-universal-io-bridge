@@ -13,3 +13,6 @@
 [submodule "third-party/lx106-hal"]
 	path = third-party/lx106-hal
 	url = https://github.com/tommie/lx106-hal
+[submodule "third-party/crosstool-ng"]
+	path = third-party/crosstool-ng
+	url = https://github.com/someburner/crosstool-ng.git

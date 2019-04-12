@@ -16,12 +16,18 @@ ARCH						:= xtensa-lx106-elf
 THIRDPARTY					:= $(PWD)/third-party
 ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
 ESPOPENSDK					:= $(PWD)/esp-open-sdk
+ESPSDK_LIB					:= $(ESPSDK)/lib
 ESPTOOL2					:= $(PWD)/esptool2
 LWIP						:= $(PWD)/lwip
 RBOOT						:= $(PWD)/rboot
-CC							:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
-OBJCOPY						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
-SIZE						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-size
+CTNG						:= $(THIRDPARTY)/crosstool-ng
+CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
+CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
+CTNG_SYSROOT_LIB			:= $(CTNG_SYSROOT)/$(ARCH)/lib
+CTNG_SYSROOT_BIN			:= $(CTNG_SYSROOT)/bin
+CC							:= $(CTNG_SYSROOT_BIN)/$(ARCH)-gcc
+OBJCOPY						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-objcopy
+SIZE						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-size
 HAL							:= $(THIRDPARTY)/lx106-hal
 HAL_SYSROOT					:= $(HAL)/$(ARCH)
 HAL_SYSROOT_INCLUDE			:= $(HAL_SYSROOT)/include
@@ -71,7 +77,7 @@ CONFIG_DEFAULT_BIN			:= default-config.bin
 CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
 LIBMAIN_PLAIN				:= main
-LIBMAIN_PLAIN_FILE			:= $(ESPSDK)/lib/lib$(LIBMAIN_PLAIN).a
+LIBMAIN_PLAIN_FILE			:= $(ESPSDK_LIB)/lib$(LIBMAIN_PLAIN).a
 LIBMAIN_RBB					:= main_rbb
 LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
 ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
@@ -186,10 +192,8 @@ CFLAGS			+=	-D__ets__ -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
-CINC			:= -I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
-					-I$(LWIP)/include -I$(LWIP)/include/lwip -I .
-
-LDFLAGS			:= -L. -L$(ESPSDK)/lib -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP)/include -I$(LWIP)/include/lwip -I.
+LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
 STDLIBS			:= -lm -lgcc -lcrypto
@@ -225,10 +229,10 @@ LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWI
 
 LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
 
-.PRECIOUS:		*.c *.h
-.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols udprxtest tcprxtest udptxtest tcptxtest test hal
+.PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
+.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal
 
-all:			toolchain $(ALL_IMAGE_TARGETS) free resetserial
+all:			ctng $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -257,11 +261,48 @@ free:			$(ELF_IMAGE)
 showsymbols:	$(ELF_IMAGE)
 				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
 
-$(CC) $(OBJCOPY):
-				$(VECHO) "BUILD TOOLCHAIN"
-				$(Q) $(MAKE) -C $(ESPOPENSDK) toolchain
+# crosstool-NG toolchain
 
-toolchain:		$(CC) $(OBJCOPY)
+$(CTNG)/configure.ac:
+										$(VECHO) "CROSSTOOL-NG SUBMODULE INIT"
+										$(Q) git submodule init $(CTNG)
+										$(Q) git submodule update $(CTNG)
+
+$(CTNG)/configure:						$(CTNG)/configure.ac
+										$(VECHO) "CROSSTOOL-NG BOOTSTRAP"
+										$(Q) (cd $(CTNG); ./bootstrap)
+
+$(CTNG)/Makefile:						$(CTNG)/configure $(CTNG)/Makefile.in
+										$(VECHO) "CROSSTOOL-NG CONFIGURE"
+										$(Q) (cd $(CTNG); ./configure --prefix=`pwd`)
+
+$(CTNG)/ct-ng:							$(CTNG)/Makefile $(CTNG)/ct-ng.in
+										$(VECHO) "CROSSTOOL-NG MAKE"
+										$(Q) $(MAKE) -C $(CTNG) MAKELEVEL=0
+
+$(CTNG)/bin/ct-ng:						$(CTNG)/ct-ng
+										$(VECHO) "CROSSTOOL-NG MAKE INSTALL"
+										$(Q) $(MAKE) -C $(CTNG) install MAKELEVEL=0
+
+$(CTNG)/.config:						$(CTNG)/bin/ct-ng
+										$(VECHO) "CROSSTOOL-NG CREATE CONFIG"
+										$(Q) $(MAKE) -C $(CTNG) -f ct-ng $(ARCH)
+
+$(CTNG)/.config.orig:					$(CTNG)/.config
+										$(VECHO) "CROSSTOOL-NG PATCH CONFIG"
+										$(Q) cp $(CTNG)/.config $(CTNG)/.config.orig
+										$(Q) (cd $(CTNG); patch -p0 -i ../../ctng-config.patch)
+										$(Q) touch $(CTNG)/.config.orig
+
+$(CC) $(OBJCOPY) $(SIZE):				$(CTNG)/.config.orig
+										$(VECHO) "CROSSTOOL-NG BUILD"
+										mkdir -p $(CTNG)/sources
+										$(Q) $(MAKE) -C $(CTNG) -f ct-ng build
+
+ctng:									$(CC) $(OBJCOPY) $(SIZE)
+
+ctng-clean:
+										git submodule deinit -f $(CTNG)
 
 ### lx106 hal
 
@@ -276,15 +317,15 @@ $(HAL)/configure:						$(HAL)/configure.ac
 
 $(HAL)/src/config.h:					$(HAL)/configure
 										$(VECHO) "HAL CONFIGURE"
-										$(Q) (cd $(HAL); PATH="$(TOOLCHAIN_BIN):$(PATH)" ./configure --host=$(ARCH) --prefix=$(HAL_SYSROOT))
+										$(Q) (cd $(HAL); PATH="$(CTNG_SYSROOT_BIN):$(PATH)" ./configure --host=$(ARCH) --prefix=$(HAL_SYSROOT))
 
 $(HAL)/src/libhal.a:					$(HAL)/src/config.h
 										$(VECHO) "HAL MAKE"
-										$(Q) PATH="$(TOOLCHAIN_BIN):$(PATH)" make -C $(HAL)
+										$(Q) PATH="$(CTNG_SYSROOT_BIN):$(PATH)" make -C $(HAL)
 
 $(HAL_SYSROOT_LIB)/libhal.a:			$(HAL)/src/libhal.a
 										$(VECHO) "HAL MAKE INSTALL"
-										$(Q) PATH="$(TOOLCHAIN_BIN):$(PATH)" make -C $(HAL) install
+										$(Q) PATH="$(CTNG_SYSROOT_BIN):$(PATH)" make -C $(HAL) install
 
 hal:									$(HAL_SYSROOT_LIB)/libhal.a
 
