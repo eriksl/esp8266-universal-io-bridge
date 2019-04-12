@@ -10,15 +10,20 @@ USE_LTO				?= 0
 
 # no user serviceable parts below
 
+ARCH						:= xtensa-lx106-elf
+THIRDPARTY					:= $(PWD)/third-party
 ESPSDK						:= $(PWD)/ESP8266_NONOS_SDK
 ESPOPENSDK					:= $(PWD)/esp-open-sdk
 ESPTOOL2					:= $(PWD)/esptool2
 LWIP						:= $(PWD)/lwip
 RBOOT						:= $(PWD)/rboot
-HAL							:= $(ESPOPENSDK)/lx106-hal
 CC							:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
 OBJCOPY						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-objcopy
 SIZE						:= $(ESPOPENSDK)/xtensa-lx106-elf/bin/xtensa-lx106-elf-size
+HAL							:= $(THIRDPARTY)/lx106-hal
+HAL_SYSROOT					:= $(HAL)/$(ARCH)
+HAL_SYSROOT_INCLUDE			:= $(HAL_SYSROOT)/include
+HAL_SYSROOT_LIB				:= $(HAL_SYSROOT)/lib
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
 USER_CONFIG_SIZE			:= 0x1000
@@ -179,12 +184,11 @@ CFLAGS			+=	-D__ets__ -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
-CINC			:= -I$(HAL)/include \
-					-I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
+CINC			:= -I$(ESPOPENSDK)/xtensa-lx106-elf/xtensa-lx106-elf/include \
 					-I$(LWIP)/include -I$(LWIP)/include/lwip -I .
 
 LDFLAGS			:= -L. -L$(ESPSDK)/lib -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
-SDKLIBS			:= -lhal -lpp -lphy -lnet80211 -lwpa
+SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
 STDLIBS			:= -lm -lgcc -lcrypto
 
@@ -220,7 +224,7 @@ LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWI
 LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
 
 .PRECIOUS:		*.c *.h
-.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols udprxtest tcprxtest udptxtest tcptxtest test
+.PHONY:			all flash flash-plain flash-ota clean free always ota toolchain showsymbols udprxtest tcprxtest udptxtest tcptxtest test hal
 
 all:			toolchain $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -256,6 +260,35 @@ $(CC) $(OBJCOPY):
 				$(Q) $(MAKE) -C $(ESPOPENSDK) toolchain
 
 toolchain:		$(CC) $(OBJCOPY)
+
+### lx106 hal
+
+$(HAL)/configure.ac:
+										$(VECHO) "HAL SUBMODULE INIT"
+										$(Q) git submodule init $(HAL)
+										$(Q) git submodule update $(HAL)
+
+$(HAL)/configure:						$(HAL)/configure.ac
+										$(VECHO) "HAL AUTOCONF"
+										(cd $(HAL); autoreconf -i)
+
+$(HAL)/src/config.h:					$(HAL)/configure
+										$(VECHO) "HAL CONFIGURE"
+										$(Q) (cd $(HAL); PATH="$(TOOLCHAIN_BIN):$(PATH)" ./configure --host=$(ARCH) --prefix=$(HAL_SYSROOT))
+
+$(HAL)/src/libhal.a:					$(HAL)/src/config.h
+										$(VECHO) "HAL MAKE"
+										$(Q) PATH="$(TOOLCHAIN_BIN):$(PATH)" make -C $(HAL)
+
+$(HAL_SYSROOT_LIB)/libhal.a:			$(HAL)/src/libhal.a
+										$(VECHO) "HAL MAKE INSTALL"
+										$(Q) PATH="$(TOOLCHAIN_BIN):$(PATH)" make -C $(HAL) install
+
+hal:									$(HAL_SYSROOT_LIB)/libhal.a
+
+hal-clean:
+										$(VECHO) "HAL MAKE CLEAN"
+										$(Q) git submodule deinit -f $(HAL)
 
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
