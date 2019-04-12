@@ -7,9 +7,6 @@
 [submodule "ESP8266_NONOS_SDK"]
 	path = ESP8266_NONOS_SDK
 	url = https://github.com/espressif/ESP8266_NONOS_SDK
-[submodule "esp-open-sdk"]
-	path = esp-open-sdk
-	url = https://github.com/someburner/esp-open-sdk.git
 [submodule "third-party/lx106-hal"]
 	path = third-party/lx106-hal
 	url = https://github.com/tommie/lx106-hal
