@@ -471,7 +471,6 @@ struct tm
   int	tm_isdst;
 };
 
-attr_nonnull int ets_vsnprintf(char *, size_t, const char *, va_list);
 attr_nonnull struct tm *sntp_localtime(const uint32_t *);
 
 attr_nonnull int MD5Init(MD5_CTX *context);

@@ -196,7 +196,7 @@ CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP)/include -I$(LWIP)/include/lwip -I.
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
-STDLIBS			:= -lm -lgcc -lcrypto
+STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \

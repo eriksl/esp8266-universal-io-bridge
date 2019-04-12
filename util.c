@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 char flash_dram_buffer[1024];
 
@@ -158,7 +159,7 @@ int log_from_flash(const char *fmt_in_flash, ...)
 	flash_to_dram(true, fmt_in_flash, fmt_in_dram, sizeof(fmt_in_dram));
 
 	va_start(ap, fmt_in_flash);
-	written = ets_vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
+	written = vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
 	va_end(ap);
 
 	if(config_flags_match(flag_log_to_uart))
@@ -412,7 +413,7 @@ void string_format_cstr(string_t *dst, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	dst->length += ets_vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
+	dst->length += vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
 	va_end(ap);
 
 	if(dst->length > (dst->size - 1))
@@ -434,7 +435,7 @@ iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 		return;
 
 	va_start(ap, fmt_flash);
-	rendered_length = ets_vsnprintf(dst->buffer + dst->length, buffer_remaining, flash_dram_buffer, ap);
+	rendered_length = vsnprintf(dst->buffer + dst->length, buffer_remaining, flash_dram_buffer, ap);
 	va_end(ap);
 
 	// some snprintf implementations can return -1 when output doesn't fit the output buffer
@@ -691,4 +692,30 @@ int string_double(string_t *dst, double value, int precision, double top_decimal
 		string_append_char(dst, '0');
 
 	return(dst->length - original_length);
+}
+
+// missing from libc
+
+void *_malloc_r(struct _reent *r, size_t sz)
+{
+	extern void* pvPortMalloc(size_t sz, const char *, unsigned, bool);
+	return(pvPortMalloc(sz, "", 0, false));
+}
+
+void *_calloc_r(struct _reent *r, size_t a, size_t b)
+{
+	extern void* pvPortCalloc(size_t count,size_t size,const char *,unsigned);
+	return(pvPortCalloc(a, b, "", 0));
+}
+
+void _free_r(struct _reent *r, void *x)
+{
+	extern void vPortFree (void *p, const char *, unsigned);
+	return(vPortFree(x, "", 0));
+}
+
+void *_realloc_r(struct _reent *r, void *x, size_t sz)
+{
+	extern void* pvPortRealloc (void *p, size_t n, const char *, unsigned);
+	return(pvPortRealloc(x, sz, "", 0));
 }
