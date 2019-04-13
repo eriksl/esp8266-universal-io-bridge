@@ -1,8 +1,8 @@
 [submodule "esptool2"]
-	path = esptool2
+	path = third-party/esptool2
 	url = https://github.com/raburton/esptool2.git
 [submodule "rboot"]
-	path = rboot
+	path = third-party/rboot
 	url = https://github.com/raburton/rboot.git
 [submodule "ESP8266_NONOS_SDK"]
 	path = third-party/ESP8266_NONOS_SDK
