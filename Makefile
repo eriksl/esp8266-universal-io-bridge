@@ -195,7 +195,7 @@ CFLAGS			+=	-D__ets__ -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP)/include -I$(LWIP)/include/lwip -I.
-LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(ESPSDK_LIB) -L$(LWIP_SYSROOT_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
