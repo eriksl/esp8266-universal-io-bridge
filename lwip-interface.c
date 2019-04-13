@@ -334,6 +334,54 @@ attr_nonnull bool lwip_if_close(lwip_if_socket_t *socket)
 	return(true);
 }
 
+attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port)
+{
+	err_t error;
+
+	struct pbuf *pbuf = (struct pbuf *)socket->udp.pbuf_send;
+	struct udp_pcb *pcb_udp = (struct udp_pcb *)socket->udp.pcb;
+	unsigned int offset, length, total_length;
+
+	total_length = string_length(socket->send_buffer);
+
+	for(offset = 0; total_length > 0; offset += length, total_length -= length)
+	{
+		length = total_length;
+
+		if(length > lwip_udp_max_payload)
+			length = lwip_udp_max_payload;
+
+		pbuf->len = pbuf->tot_len = length;
+		pbuf->payload = string_buffer(socket->send_buffer) + offset;
+		pbuf->eb = 0;
+
+		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
+		{
+			stat_lwip_udp_send_error++;
+			log("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
+			log_error(error);
+			return(false);
+		}
+	}
+
+	if(socket->udp_term_empty)
+	{
+		pbuf->len = pbuf->tot_len = 0;
+		pbuf->payload = string_buffer(socket->send_buffer);
+		pbuf->eb = 0;
+
+		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
+		{
+			stat_lwip_udp_send_error++;
+			log("lwip if send: udp terminate failed, error: ");
+			log_error(error);
+			return(false);
+		}
+	}
+
+	return(true);
+}
+
 attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 {
 	err_t error;
@@ -433,7 +481,7 @@ attr_nonnull bool lwip_if_reboot(lwip_if_socket_t *socket)
 }
 
 attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-		unsigned int port, bool udp_term_empty, callback_data_received_fn_t callback_data_received)
+		unsigned int port, bool tcp, bool udp_term_empty, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
 
@@ -472,27 +520,32 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 		return(false);
 	}
 
-	if(!(socket->tcp.listen_pcb = tcp_new()))
+	if(tcp)
 	{
-		log("lwip if socket create: tcp_new failed\n");
-		return(false);
-	}
+		if(!(socket->tcp.listen_pcb = tcp_new()))
+		{
+			log("lwip if socket create: tcp_new failed\n");
+			return(false);
+		}
 
-	if((error = tcp_bind(socket->tcp.listen_pcb, IP_ADDR_ANY, port)) != ERR_OK)
-	{
-		log("lwip if socket create: tcp_bind failed: ");
-		log_error(error);
-		return(false);
-	}
+		if((error = tcp_bind(socket->tcp.listen_pcb, IP_ADDR_ANY, port)) != ERR_OK)
+		{
+			log("lwip if socket create: tcp_bind failed: ");
+			log_error(error);
+			return(false);
+		}
 
-	if(!(socket->tcp.listen_pcb = tcp_listen_with_backlog(socket->tcp.listen_pcb, 1)))
-	{
-		log("lwip if socket create: tcp_listen failed\n");
-		return(false);
-	}
+		if(!(socket->tcp.listen_pcb = tcp_listen_with_backlog(socket->tcp.listen_pcb, 1)))
+		{
+			log("lwip if socket create: tcp_listen failed\n");
+			return(false);
+		}
 
-	tcp_arg(socket->tcp.listen_pcb, socket);
-	tcp_accept(socket->tcp.listen_pcb, tcp_accepted_callback);
+		tcp_arg(socket->tcp.listen_pcb, socket);
+		tcp_accept(socket->tcp.listen_pcb, tcp_accepted_callback);
+	}
+	else
+		socket->tcp.listen_pcb = (struct tcp_pcb *)0;
 
 	return(true);
 }

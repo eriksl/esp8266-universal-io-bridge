@@ -52,7 +52,9 @@ extern int stat_update_longop;
 extern int stat_update_command_udp;
 extern int stat_update_command_tcp;
 extern int stat_update_display;
-extern int stat_update_ntp;
+
+extern unsigned int stat_sntp_received;
+extern unsigned int stat_sntp_poll;
 
 extern unsigned int stat_task_uart_posted;
 extern unsigned int stat_task_uart_failed;

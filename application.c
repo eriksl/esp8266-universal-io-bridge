@@ -1655,78 +1655,59 @@ static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static app_action_t application_function_ntp_dump(string_t *src, string_t *dst)
+static app_action_t application_function_sntp_set(string_t *src, string_t *dst)
 {
-	ip_addr_t addr;
 	int timezone;
-
-	timezone = sntp_get_timezone();
-	addr = sntp_getserver(0);
-
-	string_append(dst, "> server: ");
-	string_ip(dst, addr);
-
-	string_format(dst, "\n> time zone: GMT%c%d\n> ntp time: %s",
-			timezone < 0 ? '-' : '+',
-			timezone < 0 ? 0 - timezone : timezone,
-			sntp_get_real_time(sntp_get_current_timestamp()));
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_ntp_set(string_t *src, string_t *dst)
-{
-	unsigned int timezone, ix;
-	ip_addr_to_bytes_t a2b;
-
 	string_new(, ip, 32);
 
-	if(!config_open_write())
+	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_int(2, src, &timezone, 0, ' ') == parse_ok))
 	{
-		string_clear(dst);
-		string_append(dst, "cannot set config (open)\n");
-		return(app_action_error);
-	}
+		if(!config_open_write())
+		{
+			string_append(dst, "cannot set config (open)\n");
+			return(app_action_error);
+		}
 
-	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_uint(2, src, &timezone, 0, ' ') == parse_ok))
-	{
-		a2b.ip_addr = ip_addr(string_to_cstr(&ip));
+		config_delete("ntp.", true, -1, -1);
+		config_delete("sntp.", true, -1, -1);
 
-		if((a2b.byte[0] == 0) && (a2b.byte[1] == 0) && (a2b.byte[2] == 0) && (a2b.byte[3] == 0))
-			for(ix = 0; ix < 4; ix++)
-				config_delete("ntp.server.%u", false, ix, -1);
-		else
-			for(ix = 0; ix < 4; ix++)
-				if(!config_set_int("ntp.server.%u", a2b.byte[ix], ix, -1))
-				{
-					config_abort_write();
-					string_clear(dst);
-					string_append(dst, "cannot set config (set ntp server)\n");
-					return(app_action_error);
-				}
-
-		if(timezone == 0)
-			config_delete("ntp.tz", false, -1, -1);
-		else
-			if(!config_set_int("ntp.tz", timezone, -1, -1))
+		if(!string_match_cstr(&ip, "0.0.0.0"))
+		{
+			if(!config_set_string("sntp.server", string_to_cstr(&ip), -1, -1))
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "cannot set config (set ntp timezone)\n");
+				string_append(dst, "cannot set config (set sntp server)\n");
 				return(app_action_error);
 			}
+		}
 
-		time_ntp_init();
+		if(timezone != 0)
+		{
+			if(!config_set_int("sntp.tz", timezone, -1, -1))
+			{
+				config_abort_write();
+				string_append(dst, "cannot set config (set sntp timezone)\n");
+				return(app_action_error);
+			}
+		}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "cannot set config (close)\n");
+			return(app_action_error);
+		}
+
+		time_sntp_start();
 	}
 
-	if(!config_close_write())
-	{
-		string_clear(dst);
-		string_append(dst, "cannot set config (close)\n");
-		return(app_action_error);
-	}
+	string_clear(&ip);
+	config_get_string("sntp.server", &ip, -1, -1);
+	timezone = 0;
+	config_get_int("sntp.tz", &timezone, -1, -1);
 
-	return(application_function_ntp_dump(src, dst));
+	string_format(dst, "sntp-set: server: %s, timezone: %d\n", string_to_cstr(&ip), timezone);
+
+	return(app_action_normal);
 }
 
 static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
@@ -2103,14 +2084,9 @@ roflash static const application_function_table_t application_function_table[] =
 		"clear the log"
 	},
 	{
-		"nd", "ntp-dump",
-		application_function_ntp_dump,
-		"dump ntp information",
-	},
-	{
-		"ns", "ntp-set",
-		application_function_ntp_set,
-		"set ntp <ip addr> <timezone GMT+x>",
+		"sns", "sntp-set",
+		application_function_sntp_set,
+		"set sntp <ip addr> <timezone GMT+/-x>",
 	},
 	{
 		"ts", "time-set",

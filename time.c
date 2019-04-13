@@ -2,16 +2,68 @@
 #include "config.h"
 #include "stats.h"
 #include "sdk.h"
+#include "util.h"
+#include "lwip-interface.h"
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <time.h>
+
+struct tm
+{
+  int	tm_sec;
+  int	tm_min;
+  int	tm_hour;
+  int	tm_mday;
+  int	tm_mon;
+  int	tm_year;
+  int	tm_wday;
+  int	tm_yday;
+  int	tm_isdst;
+};
+
+extern struct tm *localtime (const time_t *);
+
+enum
+{
+	sntp_misc_li_mask =		0b11000000,
+	sntp_misc_li_shift =	6,
+	sntp_misc_vn_mask =		0b00111000,
+	sntp_misc_vn_shift =	3,
+	sntp_misc_mode_mask =	0b00000111,
+	sntp_misc_mode_shift =	0,
+	sntp_misc_mode_client =	0b00000011,
+};
 
 typedef struct
 {
-	unsigned int ntp_server_valid:1;
+	uint8_t	misc;
+	uint8_t stratum;
+	uint8_t	poll;
+	uint8_t	precision;
+	uint8_t	root_delay[4];
+	uint8_t	root_dispersion[4];
+	uint8_t	reference_identifier[4];
+	uint8_t	reference_timestamp[8];
+	uint8_t	originate_timestamp[8];
+	uint8_t	receive_timestamp[8];
+	uint8_t	transmit_timestamp[8];
+} sntp_network_t;
+
+assert_size(sntp_network_t, 48);
+
+typedef struct
+{
+	unsigned int sntp_server_valid:1;
+	unsigned int sntp_init_succeeded:1;
+	unsigned int sntp_regular_mode:1;
 } time_flags_t;
 
-static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w);
+string_new(static, sntp_socket_receive_buffer, sizeof(sntp_network_t));
+string_new(static, sntp_socket_send_buffer, sizeof(sntp_network_t));
+static lwip_if_socket_t sntp_socket;
+
+static void sms_to_date(string_t *dst, int s, int ms, int r1, int r2, int b, int w);
 
 static time_flags_t time_flags;
 
@@ -69,13 +121,12 @@ static void uptime_get(unsigned int *s, unsigned int *ms,
 		*wraps = uptime_wraps;
 }
 
-string_t *time_uptime_stats(void)
+void time_uptime_stats(string_t *dst)
 {
 	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	uptime_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-
-	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
 }
 
 // system
@@ -129,13 +180,12 @@ static void system_get(unsigned int *s, unsigned int *ms,
 		*wraps = system_wraps;
 }
 
-string_t *time_system_stats(void)
+void time_system_stats(string_t *dst)
 {
 	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	system_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-
-	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
 }
 
 // rtc
@@ -210,13 +260,12 @@ static void rtc_get(unsigned int *s, unsigned int *ms,
 		*wraps = rtc_wraps;
 }
 
-string_t *time_rtc_stats(void)
+void time_rtc_stats(string_t *dst)
 {
 	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	rtc_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-
-	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
 }
 
 // timer
@@ -268,92 +317,105 @@ static void timer_get(unsigned int *s, unsigned int *ms,
 		*wraps = timer_wraps;
 }
 
-string_t *time_timer_stats(void)
+void time_timer_stats(string_t *dst)
 {
 	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
 	timer_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-
-	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
 }
 
-// ntp
+// SNTP
 
-static unsigned int ntp_base_s = 0;
-static ip_addr_to_bytes_t ntp_server;
-static int ntp_timezone;
+static unsigned int	sntp_base_s = 0;
+static unsigned int	sntp_current_ds = 0;
+static ip_addr_t	sntp_server;
+static int			sntp_timezone;
 
-void time_ntp_init(void)
+static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
-	int ix;
-	unsigned int byte;
+	sntp_network_t *received_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_receive_buffer);
 
-	sntp_stop();
+	if(length == sizeof(sntp_network_t))
+	{
+		stat_sntp_received++;
+		time_flags.sntp_regular_mode = 1;
 
-	for(ix = 0; ix < 4; ix++)
-		if(!config_get_uint("ntp.server.%u", &byte, ix, 0))
-			break;
-		else
-			ntp_server.byte[ix] = (uint8_t)byte;
+		sntp_base_s =
+			((received_packet->transmit_timestamp[0] << 24) |
+			(received_packet->transmit_timestamp[1] << 16) |
+			(received_packet->transmit_timestamp[2] << 8) |
+			(received_packet->transmit_timestamp[3] << 0)) - 2208988800ULL;
 
-	if(ix >= 4)
-		time_flags.ntp_server_valid = 1;
+		sntp_current_ds = 0;
+	}
+
+	string_clear(&sntp_socket_receive_buffer);
+	lwip_if_receive_buffer_unlock(socket);
+}
+
+void time_sntp_start(void)
+{
+	string_new(, ip, 32);
+
+	sntp_current_ds = 0;
+	sntp_base_s = 0;
+	time_flags.sntp_server_valid = 0;
+	time_flags.sntp_regular_mode = 0;
+
+	if(!time_flags.sntp_init_succeeded)
+		return;
+
+	if(config_get_string("sntp.server", &ip, -1, -1) && !string_match_cstr(&ip, "0.0.0.0"))
+	{
+		sntp_server = ip_addr(string_to_cstr(&ip));
+		time_flags.sntp_server_valid = 1;
+	}
+
+	if(!config_get_int("sntp.tz", &sntp_timezone, -1, -1))
+		sntp_timezone = 0;
+
+	stat_sntp_poll = 0;
+	stat_sntp_received = 0;
+}
+
+static void time_sntp_init(void)
+{
+	sntp_network_t *send_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_send_buffer);
+
+	time_flags.sntp_init_succeeded = 0;
+
+	if(lwip_if_socket_create(&sntp_socket, &sntp_socket_receive_buffer, &sntp_socket_send_buffer, 0, false, false, socket_sntp_callback_data_received))
+	{
+		send_packet->misc = sntp_misc_mode_client | (4 << sntp_misc_vn_shift);
+		string_setlength(&sntp_socket_send_buffer, sizeof(sntp_network_t));
+		time_flags.sntp_init_succeeded = 1;
+	}
+}
+
+static void time_sntp_periodic(void)
+{
+	if(!time_flags.sntp_init_succeeded || !time_flags.sntp_server_valid)
+		return;
+
+	sntp_current_ds++;
+
+	if(stat_sntp_poll == 0)
+	{
+		if(!lwip_if_sendto(&sntp_socket, &sntp_server, 123))
+			log("sntp send failed\n");
+
+		stat_sntp_poll = time_flags.sntp_regular_mode ? 6000 : 50;
+	}
 	else
-	{
-		time_flags.ntp_server_valid = 0;
-
-		for(ix = 0; ix < 4; ix++)
-			ntp_server.byte[ix] = 0;
-	}
-
-	if(!config_get_int("ntp.tz", &ntp_timezone, -1, -1))
-		ntp_timezone = 0;
-
-	sntp_setserver(0, &ntp_server.ip_addr);
-	sntp_set_timezone(ntp_timezone);
-
-	if(time_flags.ntp_server_valid)
-		sntp_init();
+		stat_sntp_poll--;
 }
 
-attr_inline void ntp_periodic(void)
-{
-	static int delay = 0;
-	static bool initial_burst = true;
-	time_t ntp_s;
-
-	if(!time_flags.ntp_server_valid)
-		return;
-
-	delay++;
-
-	if(delay < 10) // always check at most once a second or less frequently
-		return;
-
-	if(!initial_burst && (delay < 6000)) // after initial burst only check every 10 minutes
-		return;
-
-	delay = 0;
-
-	if((ntp_s = sntp_get_current_timestamp()) > 0)
-	{
-		initial_burst = false;
-		stat_update_ntp++;
-		sntp_stop();
-		sntp_init(); // FIXME SDK bug, stop and start ntp to get continuous updating
-	}
-
-	if(ntp_base_s == 0)
-		ntp_base_s = ntp_s;
-}
-
-static void ntp_get(unsigned int *s, unsigned int *ms,
+static void sntp_get(unsigned int *s, unsigned int *ms,
 		unsigned int *raw1, unsigned int *raw2,
 		unsigned int *base, unsigned int *wraps)
 {
-	time_t current;
-
-	if(!time_flags.ntp_server_valid)
+	if(!time_flags.sntp_server_valid)
 	{
 		if(s)
 			*s = 0;
@@ -375,50 +437,40 @@ static void ntp_get(unsigned int *s, unsigned int *ms,
 	}
 	else
 	{
-		current = sntp_get_current_timestamp();
-
 		if(s)
-		{
-			if(current > 0)
-				*s = current - ntp_base_s;
-			else
-				*s = 0;
-		}
+			*s = sntp_current_ds / 10;
 
 		if(ms)
-			*ms = 0;
+			*ms = (sntp_current_ds % 10) * 100;
 
 		if(raw1)
-			*raw1 = current;
+			*raw1 = sntp_base_s + (sntp_current_ds / 10) + (sntp_timezone * 3600);
 
 		if(raw2)
 			*raw2 = 0;
 
 		if(base)
-			*base = ntp_base_s;
+			*base = sntp_base_s;
 
 		if(wraps)
 			*wraps = 0;
 	}
 }
 
-string_t *time_ntp_stats(void)
+void time_sntp_stats(string_t *dst)
 {
 	unsigned int secs, msecs, raw1, raw2, base, wraps;
 
-	ntp_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-
-	return(sms_to_date(secs, msecs, raw1, raw2, base, wraps));
+	sntp_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
+	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
 }
+
 
 // generic interface
 
-static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
+static void sms_to_date(string_t *dst, int s, int ms, int r1, int r2, int b, int w)
 {
-	string_new(static, value, 64);
 	int d, h, m;
-
-	string_clear(&value);
 
 	d = s / (24 * 60 * 60);
 	s -= d * 24 * 60 * 60;
@@ -427,9 +479,7 @@ static string_t *sms_to_date(int s, int ms, int r1, int r2, int b, int w)
 	m = s / 60;
 	s -= m * 60;
 
-	string_format(&value, "%2d %02d:%02d:%02d.%03d (r1=%d,r2=%d,b=%d,w=%d)", d, h, m, s, ms, r1, r2, b, w);
-
-	return(&value);
+	string_format(dst, "%2d %02d:%02d:%02d.%03d (r1=%d,r2=%d,b=%d,w=%d)", d, h, m, s, ms, r1, r2, b, w);
 }
 
 static unsigned int time_base_s;
@@ -442,16 +492,16 @@ void time_init(void)
 	system_init();
 	rtc_init();
 	timer_init();
-	time_ntp_init();
+	time_sntp_init();
 }
 
-iram void time_periodic(void)
+void time_periodic(void)
 {
 	uptime_periodic();
 	system_periodic();
 	rtc_periodic();
 	timer_periodic();
-	ntp_periodic();
+	time_sntp_periodic();
 }
 
 void time_set_stamp(unsigned int stamp)
@@ -471,14 +521,14 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 			unsigned int *Y, unsigned int *M, unsigned int *D)
 {
 	unsigned int time_s = 0;
-	uint32_t ticks_s;
+	time_t ticks_s;
 	const char *source;
 	struct tm *tm;
 
-	if(ntp_base_s > 0) // we have ntp sync
+	if(time_flags.sntp_init_succeeded && time_flags.sntp_server_valid && (sntp_base_s > 0)) // we have sntp sync
 	{
-		source = "ntp";
-		ntp_get(0, 0, &time_s, 0, 0, 0);
+		source = "sntp";
+		sntp_get(0, 0, &time_s, 0, 0, 0);
 	}
 	else
 	{
@@ -488,7 +538,7 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 	}
 
 	ticks_s  = time_s;
-	tm = sntp_localtime(&ticks_s);
+	tm = localtime(&ticks_s);
 
 	if(Y)
 		*Y = tm->tm_year + 1900;

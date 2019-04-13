@@ -458,21 +458,6 @@ typedef struct {
     unsigned int num;
 } SHA_CTX;
 
-struct tm
-{
-  int	tm_sec;
-  int	tm_min;
-  int	tm_hour;
-  int	tm_mday;
-  int	tm_mon;
-  int	tm_year;
-  int	tm_wday;
-  int	tm_yday;
-  int	tm_isdst;
-};
-
-attr_nonnull struct tm *sntp_localtime(const uint32_t *);
-
 attr_nonnull int MD5Init(MD5_CTX *context);
 attr_nonnull int MD5Update(MD5_CTX *context, const void *, unsigned int length);
 attr_nonnull int MD5Final(unsigned char *hash, MD5_CTX *context);
@@ -555,14 +540,5 @@ bool				wifi_station_set_config(struct station_config *);
 
 void		gpio_init(void);
 void		gpio_pin_intr_state_set(uint32_t, GPIO_INT_TYPE);
-
-void		sntp_init(void);								// FIXME
-void		sntp_stop(void);								// FIXME
-int8_t		sntp_get_timezone(void);						// FIXME
-ip_addr_t	sntp_getserver(uint8_t);						// FIXME
-uint32_t	sntp_get_current_timestamp(void);				// FIXME
-const char*	sntp_get_real_time(uint32_t);					// FIXME
-void		sntp_setserver(uint8_t idx, ip_addr_t *addr);	// FIXME
-bool		sntp_set_timezone(int8_t timezone);				// FIXME
 
 #endif

@@ -337,6 +337,8 @@ static void wlan_event_handler(System_Event_t *event)
 			if(!lwip_if_join_mc(239, 255, 255, 254))
 				log("join mc group failed\n");
 
+			time_sntp_start();
+
 			fallthrough;
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
@@ -473,12 +475,12 @@ void dispatch_init2(void)
 	command_left_to_read = 0;
 
 	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
-			config_flags_match(flag_udp_term_empty), socket_command_callback_data_received);
+			true, config_flags_match(flag_udp_term_empty), socket_command_callback_data_received);
 
 	if(uart_port > 0)
 	{
 		lwip_if_socket_create(&uart_socket, &uart_socket_receive_buffer, &uart_socket_send_buffer, uart_port,
-			config_flags_match(flag_udp_term_empty), socket_uart_callback_data_received);
+			true, config_flags_match(flag_udp_term_empty), socket_uart_callback_data_received);
 
 		uart_bridge_active = true;
 	}

@@ -32,7 +32,9 @@ int stat_update_uart;
 int stat_update_command_udp;
 int stat_update_command_tcp;
 int stat_update_display;
-int stat_update_ntp;
+
+unsigned int stat_sntp_received;
+unsigned int stat_sntp_poll;
 
 unsigned int stat_task_uart_posted;
 unsigned int stat_task_uart_failed;
@@ -266,12 +268,19 @@ void stats_time(string_t *dst)
 
 	time_source = time_get(&h, &m, &s, &Y, &M, &D);
 
-	string_format(dst, "> uptime: %s\n", string_to_cstr(time_uptime_stats()));
-	string_format(dst, "> system: %s\n", string_to_cstr(time_system_stats()));
-	string_format(dst, "> rtc:    %s\n", string_to_cstr(time_rtc_stats()));
-	string_format(dst, "> timer:  %s\n", string_to_cstr(time_timer_stats()));
-	string_format(dst, "> ntp:    %s\n", string_to_cstr(time_ntp_stats()));
+	string_append(dst,   "> uptime: ");
+	time_uptime_stats(dst);
+	string_append(dst, "\n> system: ");
+	time_system_stats(dst);
+	string_append(dst, "\n> rtc:    ");
+	time_rtc_stats(dst);
+	string_append(dst, "\n> timer:  ");
+	time_timer_stats(dst);
+	string_append(dst, "\n> ntp:    ");
+	time_sntp_stats(dst);
+	string_append(dst, ">\n");
 	string_format(dst, "> time:   %04u/%02u/%02u %02u:%02u:%02u, source: %s\n", Y, M, D, h, m, s, time_source);
+	string_format(dst, "> sntp:   poll: %u, received: %u\n", stat_sntp_poll, stat_sntp_received);
 }
 
 void stats_counters(string_t *dst)
@@ -280,23 +289,22 @@ void stats_counters(string_t *dst)
 			"> user_pre_init called: %s\n"
 			"> ... success: %s\n"
 			"> int uart0 rx: %d\n"
-			"> int uart0 tx: %d\n"
+			"> ... tx: %d\n"
 			"> int uart1 tx: %d\n"
 			"> fast timer fired: %d\n"
-			"> slow timer fired: %d\n"
+			"> ... slow: %d\n"
 			"> primary pwm cycles: %d\n"
 			"> ... int fired: %d\n"
 			"> ... while masked: %d\n"
 			"> pc counts: %d\n"
 			"> uart updated: %d\n"
-			"> commands/udp processed: %d\n"
-			"> commands/tcp processed: %d\n"
+			"> commands udp processed: %d\n"
+			"> ... tcp: %d\n"
 			"> display updated: %d\n"
-			"> ntp updated: %d\n"
-			"> cmd receive buffer overflow events: %d\n"
-			"> cmd send buffer overflow events: %d\n"
-			"> uart receive buffer overflow events: %d\n"
-			"> uart send buffer overflow events: %d\n"
+			"> cmd receive buffer overflowed: %d\n"
+			"> ... send buffer: %d\n"
+			"> uart receive buffer overflowed: %d\n"
+			"> ... send buffer: %d\n"
 			"> config read requests: %u\n"
 			"> ... loads: %u\n"
 			"> config write requests: %u\n"
@@ -312,10 +320,10 @@ void stats_counters(string_t *dst)
 			"> task timer posted: %u\n"
 			"> ... failed: %u\n"
 			"> io init time: %u ms\n"
-			"> display init time: %u ms\n"
+			"> ... display: %u ms\n"
 			"> debug 1: 0x%08x %d\n"
-			"> debug 2: 0x%08x %d\n"
-			"> debug 3: 0x%08x %d\n",
+			"> ... 2: 0x%08x %d\n"
+			"> ... 3: 0x%08x %d\n",
 				yesno(stat_flags.user_pre_init_called),
 				yesno(stat_flags.user_pre_init_success),
 				stat_uart0_rx_interrupts,
@@ -331,7 +339,6 @@ void stats_counters(string_t *dst)
 				stat_update_command_udp,
 				stat_update_command_tcp,
 				stat_update_display,
-				stat_update_ntp,
 				stat_cmd_receive_buffer_overflow,
 				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow,
