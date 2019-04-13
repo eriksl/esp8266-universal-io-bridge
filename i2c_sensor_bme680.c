@@ -5,6 +5,9 @@
 
 #include "attribute.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 //#include "BME680_driver/bme680.h"
 //#include "BME680_driver/bme680_defs.h"
 
@@ -1815,7 +1818,7 @@ static int user_i2c_write(unsigned int dev_id, unsigned int reg_addr, uint8_t *r
 	return(0);
 }
 
-static _Bool values_valid = false;
+static bool values_valid = false;
 static i2c_sensor_value_t temperature;
 static i2c_sensor_value_t humidity;
 static i2c_sensor_value_t airpressure;

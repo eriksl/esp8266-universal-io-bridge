@@ -5,8 +5,9 @@
 #include "rboot-interface.h"
 #include "sdk.h"
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 app_action_t application_function_flash_info(string_t *src, string_t *dst)
 {
@@ -280,7 +281,7 @@ app_action_t application_function_flash_read(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static app_action_t flash_write_verify_(string_t *src, string_t *dst, _Bool verify)
+static app_action_t flash_write_verify_(string_t *src, string_t *dst, bool verify)
 {
 	unsigned int address, sector;
 	int byte;
@@ -437,7 +438,7 @@ app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static app_action_t flash_select(string_t *src, string_t *dst, _Bool once)
+static app_action_t flash_select(string_t *src, string_t *dst, bool once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
 
@@ -527,7 +528,7 @@ static app_action_t flash_select(string_t *src, string_t *dst, _Bool once)
 
 	if(!once)
 	{
-		_Bool success;
+		bool success;
 
 		if(!rboot_if_read_config(&config))
 		{

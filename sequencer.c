@@ -3,9 +3,12 @@
 #include "io.h"
 #include "dispatch.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct
 {
-	_Bool		flash_valid;
+	bool		flash_valid;
 	int			start;
 	int			current;
 	uint64_t	current_end_time;
@@ -54,7 +57,7 @@ enum
 _Static_assert(sequencer_flash_entries == 2048, "flash sequencer size incorrect");
 _Static_assert(sequencer_flash_entries_per_sector == 512, "flash sequencer per sector size incorrect");
 
-static _Bool clear_all_flash_entries(unsigned int mirror)
+static bool clear_all_flash_entries(unsigned int mirror)
 {
 	sequencer_entry_t *entry;
 	unsigned int offset, sector, current = 0;
@@ -126,7 +129,7 @@ error:
 	return(false);
 }
 
-static _Bool get_flash_entry(unsigned int index, sequencer_entry_t *entry)
+static bool get_flash_entry(unsigned int index, sequencer_entry_t *entry)
 {
 	const sequencer_entry_t *entries_in_flash;
 
@@ -143,7 +146,7 @@ static _Bool get_flash_entry(unsigned int index, sequencer_entry_t *entry)
 	return(true);
 }
 
-static _Bool update_flash_entry(unsigned int index, unsigned int mirror, const sequencer_entry_t *entry)
+static bool update_flash_entry(unsigned int index, unsigned int mirror, const sequencer_entry_t *entry)
 {
 	sequencer_entry_t *entries_in_buffer, *entry_in_buffer;
 	unsigned int flash_start_offset, sector;
@@ -235,7 +238,7 @@ iram attr_pure int sequencer_get_repeats(void)
 	return(sequencer.repeats);
 }
 
-void sequencer_get_status(_Bool *running, unsigned int *start, unsigned int *flash_size, unsigned int *flash_size_entries,
+void sequencer_get_status(bool *running, unsigned int *start, unsigned int *flash_size, unsigned int *flash_size_entries,
 		unsigned int *flash_offset_flash0, unsigned int *flash_offset_flash1, unsigned int *flash_offset_mapped)
 {
 	*running = sequencer.repeats > 0;
@@ -247,7 +250,7 @@ void sequencer_get_status(_Bool *running, unsigned int *start, unsigned int *fla
 	*flash_offset_mapped  = sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET;
 }
 
-_Bool sequencer_clear(void)
+bool sequencer_clear(void)
 {
 	if(!clear_all_flash_entries(0))		// OTA image #0 or plain image
 		return(false);
@@ -259,7 +262,7 @@ _Bool sequencer_clear(void)
 	return(sequencer.flash_valid);
 }
 
-_Bool sequencer_get_entry(unsigned int index, _Bool *active, int *io, int *pin, unsigned int *value, unsigned int *duration)
+bool sequencer_get_entry(unsigned int index, bool *active, int *io, int *pin, unsigned int *value, unsigned int *duration)
 {
 	sequencer_entry_t entry;
 
@@ -292,7 +295,7 @@ _Bool sequencer_get_entry(unsigned int index, _Bool *active, int *io, int *pin, 
 	return(true);
 }
 
-_Bool sequencer_set_entry(unsigned int index, int io, int pin, uint32_t value, int duration)
+bool sequencer_set_entry(unsigned int index, int io, int pin, uint32_t value, int duration)
 {
 	sequencer_entry_t entry;
 
@@ -316,7 +319,7 @@ _Bool sequencer_set_entry(unsigned int index, int io, int pin, uint32_t value, i
 	return(update_flash_entry(index, 1, &entry));
 }
 
-_Bool sequencer_remove_entry(unsigned int index)
+bool sequencer_remove_entry(unsigned int index)
 {
 	sequencer_entry_t entry;
 
@@ -372,7 +375,7 @@ void sequencer_run(void)
 {
 	int io, pin;
 	unsigned int value, duration;
-	_Bool active;
+	bool active;
 
 	sequencer.current++;
 

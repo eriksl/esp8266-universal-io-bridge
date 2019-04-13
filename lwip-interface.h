@@ -10,6 +10,9 @@
 
 #pragma GCC diagnostic pop
 
+#include <stdint.h>
+#include <stdbool.h>
+
 struct _lwip_if_socket_t;
 
 typedef void (*callback_data_received_fn_t)(struct _lwip_if_socket_t *, unsigned int);
@@ -52,14 +55,14 @@ typedef struct _lwip_if_socket_t
 
 assert_size(lwip_if_socket_t, 48);
 
-_Bool	attr_nonnull lwip_if_received_tcp(lwip_if_socket_t *);
-_Bool	attr_nonnull lwip_if_received_udp(lwip_if_socket_t *);
+bool	attr_nonnull lwip_if_received_tcp(lwip_if_socket_t *);
+bool	attr_nonnull lwip_if_received_udp(lwip_if_socket_t *);
 void	attr_nonnull lwip_if_receive_buffer_unlock(lwip_if_socket_t *);
-_Bool	attr_nonnull lwip_if_send_buffer_locked(lwip_if_socket_t *);
-_Bool	attr_nonnull lwip_if_send(lwip_if_socket_t *socket);
-_Bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
-_Bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
-_Bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-			unsigned int port, _Bool flag_udp_term_empty, callback_data_received_fn_t callback_data_received);
-_Bool	attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4);
+bool	attr_nonnull lwip_if_send_buffer_locked(lwip_if_socket_t *);
+bool	attr_nonnull lwip_if_send(lwip_if_socket_t *socket);
+bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
+bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
+bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
+			unsigned int port, bool flag_udp_term_empty, callback_data_received_fn_t callback_data_received);
+bool	attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4);
 #endif

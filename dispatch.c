@@ -12,6 +12,9 @@
 #include "init.h"
 #include "lwip-interface.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef enum
 {
 	ts_copy,
@@ -49,7 +52,7 @@ string_new(static, uart_socket_receive_buffer, 128);
 string_new(static, uart_socket_send_buffer, 128);
 static lwip_if_socket_t uart_socket;
 
-static _Bool uart_bridge_active = false;
+static bool uart_bridge_active = false;
 
 static os_timer_t fast_timer;
 static os_timer_t slow_timer;
@@ -385,7 +388,7 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 {
 	int current, length;
 	uint8_t byte;
-	_Bool strip_telnet;
+	bool strip_telnet;
 	telnet_strip_state_t telnet_strip_state;
 
 	length = string_length(&uart_socket_receive_buffer);

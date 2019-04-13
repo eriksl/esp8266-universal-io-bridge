@@ -6,6 +6,7 @@
 #include "stats.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum
 {
@@ -34,26 +35,26 @@ enum
 	flag_udp_term_empty =	1 << 15,
 };
 
-void			config_flags_to_string(_Bool nl, const char *, string_t *);
-_Bool			config_flags_change(const string_t *, _Bool add);
+void			config_flags_to_string(bool nl, const char *, string_t *);
+bool			config_flags_change(const string_t *, bool add);
 
-_Bool			config_init(void);
-_Bool			config_dump(string_t *);
-_Bool			config_open_read(void);
-_Bool			config_walk(string_t *id, string_t *value);
-_Bool			config_close_read(void);
+bool			config_init(void);
+bool			config_dump(string_t *);
+bool			config_open_read(void);
+bool			config_walk(string_t *id, string_t *value);
+bool			config_close_read(void);
 
-_Bool			config_open_write(void);
-unsigned int	config_delete_flashptr(const char *match_name, _Bool wildcard, int index1, int index2);
-_Bool			config_set_string_flashptr(const char *id, const char *value, int param1, int param2);
-_Bool			config_set_int_flashptr(const char *match_name, int value, int index1, int index2);
-_Bool			config_set_uint_flashptr(const char *match_name, unsigned int value, int index1, int index2);
-_Bool			config_close_write(void);
+bool			config_open_write(void);
+unsigned int	config_delete_flashptr(const char *match_name, bool wildcard, int index1, int index2);
+bool			config_set_string_flashptr(const char *id, const char *value, int param1, int param2);
+bool			config_set_int_flashptr(const char *match_name, int value, int index1, int index2);
+bool			config_set_uint_flashptr(const char *match_name, unsigned int value, int index1, int index2);
+bool			config_close_write(void);
 void			config_abort_write(void);
 
-_Bool			config_get_string_flashptr(const char *id, string_t *value, int param1, int param2);
-_Bool			config_get_int_flashptr(const char *match_name, int *return_value, int param1, int param2);
-_Bool			config_get_uint_flashptr(const char *match_name, unsigned int *return_value, int param1, int param2);
+bool			config_get_string_flashptr(const char *id, string_t *value, int param1, int param2);
+bool			config_get_int_flashptr(const char *match_name, int *return_value, int param1, int param2);
+bool			config_get_uint_flashptr(const char *match_name, unsigned int *return_value, int param1, int param2);
 
 #define config_get_string(name, value, p1, p2) \
 ({ \

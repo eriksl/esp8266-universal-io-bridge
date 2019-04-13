@@ -5,6 +5,9 @@
 #include "config.h"
 #include "time.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 static i2c_sensor_device_data_t device_data[i2c_sensor_size];
 
 static void sensor_register(int bus, i2c_sensor_t sensor_id)
@@ -23,7 +26,7 @@ static void sensor_deregister(int bus, i2c_sensor_t sensor_id)
 	device_data[sensor_id].registered &= ~(1 << bus);
 }
 
-attr_pure _Bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
+attr_pure bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
 {
 	if(sensor >= i2c_sensor_size)
 		return(false);
@@ -4266,7 +4269,7 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	return(i2c_error_ok);
 }
 
-_Bool i2c_sensors_init(void)
+bool i2c_sensors_init(void)
 {
 	i2c_info_t i2c_info;
 	unsigned int buses;
@@ -4342,7 +4345,7 @@ _Bool i2c_sensors_init(void)
 	return(true);
 }
 
-_Bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, _Bool verbose, _Bool html)
+bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, bool html)
 {
 	const i2c_sensor_device_table_entry_t *entry;
 	i2c_error_t error;

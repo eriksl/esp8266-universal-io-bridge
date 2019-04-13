@@ -6,6 +6,7 @@
 #include "util.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum
 {
@@ -133,8 +134,8 @@ assert_size(i2c_sensor_device_table_entry_t, 36);
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
-_Bool		i2c_sensors_init(void);
-_Bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, _Bool verbose, _Bool html);
-_Bool		i2c_sensor_registered(int bus, i2c_sensor_t);
+bool		i2c_sensors_init(void);
+bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);
+bool		i2c_sensor_registered(int bus, i2c_sensor_t);
 
 #endif

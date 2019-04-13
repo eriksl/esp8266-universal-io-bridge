@@ -12,6 +12,9 @@
 #include "sequencer.h"
 #include "dispatch.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct
 {
 	uint32_t value;
@@ -479,7 +482,7 @@ static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_format(dst, "\nerror in <%s>\n", info);
 }
 
-static _Bool io_string_to_flags(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool resetset)
+static bool io_string_to_flags(const string_t *flag, io_config_pin_entry_t *pin_config, bool resetset)
 {
 	const io_flag_name_t *entry;
 
@@ -502,7 +505,7 @@ static _Bool io_string_to_flags(const string_t *flag, io_config_pin_entry_t *pin
 static void io_flags_to_string(string_t *dst, const io_config_pin_entry_t *pin_config)
 {
 	const io_flag_name_t *entry;
-	_Bool first = true;
+	bool first = true;
 
 	for(entry = io_flag_names; entry->value != io_flag_none; entry++)
 		if(pin_config->flags & entry->value)
@@ -1600,7 +1603,7 @@ void io_periodic_slow(void)
 	io_data_pin_entry_t *pin_data;
 	unsigned int io, pin;
 	io_flags_t flags = { .counter_triggered = 0 };
-	static _Bool post_init_run = false;
+	static bool post_init_run = false;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -2693,7 +2696,7 @@ static const roflash dump_string_t roflash_dump_strings =
 	}
 };
 
-void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
+void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;

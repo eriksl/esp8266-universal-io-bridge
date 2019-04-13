@@ -3,6 +3,9 @@
 #include "stats.h"
 #include "sdk.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct
 {
 	unsigned int ntp_server_valid:1;
@@ -316,7 +319,7 @@ void time_ntp_init(void)
 attr_inline void ntp_periodic(void)
 {
 	static int delay = 0;
-	static _Bool initial_burst = true;
+	static bool initial_burst = true;
 	time_t ntp_s;
 
 	if(!time_flags.ntp_server_valid)

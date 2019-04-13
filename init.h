@@ -3,5 +3,8 @@
 
 #include "util.h"
 
-_Bool	wlan_init(void);
+#include <stdint.h>
+#include <stdbool.h>
+
+bool wlan_init(void);
 #endif

@@ -7,6 +7,9 @@
 #include "dispatch.h"
 #include "sdk.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #define CONFIG_MAGIC "%4afc0002%"
 
 typedef struct
@@ -59,7 +62,7 @@ static int config_tail(void)
 	return(current);
 }
 
-_Bool config_init(void)
+bool config_init(void)
 {
 	config_flags = flag_log_to_uart | flag_log_to_buffer;
 
@@ -69,7 +72,7 @@ _Bool config_init(void)
 	return(true);
 }
 
-_Bool config_open_read(void)
+bool config_open_read(void)
 {
 	string_new(, magic_string, 16);
 
@@ -119,7 +122,7 @@ _Bool config_open_read(void)
 	return(true);
 }
 
-_Bool config_close_read(void)
+bool config_close_read(void)
 {
 	if(flash_sector_buffer_use != fsb_config_read)
 	{
@@ -132,7 +135,7 @@ _Bool config_close_read(void)
 	return(true);
 }
 
-_Bool config_open_write(void)
+bool config_open_write(void)
 {
 	if(!config_open_read())
 		return(false);
@@ -146,7 +149,7 @@ _Bool config_open_write(void)
 	return(true);
 }
 
-_Bool config_close_write(void)
+bool config_close_write(void)
 {
 	int tail;
 
@@ -222,7 +225,7 @@ void config_abort_write(void)
 		flash_sector_buffer_use = fsb_free;
 }
 
-_Bool config_walk(string_t *id, string_t *value)
+bool config_walk(string_t *id, string_t *value)
 {
 	int id_start_index, id_end_index, value_start_index, value_end_index;
 
@@ -254,7 +257,7 @@ _Bool config_walk(string_t *id, string_t *value)
 	return(false);
 }
 
-_Bool config_get_string_flashptr(const char *match_name_flash, string_t *return_value, int param1, int param2)
+bool config_get_string_flashptr(const char *match_name_flash, string_t *return_value, int param1, int param2)
 {
 	string_new(, match_name, 64);
 	string_new(, name, 64);
@@ -279,7 +282,7 @@ _Bool config_get_string_flashptr(const char *match_name_flash, string_t *return_
 	return(false);
 }
 
-_Bool config_get_int_flashptr(const char *match_name_flash, int *return_value, int param1, int param2)
+bool config_get_int_flashptr(const char *match_name_flash, int *return_value, int param1, int param2)
 {
 	string_new(, value, 16);
 
@@ -289,7 +292,7 @@ _Bool config_get_int_flashptr(const char *match_name_flash, int *return_value, i
 	return(parse_int(0, &value, return_value, 0, '\n') == parse_ok);
 }
 
-_Bool config_get_uint_flashptr(const char *match_name_flash, unsigned int *return_value, int param1, int param2)
+bool config_get_uint_flashptr(const char *match_name_flash, unsigned int *return_value, int param1, int param2)
 {
 	string_new(, value, 16);
 
@@ -299,7 +302,7 @@ _Bool config_get_uint_flashptr(const char *match_name_flash, unsigned int *retur
 	return(parse_uint(0, &value, return_value, 0, '\n') == parse_ok);
 }
 
-unsigned int config_delete_flashptr(const char *match_name_flash, _Bool wildcard, int param1, int param2)
+unsigned int config_delete_flashptr(const char *match_name_flash, bool wildcard, int param1, int param2)
 {
 	string_new(, name, 64);
 	string_new(, match_name, 64);
@@ -346,7 +349,7 @@ unsigned int config_delete_flashptr(const char *match_name_flash, _Bool wildcard
 	return(deleted);
 }
 
-_Bool config_set_string_flashptr(const char *match_name_flash, const char *value, int param1, int param2)
+bool config_set_string_flashptr(const char *match_name_flash, const char *value, int param1, int param2)
 {
 	int current;
 
@@ -369,7 +372,7 @@ _Bool config_set_string_flashptr(const char *match_name_flash, const char *value
 	return(true);
 }
 
-_Bool config_set_int_flashptr(const char *match_name_flash, int value, int param1, int param2)
+bool config_set_int_flashptr(const char *match_name_flash, int value, int param1, int param2)
 {
 	string_new(, string_value, 16);
 
@@ -384,7 +387,7 @@ _Bool config_set_int_flashptr(const char *match_name_flash, int value, int param
 	return(config_set_string_flashptr(match_name_flash, string_buffer(&string_value), param1, param2));
 }
 
-_Bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value, int param1, int param2)
+bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value, int param1, int param2)
 {
 	string_new(, string_value, 16);
 
@@ -399,7 +402,7 @@ _Bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value,
 	return(config_set_string_flashptr(match_name_flash, string_buffer(&string_value), param1, param2));
 }
 
-_Bool config_dump(string_t *dst)
+bool config_dump(string_t *dst)
 {
 	int int_value, amount;
 	unsigned int uint_value;
@@ -428,7 +431,7 @@ _Bool config_dump(string_t *dst)
 	return(config_close_read());
 }
 
-_Bool config_flags_change(const string_t *flag, _Bool set)
+bool config_flags_change(const string_t *flag, bool set)
 {
 	const config_flag_name_t *entry;
 
@@ -454,7 +457,7 @@ _Bool config_flags_change(const string_t *flag, _Bool set)
 	return(false);
 }
 
-void config_flags_to_string(_Bool nl, const char *prefix, string_t *dst)
+void config_flags_to_string(bool nl, const char *prefix, string_t *dst)
 {
 	const config_flag_name_t *entry;
 

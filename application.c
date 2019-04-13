@@ -16,6 +16,9 @@
 #include "dispatch.h"
 #include "sdk.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct
 {
 	attr_flash_align	const char		*command_short;
@@ -423,7 +426,7 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 
 static app_action_t application_function_sequencer_clear(string_t *src, string_t *dst)
 {
-	_Bool result;
+	bool result;
 
 	result = sequencer_clear();
 
@@ -458,7 +461,7 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 	static unsigned int start = 0;
 	int io, pin, start_in;
 	unsigned int duration, value;
-	_Bool active;
+	bool active;
 
 	if((parse_int(1, src, &start_in, 0, ' ') != parse_ok) ||
 			(parse_int(2, src, &io, 0, ' ') != parse_ok) ||
@@ -498,7 +501,7 @@ static app_action_t application_function_sequencer_list(string_t *src, string_t 
 	static unsigned int start = 0;
 	unsigned int index, value, duration;
 	int io, pin;
-	_Bool active;
+	bool active;
 
 	if(parse_uint(1, src, &index, 0, ' ') == parse_ok)
 		start = index;
@@ -544,7 +547,7 @@ static app_action_t application_function_sequencer_stop(string_t *src, string_t 
 
 static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
 {
-	_Bool running, active;
+	bool running, active;
 	int io, pin;
 	unsigned int start, flash_size, flash_size_entries, flash_offset_flash0, flash_offset_flash1, flash_offset_mapped;
 	unsigned int current, value, duration;
@@ -1251,7 +1254,7 @@ static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t
 {
 	i2c_sensor_t sensor;
 	unsigned int option, bus;
-	_Bool all, verbose;
+	bool all, verbose;
 	int original_length = string_length(dst);
 
 	all = false;
@@ -1287,7 +1290,7 @@ static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t
 	return(app_action_normal);
 }
 
-static app_action_t set_unset_flag(string_t *src, string_t *dst, _Bool add)
+static app_action_t set_unset_flag(string_t *src, string_t *dst, bool add)
 {
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{

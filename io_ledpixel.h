@@ -4,7 +4,10 @@
 #include "io.h"
 #include "util.h"
 
-_Bool			io_ledpixel_setup(unsigned int io, unsigned int pin);
+#include <stdint.h>
+#include <stdbool.h>
+
+bool			io_ledpixel_setup(unsigned int io, unsigned int pin);
 io_error_t		io_ledpixel_init(const struct io_info_entry_T *);
 unsigned int	io_ledpixel_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin);
 void			io_ledpixel_post_init(const struct io_info_entry_T *);

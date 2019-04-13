@@ -2,9 +2,11 @@
 #ifndef rboot_interface_h
 #define rboot_interface_h
 
+#include "attribute.h"
+#include "util.h"
+
 #include <stdint.h>
-#include <attribute.h>
-#include <util.h>
+#include <stdbool.h>
 
 // Make sure these entries exactly mirror the ones in rboot/*.h
 
@@ -51,10 +53,10 @@ typedef struct
 assert_size(rboot_if_rtc_config_t, 12);
 
 const char *	rboot_if_boot_mode(unsigned int index);
-_Bool			rboot_if_read_config(rboot_if_config_t *config);
-_Bool			rboot_if_write_config(const rboot_if_config_t *config, string_t *buffer);
-_Bool			rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config);
-_Bool			rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config);
+bool			rboot_if_read_config(rboot_if_config_t *config);
+bool			rboot_if_write_config(const rboot_if_config_t *config, string_t *buffer);
+bool			rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config);
+bool			rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config);
 void			rboot_if_info(string_t *dst);
 unsigned int	rboot_if_mapped_slot(void);
 #endif

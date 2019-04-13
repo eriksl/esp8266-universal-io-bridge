@@ -3,10 +3,11 @@
 #include "ota.h"
 #include "config.h"
 
-#include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 char flash_dram_buffer[1024];
 
@@ -93,7 +94,7 @@ iram int strecpy(char *dst, const char *src, int size)
 	return(length);
 }
 
-iram size_t flash_to_dram(_Bool cstr, const void *src_flash_unaligned, char *dst_dram, size_t length)
+iram size_t flash_to_dram(bool cstr, const void *src_flash_unaligned, char *dst_dram, size_t length)
 {
 	const uint32_t *src_flash;
 	unsigned int src_flash_index;
@@ -134,7 +135,7 @@ void reset(void)
 	system_restart();
 }
 
-attr_const const char *yesno(_Bool value)
+attr_const const char *yesno(bool value)
 {
 	if(!value)
 		return("no");
@@ -142,7 +143,7 @@ attr_const const char *yesno(_Bool value)
 	return("yes");
 }
 
-attr_const const char *onoff(_Bool value)
+attr_const const char *onoff(bool value)
 {
 	if(!value)
 		return("off");
@@ -257,9 +258,9 @@ parse_error_t parse_string(int index, const string_t *src, string_t *dst, char d
 	return(parse_ok);
 }
 
-parse_error_t parse_int_all(int index, const string_t *src, unsigned int *dst, int base, char delimiter, _Bool do_signed)
+parse_error_t parse_int_all(int index, const string_t *src, unsigned int *dst, int base, char delimiter, bool do_signed)
 {
-	_Bool valid, negative;
+	bool valid, negative;
 	uint32_t value;
 	int offset;
 	char current;
@@ -342,8 +343,8 @@ parse_error_t parse_float(int index, const string_t *src, double *dst, char deli
 {
 	int offset;
 	int decimal;
-	_Bool negative;
-	_Bool valid;
+	bool negative;
+	bool valid;
 	double result;
 	char current;
 
@@ -450,7 +451,7 @@ iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
-_Bool attr_nonnull string_match_cstr_flash(const string_t *s1, const char *s2)
+bool attr_nonnull string_match_cstr_flash(const string_t *s1, const char *s2)
 {
 	char s2_in_dram[64];
 
@@ -516,9 +517,9 @@ void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_o
 	string_setlength(dst, dst_offset + length);
 }
 
-_Bool string_trim_nl(string_t *dst)
+bool string_trim_nl(string_t *dst)
 {
-	_Bool trimmed = false;
+	bool trimmed = false;
 
 	if((dst->length > 0) && (dst->buffer[dst->length - 1] == '\n'))
 	{
@@ -602,12 +603,12 @@ void string_mac(string_t *dst, mac_addr_t addr)
 }
 
 #if 0
-int string_bin(string_t *dst, unsigned int value, int precision, _Bool add_prefix)
+int string_bin(string_t *dst, unsigned int value, int precision, bool add_prefix)
 {
 	int length = 0;
 	int bitpos;
-	_Bool bit;
-	_Bool skip_leading;
+	bool bit;
+	bool skip_leading;
 
 	if(precision < 1)
 	{
@@ -642,7 +643,7 @@ int string_double(string_t *dst, double value, int precision, double top_decimal
 {
 	double compare;
 	int decimal;
-	_Bool skip_leading_zeroes;
+	bool skip_leading_zeroes;
 	int original_length;
 
 	original_length = dst->length;

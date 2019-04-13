@@ -2,6 +2,9 @@
 #include "util.h"
 #include "sdk.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 static unsigned int cache_map_entry[2] = { 0xffff, 0xffff };
 
 typedef union
@@ -75,7 +78,7 @@ attr_const const char *rboot_if_boot_mode(unsigned int index)
 	return("unknown");
 }
 
-_Bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buffer)
+bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buffer)
 {
 	uint32_t *buffer = (uint32_t *)(void *)string_buffer_nonconst(string_buffer);
 
@@ -96,7 +99,7 @@ _Bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_bu
 	return(true);
 }
 
-_Bool rboot_if_read_config(rboot_if_config_t *config)
+bool rboot_if_read_config(rboot_if_config_t *config)
 {
 	if(spi_flash_read(OFFSET_OTA_RBOOT_CFG, (uint32_t *)config, sizeof(*config)) != SPI_FLASH_RESULT_OK)
 		return(false);
@@ -117,7 +120,7 @@ static uint8_t checksum(const uint8_t *start, const uint8_t *end)
     return(cs);
 }
 
-_Bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
+bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
 {
 	config->checksum = checksum((const uint8_t *)config, (const uint8_t *)&config->checksum);
 
@@ -127,7 +130,7 @@ _Bool rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config)
 	return(true);
 }
 
-_Bool rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config)
+bool rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config)
 {
 	if(!system_rtc_mem_read(rboot_if_rtc_address, config, sizeof(*config)))
 		return(false);

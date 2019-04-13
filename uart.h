@@ -1,12 +1,12 @@
 #ifndef uart_h
 #define uart_h
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include "util.h"
 #include "queue.h"
 #include "sdk.h"
+
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef enum attr_packed
 {
@@ -40,13 +40,13 @@ void 			uart_data_bits(unsigned int uart, unsigned int data_bits);
 void			uart_stop_bits(unsigned int uart, unsigned int stop_bits);
 void			uart_parity(unsigned int uart, uart_parity_t parity);
 void			uart_loopback(unsigned int, bool);
-void			uart_autofill(unsigned int uart, _Bool enable, unsigned int character);
-void			uart_is_autofill(unsigned int uart, _Bool *enable, unsigned int *character);
-_Bool			uart_full(unsigned int uart);
+void			uart_autofill(unsigned int uart, bool enable, unsigned int character);
+void			uart_is_autofill(unsigned int uart, bool *enable, unsigned int *character);
+bool			uart_full(unsigned int uart);
 void			uart_send(unsigned int, unsigned int);
 void			uart_flush(unsigned int);
 void			uart_clear_send_queue(unsigned int);
-_Bool			uart_empty(unsigned int);
+bool			uart_empty(unsigned int);
 unsigned int	uart_receive(unsigned int);
 void			uart_clear_receive_queue(unsigned int);
 void			uart_set_initial(unsigned int uart);

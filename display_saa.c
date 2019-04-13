@@ -1,7 +1,9 @@
 #include "display.h"
 #include "display_saa.h"
-
 #include "i2c.h"
+
+#include <stdint.h>
+#include <stdbool.h>
 
 /*
 	+--1--+
@@ -124,7 +126,7 @@ static int led_render_char(int character)
 	return(led_charrom[character] | add_dot);
 }
 
-_Bool display_saa1064_init(void)
+bool display_saa1064_init(void)
 {
 	uint8_t i2cdata;
 	int bus;
@@ -157,7 +159,7 @@ _Bool display_saa1064_init(void)
 	return(false);
 }
 
-_Bool display_saa1064_bright(int bright_in)
+bool display_saa1064_bright(int bright_in)
 {
 	if(i2c_bus < 0)
 		return(false);
@@ -170,7 +172,7 @@ _Bool display_saa1064_bright(int bright_in)
 	return(true);
 }
 
-_Bool display_saa1064_set(const char *tag, const char *from)
+bool display_saa1064_set(const char *tag, const char *from)
 {
 	static const uint8_t bright_to_saa[5] =
 	{

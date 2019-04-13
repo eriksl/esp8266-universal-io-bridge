@@ -9,6 +9,9 @@
 #include "config.h"
 #include "time.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 enum
 {
 	display_slot_amount = 8,
@@ -31,10 +34,10 @@ typedef const struct
 	int				const size;
 	const char *	const name;
 	const char *	const type;
-	_Bool			(* const init_fn)(void);
-	_Bool			(* const bright_fn)(int brightness);
-	_Bool			(* const set_fn)(const char *tag, const char *text);
-	_Bool			(* const show_fn)(void);
+	bool			(* const init_fn)(void);
+	bool			(* const bright_fn)(int brightness);
+	bool			(* const set_fn)(const char *tag, const char *text);
+	bool			(* const show_fn)(void);
 } display_info_t;
 
 assert_size(display_info_t, 28);
@@ -225,7 +228,7 @@ static display_slot_t display_slot[display_slot_amount];
 
 assert_size(display_slot, 640);
 
-_Bool display_common_set(const char *tag, const char *text,
+bool display_common_set(const char *tag, const char *text,
 	int map_size, const display_map_t *map,
 	int udg_size, const display_udg_t *udg)
 {
@@ -334,12 +337,12 @@ _Bool display_common_set(const char *tag, const char *text,
 	return(true);
 }
 
-attr_pure _Bool display_detected(void)
+attr_pure bool display_detected(void)
 {
 	return(display_data.detected >= 0);
 }
 
-static void display_update(_Bool advance)
+static void display_update(bool advance)
 {
 	const char *display_text;
 	int slot;
@@ -427,7 +430,7 @@ static void display_expire(void) // called one time per second
 	}
 }
 
-_Bool display_periodic(void) // gets called 10 times per second
+bool display_periodic(void) // gets called 10 times per second
 {
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;

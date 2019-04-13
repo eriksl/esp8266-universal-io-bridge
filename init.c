@@ -8,6 +8,9 @@
 #include "sequencer.h"
 #include "io_gpio.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 static void user_init2(void);
 void user_init(void);
 
@@ -105,7 +108,7 @@ static void user_init2(void)
 		sequencer_start(0, 1);
 }
 
-_Bool wlan_init(void)
+bool wlan_init(void)
 {
 	unsigned int wlan_mode_int;
 	config_wlan_mode_t wlan_mode;

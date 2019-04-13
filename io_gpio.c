@@ -5,6 +5,8 @@
 #include "eagle.h"
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 enum
 {
@@ -58,7 +60,7 @@ typedef const struct
 	const uint32_t		uart;
 } gpio_info_t;
 
-assert_size(_Bool, 1);
+assert_size(bool, 1);
 assert_size(gpio_info_t, 24);
 
 typedef union
@@ -153,7 +155,7 @@ attr_inline void gpio_direction_set_mask(uint32_t mask)
 	gpio_reg_write(GPIO_ENABLE_W1TS_ADDRESS, mask);
 }
 
-attr_inline void gpio_direction(unsigned int pin, _Bool set_on)
+attr_inline void gpio_direction(unsigned int pin, bool set_on)
 {
 	if(set_on)
 		gpio_direction_set_mask(1 << pin);
@@ -163,7 +165,7 @@ attr_inline void gpio_direction(unsigned int pin, _Bool set_on)
 
 // disable / enable pullup
 
-attr_inline _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
+attr_inline bool gpio_enable_pullup(unsigned int pin, bool onoff)
 {
 	uint32_t value;
 	gpio_info_t *gpio_pin_info;
@@ -190,7 +192,7 @@ attr_inline _Bool gpio_enable_pullup(unsigned int pin, _Bool onoff)
 
 // clear / set quasi-PWM using PDM (Pulse Density Modulation, aka "sigma-delta") mode
 
-static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
+static void gpio_enable_pdm(unsigned int pin, bool onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -211,7 +213,7 @@ static void gpio_enable_pdm(unsigned int pin, _Bool onoff)
 
 // clear / set open drain mode
 
-static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
+static void gpio_enable_open_drain(unsigned int pin, bool onoff)
 {
 	uint32_t pinaddr;
 	uint32_t value;
@@ -232,7 +234,7 @@ static void gpio_enable_open_drain(unsigned int pin, _Bool onoff)
 
 // select pin function
 
-attr_inline _Bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
+attr_inline bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 {
 	gpio_info_t *gpio_pin_info;
 	uint32_t value, func;
@@ -323,7 +325,7 @@ static unsigned int pdm_get_target(void)
 	return(regval);
 }
 
-static void pdm_enable(_Bool onoff)
+static void pdm_enable(bool onoff)
 {
 	uint32_t regval;
 
@@ -386,7 +388,7 @@ attr_inline unsigned int pwm1_period(void)
 	return((unsigned int)(1 << pwm1_width));
 }
 
-_Bool io_gpio_pwm1_width_set(unsigned int width, _Bool load, _Bool save)
+bool io_gpio_pwm1_width_set(unsigned int width, bool load, bool save)
 {
 	unsigned int current;
 	roflash static const uint32_t pwm_widths[][2] =
@@ -469,12 +471,12 @@ static void pwm_isr_setup(void)
 	ets_isr_unmask(1 << ETS_TIMER0_INUM);
 }
 
-attr_inline _Bool pwm_isr_enabled(void)
+attr_inline bool pwm_isr_enabled(void)
 {
 	return(io_gpio_flags.pwm_int_enabled);
 }
 
-attr_inline void pwm_isr_enable(_Bool enable)
+attr_inline void pwm_isr_enable(bool enable)
 {
 	if(enable)
 	{
@@ -572,7 +574,7 @@ iram static void pwm_go(void)
 	pwm_phases_t *phase_data;
 	unsigned int duty, delta, new_phase_set;
 	uint32_t timer_value;
-	_Bool isr_enabled;
+	bool isr_enabled;
 
 	isr_enabled = pwm_isr_enabled();
 	pwm_isr_enable(false);
@@ -752,7 +754,7 @@ iram static void pwm_go(void)
 io_error_t io_gpio_init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
-	_Bool cpu_high_speed = config_flags_match(flag_cpu_high_speed);
+	bool cpu_high_speed = config_flags_match(flag_cpu_high_speed);
 
 	pdm_enable(false);
 
@@ -819,7 +821,7 @@ attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info,
 iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
 {
 	static uint32_t gpio_pc_pins_previous;
-	static _Bool first_call = true;
+	static bool first_call = true;
 
 	int pin;
 	uint32_t gpio_pc_pins_current;
@@ -1088,7 +1090,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 					{
 						case(io_uart_tx):
 						{
-							_Bool			enabled;
+							bool			enabled;
 							unsigned int	character;
 
 							uart_is_autofill(uart, &enabled, &character);
@@ -1165,7 +1167,7 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 
 		case(io_pin_ll_uart):
 		{
-			_Bool			enabled;
+			bool			enabled;
 			unsigned int	character;
 			int				uart = gpio_info_table[pin].uart;
 

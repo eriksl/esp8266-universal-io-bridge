@@ -6,6 +6,7 @@
 #include "application.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum
 {
@@ -276,7 +277,7 @@ io_error_t		io_write_pin(string_t *, unsigned int, unsigned int, unsigned int);
 io_error_t		io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins);
 io_error_t		io_trigger_pin(string_t *, unsigned int, unsigned int, io_trigger_t);
 io_error_t		io_traits(string_t *, unsigned int io, unsigned int pin, io_pin_mode_t *mode, unsigned int *lower_bound, unsigned int *upper_bound, int *step, unsigned int *value);
-void			io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html);
+void			io_config_dump(string_t *dst, int io_id, int pin_id, bool html);
 void			io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
 app_action_t application_function_io_mode(string_t *src, string_t *dst);

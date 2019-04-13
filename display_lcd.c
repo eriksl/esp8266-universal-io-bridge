@@ -3,8 +3,11 @@
 #include "io.h"
 #include "config.h"
 
-static _Bool inited = false;
-static _Bool nibble_mode;
+#include <stdint.h>
+#include <stdbool.h>
+
+static bool inited = false;
+static bool nibble_mode;
 
 static int bl_io;
 static int bl_pin;
@@ -22,7 +25,7 @@ static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, un
 	return(pin << lcd_pin[function]);
 }
 
-static _Bool send_byte_raw(int byte, _Bool data)
+static bool send_byte_raw(int byte, bool data)
 {
 	unsigned int pins = 0;
 
@@ -45,7 +48,7 @@ static _Bool send_byte_raw(int byte, _Bool data)
 	return(true);
 }
 
-static _Bool send_byte(int byte, _Bool data)
+static bool send_byte(int byte, bool data)
 {
 	if(nibble_mode)
 	{
@@ -61,7 +64,7 @@ static _Bool send_byte(int byte, _Bool data)
 	return(send_byte_raw(byte, data));
 }
 
-_Bool display_lcd_init(void)
+bool display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
 	int io, pin, ix, byte, x, y;
@@ -200,7 +203,7 @@ typedef enum
 	cmd_on_off_off = 0b00001100,	// display on, cursor off, blink off
 } cmd_t;
 
-_Bool display_lcd_bright(int brightness)
+bool display_lcd_bright(int brightness)
 {
 	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
 	unsigned int max_value, value;
@@ -226,7 +229,7 @@ _Bool display_lcd_bright(int brightness)
 	return(true);
 }
 
-_Bool display_lcd_set(const char *tag, const char *text)
+bool display_lcd_set(const char *tag, const char *text)
 {
 	if(!inited)
 		return(false);
@@ -236,7 +239,7 @@ _Bool display_lcd_set(const char *tag, const char *text)
 				display_common_udg_size, display_common_udg));
 }
 
-_Bool display_lcd_show(void)
+bool display_lcd_show(void)
 {
 	static const uint8_t offset[4][2] =
 	{

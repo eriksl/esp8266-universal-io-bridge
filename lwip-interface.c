@@ -17,6 +17,9 @@
 
 #pragma GCC diagnostic pop
 
+#include <stdint.h>
+#include <stdbool.h>
+
 enum
 {
 	lwip_ethernet_max_payload =	1500,
@@ -63,12 +66,12 @@ static void log_error(err_t error)
 	log("\n");
 }
 
-_Bool attr_nonnull attr_pure lwip_if_received_tcp(lwip_if_socket_t *socket)
+bool attr_nonnull attr_pure lwip_if_received_tcp(lwip_if_socket_t *socket)
 {
 	return(socket->peer.port == 0);
 }
 
-_Bool attr_nonnull attr_pure lwip_if_received_udp(lwip_if_socket_t *socket)
+bool attr_nonnull attr_pure lwip_if_received_udp(lwip_if_socket_t *socket)
 {
 	return(socket->peer.port != 0);
 }
@@ -78,12 +81,12 @@ attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket)
 	socket->receive_buffer_locked = 0;
 }
 
-attr_nonnull attr_pure _Bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
+attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 {
 	return((socket->sending_remaining > 0) || (socket->sent_remaining > 0));
 }
 
-static void received_callback(_Bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
 	unsigned int length;
@@ -183,11 +186,11 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 	return(ERR_OK);
 }
 
-static _Bool tcp_try_send_buffer(lwip_if_socket_t *socket)
+static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
 	struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 	unsigned int chunk_size, offset, apiflags;
-	_Bool sent_one = false;
+	bool sent_one = false;
 	err_t error;
 
 	while(socket->sending_remaining > 0)
@@ -298,7 +301,7 @@ static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_
 	return(ERR_OK);
 }
 
-attr_nonnull _Bool lwip_if_close(lwip_if_socket_t *socket)
+attr_nonnull bool lwip_if_close(lwip_if_socket_t *socket)
 {
 	err_t error;
 
@@ -331,7 +334,7 @@ attr_nonnull _Bool lwip_if_close(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
+attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 {
 	err_t error;
 
@@ -415,7 +418,7 @@ attr_nonnull _Bool lwip_if_send(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
+attr_nonnull bool lwip_if_reboot(lwip_if_socket_t *socket)
 {
 	/* reset after socket close, to be able to flush remaining data in buffer */
 
@@ -429,8 +432,8 @@ attr_nonnull _Bool lwip_if_reboot(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull _Bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-		unsigned int port, _Bool udp_term_empty, callback_data_received_fn_t callback_data_received)
+attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
+		unsigned int port, bool udp_term_empty, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
 
@@ -494,7 +497,7 @@ attr_nonnull _Bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rec
 	return(true);
 }
 
-_Bool attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4)
+bool attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4)
 {
 	struct ip_info info;
 	ip_addr_to_bytes_t local_ip;

@@ -5,8 +5,10 @@
 #include "io_gpio.h"
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-static _Bool		detected = false;
+static bool			detected = false;
 static unsigned int	uart;
 
 typedef struct
@@ -62,7 +64,7 @@ static void send_byte(unsigned int byte)
 	}
 }
 
-static void send_all(_Bool force)
+static void send_all(bool force)
 {
 	unsigned int pin, fill;
 
@@ -96,7 +98,7 @@ static void send_all(_Bool force)
 	}
 }
 
-_Bool io_ledpixel_setup(unsigned int io, unsigned int pin)
+bool io_ledpixel_setup(unsigned int io, unsigned int pin)
 {
 	if((io != io_id_gpio) || (pin >= max_pins_per_io))
 		return(false);
