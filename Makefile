@@ -235,9 +235,9 @@ clean:
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
-				$(call section_free,$(ELF_IMAGE),iram,.text,,,32)
-				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,78)
-				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,408)
+				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,79570)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,417792)
 
 showsymbols:	$(ELF_IMAGE)
 				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
@@ -528,7 +528,7 @@ test:					udprxtest tcprxtest udptxtest tcptxtest
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \
-						$$available = $(6) * 1024; \
+						$$available = $(6); \
 						$$used = 0; \
 						while(<$$fd>) \
 						{ \
