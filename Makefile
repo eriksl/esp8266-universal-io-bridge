@@ -19,6 +19,15 @@ ESPSDK_LIB					:= $(ESPSDK)/lib
 ESPTOOL2					:= $(PWD)/esptool2
 RBOOT						:= $(PWD)/rboot
 LWIP						:= $(THIRDPARTY)/lwip
+LWIP_SYSROOT				:= $(LWIP)/$(ARCH)
+LWIP_SYSROOT_LIB			:= $(LWIP_SYSROOT)/lib
+LIBLWIPAPP					:= lwip_app
+LIBLWIPAPP_FILE				:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPAPP).a
+LIBLWIPCORE					:= lwip_core
+LIBLWIPCORE_FILE			:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPCORE).a
+LIBLWIPNETIF				:= lwip_netif
+LIBLWIPNETIF_FILE			:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPNETIF).a
+LWIP_LIBS_FILES				:= $(LIBLWIPAPP_FILE) $(LIBLWIPCORE_FILE) $(LIBLWIPNETIF_FILE)
 CTNG						:= $(THIRDPARTY)/crosstool-ng
 CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
 CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
@@ -81,13 +90,6 @@ LIBMAIN_RBB					:= main_rbb
 LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
 ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
 RBOOT_BIN					:= $(RBOOT)/firmware/rboot.bin
-LIBLWIPAPP					:= lwip_app
-LIBLWIPAPP_FILE				:= lib$(LIBLWIPAPP).a
-LIBLWIPCORE					:= lwip_core
-LIBLWIPCORE_FILE			:= lib$(LIBLWIPCORE).a
-LIBLWIPNETIF				:= lwip_netif
-LIBLWIPNETIF_FILE			:= lib$(LIBLWIPNETIF).a
-LWIP_LIBS_FILES				:= $(LIBLWIPAPP_FILE) $(LIBLWIPCORE_FILE) $(LIBLWIPNETIF_FILE)
 
 V ?= $(VERBOSE)
 ifeq ($(V),1)
@@ -212,23 +214,6 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h lwip-interface.h \
 						eagle.h sdk.h
 
-LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
-
-LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWIP)/core/init.o \
-						$(LWIP)/core/mem.o $(LWIP)/core/memp.o \
-						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o $(LWIP)/core/raw.o \
-						$(LWIP)/core/sntp.o \
-						$(LWIP)/core/sys.o $(LWIP)/core/sys_arch.o \
-						$(LWIP)/core/tcp.o $(LWIP)/core/tcp_in.o $(LWIP)/core/tcp_out.o \
-						$(LWIP)/core/timers.o \
-						$(LWIP)/core/udp.o \
-						$(LWIP)/core/ipv4/icmp.o \
-						$(LWIP)/core/ipv4/igmp.o \
-						$(LWIP)/core/ipv4/inet.o $(LWIP)/core/ipv4/inet_chksum.o \
-						$(LWIP)/core/ipv4/ip.o $(LWIP)/core/ipv4/ip_addr.o
-
-LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
-
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
 .PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal
 
@@ -247,10 +232,6 @@ clean:
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
 						otapush espflash resetserial 2> /dev/null
-
-veryclean:		clean
-				$(VECHO) "VERY CLEAN"
-				$(Q) rm -f $(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) $(LWIP_LIBS_FILES) 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -333,6 +314,47 @@ hal-clean:
 										$(VECHO) "HAL MAKE CLEAN"
 										$(Q) git submodule deinit -f $(HAL)
 
+# lwip
+
+LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
+
+LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWIP)/core/init.o \
+						$(LWIP)/core/mem.o $(LWIP)/core/memp.o \
+						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o $(LWIP)/core/raw.o \
+						$(LWIP)/core/sntp.o \
+						$(LWIP)/core/sys.o $(LWIP)/core/sys_arch.o \
+						$(LWIP)/core/tcp.o $(LWIP)/core/tcp_in.o $(LWIP)/core/tcp_out.o \
+						$(LWIP)/core/timers.o \
+						$(LWIP)/core/udp.o \
+						$(LWIP)/core/ipv4/icmp.o \
+						$(LWIP)/core/ipv4/igmp.o \
+						$(LWIP)/core/ipv4/inet.o $(LWIP)/core/ipv4/inet_chksum.o \
+						$(LWIP)/core/ipv4/ip.o $(LWIP)/core/ipv4/ip_addr.o
+
+LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
+
+$(LIBLWIPAPP_FILE):		$(LWIP_APP_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_APP_OBJ)
+
+$(LIBLWIPCORE_FILE):	$(LWIP_CORE_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_CORE_OBJ)
+
+$(LIBLWIPNETIF_FILE):	$(LWIP_NETIF_OBJ)
+						$(VECHO) "AR LWIP $@ $<"
+						$(Q) rm -f $@ 2> /dev/null
+						ar r $@ $(LWIP_NETIF_OBJ)
+
+lwip:					$(LWIP_LIBS_FILES)
+
+lwip_clean:
+						$(VECHO) "LWIP CLEAN"
+						$(Q) rm -f $(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) $(LWIP_LIBS_FILES)
+###
+
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
 display.o:			$(HEADERS)
@@ -405,21 +427,6 @@ $(CONFIG_RBOOT_ELF):	$(CONFIG_RBOOT_SRC)
 $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
-
-$(LIBLWIPAPP_FILE):		$(LWIP_APP_OBJ)
-						$(VECHO) "AR LWIP $@ $<"
-						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_APP_OBJ)
-
-$(LIBLWIPCORE_FILE):	$(LWIP_CORE_OBJ)
-						$(VECHO) "AR LWIP $@ $<"
-						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_CORE_OBJ)
-
-$(LIBLWIPNETIF_FILE):	$(LWIP_NETIF_OBJ)
-						$(VECHO) "AR LWIP $@ $<"
-						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_NETIF_OBJ)
 
 flash:					$(FLASH_TARGET)
 
