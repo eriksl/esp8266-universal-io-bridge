@@ -256,7 +256,7 @@ io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_en
 			if(clear_set_register(error_message, info->address, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
 				return(io_error);
 
-			if(pin_config->flags.pullup && (clear_set_register(error_message, info->address, GPPU(bank), 0, 1 << bankpin) != io_ok))
+			if((pin_config->flags & io_flag_pullup) && (clear_set_register(error_message, info->address, GPPU(bank), 0, 1 << bankpin) != io_ok))
 				return(io_error);
 
 			if((pin_config->llmode == io_pin_ll_counter) && (clear_set_register(error_message, info->address, GPINTEN(bank), 0, 1 << bankpin) != io_ok)) // pc int enable = 1

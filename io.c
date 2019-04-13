@@ -12,6 +12,27 @@
 #include "sequencer.h"
 #include "dispatch.h"
 
+typedef struct
+{
+	uint32_t value;
+	const char name[16];
+} io_flag_name_t;
+
+assert_size(io_flag_name_t, 20);
+
+roflash static const io_flag_name_t io_flag_names[] =
+{
+	{	io_flag_autostart,		"autostart"		},
+	{	io_flag_repeat,			"repeat"		},
+	{	io_flag_pullup,			"pullup"		},
+	{	io_flag_reset_on_read,	"reset-on-read"	},
+	{	io_flag_extended,		"extended"		},
+	{	io_flag_grb,			"grb"			},
+	{	io_flag_linear,			"linear",		},
+	{	io_flag_fill8,			"fill8",		},
+	{	io_flag_none,			""				},
+};
+
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
 roflash static const io_info_t io_info =
@@ -458,100 +479,41 @@ static void iomode_trigger_usage(string_t *dst, const char *info)
 	string_format(dst, "\nerror in <%s>\n", info);
 }
 
-static _Bool pin_flag_from_string(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool value)
+static _Bool io_string_to_flags(const string_t *flag, io_config_pin_entry_t *pin_config, _Bool resetset)
 {
-	if(string_match_cstr(flag, "autostart"))
-		pin_config->flags.autostart = value ? 1: 0;
-	else if(string_match_cstr(flag, "repeat"))
-		pin_config->flags.repeat = value ? 1: 0;
-	else if(string_match_cstr(flag, "pullup"))
-		pin_config->flags.pullup = value ? 1: 0;
-	else if(string_match_cstr(flag, "reset-on-read"))
-		pin_config->flags.reset_on_read = value ? 1: 0;
-	else if(string_match_cstr(flag, "extended"))
-		pin_config->flags.extended = value ? 1: 0;
-	else if(string_match_cstr(flag, "grb"))
-		pin_config->flags.grb = value ? 1: 0;
-	else if(string_match_cstr(flag, "linear"))
-		pin_config->flags.linear = value ? 1: 0;
-	else if(string_match_cstr(flag, "fill8"))
-		pin_config->flags.fill8 = value ? 1: 0;
-	else
-		return(false);
+	const io_flag_name_t *entry;
 
-	return(true);
+	for(entry = io_flag_names; entry->value != io_flag_none; entry++)
+	{
+		if(string_match_cstr_flash(flag, entry->name))
+		{
+			if(resetset)
+				pin_config->flags |= entry->value;
+			else
+				pin_config->flags &= ~entry->value;
+
+			return(true);
+		}
+	}
+
+	return(false);
 }
 
-static void pin_string_from_flags(string_t *flags, const io_config_pin_entry_t *pin_config)
+static void io_flags_to_string(string_t *dst, const io_config_pin_entry_t *pin_config)
 {
-	_Bool none = true;
+	const io_flag_name_t *entry;
+	_Bool first = true;
 
-	if(pin_config->flags.autostart)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "autostart");
-	}
+	for(entry = io_flag_names; entry->value != io_flag_none; entry++)
+		if(pin_config->flags & entry->value)
+		{
+			if(first)
+				first = false;
+			else
+				string_append_char(dst, ' ');
 
-	if(pin_config->flags.repeat)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "repeat");
-	}
-
-	if(pin_config->flags.pullup)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "pullup");
-	}
-
-	if(pin_config->flags.reset_on_read)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "reset-on-read");
-	}
-
-	if(pin_config->flags.extended)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "extended");
-	}
-
-	if(pin_config->flags.grb)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "grb");
-	}
-
-	if(pin_config->flags.linear)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "linear");
-	}
-
-	if(pin_config->flags.fill8)
-	{
-		if(!none)
-			string_append(flags, "/");
-		none = false;
-		string_append(flags, "fill8");
-	}
-
-	if(none)
-		string_append(flags, "none");
+			string_append_cstr_flash(dst, entry->name);
+		}
 }
 
 static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -831,7 +793,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 				{
 					old_value = value;
 
-					if(pin_config->flags.linear)
+					if(pin_config->flags & io_flag_linear)
 					{
 						if(value >= pin_config->speed)
 							value -= pin_config->speed;
@@ -846,7 +808,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 
 					if(value <= pin_config->shared.output_pwm.lower_bound)
 					{
-						if(pin_config->flags.repeat && (pin_data->direction == io_dir_down))
+						if((pin_config->flags & io_flag_repeat) && (pin_data->direction == io_dir_down))
 							pin_data->direction = io_dir_up;
 						else
 						{
@@ -866,7 +828,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 					{
 						old_value = value;
 
-						if(pin_config->flags.linear)
+						if(pin_config->flags & io_flag_linear)
 							value += pin_config->speed;
 						else
 						{
@@ -988,7 +950,7 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
 		string_append(error_msg, "\n");
 	else
-		if((pin_config->mode == io_pin_counter) && (pin_config->flags.reset_on_read))
+		if((pin_config->mode == io_pin_counter) && (pin_config->flags & io_flag_reset_on_read))
 			error = io_write_pin_x(error_msg, info, pin_data, pin_config, pin, 0);
 
 	return(error);
@@ -1586,7 +1548,7 @@ iram void io_periodic_fast(void)
 						}
 					}
 
-					if(pin_config->flags.repeat)
+					if(pin_config->flags & io_flag_repeat)
 						pin_data->speed = pin_config->speed;
 					else
 					{
@@ -2545,14 +2507,14 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 
 	saved_flags = pin_config->flags;
 
-	if((parse_string(3, src, dst, ' ') == parse_ok) && !pin_flag_from_string(dst, pin_config, !!value))
+	if((parse_string(3, src, dst, ' ') == parse_ok) && !io_string_to_flags(dst, pin_config, !!value))
 	{
 		string_clear(dst);
 		string_append(dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
-	if(pin_config->flags.pullup && !(info->caps & caps_pullup))
+	if((pin_config->flags & io_flag_pullup) && !(info->caps & caps_pullup))
 	{
 		pin_config->flags = saved_flags;
 		string_clear(dst);
@@ -2576,7 +2538,7 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 	string_clear(dst);
 	string_format(dst, "flags for pin %u/%u:", io, pin);
 
-	pin_string_from_flags(dst, pin_config);
+	io_flags_to_string(dst, pin_config);
 
 	string_append(dst, "\n");
 
@@ -2776,7 +2738,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, _Bool html)
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_hw_2]);
 
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_1]);
-			pin_string_from_flags(dst, pin_config);
+			io_flags_to_string(dst, pin_config);
 			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_flags_2]);
 
 			switch(pin_config->mode)

@@ -903,7 +903,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			gpio_direction(pin, false);
 			gpio_enable_open_drain(pin, false);
 			gpio_enable_pdm(pin, false);
-			gpio_enable_pullup(pin, pin_config->flags.pullup);
+			gpio_enable_pullup(pin, (pin_config->flags & io_flag_pullup));
 
 			if(pin_config->llmode == io_pin_ll_counter)
 			{
@@ -975,7 +975,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			}
 
 			gpio_func_select(pin, io_gpio_func_uart);
-			gpio_enable_pullup(pin, pin_config->flags.pullup);
+			gpio_enable_pullup(pin, pin_config->flags & io_flag_pullup);
 
 			break;
 		}

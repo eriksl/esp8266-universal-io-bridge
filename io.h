@@ -92,16 +92,17 @@ typedef enum attr_packed
 
 assert_size(io_pin_mode_t, 1);
 
-typedef struct attr_packed
+typedef enum attr_packed
 {
-	unsigned int autostart:1;
-	unsigned int repeat:1;
-	unsigned int pullup:1;
-	unsigned int reset_on_read:1;
-	unsigned int extended:1;
-	unsigned int grb:1;
-	unsigned int linear:1;
-	unsigned int fill8:1;
+	io_flag_none =			0 << 0,
+	io_flag_autostart =		1 << 0,
+	io_flag_repeat =		1 << 1,
+	io_flag_pullup =		1 << 2,
+	io_flag_reset_on_read =	1 << 3,
+	io_flag_extended =		1 << 4,
+	io_flag_grb =			1 << 5,
+	io_flag_linear =		1 << 6,
+	io_flag_fill8 =			1 << 7,
 } io_pin_flag_t;
 
 assert_size(io_pin_flag_t, 1);

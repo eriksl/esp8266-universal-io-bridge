@@ -142,9 +142,9 @@ attr_pure unsigned int io_ledpixel_pin_max_value(const struct io_info_entry_T *i
 io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	ledpixel_data_pin[pin].enabled = pin_config->llmode == io_pin_ll_output_pwm1;
-	ledpixel_data_pin[pin].extended = pin_config->flags.extended;
-	ledpixel_data_pin[pin].grb = pin_config->flags.grb;
-	ledpixel_data_pin[pin].fill8 = pin_config->flags.fill8;
+	ledpixel_data_pin[pin].extended = !!(pin_config->flags & io_flag_extended);
+	ledpixel_data_pin[pin].grb = !!(pin_config->flags & io_flag_grb);
+	ledpixel_data_pin[pin].fill8 = !!(pin_config->flags & io_flag_fill8);
 	ledpixel_data_pin[pin].value = 0;
 
 	return(io_ok);

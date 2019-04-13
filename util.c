@@ -450,6 +450,15 @@ iram void string_format_flash_ptr(string_t *dst, const char *fmt_flash, ...)
 	dst->buffer[dst->length] = '\0';
 }
 
+_Bool attr_nonnull string_match_cstr_flash(const string_t *s1, const char *s2)
+{
+	char s2_in_dram[64];
+
+	flash_to_dram(true, s2, s2_in_dram, sizeof(s2_in_dram));
+
+	return(string_match_cstr(s1, s2_in_dram));
+}
+
 int attr_pure string_sep(const string_t *src, int offset, int occurrence, char c)
 {
 	for(; (offset < src->size) && (offset < src->length) && (occurrence > 0); offset++)

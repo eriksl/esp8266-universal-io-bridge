@@ -195,6 +195,8 @@ attr_inline _Bool attr_nonnull string_match_cstr(const string_t *s1, const char 
 	return(false);
 }
 
+_Bool attr_nonnull string_match_cstr_flash(const string_t *s1, const char *s2);
+
 attr_inline attr_nonnull _Bool string_nmatch_string(const string_t *s1, const string_t *s2, int n)
 {
 	if((s1->length >= n) && (s2->length >= n) && (memcmp(s1->buffer, s2->buffer, n) == 0))
