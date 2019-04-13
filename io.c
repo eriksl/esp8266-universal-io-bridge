@@ -611,6 +611,8 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 		{
 			switch(trigger_type)
 			{
+				case(io_trigger_off):
+				case(io_trigger_stop):
 				case(io_trigger_down):
 				{
 					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, 0)) != io_ok)
@@ -619,6 +621,8 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 					break;
 				}
 
+				case(io_trigger_on):
+				case(io_trigger_start):
 				case(io_trigger_up):
 				{
 					if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, 1)) != io_ok)
@@ -1434,21 +1438,26 @@ void io_init(void)
 					{
 						case(io_pin_output_digital):
 						case(io_pin_lcd):
-						case(io_pin_timer):
 						{
-							// FIXME: add auto-on flag
-							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
-									pin_config->flags.autostart ? io_trigger_on : io_trigger_off);
+							if(pin_config->flags & io_flag_autostart)
+								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_on);
+							else
+								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_off);
 
 							break;
 						}
 
+						case(io_pin_timer):
 						case(io_pin_output_pwm1):
 						case(io_pin_output_pwm2):
 						{
-							// FIXME: add auto-on flag
-							io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin,
-									pin_config->flags.autostart ? io_trigger_start : io_trigger_stop);
+							if(pin_config->flags & io_flag_autostart)
+								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_start);
+							else
+							{
+								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_stop);
+								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_off);
+							}
 							break;
 						}
 
