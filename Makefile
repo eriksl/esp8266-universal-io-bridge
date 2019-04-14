@@ -318,10 +318,9 @@ hal-clean:
 
 LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
 
-LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/dns.o $(LWIP)/core/init.o \
+LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/init.o \
 						$(LWIP)/core/mem.o $(LWIP)/core/memp.o \
-						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o $(LWIP)/core/raw.o \
-						$(LWIP)/core/sntp.o \
+						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o \
 						$(LWIP)/core/sys.o $(LWIP)/core/sys_arch.o \
 						$(LWIP)/core/tcp.o $(LWIP)/core/tcp_in.o $(LWIP)/core/tcp_out.o \
 						$(LWIP)/core/timers.o \

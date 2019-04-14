@@ -111,7 +111,7 @@
 
 /* MEMP_NUM_RAW_PCB: Number of raw connection PCBs
  * (requires the LWIP_RAW option) 28 bytes per pbuf @@@ */
-#define MEMP_NUM_RAW_PCB	4
+#define MEMP_NUM_RAW_PCB	0
 
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
  * per active UDP "connection".
@@ -330,7 +330,7 @@
 	--------------------------------- */
 
 /* LWIP_RAW==1: Enable application layer to hook into the IP layer itself. */
-#define LWIP_RAW			1
+#define LWIP_RAW			0
 
 #define RAW_TTL				(IP_DEFAULT_TTL)
 
@@ -417,14 +417,14 @@
 	---------------------------------- */
 
 /* LWIP_MDNS==1: Turn on MDNS module. */
-#define LWIP_MDNS						1
+#define LWIP_MDNS						0
 
 /*	----------------------------------
 	---------- DNS options -----------
 	---------------------------------- */
 
 /* LWIP_DNS==1: Turn on DNS module. UDP must be available for DNS transport. */
-#define LWIP_DNS						1
+#define LWIP_DNS						0
 
 /* DNS maximum number of entries to maintain locally. */
 #define DNS_TABLE_SIZE					1
