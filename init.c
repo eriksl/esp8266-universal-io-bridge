@@ -42,8 +42,6 @@ iram void user_spi_flash_dio_to_qio_pre_init(void)
 void user_pre_init(void);
 iram void user_pre_init(void)
 {
-	io_gpio_reset_all_pins();
-
 	stat_flags.user_pre_init_called = 1;
 	stat_flags.user_pre_init_success = system_partition_table_regist(partition_items, sizeof(partition_items) / sizeof(*partition_items), FLASH_SIZE_SDK);
 }

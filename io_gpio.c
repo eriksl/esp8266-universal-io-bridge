@@ -266,21 +266,6 @@ attr_inline bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 	return(true);
 }
 
-iram void io_gpio_reset_all_pins(void)
-{
-	unsigned int pin;
-
-	for(pin = 0; pin < io_gpio_pin_size; pin++)
-		if(gpio_info_table[pin].flags & gi_valid)
-		{
-			gpio_func_select(pin, io_gpio_func_gpio);
-			gpio_direction(pin, true);
-			gpio_set(pin, false);
-			gpio_direction(pin, false);
-			gpio_enable_pullup(pin, false);
-		}
-}
-
 static void pdm_set_prescale(unsigned int value)
 {
 	uint32_t regval;
