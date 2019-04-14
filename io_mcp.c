@@ -3,14 +3,15 @@
 #include "util.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 
-typedef struct
+typedef struct attr_packed
 {
-	uint32_t counter;
-	uint32_t debounce;
+	unsigned int counter:16;
+	unsigned int debounce:16;
 } mcp_data_pin_t;
 
-assert_size(mcp_data_pin_t, 8);
+assert_size(mcp_data_pin_t, 4);
 
 enum
 {

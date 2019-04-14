@@ -137,7 +137,7 @@ for $section (sort(keys(%{$symbols{section}})))
 		$$previous{size_2} = $$this{address} - $$previous{address};
 		$$sections_entry{size_1} += $$previous{size_1};
 		$$sections_entry{size_2} += $$previous{size_2};
-		$key = sprintf("%-10s:%4x:%s", $section, $$previous{size_2}, $$previous{address});
+		$key = sprintf("%-10s:%4x:%s", $section, $$previous{size_1}, $$previous{address});
 		%{$symbols{section}{$section}{by_size}{$key}} = %{$previous};
 
 		$previous_address = $this_address;
@@ -147,7 +147,7 @@ for $section (sort(keys(%{$symbols{section}})))
 	$$sections_entry{size_1} += $$this{size_1};
 	$$sections_entry{size_2} += $$this{size_1};
 
-	$key = sprintf("%-10s:%4x:%s", $section, $$this{size_2}, $$this{address});
+	$key = sprintf("%-10s:%4x:%s", $section, $$this{size_1}, $$this{address});
 	%{$symbols{section}{$section}{by_size}{$key}} = %{$this};
 }
 

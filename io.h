@@ -38,24 +38,24 @@ typedef enum
 
 assert_size(io_id_t, 4);
 
-typedef struct
+typedef struct attr_packed
 {
-	int8_t io;
-	int8_t pin;
+	unsigned int io:4;
+	unsigned int pin:4;
 } config_io_t;
 
-assert_size(config_io_t, 2);
+assert_size(config_io_t, 1);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_dir_none,
 	io_dir_down,
 	io_dir_up,
 } io_direction_t;
 
-assert_size(io_direction_t, 1);
+assert_size(io_direction_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_trigger_none,
 	io_trigger_off,
@@ -69,9 +69,9 @@ typedef enum attr_packed
 	io_trigger_error = io_trigger_size
 } io_trigger_t;
 
-assert_size(io_trigger_t, 1);
+assert_size(io_trigger_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_pin_disabled = 0,
 	io_pin_input_digital,
@@ -91,9 +91,9 @@ typedef enum attr_packed
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
 
-assert_size(io_pin_mode_t, 1);
+assert_size(io_pin_mode_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_flag_none =			0 << 0,
 	io_flag_autostart =		1 << 0,
@@ -106,7 +106,7 @@ typedef enum attr_packed
 	io_flag_fill8 =			1 << 7,
 } io_pin_flag_t;
 
-assert_size(io_pin_flag_t, 1);
+assert_size(io_pin_flag_t, 4);
 
 typedef union
 {
@@ -116,7 +116,7 @@ typedef union
 
 assert_size(io_pin_flag_to_int_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_i2c_sda,
 	io_i2c_scl,
@@ -124,9 +124,9 @@ typedef enum attr_packed
 	io_i2c_size = io_i2c_error,
 } io_i2c_t;
 
-assert_size(io_i2c_t, 1);
+assert_size(io_i2c_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_pin_ll_disabled = 0,
 	io_pin_ll_input_digital,
@@ -141,9 +141,9 @@ typedef enum attr_packed
 	io_pin_ll_size = io_pin_ll_error
 } io_pin_ll_mode_t;
 
-assert_size(io_pin_ll_mode_t, 1);
+assert_size(io_pin_ll_mode_t, 4);
 
-typedef enum attr_packed
+typedef enum
 {
 	io_lcd_rs = 0,
 	io_lcd_rw,
@@ -161,7 +161,7 @@ typedef enum attr_packed
 	io_lcd_size = io_lcd_error
 } io_lcd_mode_t;
 
-assert_size(io_lcd_mode_t, 1);
+assert_size(io_lcd_mode_t, 4);
 
 typedef enum
 {
@@ -179,68 +179,67 @@ typedef enum
 
 assert_size(io_caps_t, 4);
 
-typedef struct
+typedef struct attr_packed
 {
 	unsigned int counter_triggered:1;
 } io_flags_t;
 
-assert_size(io_flags_t, 4);
+assert_size(io_flags_t, 1);
 
-typedef struct
+typedef struct attr_packed
 {
-	uint32_t		speed;
-	uint32_t		saved_value;
-	io_direction_t	direction;
+	unsigned int	saved_value;
+	unsigned int	speed:22;
+	io_direction_t	direction:2;
 } io_data_pin_entry_t;
 
-assert_size(io_data_pin_entry_t, 12);
+assert_size(io_data_pin_entry_t, 7);
 
 typedef struct
 {
 	unsigned int detected:1;
 	io_data_pin_entry_t pin[max_pins_per_io];
-
 } io_data_entry_t;
 
 assert_size(io_data_entry_t, sizeof(io_data_pin_entry_t) * max_pins_per_io + 4);
 
 typedef io_data_entry_t io_data_t[io_id_size];
 
-typedef struct
+typedef struct attr_packed
 {
-	io_pin_mode_t		mode;
-	io_pin_ll_mode_t	llmode;
-	io_pin_flag_t		flags;
-	io_direction_t		direction;
-	uint32_t			speed;
+	io_pin_mode_t		mode:4;
+	io_pin_ll_mode_t	llmode:4;
+	io_pin_flag_t 		flags:12;
+	io_direction_t		direction:2;
+	unsigned int		speed:18;
 
 	union
 	{
-		struct
+		struct attr_packed
 		{
-			uint32_t		lower_bound;
-			uint32_t		upper_bound;
+			unsigned int lower_bound:18;
+			unsigned int upper_bound:18;
 		} output_pwm;
 
-		struct
+		struct attr_packed
 		{
-			io_i2c_t		pin_mode;
+			io_i2c_t pin_mode:2;
 		} i2c;
 
-		struct
+		struct attr_packed
 		{
-			io_lcd_mode_t	pin_use;
+			io_lcd_mode_t pin_use:4;
 		} lcd;
 
-		struct
+		struct attr_packed
 		{
 			config_io_t		io;
-			io_trigger_t	action;
+			io_trigger_t	action:8;
 		} trigger[max_triggers_per_pin];
 	} shared;
 } io_config_pin_entry_t;
 
-assert_size(io_config_pin_entry_t, 16);
+assert_size(io_config_pin_entry_t, 10);
 
 typedef const struct io_info_entry_T
 {
