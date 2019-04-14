@@ -1146,16 +1146,32 @@ void io_init(void)
 
 			if(!config_get_uint("io.%u.%u.mode", &mode, io, pin))
 			{
-				pin_config->mode = io_pin_disabled;
-				pin_config->llmode = io_pin_ll_disabled;
-				continue;
+				if((io == 0) && (pin == 1))
+				{
+					mode = io_pin_uart;
+					llmode = io_pin_ll_uart;
+				}
+				else
+				{
+					pin_config->mode = io_pin_disabled;
+					pin_config->llmode = io_pin_ll_disabled;
+					continue;
+				}
 			}
 
 			if(!config_get_uint("io.%u.%u.llmode", &llmode, io, pin))
 			{
-				pin_config->mode = io_pin_disabled;
-				pin_config->llmode = io_pin_ll_disabled;
-				continue;
+				if((io == 0) && (pin == 1))
+				{
+					mode = io_pin_uart;
+					llmode = io_pin_ll_uart;
+				}
+				else
+				{
+					pin_config->mode = io_pin_disabled;
+					pin_config->llmode = io_pin_ll_disabled;
+					continue;
+				}
 			}
 
 			if(!config_get_uint("io.%u.%u.flags", &flags.intvalue, io, pin))
