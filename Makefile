@@ -215,7 +215,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						eagle.h sdk.h
 
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
-.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal
+.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal release
 
 all:			ctng $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -524,6 +524,15 @@ tcptxtest:
 						espflash -t -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
 test:					udprxtest tcprxtest udptxtest tcptxtest
+
+release:
+						$(Q) rm -f espiobridge-plain.zip espiobridge-ota.zip
+						$(Q) $(MAKE) clean lwip_clean
+						$(Q) $(MAKE) IMAGE=plain
+						$(Q) zip -9 espiobridge-plain.zip $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE)
+						$(Q) $(MAKE) clean
+						$(Q) $(MAKE) IMAGE=ota
+						$(Q) zip -9 espiobridge-ota.zip $(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE) espflash
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \
