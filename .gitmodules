@@ -13,3 +13,6 @@
 [submodule "third-party/crosstool-ng"]
 	path = third-party/crosstool-ng
 	url = https://github.com/someburner/crosstool-ng.git
+[submodule "third-party/lwip-for-esp8266-nonos-sdk"]
+	path = third-party/lwip-for-esp8266-nonos-sdk
+	url = https://github.com/eriksl/lwip-for-esp8266-nonos-sdk.git

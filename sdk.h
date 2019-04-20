@@ -365,12 +365,14 @@ typedef struct
 	uint8_t new_mode;
 } Event_StaMode_AuthMode_Change_t;
 
-typedef struct
+struct ip_info
 {
-	struct ip_addr ip;
-	struct ip_addr mask;
-	struct ip_addr gw;
-} Event_StaMode_Got_IP_t;
+    struct ip_addr ip;
+    struct ip_addr netmask;
+    struct ip_addr gw;
+};
+
+typedef struct ip_info Event_StaMode_Got_IP_t;
 
 typedef struct
 {

@@ -40,14 +40,14 @@ static const char * const lwip_error_strings[] roflash =
 	"in progress",				// -5		ERR_INPROGRESS
 	"illegal value",			// -6		ERR_VAL
 	"operation would block",	// -7		ERR_WOULDBLOCK
-	"connection aborted",		// -8		ERR_ABRT
-	"connection reset",			// -9		ERR_RST
-	"connection closed",		// -10		ERR_CLSD
-	"not connected",			// -11		ERR_CONN
-	"illegal argument",			// -12		ERR_ARG
-	"address in use",			// -13		ERR_USE
-	"low level netif error",	// -14		ERR_IF
-	"already connected",		// -15		ERR_ISCONN
+	"address in use",			// -8		ERR_USE
+	"already connected",		// -9		ERR_ISCONN
+	"connection aborted",		// -10		ERR_ABRT
+	"connection reset",			// -11		ERR_RST
+	"connection closed",		// -12		ERR_CLSD
+	"not connected",			// -13		ERR_CONN
+	"illegal argument",			// -14		ERR_ARG
+	"low level netif error",	// -15		ERR_IF
 	"unknown",
 };
 

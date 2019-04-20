@@ -18,16 +18,14 @@ ESPSDK						:= $(THIRDPARTY)/ESP8266_NONOS_SDK
 ESPSDK_LIB					:= $(ESPSDK)/lib
 ESPTOOL2					:= $(THIRDPARTY)/esptool2
 RBOOT						:= $(THIRDPARTY)/rboot
-LWIP						:= $(THIRDPARTY)/lwip
+
+LWIP						:= $(THIRDPARTY)/lwip-for-esp8266-nonos-sdk
+LWIP_SRC					:= $(LWIP)/src
 LWIP_SYSROOT				:= $(LWIP)/$(ARCH)
 LWIP_SYSROOT_LIB			:= $(LWIP_SYSROOT)/lib
-LIBLWIPAPP					:= lwip_app
-LIBLWIPAPP_FILE				:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPAPP).a
-LIBLWIPCORE					:= lwip_core
-LIBLWIPCORE_FILE			:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPCORE).a
-LIBLWIPNETIF				:= lwip_netif
-LIBLWIPNETIF_FILE			:= $(LWIP_SYSROOT_LIB)/lib$(LIBLWIPNETIF).a
-LWIP_LIBS_FILES				:= $(LIBLWIPAPP_FILE) $(LIBLWIPCORE_FILE) $(LIBLWIPNETIF_FILE)
+LWIP_LIB					:= lwip
+LWIP_LIB_FILE				:= $(LWIP_SYSROOT_LIB)/lib$(LWIP_LIB).a
+
 CTNG						:= $(THIRDPARTY)/crosstool-ng
 CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
 CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
@@ -177,8 +175,7 @@ ifeq ($(USE_LTO),1)
 CFLAGS 			+=	-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-objects -flto-partition=max
 endif
 
-CFLAGS			+=	-D__ets__ -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
-						-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
+CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
 						-DRFCAL_OFFSET=$(RFCAL_OFFSET) -DRFCAL_SIZE=$(RFCAL_SIZE) \
@@ -194,15 +191,27 @@ CFLAGS			+=	-D__ets__ -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
-CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP)/include -I$(LWIP)/include/lwip -I.
-LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(ESPSDK_LIB) -L$(LWIP_SYSROOT_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
+LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
-LWIPLIBS		:= -l$(LIBLWIPAPP) -l$(LIBLWIPCORE) -l$(LIBLWIPNETIF)
+LWIPLIBS		:= -l$(LWIP_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
 						stats.o time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o lwip-interface.o
+
+LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
+						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \
+						$(LWIP_SRC)/core/netif.o $(LWIP_SRC)/core/pbuf.o \
+						$(LWIP_SRC)/core/tcp.o $(LWIP_SRC)/core/tcp_in.o $(LWIP_SRC)/core/tcp_out.o \
+						$(LWIP_SRC)/core/timers.o \
+						$(LWIP_SRC)/core/udp.o \
+						$(LWIP_SRC)/core/ipv4/icmp.o \
+						$(LWIP_SRC)/core/ipv4/igmp.o \
+						$(LWIP_SRC)/core/ipv4/inet.o $(LWIP_SRC)/core/ipv4/inet_chksum.o \
+						$(LWIP_SRC)/core/ipv4/ip.o $(LWIP_SRC)/core/ipv4/ip_addr.o \
+						$(LWIP_SRC)/netif/etharp.o
 
 ifeq ($(IMAGE),ota)
 OBJS			+= rboot-interface.o
@@ -217,7 +226,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
 .PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal release
 
-all:			ctng $(ALL_IMAGE_TARGETS) free resetserial
+all:			ctng lwip $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -316,43 +325,24 @@ hal-clean:
 
 # lwip
 
-LWIP_APP_OBJ	:= $(LWIP)/app/dhcpserver.o
+$(LWIP)/README:
+						$(VECHO) "LWIP SUBMODULE INIT"
+						$(Q) git submodule init $(LWIP)
+						$(Q) git submodule update $(LWIP)
 
-LWIP_CORE_OBJ	:= $(LWIP)/core/def.o $(LWIP)/core/dhcp.o $(LWIP)/core/init.o \
-						$(LWIP)/core/mem.o $(LWIP)/core/memp.o \
-						$(LWIP)/core/netif.o $(LWIP)/core/pbuf.o \
-						$(LWIP)/core/sys.o $(LWIP)/core/sys_arch.o \
-						$(LWIP)/core/tcp.o $(LWIP)/core/tcp_in.o $(LWIP)/core/tcp_out.o \
-						$(LWIP)/core/timers.o \
-						$(LWIP)/core/udp.o \
-						$(LWIP)/core/ipv4/icmp.o \
-						$(LWIP)/core/ipv4/igmp.o \
-						$(LWIP)/core/ipv4/inet.o $(LWIP)/core/ipv4/inet_chksum.o \
-						$(LWIP)/core/ipv4/ip.o $(LWIP)/core/ipv4/ip_addr.o
+$(LWIP_SYSROOT_LIB):	$(LWIP)/README
+						$(Q) mkdir -p $(LWIP_SYSROOT_LIB)
 
-LWIP_NETIF_OBJ	:=	$(LWIP)/netif/etharp.o
-
-$(LIBLWIPAPP_FILE):		$(LWIP_APP_OBJ)
+$(LWIP_LIB_FILE):		$(LWIP_SYSROOT_LIB) $(LWIP_OBJS)
 						$(VECHO) "AR LWIP $@ $<"
 						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_APP_OBJ)
+						$(Q) ar r $@ $(LWIP_OBJS)
 
-$(LIBLWIPCORE_FILE):	$(LWIP_CORE_OBJ)
-						$(VECHO) "AR LWIP $@ $<"
-						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_CORE_OBJ)
-
-$(LIBLWIPNETIF_FILE):	$(LWIP_NETIF_OBJ)
-						$(VECHO) "AR LWIP $@ $<"
-						$(Q) rm -f $@ 2> /dev/null
-						ar r $@ $(LWIP_NETIF_OBJ)
-
-lwip:					$(LWIP_LIBS_FILES)
+lwip:					$(LWIP_LIB_FILE)
 
 lwip_clean:
 						$(VECHO) "LWIP CLEAN"
-						$(Q) rm -f $(LWIP_APP_OBJ) $(LWIP_CORE_OBJ) $(LWIP_NETIF_OBJ) $(LWIP_LIBS_FILES)
-###
+						$(Q) git submodule deinit -f $(LWIP)
 
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
@@ -394,7 +384,7 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
 						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS)/' -e 's/@IROM_SEG_LENGTH@/$(LD_LENGTH)/' < $< > $@
 
-$(ELF_PLAIN):			$(OBJS) $(LWIP_LIBS_FILES) $(LDSCRIPT)
+$(ELF_PLAIN):			$(OBJS) $(LWIP_LIB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
 						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
@@ -402,7 +392,7 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(LWIP_LIBS_FILES) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
+$(ELF_OTA):				$(OBJS) $(LWIP_LIB_FILE) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
 						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 

@@ -153,9 +153,7 @@ SECTIONS
 		*libwpa2.a:(.literal.* .text.*)
 		*libc.a:(.literal .text .literal.* .text.*)
 		*libm.a:(.literal .text .literal.* .text.*)
-		*liblwip_app.a:(.literal .text .literal.* .text.*)
-		*liblwip_core.a:(.literal .text .literal.* .text.*)
-		*liblwip_netif.a:(.literal .text .literal.* .text.*)
+		*liblwip.a:(.literal .text .literal.* .text.*)
 		:*.o(.literal .text .literal.* .text.*)
 		*(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text .flash.rodata)
 		_irom0_text_end = ABSOLUTE(.);
