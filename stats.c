@@ -2,7 +2,7 @@
 
 #include "util.h"
 #include "config.h"
-#include "time.h"
+#include "sys_time.h"
 #include "i2c.h"
 #include "i2c_sensor.h"
 #include "rboot-interface.h"

@@ -199,7 +199,7 @@ STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
-						stats.o time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o lwip-interface.o
+						stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o lwip-interface.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
 						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \

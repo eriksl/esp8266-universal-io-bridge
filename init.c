@@ -3,7 +3,7 @@
 #include "util.h"
 #include "io.h"
 #include "stats.h"
-#include "time.h"
+#include "sys_time.h"
 #include "dispatch.h"
 #include "sequencer.h"
 #include "io_gpio.h"

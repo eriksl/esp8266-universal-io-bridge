@@ -8,7 +8,7 @@
 #include "i2c.h"
 #include "config.h"
 #include "util.h"
-#include "time.h"
+#include "sys_time.h"
 #include "sequencer.h"
 #include "dispatch.h"
 

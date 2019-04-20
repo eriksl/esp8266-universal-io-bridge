@@ -6,7 +6,7 @@
 #include "stats.h"
 #include "i2c.h"
 #include "display.h"
-#include "time.h"
+#include "sys_time.h"
 #include "i2c_sensor.h"
 #include "sequencer.h"
 #include "init.h"

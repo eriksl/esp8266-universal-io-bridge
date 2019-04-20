@@ -9,7 +9,7 @@
 #include "http.h"
 #include "io.h"
 #include "io_gpio.h"
-#include "time.h"
+#include "sys_time.h"
 #include "ota.h"
 #include "sequencer.h"
 #include "init.h"

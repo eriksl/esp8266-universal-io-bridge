@@ -1,5 +1,5 @@
-#ifndef time__h
-#define time__h
+#ifndef _sys_time_h_
+#define _sys_time_h_
 
 #include "util.h"
 #include "attribute.h"
