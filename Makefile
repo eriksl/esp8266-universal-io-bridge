@@ -26,6 +26,12 @@ LWIP_SYSROOT_LIB			:= $(LWIP_SYSROOT)/lib
 LWIP_LIB					:= lwip
 LWIP_LIB_FILE				:= $(LWIP_SYSROOT_LIB)/lib$(LWIP_LIB).a
 
+LWIP_ESPRESSIF				:= $(THIRDPARTY)/lwip-espressif-contributed
+LWIP_ESPRESSIF_SYSROOT		:= $(LWIP_ESPRESSIF)/$(ARCH)
+LWIP_ESPRESSIF_SYSROOT_LIB	:= $(LWIP_ESPRESSIF_SYSROOT)/lib
+LWIP_ESPRESSIF_LIB			:= lwip-espressif
+LWIP_ESPRESSIF_LIB_FILE		:= $(LWIP_ESPRESSIF_SYSROOT_LIB)/lib$(LWIP_ESPRESSIF_LIB).a
+
 CTNG						:= $(THIRDPARTY)/crosstool-ng
 CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
 CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
@@ -188,9 +194,9 @@ CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 
 HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
-LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
+LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
-LWIPLIBS		:= -l$(LWIP_LIB)
+LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
@@ -311,6 +317,21 @@ lwip_clean:
 						$(VECHO) "LWIP CLEAN"
 						$(Q) git submodule deinit -f $(LWIP)
 
+# lwip Espressif contributions
+
+LWIP_ESPRESSIF_OBJ := $(LWIP_ESPRESSIF)/dhcpserver.o
+
+$(LWIP_ESPRESSIF_LIB_FILE):	$(LWIP_ESPRESSIF_OBJ)
+							$(VECHO) "AR ESPRESSIF LWIP $@ $<"
+							$(Q) rm -f $@ 2> /dev/null
+							ar r $@ $(LWIP_ESPRESSIF_OBJ)
+
+lwip_espressif:				$(LWIP_ESPRESSIF_LIB_FILE)
+
+lwip_espressif_clean:
+							$(VECHO) "LWIP ESPRESSIF CLEAN"
+							$(Q) rm -f $(LWIP_ESPRESSIF_OBJ) $(LWIP_ESPRESSIF_LIB_FILE)
+
 application.o:		$(HEADERS)
 config.o:			$(HEADERS)
 display.o:			$(HEADERS)
@@ -351,7 +372,7 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
 						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS)/' -e 's/@IROM_SEG_LENGTH@/$(LD_LENGTH)/' < $< > $@
 
-$(ELF_PLAIN):			$(OBJS) $(LWIP_LIB_FILE) $(LDSCRIPT)
+$(ELF_PLAIN):			$(OBJS) $(LWIP_LIB_FILE) $(LWIP_ESPRESSIF_LIB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD PLAIN"
 						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
@@ -359,7 +380,7 @@ $(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(LWIP_LIB_FILE) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
+$(ELF_OTA):				$(OBJS) $(LWIP_LIB_FILE) $(LWIP_ESPRESSIF_LIB_FILE) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
 						$(VECHO) "LD OTA"
 						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
