@@ -142,6 +142,10 @@ ifeq ($(IMAGE),ota)
 	FLASH_TARGET := flash-ota
 endif
 
+ALL_BUILD_TARGETS		:= ctng lwip lwip_espressif
+ALL_COMPLETION_TARGETS	:= free resetserial espflash
+
+
 WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
 						-Wformat-signedness -Wformat-truncation=2 \
@@ -226,9 +230,9 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						eagle.h sdk.h
 
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
-.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng release
+.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
 
-all:			ctng lwip $(ALL_IMAGE_TARGETS) free resetserial
+all:			$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_COMPLETION_TARGETS)
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -405,9 +409,9 @@ $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
-flash:					$(FLASH_TARGET)
+flash:					$(ALL_BUILD_TARGETS) $(FLASH_TARGET)
 
-flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free resetserial
+flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH PLAIN"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
@@ -416,7 +420,7 @@ flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) free resetserial
 							$(RFCAL_OFFSET_PLAIN) $(RFCAL_FILE) \
 							$(SYSTEM_CONFIG_OFFSET_PLAIN) $(SYSTEM_CONFIG_FILE)
 
-flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free resetserial
+flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
@@ -426,11 +430,11 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) free
 							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE) \
 							$(SYSTEM_CONFIG_OFFSET_OTA) $(SYSTEM_CONFIG_FILE)
 
-ota-compat:				$(FIRMWARE_OTA_IMG) free otapush espflash
+ota-compat:				$(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH OTA LEGACY INTERFACE"
 						$(Q) otapush -u write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
 
-ota:					$(FIRMWARE_OTA_IMG) free espflash
+ota:					$(ALL_BUILD_TARGETS) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH OTA"
 						espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
 
@@ -443,7 +447,7 @@ ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "* rf calibiration"
 						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
-ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) free espflash
+ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH RBOOT"
 						$(Q) espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
 						$(VECHO) "FLASH OTA"
