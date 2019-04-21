@@ -246,7 +246,7 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						otapush espflash resetserial 2> /dev/null
+						espflash resetserial 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -430,10 +430,6 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) $(AL
 							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE) \
 							$(SYSTEM_CONFIG_OFFSET_OTA) $(SYSTEM_CONFIG_FILE)
 
-ota-compat:				$(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
-						$(VECHO) "FLASH OTA LEGACY INTERFACE"
-						$(Q) otapush -u write $(OTA_HOST) $(FIRMWARE_OTA_IMG)
-
 ota:					$(ALL_BUILD_TARGETS) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH OTA"
 						espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
@@ -480,10 +476,6 @@ wipe-config:
 %.s:					%.c
 						$(VECHO) "CC -S $<"
 						$(Q) $(CC) -S $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
-
-otapush:				otapush.c
-						$(VECHO) "HOST CC $<"
-						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
 
 espflash:				espflash.cpp
 						$(VECHO) "HOST CPP $<"
