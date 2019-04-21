@@ -34,10 +34,6 @@ CTNG_SYSROOT_BIN			:= $(CTNG_SYSROOT)/bin
 CC							:= $(CTNG_SYSROOT_BIN)/$(ARCH)-gcc
 OBJCOPY						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-objcopy
 SIZE						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-size
-HAL							:= $(THIRDPARTY)/lx106-hal
-HAL_SYSROOT					:= $(HAL)/$(ARCH)
-HAL_SYSROOT_INCLUDE			:= $(HAL_SYSROOT)/include
-HAL_SYSROOT_LIB				:= $(HAL_SYSROOT)/lib
 USER_CONFIG_SECTOR_PLAIN	:= 0x7a
 USER_CONFIG_SECTOR_OTA		:= 0xfa
 USER_CONFIG_SIZE			:= 0x1000
@@ -224,7 +220,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						eagle.h sdk.h
 
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
-.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng hal release
+.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test ctng release
 
 all:			ctng lwip $(ALL_IMAGE_TARGETS) free resetserial
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -293,35 +289,6 @@ ctng:									$(CC) $(OBJCOPY) $(SIZE)
 
 ctng-clean:
 										git submodule deinit -f $(CTNG)
-
-### lx106 hal
-
-$(HAL)/configure.ac:
-										$(VECHO) "HAL SUBMODULE INIT"
-										$(Q) git submodule init $(HAL)
-										$(Q) git submodule update $(HAL)
-
-$(HAL)/configure:						$(HAL)/configure.ac
-										$(VECHO) "HAL AUTOCONF"
-										(cd $(HAL); autoreconf -i)
-
-$(HAL)/src/config.h:					$(HAL)/configure
-										$(VECHO) "HAL CONFIGURE"
-										$(Q) (cd $(HAL); PATH="$(CTNG_SYSROOT_BIN):$(PATH)" ./configure --host=$(ARCH) --prefix=$(HAL_SYSROOT))
-
-$(HAL)/src/libhal.a:					$(HAL)/src/config.h
-										$(VECHO) "HAL MAKE"
-										$(Q) PATH="$(CTNG_SYSROOT_BIN):$(PATH)" make -C $(HAL)
-
-$(HAL_SYSROOT_LIB)/libhal.a:			$(HAL)/src/libhal.a
-										$(VECHO) "HAL MAKE INSTALL"
-										$(Q) PATH="$(CTNG_SYSROOT_BIN):$(PATH)" make -C $(HAL) install
-
-hal:									$(HAL_SYSROOT_LIB)/libhal.a
-
-hal-clean:
-										$(VECHO) "HAL MAKE CLEAN"
-										$(Q) git submodule deinit -f $(HAL)
 
 # lwip
 
