@@ -804,7 +804,7 @@ static app_action_t application_function_uart_loopback(string_t *src, string_t *
 
 	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+		string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 		return(app_action_error);
 	}
 
@@ -812,7 +812,7 @@ static app_action_t application_function_uart_loopback(string_t *src, string_t *
 	{
 		if(mode > 1)
 		{
-			string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+			string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 			return(app_action_error);
 		}
 
@@ -821,7 +821,7 @@ static app_action_t application_function_uart_loopback(string_t *src, string_t *
 		string_format(dst, "> uart loopback %s for uart %u\n", onoff(mode), uart);
 	}
 	else
-		string_append(dst, "> usage uart-loopback <uart [1|2]> [0|1]\n");
+		string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 
 	return(app_action_normal);
 }
