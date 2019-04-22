@@ -432,7 +432,7 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 	}
 
 	string_clear(&uart_socket_receive_buffer);
-	lwip_if_receive_buffer_unlock(&uart_socket);
+	lwip_if_receive_buffer_unlock(socket);
 	uart_flush(0);
 }
 
