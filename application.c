@@ -365,7 +365,7 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 		}
 		else
 			if(!config_open_write() ||
-					!config_set_int("bridge.port", -1, -1, port) ||
+					!config_set_int("bridge.port", port, -1, -1) ||
 					!config_close_write())
 			{
 				config_abort_write();
