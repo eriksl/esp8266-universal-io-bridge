@@ -203,6 +203,10 @@ void uart_task(struct ETSEventTag *event)
 		case(uart_task_fetch_fifo):
 		{
 			fetch_queue(0);
+
+			if(uart_bridge_active)
+				dispatch_post_command(command_task_uart_bridge);
+
 			break;
 		}
 

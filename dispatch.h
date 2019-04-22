@@ -36,6 +36,8 @@ typedef enum
 	fsb_sequencer,
 } flash_sector_buffer_use_t;
 
+extern	bool uart_bridge_active;
+
 extern	string_t					flash_sector_buffer;
 extern	flash_sector_buffer_use_t	flash_sector_buffer_use;
 

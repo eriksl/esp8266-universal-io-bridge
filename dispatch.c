@@ -52,7 +52,7 @@ string_new(static, uart_socket_receive_buffer, 128);
 string_new(static, uart_socket_send_buffer, 128);
 static lwip_if_socket_t uart_socket;
 
-static bool uart_bridge_active = false;
+bool uart_bridge_active = false;
 
 static os_timer_t fast_timer;
 static os_timer_t slow_timer;
