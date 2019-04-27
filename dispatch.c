@@ -134,6 +134,12 @@ static void command_task(struct ETSEventTag *event)
 			break;
 		}
 
+		case(command_task_periodic_i2c_sensors):
+		{
+			i2c_sensors_periodic();
+			break;
+		}
+
 		case(command_task_init_displays):
 		{
 			uint32_t now = system_get_time();
@@ -319,6 +325,8 @@ iram static void slow_timer_callback(void *arg)
 
 	if(display_detected())
 		dispatch_post_command(command_task_display_update);
+
+	dispatch_post_command(command_task_periodic_i2c_sensors);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 

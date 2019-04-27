@@ -383,7 +383,17 @@ void stats_i2c(string_t *dst)
 			"> i2c soft resets: %u\n"
 			"> i2c hard resets: %u\n"
 			"> i2c multiplexer found: %s\n"
-			"> i2c buses: %d\n"
+			"> i2c buses: %d\n",
+				stat_i2c_sda_stucks,
+				stat_i2c_sda_stuck_max_period,
+				stat_i2c_bus_locks,
+				stat_i2c_bus_lock_max_period,
+				stat_i2c_soft_resets,
+				stat_i2c_hard_resets,
+				yesno(i2c_info.multiplexer),
+				i2c_info.buses);
+
+	string_format(dst,
 			"> i2c sensors init called: %u\n"
 			"> i2c sensors init succeeded: %u\n"
 			"> i2c sensors init skip disabled: %u (%u)\n"
@@ -395,14 +405,6 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors init current sensor id: %u\n"
 			"> i2c sensors init finished: %s\n"
 			"> i2c sensors init duration: %lu ms\n",
-				stat_i2c_sda_stucks,
-				stat_i2c_sda_stuck_max_period,
-				stat_i2c_bus_locks,
-				stat_i2c_bus_lock_max_period,
-				stat_i2c_soft_resets,
-				stat_i2c_hard_resets,
-				yesno(i2c_info.multiplexer),
-				i2c_info.buses,
 				i2c_sensor_info.init_called,
 				i2c_sensor_info.init_succeeded,
 				i2c_sensor_info.init_skip_disabled,
@@ -416,6 +418,18 @@ void stats_i2c(string_t *dst)
 				i2c_sensor_info.init_current_sensor,
 				yesno(i2c_sensor_info.init_finished),
 				(uint32_t)((i2c_sensor_info.init_finished_us - i2c_sensor_info.init_started_us) / 1000));
+
+	string_format(dst,
+			"> i2c sensors periodic called: %u\n"
+			"> i2c sensors periodic sensor called: %u\n"
+			"> i2c sensors periodic wrapped: %u\n"
+			"> i2c sensors periodic current bus: %u\n"
+			"> i2c sensors periodic current sensor: %u\n",
+				i2c_sensor_info.periodic_called,
+				i2c_sensor_info.periodic_sensor_called,
+				i2c_sensor_info.periodic_wrapped,
+				i2c_sensor_info.periodic_current_bus,
+				i2c_sensor_info.periodic_current_sensor);
 }
 
 void stats_wlan(string_t *dst)

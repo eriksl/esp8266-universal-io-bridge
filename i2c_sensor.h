@@ -94,9 +94,14 @@ typedef struct
 	i2c_sensor_t	init_current_sensor;
 	unsigned int	init_started:1;
 	unsigned int	init_finished:1;
+	unsigned int	periodic_called;
+	unsigned int	periodic_sensor_called;
+	unsigned int	periodic_wrapped;
+	unsigned int	periodic_current_bus;
+	unsigned int	periodic_current_sensor;
 } i2c_sensor_info_t;
 
-assert_size(i2c_sensor_info_t, 56);
+assert_size(i2c_sensor_info_t, 80);
 
 typedef struct
 {
@@ -128,13 +133,15 @@ typedef struct i2c_sensor_device_table_entry_T
 	attr_flash_align	const char *unity;
 	attr_flash_align	i2c_error_t (* const init_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
 	attr_flash_align	i2c_error_t (* const read_fn)(int bus, const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
+	attr_flash_align	void (* const periodic_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
 } i2c_sensor_device_table_entry_t;
 
-assert_size(i2c_sensor_device_table_entry_t, 36);
+assert_size(i2c_sensor_device_table_entry_t, 40);
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
 bool		i2c_sensors_init(void);
+void		i2c_sensors_periodic(void);
 bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);
 bool		i2c_sensor_registered(int bus, i2c_sensor_t);
 

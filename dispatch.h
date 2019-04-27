@@ -12,6 +12,7 @@ typedef enum
 	command_task_reset,
 	command_task_uart_bridge,
 	command_task_init_i2c_sensors,
+	command_task_periodic_i2c_sensors,
 	command_task_init_displays,
 	command_task_received_command,
 	command_task_display_update,
