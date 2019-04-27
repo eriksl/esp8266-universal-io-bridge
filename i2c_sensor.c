@@ -4674,20 +4674,10 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 				(device_table_check_entry->address == device_table_entry->address))
 		{
 			if(i2c_sensor_registered(0, device_table_check_entry->id))
-			{
-				//log("*** skipped %s/%s@%u/%x/%u, device %s/%s@%u/%x/%u on bus 0\n",
-						//device_table_entry->name, device_table_entry->type, bus, device_table_entry->address, device_table_entry->id,
-						//device_table_check_entry->name, device_table_check_entry->type, bus, device_table_check_entry->address, device_table_check_entry->id);
 				return(i2c_error_in_use_on_bus_0);
-			}
 
 			if(i2c_sensor_registered(bus, device_table_check_entry->id))
-			{
-				//log("*** skipped %s/%s@%u/%x/%u, found device %s/%s@%u/%x/%u\n",
-						//device_table_entry->name, device_table_entry->type, bus, device_table_entry->address, device_table_entry->id,
-						//device_table_check_entry->name, device_table_check_entry->type, bus, device_table_check_entry->address, device_table_check_entry->id);
 				return(i2c_error_in_use);
-			}
 		}
 	}
 
