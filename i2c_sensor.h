@@ -58,7 +58,6 @@ typedef enum
 	i2c_sensor_hdc1080_temperature,
 	i2c_sensor_htu21_humidity,
 	i2c_sensor_htu21_temperature,
-	i2c_sensor_bme680_airquality,
 	i2c_sensor_bme680_temperature,
 	i2c_sensor_bme680_humidity,
 	i2c_sensor_bme680_airpressure,

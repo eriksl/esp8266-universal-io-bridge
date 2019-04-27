@@ -1,5 +1,4 @@
 #include "i2c_sensor.h"
-#include "i2c_sensor_bme680.h"
 
 #include "util.h"
 #include "config.h"
@@ -3095,17 +3094,400 @@ static i2c_error_t sensor_htu21_humidity_read(int bus, const i2c_sensor_device_t
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_bme680_airquality_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+enum
+{
+	bme680_reg_eas_status_0 =	0x1d,
+
+	bme680_reg_press_msb =		0x1f,
+	bme680_reg_press_lsb =		0x20,
+	bme680_reg_press_xlsb =		0x21,
+
+	bme680_reg_temp_msb =		0x22,
+	bme680_reg_temp_lsb =		0x23,
+	bme680_reg_temp_xlsb =		0x24,
+
+	bme680_reg_hum_msb =		0x25,
+	bme680_reg_hum_lsb =		0x26,
+
+	bme680_reg_ctrl_gas_0 =		0x70,
+	bme680_reg_ctrl_hum =		0x72,
+	bme680_reg_status =			0x73,
+	bme680_reg_ctrl_meas =		0x74,
+	bme680_reg_config =			0x75,
+	bme680_reg_calibration_1 =	0x89,
+	bme680_reg_id =				0xd0,
+	bme680_reg_reset =			0xe0,
+	bme680_reg_calibration_2 =	0xe1,
+
+	bme680_reg_eas_status_0_new_data_0 =		0b10000000,
+	bme680_reg_eas_status_0_measuring =			0b00100000,
+
+	bme680_reg_ctrl_gas_0_heat_on =				0b00000000,
+	bme680_reg_ctrl_gas_0_heat_off =			0b00001000,
+
+	bme680_reg_ctrl_gas_1_run_gas =				0b00010000,
+
+	bme680_reg_ctrl_hum_osrh_h_skip =			0b00000000,
+	bme680_reg_ctrl_hum_osrh_h_1 =				0b00000001,
+	bme680_reg_ctrl_hum_osrh_h_2 =				0b00000010,
+	bme680_reg_ctrl_hum_osrh_h_4 =				0b00000011,
+	bme680_reg_ctrl_hum_osrh_h_8 =				0b00000100,
+	bme680_reg_ctrl_hum_osrh_h_16 =				0b00000101,
+
+	bme680_reg_ctrl_meas_osrs_t_skip =			0b00000000,
+	bme680_reg_ctrl_meas_osrs_t_1 =				0b00100000,
+	bme680_reg_ctrl_meas_osrs_t_2 =				0b01000000,
+	bme680_reg_ctrl_meas_osrs_t_4 =				0b01100000,
+	bme680_reg_ctrl_meas_osrs_t_8 =				0b10000000,
+	bme680_reg_ctrl_meas_osrs_t_16 =			0b10100000,
+
+	bme680_reg_ctrl_meas_osrs_mask =			0b00011100,
+	bme680_reg_ctrl_meas_osrs_p_skip =			0b00000000,
+	bme680_reg_ctrl_meas_osrs_p_1 =				0b00000100,
+	bme680_reg_ctrl_meas_osrs_p_2 =				0b00001000,
+	bme680_reg_ctrl_meas_osrs_p_4 =				0b00001100,
+	bme680_reg_ctrl_meas_osrs_p_8 =				0b00010000,
+
+	bme680_reg_ctrl_meas_sleep =				0b00000000,
+	bme680_reg_ctrl_meas_forced =				0b00000001,
+
+	bme680_reg_config_filter_mask =				0b00011100,
+	bme680_reg_config_filter_0 =				0b00000000,
+	bme680_reg_config_filter_1 =				0b00000100,
+	bme680_reg_config_filter_3 =				0b00001000,
+	bme680_reg_config_filter_7 =				0b00001100,
+	bme680_reg_config_filter_15 =				0b00010000,
+	bme680_reg_config_filter_31 =				0b00010100,
+	bme680_reg_config_filter_63 =				0b00011000,
+	bme680_reg_config_filter_127 =				0b00011100,
+
+	bme680_reg_id_bme680 =					0x61,
+
+	bme680_reg_reset_value =				0xb6,
+
+	bme680_calibration_1_size =				25,
+	bme680_calibration_2_size =				16,
+
+	bme680_calibration_offset_t2_lsb =		1,
+	bme680_calibration_offset_t2_msb =		2,
+	bme680_calibration_offset_t3 =			3,
+
+	bme680_calibration_offset_p1_lsb =		5,
+	bme680_calibration_offset_p1_msb =		6,
+	bme680_calibration_offset_p2_lsb =		7,
+	bme680_calibration_offset_p2_msb =		8,
+	bme680_calibration_offset_p3 =			9,
+	bme680_calibration_offset_p4_lsb =		11,
+	bme680_calibration_offset_p4_msb =		12,
+	bme680_calibration_offset_p5_lsb =		13,
+	bme680_calibration_offset_p5_msb =		14,
+	bme680_calibration_offset_p7 =			15,
+	bme680_calibration_offset_p6 =			16,
+	bme680_calibration_offset_p8_lsb =		19,
+	bme680_calibration_offset_p8_msb =		20,
+	bme680_calibration_offset_p9_lsb =		21,
+	bme680_calibration_offset_p9_msb =		22,
+	bme680_calibration_offset_p10 =			23,
+
+	bme680_calibration_offset_h2_msb =		25,
+	bme680_calibration_offset_h2_lsb =		26,
+	bme680_calibration_offset_h1_lsb =		26,
+	bme680_calibration_offset_h1_msb =		27,
+	bme680_calibration_offset_h3 =			28,
+	bme680_calibration_offset_h4 =			29,
+	bme680_calibration_offset_h5 =			30,
+	bme680_calibration_offset_h6 =			31,
+	bme680_calibration_offset_h7 =			32,
+
+	bme680_calibration_offset_t1_lsb =		33,
+	bme680_calibration_offset_t1_msb =		34,
+};
+typedef struct
+{
+	struct
+	{
+		unsigned int	t1;
+		int				t2;
+		int				t3;
+	} temperature;
+
+	struct
+	{
+		unsigned int	p1;
+		int				p2;
+		int				p3;
+		int				p4;
+		int				p5;
+		int				p6;
+		int				p7;
+		int				p8;
+		int				p9;
+		unsigned int	p10;
+	} pressure;
+
+	struct
+	{
+		unsigned int	h1;
+		unsigned int	h2;
+		int				h3;
+		int				h4;
+		int				h5;
+		unsigned int	h6;
+		int				h7;
+	} humidity;
+
+} bme680_calibration_parameters_t;
+
+static bme680_calibration_parameters_t bme680_calibration_parameters;
+
+static unsigned int unsigned_20(unsigned int msb, unsigned int lsb, unsigned int xlsb)
+{
+	return(((msb & 0xff) << 12) | ((lsb & 0xff) << 4) | (xlsb & 0xff) >> 4);
+}
+
+static int signed_16(unsigned int msb, unsigned int lsb)
+{
+	int rv = ((msb & 0xff) << 8) | (lsb & 0xff);
+
+	if(rv > (1 << 15))
+		rv = 0 - ((1 << 16) - rv);
+
+	return(rv);
+}
+
+static unsigned int unsigned_16(unsigned int msb, unsigned int lsb)
+{
+	return(((msb & 0xff) << 8) | (lsb & 0xff));
+}
+
+static unsigned int unsigned_12(unsigned int msb, unsigned int lsb)
+{
+	return(((msb & 0xff) << 4) | ((lsb & 0x0f) << 0));
+}
+
+static int signed_8(unsigned int lsb)
+{
+	int rv = lsb & 0xff;
+
+	if(rv > (1 << 7))
+		rv = 0 - ((1 << 8) - rv);
+
+	return(rv);
+}
+
+static unsigned int unsigned_8(unsigned int lsb)
+{
+	return(lsb & 0xff);
+}
+
+static i2c_error_t sensor_bme680_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
+	uint8_t i2c_buffer[1];
+	uint8_t calibration[bme680_calibration_1_size + bme680_calibration_2_size];
 
-	if((error = sensor_bme680_all_init(bus, entry, data)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, bme680_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != bme680_reg_id_bme680)
+		return(i2c_error_address_nak);
+
+	if((error = i2c_send2(entry->address, bme680_reg_reset, bme680_reg_reset_value)) != i2c_error_ok)
+		return(error);
+
+	msleep(1);
+
+	if((error = i2c_send2(entry->address, bme680_reg_ctrl_meas, bme680_reg_ctrl_meas_sleep)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] != 0x00)
+		return(i2c_error_address_nak);
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_calibration_1, bme680_calibration_1_size, &calibration[0])) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_calibration_2, bme680_calibration_2_size, &calibration[bme680_calibration_1_size])) != i2c_error_ok)
+		return(error);
+
+	bme680_calibration_parameters.temperature.t1 =	unsigned_16(calibration[bme680_calibration_offset_t1_msb], calibration[bme680_calibration_offset_t1_lsb]);
+	bme680_calibration_parameters.temperature.t2 =	signed_16(calibration[bme680_calibration_offset_t2_msb], calibration[bme680_calibration_offset_t2_lsb]);
+	bme680_calibration_parameters.temperature.t3 =	signed_8(calibration[bme680_calibration_offset_t3]);
+
+	bme680_calibration_parameters.pressure.p1 =		unsigned_16(calibration[bme680_calibration_offset_p1_msb], calibration[bme680_calibration_offset_p1_lsb]);
+	bme680_calibration_parameters.pressure.p2 =		signed_16(calibration[bme680_calibration_offset_p2_msb], calibration[bme680_calibration_offset_p2_lsb]);
+	bme680_calibration_parameters.pressure.p3 =		signed_8(calibration[bme680_calibration_offset_p3]);
+	bme680_calibration_parameters.pressure.p4 =		signed_16(calibration[bme680_calibration_offset_p4_msb], calibration[bme680_calibration_offset_p4_lsb]);
+	bme680_calibration_parameters.pressure.p5 =		signed_16(calibration[bme680_calibration_offset_p5_msb], calibration[bme680_calibration_offset_p5_lsb]);
+	bme680_calibration_parameters.pressure.p6 =		signed_8(calibration[bme680_calibration_offset_p6]);
+	bme680_calibration_parameters.pressure.p7 =		signed_8(calibration[bme680_calibration_offset_p7]);
+	bme680_calibration_parameters.pressure.p8 =		signed_16(calibration[bme680_calibration_offset_p8_msb], calibration[bme680_calibration_offset_p8_lsb]);
+	bme680_calibration_parameters.pressure.p9 =		signed_16(calibration[bme680_calibration_offset_p9_msb], calibration[bme680_calibration_offset_p9_lsb]);
+	bme680_calibration_parameters.pressure.p10 =	unsigned_8(calibration[bme680_calibration_offset_p10]);
+
+	bme680_calibration_parameters.humidity.h1 =		unsigned_12(calibration[bme680_calibration_offset_h1_msb], (calibration[bme680_calibration_offset_h1_lsb] & 0x0f) >> 0);
+	bme680_calibration_parameters.humidity.h2 =		unsigned_12(calibration[bme680_calibration_offset_h2_msb], (calibration[bme680_calibration_offset_h2_lsb] & 0xf0) >> 4);
+	bme680_calibration_parameters.humidity.h3 =		signed_8(calibration[bme680_calibration_offset_h3]);
+	bme680_calibration_parameters.humidity.h4 =		signed_8(calibration[bme680_calibration_offset_h4]);
+	bme680_calibration_parameters.humidity.h5 =		signed_8(calibration[bme680_calibration_offset_h5]);
+	bme680_calibration_parameters.humidity.h6 =		unsigned_8(calibration[bme680_calibration_offset_h6]);
+	bme680_calibration_parameters.humidity.h7 =		signed_8(calibration[bme680_calibration_offset_h7]);
+
+	if((error = i2c_send2(entry->address, bme680_reg_config, bme680_reg_config_filter_127)) != i2c_error_ok)
+		return(error);
+
+	if((error = i2c_send2(entry->address, bme680_reg_ctrl_gas_0, bme680_reg_ctrl_gas_0_heat_off)) != i2c_error_ok)
 		return(error);
 
 	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_bme680_temperature);
 	sensor_register(bus, i2c_sensor_bme680_humidity);
 	sensor_register(bus, i2c_sensor_bme680_airpressure);
+
+	return(i2c_error_ok);
+}
+
+static void sensor_bme680_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
+{
+	uint8_t i2c_buffer[4];
+
+	if(i2c_send1_receive(entry->address, bme680_reg_ctrl_meas, 1, i2c_buffer) != i2c_error_ok)
+		return;
+
+	if(i2c_buffer[0] & bme680_reg_ctrl_meas_forced)
+		return;
+
+	if(i2c_send2(entry->address, bme680_reg_ctrl_hum, bme680_reg_ctrl_hum_osrh_h_16) != i2c_error_ok)
+		return;
+
+	if(i2c_send2(entry->address, bme680_reg_ctrl_meas, bme680_reg_ctrl_meas_osrs_t_16 | bme680_reg_ctrl_meas_osrs_p_8 | bme680_reg_ctrl_meas_forced) != i2c_error_ok)
+		return;
+}
+
+static i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
+	unsigned int adc_temperature;
+	double t_fine, t1_scaled;
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
+		//log("* bme680: temperature: stale\n");
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
+
+	t1_scaled	= (adc_temperature / 131072.0) - (bme680_calibration_parameters.temperature.t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (bme680_calibration_parameters.temperature.t1 / 1024.0)) * bme680_calibration_parameters.temperature.t2 + (t1_scaled * t1_scaled * bme680_calibration_parameters.temperature.t3 * 16.0);
+
+	value->raw		= t_fine;
+	value->cooked	= t_fine / 5120.0;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
+	unsigned int adc_humidity, adc_temperature;
+	double var1, var2, var3, var4;
+	double t_fine, t1_scaled, temperature, humidity;
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
+		//log("* bme680: humidity: stale\n");
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_hum_msb, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_humidity = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+
+	t1_scaled	= (adc_temperature / 131072.0) - (bme680_calibration_parameters.temperature.t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (bme680_calibration_parameters.temperature.t1 / 1024.0)) * bme680_calibration_parameters.temperature.t2 + (t1_scaled * t1_scaled * bme680_calibration_parameters.temperature.t3 * 16.0);
+	temperature	= t_fine / 5120.0;
+
+	var1 = adc_humidity - ((bme680_calibration_parameters.humidity.h1 * 16) + ((bme680_calibration_parameters.humidity.h3 / 2.0) * temperature));
+	var2 = var1 * ((bme680_calibration_parameters.humidity.h2 / 262144.0) * (1 + ((bme680_calibration_parameters.humidity.h4 / 16384.0) * temperature) + ((bme680_calibration_parameters.humidity.h5 / 1048576.0) * temperature * temperature)));
+	var3 = bme680_calibration_parameters.humidity.h6 / 16384.0;
+	var4 = bme680_calibration_parameters.humidity.h7 / 2097152.0;
+
+	humidity = var2 + ((var3 + (var4 * temperature)) * var2 * var2);
+
+	if(humidity > 100.0)
+		humidity = 100.0;
+	if(humidity < 0.0)
+		humidity = 0.0;
+
+	value->raw = adc_humidity;
+	value->cooked = humidity;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
+	unsigned int adc_temperature, adc_pressure;
+	double var1, var2, var3;
+	double pressure, pressure_256;
+	double t_fine, t1_scaled;
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
+		//log("* bme680: airpressure: stale\n");
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
+
+	if((error = i2c_send1_receive(entry->address, bme680_reg_press_msb, 3, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	adc_pressure = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
+
+	t1_scaled	= (adc_temperature / 131072.0) - (bme680_calibration_parameters.temperature.t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (bme680_calibration_parameters.temperature.t1 / 1024.0)) * bme680_calibration_parameters.temperature.t2 + (t1_scaled * t1_scaled * bme680_calibration_parameters.temperature.t3 * 16.0);
+
+	var1 = (t_fine / 2.0) - 64000;
+	var2 = var1 * var1 * bme680_calibration_parameters.pressure.p6 / 131072.0;
+	var2 = var2 + (var1 * bme680_calibration_parameters.pressure.p5 * 2);
+	var2 = (var2 / 4) + (bme680_calibration_parameters.pressure.p4 * 65536);
+	var1 = (((bme680_calibration_parameters.pressure.p3 * var1 * var1) / 16384.0) + (bme680_calibration_parameters.pressure.p2 * var1)) / 524288.0;
+	var1 = (1 + (var1 / 32768.0)) * bme680_calibration_parameters.pressure.p1;
+	pressure = 1048576 - adc_pressure;
+
+	value->raw		= adc_pressure;
+	value->cooked	= 0;
+
+	if((int)var1 != 0)
+	{
+		pressure = ((pressure - (var2 / 4096.0)) * 6250) / var1;
+		pressure_256 = pressure / 256.0;
+		var1 = (bme680_calibration_parameters.pressure.p9 * pressure * pressure) / 2147483648.0;
+		var2 = pressure * (bme680_calibration_parameters.pressure.p8 / 32768.0);
+		var3 = pressure_256 * pressure_256 * pressure_256 * (bme680_calibration_parameters.pressure.p10 / 131072.0);
+		value->cooked = (pressure + (var1 + var2 + var3 + (bme680_calibration_parameters.pressure.p7 * 128)) / 16.0) / 100.0;
+	}
+	else
+		return(i2c_error_overflow);
 
 	return(i2c_error_ok);
 }
@@ -4151,18 +4533,11 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme680_airquality, 0x76, 0, 0,
-		"bme680", "air quality", "%",
-		sensor_bme680_airquality_init,
-		sensor_bme680_airquality_read,
-		(void *)0,
-	},
-	{
-		i2c_sensor_bme680_temperature, 0x76, 2, 1,
+		i2c_sensor_bme680_temperature, 0x76, 2, 0,
 		"bme680", "temperature", "C",
-		sensor_bme680_temperature_init,
+		sensor_bme680_init,
 		sensor_bme680_temperature_read,
-		(void *)0,
+		sensor_bme680_periodic,
 	},
 	{
 		i2c_sensor_bme680_humidity, 0x76, 0, 1,

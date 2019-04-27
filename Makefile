@@ -205,7 +205,7 @@ STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
-						stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c_sensor_bme680.o lwip-interface.o
+						stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o lwip-interface.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
 						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \
@@ -226,7 +226,7 @@ endif
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
-						dispatch.h util.h sequencer.h init.h i2c_sensor_bme680.h rboot-interface.h lwip-interface.h \
+						dispatch.h util.h sequencer.h init.h rboot-interface.h lwip-interface.h \
 						eagle.h sdk.h
 
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
