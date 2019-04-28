@@ -314,6 +314,8 @@ iram static void fast_timer_callback(void *arg)
 
 iram static void slow_timer_callback(void *arg)
 {
+	int ix;
+
 	// run background task every ~100 ms = ~10 Hz
 
 	stat_slow_timer++;
@@ -326,7 +328,8 @@ iram static void slow_timer_callback(void *arg)
 	if(display_detected())
 		dispatch_post_command(command_task_display_update);
 
-	dispatch_post_command(command_task_periodic_i2c_sensors);
+	for(ix = 5; ix > 0; ix--)
+		dispatch_post_command(command_task_periodic_i2c_sensors);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
