@@ -3375,9 +3375,6 @@ static i2c_error_t sensor_bme680_temperature_read(int bus, const i2c_sensor_devi
 	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
-		//log("* bme680: temperature: stale\n");
-
 	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
@@ -3402,9 +3399,6 @@ static i2c_error_t sensor_bme680_humidity_read(int bus, const i2c_sensor_device_
 
 	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
-
-	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
-		//log("* bme680: humidity: stale\n");
 
 	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
 		return(error);
@@ -3449,9 +3443,6 @@ static i2c_error_t sensor_bme680_airpressure_read(int bus, const i2c_sensor_devi
 
 	if((error = i2c_send1_receive(entry->address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
-
-	//if(!(i2c_buffer[0] & bme680_reg_eas_status_0_new_data_0))
-		//log("* bme680: airpressure: stale\n");
 
 	if((error = i2c_send1_receive(entry->address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
 		return(error);
