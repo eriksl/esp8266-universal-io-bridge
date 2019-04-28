@@ -3765,121 +3765,197 @@ static i2c_error_t sensor_bme280_temperature_read(int bus, const i2c_sensor_devi
 	return(bme280_read(entry->address, value, 0, 0));
 }
 
+enum
+{
+	bmp085_reg_id =			0xd0,
+	bmp085_reg_soft_reset =	0xe0,
+	bmp085_reg_ctrl_meas =	0xf4,
+	bmp085_reg_out_msb =	0xf6,
+	bmp085_reg_out_lsb =	0xf7,
+	bmp085_reg_out_xlsb =	0xf8,
+
+	bmp085_reg_id_value_bmp085 =	0x55,
+	bmp085_reg_soft_reset_value =	0xb6,
+
+	bmp085_reg_ctrl_meas_os_1 =				0b00000000,
+	bmp085_reg_ctrl_meas_os_2 =				0b01000000,
+	bmp085_reg_ctrl_meas_os_4 =				0b10000000,
+	bmp085_reg_ctrl_meas_os_8 =				0b11000000,
+	bmp085_reg_ctrl_meas_sco =				0b00100000,
+	bmp085_reg_ctrl_meas_temperature =		0b00001110,
+	bmp085_reg_ctrl_meas_pressure =			0b00010100,
+	bmp085_reg_ctrl_meas_mode_temperature =	0x0a,
+	bmp085_reg_ctrl_meas_mode_pressure =	0xd0,
+
+	bmp085_oversampling = 3,	// (1 << 3) == 8, use bmp085_reg_ctrl_meas_os_8
+};
+
 static struct
 {
-	int	ac1;
-	int	ac2;
-	int	ac3;
-	int	ac4;
-	int	ac5;
-	int	ac6;
-	int	b1;
-	int	b2;
-	int	mc;
-	int	md;
-} bmp085;
+	int				ac1;
+	int				ac2;
+	int				ac3;
+	unsigned int	ac4;
+	unsigned int	ac5;
+	unsigned int	ac6;
+	int				b1;
+	int				b2;
+	int				mc;
+	int				md;
+	unsigned int	adc_temperature;
+	unsigned int	adc_pressure;
+} bmp085_calibration_parameters;
 
-static i2c_error_t bmp085_write_reg_1(int address, int reg, unsigned int value)
+static i2c_error_t sensor_bmp085_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
+	uint8_t i2c_buffer[2];
 
-	if((error = i2c_send2(address, reg, (uint8_t)value)) != i2c_error_ok)
+	if((error = i2c_send1_receive(entry->address, bmp085_reg_id, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	return(0);
+	if(i2c_buffer[0] != bmp085_reg_id_value_bmp085)
+		return(i2c_error_address_nak);
+
+	if((error = i2c_send2(entry->address, bmp085_reg_soft_reset, bmp085_reg_soft_reset_value)) != i2c_error_ok)
+		return(error);
+
+	msleep(1);
+
+	if((error = i2c_send1_receive(entry->address, 0xaa, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xac, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xae, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac3 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xb0, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac4 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xb2, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac5 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xb4, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.ac6 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xb6, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.b1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xb8, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.b2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xbc, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.mc = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	if((error = i2c_send1_receive(entry->address, 0xbe, 2, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	bmp085_calibration_parameters.md = signed_16(i2c_buffer[0], i2c_buffer[1]);
+
+	sensor_register(bus, entry->id);
+	sensor_register(bus, i2c_sensor_bmp085_airpressure);
+
+	return(i2c_error_ok);
 }
 
-static i2c_error_t bmp085_read_reg_16(int address, int reg, int *value)
+static void sensor_bmp085_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t error;
-	uint8_t i2cbuffer[2];
+	uint8_t i2c_buffer[4];
+	uint8_t mode, meas_value;
 
-	if((error = i2c_send1(address, reg)) != i2c_error_ok)
-		return(error);
+	if(i2c_send1_receive(entry->address, bmp085_reg_ctrl_meas, 1, i2c_buffer) != i2c_error_ok)
+		return;
 
-	if((error = i2c_receive(address, 2, i2cbuffer)) != i2c_error_ok)
-		return(error);
+	mode = i2c_buffer[0];
 
-	*value = (i2cbuffer[0] << 8) | (i2cbuffer[1] << 0);
+	if(mode & bmp085_reg_ctrl_meas_sco)
+		return;
 
-	return(0);
+	if(i2c_send1_receive(entry->address, bmp085_reg_out_msb, 3, i2c_buffer) != i2c_error_ok)
+		return;
+
+	if(mode == bmp085_reg_ctrl_meas_mode_temperature)
+	{
+		bmp085_calibration_parameters.adc_temperature = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+		meas_value = bmp085_reg_ctrl_meas_pressure | bmp085_reg_ctrl_meas_os_8;
+	}
+	else
+	{
+		bmp085_calibration_parameters.adc_pressure = (i2c_buffer[0] << 16) | (i2c_buffer[1] << 8) | i2c_buffer[2];
+		meas_value = bmp085_reg_ctrl_meas_temperature;
+	}
+
+	i2c_send2(entry->address, bmp085_reg_ctrl_meas, meas_value | bmp085_reg_ctrl_meas_sco);
 }
 
-static i2c_error_t bmp085_read_reg_24(int address, int reg, int *value)
+static i2c_error_t sensor_bmp085_read_temperature(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t error;
-	uint8_t i2cbuffer[4];
+	int	x1, x2, b5;
+	unsigned ut = bmp085_calibration_parameters.adc_temperature;
 
-	if((error = i2c_send1(address, reg)) != i2c_error_ok)
-		return(error);
+	x1 = ((ut - bmp085_calibration_parameters.ac6) * bmp085_calibration_parameters.ac5) / (1 << 15);
 
-	if((error = i2c_receive(address, 3, i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	*value = (i2cbuffer[0] << 16) | (i2cbuffer[1] << 8) | (i2cbuffer[2] << 0);
-
-	return(0);
-}
-
-static i2c_error_t bmp085_read(int address, i2c_sensor_value_t *rv_airpressure, i2c_sensor_value_t *rv_temperature, i2c_sensor_device_data_t *data)
-{
-	int	ut;
-	int	up = 0;
-	int	p, x1, x2, x3, b4, b7, b3, b5, b6;
-	int	oss = 3;
-	i2c_error_t	error;
-
-	/* set cmd = 0x2e = start temperature measurement */
-
-	if((error = bmp085_write_reg_1(address, 0xf4, 0x2e)) != i2c_error_ok)
-		return(error);
-
-	msleep(5);
-
-	/* fetch result from 0xf6,0xf7 */
-
-	if((error = bmp085_read_reg_16(address, 0xf6, &ut)) != i2c_error_ok)
-		return(error);
-
-	x1 = ((ut - bmp085.ac6) * bmp085.ac5) / (1 << 15);
-
-	if((x1 + bmp085.md) == 0)
+	if((x1 + bmp085_calibration_parameters.md) == 0)
 		return(i2c_error_device_error_1);
 
-	x2 = (bmp085.mc * (1 << 11)) / (x1 + bmp085.md);
+	x2 = (bmp085_calibration_parameters.mc * (1 << 11)) / (x1 + bmp085_calibration_parameters.md);
 
 	b5 = x1 + x2;
 
-	if(rv_temperature)
-	{
-		rv_temperature->raw		= ut;
-		rv_temperature->cooked	= ((b5 + 8.0) / 16) / 10;
-	}
+	value->raw		= ut;
+	value->cooked	= (b5 + 8.0) / 160.0;
 
-	/* set cmd = 0x34 = start air pressure measurement */
+	return(i2c_error_ok);
+}
 
-	if((error = bmp085_write_reg_1(address, 0xf4, 0x34 | (oss << 6))) != i2c_error_ok)
-		return(error);
+static i2c_error_t sensor_bmp085_read_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	unsigned int b4, b7;
+	int	p, x1, x2, x3, b3, b5, b6;
+	unsigned int ut = bmp085_calibration_parameters.adc_temperature;
+	int	up = bmp085_calibration_parameters.adc_pressure;
 
-	msleep(25);
+	x1 = ((ut - bmp085_calibration_parameters.ac6) * bmp085_calibration_parameters.ac5) / (1 << 15);
 
-	/* fetch result from 0xf6,0xf7,0xf8 */
+	if((x1 + bmp085_calibration_parameters.md) == 0)
+		return(i2c_error_device_error_1);
 
-	if((error = bmp085_read_reg_24(address, 0xf6, &up)) != i2c_error_ok)
-		return(error);
+	x2 = (bmp085_calibration_parameters.mc * (1 << 11)) / (x1 + bmp085_calibration_parameters.md);
 
-	up = up >> (8 - oss);
+	b5 = x1 + x2;
+
+	up = up >> (8 - bmp085_oversampling);
 
 	b6	= b5 - 4000;
-	x1	= (bmp085.b2 * ((b6 * b6) / (1 << 12))) / (1 << 11);
-	x2	= (bmp085.ac2 * b6) / (1 << 11);
+	x1	= (bmp085_calibration_parameters.b2 * ((b6 * b6) / (1 << 12))) / (1 << 11);
+	x2	= (bmp085_calibration_parameters.ac2 * b6) / (1 << 11);
 	x3	= x1 + x2;
-	b3	= (((bmp085.ac1 * 4 + x3) << oss) + 2) / 4;
-	x1	= (bmp085.ac3 * b6) / (1 << 13);
-	x2	= (bmp085.b1 * ((b6 * b6) / (1 << 12))) / (1 << 16);
+	b3	= (((bmp085_calibration_parameters.ac1 * 4 + x3) << bmp085_oversampling) + 2) / 4;
+	x1	= (bmp085_calibration_parameters.ac3 * b6) / (1 << 13);
+	x2	= (bmp085_calibration_parameters.b1 * ((b6 * b6) / (1 << 12))) / (1 << 16);
 	x3	= (x1 + x2 + 2) / (1 << 2);
-	b4	= (bmp085.ac4 * (x3 + 32768)) / (1 << 15);
-	b7	= (up - b3) * (50000 >> oss);
+	b4	= (bmp085_calibration_parameters.ac4 * (x3 + 32768)) / (1 << 15);
+	b7	= (up - b3) * (50000 >> bmp085_oversampling);
 
 	if(b4 == 0)
 		return(i2c_error_device_error_2);
@@ -3895,65 +3971,10 @@ static i2c_error_t bmp085_read(int address, i2c_sensor_value_t *rv_airpressure, 
 	x2	= (-7357 * p) / (1 << 16);
 	p	= p + ((x1 + x2 + 3791) / (1 << 4));
 
-	if(rv_airpressure)
-	{
-		rv_airpressure->raw = up;
-		rv_airpressure->cooked = p / 100.0;
-	}
+	value->raw = up;
+	value->cooked = p / 100.0;
 
 	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_bmp085_init_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
-{
-	i2c_error_t error;
-
-	if((error = bmp085_read_reg_16(entry->address, 0xaa, &bmp085.ac1)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xac, &bmp085.ac2)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xae, &bmp085.ac3)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xb0, &bmp085.ac4)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xb2, &bmp085.ac5)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xb4, &bmp085.ac6)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xb6, &bmp085.b1)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xb8, &bmp085.b2)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xbc, &bmp085.mc)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read_reg_16(entry->address, 0xbe, &bmp085.md)) != i2c_error_ok)
-		return(error);
-
-	if((error = bmp085_read(entry->address, (i2c_sensor_value_t *)0, (i2c_sensor_value_t *)0, data)) != i2c_error_ok)
-		return(error);
-
-	sensor_register(bus, entry->id);
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_bmp085_read_airpressure(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	return(bmp085_read(entry->address, value, (i2c_sensor_value_t *)0, data));
-}
-
-static i2c_error_t sensor_bmp085_read_temperature(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	return(bmp085_read(entry->address, (i2c_sensor_value_t *)0, value, data));
 }
 
 typedef enum
@@ -4575,17 +4596,17 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_bmp085_airpressure, 0x77, 2, 0,
-		"bmp085/bmp180", "air pressure", "hPa",
-		sensor_bmp085_init_airpressure,
-		sensor_bmp085_read_airpressure,
-		(void *)0,
+		i2c_sensor_bmp085_temperature, 0x77, 2, 0,
+		"bmp085/bmp180", "temperature", "C",
+		sensor_bmp085_init,
+		sensor_bmp085_read_temperature,
+		sensor_bmp085_periodic,
 	},
 	{
-		i2c_sensor_bmp085_temperature, 0x77, 2, 1,
-		"bmp085/bmp180", "temperature", "C",
+		i2c_sensor_bmp085_airpressure, 0x77, 2, 1,
+		"bmp085/bmp180", "air pressure", "hPa",
 		(void *)0,
-		sensor_bmp085_read_temperature,
+		sensor_bmp085_read_airpressure,
 		(void *)0,
 	},
 	{
