@@ -45,7 +45,6 @@ string_new(attr_flash_align, flash_sector_buffer, 4096);
 
 string_new(static attr_flash_align, command_socket_receive_buffer, 4096 + 64);
 string_new(static attr_flash_align, command_socket_send_buffer, 4096 + 64);
-unsigned int command_left_to_read;
 static lwip_if_socket_t command_socket;
 
 string_new(static, uart_socket_receive_buffer, 128);
@@ -373,6 +372,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
+	static unsigned int command_left_to_read = 0;
 	static const char command_string[] = "flash-send ";
 	unsigned int chunk_length;
 	int chunk_offset;
@@ -482,8 +482,6 @@ void dispatch_init2(void)
 		uart_port = 0;
 
 	wifi_set_event_handler_cb(wlan_event_handler);
-
-	command_left_to_read = 0;
 
 	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
 			true, config_flags_match(flag_udp_term_empty), socket_command_callback_data_received);
