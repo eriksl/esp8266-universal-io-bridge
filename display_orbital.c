@@ -1,6 +1,7 @@
 #include "display.h"
 #include "display_orbital.h"
 #include "i2c.h"
+#include "config.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -11,11 +12,14 @@ bool display_orbital_init(void)
 {
 	unsigned int ix, byte, x, y;
 
-	for(ix = 4; ix > 0; ix--)
+	if(!config_flags_match(flag_enable_orbital))
+		return(false);
+
+	for(ix = 10; ix > 0; ix--)
 	{
 		if(i2c_send1(0x28, 0x21) == i2c_error_ok)
 			break;
-		msleep(25);
+		msleep(10);
 	}
 
 	if(ix == 0)

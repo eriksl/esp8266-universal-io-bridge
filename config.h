@@ -33,6 +33,7 @@ enum
 	flag_apds6_high_sens =	1 << 13,
 	flag_uart1_tx_inv =		1 << 14,
 	flag_udp_term_empty =	1 << 15,
+	flag_enable_orbital =	1 << 16,
 };
 
 void			config_flags_to_string(bool nl, const char *, string_t *);
