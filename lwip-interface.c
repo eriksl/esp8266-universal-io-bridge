@@ -112,7 +112,19 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	length = string_length(socket->receive_buffer);
 
 	for(pbuf = pbuf_received; pbuf; pbuf = pbuf->next)
+	{
+		if(tcp)
+		{
+			stat_lwip_tcp_received_packets++;
+			stat_lwip_tcp_received_bytes += pbuf->len;
+		}
+		else
+		{
+			stat_lwip_udp_received_packets++;
+			stat_lwip_udp_received_bytes += pbuf->len;
+		}
 		string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
+	}
 
     pbuf_free(pbuf_received);
 
@@ -220,6 +232,9 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 			log_error(error);
 			break;
 		}
+
+		stat_lwip_tcp_sent_packets++;
+		stat_lwip_tcp_sent_bytes += chunk_size;
 
 		sent_one = true;
 		socket->sending_remaining -= chunk_size;
@@ -427,6 +442,9 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 				log("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
 				log_error(error);
 			}
+
+			stat_lwip_udp_sent_packets++;
+			stat_lwip_udp_sent_bytes += length;
 		}
 
 		if(socket->udp_term_empty)
@@ -441,6 +459,8 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 				log("lwip if send: udp terminate failed, error: ");
 				log_error(error);
 			}
+
+			stat_lwip_udp_sent_packets++;
 		}
 	}
 	else // received packet from TCP, reply using TCP

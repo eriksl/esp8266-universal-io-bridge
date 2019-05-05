@@ -46,6 +46,14 @@ unsigned int stat_config_write_aborted;
 unsigned int stat_lwip_tcp_send_segmentation;
 unsigned int stat_lwip_tcp_send_error;
 unsigned int stat_lwip_udp_send_error;
+unsigned int stat_lwip_tcp_received_packets;
+unsigned int stat_lwip_tcp_received_bytes;
+unsigned int stat_lwip_tcp_sent_packets;
+unsigned int stat_lwip_tcp_sent_bytes;
+unsigned int stat_lwip_udp_received_packets;
+unsigned int stat_lwip_udp_received_bytes;
+unsigned int stat_lwip_udp_sent_packets;
+unsigned int stat_lwip_udp_sent_bytes;
 
 unsigned int stat_i2c_sda_stucks;
 unsigned int stat_i2c_sda_stuck_max_period;
@@ -330,9 +338,21 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> LWIP\n"
+			">  udp received packets: %6u, bytes: %u\n"
+			">  tcp received packets: %6u, bytes: %u\n"
+			">  udp sent     packets: %6u, bytes: %u\n"
+			">  tcp sent     packets: %6u, bytes: %u\n"
 			">  tcp send segmentation events: %u\n"
 			">  tcp error events: %u\n"
 			">  udp send error events: %u\n",
+				stat_lwip_udp_received_packets,
+				stat_lwip_udp_received_bytes,
+				stat_lwip_tcp_received_packets,
+				stat_lwip_tcp_received_bytes,
+				stat_lwip_udp_sent_packets,
+				stat_lwip_udp_sent_bytes,
+				stat_lwip_tcp_sent_packets,
+				stat_lwip_tcp_sent_bytes,
 				stat_lwip_tcp_send_segmentation,
 				stat_lwip_tcp_send_error,
 				stat_lwip_udp_send_error);
