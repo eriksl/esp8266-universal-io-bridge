@@ -46,5 +46,5 @@ void	dispatch_init1(void);
 void	dispatch_init2(void);
 void	dispatch_post_uart(task_command_t);
 void	dispatch_post_command(task_command_t);
-void	dispatch_post_timer(task_command_t);
+void	dispatch_post_timer(bool);
 #endif

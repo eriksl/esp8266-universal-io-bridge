@@ -81,12 +81,22 @@ iram void dispatch_post_command(task_command_t command)
 		stat_task_command_failed++;
 }
 
-iram void dispatch_post_timer(task_command_t command)
+iram void dispatch_post_timer(bool fast)
 {
-	if(system_os_post(timer_task_id, command, 0))
-		stat_task_timer_posted++;
+	if(fast)
+	{
+		if(system_os_post(timer_task_id, timer_task_io_periodic_fast, 0))
+			stat_task_timer_fast_posted++;
+		else
+			stat_task_timer_fast_failed++;
+	}
 	else
-		stat_task_timer_failed++;
+	{
+		if(system_os_post(timer_task_id, timer_task_io_periodic_slow, 0))
+			stat_task_timer_slow_posted++;
+		else
+			stat_task_timer_slow_failed++;
+	}
 }
 
 static void background_task_bridge_uart(void)
@@ -308,7 +318,7 @@ iram static void fast_timer_callback(void *arg)
 	// timer runs every 10 ms = 100 Hz
 
 	stat_fast_timer++;
-	dispatch_post_timer(timer_task_io_periodic_fast);
+	dispatch_post_timer(true);
 }
 
 iram static void slow_timer_callback(void *arg)
@@ -335,7 +345,7 @@ iram static void slow_timer_callback(void *arg)
 	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_command(command_task_fallback_wlan);
 
-	dispatch_post_timer(timer_task_io_periodic_slow);
+	dispatch_post_timer(false);
 }
 
 static void wlan_event_handler(System_Event_t *event)

@@ -19,49 +19,45 @@ typedef struct
 
 extern stat_flags_t stat_flags;
 
-extern int stat_uart0_rx_interrupts;
-extern int stat_uart0_tx_interrupts;
-extern int stat_uart1_tx_interrupts;
-extern int stat_fast_timer;
-extern int stat_slow_timer;
-extern int stat_pwm_cycles;;
-extern int stat_pwm_timer_interrupts;
-extern int stat_pwm_timer_interrupts_while_nmi_masked;
-extern int stat_pc_counts;
-
+extern unsigned int stat_uart0_rx_interrupts;
+extern unsigned int stat_uart0_tx_interrupts;
+extern unsigned int stat_uart1_tx_interrupts;
+extern unsigned int stat_fast_timer;
+extern unsigned int stat_slow_timer;
+extern unsigned int stat_pwm_cycles;;
+extern unsigned int stat_pwm_timer_interrupts;
+extern unsigned int stat_pwm_timer_interrupts_while_nmi_masked;
+extern unsigned int stat_pc_counts;
 extern unsigned int stat_display_init_time_us;
 extern unsigned int stat_io_init_time_us;
-
-extern int stat_cmd_receive_buffer_overflow;
-extern int stat_cmd_send_buffer_overflow;
-extern int stat_uart_receive_buffer_overflow;
-extern int stat_uart_send_buffer_overflow;
-
+extern unsigned int stat_cmd_receive_buffer_overflow;
+extern unsigned int stat_cmd_send_buffer_overflow;
+extern unsigned int stat_uart_receive_buffer_overflow;
+extern unsigned int stat_uart_send_buffer_overflow;
 extern unsigned int stat_lwip_tcp_send_segmentation;
 extern unsigned int stat_lwip_tcp_send_error;
 extern unsigned int stat_lwip_udp_send_error;
-
 extern unsigned int stat_config_read_requests;
 extern unsigned int stat_config_read_loads;
 extern unsigned int stat_config_write_requests;
 extern unsigned int stat_config_write_saved;
 extern unsigned int stat_config_write_aborted;
-
-extern int stat_update_uart;
-extern int stat_update_longop;
-extern int stat_update_command_udp;
-extern int stat_update_command_tcp;
-extern int stat_update_display;
-
-extern unsigned int stat_sntp_received;
-extern unsigned int stat_sntp_poll;
-
+extern unsigned int stat_update_uart;
+extern unsigned int stat_update_longop;
+extern unsigned int stat_update_command_udp;
+extern unsigned int stat_update_command_tcp;
+extern unsigned int stat_update_display;
 extern unsigned int stat_task_uart_posted;
 extern unsigned int stat_task_uart_failed;
 extern unsigned int stat_task_command_posted;
 extern unsigned int stat_task_command_failed;
-extern unsigned int stat_task_timer_posted;
-extern unsigned int stat_task_timer_failed;
+extern unsigned int stat_task_timer_fast_posted;
+extern unsigned int stat_task_timer_fast_failed;
+extern unsigned int stat_task_timer_slow_posted;
+extern unsigned int stat_task_timer_slow_failed;
+
+extern unsigned int stat_sntp_received;
+extern unsigned int stat_sntp_poll;
 
 extern int stat_debug_1;
 extern int stat_debug_2;

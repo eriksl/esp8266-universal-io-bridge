@@ -10,45 +10,39 @@
 
 stat_flags_t stat_flags;
 
-int stat_uart0_rx_interrupts;
-int stat_uart0_tx_interrupts;
-int stat_uart1_tx_interrupts;
-int stat_fast_timer;
-int stat_slow_timer;
-int stat_pwm_cycles;
-int stat_timer_interrupts;
-int stat_pwm_timer_interrupts;
-int stat_pwm_timer_interrupts_while_nmi_masked;
-int stat_pc_counts;
-int stat_cmd_receive_buffer_overflow;
-int stat_cmd_send_buffer_overflow;
-int stat_uart_receive_buffer_overflow;
-int stat_uart_send_buffer_overflow;
-
+unsigned int stat_uart0_rx_interrupts;
+unsigned int stat_uart0_tx_interrupts;
+unsigned int stat_uart1_tx_interrupts;
+unsigned int stat_fast_timer;
+unsigned int stat_slow_timer;
+unsigned int stat_pwm_cycles;
+unsigned int stat_timer_interrupts;
+unsigned int stat_pwm_timer_interrupts;
+unsigned int stat_pwm_timer_interrupts_while_nmi_masked;
+unsigned int stat_pc_counts;
+unsigned int stat_cmd_receive_buffer_overflow;
+unsigned int stat_cmd_send_buffer_overflow;
+unsigned int stat_uart_receive_buffer_overflow;
+unsigned int stat_uart_send_buffer_overflow;
 unsigned int stat_display_init_time_us;
 unsigned int stat_io_init_time_us;
-
-int stat_update_uart;
-int stat_update_command_udp;
-int stat_update_command_tcp;
-int stat_update_display;
-
-unsigned int stat_sntp_received;
-unsigned int stat_sntp_poll;
-
+unsigned int stat_update_uart;
+unsigned int stat_update_command_udp;
+unsigned int stat_update_command_tcp;
+unsigned int stat_update_display;
 unsigned int stat_task_uart_posted;
 unsigned int stat_task_uart_failed;
 unsigned int stat_task_command_posted;
 unsigned int stat_task_command_failed;
-unsigned int stat_task_timer_posted;
-unsigned int stat_task_timer_failed;
-
+unsigned int stat_task_timer_fast_posted;
+unsigned int stat_task_timer_fast_failed;
+unsigned int stat_task_timer_slow_posted;
+unsigned int stat_task_timer_slow_failed;
 unsigned int stat_config_read_requests;
 unsigned int stat_config_read_loads;
 unsigned int stat_config_write_requests;
 unsigned int stat_config_write_saved;
 unsigned int stat_config_write_aborted;
-
 unsigned int stat_lwip_tcp_send_segmentation;
 unsigned int stat_lwip_tcp_send_error;
 unsigned int stat_lwip_udp_send_error;
@@ -59,6 +53,9 @@ unsigned int stat_i2c_bus_locks;
 unsigned int stat_i2c_bus_lock_max_period;
 unsigned int stat_i2c_soft_resets;
 unsigned int stat_i2c_hard_resets;
+
+unsigned int stat_sntp_received;
+unsigned int stat_sntp_poll;
 
 int stat_debug_1;
 int stat_debug_2;
@@ -286,85 +283,84 @@ void stats_time(string_t *dst)
 void stats_counters(string_t *dst)
 {
 	string_format(dst,
-			"> user_pre_init called: %s\n"
-			"> ... success: %s\n"
-			"> int uart0 rx: %d\n"
-			"> ... tx: %d\n"
-			"> int uart1 tx: %d\n"
-			"> fast timer fired: %d\n"
-			"> ... slow: %d\n"
-			"> primary pwm cycles: %d\n"
-			"> ... int fired: %d\n"
-			"> ... while masked: %d\n"
-			"> pc counts: %d\n"
-			"> uart updated: %d\n"
-			"> commands udp processed: %d\n"
-			"> ... tcp: %d\n"
-			"> display updated: %d\n"
-			"> cmd receive buffer overflowed: %d\n"
-			"> ... send buffer: %d\n"
-			"> uart receive buffer overflowed: %d\n"
-			"> ... send buffer: %d\n"
-			"> config read requests: %u\n"
-			"> ... loads: %u\n"
-			"> config write requests: %u\n"
-			"> ... saved: %u\n"
-			"> ... aborted: %u\n"
-			"> lwip tcp send segmentation events: %u\n"
-			"> ... error events: %u\n"
-			"> lwip udp send error events: %u\n"
-			"> task uart posted: %u\n"
-			"> ... failed: %u\n"
-			"> task command posted: %u\n"
-			"> ... failed: %u\n"
-			"> task timer posted: %u\n"
-			"> ... failed: %u\n"
-			"> io init time: %u ms\n"
-			"> ... display: %u ms\n"
-			"> debug 1: 0x%08x %d\n"
-			"> ... 2: 0x%08x %d\n"
-			"> ... 3: 0x%08x %d\n",
-				yesno(stat_flags.user_pre_init_called),
-				yesno(stat_flags.user_pre_init_success),
-				stat_uart0_rx_interrupts,
-				stat_uart0_tx_interrupts,
+			"> INTERRUPTS\n"
+			">   uart0 rx:    %8u, tx: %u\n"
+			">   uart1 tx:    %8u\n"
+			">   nonmaskable: %u, while masked: %u\n",
+				stat_uart0_rx_interrupts, stat_uart0_tx_interrupts,
 				stat_uart1_tx_interrupts,
-				stat_fast_timer,
-				stat_slow_timer,
-				stat_pwm_cycles,
-				stat_pwm_timer_interrupts,
-				stat_pwm_timer_interrupts_while_nmi_masked,
-				stat_pc_counts,
-				stat_update_uart,
-				stat_update_command_udp,
-				stat_update_command_tcp,
-				stat_update_display,
-				stat_cmd_receive_buffer_overflow,
-				stat_cmd_send_buffer_overflow,
-				stat_uart_receive_buffer_overflow,
-				stat_uart_send_buffer_overflow,
+				stat_pwm_timer_interrupts, stat_pwm_timer_interrupts_while_nmi_masked);
+
+	string_format(dst,
+			">\n> TIMERS\n"
+			">   fast: %u, slow: %u\n",
+				stat_fast_timer, stat_slow_timer);
+
+	string_format(dst,
+			">\n> TASKS\n"
+			">  uart posted:       %8u, failed: %u\n"
+			">  command posted:    %8u, failed: %u\n"
+			">  timer fast posted: %8u, failed: %u\n"
+			">  timer slow posted: %8u, failed: %u\n",
+				stat_task_uart_posted, stat_task_uart_failed,
+				stat_task_command_posted, stat_task_command_failed,
+				stat_task_timer_fast_posted, stat_task_timer_fast_failed,
+				stat_task_timer_slow_posted, stat_task_timer_slow_failed);
+
+	string_format(dst,
+			">\n> COMMANDS PROCESSED\n"
+			">  udp: %u, tcp: %u\n",
+				stat_update_command_udp, stat_update_command_tcp);
+
+	string_format(dst,
+			">\n> BUFFER OVERFLOWS\n"
+			">  cmd receive:  %4u, send: %u\n"
+			">  uart receive: %4u, send: %u\n",
+				stat_cmd_receive_buffer_overflow, stat_cmd_send_buffer_overflow,
+				stat_uart_receive_buffer_overflow, stat_uart_send_buffer_overflow);
+
+	string_format(dst,
+			">\n> CONFIG\n"
+			">  read requests: %u\n"
+			">  loads: %u\n"
+			">  write requests: %u, succeeded: %u, aborted: %u\n",
 				stat_config_read_requests,
 				stat_config_read_loads,
-				stat_config_write_requests,
-				stat_config_write_saved,
-				stat_config_write_aborted,
+				stat_config_write_requests, stat_config_write_saved, stat_config_write_aborted);
+
+	string_format(dst,
+			">\n> LWIP\n"
+			">  tcp send segmentation events: %u\n"
+			">  tcp error events: %u\n"
+			">  udp send error events: %u\n",
 				stat_lwip_tcp_send_segmentation,
 				stat_lwip_tcp_send_error,
-				stat_lwip_udp_send_error,
-				stat_task_uart_posted,
-				stat_task_uart_failed,
-				stat_task_command_posted,
-				stat_task_command_failed,
-				stat_task_timer_posted,
-				stat_task_timer_failed,
-				stat_io_init_time_us / 1000,
-				stat_display_init_time_us / 1000,
-				(unsigned int)stat_debug_1,
-				stat_debug_1,
-				(unsigned int)stat_debug_2,
-				stat_debug_2,
-				(unsigned int)stat_debug_3,
-				stat_debug_3);
+				stat_lwip_udp_send_error);
+
+	string_format(dst,
+			">\n> INIT TIME\n"
+			">  io: %u ms, display: %u ms\n",
+				stat_io_init_time_us / 1000, stat_display_init_time_us / 1000);
+
+	string_format(dst,
+			">\n> MISCELLANUOUS\n"
+			">  pin change counts:   %u\n"
+			">  display updated:     %u\n"
+			">  primary PWM cycles:  %u\n"
+			">  uart data processed: %u\n",
+				stat_pc_counts,
+				stat_update_display,
+				stat_pwm_cycles,
+				stat_update_uart);
+
+	string_format(dst,
+			">\n> DEBUG COUNTERS\n"
+			">  1: 0x%08x %d\n"
+			">  2: 0x%08x %d\n"
+			">  3: 0x%08x %d\n",
+				(unsigned int)stat_debug_1, stat_debug_1,
+				(unsigned int)stat_debug_2, stat_debug_2,
+				(unsigned int)stat_debug_3, stat_debug_3);
 }
 
 void stats_i2c(string_t *dst)
