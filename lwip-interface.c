@@ -94,6 +94,7 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	if(socket->receive_buffer_locked)
 	{
 		log("received callback: %s: receive buffer locked\n", tcp ? "tcp" : "udp");
+		pbuf_free(pbuf_received); // still processing previous buffer, drop the received data
 		return;
 	}
 
