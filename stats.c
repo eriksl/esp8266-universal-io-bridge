@@ -24,8 +24,6 @@ unsigned int stat_cmd_receive_buffer_overflow;
 unsigned int stat_cmd_send_buffer_overflow;
 unsigned int stat_uart_receive_buffer_overflow;
 unsigned int stat_uart_send_buffer_overflow;
-unsigned int stat_display_init_time_us;
-unsigned int stat_io_init_time_us;
 unsigned int stat_update_uart;
 unsigned int stat_update_command_udp;
 unsigned int stat_update_command_tcp;
@@ -54,6 +52,10 @@ unsigned int stat_lwip_udp_received_packets;
 unsigned int stat_lwip_udp_received_bytes;
 unsigned int stat_lwip_udp_sent_packets;
 unsigned int stat_lwip_udp_sent_bytes;
+unsigned int stat_init_display_time_us;
+unsigned int stat_init_io_time_us;
+unsigned int stat_init_associate_time_us;
+unsigned int stat_init_ip_time_us;
 
 unsigned int stat_i2c_sda_stucks;
 unsigned int stat_i2c_sda_stuck_max_period;
@@ -359,8 +361,10 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> INIT TIME\n"
-			">  io: %u ms, display: %u ms\n",
-				stat_io_init_time_us / 1000, stat_display_init_time_us / 1000);
+			">  io: %u ms, display: %u ms\n"
+			">  associate: %u ms, obtain ip address: %u ms\n",
+				stat_init_io_time_us / 1000, stat_init_display_time_us / 1000,
+				stat_init_associate_time_us / 1000, stat_init_ip_time_us / 1000);
 
 	string_format(dst,
 			">\n> MISCELLANUOUS\n"

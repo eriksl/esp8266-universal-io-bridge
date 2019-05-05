@@ -1524,7 +1524,7 @@ void io_init(void)
 
 	sequencer_init();
 
-	stat_io_init_time_us = time_get_us() - start;
+	stat_init_io_time_us = time_get_us() - start;
 }
 
 iram void io_periodic_fast(void)

@@ -153,7 +153,7 @@ static void command_task(struct ETSEventTag *event)
 		{
 			uint32_t now = system_get_time();
 			display_init();
-			stat_display_init_time_us = system_get_time() - now;
+			stat_init_display_time_us = system_get_time() - now;
 			break;
 		}
 
@@ -352,8 +352,18 @@ static void wlan_event_handler(System_Event_t *event)
 {
 	switch(event->event)
 	{
+		case(EVENT_STAMODE_CONNECTED):
+		{
+			if(stat_init_associate_time_us == 0)
+				stat_init_associate_time_us = time_get_us();
+
+			break;
+		}
 		case(EVENT_STAMODE_GOT_IP):
 		{
+			if(stat_init_ip_time_us == 0)
+				stat_init_ip_time_us = time_get_us();
+
 			if(!lwip_if_join_mc(239, 255, 255, 254))
 				log("join mc group failed\n");
 
