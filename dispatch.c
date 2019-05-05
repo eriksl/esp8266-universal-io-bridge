@@ -30,7 +30,7 @@ enum
 	uart_task_queue_length			= 3,
 
 	command_task_id					= USER_TASK_PRIO_1,
-	command_task_queue_length		= 12,
+	command_task_queue_length		= 32,
 
 	timer_task_id					= USER_TASK_PRIO_0,
 	timer_task_queue_length			= 2,
