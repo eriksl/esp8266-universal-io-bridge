@@ -4021,6 +4021,9 @@ static i2c_error_t sensor_bmp085_read_temperature(int bus, const i2c_sensor_devi
 	int	x1, x2, b5;
 	unsigned ut = bmp085_calibration_parameters.adc_temperature;
 
+	if((bmp085_calibration_parameters.adc_temperature == 0) || (bmp085_calibration_parameters.adc_pressure == 0))
+		return(i2c_error_device_error_1);
+
 	x1 = ((ut - bmp085_calibration_parameters.ac6) * bmp085_calibration_parameters.ac5) / (1 << 15);
 
 	if((x1 + bmp085_calibration_parameters.md) == 0)
@@ -4042,6 +4045,9 @@ static i2c_error_t sensor_bmp085_read_airpressure(int bus, const i2c_sensor_devi
 	int	p, x1, x2, x3, b3, b5, b6;
 	unsigned int ut = bmp085_calibration_parameters.adc_temperature;
 	int	up = bmp085_calibration_parameters.adc_pressure;
+
+	if((bmp085_calibration_parameters.adc_temperature == 0) || (bmp085_calibration_parameters.adc_pressure == 0))
+		return(i2c_error_device_error_1);
 
 	x1 = ((ut - bmp085_calibration_parameters.ac6) * bmp085_calibration_parameters.ac5) / (1 << 15);
 
