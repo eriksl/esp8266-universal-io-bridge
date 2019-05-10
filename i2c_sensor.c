@@ -3002,8 +3002,11 @@ enum
 	htu21_user_reg_heater_enable =			0b00000100,
 	htu21_user_reg_otp_reload_disable =		0b00000010,
 
+	htu21_status_mask =						0b00000011,
+	htu21_status_measure_temperature =		0b00000000,
+	htu21_status_measure_humidity =			0b00000010,
+
 	htu21_delay_reset =						2,
-	htu21_delay_measurement =				8,
 };
 
 attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
@@ -3028,10 +3031,21 @@ attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-static i2c_error_t sensor_htu21_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static struct
+{
+	struct
+	{
+		unsigned int temperature;
+		unsigned int humidity;
+	} adc;
+} htu21;
+
+static i2c_error_t sensor_htu21_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
+
+	msleep(1);
 
 	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
@@ -3064,72 +3078,83 @@ static i2c_error_t sensor_htu21_humidity_init(int bus, const i2c_sensor_device_t
 	if(i2c_buffer[0] != (htu21_user_reg_rh11_temp11 | htu21_user_reg_otp_reload_disable))
 		return(i2c_error_device_error_1);
 
+	if((error = i2c_send1(entry->address, htu21_cmd_meas_temp_no_hold_master)) != i2c_error_ok)
+		return(error);
+
 	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_htu21_temperature);
+	sensor_register(bus, i2c_sensor_htu21_humidity);
 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_htu21_read(const i2c_sensor_device_table_entry_t *entry, uint8_t command, uint16_t *result, i2c_sensor_device_data_t *data)
+static void sensor_htu21_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
-	uint8_t	i2cbuffer[4];
+	uint8_t	i2c_buffer[4];
 	uint8_t crc1, crc2;
+	unsigned int result;
 
-	if((error = i2c_send1(entry->address, command)) != i2c_error_ok)
-		return(error);
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return;
 
-	msleep(htu21_delay_measurement);
-
-	if((error = i2c_receive(entry->address, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
-		return(error);
-
-	crc1 = i2cbuffer[2];
-	crc2 = htu21_crc(2, &i2cbuffer[0]);
+	crc1 = i2c_buffer[2];
+	crc2 = htu21_crc(2, &i2c_buffer[0]);
 
 	if(crc1 != crc2)
-		return(i2c_error_device_error_1);
+	{
+		log("htu21: crc invalid\n");
+		goto error;
+	}
 
-	*result = (i2cbuffer[0] << 8) | (i2cbuffer[1] << 0);
-	*result &= 0xfffc; // mask out status bits in the 2 LSB
+	result = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+	result &= ~htu21_status_mask;
 
-	return(i2c_error_ok);
+	if(i2c_buffer[1] & (htu21_status_measure_humidity))
+	{
+		htu21.adc.humidity = result;
+		i2c_send1(entry->address, htu21_cmd_meas_temp_no_hold_master);
+	}
+	else
+	{
+		htu21.adc.temperature = result;
+		i2c_send1(entry->address, htu21_cmd_meas_hum_no_hold_master);
+	}
+
+	return;
+
+error:
+	i2c_send1(entry->address, htu21_cmd_meas_temp_no_hold_master);
 }
 
 static i2c_error_t sensor_htu21_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t error;
-	uint16_t result;
+	if(htu21.adc.temperature == 0)
+		return(i2c_error_device_error_1);
 
-	if((error = sensor_htu21_read(entry, htu21_cmd_meas_temp_no_hold_master, &result, data)) != i2c_error_ok)
-		return(error);
-
-	value->raw = result;
-	value->cooked = ((value->raw * 175.72) / 65536) - 46.85;
+	value->raw = htu21.adc.temperature;
+	value->cooked = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_htu21_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t error;
-	uint16_t result;
-	i2c_sensor_value_t temperature;
+	double temperature, humidity;
 
-	if((error = sensor_htu21_temperature_read(bus, entry, &temperature, data)) != i2c_error_ok)
-		return(error);
+	if(htu21.adc.humidity == 0)
+		return(i2c_error_device_error_1);
 
-	if((error = sensor_htu21_read(entry, htu21_cmd_meas_hum_no_hold_master, &result, data)) != i2c_error_ok)
-		return(error);
+	temperature = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
+	humidity = (((htu21.adc.humidity * 125.0) / 65536) - 6) + ((25 - temperature) * -0.10); // FIXME, TempCoeff guessed
 
-	value->raw = ((result * 125.0) / 65536) - 6;
-	value->cooked = value->raw + ((25 - temperature.cooked) * -0.10); // FIXME, TempCoeff guessed
+	if(humidity < 0)
+		humidity = 0;
 
-	if(value->cooked < 0)
-		value->cooked = 0;
+	if(humidity > 100)
+		humidity = 100;
 
-	if(value->cooked > 100)
-		value->cooked = 100;
+	value->raw = htu21.adc.humidity;
+	value->cooked = humidity;
 
 	return(i2c_error_ok);
 }
@@ -4623,17 +4648,17 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_htu21_humidity, 0x40, 2, 0,
-		"htu21", "humidity", "%",
-		sensor_htu21_humidity_init,
-		sensor_htu21_humidity_read,
-		(void *)0,
+		i2c_sensor_htu21_temperature, 0x40, 2, 0,
+		"htu21", "temperature", "C",
+		sensor_htu21_init,
+		sensor_htu21_temperature_read,
+		sensor_htu21_periodic,
 	},
 	{
-		i2c_sensor_htu21_temperature, 0x40, 2, 1,
-		"htu21", "temperature", "C",
+		i2c_sensor_htu21_humidity, 0x40, 2, 1,
+		"htu21", "humidity", "%",
 		(void *)0,
-		sensor_htu21_temperature_read,
+		sensor_htu21_humidity_read,
 		(void *)0,
 	},
 	{
