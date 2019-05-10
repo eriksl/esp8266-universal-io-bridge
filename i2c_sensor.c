@@ -33,6 +33,46 @@ attr_pure bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
 	return(!!(device_data[sensor].registered & (1 << bus)));
 }
 
+static int signed_8(unsigned int lsb)
+{
+	int rv = lsb & 0xff;
+
+	if(rv > (1 << 7))
+		rv = 0 - ((1 << 8) - rv);
+
+	return(rv);
+}
+
+static unsigned int unsigned_8(unsigned int lsb)
+{
+	return(lsb & 0xff);
+}
+
+static unsigned int unsigned_12(unsigned int msb, unsigned int lsb)
+{
+	return(((msb & 0xff) << 4) | ((lsb & 0x0f) << 0));
+}
+
+static int signed_16(unsigned int msb, unsigned int lsb)
+{
+	int rv = ((msb & 0xff) << 8) | (lsb & 0xff);
+
+	if(rv > (1 << 15))
+		rv = 0 - ((1 << 16) - rv);
+
+	return(rv);
+}
+
+static unsigned int unsigned_16(unsigned int msb, unsigned int lsb)
+{
+	return(((msb & 0xff) << 8) | (lsb & 0xff));
+}
+
+static unsigned int unsigned_20(unsigned int msb, unsigned int lsb, unsigned int xlsb)
+{
+	return(((msb & 0xff) << 12) | ((lsb & 0xff) << 4) | (xlsb & 0xff) >> 4);
+}
+
 enum
 {
 	opt3001_reg_result =		0x00,
@@ -3239,46 +3279,6 @@ typedef struct
 } bme680_calibration_parameters_t;
 
 static bme680_calibration_parameters_t bme680_calibration_parameters;
-
-static unsigned int unsigned_20(unsigned int msb, unsigned int lsb, unsigned int xlsb)
-{
-	return(((msb & 0xff) << 12) | ((lsb & 0xff) << 4) | (xlsb & 0xff) >> 4);
-}
-
-static int signed_16(unsigned int msb, unsigned int lsb)
-{
-	int rv = ((msb & 0xff) << 8) | (lsb & 0xff);
-
-	if(rv > (1 << 15))
-		rv = 0 - ((1 << 16) - rv);
-
-	return(rv);
-}
-
-static unsigned int unsigned_16(unsigned int msb, unsigned int lsb)
-{
-	return(((msb & 0xff) << 8) | (lsb & 0xff));
-}
-
-static unsigned int unsigned_12(unsigned int msb, unsigned int lsb)
-{
-	return(((msb & 0xff) << 4) | ((lsb & 0x0f) << 0));
-}
-
-static int signed_8(unsigned int lsb)
-{
-	int rv = lsb & 0xff;
-
-	if(rv > (1 << 7))
-		rv = 0 - ((1 << 8) - rv);
-
-	return(rv);
-}
-
-static unsigned int unsigned_8(unsigned int lsb)
-{
-	return(lsb & 0xff);
-}
 
 static i2c_error_t sensor_bme680_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
