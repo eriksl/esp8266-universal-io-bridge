@@ -20,40 +20,6 @@ string_t logbuffer =
 
 int attr_used __errno;
 
-// functions used in SDK libmain and coming from libc (which we don't use)
-
-#ifdef isxdigit
-undef isxdigit
-#endif
-
-attr_const int isxdigit(int c);
-attr_const int isxdigit(int c)
-{
-	if((c >= '0' && (c <= '9')))
-		return(1);
-
-	if((c >= 'a' && (c <= 'f')))
-		return(1);
-
-	if((c >= 'A' && (c <= 'F')))
-		return(1);
-
-	return(0);
-}
-
-#ifdef isdigit
-undef isdigit
-#endif
-
-attr_const int isdigit(int c);
-attr_const int isdigit(int c)
-{
-	if((c >= '0' && (c <= '9')))
-		return(1);
-
-	return(0);
-}
-
 /* from http://www.leidinger.net/freebsd/dox/libkern/html/d9/dd9/memchr_8c_source.html */
 void *memchr(const void *s, int c, size_t n)
 {
