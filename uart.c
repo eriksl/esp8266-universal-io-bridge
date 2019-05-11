@@ -226,6 +226,9 @@ void uart_task(struct ETSEventTag *event)
 
 void uart_baudrate(unsigned int uart, unsigned int baudrate)
 {
+	if(baudrate == 0)
+		return;
+
 	clear_fifos(uart);
 	write_peri_reg(UART_CLKDIV(uart), UART_CLK_FREQ / baudrate);
 }
