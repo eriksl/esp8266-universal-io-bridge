@@ -20,23 +20,6 @@ string_t logbuffer =
 
 int attr_used __errno;
 
-/* from http://www.leidinger.net/freebsd/dox/libkern/html/d9/dd9/memchr_8c_source.html */
-void *memchr(const void *s, int c, size_t n)
-{
-	if(n != 0)
-	{
-		const unsigned char *p = s;
-
-		do
-		{
-			if(*p++ == (unsigned char)c)
-				return((void *)(uintptr_t)(p - 1));
-		} while (--n != 0);
-	}
-
-	return(0);
-}
-
 void espconn_init(void);
 void espconn_init(void)
 {
