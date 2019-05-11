@@ -1241,11 +1241,7 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 	if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 		int_offset = 0;
 
-	string_format(dst, "> i2c sensor %u/%u calibration set to factor ", bus, sensor);
-	string_double(dst, int_factor / 1000.0, 4, 1e10);
-	string_append(dst, ", offset: ");
-	string_double(dst, int_offset / 1000.0, 4, 1e10);
-	string_append(dst, "\n");
+	string_format(dst, "> i2c sensor %u/%u calibration set to factor %f, offset: %f\n", bus, sensor, int_factor / 1000.0, int_offset / 1000.0);
 
 	return(app_action_normal);
 }

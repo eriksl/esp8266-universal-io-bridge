@@ -109,7 +109,6 @@ attr_nonnull void string_bin_to_hex(string_t *dst, const unsigned char *src, int
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, mac_addr_t);
 //int string_bin(string_t *dst, unsigned int value, int precision, bool add_prefix);
-attr_nonnull int string_double(string_t *dst, double value, int precision, double top_decimal);
 
 #define string_new(_attributes, _name, _size) \
 	_attributes char _ ## _name ## _buf[_size] = { 0 }; \

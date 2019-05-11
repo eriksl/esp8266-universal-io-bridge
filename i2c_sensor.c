@@ -5020,28 +5020,12 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
 
 		if(html)
-		{
-			string_append(dst, "<td align=\"right\">");
-			string_double(dst, extracooked, entry->precision, 1e10);
-			string_append(dst, " ");
-			string_format(dst, "%s", entry->unity);
-		}
+			string_format(dst, "<td align=\"right\">%.*f %s", (int)entry->precision, extracooked, entry->unity);
 		else
-		{
-			string_append(dst, "[");
-			string_double(dst, extracooked, entry->precision, 1e10);
-			string_append(dst, "]");
-			string_format(dst, " %s", entry->unity);
-		}
+			string_format(dst, "[%.*f] %s", (int)entry->precision, extracooked, entry->unity);
 
 		if(verbose)
-		{
-			string_append(dst, " (uncalibrated: ");
-			string_double(dst, value.cooked, entry->precision, 1e10);
-			string_append(dst, ", raw: ");
-			string_double(dst, value.raw, 0, 1e10);
-			string_append(dst, ")");
-		}
+			string_format(dst, " (uncalibrated: %.*f, raw: %.*f)", (int)entry->precision, value.cooked, (int)entry->precision, value.raw);
 	}
 	else
 	{
@@ -5062,10 +5046,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 		if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 			int_offset = 0;
 
-		string_append(dst, ", calibration: factor=");
-		string_double(dst, int_factor / 1000.0, 4, 1e10);
-		string_append(dst, ", offset=");
-		string_double(dst, int_offset / 1000.0, 4, 1e10);
+		string_format(dst, ", calibration: factor = %4f, offset = %4f", int_factor / 1000.0, int_offset / 1000.0);
 	}
 
 	i2c_select_bus(0);
