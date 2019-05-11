@@ -1,4 +1,5 @@
 #include "util.h"
+#include "sys_string.h"
 #include "application.h"
 #include "stats.h"
 #include "config.h"

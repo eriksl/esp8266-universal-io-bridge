@@ -1,6 +1,7 @@
 #include "io_ledpixel.h"
 #include "i2c.h"
 #include "util.h"
+#include "sys_string.h"
 #include "uart.h"
 #include "io_gpio.h"
 

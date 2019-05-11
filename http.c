@@ -1,5 +1,6 @@
 #include "http.h"
 #include "util.h"
+#include "sys_string.h"
 #include "config.h"
 #include "io.h"
 #include "stats.h"

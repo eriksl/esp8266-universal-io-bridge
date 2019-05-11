@@ -1,6 +1,7 @@
 #include "dispatch.h"
 
 #include "util.h"
+#include "sys_string.h"
 #include "application.h"
 #include "io.h"
 #include "stats.h"

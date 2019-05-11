@@ -2,6 +2,7 @@
 
 #include "attribute.h"
 #include "util.h"
+#include "sys_string.h"
 #include "stats.h"
 #include "sdk.h"
 

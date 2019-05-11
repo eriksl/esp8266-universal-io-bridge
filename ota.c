@@ -1,5 +1,6 @@
 #include "ota.h"
 #include "util.h"
+#include "sys_string.h"
 #include "config.h"
 #include "dispatch.h"
 #include "rboot-interface.h"

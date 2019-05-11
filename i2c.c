@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "util.h"
+#include "sys_string.h"
 #include "io_gpio.h"
 #include "attribute.h"
 #include "stats.h"

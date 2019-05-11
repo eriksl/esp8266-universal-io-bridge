@@ -1,6 +1,7 @@
 #include "io_pcf.h"
 #include "i2c.h"
 #include "util.h"
+#include "sys_string.h"
 
 #include <stdlib.h>
 

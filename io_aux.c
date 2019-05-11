@@ -2,6 +2,7 @@
 
 #include "io_gpio.h"
 #include "util.h"
+#include "sys_string.h"
 
 #include <stdlib.h>
 
