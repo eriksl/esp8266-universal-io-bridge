@@ -211,27 +211,12 @@ void msleep(int msec)
 attr_pure ip_addr_t ip_addr(const char *src)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
-	int ix, current;
 
-	current = 0;
-
-	for(ix = 0; ix < 4; )
-	{
-		if(src && (*src >= '0') && (*src <= '9'))
-		{
-			current *= 10;
-			current += *src - '0';
-			src++;
-
-			continue;
-		}
-
-		ip_addr_to_bytes.byte[ix++] = current;
-		current = 0;
-
-		if(src && (*src == '.'))
-			src++;
-	}
+	sscanf(src, "%3hhu.%3hhu.%3hhu.%3hhu",
+			&ip_addr_to_bytes.byte[0],
+			&ip_addr_to_bytes.byte[1],
+			&ip_addr_to_bytes.byte[2],
+			&ip_addr_to_bytes.byte[3]);
 
 	return(ip_addr_to_bytes.ip_addr);
 }
