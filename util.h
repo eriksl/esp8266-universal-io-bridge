@@ -288,23 +288,9 @@ attr_inline attr_nonnull void string_copy_string(string_t *dst, const string_t *
 }
 
 attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
-attr_nonnull parse_error_t parse_int_all(int index, const string_t *src, unsigned int *dst, int base, char delim, bool do_signed);
 attr_nonnull parse_error_t parse_float(int index, const string_t *, double *, char delim);
-
-attr_inline attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter)
-{
-	return(parse_int_all(index, src, dst, base, delimiter, false));
-}
-
-attr_inline attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter)
-{
-	parse_error_t error;
-	unsigned int value;
-
-	error = parse_int_all(index, src, &value, base, delimiter, true);
-	*dst = (int)value;
-	return(error);
-}
+attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter);
+attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter);
 
 // logging
 

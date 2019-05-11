@@ -243,83 +243,44 @@ parse_error_t parse_string(int index, const string_t *src, string_t *dst, char d
 	return(parse_ok);
 }
 
-parse_error_t parse_int_all(int index, const string_t *src, unsigned int *dst, int base, char delimiter, bool do_signed)
+attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter)
 {
-	bool valid, negative;
-	uint32_t value;
 	int offset;
-	char current;
-
-	negative = false;
-	value = 0;
-	valid = false;
+	unsigned int rv;
+	const char *nptr;
+	char *endptr;
 
 	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
-	if(base == 0)
-	{
-		if(((offset + 1) < src->length) &&
-				(string_at(src, offset) == '0') &&
-				(string_at(src, offset + 1) == 'x'))
-		{
-			base = 16;
-			offset += 2;
-		}
-		else
-			base = 10;
-	}
+	nptr = string_buffer(src) + offset;
+	rv = strtoul(nptr, &endptr, base);
 
-	if((offset < src->length) && (base == 10))
-	{
-		if(string_at(src, offset) == '-')
-		{
-			negative = true;
-			offset++;
-		}
-
-		if(string_at(src, offset) == '+')
-			offset++;
-	}
-
-	for(; offset < src->length; offset++)
-	{
-		current = string_at(src, offset);
-
-		if((current >= 'A') && (current <= 'Z'))
-			current |= 0x20;
-
-		if((current >= '0') && (current <= '9'))
-		{
-			value *= base;
-			value += current - '0';
-		}
-		else
-		{
-			if((base > 10) && (current >= 'a') && (current <= ('a' + base - 11)))
-			{
-				value *= base;
-				value += current - 'a' + 10;
-			}
-			else
-			{
-				if((current != '\0') && (current != delimiter) && (current != '\n') && (current != '\r'))
-					valid = false;
-
-				break;
-			}
-		}
-
-		valid = true;
-	}
-
-	if(!valid)
+	if(nptr == endptr)
 		return(parse_invalid);
 
-	if(do_signed && negative)
-		*dst = 0 - value;
-	else
-		*dst = value;
+	*dst = rv;
+
+	return(parse_ok);
+}
+
+attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter)
+{
+	int offset;
+	int rv;
+	const char *nptr;
+	char *endptr;
+
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
+		return(parse_out_of_range);
+
+	nptr = string_buffer(src) + offset;
+	rv = strtol(nptr, &endptr, base);
+
+	if(nptr == endptr)
+		return(parse_invalid);
+
+	*dst = rv;
 
 	return(parse_ok);
 }
