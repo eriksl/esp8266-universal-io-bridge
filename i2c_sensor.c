@@ -5005,9 +5005,9 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 	error = i2c_error_ok;
 
 	if(html)
-		string_format(dst, "%d</td><td align=\"right\">%u</td><td align=\"right\">0x%02lx</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%d</td><td align=\"right\">%u</td><td align=\"right\">0x%02x</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
 	else
-		string_format(dst, "%s sensor %u/%02u@%02lx: %s, %s: ", device_data[sensor].registered ? "+" : " ", (unsigned int)bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].registered ? "+" : " ", (unsigned int)bus, sensor, entry->address, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value, &device_data[current])) == i2c_error_ok)
 	{

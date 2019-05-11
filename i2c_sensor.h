@@ -126,8 +126,8 @@ enum
 typedef struct i2c_sensor_device_table_entry_T
 {
 	attr_flash_align	i2c_sensor_t id;
-	attr_flash_align	uint32_t address;
-	attr_flash_align	uint32_t precision;
+	attr_flash_align	unsigned int address;
+	attr_flash_align	unsigned int precision;
 	attr_flash_align	uint32_t flags;
 	attr_flash_align	const char *name;
 	attr_flash_align	const char *type;
