@@ -237,69 +237,20 @@ attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, i
 parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter)
 {
 	int offset;
-	int decimal;
-	bool negative;
-	bool valid;
-	double result;
-	char current;
-
-	valid = false;
-	negative = false;
-	offset = 0;
-	result = 0;
-	decimal = 0;
+	double rv;
+	const char *nptr;
+	char *endptr;
 
 	if((offset = string_sep(src, 0, index, delimiter)) < 0)
 		return(parse_out_of_range);
 
-	if((offset < src->length) && (string_at(src, offset) == '-'))
-	{
-		negative = true;
-		offset++;
-	}
+	nptr = string_buffer(src) + offset;
+	rv = strtod(nptr, &endptr);
 
-	for(; offset < src->length; offset++)
-	{
-		current = string_at(src, offset);
-
-		if((current == '.') || (current == ','))
-		{
-			if(decimal == 0)
-				decimal = 1;
-			else
-				break;
-		}
-		else
-		{
-			if((current < '0') || (current > '9'))
-			{
-				break;
-			}
-			else
-			{
-				valid = true;
-
-				if(decimal > 0)
-				{
-					decimal *= 10;
-					result += (double)(current - '0') / (double)decimal;
-				}
-				else
-				{
-					result *= 10;
-					result += (double)(current - '0');
-				}
-			}
-		}
-	}
-
-	if(!valid)
+	if(nptr == endptr)
 		return(parse_invalid);
 
-	if(negative)
-		*dst = 0 - result;
-	else
-		*dst = result;
+	*dst = rv;
 
 	return(parse_ok);
 }
