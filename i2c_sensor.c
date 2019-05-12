@@ -4291,13 +4291,16 @@ static i2c_error_t sensor_hih6130_humidity_read(int bus, const i2c_sensor_device
 	return(sensor_hih6130_read(bus, entry, value, hih6130_action_humidity, data));
 }
 
-static i2c_error_t sensor_digipicco_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_digipicco_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
-	uint8_t	i2cbuffer[4] = { 0, 0, 0, 0 };
+	uint8_t	i2cbuffer[4];
 
 	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
+
+	sensor_register(bus, entry->id);
+	sensor_register(bus, i2c_sensor_digipicco_humidity);
 
 	return(i2c_error_ok);
 }
@@ -4767,17 +4770,17 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_digipicco_humidity, 0x78, 0, 0,
-		"digipicco", "humidity", "%",
-		sensor_digipicco_humidity_init,
-		sensor_digipicco_humidity_read,
+		i2c_sensor_digipicco_temperature, 0x78, 2, 0,
+		"digipicco", "temperature", "C",
+		sensor_digipicco_init,
+		sensor_digipicco_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_digipicco_temperature, 0x78, 2, 1,
-		"digipicco", "temperature", "C",
+		i2c_sensor_digipicco_humidity, 0x78, 0, 1,
+		"digipicco", "humidity", "%",
 		(void *)0,
-		sensor_digipicco_temperature_read,
+		sensor_digipicco_humidity_read,
 		(void *)0,
 	},
 };
