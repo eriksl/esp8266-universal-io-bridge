@@ -9,6 +9,7 @@
 #include "stats.h"
 #include "config.h"
 #include "sys_time.h"
+#include "sys_string.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -420,7 +421,7 @@ static void display_expire(void) // called one time per second
 	{
 		display_slot[0].timeout = 1;
 		strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
-		
+
 		if(!config_get_string("display.defaultmsg", &default_message, -1, -1))
 		{
 			string_clear(&default_message);
@@ -497,7 +498,9 @@ void display_init(void)
 static void display_dump(string_t *dst)
 {
 	display_info_t *display_info_entry;
-	int slot;
+	int slot, ix;
+	char current;
+	unsigned int newlines_pending;
 
 	if(!display_detected())
 	{
@@ -511,9 +514,33 @@ static void display_dump(string_t *dst)
 			display_info_entry->name, display_info_entry->type);
 
 	for(slot = 0; slot < display_slot_amount; slot++)
-		string_format(dst, ">> %c slot %d: timeout %d, tag: \"%s\", text: \"%s\"\n",
-				slot == display_data.current_slot ? '+' : ' ',
-				slot, display_slot[slot].timeout, display_slot[slot].tag, display_slot[slot].content);
+	{
+		string_format(dst, "\n> %c slot %d: timeout %d, tag: \"%s\"",
+				slot == display_data.current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag);
+
+		for(ix = 0, newlines_pending = 1; ix < display_slot_content_size; ix++)
+		{
+			if(!(current = display_slot[slot].content[ix]))
+				break;
+
+			if(current == '\n')
+			{
+				newlines_pending++;
+				continue;
+			}
+
+			if(newlines_pending > 0)
+			{
+				string_append_chars(dst, '\n', newlines_pending);
+				string_format(dst, "    ");
+				newlines_pending = 0;
+			}
+
+			string_append_char(dst, current);
+		}
+
+		string_append(dst, "\n");
+	}
 }
 
 app_action_t application_function_display_dump(string_t *src, string_t *dst)

@@ -203,6 +203,12 @@ attr_inline attr_nonnull void string_append_char(string_t *dst, char c)
 	dst->buffer[dst->length] = '\0';
 }
 
+attr_inline attr_nonnull void string_append_chars(string_t *dst, char c, unsigned int amount)
+{
+	while(amount-- > 0)
+		string_append_char(dst, c);
+}
+
 attr_inline attr_nonnull void string_append_byte(string_t *dst, uint8_t c)
 {
 	if(dst->length < dst->size)
