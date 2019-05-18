@@ -241,15 +241,16 @@ bool display_lcd_set(const char *tag, const char *text)
 
 bool display_lcd_show(void)
 {
-	static const uint8_t offset[4][2] =
+	static const uint8_t offsets[4] =
 	{
-		{ 0,  0 },
-		{ 0,  64 },
-		{ 20,  0 },
-		{ 20, 64 }
+		0	+	0,
+		0	+	64,
+		20	+	0,
+		20	+	64
 	};
 
-	int x, y;
+	unsigned int offset, x, last_x, y;
+	char current;
 
 	if(!inited)
 		return(false);
@@ -261,12 +262,27 @@ bool display_lcd_show(void)
 	if(y >= display_common_buffer_rows)
 		return(false);
 
-	if(!send_byte(0x80 + offset[y][0] + offset[y][1], false))
+	offset = 0x80 | offsets[y];
+
+	if(!send_byte(offset, false))
 		return(false);
 
 	for(x = 0; x < display_common_buffer_columns; x++)
-		if(!send_byte(display_common_buffer[y][x], true))
+	{
+		current = display_common_buffer[y][x];
+		last_x = x;
+
+		if(!send_byte(current, true))
 			return(false);
+	}
+
+	// work around bug in some LCD's that need last column to be sent twice
+
+	if(!send_byte(offset + last_x, false))
+		return(false);
+
+	if(!send_byte(current, true))
+		return(false);
 
 	display_common_row_status.row[y].dirty = 0;
 
