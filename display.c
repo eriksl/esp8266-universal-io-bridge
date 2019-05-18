@@ -678,8 +678,8 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 
 app_action_t application_function_display_set(string_t *src, string_t *dst)
 {
-	int slot, timeout, current;
-	const char *text;
+	int slot, timeout, from, to;
+	char current;
 
 	if(!display_detected())
 	{
@@ -696,21 +696,10 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	text = src->buffer;
-
-	for(current = 4; current > 0; text++)
-	{
-		if(*text == '\0')
-			break;
-
-		if(*text == ' ')
-			current--;
-	}
-
-	if(current > 0)
+	if((from = string_sep(src, 0, 4, ' ')) < 0)
 	{
 		string_clear(dst);
-		string_append(dst, "display-set: usage: slot timeout tag TEXT\n");
+		string_append(dst, "display-set: missing text; usage: slot timeout tag text\n");
 		return(app_action_error);
 	}
 
@@ -734,7 +723,22 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	}
 
 	strecpy(display_slot[slot].tag, string_to_cstr(dst), display_slot_tag_size);
-	strecpy(display_slot[slot].content, text, display_slot_content_size);
+
+	for(to = 0; (to + 1) < display_slot_content_size; from++)
+	{
+		if(!(current = string_at(src, from)))
+			break;
+
+		if((current == '\\') && (string_length(src) > from) && (string_at(src, from + 1) == 'n'))
+		{
+			from++;
+			current = '\n';
+		}
+
+		display_slot[slot].content[to++] = current;
+	}
+
+	display_slot[slot].content[to] = '\0';
 	display_slot[slot].timeout = timeout;
 
 	display_update(false);
