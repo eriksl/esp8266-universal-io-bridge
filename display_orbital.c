@@ -19,7 +19,7 @@ bool display_orbital_init(void)
 	{
 		if(i2c_send1(0x28, 0x21) == i2c_error_ok)
 			break;
-		msleep(10);
+		msleep(20);
 	}
 
 	if(ix == 0)
