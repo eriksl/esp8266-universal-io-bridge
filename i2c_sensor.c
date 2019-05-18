@@ -2617,9 +2617,16 @@ enum
 	sht30_status_hum_track_alert =	(1 << 11),
 	sht30_status_heater =			(1 << 13),
 	sht30_status_alert =			(1 << 15),
-
-	sht30_inter_access_delay = 500,
 };
+
+static struct
+{
+	struct
+	{
+		unsigned int temperature;
+		unsigned int humidity;
+	} adc;
+} sht30;
 
 attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
 {
@@ -2643,7 +2650,7 @@ attr_pure static uint8_t sht30_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *result1, int *result2)
+static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, unsigned int *result1, unsigned int *result2)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[8];	// 2 + 3 + 3
@@ -2652,14 +2659,14 @@ static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *resu
 	i2c_buffer[0] = (cmd & 0xff00) >> 8;
 	i2c_buffer[1] = (cmd & 0x00ff) >> 0;
 
-	os_delay_us(sht30_inter_access_delay);
+	msleep(1);
 
 	if((error = i2c_send(address, 2, &i2c_buffer[0])) != i2c_error_ok)
 		return(error);
 
 	if(result1)
 	{
-		os_delay_us(sht30_inter_access_delay);
+		msleep(1);
 
 		if((error = i2c_receive(address, result2 ? 6 : 3, &i2c_buffer[2])) != i2c_error_ok)
 			return(error);
@@ -2670,7 +2677,7 @@ static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *resu
 		if(crc_local != crc_remote)
 			return(i2c_error_device_error_1);
 
-		*result1 = (i2c_buffer[2] << 8) | i2c_buffer[3];
+		*result1 = unsigned_16(i2c_buffer[2], i2c_buffer[3]);
 
 		if(result2)
 		{
@@ -2678,18 +2685,18 @@ static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, int *resu
 			crc_remote = sht30_crc(2, &i2c_buffer[5]);
 
 			if(crc_local != crc_remote)
-				return(error);
+				return(i2c_error_device_error_2);
 
-			*result2 = (i2c_buffer[5] << 8) | i2c_buffer[6];
+			*result2 = unsigned_16(i2c_buffer[5], i2c_buffer[6]);
 		}
 	}
 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_sht30_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_sht30_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
-	int result;
+	unsigned int result;
 	i2c_error_t error;
 
 	if((error = sht30_register_access(entry->address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
@@ -2707,74 +2714,61 @@ static i2c_error_t sensor_sht30_humidity_init(int bus, const i2c_sensor_device_t
 	if((error = sht30_register_access(entry->address, sht30_cmd_clear_status, 0, 0)) != i2c_error_ok)
 		return(error);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_auto_meas_high_1, 0, 0)) != i2c_error_ok)
-		return(error);
-
 	if((error = sht30_register_access(entry->address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
 		return(error);
 
 	if((result & (sht30_status_write_checksum | sht30_status_command_status | sht30_status_reset_detected)) != 0x00)
 		return(i2c_error_device_error_2);
 
+	if((error = sht30_register_access(entry->address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
+		return(error);
+
 	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_sht30_temperature);
+	sensor_register(bus, i2c_sensor_sht30_humidity);
 
 	return(i2c_error_ok);
 }
 
-static i2c_sensor_value_t sht30_humidity_cache = { -1, -1 };
-static i2c_sensor_value_t sht30_temperature_cache = { 0, 0 };
-
-static i2c_error_t sht30_read(int address, i2c_sensor_value_t *value_humidity, i2c_sensor_value_t *value_temperature)
+static void sensor_sht30_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t error;
-	int result1, result2;
+	unsigned int result[2];
 
-	if((error = sht30_register_access(address, sht30_cmd_fetch_data, &result1, &result2)) != i2c_error_ok)
-	{
-		if(sht30_humidity_cache.raw < 0)
-		{
-			if(value_temperature)
-				value_temperature->raw = value_temperature->cooked = 0;
+	if(sht30_register_access(entry->address, sht30_cmd_fetch_data, &result[0], &result[1]))
+		return;
 
-			if(value_humidity)
-				value_humidity->raw = value_humidity->cooked = -1;
+	sht30.adc.temperature = result[0];
+	sht30.adc.humidity = result[1];
 
-			return(i2c_error_device_error_1);
-		}
-
-		if(value_temperature)
-			*value_temperature = sht30_temperature_cache;
-
-		if(value_humidity)
-			*value_humidity = sht30_humidity_cache;
-
-		return(i2c_error_ok);
-	}
-
-	sht30_temperature_cache.raw = result1;
-	sht30_temperature_cache.cooked = ((sht30_temperature_cache.raw * 175) / ((1 << 16) - 1)) - 45;
-
-	sht30_humidity_cache.raw = result2;
-	sht30_humidity_cache.cooked = (sht30_humidity_cache.raw * 100) / ((1 << 16) - 1);
-
-	if(value_temperature)
-		*value_temperature = sht30_temperature_cache;
-
-	if(value_humidity)
-		*value_humidity = sht30_humidity_cache;
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_sht30_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	return(sht30_read(entry->address, value, (i2c_sensor_value_t *)0));
+	sht30_register_access(entry->address, sht30_cmd_single_meas_noclock_high, 0, 0);
 }
 
 static i2c_error_t sensor_sht30_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	return(sht30_read(entry->address, (i2c_sensor_value_t *)0, value));
+	if((sht30.adc.temperature == 0) && (sht30.adc.humidity == 0))
+	{
+		value->raw = value->cooked = -1;
+		return(i2c_error_device_error_1);
+	}
+
+	value->raw = sht30.adc.temperature;
+	value->cooked = ((value->raw * 175) / ((1 << 16) - 1)) - 45;
+
+	return(i2c_error_ok);
+
+}
+
+static i2c_error_t sensor_sht30_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	if((sht30.adc.temperature == 0) && (sht30.adc.humidity == 0))
+	{
+		value->raw = value->cooked = -1;
+		return(i2c_error_device_error_1);
+	}
+
+	value->raw = sht30.adc.humidity;
+	value->cooked = (value->raw * 100) / ((1 << 16) - 1);
+
+	return(i2c_error_ok);
 }
 
 enum
@@ -4623,17 +4617,17 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_sht30_humidity, 0x44, 0, 0,
-		"sht30", "humidity", "",
-		sensor_sht30_humidity_init,
-		sensor_sht30_humidity_read,
-		(void *)0,
+		i2c_sensor_sht30_temperature, 0x44, 2, 0,
+		"sht30", "temperature", "C",
+		sensor_sht30_init,
+		sensor_sht30_temperature_read,
+		sensor_sht30_periodic,
 	},
 	{
-		i2c_sensor_sht30_temperature, 0x44, 2, 1,
-		"sht30", "temperature", "C",
+		i2c_sensor_sht30_humidity, 0x44, 0, 1,
+		"sht30", "humidity", "%",
 		(void *)0,
-		sensor_sht30_temperature_read,
+		sensor_sht30_humidity_read,
 		(void *)0,
 	},
 	{
