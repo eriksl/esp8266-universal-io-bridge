@@ -1206,32 +1206,32 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 		int_factor = (int)(factor * 1000.0);
 		int_offset = (int)(offset * 1000.0);
 
-		if(!config_open_write() ||
-				!config_delete("i2s.%u.%u.", true, bus, sensor) ||
-				!config_close_write())
+		if(!config_open_write())
 		{
 			config_abort_write();
-			string_append(dst, "cannot delete old factor values\n");
+			string_append(dst, "cannot open config for writing\n");
 			return(app_action_error);
 		}
 
-		if((int_factor != 1000) &&
-				(!config_open_write() ||
-				 !config_set_int("i2s.%u.%u.factor", int_factor, bus, sensor) ||
-				 !config_close_write()))
+		config_delete("i2s.%u.%u.", true, bus, sensor);
+
+		if((int_factor != 1000) && !config_set_int("i2s.%u.%u.factor", int_factor, bus, sensor))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set factor\n");
 			return(app_action_error);
 		}
 
-		if((int_offset != 0) &&
-				(!config_open_write() ||
-				 !config_set_int("i2s.%u.%u.offset", int_offset, bus, sensor) ||
-				 !config_close_write()))
+		if((int_offset != 0) && !config_set_int("i2s.%u.%u.offset", int_offset, bus, sensor))
 		{
 			config_abort_write();
 			string_append(dst, "> cannot set offset\n");
+			return(app_action_error);
+		}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "> cannot write config\n");
 			return(app_action_error);
 		}
 	}
