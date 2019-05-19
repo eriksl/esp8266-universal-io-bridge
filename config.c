@@ -421,7 +421,7 @@ bool config_dump(string_t *dst)
 		string_format(dst, "%s=%s", string_to_cstr(&name), string_to_cstr(&value));
 
 		if((parse_int(0, &value, &int_value, 0, 0) == parse_ok) && parse_uint(0, &value, &uint_value, 0, 0) == parse_ok)
-			string_format(dst, " (%d/%u/0x%x)", int_value, uint_value, uint_value);
+			string_format(dst, " (%d/%u/%#x)", int_value, uint_value, uint_value);
 
 		string_append(dst, "\n");
 
