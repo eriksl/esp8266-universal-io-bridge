@@ -2,6 +2,7 @@
 #include "attribute.h"
 
 #include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -349,6 +350,15 @@ attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, i
 
 	if(nptr == endptr)
 		return(parse_invalid);
+
+	if(rv == LONG_MAX)
+	{
+		nptr = string_buffer(src) + offset;
+		rv = (int)strtoul(nptr, &endptr, base);
+
+		if(nptr == endptr)
+			return(parse_invalid);
+	}
 
 	*dst = rv;
 
