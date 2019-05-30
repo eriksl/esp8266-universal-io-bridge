@@ -32,22 +32,6 @@ assert_size(io_uart_t, 4);
 
 enum
 {
-	gpio_pdm_source =	1 << 0,
-	gpio_open_drain =	1 << 2,
-} gpio_pin_output_mode;
-
-enum
-{
-	gpio_pdm_reg =				0x60000368,
-	gpio_pdm_enable =			1 << 16,
-	gpio_pdm_prescale_shift =	8,
-	gpio_pdm_prescale_mask =	0xff,
-	gpio_pdm_target_shift =		0,
-	gpio_pdm_target_mask =		0xff,
-} gpio_pdm;
-
-enum
-{
 	gi_valid = 1 << 0,
 };
 

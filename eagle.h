@@ -98,6 +98,22 @@ enum
 
 enum
 {
+	gpio_pdm_source =	1 << 0,
+	gpio_open_drain =	1 << 2,
+};
+
+enum
+{
+	gpio_pdm_reg =				0x60000368,
+	gpio_pdm_enable =			1 << 16,
+	gpio_pdm_prescale_shift =	8,
+	gpio_pdm_prescale_mask =	0xff,
+	gpio_pdm_target_shift =		0,
+	gpio_pdm_target_mask =		0xff,
+};
+
+enum
+{
 	INT_NMI_INT_ENT =	0x3ff00000,
 	INT_ENABLE_REG =	0x3ff00004,
 	INT_ENABLE_WDOG =	1 << 0,
