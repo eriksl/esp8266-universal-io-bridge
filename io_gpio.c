@@ -74,7 +74,6 @@ typedef union
 
 	struct
 	{
-		int pwm_this;
 		int pwm_next;
 		unsigned int pwm_duty;
 	} pwm;
@@ -596,7 +595,6 @@ iram static void pwm_go(void)
 		if((pin1_info->flags & gi_valid) &&
 				(pin1_config->llmode == io_pin_ll_output_pwm1))
 		{
-			pin1_data->pwm.pwm_this = pin1;
 			pin1_data->pwm.pwm_next = -1;
 
 			if(pin1_data->pwm.pwm_duty >= pwm1_period())
