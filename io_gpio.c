@@ -13,6 +13,7 @@ enum
 {
 	io_gpio_pin_size = 16,
 	io_gpio_pwm_max_channels = 4,
+	io_gpio_rotary_encoder_timeout = 2,
 };
 
 typedef enum
@@ -53,7 +54,8 @@ typedef union
 	struct
 	{
 		unsigned int counter;
-		unsigned int debounce;
+		unsigned int debounce:16;
+		unsigned int timeout:16;
 	} counter;
 
 	struct
@@ -62,6 +64,8 @@ typedef union
 		unsigned int pwm_duty;
 	} pwm;
 } gpio_data_pin_t;
+
+assert_size(gpio_data_pin_t, 8);
 
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
@@ -797,38 +801,73 @@ iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_d
 	gpio_pc_pins_current = gpio_get_all();
 
 	if(first_call)
-		first_call = false;
-	else
 	{
-		for(pin = 0; pin < io_gpio_pin_size; pin++)
-		{
-			io_config_pin_entry_t *pin_config = &io_config[io][pin];
-
-			if(pin_config->llmode == io_pin_ll_counter)
-			{
-				gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
-
-				if(gpio_pin_data->counter.debounce == 0)
-				{
-					if((gpio_pc_pins_previous & (1 << pin)) && !(gpio_pc_pins_current & (1 << pin)))
-					{
-						gpio_pin_data->counter.counter++;
-						gpio_pin_data->counter.debounce = pin_config->speed;
-						flags->counter_triggered = 1;
-						stat_pc_counts++;
-					}
-				}
-				else
-				{
-					if(gpio_pin_data->counter.debounce >= ms_per_fast_tick)
-						gpio_pin_data->counter.debounce -= ms_per_fast_tick;
-					else
-						gpio_pin_data->counter.debounce = 0;
-				}
-			}
-		}
+		first_call = false;
+		goto end;
 	}
 
+	for(pin = 0; pin < io_gpio_pin_size; pin++)
+	{
+		io_config_pin_entry_t *pin_config = &io_config[io][pin];
+
+		if(pin_config->llmode != io_pin_ll_counter)
+			continue;
+
+		gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
+
+		if((pin_config->mode == io_pin_rotary_encoder) && (gpio_pin_data->counter.timeout > 0))
+			gpio_pin_data->counter.timeout--;
+
+		if(gpio_pin_data->counter.debounce > 0)
+		{
+			if(gpio_pin_data->counter.debounce >= ms_per_fast_tick)
+				gpio_pin_data->counter.debounce -= ms_per_fast_tick;
+			else
+				gpio_pin_data->counter.debounce = 0;
+
+			continue;
+		}
+
+		if(!(gpio_pc_pins_previous & (1 << pin)) || (gpio_pc_pins_current & (1 << pin)))
+			continue;
+
+		stat_pc_counts++;
+		flags->counter_triggered = 1;
+		gpio_pin_data->counter.debounce = pin_config->speed;
+
+		if(pin_config->mode != io_pin_rotary_encoder)
+		{
+			gpio_pin_data->counter.counter++;
+			continue;
+		}
+
+		unsigned int partner_pin = pin_config->shared.renc.partner;
+
+		if(partner_pin >= io_gpio_pin_size)
+			continue;
+
+		gpio_data_pin_t *gpio_partner_pin_data = &gpio_data[partner_pin];
+		gpio_pin_data->counter.timeout = io_gpio_rotary_encoder_timeout;
+
+		if(gpio_partner_pin_data->counter.timeout == 0)
+			continue;
+
+		if((pin_config->shared.renc.pin_type == io_renc_1a) || (pin_config->shared.renc.pin_type == io_renc_2a))
+		{
+			gpio_pin_data->counter.counter++;
+			gpio_partner_pin_data->counter.counter++;
+		}
+		else
+		{
+			gpio_pin_data->counter.counter--;
+			gpio_partner_pin_data->counter.counter--;
+		}
+
+		gpio_pin_data->counter.timeout = 0;
+		gpio_partner_pin_data->counter.timeout = 0;
+	}
+
+end:
 	gpio_pc_pins_previous = gpio_pc_pins_current;
 }
 
@@ -981,8 +1020,8 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 		{
 			case(io_pin_ll_counter):
 			{
-				string_format(dst, "current state: %s, debounce delay: %u",
-						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce);
+				string_format(dst, "current state: %s, debounce delay: %u/%u",
+						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce, gpio_pin_data->counter.timeout);
 
 				break;
 			}

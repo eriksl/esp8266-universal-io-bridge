@@ -54,7 +54,8 @@ roflash static const io_info_t io_info =
 			caps_i2c |
 			caps_uart |
 			caps_ledpixel |
-			caps_pullup,
+			caps_pullup |
+			caps_rotary_encoder,
 		"Internal GPIO",
 		io_gpio_init,
 		(void *)0, // postinit
@@ -217,6 +218,7 @@ roflash static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_ledpixel,			"ledpixel",		"ledpixel control"		},
 	{ io_pin_cfa634,			"cfa634",		"crystalfontz cfa634"	},
 	{ io_pin_output_pwm2,		"pwm2",			"secondary pwm output"	},
+	{ io_pin_rotary_encoder,	"renc",			"rotary encoder input"	},
 };
 
 static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -339,6 +341,56 @@ static void io_string_from_i2c_type(string_t *name, io_i2c_t type)
 		case(io_i2c_scl): { string_append(name, "scl"); break; }
 		default: { string_append(name, "error"); break; }
 	}
+}
+
+typedef struct
+{
+	io_renc_pin_t	mode;
+	const char		*name;
+} io_renc_pin_trait_t;
+
+static io_renc_pin_trait_t io_renc_pin_traits[io_renc_size] =
+{
+	{ io_renc_unset,	"unset"	},
+	{ io_renc_1a,		"1a"	},
+	{ io_renc_1b,		"1b"	},
+	{ io_renc_2a,		"2a"	},
+	{ io_renc_2b,		"2b"	},
+};
+
+static io_renc_pin_t io_renc_pin_from_string(const string_t *src)
+{
+	unsigned int ix;
+	const io_renc_pin_trait_t *entry;
+
+	for(ix = 0; ix < io_renc_size; ix++)
+	{
+		entry = &io_renc_pin_traits[ix];
+
+		if(string_match_cstr(src, entry->name))
+			return(entry->mode);
+	}
+
+	return(io_renc_error);
+}
+
+static void io_string_from_renc_pin(string_t *name, io_renc_pin_t mode)
+{
+	unsigned int ix;
+	const io_renc_pin_trait_t *entry;
+
+	for(ix = 0; ix < io_renc_size; ix++)
+	{
+		entry = &io_renc_pin_traits[ix];
+
+		if(entry->mode == mode)
+		{
+			string_format(name, "%s", entry->name);
+			return;
+		}
+	}
+
+	string_append(name, "error");
 }
 
 typedef struct
@@ -958,7 +1010,8 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
 		string_append(error_msg, "\n");
 	else
-		if((pin_config->mode == io_pin_counter) && (pin_config->flags & io_flag_reset_on_read))
+		if((pin_config->flags & io_flag_reset_on_read) &&
+				((pin_config->mode == io_pin_counter) || (pin_config->mode == io_pin_rotary_encoder)))
 			error = io_write_pin_x(error_msg, info, pin_data, pin_config, pin, 0);
 
 	return(error);
@@ -1197,6 +1250,40 @@ void io_init(void)
 					}
 
 					pin_config->speed = debounce;
+
+					break;
+				}
+
+				case(io_pin_rotary_encoder):
+				{
+					unsigned int debounce, pin_type;
+
+					if(!config_get_uint("io.%u.%u.renc.debounce", &debounce, io, pin) || !config_get_uint("io.%u.%u.renc.pintype", &pin_type, io, pin))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					if((pin_type == io_renc_1b) || (pin_type == io_renc_2b))
+					{
+						unsigned int partner_pin;
+						io_renc_pin_t partner_pin_type = (pin_type == io_renc_1b) ? io_renc_1a : io_renc_2a;
+
+						for(partner_pin = 0; partner_pin < pin; partner_pin++)
+							if((io_config[io][partner_pin].mode == io_pin_rotary_encoder) &&
+									(io_config[io][partner_pin].shared.renc.pin_type == partner_pin_type))
+								break;
+
+						if(partner_pin < pin)
+						{
+							io_config[io][partner_pin].shared.renc.partner = pin;
+							pin_config->shared.renc.partner = partner_pin;
+						}
+					}
+
+					pin_config->speed = debounce;
+					pin_config->shared.renc.pin_type = pin_type;
 
 					break;
 				}
@@ -1778,6 +1865,68 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 			break;
 		}
 
+		case(io_pin_rotary_encoder):
+		{
+			io_renc_pin_t pin_type;
+
+			if(!(info->caps & caps_rotary_encoder))
+			{
+				string_append(dst, "rotary encoder mode invalid for this io\n");
+				goto renc_error1;
+			}
+
+			if(parse_string(4, src, dst, ' ') != parse_ok)
+				goto renc_error;
+
+			if((pin_type = io_renc_pin_from_string(dst)) == io_renc_error)
+				goto renc_error;
+
+			string_clear(dst);
+
+			unsigned int debounce;
+
+			if((parse_uint(5, src, &debounce, 0, ' ') != parse_ok))
+				goto renc_error;
+
+			if((pin_type == io_renc_1b) || (pin_type == io_renc_2b))
+			{
+				unsigned int partner_pin;
+				io_renc_pin_t partner_pin_type = (pin_type == io_renc_1b) ? io_renc_1a : io_renc_2a;
+
+				for(partner_pin = 0; partner_pin < pin; partner_pin++)
+					if((io_config[io][partner_pin].mode == io_pin_rotary_encoder) &&
+							(io_config[io][partner_pin].shared.renc.pin_type == partner_pin_type))
+						break;
+
+				if(partner_pin >= pin)
+				{
+					string_append(dst, "rotary encoder: no matching 'a' pin for 'b' pin on this io\n");
+					goto renc_error1;
+				}
+
+				io_config[io][partner_pin].shared.renc.partner = pin;
+				pin_config->shared.renc.partner = partner_pin;
+			}
+
+			pin_config->shared.renc.pin_type = pin_type;
+			pin_config->speed = debounce;
+			llmode = io_pin_ll_counter;
+
+			config_delete("io.%u.%u.", true, io, pin);
+			config_set_int("io.%u.%u.mode", mode, io, pin);
+			config_set_int("io.%u.%u.llmode", io_pin_ll_counter, io, pin);
+			config_set_int("io.%u.%u.renc.debounce", debounce, io, pin);
+			config_set_int("io.%u.%u.renc.pintype", pin_type, io, pin);
+
+			break;
+renc_error:
+			string_clear(dst);
+			string_append(dst, "rotary encoder: <pin mode> <debounce_ms>, <pin mode>=1a|1b|2a|2b\n");
+renc_error1:
+			config_abort_write();
+			return(app_action_error);
+		}
+
 		case(io_pin_trigger):
 		{
 			unsigned int debounce;
@@ -2316,6 +2465,12 @@ app_action_t application_function_io_read(string_t *src, string_t *dst)
 		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
 	}
 
+	if(pin_config->mode == io_pin_rotary_encoder)
+	{
+		string_append(dst, "/");
+		io_string_from_renc_pin(dst, pin_config->shared.renc.pin_type);
+	}
+
 	string_append(dst, ": ");
 
 	if(io_read_pin(dst, io, pin, &value) != io_ok)
@@ -2598,6 +2753,8 @@ typedef enum
 	ds_id_disabled,
 	ds_id_input,
 	ds_id_counter,
+	ds_id_rotary_encoder_1,
+	ds_id_rotary_encoder_2,
 	ds_id_trigger_1,
 	ds_id_trigger_2,
 	ds_id_trigger_3,
@@ -2648,6 +2805,8 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_disabled */		"",
 		/* ds_id_input */			"state: %s",
 		/* ds_id_counter */			"counter: %d, debounce: %d",
+		/* ds_id_rotary_encoder_1 */"pin ",
+		/* ds_id_rotary_encoder_2 */", counter: %d, debounce: %d, partner pin: %u",
 		/* ds_id_trigger_1 */		"trigger, counter: %d, debounce: %d\n",
 		/* ds_id_trigger_2 */		"             action #%d: io: %d, pin: %d, action: ",
 		/* ds_id_trigger_3 */		"",
@@ -2686,6 +2845,8 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_disabled */		"<td></td>",
 		/* ds_id_input */			"<td>state: %s</td>",
 		/* ds_id_counter */			"<td><td>counter: %d</td><td>debounce: %d</td>",
+		/* ds_id_rotary_encoder_1 */"<td>pin ",
+		/* ds_id_rotary_encoder_2 */", counter: %d, debounce: %d, partner pin: %u</td>",
 		/* ds_id_trigger_1 */		"<td>counter: %d, debounce: %d, ",
 		/* ds_id_trigger_2 */		"action: #%d, io: %d, pin: %d, trigger action: ",
 		/* ds_id_trigger_3 */		"</td>",
@@ -2774,6 +2935,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			{
 				case(io_pin_input_digital):
 				case(io_pin_counter):
+				case(io_pin_rotary_encoder):
 				case(io_pin_output_digital):
 				case(io_pin_timer):
 				case(io_pin_input_analog):
@@ -2818,6 +2980,20 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				{
 					if(error == io_ok)
 						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_counter], value, pin_config->speed);
+					else
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
+
+					break;
+				}
+
+				case(io_pin_rotary_encoder):
+				{
+					if(error == io_ok)
+					{
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_rotary_encoder_1]);
+						io_string_from_renc_pin(dst, pin_config->shared.renc.pin_type);
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_rotary_encoder_2], value, pin_config->speed, pin_config->shared.renc.partner);
+					}
 					else
 						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 

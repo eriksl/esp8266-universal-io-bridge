@@ -87,6 +87,7 @@ typedef enum
 	io_pin_ledpixel,
 	io_pin_cfa634,
 	io_pin_output_pwm2,
+	io_pin_rotary_encoder,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -165,6 +166,19 @@ assert_size(io_lcd_mode_t, 4);
 
 typedef enum
 {
+	io_renc_unset = 0,
+	io_renc_1a,
+	io_renc_1b,
+	io_renc_2a,
+	io_renc_2b,
+	io_renc_error,
+	io_renc_size = io_renc_error,
+} io_renc_pin_t;
+
+assert_size(io_renc_pin_t, 4);
+
+typedef enum
+{
 	caps_input_digital =	1 << 0,
 	caps_counter =			1 << 1,
 	caps_output_digital =	1 << 2,
@@ -175,6 +189,7 @@ typedef enum
 	caps_ledpixel =			1 << 7,
 	caps_uart =				1 << 8,
 	caps_pullup =			1 << 9,
+	caps_rotary_encoder =	1 << 10,
 } io_caps_t;
 
 assert_size(io_caps_t, 4);
@@ -230,6 +245,12 @@ typedef struct attr_packed
 		{
 			io_lcd_mode_t pin_use:4;
 		} lcd;
+
+		struct attr_packed
+		{
+			io_renc_pin_t	pin_type:3;
+			unsigned int	partner:4;
+		} renc;
 
 		struct attr_packed
 		{
