@@ -29,12 +29,11 @@ unsigned int stat_update_uart;
 unsigned int stat_update_command_udp;
 unsigned int stat_update_command_tcp;
 unsigned int stat_update_display;
-unsigned int stat_task_uart_posted;
-unsigned int stat_task_uart_failed;
-unsigned int stat_task_command_posted;
-unsigned int stat_task_command_failed;
-unsigned int stat_task_io_posted;
-unsigned int stat_task_io_failed;
+unsigned int stat_task_posted[3];
+unsigned int stat_task_executed[3];
+unsigned int stat_task_post_failed[3];
+unsigned int stat_task_current_queue[3];
+unsigned int stat_task_max_queue[3];
 unsigned int stat_config_read_requests;
 unsigned int stat_config_read_loads;
 unsigned int stat_config_write_requests;
@@ -306,13 +305,14 @@ void stats_counters(string_t *dst)
 				stat_fast_timer, stat_slow_timer);
 
 	string_format(dst,
-			">\n> TASKS\n"
-			">  uart posted:       %8u, failed: %u\n"
-			">  command posted:    %8u, failed: %u\n"
-			">  io posted:         %8u, failed: %u\n",
-				stat_task_uart_posted, stat_task_uart_failed,
-				stat_task_command_posted, stat_task_command_failed,
-				stat_task_io_posted, stat_task_io_failed);
+			">\n> TASKS\n");
+
+	unsigned int prio;
+
+	for(prio = 0; prio < 3; prio++)
+		string_format(dst,
+			">  prio %u posted: %8u, post failed: %3u, executed: %8u, max queue size: %u\n",
+				prio, stat_task_posted[prio], stat_task_post_failed[prio], stat_task_executed[prio], stat_task_max_queue[prio]);
 
 	string_format(dst,
 			">\n> COMMANDS PROCESSED\n"

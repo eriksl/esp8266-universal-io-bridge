@@ -27,19 +27,10 @@ _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) !=
 
 enum
 {
-	uart_task_id					= USER_TASK_PRIO_2,
-	uart_task_queue_length			= 32,
-
-	command_task_id					= USER_TASK_PRIO_1,
-	command_task_queue_length		= 32,
-
-	io_task_id						= USER_TASK_PRIO_0,
-	io_task_queue_length			= 2,
+	task_queue_length = 8,
 };
 
-static os_event_t uart_task_queue[uart_task_queue_length];
-static os_event_t command_task_queue[command_task_queue_length];
-static os_event_t io_task_queue[io_task_queue_length];
+static os_event_t task_queue[3][task_queue_length];
 
 flash_sector_buffer_use_t flash_sector_buffer_use;
 string_new(attr_flash_align, flash_sector_buffer, 4096);
@@ -66,30 +57,6 @@ typedef struct
 static trigger_t trigger_alert = { -1, -1 };
 static trigger_t assoc_alert = { -1, -1 };
 
-iram void dispatch_post_uart(task_command_t command)
-{
-	if(system_os_post(uart_task_id, command, 0))
-		stat_task_uart_posted++;
-	else
-		stat_task_uart_failed++;
-}
-
-iram void dispatch_post_command(task_command_t command)
-{
-	if(system_os_post(command_task_id, command, 0))
-		stat_task_command_posted++;
-	else
-		stat_task_command_failed++;
-}
-
-iram void dispatch_post_io(task_command_t command)
-{
-	if(system_os_post(command_task_id, command, 0))
-		stat_task_io_posted++;
-	else
-		stat_task_io_failed++;
-}
-
 static void background_task_bridge_uart(void)
 {
 	if(uart_empty(0) || lwip_if_send_buffer_locked(&uart_socket))
@@ -110,37 +77,61 @@ static void background_task_bridge_uart(void)
 	}
 }
 
-static void command_task(struct ETSEventTag *event)
+iram static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)
 {
-	switch(event->sig)
+	stat_task_executed[prio]++;
+
+	if(stat_task_current_queue[prio] > 0)
+		stat_task_current_queue[prio]--;
+	else
+		log("task queue %u underrun\n", prio);
+
+	switch(command)
 	{
-		case(command_task_reset):
+		case(task_invalid):
+		{
+			break;
+		}
+
+		case(task_uart_fetch_fifo):
+		{
+			uart_task_handler_fetch_fifo();
+			break;
+		}
+
+		case(task_uart_fill_fifo):
+		{
+			uart_task_handler_fill_fifo(argument);
+			break;
+		}
+
+		case(task_reset):
 		{
 			reset();
 			break;
 		}
 
-		case(command_task_uart_bridge):
+		case(task_uart_bridge):
 		{
 			background_task_bridge_uart();
 			stat_update_uart++;
 			break;
 		}
 
-		case(command_task_init_i2c_sensors):
+		case(task_init_i2c_sensors):
 		{
 			if(i2c_sensors_init())
-				dispatch_post_command(command_task_init_i2c_sensors);
+				dispatch_post_task(2, task_init_i2c_sensors, 0);
 			break;
 		}
 
-		case(command_task_periodic_i2c_sensors):
+		case(task_periodic_i2c_sensors):
 		{
 			i2c_sensors_periodic();
 			break;
 		}
 
-		case(command_task_init_displays):
+		case(task_init_displays):
 		{
 			uint32_t now = system_get_time();
 			display_init();
@@ -148,7 +139,7 @@ static void command_task(struct ETSEventTag *event)
 			break;
 		}
 
-		case(command_task_received_command):
+		case(task_received_command):
 		{
 			app_action_t action;
 
@@ -210,22 +201,22 @@ static void command_task(struct ETSEventTag *event)
 
 			if(action == app_action_reset)
 				if(!lwip_if_reboot(&command_socket))
-					dispatch_post_command(command_task_reset);
+					dispatch_post_task(0, task_reset, 0);
 
 			break;
 		}
 
-		case(command_task_display_update):
+		case(task_display_update):
 		{
 			stat_update_display++;
 
 			if(display_periodic())
-				dispatch_post_command(command_task_display_update);
+				dispatch_post_task(2, task_display_update, 0);
 
 			break;
 		}
 
-		case(command_task_fallback_wlan):
+		case(task_fallback_wlan):
 		{
 			config_wlan_mode_t wlan_mode;
 			unsigned int wlan_mode_int;
@@ -248,19 +239,27 @@ static void command_task(struct ETSEventTag *event)
 			break;
 		}
 
-		case(command_task_update_time):
+		case(task_update_time):
 		{
 			time_periodic();
 			break;
 		}
 
-		case(command_task_run_sequencer):
+		case(task_run_sequencer):
 		{
 			sequencer_run();
 			break;
 		}
 
-		case(command_task_alert_association):
+		case(task_alert_pin_changed):
+		{
+			if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
+				io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
+
+			break;
+		}
+
+		case(task_alert_association):
 		{
 			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
 				io_trigger_pin((string_t *)0, assoc_alert.io, assoc_alert.pin, io_trigger_on);
@@ -268,29 +267,45 @@ static void command_task(struct ETSEventTag *event)
 			break;
 		}
 
-		case(command_task_alert_disassociation):
+		case(task_alert_disassociation):
 		{
 			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
 				io_trigger_pin((string_t *)0, assoc_alert.io, assoc_alert.pin, io_trigger_off);
 
 			break;
 		}
-
-		case(command_task_alert_status):
-		{
-			if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
-				io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
-
-			break;
-		}
 	}
 }
 
-iram static void io_task(struct ETSEventTag *event)
+iram static void user_task_prio_2_handler(struct ETSEventTag *event)
 {
-	switch(event->sig)
+	generic_task_handler(0, (task_id_t)event->sig, event->par);
+}
+
+iram static void user_task_prio_1_handler(struct ETSEventTag *event)
+{
+	generic_task_handler(1, (task_id_t)event->sig, event->par);
+}
+
+iram static void user_task_prio_0_handler(struct ETSEventTag *event)
+{
+	generic_task_handler(2, (task_id_t)event->sig, event->par);
+}
+
+iram void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argument)
+{
+	static roflash const unsigned int sdk_task_id[3] = { USER_TASK_PRIO_2, USER_TASK_PRIO_1, USER_TASK_PRIO_0 };
+
+	if(system_os_post(sdk_task_id[prio], command, argument))
 	{
+		stat_task_posted[prio]++;
+		stat_task_current_queue[prio]++;
+
+		if(stat_task_current_queue[prio] > stat_task_max_queue[prio])
+			stat_task_max_queue[prio] = stat_task_current_queue[prio];
 	}
+	else
+		stat_task_post_failed[prio]++;
 }
 
 iram static void fast_timer_callback(void *arg)
@@ -310,21 +325,21 @@ iram static void slow_timer_callback(void *arg)
 
 	stat_slow_timer++;
 
-	dispatch_post_command(command_task_update_time);
+	dispatch_post_task(1, task_update_time, 0);
 
 	if(uart_bridge_active)
-		dispatch_post_command(command_task_uart_bridge);
+		dispatch_post_task(0, task_uart_bridge, 0);
 
 	if(display_detected())
-		dispatch_post_command(command_task_display_update);
+		dispatch_post_task(2, task_display_update, 0);
 
 	for(ix = 5; ix > 0; ix--)
-		dispatch_post_command(command_task_periodic_i2c_sensors);
+		dispatch_post_task(2, task_periodic_i2c_sensors, 0);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
 	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
-		dispatch_post_command(command_task_fallback_wlan);
+		dispatch_post_task(1, task_fallback_wlan, 0);
 
 	io_periodic_slow();
 	os_timer_arm(&slow_timer, 100, 0);
@@ -355,8 +370,8 @@ static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
-			dispatch_post_command(command_task_alert_association);
-			dispatch_post_command(command_task_init_i2c_sensors);
+			dispatch_post_task(2, task_alert_association, 0);
+			dispatch_post_task(2, task_init_i2c_sensors, 0);
 			break;
 		}
 
@@ -366,7 +381,7 @@ static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
-			dispatch_post_command(command_task_alert_disassociation);
+			dispatch_post_task(2, task_alert_disassociation, 0);
 			break;
 		}
 	}
@@ -394,7 +409,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 	}
 
 	if((command_left_to_read == 0) && (string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket)))
-		dispatch_post_command(command_task_received_command);
+		dispatch_post_task(1, task_received_command, 0);
 	else
 		lwip_if_receive_buffer_unlock(&command_socket);
 }
@@ -453,9 +468,9 @@ void dispatch_init1(void)
 {
 	flash_sector_buffer_use = fsb_free;
 
-	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
-	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
-	system_os_task(io_task, io_task_id, io_task_queue, io_task_queue_length);
+	system_os_task(user_task_prio_0_handler, USER_TASK_PRIO_0, task_queue[0], task_queue_length);
+	system_os_task(user_task_prio_1_handler, USER_TASK_PRIO_1, task_queue[1], task_queue_length);
+	system_os_task(user_task_prio_2_handler, USER_TASK_PRIO_2, task_queue[2], task_queue_length);
 }
 
 void dispatch_init2(void)
@@ -502,5 +517,5 @@ void dispatch_init2(void)
 	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
 	os_timer_arm(&fast_timer, 10, 0);
 
-	dispatch_post_command(command_task_init_displays);
+	dispatch_post_task(2, task_init_displays, 0);
 }

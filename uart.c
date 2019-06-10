@@ -115,21 +115,21 @@ iram static void uart_callback(void *p)
 	{
 		stat_uart0_rx_interrupts++;
 		enable_receive_int(0, false); // disable input info data available interrupts while the fifo is not empty
-		dispatch_post_uart(uart_task_fetch_fifo);
+		dispatch_post_task(0, task_uart_fetch_fifo, 0);
 	}
 
 	if(uart0_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart0
 	{
 		stat_uart0_tx_interrupts++;
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_uart(uart_task_fill0_fifo);
+		dispatch_post_task(0, task_uart_fill_fifo, 0);
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
 		stat_uart1_tx_interrupts++;
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_uart(uart_task_fill1_fifo);
+		dispatch_post_task(0, task_uart_fill_fifo, 1);
 	}
 
 	// acknowledge all uart interrupts
@@ -196,32 +196,17 @@ iram void uart_clear_receive_queue(unsigned int uart)
 	queue_flush(&uart_receive_queue);
 }
 
-void uart_task(struct ETSEventTag *event)
+void uart_task_handler_fetch_fifo(void)
 {
-	switch(event->sig)
-	{
-		case(uart_task_fetch_fifo):
-		{
-			fetch_queue(0);
+	fetch_queue(0);
 
-			if(uart_bridge_active)
-				dispatch_post_command(command_task_uart_bridge);
+	if(uart_bridge_active)
+		dispatch_post_task(0, task_uart_bridge, 0);
+}
 
-			break;
-		}
-
-		case(uart_task_fill0_fifo):
-		{
-			fill_queue(0);
-			break;
-		}
-
-		case(uart_task_fill1_fifo):
-		{
-			fill_queue(1);
-			break;
-		}
-	}
+void uart_task_handler_fill_fifo(unsigned int uart)
+{
+	fill_queue(uart);
 }
 
 void uart_baudrate(unsigned int uart, unsigned int baudrate)

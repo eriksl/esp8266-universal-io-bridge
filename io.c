@@ -1693,7 +1693,7 @@ iram void io_periodic_fast(void)
 	}
 
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		dispatch_post_command(command_task_run_sequencer);
+		dispatch_post_command(command_task_run_sequencer, 0);
 
 	if(flags.counter_triggered)
 		dispatch_post_command(command_task_alert_status);

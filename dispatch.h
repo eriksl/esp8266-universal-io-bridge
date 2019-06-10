@@ -5,26 +5,23 @@
 
 typedef enum
 {
-	uart_task_invalid,
-	uart_task_fetch_fifo,
-	uart_task_fill0_fifo,
-	uart_task_fill1_fifo,
-	command_task_reset,
-	command_task_uart_bridge,
-	command_task_init_i2c_sensors,
-	command_task_periodic_i2c_sensors,
-	command_task_init_displays,
-	command_task_received_command,
-	command_task_display_update,
-	command_task_fallback_wlan,
-	command_task_update_time,
-	command_task_run_sequencer,
-	command_task_alert_association,
-	command_task_alert_disassociation,
-	command_task_alert_status,
-	io_task_periodic_slow,
-	io_task_periodic_fast,
-} task_command_t;
+	task_invalid,
+	task_uart_fetch_fifo,
+	task_uart_fill_fifo,
+	task_uart_bridge,
+	task_alert_pin_changed,
+	task_alert_association,
+	task_alert_disassociation,
+	task_reset,
+	task_run_sequencer,
+	task_init_i2c_sensors,
+	task_periodic_i2c_sensors,
+	task_init_displays,
+	task_received_command,
+	task_display_update,
+	task_fallback_wlan,
+	task_update_time,
+} task_id_t;
 
 typedef enum
 {
@@ -44,7 +41,5 @@ extern	flash_sector_buffer_use_t	flash_sector_buffer_use;
 
 void	dispatch_init1(void);
 void	dispatch_init2(void);
-void	dispatch_post_uart(task_command_t);
-void	dispatch_post_command(task_command_t);
-void	dispatch_post_io(task_command_t);
+void	dispatch_post_task(unsigned int prio, task_id_t, unsigned int argument);
 #endif
