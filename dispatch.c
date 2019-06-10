@@ -33,13 +33,13 @@ enum
 	command_task_id					= USER_TASK_PRIO_1,
 	command_task_queue_length		= 32,
 
-	timer_task_id					= USER_TASK_PRIO_0,
-	timer_task_queue_length			= 2,
+	io_task_id						= USER_TASK_PRIO_0,
+	io_task_queue_length			= 2,
 };
 
 static os_event_t uart_task_queue[uart_task_queue_length];
 static os_event_t command_task_queue[command_task_queue_length];
-static os_event_t timer_task_queue[timer_task_queue_length];
+static os_event_t io_task_queue[io_task_queue_length];
 
 flash_sector_buffer_use_t flash_sector_buffer_use;
 string_new(attr_flash_align, flash_sector_buffer, 4096);
@@ -82,22 +82,12 @@ iram void dispatch_post_command(task_command_t command)
 		stat_task_command_failed++;
 }
 
-iram void dispatch_post_timer(bool fast)
+iram void dispatch_post_io(task_command_t command)
 {
-	if(fast)
-	{
-		if(system_os_post(timer_task_id, timer_task_io_periodic_fast, 0))
-			stat_task_timer_fast_posted++;
-		else
-			stat_task_timer_fast_failed++;
-	}
+	if(system_os_post(command_task_id, command, 0))
+		stat_task_io_posted++;
 	else
-	{
-		if(system_os_post(timer_task_id, timer_task_io_periodic_slow, 0))
-			stat_task_timer_slow_posted++;
-		else
-			stat_task_timer_slow_failed++;
-	}
+		stat_task_io_failed++;
 }
 
 static void background_task_bridge_uart(void)
@@ -296,21 +286,10 @@ static void command_task(struct ETSEventTag *event)
 	}
 }
 
-iram static void timer_task(struct ETSEventTag *event)
+iram static void io_task(struct ETSEventTag *event)
 {
 	switch(event->sig)
 	{
-		case(timer_task_io_periodic_fast):
-		{
-			io_periodic_fast();
-			break;
-		}
-
-		case(timer_task_io_periodic_slow):
-		{
-			io_periodic_slow();
-			break;
-		}
 	}
 }
 
@@ -319,7 +298,8 @@ iram static void fast_timer_callback(void *arg)
 	// timer runs every 10 ms = 100 Hz
 
 	stat_fast_timer++;
-	dispatch_post_timer(true);
+	io_periodic_fast();
+	os_timer_arm(&fast_timer, 10, 0);
 }
 
 iram static void slow_timer_callback(void *arg)
@@ -346,7 +326,8 @@ iram static void slow_timer_callback(void *arg)
 	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_command(command_task_fallback_wlan);
 
-	dispatch_post_timer(false);
+	io_periodic_slow();
+	os_timer_arm(&slow_timer, 100, 0);
 }
 
 static void wlan_event_handler(System_Event_t *event)
@@ -474,7 +455,7 @@ void dispatch_init1(void)
 
 	system_os_task(uart_task, uart_task_id, uart_task_queue, uart_task_queue_length);
 	system_os_task(command_task, command_task_id, command_task_queue, command_task_queue_length);
-	system_os_task(timer_task, timer_task_id, timer_task_queue, timer_task_queue_length);
+	system_os_task(io_task, io_task_id, io_task_queue, io_task_queue_length);
 }
 
 void dispatch_init2(void)
@@ -516,10 +497,10 @@ void dispatch_init2(void)
 	}
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
-	os_timer_arm(&slow_timer, 100, 1); // slow system timer / 10 Hz / 100 ms
+	os_timer_arm(&slow_timer, 100, 0);
 
 	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
-	os_timer_arm(&fast_timer, 10, 1); // fast system timer / 100 Hz / 10 ms
+	os_timer_arm(&fast_timer, 10, 0);
 
 	dispatch_post_command(command_task_init_displays);
 }

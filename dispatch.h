@@ -22,8 +22,8 @@ typedef enum
 	command_task_alert_association,
 	command_task_alert_disassociation,
 	command_task_alert_status,
-	timer_task_io_periodic_slow,
-	timer_task_io_periodic_fast,
+	io_task_periodic_slow,
+	io_task_periodic_fast,
 } task_command_t;
 
 typedef enum
@@ -46,5 +46,5 @@ void	dispatch_init1(void);
 void	dispatch_init2(void);
 void	dispatch_post_uart(task_command_t);
 void	dispatch_post_command(task_command_t);
-void	dispatch_post_timer(bool);
+void	dispatch_post_io(task_command_t);
 #endif

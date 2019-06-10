@@ -33,10 +33,8 @@ unsigned int stat_task_uart_posted;
 unsigned int stat_task_uart_failed;
 unsigned int stat_task_command_posted;
 unsigned int stat_task_command_failed;
-unsigned int stat_task_timer_fast_posted;
-unsigned int stat_task_timer_fast_failed;
-unsigned int stat_task_timer_slow_posted;
-unsigned int stat_task_timer_slow_failed;
+unsigned int stat_task_io_posted;
+unsigned int stat_task_io_failed;
 unsigned int stat_config_read_requests;
 unsigned int stat_config_read_loads;
 unsigned int stat_config_write_requests;
@@ -311,12 +309,10 @@ void stats_counters(string_t *dst)
 			">\n> TASKS\n"
 			">  uart posted:       %8u, failed: %u\n"
 			">  command posted:    %8u, failed: %u\n"
-			">  timer fast posted: %8u, failed: %u\n"
-			">  timer slow posted: %8u, failed: %u\n",
+			">  io posted:         %8u, failed: %u\n",
 				stat_task_uart_posted, stat_task_uart_failed,
 				stat_task_command_posted, stat_task_command_failed,
-				stat_task_timer_fast_posted, stat_task_timer_fast_failed,
-				stat_task_timer_slow_posted, stat_task_timer_slow_failed);
+				stat_task_io_posted, stat_task_io_failed);
 
 	string_format(dst,
 			">\n> COMMANDS PROCESSED\n"
