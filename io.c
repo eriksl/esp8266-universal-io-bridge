@@ -1127,7 +1127,6 @@ io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_p
 	{
 		case(io_pin_disabled):
 		case(io_pin_error):
-		case(io_pin_trigger):
 		{
 			if(errormsg)
 				string_append(errormsg, "pin disabled");
