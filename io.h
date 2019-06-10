@@ -196,13 +196,6 @@ assert_size(io_caps_t, 4);
 
 typedef struct attr_packed
 {
-	unsigned int counter_triggered:1;
-} io_flags_t;
-
-assert_size(io_flags_t, 1);
-
-typedef struct attr_packed
-{
 	unsigned int	saved_value;
 	unsigned int	speed:22;
 	io_direction_t	direction:2;
@@ -273,8 +266,8 @@ typedef const struct io_info_entry_T
 	attr_flash_align	io_error_t	(* const init_fn)			(					const struct io_info_entry_T *);
 	attr_flash_align	void		(* const post_init_fn)		(					const struct io_info_entry_T *);
 	attr_flash_align	unsigned int(* const pin_max_value_fn)	(					const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
-	attr_flash_align	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
-	attr_flash_align	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, io_flags_t *);
+	attr_flash_align	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *);
+	attr_flash_align	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *);
 	attr_flash_align	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	attr_flash_align	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	attr_flash_align	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);

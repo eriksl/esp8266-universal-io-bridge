@@ -2,6 +2,7 @@
 
 #include "stats.h"
 #include "util.h"
+#include "dispatch.h"
 #include "sys_string.h"
 #include "eagle.h"
 

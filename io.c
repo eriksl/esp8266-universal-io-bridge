@@ -1622,7 +1622,6 @@ iram void io_periodic_fast(void)
 	io_data_pin_entry_t *pin_data;
 	unsigned int io, pin, trigger;
 	unsigned int value;
-	io_flags_t flags = { .counter_triggered = 0 };
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -1633,7 +1632,7 @@ iram void io_periodic_fast(void)
 			continue;
 
 		if(info->periodic_fast_fn)
-			info->periodic_fast_fn(io, info, data, &flags);
+			info->periodic_fast_fn(io, info, data);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -1692,10 +1691,7 @@ iram void io_periodic_fast(void)
 	}
 
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		dispatch_post_command(command_task_run_sequencer, 0);
-
-	if(flags.counter_triggered)
-		dispatch_post_command(command_task_alert_status);
+		dispatch_post_task(1, task_run_sequencer, 0);
 }
 
 void io_periodic_slow(void)
@@ -1705,7 +1701,6 @@ void io_periodic_slow(void)
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
 	unsigned int io, pin;
-	io_flags_t flags = { .counter_triggered = 0 };
 	static bool post_init_run = false;
 
 	for(io = 0; io < io_id_size; io++)
@@ -1720,7 +1715,7 @@ void io_periodic_slow(void)
 			info->post_init_fn(info);
 
 		if(info->periodic_slow_fn)
-			info->periodic_slow_fn(io, info, data, &flags);
+			info->periodic_slow_fn(io, info, data);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -1736,9 +1731,6 @@ void io_periodic_slow(void)
 	}
 
 	post_init_run = true;
-
-	if(flags.counter_triggered)
-		dispatch_post_command(command_task_alert_status);
 }
 
 /* app commands */

@@ -1,5 +1,6 @@
 #include "io_mcp.h"
 #include "i2c.h"
+#include "dispatch.h"
 #include "util.h"
 #include "sys_string.h"
 
@@ -170,7 +171,7 @@ attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, io_flags_t *flags)
+void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
@@ -210,7 +211,7 @@ void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_en
 				{
 					mcp_pin_data->counter++;
 					mcp_pin_data->debounce = pin_config->speed;
-					flags->counter_triggered = 1;
+					dispatch_post_task(1, task_alert_pin_changed, 0);
 				}
 			}
 		}
