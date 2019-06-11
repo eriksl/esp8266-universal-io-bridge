@@ -1644,21 +1644,27 @@ iram void io_periodic_fast(void)
 				if(pin_data->speed > ms_per_fast_tick)
 					pin_data->speed -= ms_per_fast_tick;
 				else
+				{
 					pin_data->speed = 0;
 
-				if(pin_data->speed == 0)
-				{
-					if(pin_data->direction == io_dir_up)
+					switch(pin_data->direction)
 					{
-						info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
-						pin_data->direction = io_dir_down;
-					}
-					else
-					{
-						if(pin_data->direction == io_dir_down)
+						case(io_dir_up):
+						{
+							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
+							pin_data->direction = io_dir_down;
+							break;
+						}
+
+						case(io_dir_down):
 						{
 							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
 							pin_data->direction = io_dir_up;
+							break;
+						}
+
+						default:
+						{
 						}
 					}
 
