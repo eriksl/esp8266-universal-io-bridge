@@ -1681,18 +1681,14 @@ iram void io_periodic_fast(void)
 
 			if((pin_config->mode == io_pin_trigger) && (info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
 			{
+				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+
 				for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
-				{
 					if(pin_config->shared.trigger[trigger].action != io_trigger_none)
-					{
 						io_trigger_pin((string_t *)0,
 								pin_config->shared.trigger[trigger].io.io,
 								pin_config->shared.trigger[trigger].io.pin,
 								pin_config->shared.trigger[trigger].action);
-					}
-				}
-
-				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
 			}
 
 			if(((pin_config->mode == io_pin_output_pwm1) || (pin_config->mode == io_pin_output_pwm2)) &&
