@@ -1622,6 +1622,7 @@ iram void io_periodic_fast(void)
 	io_data_pin_entry_t *pin_data;
 	unsigned int io, pin, trigger;
 	unsigned int value;
+	io_trigger_t trigger_action;
 
 	for(io = 0; io < io_id_size; io++)
 	{
@@ -1693,6 +1694,15 @@ iram void io_periodic_fast(void)
 
 				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
 			}
+
+			if(((pin_config->mode == io_pin_output_pwm1) || (pin_config->mode == io_pin_output_pwm2)) &&
+					(pin_config->shared.output_pwm.upper_bound > pin_config->shared.output_pwm.lower_bound) &&
+					(pin_config->speed > 0) &&
+					(pin_data->direction != io_dir_none))
+			{
+				trigger_action = (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down;
+				io_trigger_pin((string_t *)0, io, pin, trigger_action);
+			}
 		}
 	}
 
@@ -1704,9 +1714,7 @@ void io_periodic_slow(void)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
-	io_config_pin_entry_t *pin_config;
-	io_data_pin_entry_t *pin_data;
-	unsigned int io, pin;
+	unsigned int io;
 	static bool post_init_run = false;
 
 	for(io = 0; io < io_id_size; io++)
@@ -1722,18 +1730,6 @@ void io_periodic_slow(void)
 
 		if(info->periodic_slow_fn)
 			info->periodic_slow_fn(io, info, data);
-
-		for(pin = 0; pin < info->pins; pin++)
-		{
-			pin_config = &io_config[io][pin];
-			pin_data = &data->pin[pin];
-
-			if(((pin_config->mode == io_pin_output_pwm1) || (pin_config->mode == io_pin_output_pwm2)) &&
-					(pin_config->shared.output_pwm.upper_bound > pin_config->shared.output_pwm.lower_bound) &&
-					(pin_config->speed > 0) &&
-					(pin_data->direction != io_dir_none))
-				io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down);
-		}
 	}
 
 	post_init_run = true;
