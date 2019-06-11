@@ -241,8 +241,13 @@ typedef struct attr_packed
 
 		struct attr_packed
 		{
-			io_renc_pin_t	pin_type:3;
-			unsigned int	partner:4;
+			io_renc_pin_t	pin_type:8;
+			unsigned int	partner:8;
+			struct attr_packed
+			{
+				int	io:8;
+				int pin:8;
+			} trigger_pin;
 		} renc;
 
 		struct attr_packed
