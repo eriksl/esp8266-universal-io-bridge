@@ -67,6 +67,10 @@ attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, i
 	_attributes char _ ## _name ## _buf[_size] = { 0 }; \
 	_attributes string_t _name = { .size = _size, .length = 0, .buffer = _ ## _name ## _buf }
 
+#define string_init(_attributes, _name, _string) \
+	_attributes char _ ## _name ## _buf[sizeof(_string) + 1] = _string; \
+	_attributes string_t _name = { .size = sizeof(_string) + 1, .length = sizeof(_string), .buffer = _ ## _name ## _buf }
+
 #define string_append(dst, src) \
 do { \
 	static roflash const char src_flash[] = src; \
