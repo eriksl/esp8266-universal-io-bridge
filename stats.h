@@ -41,6 +41,7 @@ extern unsigned int stat_update_uart;
 extern unsigned int stat_update_longop;
 extern unsigned int stat_update_command_udp;
 extern unsigned int stat_update_command_tcp;
+extern unsigned int stat_update_command_uart;
 extern unsigned int stat_update_display;
 extern unsigned int stat_task_posted[3];
 extern unsigned int stat_task_executed[3];

@@ -28,6 +28,7 @@ unsigned int stat_uart_send_buffer_overflow;
 unsigned int stat_update_uart;
 unsigned int stat_update_command_udp;
 unsigned int stat_update_command_tcp;
+unsigned int stat_update_command_uart;
 unsigned int stat_update_display;
 unsigned int stat_task_posted[3];
 unsigned int stat_task_executed[3];
@@ -316,8 +317,8 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> COMMANDS PROCESSED\n"
-			">  udp: %u, tcp: %u\n",
-				stat_update_command_udp, stat_update_command_tcp);
+			">  udp: %u, tcp: %u, uart: %u\n",
+				stat_update_command_udp, stat_update_command_tcp, stat_update_command_uart);
 
 	string_format(dst,
 			">\n> BUFFER OVERFLOWS\n"

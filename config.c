@@ -40,6 +40,7 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_uart1_tx_inv,		"uart1-tx-inv",		},
 	{	flag_udp_term_empty,	"udp-term-empty",	},
 	{	flag_enable_orbital,	"enable-orbital",	},
+	{	flag_cmd_from_uart,		"cmd-from-uart",	},
 	{	flag_none,				""					},
 };
 

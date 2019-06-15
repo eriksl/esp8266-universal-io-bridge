@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 typedef enum
 {
@@ -59,7 +60,36 @@ static trigger_t assoc_alert = { -1, -1 };
 
 static void background_task_bridge_uart(void)
 {
-	if(uart_empty(0) || lwip_if_send_buffer_locked(&uart_socket))
+	unsigned int byte;
+
+	if(uart_empty(0))
+		return;
+
+	if(config_flags_match(flag_cmd_from_uart))
+	{
+		while(!uart_empty(0))
+		{
+			byte = uart_receive(0);
+
+			if((byte != '\r') && (byte != '\n') && (byte != ' ') && !isprint(byte))
+				continue;
+
+			if(byte == '\r')
+				byte = '\n';
+
+			string_append_byte(&command_socket_receive_buffer, byte);
+
+			if(byte == '\n')
+			{
+				dispatch_post_task(1, task_received_command, 1);
+				uart_clear_receive_queue(0);
+			}
+		}
+
+		return;
+	}
+
+	if(lwip_if_send_buffer_locked(&uart_socket))
 		return;
 
 	string_clear(&uart_socket_send_buffer);
@@ -143,11 +173,23 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 		{
 			app_action_t action;
 
-			if(lwip_if_received_tcp(&command_socket))
-				stat_update_command_tcp++;
+			if(argument) // commands from uart enabled
+			{
+				string_init(static, uart_prompt, "\r\n>> ");
 
-			if(lwip_if_received_udp(&command_socket))
-				stat_update_command_udp++;
+				uart_send_string(0, &uart_prompt);
+				uart_send_string(0, &command_socket_receive_buffer);
+				uart_flush(0);
+				stat_update_command_uart++;
+			}
+			else
+			{
+				if(lwip_if_received_tcp(&command_socket))
+					stat_update_command_tcp++;
+
+				if(lwip_if_received_udp(&command_socket))
+					stat_update_command_udp++;
+			}
 
 			if(lwip_if_send_buffer_locked(&command_socket))
 			{
@@ -180,6 +222,12 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 			{
 				string_clear(&command_socket_send_buffer);
 				string_append(&command_socket_send_buffer, "> reset\n");
+			}
+
+			if(argument) // commands from uart enabled
+			{
+				uart_send_string(0, &command_socket_send_buffer);
+				uart_flush(0);
 			}
 
 			if(!lwip_if_send(&command_socket))
