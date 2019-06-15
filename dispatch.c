@@ -95,7 +95,7 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 
 		case(task_uart_fetch_fifo):
 		{
-			uart_task_handler_fetch_fifo();
+			uart_task_handler_fetch_fifo(argument);
 			break;
 		}
 

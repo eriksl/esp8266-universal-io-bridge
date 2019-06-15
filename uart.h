@@ -50,7 +50,7 @@ bool			uart_empty(unsigned int);
 unsigned int	uart_receive(unsigned int);
 void			uart_clear_receive_queue(unsigned int);
 void			uart_set_initial(unsigned int uart);
-void			uart_task_handler_fetch_fifo(void);
+void			uart_task_handler_fetch_fifo(unsigned int uart);
 void			uart_task_handler_fill_fifo(unsigned int uart);
 
 #endif

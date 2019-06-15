@@ -63,45 +63,6 @@ static void clear_fifos(unsigned int uart)
 	clear_peri_reg_mask(UART_CONF0(uart), UART_RXFIFO_RST | UART_TXFIFO_RST);
 }
 
-static void fetch_queue(unsigned int uart)
-{
-	unsigned int byte;
-
-	// make sure to fetch all data from the fifo, or we'll get a another
-	// interrupt immediately after we enable it
-
-	while(rx_fifo_length(uart) > 0)
-	{
-		byte = read_peri_reg(UART_FIFO(uart));
-
-		if(!queue_full(&uart_receive_queue))
-			queue_push(&uart_receive_queue, byte);
-	}
-
-	clear_interrupts(uart);
-	enable_receive_int(uart, true);
-}
-
-static void fill_queue(unsigned int uart)
-{
-	if(autofill_info[uart].enabled)
-	{
-		while(tx_fifo_length(uart) < 128)
-			write_peri_reg(UART_FIFO(uart), autofill_info[uart].character);
-
-		clear_interrupts(uart);
-		enable_transmit_int(uart, true);
-	}
-	else
-	{
-		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 128))
-			write_peri_reg(UART_FIFO(uart), queue_pop(&uart_send_queue[uart]));
-
-		clear_interrupts(uart);
-		enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
-	}
-}
-
 iram static void uart_callback(void *p)
 {
 	unsigned int uart0_int_status, uart1_int_status;
@@ -196,9 +157,23 @@ iram void uart_clear_receive_queue(unsigned int uart)
 	queue_flush(&uart_receive_queue);
 }
 
-void uart_task_handler_fetch_fifo(void)
+void uart_task_handler_fetch_fifo(unsigned int uart)
 {
-	fetch_queue(0);
+	unsigned int byte;
+
+	// make sure to fetch all data from the fifo, or we'll get a another
+	// interrupt immediately after we enable it
+
+	while(rx_fifo_length(uart) > 0)
+	{
+		byte = read_peri_reg(UART_FIFO(uart));
+
+		if(!queue_full(&uart_receive_queue))
+			queue_push(&uart_receive_queue, byte);
+	}
+
+	clear_interrupts(uart);
+	enable_receive_int(uart, true);
 
 	if(uart_bridge_active)
 		dispatch_post_task(0, task_uart_bridge, 0);
@@ -206,7 +181,22 @@ void uart_task_handler_fetch_fifo(void)
 
 void uart_task_handler_fill_fifo(unsigned int uart)
 {
-	fill_queue(uart);
+	if(autofill_info[uart].enabled)
+	{
+		while(tx_fifo_length(uart) < 128)
+			write_peri_reg(UART_FIFO(uart), autofill_info[uart].character);
+
+		clear_interrupts(uart);
+		enable_transmit_int(uart, true);
+	}
+	else
+	{
+		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 128))
+			write_peri_reg(UART_FIFO(uart), queue_pop(&uart_send_queue[uart]));
+
+		clear_interrupts(uart);
+		enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
+	}
 }
 
 void uart_baudrate(unsigned int uart, unsigned int baudrate)
