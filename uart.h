@@ -44,6 +44,7 @@ void			uart_autofill(unsigned int uart, bool enable, unsigned int character);
 void			uart_is_autofill(unsigned int uart, bool *enable, unsigned int *character);
 bool			uart_full(unsigned int uart);
 void			uart_send(unsigned int, unsigned int);
+void			uart_send_string(unsigned int, const string_t *);
 void			uart_flush(unsigned int);
 void			uart_clear_send_queue(unsigned int);
 bool			uart_empty(unsigned int);
