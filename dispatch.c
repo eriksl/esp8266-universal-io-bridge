@@ -108,7 +108,7 @@ static void background_task_bridge_uart(void)
 	}
 }
 
-iram static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)
+static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)
 {
 	stat_task_executed[prio]++;
 
@@ -343,22 +343,22 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 	}
 }
 
-iram static void user_task_prio_2_handler(struct ETSEventTag *event)
+static void user_task_prio_2_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(0, (task_id_t)event->sig, event->par);
 }
 
-iram static void user_task_prio_1_handler(struct ETSEventTag *event)
+static void user_task_prio_1_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(1, (task_id_t)event->sig, event->par);
 }
 
-iram static void user_task_prio_0_handler(struct ETSEventTag *event)
+static void user_task_prio_0_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(2, (task_id_t)event->sig, event->par);
 }
 
-iram void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argument)
+void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argument)
 {
 	static roflash const unsigned int sdk_task_id[3] = { USER_TASK_PRIO_2, USER_TASK_PRIO_1, USER_TASK_PRIO_0 };
 
