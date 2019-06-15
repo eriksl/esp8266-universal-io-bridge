@@ -34,10 +34,12 @@ enum
 	flag_uart1_tx_inv =		1 << 14,
 	flag_udp_term_empty =	1 << 15,
 	flag_enable_orbital =	1 << 16,
+	flag_cmd_from_uart =	1 << 17,
 };
 
 void			config_flags_to_string(bool nl, const char *, string_t *);
-bool			config_flags_change(const string_t *, bool add);
+bool			config_flag_change(unsigned int flag, bool set);
+bool			config_flag_change_from_string(const string_t *, bool set);
 
 bool			config_init(void);
 bool			config_dump(string_t *);

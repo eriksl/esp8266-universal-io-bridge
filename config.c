@@ -433,28 +433,29 @@ bool config_dump(string_t *dst)
 	return(config_close_read());
 }
 
-bool config_flags_change(const string_t *flag, bool set)
+bool config_flag_change(unsigned int flag, bool set)
+{
+	if(set)
+		config_flags |= flag;
+	else
+		config_flags &= ~flag;
+
+	if(config_open_write() &&
+			config_set_uint("flags", config_flags, -1, -1) &&
+			config_close_write())
+		return(true);
+
+	config_abort_write();
+	return(false);
+}
+
+bool config_flag_change_from_string(const string_t *flag, bool set)
 {
 	const config_flag_name_t *entry;
 
 	for(entry = config_flag_names; entry->value != flag_none; entry++)
-	{
 		if(string_match_cstr(flag, entry->name))
-		{
-			if(set)
-				config_flags |= entry->value;
-			else
-				config_flags &= ~entry->value;
-
-			if(config_open_write() &&
-					config_set_int("flags", config_flags, -1, -1) &&
-					config_close_write())
-				return(true);
-
-			config_abort_write();
-			return(false);
-		}
-	}
+			return(config_flag_change(entry->value, set));
 
 	return(false);
 }

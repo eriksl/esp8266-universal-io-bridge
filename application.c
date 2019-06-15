@@ -1291,7 +1291,7 @@ static app_action_t set_unset_flag(string_t *src, string_t *dst, bool add)
 {
 	if(parse_string(1, src, dst, ' ') == parse_ok)
 	{
-		if(!config_flags_change(dst, add))
+		if(!config_flag_change_from_string(dst, add))
 		{
 			string_append(dst, ": unknown flag\n");
 			return(app_action_error);
