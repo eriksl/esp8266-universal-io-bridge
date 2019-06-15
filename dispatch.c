@@ -11,6 +11,7 @@
 #include "i2c_sensor.h"
 #include "sequencer.h"
 #include "init.h"
+#include "config.h"
 #include "lwip-interface.h"
 
 #include <stdint.h>
@@ -268,6 +269,15 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 		{
 			config_wlan_mode_t wlan_mode;
 			unsigned int wlan_mode_int;
+			string_init(static, uart_help_string,
+					"* WLAN CAN'T CONNECT *\n"
+					"  use\n"
+					"    wcc <ssid> <passwd>\n"
+					"  and then\n"
+					"    wm client\n"
+					"  to bootstrap wlan\n");
+
+			uart_send_string(0, &uart_help_string);
 
 			if(config_get_uint("wlan.mode", &wlan_mode_int, -1, -1))
 				wlan_mode = (config_wlan_mode_t)wlan_mode_int;
@@ -277,10 +287,18 @@ iram static void generic_task_handler(unsigned int prio, task_id_t command, unsi
 			if(wlan_mode == config_wlan_mode_client)
 			{
 				wlan_mode_int = config_wlan_mode_ap;
-				config_open_write();
-				config_set_uint("wlan.mode", wlan_mode_int, -1, -1);
-				config_close_write();
-				config_get_uint("wlan.mode", &wlan_mode_int, -1, -1);
+
+				if(!config_flag_change(flag_cmd_from_uart, true))
+					break;
+
+				if(!config_open_write() ||
+						!config_set_uint("wlan.mode", wlan_mode_int, -1, -1) ||
+						!config_close_write())
+				{
+					config_abort_write();
+					break;
+				}
+
 				wlan_init();
 			}
 
