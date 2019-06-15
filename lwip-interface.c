@@ -471,6 +471,8 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 		if(pcb_tcp == (struct tcp_pcb *)0)
 		{
 			log("lwip if send: tcp send: disconnected\n");
+			socket->sending_remaining = 0;
+			socket->sent_remaining = 0;
 			return(false);
 		}
 
