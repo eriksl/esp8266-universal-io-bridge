@@ -44,7 +44,7 @@ extern char		flash_dram_buffer[1024];
 extern string_t flash_dram;
 
 attr_nonnull int strecpy(char *dst, const char *src, int size);
-attr_nonnull size_t flash_to_dram(bool cstr, const void *src_flash, char *dst_dram, size_t length);
+attr_nonnull unsigned int flash_to_dram(bool cstr, const void *src_flash, char *dst_dram, size_t length);
 
 attr_nonnull void string_format_cstr(string_t *dst, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 attr_nonnull void string_format_flash_ptr(string_t *dst, const char *, ...) __attribute__ ((format (printf, 2, 3)));

@@ -33,7 +33,7 @@ iram int strecpy(char *dst, const char *src, int size)
 	return(length);
 }
 
-iram size_t flash_to_dram(bool cstr, const void *src_flash_unaligned, char *dst_dram, size_t length)
+iram unsigned int flash_to_dram(bool cstr, const void *src_flash_unaligned, char *dst_dram, size_t length)
 {
 	const uint32_t *src_flash;
 	unsigned int src_flash_index;
