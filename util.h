@@ -64,12 +64,19 @@ attr_nonnull ip_addr_t ip_addr(const char *);
 
 extern string_t logbuffer;
 
+unsigned int attr_nonnull log_from_flash_no_format(const char *data);
 int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
 
 #define log(fmt, ...) \
 do { \
 	static roflash const char log_flash[] = fmt; \
 	log_from_flash(log_flash, ## __VA_ARGS__); \
+} while(0)
+
+#define log_no_format(fmt, ...) \
+do { \
+	static roflash const char log_flash[] = fmt; \
+	log_from_flash_no_format(log_flash, ## __VA_ARGS__); \
 } while(0)
 
 void logchar(char c);

@@ -44,6 +44,27 @@ attr_const const char *onoff(bool value)
 	return("on");
 }
 
+unsigned int log_from_flash_no_format(const char *data)
+{
+	unsigned int length;
+
+	length = flash_to_dram(true, data, string_buffer_nonconst(&flash_dram), string_size(&flash_dram));
+	string_setlength(&flash_dram, length);
+
+	if(config_flags_match(flag_log_to_uart))
+		uart_send_string(0, &flash_dram);
+
+	if(config_flags_match(flag_log_to_buffer))
+	{
+		if((unsigned int)(string_length(&logbuffer) + length) >= (unsigned int)string_size(&logbuffer))
+			string_clear(&logbuffer);
+
+		string_append_string(&logbuffer, &flash_dram);
+	}
+
+	return(length);
+}
+
 int log_from_flash(const char *fmt_in_flash, ...)
 {
 	va_list ap;
