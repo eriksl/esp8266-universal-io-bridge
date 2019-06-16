@@ -65,7 +65,7 @@ attr_nonnull ip_addr_t ip_addr(const char *);
 extern string_t logbuffer;
 
 unsigned int attr_nonnull log_from_flash_no_format(const char *data);
-int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
+unsigned int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
 
 #define log(fmt, ...) \
 do { \

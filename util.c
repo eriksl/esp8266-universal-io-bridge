@@ -65,35 +65,35 @@ unsigned int log_from_flash_no_format(const char *data)
 	return(length);
 }
 
-int log_from_flash(const char *fmt_in_flash, ...)
+unsigned int log_from_flash(const char *fmt_in_flash, ...)
 {
 	va_list ap;
-	int current, written;
+	int length;
 	char fmt_in_dram[128];
 
 	flash_to_dram(true, fmt_in_flash, fmt_in_dram, sizeof(fmt_in_dram));
 
 	va_start(ap, fmt_in_flash);
-	written = vsnprintf(flash_dram_buffer, sizeof(flash_dram_buffer), fmt_in_dram, ap);
+	length = vsnprintf(string_buffer_nonconst(&flash_dram), string_size(&flash_dram), fmt_in_dram, ap);
 	va_end(ap);
 
-	if(config_flags_match(flag_log_to_uart))
-	{
-		for(current = 0; current < written; current++)
-			uart_send(0, flash_dram_buffer[current]);
+	if(length < 0)
+		return(0);
 
-		uart_flush(0);
-	}
+	string_setlength(&flash_dram, length);
+
+	if(config_flags_match(flag_log_to_uart))
+		uart_send_string(0, &flash_dram);
 
 	if(config_flags_match(flag_log_to_buffer))
 	{
-		if((string_length(&logbuffer) + written) >= string_size(&logbuffer))
+		if((string_length(&logbuffer) + length) >= string_size(&logbuffer))
 			string_clear(&logbuffer);
 
-		string_append_cstr(&logbuffer, flash_dram_buffer);
+		string_append_string(&logbuffer, &flash_dram);
 	}
 
-	return(written);
+	return(length);
 }
 
 iram void logchar(char c)
