@@ -154,14 +154,6 @@ iram unsigned int uart_receive(unsigned int uart)
 	return(queue_pop(&uart_receive_queue));
 }
 
-iram void uart_clear_send_queue(unsigned int uart)
-{
-	if(!init_done)
-		return;
-
-	queue_flush(&uart_send_queue[uart]);
-}
-
 iram void uart_clear_receive_queue(unsigned int uart)
 {
 	if(!init_done)

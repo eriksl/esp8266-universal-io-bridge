@@ -46,7 +46,6 @@ bool			uart_full(unsigned int uart);
 void			uart_send(unsigned int, unsigned int);
 void			uart_send_string(unsigned int, const string_t *);
 void			uart_flush(unsigned int);
-void			uart_clear_send_queue(unsigned int);
 bool			uart_empty(unsigned int);
 unsigned int	uart_receive(unsigned int);
 void			uart_clear_receive_queue(unsigned int);
