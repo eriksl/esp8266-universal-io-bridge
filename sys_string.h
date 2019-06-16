@@ -40,7 +40,8 @@ typedef union
 	uint8_t		byte[4];
 } ip_addr_to_bytes_t;
 
-extern char flash_dram_buffer[1024];
+extern char		flash_dram_buffer[1024];
+extern string_t flash_dram;
 
 attr_nonnull int strecpy(char *dst, const char *src, int size);
 attr_nonnull size_t flash_to_dram(bool cstr, const void *src_flash, char *dst_dram, size_t length);

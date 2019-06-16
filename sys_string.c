@@ -10,6 +10,13 @@
 
 char flash_dram_buffer[1024];
 
+string_t flash_dram =
+{
+	.size = sizeof(flash_dram_buffer),
+	.length = 0,
+	.buffer = flash_dram_buffer,
+};
+
 iram int strecpy(char *dst, const char *src, int size)
 {
 	int length = strlen(src);
