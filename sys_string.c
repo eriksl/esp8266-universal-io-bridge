@@ -385,4 +385,3 @@ parse_error_t parse_float(int index, const string_t *src, double *dst, char deli
 
 	return(parse_ok);
 }
-
