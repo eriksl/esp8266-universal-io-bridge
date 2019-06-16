@@ -180,7 +180,6 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				uart_send_string(0, &uart_prompt);
 				uart_send_string(0, &command_socket_receive_buffer);
-				uart_flush(0);
 				stat_update_command_uart++;
 			}
 			else
@@ -226,10 +225,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			}
 
 			if(argument) // commands from uart enabled
-			{
 				uart_send_string(0, &command_socket_send_buffer);
-				uart_flush(0);
-			}
 
 			if(!lwip_if_send(&command_socket))
 				log("lwip send failed\n");

@@ -126,6 +126,8 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 
 	for(current = 0, length = string_length(string); (current < length) && !queue_full(&uart_send_queue[uart]); current++)
 		queue_push(&uart_send_queue[uart], string_at(string, current));
+
+	uart_flush(uart);
 }
 
 iram void uart_flush(unsigned int uart)
