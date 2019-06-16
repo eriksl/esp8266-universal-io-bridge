@@ -114,7 +114,8 @@ iram void uart_send(unsigned int uart, unsigned int byte)
 	if(!init_done)
 		return;
 
-	queue_push(&uart_send_queue[uart], byte);
+	if(!queue_full(&uart_send_queue[uart]))
+		queue_push(&uart_send_queue[uart], byte);
 }
 
 iram void uart_send_string(unsigned int uart, const string_t *string)
