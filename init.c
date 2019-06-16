@@ -223,7 +223,7 @@ void wlan_init_start_recovery(void)
 
 	wlan_init(config_wlan_mode_ap, &wlan_default_ssid, &wlan_default_password, 1);
 
-	log("* WLAN CAN'T CONNECT, entering recovery mode. *\n"
+	log_no_format("* WLAN CAN'T CONNECT, entering recovery mode. *\n"
 				"  now, to configure wlan parameters\n"
 				"  - EITHER associate to SSID \"esp\" using passwd \"espespesp\"\n"
 				"      and then connect to 192.168.4.1:22 using telnet or browser\n"
