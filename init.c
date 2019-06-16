@@ -96,8 +96,9 @@ static void user_init2(void)
 	else
 		system_update_cpu_freq(80);
 
+	if(!wlan_init_from_config())
+		wlan_init_start_recovery();
 	application_init();
-	wlan_init();
 	time_init();
 	io_init();
 
@@ -107,46 +108,24 @@ static void user_init2(void)
 		sequencer_start(0, 1);
 }
 
-bool wlan_init(void)
+static void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_t *password, unsigned int channel)
 {
-	unsigned int wlan_mode_int;
-	config_wlan_mode_t wlan_mode;
-	string_new(, string_ssid, 64);
-	string_new(, string_passwd, 64);
-	unsigned int channel;
 	struct station_config cconf;
 	struct softap_config saconf;
-
-	if(config_get_uint("wlan.mode", &wlan_mode_int, -1, -1))
-		wlan_mode = (config_wlan_mode_t)wlan_mode_int;
-	else
-		wlan_mode = config_wlan_mode_client;
 
 	switch(wlan_mode)
 	{
 		case(config_wlan_mode_client):
 		{
-			if(!config_get_string("wlan.client.ssid", &string_ssid, -1, -1))
-			{
-				string_clear(&string_ssid);
-				string_append(&string_ssid, "esp");
-			}
-
-			if(!config_get_string("wlan.client.passwd", &string_passwd, -1, -1))
-			{
-				string_clear(&string_passwd);
-				string_append(&string_passwd, "espespesp");
-			}
-
 			if((wifi_get_opmode() != STATION_MODE) ||
 					!wifi_station_get_config(&cconf) ||
 					!wifi_station_get_auto_connect() ||
-					!string_match_cstr(&string_ssid, cconf.ssid) ||
-					!string_match_cstr(&string_passwd, cconf.password))
+					!string_match_cstr(ssid, cconf.ssid) ||
+					!string_match_cstr(password, cconf.password))
 			{
 				memset(&cconf, 0, sizeof(cconf));
-				strecpy(cconf.ssid, string_to_cstr(&string_ssid), sizeof(cconf.ssid));
-				strecpy(cconf.password, string_to_cstr(&string_passwd), sizeof(cconf.password));
+				strecpy(cconf.ssid, string_buffer(ssid), sizeof(cconf.ssid));
+				strecpy(cconf.password, string_buffer(password), sizeof(cconf.password));
 				cconf.bssid_set = 0;
 
 				wifi_station_disconnect();
@@ -159,22 +138,12 @@ bool wlan_init(void)
 			break;
 		}
 
-		case(config_wlan_mode_ap):
+		default:
 		{
 			memset(&saconf, 0, sizeof(saconf));
 
-			if(config_get_string("wlan.ap.ssid", &string_ssid, -1, -1))
-				strecpy(saconf.ssid, string_to_cstr(&string_ssid), sizeof(saconf.ssid));
-			else
-				strecpy(saconf.ssid, "esp", sizeof(saconf.ssid));
-
-			if(config_get_string("wlan.ap.passwd", &string_passwd, -1, -1))
-				strecpy(saconf.password, string_to_cstr(&string_passwd), sizeof(saconf.password));
-			else
-				strecpy(saconf.password, "espespesp", sizeof(saconf.password));
-
-			if(!config_get_uint("wlan.ap.channel", &channel, -1, -1))
-				channel = 1;
+			strecpy(saconf.ssid, string_buffer(ssid), sizeof(saconf.ssid));
+			strecpy(saconf.password, string_buffer(password), sizeof(saconf.password));
 
 			saconf.ssid_len = strlen(saconf.ssid);
 			saconf.channel = channel;
@@ -189,6 +158,44 @@ bool wlan_init(void)
 
 			break;
 		}
+	}
+}
+
+bool wlan_init_from_config(void)
+{
+	unsigned int mode_int;
+	config_wlan_mode_t mode;
+	string_new(, ssid, 64);
+	string_new(, password, 64);
+	unsigned int channel;
+
+	if(config_get_uint("wlan.mode", &mode_int, -1, -1))
+		mode = (config_wlan_mode_t)mode_int;
+	else
+		mode = config_wlan_mode_client;
+
+	channel = -1;
+
+	switch(mode)
+	{
+		case(config_wlan_mode_client):
+		{
+			if(!config_get_string("wlan.client.ssid", &ssid, -1, -1) ||
+					!config_get_string("wlan.client.passwd", &password, -1, -1))
+				return(false);
+
+			break;
+		}
+
+		case(config_wlan_mode_ap):
+		{
+			if(!config_get_string("wlan.ap.ssid", &ssid, -1, -1) ||
+					!config_get_string("wlan.ap.passwd", &password, -1, -1) ||
+					!config_get_uint("wlan.ap.channel", &channel, -1, -1))
+				return(false);
+
+			break;
+		}
 
 		default:
 		{
@@ -196,5 +203,33 @@ bool wlan_init(void)
 		}
 	}
 
+	stat_flags.wlan_recovery_mode_active = 0;
+	wlan_init(mode, &ssid, &password, channel);
 	return(true);
+}
+
+void wlan_init_start_recovery(void)
+{
+	config_flag_change_nosave(flag_log_to_uart, true);
+	config_flag_change_nosave(flag_uart0_tx_inv, false);
+	config_flag_change_nosave(flag_uart0_rx_inv, false);
+	config_flag_change_nosave(flag_log_to_buffer, true);
+	config_flag_change_nosave(flag_cmd_from_uart, true);
+
+	string_init(static, wlan_default_ssid, "esp");
+	string_init(static, wlan_default_password, "espespesp");
+
+	stat_flags.wlan_recovery_mode_active = 1;
+
+	wlan_init(config_wlan_mode_ap, &wlan_default_ssid, &wlan_default_password, 1);
+
+	log("* WLAN CAN'T CONNECT, entering recovery mode. *\n"
+				"  now, to configure wlan parameters\n"
+				"  - EITHER associate to SSID \"esp\" using passwd \"espespesp\"\n"
+				"      and then connect to 192.168.4.1:22 using telnet or browser\n"
+				"  - OR connect to UART\n"
+				"  - THEN issue these commands:\n"
+				"      wcc <ssid> <passwd>\n"
+				"      wm client\n"
+				"  after that, issue a reset command to restore temporarily changed flags.\n");
 }

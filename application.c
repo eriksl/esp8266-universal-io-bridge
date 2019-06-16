@@ -1549,11 +1549,7 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 				return(app_action_error);
 			}
 
-			if(!wlan_init())
-			{
-				string_append(dst, "> cannot init\n");
-				return(app_action_error);
-			}
+			wlan_init_from_config();
 
 			return(app_action_disconnect);
 		}
@@ -1571,11 +1567,7 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 				return(app_action_error);
 			}
 
-			if(!wlan_init())
-			{
-				string_append(dst, "> cannot init\n");
-				return(app_action_error);
-			}
+			wlan_init_from_config();
 
 			return(app_action_disconnect);
 		}

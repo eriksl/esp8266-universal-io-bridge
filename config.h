@@ -39,6 +39,7 @@ enum
 
 void			config_flags_to_string(bool nl, const char *, string_t *);
 bool			config_flag_change(unsigned int flag, bool set);
+void			config_flag_change_nosave(unsigned int flag, bool set);
 bool			config_flag_change_from_string(const string_t *, bool set);
 
 bool			config_init(void);

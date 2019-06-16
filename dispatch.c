@@ -267,41 +267,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 		case(task_fallback_wlan):
 		{
-			config_wlan_mode_t wlan_mode;
-			unsigned int wlan_mode_int;
-			string_init(static, uart_help_string,
-					"* WLAN CAN'T CONNECT *\n"
-					"  use\n"
-					"    wcc <ssid> <passwd>\n"
-					"  and then\n"
-					"    wm client\n"
-					"  to bootstrap wlan\n");
-
-			uart_send_string(0, &uart_help_string);
-
-			if(config_get_uint("wlan.mode", &wlan_mode_int, -1, -1))
-				wlan_mode = (config_wlan_mode_t)wlan_mode_int;
-			else
-				wlan_mode = config_wlan_mode_client;
-
-			if(wlan_mode == config_wlan_mode_client)
-			{
-				wlan_mode_int = config_wlan_mode_ap;
-
-				if(!config_flag_change(flag_cmd_from_uart, true))
-					break;
-
-				if(!config_open_write() ||
-						!config_set_uint("wlan.mode", wlan_mode_int, -1, -1) ||
-						!config_close_write())
-				{
-					config_abort_write();
-					break;
-				}
-
-				wlan_init();
-			}
-
+			wlan_init_start_recovery();
 			break;
 		}
 
@@ -404,7 +370,7 @@ iram static void slow_timer_callback(void *arg)
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
-	if((stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
+	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_task(1, task_fallback_wlan, 0);
 
 	io_periodic_slow();

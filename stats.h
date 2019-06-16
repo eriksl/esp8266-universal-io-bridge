@@ -15,6 +15,7 @@ typedef struct
 {
 	unsigned int user_pre_init_called:1;
 	unsigned int user_pre_init_success:1;
+	unsigned int wlan_recovery_mode_active:1;
 } stat_flags_t;
 
 extern stat_flags_t stat_flags;

@@ -434,12 +434,17 @@ bool config_dump(string_t *dst)
 	return(config_close_read());
 }
 
-bool config_flag_change(unsigned int flag, bool set)
+void config_flag_change_nosave(unsigned int flag, bool set)
 {
 	if(set)
 		config_flags |= flag;
 	else
 		config_flags &= ~flag;
+}
+
+bool config_flag_change(unsigned int flag, bool set)
+{
+	config_flag_change_nosave(flag, set);
 
 	if(config_open_write() &&
 			config_set_uint("flags", config_flags, -1, -1) &&
