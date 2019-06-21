@@ -25,7 +25,7 @@ static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, un
 	return(pin << lcd_pin[function]);
 }
 
-static bool send_byte_raw(int byte, bool data)
+static bool send_byte_raw(unsigned int byte, bool data)
 {
 	unsigned int pins = 0;
 
@@ -48,7 +48,7 @@ static bool send_byte_raw(int byte, bool data)
 	return(true);
 }
 
-static bool send_byte(int byte, bool data)
+static bool send_byte(unsigned int byte, bool data)
 {
 	if(nibble_mode)
 	{
@@ -179,6 +179,8 @@ bool display_lcd_init(void)
 
 	if(!send_byte(0b01000000, false))			// start writing to CGRAM @ 0
 		return(false);
+
+	msleep(2);
 
 	for(ix = 0; ix < display_common_udg_size; ix++)
 		for(byte = 0; byte < display_common_udg_byte_size; byte++)

@@ -28,6 +28,8 @@ typedef struct
 	uint32_t pattern[display_common_udg_byte_size];
 } display_udg_t;
 
+assert_size(display_udg_t, 36);
+
 typedef struct
 {
 	struct
