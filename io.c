@@ -747,6 +747,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 			switch(trigger_type)
 			{
 				case(io_trigger_off):
+				case(io_trigger_stop):
 				{
 					value = pin_config->direction == io_dir_up ? 1 : 0;
 
@@ -760,6 +761,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 				}
 
 				case(io_trigger_on):
+				case(io_trigger_start):
 				{
 					value = pin_config->direction == io_dir_up ? 0 : 1;
 
