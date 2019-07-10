@@ -15,6 +15,177 @@ static int lcd_io;
 static int lcd_pin[io_lcd_size];
 static unsigned int pin_mask;
 
+enum
+{
+	mapeof = 0xffffffff,
+};
+
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+} unicode_map_t;
+
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+	unsigned int	pattern[8];
+} udg_map_t;
+
+roflash static const unicode_map_t unicode_map[] =
+{
+	{	0x005c,	'/'		},	//	backslash -> /
+	{	0x007e,	'-'		},	//	~ -> -
+	{	0x00a5,	0x5c	},	//	¥
+	{	0x2192, 0x7e	},	//	→ 
+	{	0x2190, 0x7f	},	//	← 
+	{	0x00b0, 0xdf	},	//	°
+	{	0x03b1, 0xe0	},	//	α
+	{	0x00e4, 0xe1	},	//	ä
+	{	0x03b2, 0xe2	},	//	β
+	{	0x03b5, 0xe3	},	//	ε
+	{	0x00b5, 0xe4	},	//	µ
+	{	0x03bc, 0xe4	},	//	μ
+	{	0x03c3, 0xe5	},	//	σ
+	{	0x03c1, 0xe6	},	//	ρ
+	{	0x00a2, 0xec	},	//	¢
+	{	0x00f1, 0xee	},	//	ñ
+	{	0x00f6, 0xef	},	//	ö
+	{	0x03b8, 0xf2	},	//	θ
+	{	0x221e, 0xf3	},	//	∞
+	{	0x03a9, 0xf4	},	//	Ω
+	{	0x00fc, 0xf5	},	//	ü
+	{	0x03a3, 0xf6	},	//	Σ
+	{	0x03c0, 0xf7	},	//	π
+	{	0x00f7, 0xfd	},	//	÷
+	{	0x258b,	0xff	},	//	▋
+	{	mapeof,	0x00	},	//	EOF
+};
+
+roflash static const udg_map_t udg_map[] =
+{
+	{
+		0x00e8,	0,	//	è
+		{
+			0b00001000,
+			0b00000100,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0x00e9,	1,	//	é
+		{
+			0b00000100,
+			0b00001000,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0x00eb,	2,	//	ë
+		{
+			0b00001010,
+			0b00000000,
+			0b00001110,
+			0b00010001,
+			0b00011111,
+			0b00010000,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0x00f4,	3,	//	ô
+		{
+			0b00000100,
+			0b00001010,
+			0b00001110,
+			0b00010001,
+			0b00010001,
+			0b00010001,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0x03b4,	4,	//	δ
+		{
+			0b00001111,
+			0b00001000,
+			0b00000100,
+			0b00001110,
+			0b00010001,
+			0b00010001,
+			0b00001110,
+			0b00000000,
+		}
+	},
+	{
+		0x03bb,	5,	//	λ
+		{
+			0b00000000,
+			0b00010000,
+			0b00011000,
+			0b00001100,
+			0b00001010,
+			0b00010001,
+			0b00010001,
+			0b00000000,
+		}
+	},
+	{
+		0x00a9,	6,	//	©
+		{
+			0b00000100,
+			0b00001010,
+			0b00010111,
+			0b00011001,
+			0b00010111,
+			0b00001010,
+			0b00000100,
+			0b00000000,
+		}
+	},
+	{
+		0x20ac,	7,	//	€
+		{
+			0b00000011,
+			0b00000100,
+			0b00011111,
+			0b00000100,
+			0b00011111,
+			0b00000100,
+			0b00000011,
+			0b00000000,
+		}
+	},
+	{
+		mapeof,	0,	//	EOF
+		{
+		}
+	}
+};
+
+roflash static const unsigned int ram_offsets[4] =
+{
+	0	+	0,
+	0	+	64,
+	20	+	0,
+	20	+	64
+};
+
+static unsigned int x, y;
+
 static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
 	unsigned int pin = 0;
@@ -67,7 +238,8 @@ static bool send_byte(unsigned int byte, bool data)
 bool display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
-	int io, pin, ix, byte, x, y;
+	int io, pin, byte;
+	const udg_map_t *udg_map_ptr;
 
 	bl_io	= -1;
 	bl_pin	= -1;
@@ -182,19 +354,12 @@ bool display_lcd_init(void)
 
 	msleep(2);
 
-	for(ix = 0; ix < display_common_udg_size; ix++)
-		for(byte = 0; byte < display_common_udg_byte_size; byte++)
-			if(!send_byte(display_common_udg[ix].pattern[byte], true))
+	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		for(byte = 0; byte < 8; byte++)
+			if(!send_byte(udg_map_ptr->pattern[byte], true))
 				return(false);
 
 	inited = true;
-
-	for(y = 0; y < display_common_buffer_rows; y++)
-		for(x = 0; x < display_common_buffer_columns; x++)
-			display_common_buffer[y][x] = ' ';
-
-	for(ix = 0; ix < display_common_buffer_rows; ix++)
-		display_common_row_status.row[ix].dirty = 1;
 
 	return(display_lcd_bright(1));
 }
@@ -231,62 +396,88 @@ bool display_lcd_bright(int brightness)
 	return(true);
 }
 
-bool display_lcd_set(const char *tag, const char *text)
+void display_lcd_begin(void)
 {
 	if(!inited)
-		return(false);
+		log("! display lcd not inited\n");
 
-	return(display_common_set(tag, text,
-				display_common_map_size, display_common_map,
-				display_common_udg_size, display_common_udg));
+	x = y = 0;
+
+	send_byte(0x80, false);	// reset display RAM pointer to home
 }
 
-bool display_lcd_show(void)
+void display_lcd_output(unsigned int unicode)
 {
-	static const uint8_t offsets[4] =
+	const unicode_map_t *unicode_map_ptr;
+	const udg_map_t *udg_map_ptr;
+	bool mapped;
+
+	if(unicode == '\n')
 	{
-		0	+	0,
-		0	+	64,
-		20	+	0,
-		20	+	64
-	};
+		if(y < 4)
+		{
+			while(x++ < 20)
+				send_byte(' ', true);
 
-	unsigned int offset, x, last_x, y;
-	char current;
+			if(y < 3)
+				send_byte(0x80 | ram_offsets[y + 1], false);
+		}
 
-	if(!inited)
-		return(false);
+		x = 0;
+		y++;
 
-	for(y = 0; y < display_common_buffer_rows; y++)
-		if(display_common_row_status.row[y].dirty)
-			break;
-
-	if(y >= display_common_buffer_rows)
-		return(false);
-
-	offset = 0x80 | offsets[y];
-
-	if(!send_byte(offset, false))
-		return(false);
-
-	for(x = 0; x < display_common_buffer_columns; x++)
-	{
-		current = display_common_buffer[y][x];
-		last_x = x;
-
-		if(!send_byte(current, true))
-			return(false);
+		return;
 	}
 
-	// work around bug in some LCD's that need last column to be sent twice
+	if((y < 4) && (x < 20))
+	{
+		mapped = false;
 
-	if(!send_byte(offset + last_x, false))
-		return(false);
+		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+			if(unicode_map_ptr->unicode == unicode)
+			{
+				unicode = unicode_map_ptr->internal;
+				mapped = true;
+				break;
+			}
 
-	if(!send_byte(current, true))
-		return(false);
+		if(!mapped)
+			for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+				if((udg_map_ptr->unicode == unicode))
+				{
+					unicode = udg_map_ptr->internal;
+					mapped = true;
+					break;
+				}
 
-	display_common_row_status.row[y].dirty = 0;
+		if(mapped || ((unicode >= ' ') && (unicode <= '}')))
+			send_byte(unicode & 0xff, true);
+		else
+			send_byte(' ', true);
 
-	return(true);
+		if((y == 3) && (x == 19)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
+		{
+			send_byte(0x80 | (ram_offsets[y] + x), false);
+			send_byte(unicode & 0xff, true);
+		}
+	}
+
+	x++;
+}
+
+void display_lcd_end(void)
+{
+	if(x > 19)
+	{
+		x = 0;
+		y++;
+	}
+
+	for(; y < 4; y++, x = 0)
+	{
+		send_byte(0x80 | (ram_offsets[y] + x), false);
+
+		while(x++ < 20)
+			send_byte(' ', true);
+	}
 }

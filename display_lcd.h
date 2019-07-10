@@ -5,8 +5,10 @@
 #include <stdbool.h>
 
 bool display_lcd_init(void);
-bool display_lcd_bright(int brightness);
-bool display_lcd_set(const char *tag, const char *text);
-bool display_lcd_show(void);
+bool display_lcd_bright(int);
+void display_lcd_begin(void);
+void display_lcd_output(unsigned int);
+void display_lcd_end(void);
+
 
 #endif
