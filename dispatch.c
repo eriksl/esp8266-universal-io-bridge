@@ -29,7 +29,7 @@ _Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) !=
 
 enum
 {
-	task_queue_length = 8,
+	task_queue_length = 10,
 };
 
 static os_event_t task_queue[3][task_queue_length];
