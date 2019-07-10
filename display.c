@@ -383,8 +383,8 @@ static void display_dump(string_t *dst)
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
-		string_format(dst, "\n> %c slot %d: timeout %d, tag: \"%s\"",
-				slot == display_data.current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag);
+		string_format(dst, "\n> %c slot %d: timeout %d, tag: \"%s\", length: %u",
+				slot == display_data.current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag, strlen(display_slot[slot].content));
 
 		for(ix = 0, newlines_pending = 1; ix < display_slot_content_size; ix++)
 		{
@@ -403,6 +403,9 @@ static void display_dump(string_t *dst)
 				string_format(dst, "    ");
 				newlines_pending = 0;
 			}
+
+			if((current < ' ') || (current > '}'))
+				current = '_';
 
 			string_append_char(dst, current);
 		}
