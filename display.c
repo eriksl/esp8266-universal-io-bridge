@@ -31,18 +31,34 @@ enum
 	display_size = display_error
 };
 
+typedef enum
+{
+	display_generic,
+	display_text_4x20,
+} display_type_t;
+
+typedef enum
+{
+	u8p_state_base,
+	u8p_state_utf8_byte_3,
+	u8p_state_utf8_byte_2,
+	u8p_state_utf8_byte_1,
+	u8p_state_output,
+} utf8_parser_state_t;
+
 typedef const struct
 {
-	int				const size;
+	display_type_t	const type;
 	const char *	const name;
-	const char *	const type;
+	const char *	const description;
 	bool			(* const init_fn)(void);
 	bool			(* const bright_fn)(int brightness);
-	bool			(* const set_fn)(const char *tag, const char *text);
-	bool			(* const show_fn)(void);
+	void			(* const begin_fn)(void);
+	void			(* const output_fn)(unsigned int);
+	void			(* const end_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 28);
+assert_size(display_info_t, 32);
 
 typedef struct
 {
@@ -63,281 +79,51 @@ assert_size(display_slot_t, 80);
 
 static unsigned int flip_timeout;
 
-roflash const display_map_t display_common_map[display_common_map_size] =
-{
-	{	0x00b0, 0xdf },	// °
-	{	0x03b1, 0xe0 },	// α
-	{	0x00e4, 0xe1 },	// ä
-	{	0x03b2, 0xe2 },	// β
-	{	0x03b5, 0xe3 },	// ε
-	{	0x03bc, 0xe4 },	// μ
-	{	0x03c3, 0xe5 },	// σ
-	{	0x03c1, 0xe6 },	// ρ
-	{	0x00f1, 0xee },	// ñ
-	{	0x00f6, 0xef },	// ö
-	{	0x03b8, 0xf2 },	// θ
-	{	0x221e, 0xf3 },	// ∞ FIXME: this cannot work with 2-byte UTF-8
-	{	0x03a9, 0xf4 },	// Ω
-	{	0x03a3, 0xf6 },	// Σ
-	{	0x03c0, 0xf7 },	// π
-};
-
-roflash const display_udg_t display_common_udg[display_common_udg_size] =
-{
-	{
-		0x00e9,		// é	0
-		{
-			0b00000100,
-			0b00001000,
-			0b00001110,
-			0b00010001,
-			0b00011111,
-			0b00010000,
-			0b00001110,
-			0b00000000,
-		}
-	},
-	{
-		0x00e8,	// è	1
-		{
-			0b00001000,
-			0b00000100,
-			0b00001110,
-			0b00010001,
-			0b00011111,
-			0b00010000,
-			0b00001110,
-			0b00000000,
-		}
-	},
-	{
-		0x00ea,	// ê	2
-		{
-			0b00000100,
-			0b00001010,
-			0b00001110,
-			0b00010001,
-			0b00011111,
-			0b00010000,
-			0b00001110,
-			0b00000000,
-		}
-	},
-	{
-		0x00eb,	// ë	3
-		{
-			0b00001010,
-			0b00000000,
-			0b00001110,
-			0b00010001,
-			0b00011111,
-			0b00010000,
-			0b00001110,
-			0b00000000,
-		}
-	},
-	{
-		0x00fc,	// ü	4
-		{
-			0b00001010,
-			0b00000000,
-			0b00010001,
-			0b00010001,
-			0b00010001,
-			0b00010011,
-			0b00001101,
-			0b00000000,
-		}
-	},
-	{
-		0x00e7,	// ç	5
-		{
-			0b00000000,
-			0b00000000,
-			0b00001110,
-			0b00010000,
-			0b00010000,
-			0b00010101,
-			0b00001110,
-			0b00000100,
-		}
-	},
-	{
-		0x20ac,	// €	6 // FIXME: this cannot work with 2-byte UTF-8
-		{
-			0b00001000,
-			0b00000100,
-			0b00010110,
-			0b00011001,
-			0b00010001,
-			0b00010001,
-			0b00010001,
-			0b00000000,
-		}
-	},
-	{
-		0x00ef,	// ï	7
-		{
-			0b00001010,
-			0b00000000,
-			0b00001100,
-			0b00000100,
-			0b00000100,
-			0b00000100,
-			0b00001110,
-			0b00000000,
-		}
-	}
-};
-
 roflash static display_info_t display_info[display_size] =
 {
 	{
-		4, "saa1064", "4 digit led display",
+		display_text_4x20,
+		"saa1064", "4 digit led display",
 		display_saa1064_init,
 		display_saa1064_bright,
-		display_saa1064_set,
-		(void *)0,
+		display_saa1064_begin,
+		display_saa1064_output,
+		display_saa1064_end,
 	},
 	{
-		80, "hd44780", "4x20 character LCD display",
+		display_text_4x20,
+		"hd44780", "4x20 character LCD display",
 		display_lcd_init,
 		display_lcd_bright,
-		display_lcd_set,
-		display_lcd_show
+		display_lcd_begin,
+		display_lcd_output,
+		display_lcd_end,
 	},
 	{
-		80, "matrix orbital", "4x20 character VFD display",
+		display_text_4x20,
+		"matrix orbital", "4x20 character VFD display",
 		display_orbital_init,
 		display_orbital_bright,
-		display_orbital_set,
-		display_orbital_show
+		display_orbital_begin,
+		display_orbital_output,
+		display_orbital_end,
 	},
 	{
-		80, "cfa634", "4x20 character serial LCD display",
+		display_text_4x20,
+		"cfa634", "4x20 character serial LCD display",
 		display_cfa634_init,
 		display_cfa634_bright,
-		display_cfa634_set,
-		display_cfa634_show
-	}
+		display_cfa634_begin,
+		display_cfa634_output,
+		display_cfa634_end,
+	},
+	/*display_generic,*/
 };
-
-display_common_row_status_t display_common_row_status;
-uint8_t display_common_buffer[display_common_buffer_rows][display_common_buffer_columns];
 
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 
 assert_size(display_slot, 640);
-
-bool display_common_set(const char *tag, const char *text,
-	int map_size, const display_map_t *map,
-	int udg_size, const display_udg_t *udg)
-{
-	unsigned int current, mapped, utf16;
-	int y, x, ix;
-
-	for(y = 0; y < display_common_buffer_rows; y++)
-		for(x = 0; x < display_common_buffer_columns; x++)
-			display_common_buffer[y][x] = ' ';
-
-	x = 0;
-	y = 0;
-	utf16 = 0x00;
-
-	for(;;)
-	{
-		if(tag && ((current = (uint8_t)*tag++) == '\0'))
-		{
-			tag = (char *)0;
-			x = 0;
-			y = 1;
-			utf16 = 0x00;
-		}
-
-		if(!tag && ((current = (uint8_t)*text++) == '\0'))
-			break;
-
-		mapped = ~0UL;
-
-		if(utf16)
-		{
-			if((current & 0xc0) == 0x80) // valid second byte of a two-byte sequence
-			{
-				utf16 |= current & 0x3f;
-
-				for(ix = 0; ix < map_size; ix++)
-				{
-					if(map[ix].utf16 == utf16)
-					{
-						mapped = map[ix].to;
-						break;
-					}
-				}
-
-				for(ix = 0; ix < udg_size; ix++)
-				{
-					if((udg[ix].utf16 == utf16))
-					{
-						mapped = ix;
-						break;
-					}
-				}
-			}
-		}
-
-		utf16 = 0x0000;
-
-		if(mapped != ~0UL)
-			current = mapped;
-		else
-		{
-			if((current & 0xe0) == 0xc0) // UTF-8, start of two byte sequence
-			{
-				utf16 = (current & 0x1f) << 6;
-				continue;
-			}
-
-			if(current == '\r')
-			{
-				x = 0;
-
-				continue;
-			}
-
-			if(current == '\n')
-			{
-				x = 0;
-				tag = (char *)0;
-
-				if(y < 4)
-					y++;
-
-				continue;
-			}
-
-			if((current < ' ') || (current >= 0x80))
-				current = ' ';
-
-			for(ix = 0; ix < map_size; ix++)
-			{
-				if(map[ix].utf16 == current)
-				{
-					current = map[ix].to;
-					break;
-				}
-			}
-		}
-
-		if((y < display_common_buffer_rows) && (x < display_common_buffer_columns))
-			display_common_buffer[y][x++] = (uint8_t)(current & 0xff);
-	}
-
-	for(ix = 0; ix < display_common_buffer_rows; ix++)
-		display_common_row_status.row[ix].dirty = 1;
-
-	return(true);
-}
 
 attr_pure bool display_detected(void)
 {
@@ -346,11 +132,13 @@ attr_pure bool display_detected(void)
 
 static void display_update(bool advance)
 {
-	const char *display_text;
+	const char *display_text, *tag_text, *current_text;
 	int slot;
 	unsigned int hour, minute, month, day;
+	unsigned int utf8, unicode;
+	utf8_parser_state_t state;
 	display_info_t *display_info_entry;
-	string_new(, tag_text, 32);
+	string_new(, tag_string, 32);
 	string_new(, info_text, 64);
 
 	if(!display_detected())
@@ -378,18 +166,104 @@ static void display_update(bool advance)
 	if(!strcmp(display_text, "%%%%"))
 	{
 		config_get_string("identification", &info_text, -1, -1);
-		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->type);
+		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
 		display_text = string_to_cstr(&info_text);
 	}
 
 	if(strcmp(display_slot[slot].tag, "-"))
 	{
-		string_format(&tag_text, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_append_cstr_flash(&tag_text, display_slot[slot].tag);
-		display_info_entry->set_fn(string_to_cstr(&tag_text), display_text);
+		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+		string_append_cstr_flash(&tag_string, display_slot[slot].tag);
 	}
+
+	display_info_entry->begin_fn();
+
+	tag_text = string_to_cstr(&tag_string);
+
+	if(tag_text && *tag_text)
+		current_text = tag_text;
 	else
-		display_info_entry->set_fn((char *)0, display_text);
+		current_text = display_text;
+
+	state = u8p_state_base;
+	unicode = 0;
+
+	while(current_text)
+	{
+		utf8 = *current_text++;
+
+		if(!utf8)
+		{
+			current_text = display_text;
+			display_text = (const char *)0;
+			display_info_entry->output_fn('\n');
+			state = u8p_state_base;
+			continue;
+		}
+
+		switch(state)
+		{
+			case u8p_state_base:
+			{
+				if((utf8 & 0xe0) == 0xc0) // first of two bytes (11 bits)
+				{
+					unicode = utf8 & 0x1f;
+					state = u8p_state_utf8_byte_1;
+				}
+				else
+					if((utf8 & 0xf0) == 0xe0) // first of three bytes (16 bits)
+					{
+						unicode = utf8 & 0x0f;
+						state = u8p_state_utf8_byte_2;
+					}
+					else
+						if((utf8 & 0xf8) == 0xf0) // first of four bytes (21 bits)
+						{
+							unicode = utf8 & 0x07;
+							state = u8p_state_utf8_byte_3;
+						}
+						else
+							if((utf8 & 0x80) == 0x80)
+								log("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
+							else
+							{
+								unicode = utf8 & 0x7f;
+								state = u8p_state_output;
+							}
+
+				break;
+			}
+
+			case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
+			{
+				if((utf8 & 0xc0) == 0x80) // following bytes
+				{
+					unicode = (unicode << 6) | (utf8 & 0x3f);
+					state++;
+				}
+				else
+				{
+					log("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
+					state = u8p_state_base;
+				}
+
+				break;
+			}
+
+			case u8p_state_output:
+			{
+				break;
+			}
+		}
+
+		if(state == u8p_state_output)
+		{
+			display_info_entry->output_fn(unicode);
+			state = u8p_state_base;
+		}
+	}
+
+	display_info_entry->end_fn();
 }
 
 static void display_expire(void) // called one time per second
@@ -437,14 +311,11 @@ bool display_periodic(void) // gets called 10 times per second
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
 	unsigned int now;
-	display_info_t *display_info_entry;
 
 	if(!display_detected())
 		return(false);
 
 	now = system_get_time() / 1000000;
-
-	display_info_entry = &display_info[display_data.detected];
 
 	if(++expire_counter > 10) // expire and update once a second
 	{
@@ -457,9 +328,6 @@ bool display_periodic(void) // gets called 10 times per second
 			display_update(true);
 		}
 	}
-
-	if(display_info_entry->show_fn)
-		return(display_info_entry->show_fn());
 
 	return(false);
 }
@@ -511,7 +379,7 @@ static void display_dump(string_t *dst)
 	display_info_entry = &display_info[display_data.detected];
 
 	string_format(dst, "> display type #%d (%s: %s)\n", display_data.detected,
-			display_info_entry->name, display_info_entry->type);
+			display_info_entry->name, display_info_entry->description);
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
