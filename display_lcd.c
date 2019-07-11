@@ -489,4 +489,6 @@ void display_lcd_end(void)
 		while(x++ < 20)
 			send_byte(' ', true);
 	}
+
+	send_byte(' ', true); // workaround for bug in some LCD controllers that need last row/column to be sent twice
 }
