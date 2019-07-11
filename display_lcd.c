@@ -412,7 +412,7 @@ void display_lcd_begin(void)
 
 	x = y = 0;
 
-	send_byte(0x80, false);	// reset display RAM pointer to home
+	send_byte(cmd_home, false);
 }
 
 void display_lcd_output(unsigned int unicode)
