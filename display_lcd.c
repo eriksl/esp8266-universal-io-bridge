@@ -17,6 +17,22 @@ static unsigned int pin_mask;
 
 enum
 {
+	cmd_clear_screen =		0b00000001,
+	cmd_home =				0b00000011,
+	cmd_cursor_config =		0b00000110, // cursor move direction = LTR / no display shift
+	cmd_display_config =	0b00001100, // display on, cursor off, blink off
+	cmd_off_off_off =		0b00001000,	//	display off, cursor off, blink off
+	cmd_on_off_off =		0b00001100,	//	display on, cursor off, blink off
+	cmd_special_reset =		0b00110000,	//	datalength = 8, 2 lines, font = 5x8
+	cmd_special_nibble =	0b00100000,	//	datalength = 4, 1 lines, font = 5x8
+	cmd_nibble_mode =		0b00101000,	//	datalength = 4, 2 lines, font = 5x8
+	cmd_byte_mode =			0b00111000,	//	datalength = 8, 2 lines, font = 5x8
+	cmd_set_udg_ptr =		0b01000000,
+	cmd_set_ram_ptr =		0b10000000,
+};
+
+enum
+{
 	mapeof = 0xffffffff,
 };
 
@@ -318,7 +334,7 @@ bool display_lcd_init(void)
 
 	for(pin = 3; pin > 0; pin--)
 	{
-		if(!send_byte_raw(0b00110000, false))	// 3 x special "reset" command, low nibble ignored
+		if(!send_byte_raw(cmd_special_reset, false))	// 3 x special "reset" command, low nibble ignored
 			return(false);
 
 		msleep(5);
@@ -326,30 +342,30 @@ bool display_lcd_init(void)
 
 	if(nibble_mode)
 	{
-		if(!send_byte_raw(0b00100000, false))	// set 4 bit mode, low nibble ignored
+		if(!send_byte_raw(cmd_special_nibble, false))	// set 4 bit mode, low nibble ignored
 			return(false);
 
 		msleep(2);
 
-		if(!send_byte(0b00101000, false))		// set 4 bit mode / two lines / 5x8 font
+		if(!send_byte(cmd_nibble_mode, false))			// set 4 bit mode / two lines / 5x8 font
 			return(false);
 	}
 	else
-		if(!send_byte(0b00111000, false))		// set 8 bit mode / two lines / 5x8 font
+		if(!send_byte(cmd_byte_mode, false))			// set 8 bit mode / two lines / 5x8 font
 			return(false);
 
-	if(!send_byte(0b00000001, false))			// clear screen
+	if(!send_byte(cmd_clear_screen, false))				// clear screen
 		return(false);
 
 	msleep(2);
 
-	if(!send_byte(0b00000110, false))			// cursor move direction = LTR / no display shift
+	if(!send_byte(cmd_cursor_config, false))			// cursor move direction = LTR / no display shift
 		return(false);
 
-	if(!send_byte(0b00001100, false))			// display on, cursor off, blink off
+	if(!send_byte(cmd_display_config, false))			// display on, cursor off, blink off
 		return(false);
 
-	if(!send_byte(0b01000000, false))			// start writing to CGRAM @ 0
+	if(!send_byte(cmd_set_udg_ptr, false))				// start writing to CGRAM @ 0
 		return(false);
 
 	msleep(2);
@@ -364,21 +380,14 @@ bool display_lcd_init(void)
 	return(display_lcd_bright(1));
 }
 
-typedef enum
-{
-	cmd_off_off_off = 0b00001000,	// display off, cursor off, blink off
-	cmd_on_off_off = 0b00001100,	// display on, cursor off, blink off
-} cmd_t;
-
 bool display_lcd_bright(int brightness)
 {
-	static const cmd_t cmds[5] = { cmd_off_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off, cmd_on_off_off };
 	unsigned int max_value, value;
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	if(!send_byte(cmds[brightness], false))
+	if(!send_byte((brightness > 0) ? cmd_on_off_off : cmd_off_off_off, false))
 		return(false);
 
 	if((bl_io >= 0) && (bl_pin >= 0))
@@ -420,7 +429,7 @@ void display_lcd_output(unsigned int unicode)
 				send_byte(' ', true);
 
 			if(y < 3)
-				send_byte(0x80 | ram_offsets[y + 1], false);
+				send_byte(cmd_set_ram_ptr | ram_offsets[y + 1], false);
 		}
 
 		x = 0;
@@ -457,7 +466,7 @@ void display_lcd_output(unsigned int unicode)
 
 		if((y == 3) && (x == 19)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
 		{
-			send_byte(0x80 | (ram_offsets[y] + x), false);
+			send_byte(cmd_set_ram_ptr | (ram_offsets[y] + x), false);
 			send_byte(unicode & 0xff, true);
 		}
 	}
@@ -475,7 +484,7 @@ void display_lcd_end(void)
 
 	for(; y < 4; y++, x = 0)
 	{
-		send_byte(0x80 | (ram_offsets[y] + x), false);
+		send_byte(cmd_set_ram_ptr | (ram_offsets[y] + x), false);
 
 		while(x++ < 20)
 			send_byte(' ', true);
