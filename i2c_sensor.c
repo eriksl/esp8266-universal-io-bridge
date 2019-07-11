@@ -4184,7 +4184,7 @@ static i2c_error_t sensor_am2320_read(int address, i2c_sensor_value_t *value, am
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_am2320_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_am2320_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
 	uint8_t		values[2];
@@ -4196,7 +4196,7 @@ static i2c_error_t sensor_am2320_humidity_init(int bus, const i2c_sensor_device_
 		return(error);
 
 	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_am2320_temperature);
+	sensor_register(bus, i2c_sensor_am2320_humidity);
 
 	return(i2c_error_ok);
 }
@@ -4731,17 +4731,17 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_am2320_humidity, 0x5c, 0, 0,
-		"am2320/1/2", "humidity", "%",
-		sensor_am2320_humidity_init,
-		sensor_am2320_humidity_read,
+		i2c_sensor_am2320_temperature, 0x5c, 1, 0,
+		"am2320/1/2", "temperature", "C",
+		sensor_am2320_init,
+		sensor_am2320_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_am2320_temperature, 0x5c, 2, 1,
-		"am2320/1/2", "temperature", "C",
+		i2c_sensor_am2320_humidity, 0x5c, 0, 1,
+		"am2320/1/2", "humidity", "%",
 		(void *)0,
-		sensor_am2320_temperature_read,
+		sensor_am2320_humidity_read,
 		(void *)0,
 	},
 	{
