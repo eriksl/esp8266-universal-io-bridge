@@ -172,43 +172,44 @@ bool display_saa1064_bright(int bright_in)
 	return(true);
 }
 
-bool display_saa1064_set(const char *tag, const char *from)
+static unsigned int x;
+static char text[4];
+
+void display_saa1064_begin(void)
+{
+	if(i2c_bus < 0)
+		return;
+
+	strecpy(text,  "    ", sizeof(text));
+
+	x = 0;
+}
+
+void display_saa1064_output(unsigned int unicode)
+{
+	if((unicode == '.') && (x > 0))
+		text[x - 1] |= 0x80;
+	else
+		if(x < 4)
+			text[x++] = unicode & 0x7f;
+}
+
+void display_saa1064_end(void)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
 		0x00, 0x10, 0x30, 0x50, 0x70
 	};
 
-	char text[4];
 	uint8_t i2cdata[6];
-	int current;
-
-	if(i2c_bus < 0)
-		return(false);
-
-	strecpy(text,  "    ", sizeof(text));
-
-	for(current = 0; *from && (current < (int)sizeof(text)); from++)
-	{
-		if((*from == '.') && (current > 0))
-			text[current - 1] |= 0x80;
-		else
-			text[current++] = *from;
-	}
 
 	i2cdata[0] = 0x00;	// start at control register (0x00),
 						// followed by four digits segments registers (0x01-0x04)
 	i2cdata[1] = 0x07;	// multiplex mode, enable all digits, no test mode
 	i2cdata[1] |= bright_to_saa[brightness];
 
-	for(current = 0; current < 4; current++)
-		i2cdata[2 + current] = 0x00;
+	for(x = 0; x < 4; x++)
+		i2cdata[5 - x] = led_render_char(text[x]); // reverse digit's position
 
-	for(current = 0; (current < 4) && text[current]; current++)
-		i2cdata[5 - current] = led_render_char(text[current]); // reverse digit's position
-
-	if(i2c_send(0x38, 6, i2cdata) != i2c_error_ok)
-		return(false);
-
-	return(true);
+	i2c_send(0x38, 6, i2cdata);
 }
