@@ -266,43 +266,6 @@ static void display_update(bool advance)
 	display_info_entry->end_fn();
 }
 
-static void display_expire(void) // called one time per second
-{
-	unsigned int active_slots, slot;
-	string_new(, default_message, 64);
-
-	if(!display_detected())
-		return;
-
-	active_slots = 0;
-
-	for(slot = 0; slot < display_slot_amount; slot++)
-	{
-		if(display_slot[slot].timeout == 1)
-		{
-			display_slot[slot].tag[0] = '\0';
-			display_slot[slot].content[0] = '\0';
-		}
-
-		if(display_slot[slot].timeout > 0)
-			display_slot[slot].timeout--;
-
-		if(display_slot[slot].content[0])
-			active_slots++;
-	}
-
-	if(active_slots == 0)
-	{
-		display_slot[0].timeout = 1;
-		strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
-
-		if(!config_get_string("display.defaultmsg", &default_message, -1, -1))
-		{
-			string_clear(&default_message);
-			string_append(&default_message, "%%%%");
-		}
-
-		strecpy(display_slot[0].content, string_to_cstr(&default_message), display_slot_content_size);
 	}
 }
 
@@ -310,7 +273,8 @@ bool display_periodic(void) // gets called 10 times per second
 {
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
-	unsigned int now;
+	unsigned int now, active_slots, slot;
+	string_new(, default_message, 64);
 
 	if(!display_detected())
 		return(false);
@@ -320,7 +284,36 @@ bool display_periodic(void) // gets called 10 times per second
 	if(++expire_counter > 10) // expire and update once a second
 	{
 		expire_counter = 0;
-		display_expire();
+		active_slots = 0;
+
+		for(slot = 0; slot < display_slot_amount; slot++)
+		{
+			if(display_slot[slot].timeout == 1)
+			{
+				display_slot[slot].tag[0] = '\0';
+				display_slot[slot].content[0] = '\0';
+			}
+
+			if(display_slot[slot].timeout > 0)
+				display_slot[slot].timeout--;
+
+			if(display_slot[slot].content[0])
+				active_slots++;
+		}
+
+		if(active_slots == 0)
+		{
+			display_slot[0].timeout = 1;
+			strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
+
+			if(!config_get_string("display.defaultmsg", &default_message, -1, -1))
+			{
+				string_clear(&default_message);
+				string_append(&default_message, "%%%%");
+			}
+
+			strecpy(display_slot[0].content, string_to_cstr(&default_message), display_slot_content_size);
+		}
 
 		if((last_update > now) || ((last_update + flip_timeout) < now))
 		{
