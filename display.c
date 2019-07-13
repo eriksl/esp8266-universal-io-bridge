@@ -3,6 +3,7 @@
 #include "display_lcd.h"
 #include "display_orbital.h"
 #include "display_cfa634.h"
+#include "display_seeed.h"
 
 #include "util.h"
 #include "sys_string.h"
@@ -27,6 +28,7 @@ enum
 	display_lcd = 1,
 	display_orbital = 2,
 	display_cfa634 = 3,
+	display_seeed = 4,
 	display_error,
 	display_size = display_error
 };
@@ -111,6 +113,15 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_end,
 		display_cfa634_bright,
 		(void *)0,
+	},
+	{
+		"seeed LCD", "128x64 LCD", 2,
+		display_seeed_init,
+		display_seeed_begin,
+		display_seeed_output,
+		display_seeed_end,
+		display_seeed_bright,
+		display_seeed_inverse,
 	},
 };
 
