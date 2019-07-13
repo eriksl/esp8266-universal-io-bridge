@@ -579,6 +579,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 {
 	int slot, timeout, from, to;
 	char current;
+	bool cleared = false;
 
 	if(!display_detected())
 	{
@@ -611,6 +612,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 			display_slot[slot].timeout = 0;
 		}
 
+		cleared = true;
 		slot = 0;
 	}
 
@@ -640,7 +642,9 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	display_slot[slot].content[to] = '\0';
 	display_slot[slot].timeout = timeout;
 
-	display_update(false);
+	if(cleared)
+		display_update(false);
+
 	string_clear(dst);
 
 	string_format(dst, "display-set: set slot %d with tag %s to \"%s\"\n",
