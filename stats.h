@@ -64,6 +64,8 @@ extern unsigned int stat_init_display_time_us;
 extern unsigned int stat_init_io_time_us;
 extern unsigned int stat_init_associate_time_us;
 extern unsigned int stat_init_ip_time_us;
+extern unsigned int stat_display_update_min_us;
+extern unsigned int stat_display_update_max_us;
 
 extern unsigned int stat_sntp_received;
 extern unsigned int stat_sntp_poll;

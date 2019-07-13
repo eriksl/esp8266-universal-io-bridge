@@ -63,6 +63,9 @@ unsigned int stat_i2c_bus_lock_max_period;
 unsigned int stat_i2c_soft_resets;
 unsigned int stat_i2c_hard_resets;
 
+unsigned int stat_display_update_min_us = ~0UL;
+unsigned int stat_display_update_max_us;
+
 unsigned int stat_sntp_received;
 unsigned int stat_sntp_poll;
 

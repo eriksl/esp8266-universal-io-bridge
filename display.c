@@ -140,6 +140,7 @@ static void display_update(bool advance)
 	const char *display_text, *tag_text, *current_text;
 	unsigned int display_visible_slot, previous_slot, slot;
 	unsigned int utf8, unicode;
+	uint64_t start, spent;
 	utf8_parser_state_t state;
 	display_info_t *display_info_entry;
 	string_new(, tag_string, 32);
@@ -147,6 +148,8 @@ static void display_update(bool advance)
 
 	if(!display_detected())
 		return;
+
+	start = time_get_us();
 
 	display_info_entry = &display_info[display_data.detected];
 
@@ -302,6 +305,11 @@ static void display_update(bool advance)
 		display_info_entry->begin_fn(display_visible_slot);
 		display_info_entry->end_fn();
 	}
+
+	spent = time_get_us() - start;
+
+	stat_display_update_max_us = umax(stat_display_update_max_us, spent);
+	stat_display_update_min_us = umin(stat_display_update_min_us, spent);
 }
 
 bool display_periodic(void) // gets called 10 times per second
@@ -408,6 +416,10 @@ static void display_dump(string_t *dst)
 
 	string_format(dst, "> display type #%d (%s: %s)\n", display_data.detected,
 			display_info_entry->name, display_info_entry->description);
+
+	string_format(dst, "> display update time, min: %u us, max: %u us\n",
+		stat_display_update_min_us,
+		stat_display_update_max_us);
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{

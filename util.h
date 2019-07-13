@@ -33,6 +33,14 @@ const char *onoff(bool value);
 
 void msleep(int);
 
+attr_inline unsigned int umin(unsigned int a, unsigned int b)
+{
+	if(a < b)
+		return(a);
+
+	return(b);
+}
+
 attr_inline unsigned int umax(unsigned int a, unsigned int b)
 {
 	if(a > b)
