@@ -6,7 +6,7 @@
 
 bool display_lcd_init(void);
 bool display_lcd_bright(int);
-void display_lcd_begin(void);
+void display_lcd_begin(unsigned int slot);
 void display_lcd_output(unsigned int);
 void display_lcd_end(void);
 

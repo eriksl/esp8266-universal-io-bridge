@@ -6,7 +6,7 @@
 
 bool display_saa1064_init(void);
 bool display_saa1064_bright(int brightness);
-void display_saa1064_begin(void);
+void display_saa1064_begin(unsigned int slot);
 void display_saa1064_output(unsigned int);
 void display_saa1064_end(void);
 

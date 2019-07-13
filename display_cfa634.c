@@ -309,7 +309,7 @@ attr_const bool display_cfa634_bright(int brightness)
 
 static unsigned int x, y;
 
-void display_cfa634_begin(void)
+void display_cfa634_begin(unsigned int slot)
 {
 	uart_send(uart, 3);	// restore blanked display
 	uart_send(uart, 20);	// scroll off

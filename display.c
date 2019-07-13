@@ -33,12 +33,6 @@ enum
 
 typedef enum
 {
-	display_generic,
-	display_text_4x20,
-} display_type_t;
-
-typedef enum
-{
 	u8p_state_base,
 	u8p_state_utf8_byte_3,
 	u8p_state_utf8_byte_2,
@@ -48,17 +42,18 @@ typedef enum
 
 typedef const struct
 {
-	display_type_t	const type;
 	const char *	const name;
 	const char *	const description;
+	unsigned int	const display_visible_slots;
 	bool			(* const init_fn)(void);
-	bool			(* const bright_fn)(int brightness);
-	void			(* const begin_fn)(void);
+	void			(* const begin_fn)(unsigned int slot);
 	void			(* const output_fn)(unsigned int);
 	void			(* const end_fn)(void);
+	bool			(* const bright_fn)(int brightness);
+	bool			(* const inverse_fn)(bool);
 } display_info_t;
 
-assert_size(display_info_t, 32);
+assert_size(display_info_t, 36);
 
 typedef struct
 {
@@ -82,42 +77,41 @@ static unsigned int flip_timeout;
 roflash static display_info_t display_info[display_size] =
 {
 	{
-		display_text_4x20,
-		"saa1064", "4 digit led display",
+		"saa1064", "4 digit led display", 1,
 		display_saa1064_init,
-		display_saa1064_bright,
 		display_saa1064_begin,
 		display_saa1064_output,
 		display_saa1064_end,
+		display_saa1064_bright,
+		(void *)0,
 	},
 	{
-		display_text_4x20,
-		"hd44780", "4x20 character LCD display",
+		"hd44780", "4x20 character LCD", 1,
 		display_lcd_init,
-		display_lcd_bright,
 		display_lcd_begin,
 		display_lcd_output,
 		display_lcd_end,
+		display_lcd_bright,
+		(void *)0,
 	},
 	{
-		display_text_4x20,
-		"matrix orbital", "4x20 character VFD display",
+		"matrix orbital", "4x20 character VFD", 1,
 		display_orbital_init,
-		display_orbital_bright,
 		display_orbital_begin,
 		display_orbital_output,
 		display_orbital_end,
+		display_orbital_bright,
+		(void *)0,
 	},
 	{
-		display_text_4x20,
-		"cfa634", "4x20 character serial LCD display",
+		"cfa634", "4x20 character LCD", 1,
 		display_cfa634_init,
-		display_cfa634_bright,
 		display_cfa634_begin,
 		display_cfa634_output,
 		display_cfa634_end,
+		display_cfa634_bright,
+		(void *)0,
 	},
-	/*display_generic,*/
 };
 
 static display_data_t display_data;
@@ -133,8 +127,7 @@ attr_pure bool display_detected(void)
 static void display_update(bool advance)
 {
 	const char *display_text, *tag_text, *current_text;
-	int slot;
-	unsigned int hour, minute, month, day;
+	unsigned int display_visible_slot, previous_slot, slot;
 	unsigned int utf8, unicode;
 	utf8_parser_state_t state;
 	display_info_t *display_info_entry;
@@ -146,126 +139,157 @@ static void display_update(bool advance)
 
 	display_info_entry = &display_info[display_data.detected];
 
-	for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
-		if(display_slot[slot].content[0])
-			break;
+	previous_slot = ~0UL;
 
-	if(slot >= display_slot_amount)
-		for(slot = 0; slot < display_slot_amount; slot++)
+	for(display_visible_slot = 0; display_visible_slot < display_info_entry->display_visible_slots; display_visible_slot++)
+	{
+		for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 			if(display_slot[slot].content[0])
 				break;
 
-	if(slot >= display_slot_amount)
-		slot = 0;
+		if(slot >= display_slot_amount)
+			for(slot = 0; slot < display_slot_amount; slot++)
+				if(display_slot[slot].content[0])
+					break;
 
-	display_data.current_slot = slot;
-	display_text = display_slot[slot].content;
+		if(slot >= display_slot_amount)
+			slot = 0;
 
-	time_get(&hour, &minute, 0, 0, &month, &day);
+		if((display_visible_slot > 0) && (slot == previous_slot))
+			break;
 
-	if(!strcmp(display_text, "%%%%"))
-	{
-		config_get_string("identification", &info_text, -1, -1);
-		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
-		display_text = string_to_cstr(&info_text);
-	}
+		display_data.current_slot = previous_slot = slot;
+		display_text = display_slot[slot].content;
 
-	if(strcmp(display_slot[slot].tag, "-"))
-	{
-		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_append_cstr_flash(&tag_string, display_slot[slot].tag);
-	}
+		if(!strcmp(display_text, "%%%%"))
+		{
+			config_get_string("identification", &info_text, -1, -1);
+			string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
+			display_text = string_to_cstr(&info_text);
+		}
 
-	display_info_entry->begin_fn();
+		string_clear(&tag_string);
 
-	tag_text = string_to_cstr(&tag_string);
+		if(strcmp(display_slot[slot].tag, "-"))
+		{
+			unsigned int hour, minute, month, day;
 
-	if(tag_text && *tag_text)
-		current_text = tag_text;
-	else
-		current_text = display_text;
+			time_get(&hour, &minute, 0, 0, &month, &day);
+			string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+			string_append_cstr_flash(&tag_string, display_slot[slot].tag);
+		}
 
-	state = u8p_state_base;
-	unicode = 0;
+		display_info_entry->begin_fn(display_visible_slot);
 
-	while(current_text)
-	{
-		utf8 = *current_text++;
+		tag_text = string_to_cstr(&tag_string);
 
-		if(!utf8)
+		if(tag_text && *tag_text)
+		{
+			current_text = tag_text;
+
+			if(display_info_entry->inverse_fn)
+				display_info_entry->inverse_fn(1);
+		}
+		else
 		{
 			current_text = display_text;
-			display_text = (const char *)0;
-			display_info_entry->output_fn('\n');
-			state = u8p_state_base;
-			continue;
+
+			if(display_info_entry->inverse_fn)
+				display_info_entry->inverse_fn(0);
 		}
 
-		switch(state)
+		state = u8p_state_base;
+		unicode = 0;
+
+		while(current_text)
 		{
-			case u8p_state_base:
+			utf8 = *current_text++;
+
+			if(!utf8)
 			{
-				if((utf8 & 0xe0) == 0xc0) // first of two bytes (11 bits)
+				current_text = display_text;
+				display_text = (const char *)0;
+				display_info_entry->output_fn('\n');
+
+				if(display_info_entry->inverse_fn)
+					display_info_entry->inverse_fn(0);
+
+				state = u8p_state_base;
+				continue;
+			}
+
+			switch(state)
+			{
+				case u8p_state_base:
 				{
-					unicode = utf8 & 0x1f;
-					state = u8p_state_utf8_byte_1;
-				}
-				else
-					if((utf8 & 0xf0) == 0xe0) // first of three bytes (16 bits)
+					if((utf8 & 0xe0) == 0xc0) // first of two bytes (11 bits)
 					{
-						unicode = utf8 & 0x0f;
-						state = u8p_state_utf8_byte_2;
+						unicode = utf8 & 0x1f;
+						state = u8p_state_utf8_byte_1;
 					}
 					else
-						if((utf8 & 0xf8) == 0xf0) // first of four bytes (21 bits)
+						if((utf8 & 0xf0) == 0xe0) // first of three bytes (16 bits)
 						{
-							unicode = utf8 & 0x07;
-							state = u8p_state_utf8_byte_3;
+							unicode = utf8 & 0x0f;
+							state = u8p_state_utf8_byte_2;
 						}
 						else
-							if((utf8 & 0x80) == 0x80)
-								log("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
-							else
+							if((utf8 & 0xf8) == 0xf0) // first of four bytes (21 bits)
 							{
-								unicode = utf8 & 0x7f;
-								state = u8p_state_output;
+								unicode = utf8 & 0x07;
+								state = u8p_state_utf8_byte_3;
 							}
+							else
+								if((utf8 & 0x80) == 0x80)
+									log("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
+								else
+								{
+									unicode = utf8 & 0x7f;
+									state = u8p_state_output;
+								}
 
-				break;
-			}
-
-			case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
-			{
-				if((utf8 & 0xc0) == 0x80) // following bytes
-				{
-					unicode = (unicode << 6) | (utf8 & 0x3f);
-					state++;
-				}
-				else
-				{
-					log("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
-					state = u8p_state_base;
+					break;
 				}
 
-				break;
+				case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
+				{
+					if((utf8 & 0xc0) == 0x80) // following bytes
+					{
+						unicode = (unicode << 6) | (utf8 & 0x3f);
+						state++;
+					}
+					else
+					{
+						log("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
+						state = u8p_state_base;
+					}
+
+					break;
+				}
+
+				case u8p_state_output:
+				{
+					break;
+				}
 			}
 
-			case u8p_state_output:
+			if(state == u8p_state_output)
 			{
-				break;
+				display_info_entry->output_fn(unicode);
+				state = u8p_state_base;
 			}
 		}
 
-		if(state == u8p_state_output)
-		{
-			display_info_entry->output_fn(unicode);
-			state = u8p_state_base;
-		}
+		display_info_entry->end_fn();
 	}
 
-	display_info_entry->end_fn();
-}
+	if(display_info_entry->inverse_fn)
+		display_info_entry->inverse_fn(0);
 
+	for(; display_visible_slot < display_info_entry->display_visible_slots; display_visible_slot++)
+	{
+		display_info_entry->begin_fn(display_visible_slot);
+		display_info_entry->end_fn();
 	}
 }
 
@@ -279,7 +303,7 @@ bool display_periodic(void) // gets called 10 times per second
 	if(!display_detected())
 		return(false);
 
-	now = system_get_time() / 1000000;
+	now = time_get_us() / 1000000;
 
 	if(++expire_counter > 10) // expire and update once a second
 	{

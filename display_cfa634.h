@@ -6,7 +6,7 @@
 
 bool display_cfa634_setup(unsigned int io, unsigned int pin);
 bool display_cfa634_init(void);
-void display_cfa634_begin(void);
+void display_cfa634_begin(unsigned int slot);
 void display_cfa634_output(unsigned int);
 void display_cfa634_end(void);
 bool display_cfa634_bright(int brightness);
