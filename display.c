@@ -48,7 +48,7 @@ typedef const struct
 	const char *	const description;
 	unsigned int	const display_visible_slots;
 	bool			(* const init_fn)(void);
-	void			(* const begin_fn)(unsigned int slot);
+	void			(* const begin_fn)(int slot, unsigned int slot_offset);
 	void			(* const output_fn)(unsigned int);
 	void			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
@@ -138,7 +138,7 @@ attr_pure bool display_detected(void)
 static void display_update(bool advance)
 {
 	const char *display_text, *tag_text, *current_text;
-	unsigned int display_visible_slot, previous_slot, slot;
+	unsigned int slot_offset, previous_slot, slot;
 	unsigned int utf8, unicode;
 	uint64_t start, spent;
 	utf8_parser_state_t state;
@@ -155,7 +155,7 @@ static void display_update(bool advance)
 
 	previous_slot = ~0UL;
 
-	for(display_visible_slot = 0; display_visible_slot < display_info_entry->display_visible_slots; display_visible_slot++)
+	for(slot_offset = 0; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
 	{
 		for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 			if(display_slot[slot].content[0])
@@ -169,7 +169,7 @@ static void display_update(bool advance)
 		if(slot >= display_slot_amount)
 			slot = 0;
 
-		if((display_visible_slot > 0) && (slot == previous_slot))
+		if((slot_offset > 0) && (slot == previous_slot))
 			break;
 
 		display_data.current_slot = previous_slot = slot;
@@ -193,7 +193,7 @@ static void display_update(bool advance)
 			string_append_cstr_flash(&tag_string, display_slot[slot].tag);
 		}
 
-		display_info_entry->begin_fn(display_visible_slot);
+		display_info_entry->begin_fn(slot, slot_offset);
 
 		tag_text = string_to_cstr(&tag_string);
 
@@ -300,9 +300,9 @@ static void display_update(bool advance)
 	if(display_info_entry->inverse_fn)
 		display_info_entry->inverse_fn(0);
 
-	for(; display_visible_slot < display_info_entry->display_visible_slots; display_visible_slot++)
+	for(; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
 	{
-		display_info_entry->begin_fn(display_visible_slot);
+		display_info_entry->begin_fn(-1, slot_offset);
 		display_info_entry->end_fn();
 	}
 

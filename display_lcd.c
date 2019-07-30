@@ -405,7 +405,7 @@ bool display_lcd_bright(int brightness)
 	return(true);
 }
 
-void display_lcd_begin(unsigned int slot)
+void display_lcd_begin(int slot, unsigned int slot_offset)
 {
 	if(!inited)
 		log("! display lcd not inited\n");

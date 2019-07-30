@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 static bool inited = false;
-static unsigned int x, y, slot;
+static unsigned int x, y, slot_offset;
 
 enum
 {
@@ -264,7 +264,7 @@ static void udg_send(unsigned int udg)
 				ram_byte[bit + 1] |= 1 << byte;
 
 	gx = x * 6;
-	gy = (slot * 4) + y;
+	gy = (slot_offset * 4) + y;
 
 	if(gx > 0)
 		gx--;
@@ -294,10 +294,10 @@ bool display_seeed_init(void)
 	if(i2c_send2(0x51, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
 		return(false);
 
-	for(slot = 0; slot < 2; slot++)
+	for(slot_offset = 0; slot_offset < 2; slot_offset++)
 		for(y = 0; y < 4; y++)
 		{
-			text_goto(slot, 0, y);
+			text_goto(slot_offset, 0, y);
 
 			for(x = 0; x < 21; x++)
 				text_send(' ');
@@ -310,16 +310,16 @@ bool display_seeed_init(void)
 	return(display_seeed_bright(1));
 }
 
-void display_seeed_begin(unsigned int select_slot)
+void display_seeed_begin(int select_slot, unsigned int select_slot_offset)
 {
 	if(!inited)
 		log("! display seeed not inited\n");
 
 	x = y = 0;
-	slot = select_slot;
+	slot_offset = select_slot_offset;
 
 	msleep(1);
-	text_goto(slot, 0, 0);
+	text_goto(slot_offset, 0, 0);
 	msleep(1);
 }
 
@@ -336,7 +336,7 @@ void display_seeed_output(unsigned int unicode)
 				text_send(' ');
 
 			if(y < 3)
-				text_goto(slot, 0, y + 1);
+				text_goto(slot_offset, 0, y + 1);
 		}
 
 		x = 0;
@@ -382,7 +382,7 @@ void display_seeed_end(void)
 
 	for(; y < 4; y++, x = 0)
 	{
-		text_goto(slot, x, y);
+		text_goto(slot_offset, x, y);
 
 		while(x++ < 21)
 			text_send(' ');

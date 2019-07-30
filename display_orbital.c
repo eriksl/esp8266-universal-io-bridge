@@ -279,7 +279,7 @@ bool display_orbital_bright(int brightness)
 	return(true);
 }
 
-void display_orbital_begin(unsigned int slot)
+void display_orbital_begin(int slot, unsigned int slot_offset)
 {
 	if(!inited)
 		log("! display orbital not inited\n");
