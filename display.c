@@ -4,6 +4,7 @@
 #include "display_orbital.h"
 #include "display_cfa634.h"
 #include "display_seeed.h"
+#include "display_eastrising.h"
 
 #include "util.h"
 #include "sys_string.h"
@@ -29,6 +30,7 @@ enum
 	display_orbital = 2,
 	display_cfa634 = 3,
 	display_seeed = 4,
+	display_eastrising = 5,
 	display_error,
 	display_size = display_error
 };
@@ -122,6 +124,15 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_end,
 		display_seeed_bright,
 		display_seeed_inverse,
+	},
+	{
+		"eastrising TFT", "480x272 LCD", 2,
+		display_eastrising_init,
+		display_eastrising_begin,
+		display_eastrising_output,
+		display_eastrising_end,
+		display_eastrising_bright,
+		(void *)0,
 	},
 };
 

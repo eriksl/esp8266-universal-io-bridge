@@ -1,0 +1,13 @@
+#ifndef display_eastrising_h
+#define display_eastrising_h
+
+#include <stdint.h>
+#include <stdbool.h>
+
+bool display_eastrising_init(void);
+void display_eastrising_begin(int slot, unsigned int slot_offset);
+void display_eastrising_output(unsigned int);
+void display_eastrising_end(void);
+bool display_eastrising_bright(int);
+
+#endif
