@@ -216,8 +216,8 @@ roflash static const udg_map_t udg_map[] =
 	},
 };
 
-unsigned int text_current = 0;
-uint8_t text_buffer[32];
+static unsigned int text_current = 0;
+static uint8_t text_buffer[32];
 
 static void text_flush(void)
 {
