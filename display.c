@@ -189,7 +189,17 @@ static void display_update(bool advance)
 			unsigned int hour, minute, month, day;
 
 			time_get(&hour, &minute, 0, 0, &month, &day);
-			string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+
+			if(display_info_entry->display_visible_slots > 1)
+			{
+				if(slot_offset == 0)
+					string_format(&tag_string, "%02u:%02u ", hour, minute);
+				else
+					string_format(&tag_string, "%02u/%02u ", day, month);
+			}
+			else
+				string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+
 			string_append_cstr_flash(&tag_string, display_slot[slot].tag);
 		}
 
