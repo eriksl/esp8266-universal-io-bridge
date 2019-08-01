@@ -67,7 +67,7 @@ static int config_tail(void)
 
 bool config_init(void)
 {
-	config_flags = flag_log_to_uart | flag_log_to_buffer;
+	config_flags = flag_log_to_uart | flag_log_to_buffer | flag_cmd_from_uart;
 
 	if(!config_get_uint("flags", &config_flags, -1, -1))
 		return(false);

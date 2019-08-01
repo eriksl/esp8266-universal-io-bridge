@@ -355,7 +355,7 @@ iram static void slow_timer_callback(void *arg)
 
 	dispatch_post_task(1, task_update_time, 0);
 
-	if(uart_bridge_active)
+	if(uart_bridge_active || config_flags_match(flag_cmd_from_uart))
 		dispatch_post_task(0, task_uart_bridge, 0);
 
 	if(display_detected())
