@@ -725,11 +725,14 @@ void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 
 	i2c_reset();
 
-	if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
-	{
-		i2c_flags.multiplexer = 1;
-		i2c_select_bus(0);
-	}
+	if(i2c_receive(0x06, 1, &byte) == i2c_error_ok)
+		log("eastrising display detected, i2c multiplexer disabled\n");
+	else
+		if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
+		{
+			i2c_flags.multiplexer = 1;
+			i2c_select_bus(0);
+		}
 }
 
 void i2c_get_info(i2c_info_t *i2c_info)
