@@ -380,7 +380,7 @@ static void text_goto(unsigned int slot_offset, unsigned int textx, unsigned int
 {
 	unsigned int x, y;
 
-	x = display_text_to_graphic_x(textx);
+	x = display_text_to_graphic_x(textx) + 4;
 	y = display_text_to_graphic_y(slot_offset, texty);
 
 	text_flush();
