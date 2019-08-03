@@ -204,8 +204,25 @@ static void display_update(bool advance)
 		if((slot_offset > 0) && (slot == previous_slot))
 			break;
 
-		display_data.current_slot = previous_slot = slot;
 		display_text = display_slot[slot].content;
+
+		if(!strcmp(display_text, "****"))
+		{
+			if(display_info_entry->layer_select_fn)
+			{
+				if(previous_slot == ~0UL)
+				{
+					display_data.current_slot = slot;
+					display_info_entry->layer_select_fn(1);
+				}
+				else
+					display_data.current_slot = previous_slot;
+			}
+
+			goto skip;
+		}
+
+		display_data.current_slot = previous_slot = slot;
 
 		if(!strcmp(display_text, "%%%%"))
 		{
@@ -337,6 +354,8 @@ static void display_update(bool advance)
 		}
 
 		display_info_entry->end_fn();
+
+		display_info_entry->layer_select_fn(0);
 	}
 
 	for(; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
@@ -347,6 +366,7 @@ static void display_update(bool advance)
 		display_info_entry->end_fn();
 	}
 
+skip:
 	spent = time_get_us() - start;
 
 	stat_display_update_max_us = umax(stat_display_update_max_us, spent);
