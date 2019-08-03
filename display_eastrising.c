@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "config.h"
 #include "sys_time.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -49,6 +50,10 @@ enum
 	reg_veaw1 =		0x37,
 	reg_mwcr0 =		0x40,
 	reg_mwcr1 =		0x41,
+	reg_curh0 =		0x46,
+	reg_curh1 =		0x47,
+	reg_curv0 =		0x48,
+	reg_curv1 =		0x49,
 	reg_ltpr0 =		0x52,
 	reg_ltpr1 =		0x53,
 	reg_bgcr0 =		0x60,
@@ -338,6 +343,16 @@ static bool display_write(uint8_t cmd, uint8_t data)
 	return(display_write_data(data));
 }
 
+static bool display_set_mode_graphic(void)
+{
+    return(display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
+}
+
+static bool display_set_mode_text(void)
+{
+    return(display_write(reg_mwcr0, reg_mwcr0_mode_text | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
+}
+
 static unsigned int display_text_current = 0;
 static uint8_t display_text_buffer[32];
 
@@ -360,7 +375,6 @@ static unsigned int display_text_to_graphic_y(unsigned int slot_offset, unsigned
 
 static void text_flush(void)
 {
-    display_write(reg_mwcr0, reg_mwcr0_mode_text | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en);
 	display_write_command(reg_mrwc);
 
 	i2c_send(i2c_addr_data, display_text_current, display_text_buffer);
@@ -419,20 +433,6 @@ static bool display_bgcolour(unsigned int r, unsigned int g, unsigned int b)
 	return(true);
 }
 
-static bool display_trcolour(unsigned int r, unsigned int g, unsigned int b)
-{
-	if(!display_write(reg_bgtr0, r))
-		return(false);
-
-	if(!display_write(reg_bgtr1, g))
-		return(false);
-
-	if(!display_write(reg_bgtr2, b))
-		return(false);
-
-	return(true);
-}
-
 static bool display_set_active_window(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1)
 {
 	x0 = umin(x0, display_width - 1);
@@ -470,6 +470,18 @@ static bool display_set_active_window(unsigned int x0, unsigned int y0, unsigned
 static bool display_set_active_layer(unsigned int layer)
 {
 	return(display_write(reg_mwcr1, reg_mwcr1_graphic_cursor_disable | reg_mwcr1_write_destination_layer | (layer & 0x01)));
+}
+
+static bool display_show_layer(unsigned int layer)
+{
+	unsigned int value = reg_ltpr0_scroll_both | reg_ltpr0_floatwin_transparency_dis;
+
+	if(!display_write(reg_ltpr1, reg_ltpr1_transparency_layer_2_8_8 | reg_ltpr1_transparency_layer_1_8_8))
+		return(false);
+
+	value |= (layer == 0) ? reg_ltpr0_visible_layer_1 : reg_ltpr0_visible_layer_2;
+
+	return(display_write(reg_ltpr0, value));
 }
 
 static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int g, unsigned int b)
@@ -584,7 +596,7 @@ bool display_eastrising_init(void)
 	if(!display_write(reg_fncr0, reg_fncr0_font_cgrom | reg_fncr0_font_internal | reg_fncr0_encoding_8859_1))
 		return(false);
 
-	if(!display_write(reg_fncr1, reg_fncr1_font_align_disable | reg_fncr1_font_opaque | reg_fncr1_font_straight | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2))
+	if(!display_write(reg_fncr1, reg_fncr1_font_align_disable | reg_fncr1_font_transparent | reg_fncr1_font_straight | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2))
 		return(false);
 
 	if(!display_write(reg_fncr2, reg_fncr2_font_size_16x16 | display_character_width_padding))
@@ -593,19 +605,13 @@ bool display_eastrising_init(void)
 	if(!display_write(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
 		return(false);
 
-	if(!display_write(reg_ltpr0, reg_ltpr0_scroll_both | reg_ltpr0_floatwin_transparency_dis | reg_ltpr0_visible_layer_transparent))
-		return(false);
-
-	if(!display_write(reg_ltpr1, reg_ltpr1_transparency_layer_2_8_8 | reg_ltpr1_transparency_layer_1_8_8))
-		return(false);
-
-	if(!display_trcolour(0x00, 0x00, 0x00))
+	if(!display_show_layer(0))
 		return(false);
 
 	if(!display_fill_box(0, 0, 0, display_width, display_height, 0x00, 0x00, 0x00))
 		return(false);
 
-	if(!display_fill_box(1, 0, 0, display_width, display_height, 0x00, 0x00, 0x00))
+	if(!display_fill_box(1, 0, 0, display_width, display_height, 0x90, 0xa0, 0x90))
 		return(false);
 
 	if(!display_eastrising_bright(1))
@@ -664,15 +670,13 @@ void display_eastrising_begin(int slot, unsigned int slot_offset)
 		}
 	}
 
-	display_fill_box(1, 0, display_text_to_graphic_y(slot_offset, 0) + 0, display_width, display_text_to_graphic_y(slot_offset, 1) + 2, r1, g1, b1);
-	display_fill_box(1, 0, display_text_to_graphic_y(slot_offset, 1) + 2, display_width, display_text_to_graphic_y(slot_offset, 4) + 0, r2, g2, b2);
+	display_fill_box(0, 0, display_text_to_graphic_y(slot_offset, 0) + 0, display_width, display_text_to_graphic_y(slot_offset, 1) + 2, r1, g1, b1);
+	display_fill_box(0, 0, display_text_to_graphic_y(slot_offset, 1) + 2, display_width, display_text_to_graphic_y(slot_offset, 4) + 0, r2, g2, b2);
 
 	if(g1 > 0x88)
 		display_fgcolour(0x01, 0x01, 0x01);
 	else
 		display_fgcolour(0xff, 0xff, 0xff);
-
-	display_bgcolour(0x00, 0x00, 0x00);
 
 	text_goto(display_current_slot_offset, 0, 0);
 }
@@ -752,4 +756,185 @@ bool display_eastrising_bright(int brightness)
 		return(false);
 
 	return(true);
+}
+
+#if IMAGE_OTA == 0
+void display_eastrising_periodic(void)
+{
+	(void)display_set_mode_text;
+	(void)display_set_mode_graphic;
+}
+#else
+typedef enum
+{
+	pls_idle = 0,
+	pls_start,
+	pls_in_progress,
+} picture_load_state_t;
+
+static picture_load_state_t picture_load_state = pls_start;
+static unsigned int picture_load_index = 0;
+static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
+
+void display_eastrising_periodic(void)
+{
+	static const char ppm_header[] = "P6\n480 272\n255\n";
+
+	switch(picture_load_state)
+	{
+		case(pls_idle):
+		{
+			return;
+		}
+
+		case(pls_start):
+		{
+			if(!config_get_uint("picture.autoload", &picture_load_index, -1, -1))
+			{
+				log("display eastrising: load picture: no autoloading requested\n"); // FIXME
+				goto error1;
+			}
+
+			if(picture_load_index > 1)
+			{
+				log("display eastrising: load picture: autoload entry out of range: %u\n", picture_load_index);
+				goto error1;
+			}
+
+			log("display eastrising: load picture: start load picture %u\n", picture_load_index); // FIXME
+
+			if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+			{
+				log("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+				goto error1;
+			}
+
+			if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+			{
+				log("display eastrising: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+				goto error1;
+			}
+
+			picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+			flash_sector_buffer_use = fsb_display_picture;
+
+			if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+			{
+				log("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
+				goto error2;
+			}
+
+			string_setlength(&flash_sector_buffer, sizeof(ppm_header) - 1);
+
+			if(!string_match_cstr(&flash_sector_buffer, ppm_header))
+			{
+				log("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+				goto error2;
+			}
+
+			string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+
+			log("show picture start ok\n");
+
+			picture_load_sector_offset = sizeof(ppm_header) - 1;
+			picture_load_current = 0;
+			picture_load_state = pls_in_progress;
+
+			if(!display_write(reg_curh0, 0))
+				goto error2;
+
+			if(!display_write(reg_curh1, 0))
+				goto error2;
+
+			if(!display_write(reg_curv0, 0))
+				goto error2;
+
+			if(!display_write(reg_curv1, 0))
+				goto error2;
+
+			break;
+		}
+
+		case(pls_in_progress):
+		{
+			static const unsigned int picture_ppm_data_length = display_width * display_height * 3;
+			unsigned int chunk_length, chunk_offset;
+			unsigned int output_buffer_offset;
+			unsigned int rgb_offset;
+			unsigned int rgb[3];
+			uint8_t *sector_buffer = (uint8_t *)string_buffer_nonconst(&flash_sector_buffer);
+
+			if(picture_load_current >= picture_ppm_data_length)
+				goto error2;
+
+			chunk_length = umin(picture_ppm_data_length - picture_load_current, 1024 /*sizeof(flash_dram_buffer)*/ / 4);
+			output_buffer_offset = 0;
+
+			for(chunk_offset = 0; chunk_offset < chunk_length; chunk_offset++)
+			{
+				for(rgb_offset = 0; rgb_offset < 3; rgb_offset++)
+				{
+					if(picture_load_sector_offset >= SPI_FLASH_SEC_SIZE)
+					{
+						picture_load_flash_sector++;
+
+						if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+						{
+							log("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
+							goto error2;
+						}
+
+						picture_load_sector_offset = 0;
+					}
+
+					rgb[rgb_offset] = sector_buffer[picture_load_sector_offset++];
+					picture_load_current++;
+				}
+
+				if((output_buffer_offset + 2) >= 1024 /*sizeof(flash_dram_buffer)*/)
+				{
+					log("display eastrising: show picture: flash_dram_buffer overflow\n");
+					goto error2;
+				}
+
+				flash_dram_buffer[output_buffer_offset++] = ((rgb[0] & 0xf8) << 0) | ((rgb[1] & 0xe0) >> 5);
+				flash_dram_buffer[output_buffer_offset++] = ((rgb[1] & 0x1c) << 3) | ((rgb[2] & 0xf8) >> 3);
+			}
+
+			if(!display_set_mode_graphic())
+				goto error2;
+
+			if(!display_set_active_layer(1))
+				goto error2;
+
+			display_write_command(reg_mrwc);
+
+			if(i2c_send(i2c_addr_data, output_buffer_offset, (uint8_t *)flash_dram_buffer) != i2c_error_ok)
+				goto error2;
+
+			if(!display_set_mode_text())
+				goto error2;
+
+			if(!display_set_active_layer(0))
+				goto error2;
+
+			break;
+		}
+	}
+
+	return;
+
+error2:
+	flash_sector_buffer_use = fsb_free;
+error1:
+	picture_load_state = pls_idle;
+}
+#endif
+
+bool display_eastrising_layer_select(unsigned int layer)
+{
+	if(layer > 1)
+		return(false);
+
+	return(display_show_layer(layer));
 }
