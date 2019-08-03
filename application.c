@@ -20,12 +20,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct
+typedef struct attr_flash_align
 {
-	attr_flash_align	const char		*command_short;
-	attr_flash_align	const char		*command_long;
-	attr_flash_align	app_action_t	(*function)(string_t *, string_t *);
-	attr_flash_align	const char		*description;
+	const char		*command_short;
+	const char		*command_long;
+	app_action_t	(*function)(string_t *, string_t *);
+	const char		*description;
 } application_function_table_t;
 
 assert_size(application_function_table_t, 16);
@@ -251,9 +251,13 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 	const application_function_table_t *tableptr;
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		string_format(dst, "> %s/%s: %s\n",
-				tableptr->command_short, tableptr->command_long,
-				tableptr->description);
+	{
+		string_format(dst, "> %s/%s: ",
+				tableptr->command_short, tableptr->command_long);
+
+		string_append_cstr_flash(dst, tableptr->description);
+		string_append(dst, "\n");
+	}
 
 	return(app_action_normal);
 }
@@ -1865,392 +1869,482 @@ static app_action_t application_function_poke(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
+roflash static const char help_description_help[] =					"help [command]";
+roflash static const char help_description_quit[] =					"quit";
+roflash static const char help_description_reset[] =				"reset";
+roflash static const char help_description_identification[] =		"hostname/identification/location/comment";
+roflash static const char help_description_statistics[] =			"generic info and statistics";
+roflash static const char help_description_stats_counters[] =		"statistics from counters";
+roflash static const char help_description_stats_i2c[] =			"statistics from i2c subsystem";
+roflash static const char help_description_stats_sequencer[] =		"statistics from the sequencer";
+roflash static const char help_description_stats_time[] =			"statistics from the time subsystem";
+roflash static const char help_description_stats_wlan[] =			"statistics from the wlan subsystem";
+roflash static const char help_description_bridge_port[] =			"set uart bridge tcp/udp port (default 23)";
+roflash static const char help_description_command_port[] =			"set command tcp/udp port (default 24)";
+roflash static const char help_description_dump_config[] =			"dump config contents (as stored in flash)";
+roflash static const char help_description_display_brightness[] =	"set or show display brightness";
+roflash static const char help_description_display_dump[] =			"shows display and contents";
+roflash static const char help_description_display_default_msg[] =	"set display default message";
+roflash static const char help_description_display_flip[] =			"set the time between flipping of the slots";
+roflash static const char help_description_display_set[] =			"put content on display <slot> <timeout> <tag> <text>";
+roflash static const char help_description_display_switch_layer[] =	"show layer [<layer> (0|1)] from display";
+roflash static const char help_description_display_set_autoload[] =	"set autoload picture [<entry> (0|1)]";
+roflash static const char help_description_set_flag[] =				"set a flag";
+roflash static const char help_description_unset_flag[] =			"unset a flag";
+roflash static const char help_description_gpio_assoc[] =			"set gpio to trigger on wlan association";
+roflash static const char help_description_gpio_status[] =			"set gpio to trigger on status change";
+roflash static const char help_description_i2c_address[] =			"set i2c slave address";
+roflash static const char help_description_i2c_bus[] =				"set i2c mux bus number (0-3)";
+roflash static const char help_description_i2c_read[] =				"read data from i2c slave";
+roflash static const char help_description_i2c_speed[] =			"set i2c bus speed, 1000 (default) is 100 kHz, 0 is unconstrained";
+roflash static const char help_description_i2c_write[] =			"write data to i2c slave";
+roflash static const char help_description_i2c_write_read[] =		"write data to i2c slave and read back data";
+roflash static const char help_description_io_mode[] =				"config i/o pin";
+roflash static const char help_description_io_read[] =				"read from i/o pin";
+roflash static const char help_description_io_trigger[] = 			"trigger i/o pin";
+roflash static const char help_description_io_write[] =				"write to i/o pin";
+roflash static const char help_description_io_multiple[] =			"write to multiple pins from one I/O";
+roflash static const char help_description_io_set_flag[] =			"set i/o pin flag";
+roflash static const char help_description_pwm1_width[] =			"set pwm1 width";
+roflash static const char help_description_io_clear_flag[] =		"clear i/o pin flag";
+roflash static const char help_description_i2c_sensor_read[] =		"read from i2c sensor";
+roflash static const char help_description_i2c_sensor_calibrate[] =	"calibrate i2c sensor, use sensor factor offset";
+roflash static const char help_description_i2c_sensor_dump[] =		"dump all i2c sensors";
+roflash static const char help_description_log_display[] =			"display log";
+roflash static const char help_description_log_clear[] =			"display and clear the log";
+roflash static const char help_description_sntp_set[] =				"set sntp <ip addr> <timezone GMT+/-x>";
+roflash static const char help_description_time_set[] =				"set time base [h m (s)] or [unix timestamp tz_offset]";
+roflash static const char help_description_sequencer_add[] =		"add sequencer entry";
+roflash static const char help_description_sequencer_clear[] =		"clear sequencer";
+roflash static const char help_description_sequencer_list[] =		"list sequencer entries";
+roflash static const char help_description_sequencer_remove[] =		"remove sequencer entry";
+roflash static const char help_description_sequencer_start[] =		"start sequencer";
+roflash static const char help_description_sequencer_stop[] =		"stop sequencer";
+roflash static const char help_description_uart_baud[] =			"set uart baud rate [1-1000000]";
+roflash static const char help_description_uart_data[] =			"set uart data bits [5/6/7/8]";
+roflash static const char help_description_uart_stop[] =			"set uart stop bits [1/2]";
+roflash static const char help_description_uart_parity[] =			"set uart parity [none/even/odd]";
+roflash static const char help_description_uart_loopback[] =		"set uart loopback mode [0/1]";
+roflash static const char help_description_uart_write[] =			"write text to uart";
+roflash static const char help_description_wlan_ap_config[] =		"configure access point mode wlan params, supply ssid, passwd and channel";
+roflash static const char help_description_wlan_client_config[] =	"configure client mode wlan params, supply ssid and passwd";
+roflash static const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
+roflash static const char help_description_wlan_scan[] =			"scan wlan, use wlan-list to retrieve the results";
+roflash static const char help_description_config_query_string[] =	"query config string";
+roflash static const char help_description_config_query_int[] =		"query config int";
+roflash static const char help_description_config_set[] =			"set config entry";
+roflash static const char help_description_config_delete[] =		"delete config entry";
+roflash static const char help_description_http_get[] =				"get access over http";
+roflash static const char help_description_i2c_sensor_init[] =		"(re-)init i2c sensor";
+roflash static const char help_description_flash_info[] =			"flash-info";
+roflash static const char help_description_flash_erase[] =			"flash-erase";
+roflash static const char help_description_flash_send[] =			"flash-send";
+roflash static const char help_description_flash_read[] =			"flash-read";
+roflash static const char help_description_flash_receive[] =		"flash-receive";
+roflash static const char help_description_flash_write[] =			"flash-write";
+roflash static const char help_description_flash_verify[] =			"flash-verify";
+roflash static const char help_description_flash_checksum[] =		"flash-checksum";
+roflash static const char help_description_flash_select[] =			"flash-select";
+roflash static const char help_description_flash_select_once[] =	"flash-select-once";
+roflash static const char help_description_peek[] =					"peek at a memory address";
+roflash static const char help_description_poke[] =					"poke to a memory address";
+
 roflash static const application_function_table_t application_function_table[] =
 {
 	{
 		"?", "help",
 		application_function_help,
-		"help [command]",
+		help_description_help,
 	},
 	{
 		"q", "quit",
 		application_function_quit,
-		"quit",
+		help_description_quit,
 	},
 	{
 		"r", "reset",
 		application_function_reset,
-		"reset",
+		help_description_reset,
 	},
 	{
 		"id", "identification",
 		application_function_identification,
-		"hostname/identification/location/comment",
+		help_description_identification,
 	},
 	{
 		"s", "stats",
 		application_function_stats_firmware,
-		"statistics",
+		help_description_statistics,
 	},
 	{
 		"sc", "stats-counters",
 		application_function_stats_counters,
-		"stats (counters)",
+		help_description_stats_counters,
 	},
 	{
 		"si", "stats-i2c",
 		application_function_stats_i2c,
-		"stats (i2c)",
+		help_description_stats_i2c,
 	},
 	{
 		"ss", "stats-sequencer",
 		application_function_stats_sequencer,
-		"stats (sequencer)",
+		help_description_stats_sequencer,
 	},
 	{
 		"st", "stats-time",
 		application_function_stats_time,
-		"stats (time)",
+		help_description_stats_time,
 	},
 	{
 		"sw", "stats-wlan",
 		application_function_stats_wlan,
-		"stats (wlan)",
+		help_description_stats_wlan,
 	},
 	{
 		"bp", "bridge-port",
 		application_function_bridge_port,
-		"set uart bridge tcp/udp port (default 23)"
+		help_description_bridge_port,
 	},
 	{
 		"cp", "command-port",
 		application_function_command_port,
-		"set command tcp/udp port (default 24)"
+		help_description_command_port,
 	},
 	{
 		"cd", "config-dump",
 		application_function_config_dump,
-		"dump config contents (stored in flash)"
+		help_description_dump_config,
 	},
 	{
 		"db", "display-brightness",
 		application_function_display_brightness,
-		"set or show display brightness"
+		help_description_display_brightness,
 	},
 	{
 		"dd", "display-dump",
 		application_function_display_dump,
-		"shows all displays"
+		help_description_display_dump,
 	},
 	{
 		"ddm", "display-default-message",
 		application_function_display_default_message,
-		"set default message",
+		help_description_display_default_msg,
 	},
 	{
 		"dft", "display-flip-timeout",
 		application_function_display_flip_timeout,
-		"set the time between flipping of the slots",
+		help_description_display_flip,
 	},
 	{
 		"ds", "display-set",
 		application_function_display_set,
-		"put content on display <slot> <timeout> <tag> <text>"
+		help_description_display_set,
+	},
+	{
+		"dps", "display-picture-switch-layer",
+		application_function_display_picture_switch_layer,
+		help_description_display_switch_layer,
+	},
+	{
+		"dpa", "display-picture-autoload",
+		application_function_display_picture_autoload,
+		help_description_display_set_autoload,
 	},
 	{
 		"fs", "flag-set",
 		application_function_flag_set,
-		"set a flag",
+		help_description_set_flag,
 	},
 	{
 		"fu", "flag-unset",
 		application_function_flag_unset,
-		"unset a flag",
+		help_description_unset_flag,
 	},
 	{
 		"gas", "gpio-association-set",
 		application_function_gpio_assoc_set,
-		"set gpio to trigger on wlan association"
+		help_description_gpio_assoc,
 	},
 	{
 		"gss", "gpio-status-set",
 		application_function_gpio_status_set,
-		"set gpio to trigger on status update"
+		help_description_gpio_status,
 	},
 	{
 		"i2a", "i2c-address",
 		application_function_i2c_address,
-		"set i2c slave address",
+		help_description_i2c_address,
 	},
 	{
 		"i2b", "i2c-bus",
 		application_function_i2c_bus,
-		"set i2c mux bus number (0-3)",
+		help_description_i2c_bus,
 	},
 	{
 		"i2r", "i2c-read",
 		application_function_i2c_read,
-		"read data from i2c slave",
+		help_description_i2c_read,
 	},
 	{
 		"i2s", "i2c-speed",
 		application_function_i2c_speed,
-		"set i2c bus speed",
+		help_description_i2c_speed,
 	},
 	{
 		"i2w", "i2c-write",
 		application_function_i2c_write,
-		"write data to i2c slave",
+		help_description_i2c_write,
 	},
 	{
 		"i2wr", "i2c-write-read",
 		application_function_i2c_write_read,
-		"write data to i2c slave and read back data",
+		help_description_i2c_write_read,
 	},
 	{
 		"im", "io-mode",
 		application_function_io_mode,
-		"config i/o pin",
+		help_description_io_mode,
 	},
 	{
 		"ir", "io-read",
 		application_function_io_read,
-		"read from i/o pin",
+		help_description_io_read,
 	},
 	{
 		"it", "io-trigger",
 		application_function_io_trigger,
-		"trigger i/o pin",
+		help_description_io_trigger,
 	},
 	{
 		"iw", "io-write",
 		application_function_io_write,
-		"write to i/o pin",
+		help_description_io_write,
 	},
 	{
 		"ism", "io-set-mask",
 		application_function_io_set_mask,
-		"write to multiple i/o pins",
+		help_description_io_multiple,
 	},
 	{
 		"isf", "io-set-flag",
 		application_function_io_set_flag,
-		"set i/o pin flag",
+		help_description_io_set_flag,
 	},
 	{
 		"pw", "pwm-width",
 		application_function_pwm_width,
-		"set pwm1 width",
+		help_description_pwm1_width,
 	},
 	{
 		"icf", "io-clear-flag",
 		application_function_io_clear_flag,
-		"clear i/o pin flag",
+		help_description_io_clear_flag,
 	},
 	{
 		"isr", "i2c-sensor-read",
 		application_function_i2c_sensor_read,
-		"read from i2c sensor",
+		help_description_i2c_sensor_read,
 	},
 	{
 		"isc", "i2c-sensor-calibrate",
 		application_function_i2c_sensor_calibrate,
-		"calibrate i2c sensor, use sensor factor offset",
+		help_description_i2c_sensor_calibrate,
 	},
 	{
 		"isd", "i2c-sensor-dump",
 		application_function_i2c_sensor_dump,
-		"dump all i2c sensors",
+		help_description_i2c_sensor_dump,
 	},
 	{
 		"l", "log-display",
 		application_function_log_display,
-		"display log"
+		help_description_log_display,
 	},
 	{
 		"lc", "log-clear",
 		application_function_log_clear,
-		"clear the log"
+		help_description_log_clear,
 	},
 	{
 		"sns", "sntp-set",
 		application_function_sntp_set,
-		"set sntp <ip addr> <timezone GMT+/-x>",
+		help_description_sntp_set,
 	},
 	{
 		"ts", "time-set",
 		application_function_time_set,
-		"set time base [h m (s)] or [unix timestamp tz_offset]",
+		help_description_time_set,
 	},
 	{
 		"sea", "sequencer-add",
 		application_function_sequencer_add,
-		"add sequencer entry",
+		help_description_sequencer_add,
 	},
 	{
 		"sec", "sequencer-clear",
 		application_function_sequencer_clear,
-		"clear sequencer",
+		help_description_sequencer_clear,
 	},
 	{
 		"sel", "sequencer-list",
 		application_function_sequencer_list,
-		"list sequencer entries",
+		help_description_sequencer_list,
 	},
 	{
 		"ser", "sequencer-remove",
 		application_function_sequencer_remove,
-		"remove sequencer entry",
+		help_description_sequencer_remove,
 	},
 	{
 		"ses", "sequencery-start",
 		application_function_sequencer_start,
-		"start sequencer",
+		help_description_sequencer_start,
 	},
 	{
 		"set", "sequencery-stop",
 		application_function_sequencer_stop,
-		"stop sequencer",
+		help_description_sequencer_stop,
 	},
 	{
 		"ub", "uart-baud",
 		application_function_uart_baud_rate,
-		"set uart baud rate [1-1000000]",
+		help_description_uart_baud,
 	},
 	{
 		"ud", "uart-data",
 		application_function_uart_data_bits,
-		"set uart data bits [5/6/7/8]",
+		help_description_uart_data,
 	},
 	{
 		"us", "uart-stop",
 		application_function_uart_stop_bits,
-		"set uart stop bits [1/2]",
+		help_description_uart_stop,
 	},
 	{
 		"up", "uart-parity",
 		application_function_uart_parity,
-		"set uart parity [none/even/odd]",
+		help_description_uart_parity,
 	},
 	{
 		"ul", "uart-loopback",
 		application_function_uart_loopback,
-		"set uart loopback mode [0/1]",
+		help_description_uart_loopback,
 	},
 	{
 		"uw", "uart-write",
 		application_function_uart_write,
-		"write text to uart",
+		help_description_uart_write,
 	},
 	{
 		"wac", "wlan-ap-configure",
 		application_function_wlan_ap_configure,
-		"configure access point mode wlan params, supply ssid, passwd and channel"
+		help_description_wlan_ap_config,
 	},
 	{
 		"wcc", "wlan-client-configure",
 		application_function_wlan_client_configure,
-		"configure client mode wlan params, supply ssid and passwd"
+		help_description_wlan_client_config,
 	},
 	{
 		"wm", "wlan-mode",
 		application_function_wlan_mode,
-		"set wlan mode: client or ap"
+		help_description_wlan_mode,
 	},
 	{
 		"ws", "wlan-scan",
 		application_function_wlan_scan,
-		"scan wlan, use wlan-list to retrieve the results"
+		help_description_wlan_scan,
 	},
 	{
 		"cqs", "config-query-string",
 		application_function_config_query_string,
-		"query config string"
+		help_description_config_query_string,
 	},
 	{
 		"cqi", "config-query-int",
 		application_function_config_query_int,
-		"query config int"
+		help_description_config_query_int,
 	},
 	{
 		"cs", "config-set",
 		application_function_config_set,
-		"set config entry"
+		help_description_config_set,
 	},
 	{
 		"cde", "config-delete",
 		application_function_config_delete,
-		"delete config entry"
+		help_description_config_delete,
 	},
 	{
 		"GET", "http-get",
 		application_function_http_get,
-		"get access over http"
+		help_description_http_get,
 	},
 	{
 		"isi", "i2c-sensor-init",
 		application_function_i2c_sensor_init,
-		"(re-)init i2c sensor",
+		help_description_i2c_sensor_init,
 	},
 	{
 		"flash-info", "flash-info",
 		application_function_flash_info,
-		"flash-info",
+		help_description_flash_info,
 	},
 	{
 		"flash-erase", "flash-erase",
 		application_function_flash_erase,
-		"flash-erase",
+		help_description_flash_erase,
 	},
 	{
 		"flash-send", "flash-send",
 		application_function_flash_send,
-		"flash-send",
+		help_description_flash_send,
 	},
 	{
 		"flash-read", "flash-read",
 		application_function_flash_read,
-		"flash-read",
+		help_description_flash_read,
 	},
 	{
 		"flash-receive", "flash-receive",
 		application_function_flash_receive,
-		"flash-receive",
+		help_description_flash_receive,
 	},
 	{
 		"flash-write", "flash-write",
 		application_function_flash_write,
-		"flash-write",
+		help_description_flash_write,
 	},
 	{
 		"flash-verify", "flash-verify",
 		application_function_flash_verify,
-		"flash-verify",
+		help_description_flash_verify,
 	},
 	{
 		"flash-checksum", "flash-checksum",
 		application_function_flash_checksum,
-		"flash-checksum",
+		help_description_flash_checksum,
 	},
 	{
 		"flash-select", "flash-select",
 		application_function_flash_select,
-		"flash-select",
+		help_description_flash_select,
 	},
 	{
 		"flash-select-once", "flash-select-once",
 		application_function_flash_select_once,
-		"flash-select-once",
+		help_description_flash_select_once,
 	},
 	{
 		"pe", "peek",
 		application_function_peek,
-		"peek at a memory address",
+		help_description_peek
 	},
 	{
 		"po", "poke",
 		application_function_poke,
-		"poke to a memory address",
+		help_description_poke,
 	},
 	{
 		"", "",
