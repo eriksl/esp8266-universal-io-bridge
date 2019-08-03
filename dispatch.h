@@ -32,6 +32,7 @@ typedef enum
 	fsb_config_cache,
 	fsb_ota,
 	fsb_sequencer,
+	fsb_display_picture,
 } flash_sector_buffer_use_t;
 
 extern	bool uart_bridge_active;

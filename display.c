@@ -55,9 +55,10 @@ typedef const struct
 	void			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
 	bool			(* const inverse_fn)(bool);
+	void			(* const periodic_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 36);
+assert_size(display_info_t, 40);
 
 typedef struct
 {
@@ -88,6 +89,7 @@ roflash static display_info_t display_info[display_size] =
 		display_saa1064_end,
 		display_saa1064_bright,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD", 1,
@@ -96,6 +98,7 @@ roflash static display_info_t display_info[display_size] =
 		display_lcd_output,
 		display_lcd_end,
 		display_lcd_bright,
+		(void *)0,
 		(void *)0,
 	},
 	{
@@ -106,6 +109,7 @@ roflash static display_info_t display_info[display_size] =
 		display_orbital_end,
 		display_orbital_bright,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"cfa634", "4x20 character LCD", 1,
@@ -114,6 +118,7 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
 		(void *)0,
 	},
 	{
@@ -124,6 +129,7 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_end,
 		display_seeed_bright,
 		display_seeed_inverse,
+		(void *)0,
 	},
 	{
 		"eastrising TFT", "480x272 LCD", 2,
@@ -132,6 +138,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_output,
 		display_eastrising_end,
 		display_eastrising_bright,
+		(void *)0,
 		(void *)0,
 	},
 };
@@ -338,6 +345,7 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
+	display_info_t *display_info_entry;
 	string_new(, default_message, 64);
 
 	if(!display_detected())
@@ -386,7 +394,10 @@ void display_periodic(void) // gets called 10 times per second
 		}
 	}
 
-	return;
+	display_info_entry = &display_info[display_data.detected];
+
+	if(display_info_entry->periodic_fn)
+		display_info_entry->periodic_fn();
 }
 
 void display_init(void)
@@ -684,5 +695,56 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 				slot, display_slot[slot].tag,
 				display_slot[slot].content);
 
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst)
+{
+	unsigned int entry;
+
+	if(!display_detected())
+	{
+		string_append(dst, "picture set autoload: no display detected\n");
+		return(app_action_error);
+	}
+
+	if(!config_open_write())
+	{
+		string_append(dst, "picture set autoload: open config failed\n");
+		return(app_action_error);
+	}
+
+	if(parse_uint(1, src, &entry, 0, ' ') == parse_ok)
+	{
+		if(entry > 1)
+		{
+			string_append(dst, "picture set autoload: usage: [entry (0/1)]\n");
+			config_abort_write();
+			return(app_action_error);
+		}
+
+		if(!config_set_uint("picture.autoload", entry, -1, -1))
+		{
+			string_append(dst, "picture set autoload: config set failed\n");
+			config_abort_write();
+			return(app_action_error);
+		}
+	}
+	else
+		config_delete("picture.autoload", false, -1, -1);
+
+	if(!config_close_write())
+	{
+		string_append(dst, "picture set autoload: write config failed\n");
+		return(app_action_error);
+	}
+
+	if(!config_get_uint("picture.autoload", &entry, -1, -1))
+	{
+		string_append(dst, "picture set autoload: not set\n");
+		return(app_action_normal);
+	}
+
+	string_format(dst, "picture set autoload: active for entry %u\n", entry);
 	return(app_action_normal);
 }
