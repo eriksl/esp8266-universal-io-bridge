@@ -144,7 +144,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_output,
 		display_eastrising_end,
 		display_eastrising_bright,
-		(void *)0,
+		display_eastrising_inverse,
 		display_eastrising_periodic,
 		display_eastrising_layer_select,
 	},

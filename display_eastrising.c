@@ -375,6 +375,7 @@ static unsigned int display_text_to_graphic_y(unsigned int slot_offset, unsigned
 
 static void text_flush(void)
 {
+	display_set_mode_text();
 	display_write_command(reg_mrwc);
 
 	i2c_send(i2c_addr_data, display_text_current, display_text_buffer);
@@ -624,10 +625,6 @@ bool display_eastrising_init(void)
 
 void display_eastrising_begin(int slot, unsigned int slot_offset)
 {
-	unsigned int r, g, b;
-	unsigned int r1, g1, b1;
-	unsigned int r2, g2, b2;
-
 	if(!display_inited)
 	{
 		log("display eastrising not inited\n");
@@ -638,48 +635,6 @@ void display_eastrising_begin(int slot, unsigned int slot_offset)
 
 	display_current_slot = slot;
 	display_current_slot_offset = slot_offset;
-
-	if(display_current_slot < 0)
-	{
-		r1 = g1 = b1 = 0x00;
-		r2 = g2 = b2 = 0x00;
-	}
-	else
-	{
-		r = (display_current_slot & (1 << 0)) >> 0;
-		g = (display_current_slot & (1 << 1)) >> 1;
-		b = (display_current_slot & (1 << 2)) >> 2;
-
-		r1 = r * 0x90;
-		g1 = g * 0x90;
-		b1 = b * 0x90;
-
-		if((r1 + b1 + g1) == 0)
-		{
-			r1 = 0x88;
-			g1 = 0x90;
-			b1 = 0x88;
-		}
-
-		r2 = r * 0xff;
-		g2 = g * 0xff;
-		b2 = b * 0xff;
-
-		if((r2 + b2 + g2) == 0)
-		{
-			r2 = 0xb0;
-			g2 = 0xa0;
-			b2 = 0xb0;
-		}
-	}
-
-	display_fill_box(0, 0, display_text_to_graphic_y(slot_offset, 0) + 0, display_width, display_text_to_graphic_y(slot_offset, 1) + 2, r1, g1, b1);
-	display_fill_box(0, 0, display_text_to_graphic_y(slot_offset, 1) + 2, display_width, display_text_to_graphic_y(slot_offset, 4) + 0, r2, g2, b2);
-
-	if(g1 > 0x88)
-		display_fgcolour(0x01, 0x01, 0x01);
-	else
-		display_fgcolour(0xff, 0xff, 0xff);
 
 	text_goto(display_current_slot_offset, 0, 0);
 }
@@ -761,10 +716,90 @@ bool display_eastrising_bright(int brightness)
 	return(true);
 }
 
+bool display_eastrising_inverse(bool onoff)
+{
+	unsigned int r, g, b;
+	unsigned int r1, g1, b1;
+	unsigned int r2, g2, b2;
+	unsigned int y0, y1;
+
+	if(!display_inited)
+		return(false);
+
+	if(display_current_y >= display_slot_height)
+		return(true);
+
+	if(display_current_slot < 0)
+	{
+		r1 = g1 = b1 = 0x00;
+		r2 = g2 = b2 = 0x00;
+	}
+	else
+	{
+		r = (display_current_slot & (1 << 0)) >> 0;
+		g = (display_current_slot & (1 << 1)) >> 1;
+		b = (display_current_slot & (1 << 2)) >> 2;
+
+		r1 = r * 0x90;
+		g1 = g * 0x90;
+		b1 = b * 0x90;
+
+		if((r1 + b1 + g1) == 0)
+		{
+			r1 = 0x88;
+			g1 = 0x90;
+			b1 = 0x88;
+		}
+
+		r2 = r * 0xff;
+		g2 = g * 0xff;
+		b2 = b * 0xff;
+
+		if((r2 + b2 + g2) == 0)
+		{
+			r2 = 0xb0;
+			g2 = 0xa0;
+			b2 = 0xb0;
+		}
+	}
+
+	if(display_current_y == 0)
+	{
+		y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
+		y1 = display_text_to_graphic_y(display_current_slot_offset, 1) + 2;
+	}
+	else
+	{
+		y0 = display_text_to_graphic_y(display_current_slot_offset, display_current_y) + 2;
+		y1 = display_text_to_graphic_y(display_current_slot_offset, 4) + 0;
+	}
+
+	if(onoff)
+	{
+		r = r1;
+		g = g1;
+		b = b1;
+	}
+	else
+	{
+		r = r2;
+		g = g2;
+		b = b2;
+	}
+
+	display_fill_box(0, 0, y0, display_width, y1, r, g, b);
+
+	if(g1 > 0x88)
+		display_fgcolour(0x01, 0x01, 0x01);
+	else
+		display_fgcolour(0xff, 0xff, 0xff);
+
+	return(true);
+}
+
 #if IMAGE_OTA == 0
 void display_eastrising_periodic(void)
 {
-	(void)display_set_mode_text;
 	(void)display_set_mode_graphic;
 }
 #else
