@@ -56,10 +56,11 @@ typedef const struct
 	bool			(* const bright_fn)(int brightness);
 	bool			(* const inverse_fn)(bool);
 	void			(* const periodic_fn)(void);
+	bool			(* const picture_load_fn)(unsigned int);
 	bool			(* const layer_select_fn)(unsigned int);
 } display_info_t;
 
-assert_size(display_info_t, 44);
+assert_size(display_info_t, 48);
 
 typedef struct
 {
@@ -92,6 +93,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD", 1,
@@ -100,6 +102,7 @@ roflash static display_info_t display_info[display_size] =
 		display_lcd_output,
 		display_lcd_end,
 		display_lcd_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -114,6 +117,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"cfa634", "4x20 character LCD", 1,
@@ -122,6 +126,7 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -136,6 +141,7 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_inverse,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"eastrising TFT", "480x272 LCD", 2,
@@ -146,6 +152,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_bright,
 		display_eastrising_inverse,
 		display_eastrising_periodic,
+		display_eastrising_picture_load,
 		display_eastrising_layer_select,
 	},
 };
@@ -352,6 +359,9 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
 	display_info_t *display_info_entry;
+	static bool picture_autoload_checked = false;
+	static unsigned int picture_autoload_waiting = 0;
+	unsigned int picture_autoload_index;
 
 	if(!display_detected())
 		return;
@@ -396,6 +406,14 @@ void display_periodic(void) // gets called 10 times per second
 
 	if(display_info_entry->periodic_fn)
 		display_info_entry->periodic_fn();
+
+	if(!picture_autoload_checked && (picture_autoload_waiting++ == 300))
+	{
+		picture_autoload_checked = true;
+
+		if(display_info_entry->picture_load_fn && config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) && (picture_autoload_index < 2))
+			display_info_entry->picture_load_fn(picture_autoload_index);
+	}
 }
 
 void display_init(void)
@@ -696,15 +714,46 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst)
+app_action_t application_function_display_picture_load(string_t *src, string_t *dst)
 {
 	unsigned int entry;
+	display_info_t *display_info_entry;
+	bool rv;
 
 	if(!display_detected())
 	{
-		string_append(dst, "picture set autoload: no display detected\n");
+		string_append(dst, "picture load: no display detected\n");
 		return(app_action_error);
 	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(!display_info_entry->picture_load_fn)
+	{
+		string_append(dst, "picture load: not supported\n");
+		return(app_action_error);
+	}
+
+	if((!parse_uint(1, src, &entry, 0, ' ') == parse_ok) && (!config_get_uint("picture.autoload", &entry, -1, -1)))
+		entry = 0;
+
+	if(entry > 1)
+	{
+		string_append(dst, "picture load: usage: [entry (0/1)]\n");
+		config_abort_write();
+		return(app_action_error);
+	}
+
+	rv = display_info_entry->picture_load_fn(entry);
+
+	string_format(dst, "picture load success: %s\n", yesno(rv));
+
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst)
+{
+	unsigned int entry;
 
 	if(!config_open_write())
 	{

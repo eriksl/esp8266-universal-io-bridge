@@ -810,7 +810,7 @@ typedef enum
 	pls_in_progress,
 } picture_load_state_t;
 
-static picture_load_state_t picture_load_state = pls_start;
+static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 
@@ -827,20 +827,6 @@ void display_eastrising_periodic(void)
 
 		case(pls_start):
 		{
-			if(!config_get_uint("picture.autoload", &picture_load_index, -1, -1))
-			{
-				log("display eastrising: load picture: no autoloading requested\n"); // FIXME
-				goto error1;
-			}
-
-			if(picture_load_index > 1)
-			{
-				log("display eastrising: load picture: autoload entry out of range: %u\n", picture_load_index);
-				goto error1;
-			}
-
-			log("display eastrising: load picture: start load picture %u\n", picture_load_index); // FIXME
-
 			if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 			{
 				log("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
@@ -871,8 +857,6 @@ void display_eastrising_periodic(void)
 			}
 
 			string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-
-			log("show picture start ok\n");
 
 			picture_load_sector_offset = sizeof(ppm_header) - 1;
 			picture_load_current = 0;
@@ -975,4 +959,18 @@ bool display_eastrising_layer_select(unsigned int layer)
 		return(false);
 
 	return(display_show_layer(layer));
+}
+
+bool display_eastrising_picture_load(unsigned int entry)
+{
+	if(entry > 1)
+		return(false);
+
+	if(picture_load_state != pls_idle)
+		return(false);
+
+	picture_load_state = pls_start;
+	picture_load_index = entry;
+
+	return(true);
 }

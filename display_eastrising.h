@@ -11,6 +11,7 @@ void display_eastrising_end(void);
 bool display_eastrising_bright(int);
 bool display_eastrising_inverse(bool);
 void display_eastrising_periodic(void);
+bool display_eastrising_picture_load(unsigned int);
 bool display_eastrising_layer_select(unsigned int);
 
 #endif

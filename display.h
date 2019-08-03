@@ -18,4 +18,5 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 app_action_t application_function_display_set(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst);
+app_action_t application_function_display_picture_load(string_t *src, string_t *dst);
 #endif

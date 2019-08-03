@@ -1888,6 +1888,7 @@ roflash static const char help_description_display_flip[] =			"set the time betw
 roflash static const char help_description_display_set[] =			"put content on display <slot> <timeout> <tag> <text>";
 roflash static const char help_description_display_switch_layer[] =	"show layer [<layer> (0|1)] from display";
 roflash static const char help_description_display_set_autoload[] =	"set autoload picture [<entry> (0|1)]";
+roflash static const char help_description_display_load[] =			"load picture [<entry> (0|1)]";
 roflash static const char help_description_set_flag[] =				"set a flag";
 roflash static const char help_description_unset_flag[] =			"unset a flag";
 roflash static const char help_description_gpio_assoc[] =			"set gpio to trigger on wlan association";
@@ -2044,6 +2045,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"dpa", "display-picture-autoload",
 		application_function_display_picture_autoload,
 		help_description_display_set_autoload,
+	},
+	{
+		"dpl", "display-picture-load",
+		application_function_display_picture_load,
+		help_description_display_load,
 	},
 	{
 		"fs", "flag-set",
