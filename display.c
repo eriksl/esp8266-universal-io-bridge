@@ -353,7 +353,6 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
 	display_info_t *display_info_entry;
-	string_new(, default_message, 64);
 
 	if(!display_detected())
 		return;
@@ -384,14 +383,7 @@ void display_periodic(void) // gets called 10 times per second
 		{
 			display_slot[0].timeout = 1;
 			strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
-
-			if(!config_get_string("display.defaultmsg", &default_message, -1, -1))
-			{
-				string_clear(&default_message);
-				string_append(&default_message, "%%%%");
-			}
-
-			strecpy(display_slot[0].content, string_to_cstr(&default_message), display_slot_content_size);
+			strecpy(display_slot[0].content, "%%%%", display_slot_content_size);
 		}
 
 		if((last_update > now) || ((last_update + flip_timeout) < now))
@@ -496,50 +488,6 @@ static void display_dump(string_t *dst)
 app_action_t application_function_display_dump(string_t *src, string_t *dst)
 {
 	display_dump(dst);
-
-	return(app_action_normal);
-}
-
-app_action_t application_function_display_default_message(string_t *src, string_t *dst)
-{
-	int ix;
-	string_new(, message, 64);
-
-	if((ix = string_sep(src, 0, 1, ' ')) > 0)
-	{
-		string_splice(&message, 0, src, string_length(src) - ix - 1, -1);
-
-		if(!config_open_write() ||
-				!config_set_string("display.defaultmsg", string_to_cstr(&message), -1, -1) ||
-				!config_close_write())
-		{
-			config_abort_write();
-			string_append(dst, "> cannot set config\n");
-			return(app_action_error);
-		}
-	}
-
-	string_clear(dst);
-
-	if(config_get_string("display.defaultmsg", dst, -1, -1) && string_match_cstr(dst, "%%%%"))
-	{
-		if(!config_open_write() ||
-				!config_delete("display.defaultmsg", false, -1, -1) ||
-				!config_close_write())
-		{
-			config_abort_write();
-			string_append(dst, "> cannot delete config (default values)\n");
-			return(app_action_error);
-		}
-	}
-
-	string_clear(dst);
-	string_append(dst, "set default display message to \"");
-
-	if(!config_get_string("display.defaultmsg", dst, -1, -1))
-		string_append(dst, "%%%%");
-
-	string_append(dst, "\"\n");
 
 	return(app_action_normal);
 }

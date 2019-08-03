@@ -1884,7 +1884,6 @@ roflash static const char help_description_command_port[] =			"set command tcp/u
 roflash static const char help_description_dump_config[] =			"dump config contents (as stored in flash)";
 roflash static const char help_description_display_brightness[] =	"set or show display brightness";
 roflash static const char help_description_display_dump[] =			"shows display and contents";
-roflash static const char help_description_display_default_msg[] =	"set display default message";
 roflash static const char help_description_display_flip[] =			"set the time between flipping of the slots";
 roflash static const char help_description_display_set[] =			"put content on display <slot> <timeout> <tag> <text>";
 roflash static const char help_description_display_switch_layer[] =	"show layer [<layer> (0|1)] from display";
@@ -2025,11 +2024,6 @@ roflash static const application_function_table_t application_function_table[] =
 		"dd", "display-dump",
 		application_function_display_dump,
 		help_description_display_dump,
-	},
-	{
-		"ddm", "display-default-message",
-		application_function_display_default_message,
-		help_description_display_default_msg,
 	},
 	{
 		"dft", "display-flip-timeout",
