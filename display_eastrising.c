@@ -629,7 +629,10 @@ void display_eastrising_begin(int slot, unsigned int slot_offset)
 	unsigned int r2, g2, b2;
 
 	if(!display_inited)
-		log("! display eastrising not inited\n");
+	{
+		log("display eastrising not inited\n");
+		return;
+	}
 
 	display_current_x = display_current_y = 0;
 
