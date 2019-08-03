@@ -56,9 +56,10 @@ typedef const struct
 	bool			(* const bright_fn)(int brightness);
 	bool			(* const inverse_fn)(bool);
 	void			(* const periodic_fn)(void);
+	bool			(* const layer_select_fn)(unsigned int);
 } display_info_t;
 
-assert_size(display_info_t, 40);
+assert_size(display_info_t, 44);
 
 typedef struct
 {
@@ -90,6 +91,7 @@ roflash static display_info_t display_info[display_size] =
 		display_saa1064_bright,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD", 1,
@@ -98,6 +100,7 @@ roflash static display_info_t display_info[display_size] =
 		display_lcd_output,
 		display_lcd_end,
 		display_lcd_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 	},
@@ -110,6 +113,7 @@ roflash static display_info_t display_info[display_size] =
 		display_orbital_bright,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"cfa634", "4x20 character LCD", 1,
@@ -118,6 +122,7 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 	},
@@ -130,6 +135,7 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_bright,
 		display_seeed_inverse,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"eastrising TFT", "480x272 LCD", 2,
@@ -138,6 +144,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_output,
 		display_eastrising_end,
 		display_eastrising_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 	},
@@ -695,6 +702,50 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 				slot, display_slot[slot].tag,
 				display_slot[slot].content);
 
+	return(app_action_normal);
+}
+
+static unsigned int display_layer = 0;
+
+app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst)
+{
+	unsigned int layer;
+	display_info_t *display_info_entry;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display layer: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(!display_info_entry->layer_select_fn)
+	{
+		string_append(dst, "display layer: no layer support\n");
+		return(app_action_error);
+	}
+
+	if(parse_uint(1, src, &layer, 0, ' ') == parse_ok)
+	{
+		if(layer > 1)
+		{
+			string_append(dst, "display-layer: usage: [layer (0/1)]\n");
+			return(app_action_error);
+		}
+	}
+	else
+		layer = display_layer ? 0 : 1;
+
+	if(!display_info_entry->layer_select_fn(layer))
+	{
+		string_append(dst, "display-layer: select layer failed\n");
+		return(app_action_error);
+	}
+
+	display_layer = layer;
+
+	string_format(dst, "display-layer: layer %u selected\n", layer);
 	return(app_action_normal);
 }
 
