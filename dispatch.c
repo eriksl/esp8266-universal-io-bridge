@@ -254,10 +254,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 		case(task_display_update):
 		{
 			stat_update_display++;
-
-			if(display_periodic())
-				dispatch_post_task(2, task_display_update, 0);
-
+			display_periodic();
 			break;
 		}
 

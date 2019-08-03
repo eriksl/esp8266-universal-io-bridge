@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 void display_init(void);
-bool display_periodic(void);
+void display_periodic(void);
 bool display_detected(void);
 
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);

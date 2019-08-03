@@ -333,7 +333,7 @@ static void display_update(bool advance)
 	stat_display_update_min_us = umin(stat_display_update_min_us, spent);
 }
 
-bool display_periodic(void) // gets called 10 times per second
+void display_periodic(void) // gets called 10 times per second
 {
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
@@ -341,7 +341,7 @@ bool display_periodic(void) // gets called 10 times per second
 	string_new(, default_message, 64);
 
 	if(!display_detected())
-		return(false);
+		return;
 
 	now = time_get_us() / 1000000;
 
@@ -386,7 +386,7 @@ bool display_periodic(void) // gets called 10 times per second
 		}
 	}
 
-	return(false);
+	return;
 }
 
 void display_init(void)
