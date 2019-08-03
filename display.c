@@ -332,12 +332,11 @@ static void display_update(bool advance)
 		display_info_entry->end_fn();
 	}
 
-	if(display_info_entry->inverse_fn)
-		display_info_entry->inverse_fn(0);
-
 	for(; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
 	{
 		display_info_entry->begin_fn(-1, slot_offset);
+		if(display_info_entry->inverse_fn)
+			display_info_entry->inverse_fn(0);
 		display_info_entry->end_fn();
 	}
 
