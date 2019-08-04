@@ -625,6 +625,8 @@ bool display_eastrising_init(void)
 
 void display_eastrising_begin(int slot, unsigned int slot_offset)
 {
+	unsigned int y0, y1;
+
 	if(!display_inited)
 	{
 		log("display eastrising not inited\n");
@@ -635,6 +637,14 @@ void display_eastrising_begin(int slot, unsigned int slot_offset)
 
 	display_current_slot = slot;
 	display_current_slot_offset = slot_offset;
+
+	if(display_current_slot < 0)
+	{
+		y0 = slot_offset ? (display_height / 2) : 0;
+		y1 = (y0 + display_height / 2) - 1;
+
+		display_fill_box(0, 0, y0, display_width - 1, y1, 0, 0, 0);
+	}
 
 	text_goto(display_current_slot_offset, 0, 0);
 }
@@ -682,6 +692,9 @@ end:
 
 void display_eastrising_end(void)
 {
+	if(display_current_slot < 0)
+		return;
+
 	if(display_current_x >= display_slot_width)
 	{
 		display_current_x = 0;
