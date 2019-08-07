@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 static bool inited = false;
+static bool display_logmode;
 static unsigned int x, y, slot_offset;
 
 enum
@@ -299,17 +300,6 @@ bool display_seeed_init(void)
 	if(i2c_send2(0x51, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
 		return(false);
 
-	for(slot_offset = 0; slot_offset < 2; slot_offset++)
-		for(y = 0; y < 4; y++)
-		{
-			text_goto(slot_offset, 0, y);
-
-			for(x = 0; x < 21; x++)
-				text_send(' ');
-		}
-
-	text_flush();
-
 	inited = true;
 
 	return(display_seeed_bright(1));
@@ -322,6 +312,20 @@ void display_seeed_begin(int select_slot, unsigned int select_slot_offset, bool 
 
 	x = y = 0;
 	slot_offset = select_slot_offset;
+	display_logmode = logmode;
+
+	if(display_logmode)
+	{
+		for(y = 0; y < display_text_height; y++)
+		{
+			text_goto(0, 0, y);
+
+			for(x = 0; x < display_text_width; x++)
+				text_send('*');
+		}
+
+		x = y = 0;
+	}
 
 	msleep(1);
 	text_goto(slot_offset, 0, 0);
@@ -335,22 +339,31 @@ void display_seeed_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(y < 4)
+		if(display_logmode)
 		{
+			y = (y + 1) % display_text_height;
+			text_goto(0, 0, y);
+			for(x = 0; x < display_text_width; x++)
+				text_send(' ');
+			text_goto(0, 0, y);
+		}
+		else
+		{
+			y++;
+
 			while(x++ < 21)
 				text_send(' ');
 
-			if(y < 3)
-				text_goto(slot_offset, 0, y + 1);
+			if(y < display_slot_height)
+				text_goto(slot_offset, 0, y);
 		}
 
 		x = 0;
-		y++;
 
 		return;
 	}
 
-	if((y < 4) && (x < 21))
+	if((y < (display_logmode ? display_text_height : display_slot_height)) && (x < 21))
 	{
 		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
 			if(unicode_map_ptr->unicode == unicode)
