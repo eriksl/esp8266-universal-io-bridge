@@ -355,7 +355,8 @@ static void display_update(bool advance)
 
 		display_info_entry->end_fn();
 
-		display_info_entry->layer_select_fn(0);
+		if(display_info_entry->layer_select_fn)
+			display_info_entry->layer_select_fn(0);
 	}
 
 	for(; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
