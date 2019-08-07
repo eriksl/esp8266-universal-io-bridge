@@ -71,6 +71,8 @@ attr_inline void csleep(volatile uint32_t target)
 attr_nonnull ip_addr_t ip_addr(const char *);
 
 extern string_t logbuffer;
+extern unsigned int logbuffer_display_current;
+void logbuffer_clear(void);
 
 unsigned int attr_nonnull log_from_flash_no_format(const char *data);
 unsigned int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));

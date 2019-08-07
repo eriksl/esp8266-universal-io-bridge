@@ -50,7 +50,7 @@ typedef const struct
 	const char *	const description;
 	unsigned int	const display_visible_slots;
 	bool			(* const init_fn)(void);
-	void			(* const begin_fn)(int slot, unsigned int slot_offset);
+	void			(* const begin_fn)(int slot, unsigned int slot_offset, bool wraparound);
 	void			(* const output_fn)(unsigned int);
 	void			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
@@ -252,7 +252,7 @@ static void display_update(bool advance)
 			string_append_cstr_flash(&tag_string, display_slot[slot].tag);
 		}
 
-		display_info_entry->begin_fn(slot, slot_offset);
+		display_info_entry->begin_fn(slot, slot_offset, false);
 
 		tag_text = string_to_cstr(&tag_string);
 
@@ -361,7 +361,7 @@ static void display_update(bool advance)
 
 	for(; slot_offset < display_info_entry->display_visible_slots; slot_offset++)
 	{
-		display_info_entry->begin_fn(-1, slot_offset);
+		display_info_entry->begin_fn(-1, slot_offset, false);
 		display_info_entry->end_fn();
 	}
 
@@ -384,6 +384,24 @@ void display_periodic(void) // gets called 10 times per second
 
 	if(!display_detected())
 		return;
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(config_flags_match(flag_log_to_display))
+	{
+		uint8_t current;
+
+		while(logbuffer_display_current < (unsigned int)string_length(&logbuffer))
+		{
+			current = string_at(&logbuffer, logbuffer_display_current++);
+			display_info_entry->output_fn(current);
+
+			if(current == '\n')
+				break;
+		}
+
+		return;
+	}
 
 	now = time_get_us() / 1000000;
 
@@ -420,8 +438,6 @@ void display_periodic(void) // gets called 10 times per second
 			display_update(true);
 		}
 	}
-
-	display_info_entry = &display_info[display_data.detected];
 
 	if(display_info_entry->periodic_fn)
 		display_info_entry->periodic_fn();
@@ -464,6 +480,14 @@ void display_init(void)
 
 	if(!config_get_uint("display.fliptimeout", &flip_timeout, -1, -1))
 		flip_timeout = 4;
+
+	if(config_flags_match(flag_log_to_display))
+	{
+		display_info_entry->begin_fn(-1, 0, true);
+
+		if(display_info_entry->standout_fn)
+			display_info_entry->standout_fn(0);
+	}
 }
 
 static void display_dump(string_t *dst)
@@ -483,6 +507,12 @@ static void display_dump(string_t *dst)
 
 	string_format(dst, "> display type #%d (%s: %s)\n", display_data.detected,
 			display_info_entry->name, display_info_entry->description);
+
+	if(config_flags_match(flag_log_to_display))
+	{
+		string_format(dst, "> display is set up to receive logging\n");
+		return;
+	}
 
 	string_format(dst, "> display update time, min: %u us, max: %u us\n",
 		stat_display_update_min_us,

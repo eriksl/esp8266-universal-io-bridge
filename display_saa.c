@@ -175,7 +175,7 @@ bool display_saa1064_bright(int bright_in)
 static unsigned int x;
 static char text[4];
 
-void display_saa1064_begin(int slot, unsigned int slot_offset)
+void display_saa1064_begin(int slot, unsigned int slot_offset, bool wraparound)
 {
 	if(i2c_bus < 0)
 		return;

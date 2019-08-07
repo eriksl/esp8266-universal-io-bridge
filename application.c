@@ -1635,7 +1635,7 @@ static app_action_t application_function_log_clear(string_t *src, string_t *dst)
 
 	rv = application_function_log_display(src, dst);
 
-	string_clear(&logbuffer);
+	logbuffer_clear();
 
 	return(rv);
 }

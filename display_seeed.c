@@ -310,7 +310,7 @@ bool display_seeed_init(void)
 	return(display_seeed_bright(1));
 }
 
-void display_seeed_begin(int select_slot, unsigned int select_slot_offset)
+void display_seeed_begin(int select_slot, unsigned int select_slot_offset, bool logmode)
 {
 	if(!inited)
 		log("! display seeed not inited\n");

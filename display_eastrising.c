@@ -623,7 +623,7 @@ bool display_eastrising_init(void)
 	return(true);
 }
 
-void display_eastrising_begin(int slot, unsigned int slot_offset)
+void display_eastrising_begin(int slot, unsigned int slot_offset, bool wraparound)
 {
 	unsigned int y0, y1;
 

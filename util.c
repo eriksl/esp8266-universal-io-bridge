@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+unsigned int logbuffer_display_current = 0;
+
 string_t logbuffer =
 {
 	.size = 0x3fffeb2c - 0x3fffe000 - 16,
@@ -44,6 +46,12 @@ attr_const const char *onoff(bool value)
 	return("on");
 }
 
+void logbuffer_clear(void)
+{
+	logbuffer_display_current = 0;
+	string_clear(&logbuffer);
+}
+
 unsigned int log_from_flash_no_format(const char *data)
 {
 	unsigned int length;
@@ -57,7 +65,7 @@ unsigned int log_from_flash_no_format(const char *data)
 	if(config_flags_match(flag_log_to_buffer))
 	{
 		if((unsigned int)(string_length(&logbuffer) + length) >= (unsigned int)string_size(&logbuffer))
-			string_clear(&logbuffer);
+			logbuffer_clear();
 
 		string_append_string(&logbuffer, &flash_dram);
 	}
@@ -88,7 +96,7 @@ unsigned int log_from_flash(const char *fmt_in_flash, ...)
 	if(config_flags_match(flag_log_to_buffer))
 	{
 		if((string_length(&logbuffer) + length) >= string_size(&logbuffer))
-			string_clear(&logbuffer);
+			logbuffer_clear();
 
 		string_append_string(&logbuffer, &flash_dram);
 	}
@@ -107,7 +115,7 @@ iram void logchar(char c)
 	if(config_flags_match(flag_log_to_buffer))
 	{
 		if((logbuffer.length + 1) >= logbuffer.size)
-			string_clear(&logbuffer);
+			logbuffer_clear();
 
 		string_append_char(&logbuffer, c);
 	}
