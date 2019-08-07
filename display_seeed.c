@@ -12,6 +12,11 @@ static unsigned int x, y, slot_offset;
 
 enum
 {
+	display_text_width = 21,
+	display_text_height = 8,
+	display_slot_height = 4,
+	display_font_width = 6,
+	display_font_height = 8,
 	mapeof = 0xffffffff,
 };
 
@@ -244,7 +249,7 @@ static void text_send(unsigned int text)
 static void text_goto(unsigned int slot_in, unsigned int x_in, unsigned int y_in)
 {
 	text_flush();
-	i2c_send3(0x51, reg_CharXPosRegAddr, x_in * 6, (slot_in * 4 * 8) + (y_in * 8));
+	i2c_send3(0x51, reg_CharXPosRegAddr, x_in * display_font_width, (slot_in * display_slot_height * display_font_height) + (y_in * display_font_height));
 }
 
 static void udg_send(unsigned int udg)
@@ -263,8 +268,8 @@ static void udg_send(unsigned int udg)
 			if(udg_map[udg].pattern[byte] & (1 << (5 - bit)))
 				ram_byte[bit + 1] |= 1 << byte;
 
-	gx = x * 6;
-	gy = (slot_offset * 4) + y;
+	gx = x * display_font_width;
+	gy = (slot_offset * display_slot_height) + y;
 
 	if(gx > 0)
 		gx--;
@@ -374,17 +379,17 @@ end:
 
 void display_seeed_end(void)
 {
-	if(x > 19)
+	if(x >= (display_text_width - 1))
 	{
 		x = 0;
 		y++;
 	}
 
-	for(; y < 4; y++, x = 0)
+	for(; y < display_slot_height; y++, x = 0)
 	{
 		text_goto(slot_offset, x, y);
 
-		while(x++ < 21)
+		while(x++ < display_text_width)
 			text_send(' ');
 	}
 
