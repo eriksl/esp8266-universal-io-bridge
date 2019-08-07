@@ -54,7 +54,7 @@ typedef const struct
 	void			(* const output_fn)(unsigned int);
 	void			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
-	bool			(* const inverse_fn)(bool);
+	bool			(* const standout_fn)(bool);
 	void			(* const periodic_fn)(void);
 	bool			(* const picture_load_fn)(unsigned int);
 	bool			(* const layer_select_fn)(unsigned int);
@@ -138,7 +138,7 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_output,
 		display_seeed_end,
 		display_seeed_bright,
-		display_seeed_inverse,
+		display_seeed_standout,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -150,7 +150,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_output,
 		display_eastrising_end,
 		display_eastrising_bright,
-		display_eastrising_inverse,
+		display_eastrising_standout,
 		display_eastrising_periodic,
 		display_eastrising_picture_load,
 		display_eastrising_layer_select,
@@ -260,15 +260,15 @@ static void display_update(bool advance)
 		{
 			current_text = tag_text;
 
-			if(display_info_entry->inverse_fn)
-				display_info_entry->inverse_fn(1);
+			if(display_info_entry->standout_fn)
+				display_info_entry->standout_fn(1);
 		}
 		else
 		{
 			current_text = display_text;
 
-			if(display_info_entry->inverse_fn)
-				display_info_entry->inverse_fn(0);
+			if(display_info_entry->standout_fn)
+				display_info_entry->standout_fn(0);
 		}
 
 		state = u8p_state_base;
@@ -284,8 +284,8 @@ static void display_update(bool advance)
 				display_text = (const char *)0;
 				display_info_entry->output_fn('\n');
 
-				if(display_info_entry->inverse_fn)
-					display_info_entry->inverse_fn(0);
+				if(display_info_entry->standout_fn)
+					display_info_entry->standout_fn(0);
 
 				state = u8p_state_base;
 				continue;

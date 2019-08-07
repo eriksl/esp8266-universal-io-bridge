@@ -9,6 +9,6 @@ void display_seeed_begin(int slot, unsigned int slot_offset);
 void display_seeed_output(unsigned int);
 void display_seeed_end(void);
 bool display_seeed_bright(int);
-bool display_seeed_inverse(bool);
+bool display_seeed_standout(bool);
 
 #endif

@@ -279,7 +279,7 @@ static void udg_send(unsigned int udg)
 
 bool display_seeed_init(void)
 {
-	if(!display_seeed_inverse(0))
+	if(!display_seeed_standout(0))
 		return(false);
 
 	if(!display_seeed_bright(0))
@@ -414,7 +414,7 @@ bool display_seeed_bright(int brightness)
 	return(true);
 }
 
-bool display_seeed_inverse(bool onoff)
+bool display_seeed_standout(bool onoff)
 {
 	unsigned int value = render_manualnl_autoincr | font_6x8 | (onoff ? charmode_white_inc_background : charmode_black_inc_background);
 

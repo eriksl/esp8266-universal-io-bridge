@@ -729,7 +729,7 @@ bool display_eastrising_bright(int brightness)
 	return(true);
 }
 
-bool display_eastrising_inverse(bool onoff)
+bool display_eastrising_standout(bool onoff)
 {
 	unsigned int r, g, b;
 	unsigned int r1, g1, b1;
