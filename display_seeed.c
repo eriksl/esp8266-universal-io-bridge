@@ -414,10 +414,10 @@ bool display_seeed_bright(int brightness)
 	roflash static const unsigned int bright_to_internal[5][2] =
 	{
 		{	0,	0	},
-		{	20,	20	},
-		{	20,	40	},
-		{	20,	80	},
-		{	20,	127	},
+		{	25,	20	},
+		{	25,	40	},
+		{	25,	80	},
+		{	25,	127	},
 	};
 
 	if(brightness > 4)
