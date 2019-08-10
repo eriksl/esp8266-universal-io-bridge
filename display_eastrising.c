@@ -252,6 +252,7 @@ typedef struct
 } unicode_map_t;
 
 static bool display_inited = false;
+static bool display_low_brightness = false;
 static unsigned int display_current_x, display_current_y, display_current_slot_offset;
 static int display_current_slot;
 
@@ -421,6 +422,10 @@ static void text_goto(unsigned int slot_offset, unsigned int textx, unsigned int
 
 static bool display_fgcolour(unsigned int r, unsigned int g, unsigned int b)
 {
+	r = (r >> 3) & 0xff;
+	g = (g >> 2) & 0xff;
+	b = (b >> 3) & 0xff;
+
 	if(!display_write(reg_fgcr0, r))
 		return(false);
 
@@ -435,6 +440,10 @@ static bool display_fgcolour(unsigned int r, unsigned int g, unsigned int b)
 
 static bool display_bgcolour(unsigned int r, unsigned int g, unsigned int b)
 {
+	r = (r >> 3) & 0xff;
+	g = (g >> 2) & 0xff;
+	b = (b >> 3) & 0xff;
+
 	if(!display_write(reg_bgcr0, r))
 		return(false);
 
@@ -741,6 +750,7 @@ bool display_eastrising_bright(int brightness)
 {
 	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
 	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
+	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
 
 	if(brightness > 4)
 		return(false);
@@ -751,86 +761,272 @@ bool display_eastrising_bright(int brightness)
 	if(!display_write(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
 		return(false);
 
+	display_low_brightness = bright_low[brightness] ? true : false;
+
 	return(true);
 }
 
-bool display_eastrising_standout(bool onoff)
+typedef struct
 {
 	unsigned int r, g, b;
-	unsigned int r1, g1, b1;
-	unsigned int r2, g2, b2;
+} rgb_t;
+
+typedef struct
+{
+	rgb_t fg, bg;
+} rgb_fg_bg_t;
+
+typedef struct
+{
+	rgb_fg_bg_t standout;
+	rgb_fg_bg_t normal;
+} colours_t;
+
+typedef struct
+{
+	colours_t low_bright;
+	colours_t normal_bright;
+} theme_t;
+
+roflash static const theme_t themes[8] =
+{
+	{ // slot 0	theme grey
+		{ // low_bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xd0, 0xda, 0xd0	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xd0, 0xda, 0xd0	},	// normal
+			}
+		},
+		{ // normal_bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0xff	},	// normal
+			}
+		}
+	},
+	{ // slot 1 theme blue
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x40, 0xa9, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x90, 0xb4, 0xff	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x40, 0xa9, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x90, 0xb4, 0xff	},	// normal
+			}
+		}
+	},
+	{ // slot 2 theme red
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x60, 0x30	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x80, 0x50	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x60, 0x30	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x80, 0x50	},	// normal
+			}
+		}
+	},
+	{ // slot 3 theme green
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x00, 0xff, 0x40	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x70, 0xff, 0x40	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x00, 0xff, 0x40	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x70, 0xff, 0x40	},	// normal
+			}
+		}
+	},
+	{ // slot 4 theme brown
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x90, 0x40	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xa0, 0x50	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x90, 0x40	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xa0, 0x50	},	// normal
+			}
+		}
+	},
+	{ // slot 5 theme cyan
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x40, 0xff, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x90, 0xff, 0xff	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x40, 0xff, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0x90, 0xff, 0xff	},	// normal
+			}
+		}
+	},
+	{ // slot 6 theme yellow
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0x20	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0x50	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0x20	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xff, 0x50	},	// normal
+			}
+		}
+	},
+	{ // slot 7 theme purple
+		{ // low bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x90, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xb0, 0xff	},	// normal
+			}
+		},
+		{ // normal bright
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0x90, 0xff	},	// normal
+			},
+			{
+				{	0x00, 0x00, 0x00	},	// standout
+				{	0xff, 0xb0, 0xff	},	// normal
+			}
+		}
+	}
+};
+
+bool display_eastrising_standout(bool standout)
+{
 	unsigned int y0, y1;
+	const colours_t *colours;
+	const rgb_t *fg, *bg;
+	roflash static const rgb_t colour_black = { 0x00, 0x00, 0x00 };
+	roflash static const rgb_t colour_white = { 0xff, 0xff, 0xff };
 
 	if(!display_inited)
 		return(false);
 
-	if(display_current_y >= display_slot_height)
-		return(true);
-
-	if(display_current_slot < 0)
+	if(0)
 	{
-		r1 = g1 = b1 = 0x00;
-		r2 = g2 = b2 = 0x00;
 	}
 	else
 	{
-		r = (display_current_slot & (1 << 0)) >> 0;
-		g = (display_current_slot & (1 << 1)) >> 1;
-		b = (display_current_slot & (1 << 2)) >> 2;
+		if(display_current_y >= display_slot_height)
+			return(true);
 
-		r1 = r * 0x90;
-		g1 = g * 0x90;
-		b1 = b * 0x90;
-
-		if((r1 + b1 + g1) == 0)
+		if((display_current_slot < 0))
 		{
-			r1 = 0x88;
-			g1 = 0x90;
-			b1 = 0x88;
+			fg = &colour_white;
+			bg = &colour_black;
+		}
+		else
+		{
+			if(display_low_brightness)
+				colours = &themes[display_current_slot].low_bright;
+			else
+				colours = &themes[display_current_slot].normal_bright;
+
+			if(standout)
+			{
+				fg = &colours->standout.fg;
+				bg = &colours->standout.bg;
+			}
+			else
+			{
+				fg = &colours->normal.fg;
+				bg = &colours->normal.bg;
+			}
 		}
 
-		r2 = r * 0xff;
-		g2 = g * 0xff;
-		b2 = b * 0xff;
-
-		if((r2 + b2 + g2) == 0)
+		if(display_current_y == 0)
 		{
-			r2 = 0xb0;
-			g2 = 0xa0;
-			b2 = 0xb0;
+			y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
+			y1 = display_text_to_graphic_y(display_current_slot_offset, 1) + 2;
 		}
+		else
+		{
+			y0 = display_text_to_graphic_y(display_current_slot_offset, display_current_y) + 2;
+			y1 = display_text_to_graphic_y(display_current_slot_offset, 4) + 0;
+		}
+
+		display_fill_box(0, 0, y0, display_width, y1, bg->r, bg->g, bg->b);
 	}
 
-	if(display_current_y == 0)
-	{
-		y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
-		y1 = display_text_to_graphic_y(display_current_slot_offset, 1) + 2;
-	}
-	else
-	{
-		y0 = display_text_to_graphic_y(display_current_slot_offset, display_current_y) + 2;
-		y1 = display_text_to_graphic_y(display_current_slot_offset, 4) + 0;
-	}
-
-	if(onoff)
-	{
-		r = r1;
-		g = g1;
-		b = b1;
-	}
-	else
-	{
-		r = r2;
-		g = g2;
-		b = b2;
-	}
-
-	display_fill_box(0, 0, y0, display_width, y1, r, g, b);
-
-	if(g1 > 0x88)
-		display_fgcolour(0x01, 0x01, 0x01);
-	else
-		display_fgcolour(0xff, 0xff, 0xff);
+	display_fgcolour(fg->r, fg->g, fg->b);
+	display_bgcolour(bg->r, bg->g, bg->b);
 
 	return(true);
 }
