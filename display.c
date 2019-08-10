@@ -78,8 +78,6 @@ typedef struct
 
 assert_size(display_slot_t, 80);
 
-static unsigned int flip_timeout;
-
 roflash static display_info_t display_info[display_size] =
 {
 	{
@@ -157,8 +155,10 @@ roflash static display_info_t display_info[display_size] =
 };
 
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
+static unsigned int flip_timeout;
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
+static unsigned int display_layer = 0;
 
 assert_size(display_slot, 640);
 
@@ -706,8 +706,6 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	return(app_action_normal);
 }
-
-static unsigned int display_layer = 0;
 
 app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst)
 {

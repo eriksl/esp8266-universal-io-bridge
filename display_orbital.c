@@ -6,13 +6,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-static bool inited = false;
-
-enum
-{
-	mapeof = 0xffffffff,
-};
-
 typedef struct
 {
 	unsigned int	unicode;
@@ -25,6 +18,11 @@ typedef struct
 	unsigned int	internal;
 	unsigned int	pattern[8];
 } udg_map_t;
+
+enum
+{
+	mapeof = 0xffffffff,
+};
 
 roflash static const unicode_map_t unicode_map[] =
 {
@@ -213,6 +211,7 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
+static bool inited = false;
 static unsigned int x, y;
 
 bool display_orbital_init(void)

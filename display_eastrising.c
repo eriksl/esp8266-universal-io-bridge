@@ -8,9 +8,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+} unicode_map_t;
+
 enum
 {
 	mapeof = 0xffffffff,
+};
+
+enum
+{
+	i2c_addr_data = 0x06,
+	i2c_addr_command = 0x07,
 };
 
 enum
@@ -301,18 +313,6 @@ enum
 	display_logmode_character_height = 16,
 };
 
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-} unicode_map_t;
-
-static bool display_inited = false;
-static bool display_low_brightness = false;
-static bool display_logmode = false;
-static unsigned int display_current_x, display_current_y;
-static int display_current_slot;
-
 roflash static const unicode_map_t unicode_map[] =
 {
 	{	0x263a, 0x01	},	//	☺ 
@@ -377,11 +377,11 @@ roflash static const unicode_map_t unicode_map[] =
 	{	mapeof,	0x00	}, // EOF
 };
 
-enum
-{
-	i2c_addr_data = 0x06,
-	i2c_addr_command = 0x07,
-};
+static bool display_inited = false;
+static bool display_low_brightness = false;
+static bool display_logmode = false;
+static unsigned int display_current_x, display_current_y;
+static int display_current_slot;
 
 static bool display_write_command(uint8_t cmd)
 {

@@ -6,16 +6,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-static bool inited = false;
-static bool nibble_mode;
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+} unicode_map_t;
 
-static int bl_io;
-static int bl_pin;
-static int lcd_io;
-static int *lcd_pin = (int *)(void *)display_buffer; // this memory is int aligned
-static unsigned int pin_mask;
-
-_Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+	unsigned int	pattern[8];
+} udg_map_t;
 
 enum
 {
@@ -37,19 +39,6 @@ enum
 {
 	mapeof = 0xffffffff,
 };
-
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-} unicode_map_t;
-
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-	unsigned int	pattern[8];
-} udg_map_t;
 
 roflash static const unicode_map_t unicode_map[] =
 {
@@ -202,6 +191,15 @@ roflash static const unsigned int ram_offsets[4] =
 	20	+	64
 };
 
+_Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
+
+static bool inited = false;
+static bool nibble_mode;
+static int bl_io;
+static int bl_pin;
+static int lcd_io;
+static int *lcd_pin = (int *)(void *)display_buffer; // this memory is int aligned
+static unsigned int pin_mask;
 static unsigned int x, y;
 
 static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)

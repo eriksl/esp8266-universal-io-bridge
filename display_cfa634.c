@@ -8,11 +8,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-enum
-{
-	mapeof = 0xffffffff,
-};
-
 typedef struct
 {
 	unsigned int	unicode;
@@ -26,8 +21,10 @@ typedef struct
 	unsigned int	pattern[8];
 } udg_map_t;
 
-static bool		detected = false;
-static unsigned int uart;
+enum
+{
+	mapeof = 0xffffffff,
+};
 
 roflash static const unicode_map_t unicode_map[] =
 {
@@ -242,6 +239,9 @@ roflash static const udg_map_t udg_map[] =
 		{ },
 	}
 };
+
+static bool		detected = false;
+static unsigned int uart;
 
 bool display_cfa634_setup(unsigned int io, unsigned int pin)
 {
