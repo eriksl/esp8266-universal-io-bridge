@@ -54,6 +54,20 @@ enum
 	reg_curh1 =		0x47,
 	reg_curv0 =		0x48,
 	reg_curv1 =		0x49,
+	reg_becr0 =		0x50,
+	reg_becr1 =		0x51,
+	reg_hsbe0 =		0x54,
+	reg_hsbe1 =		0x55,
+	reg_vsbe0 =		0x56,
+	reg_vsbe1 =		0x57,
+	reg_hdbe0 =		0x58,
+	reg_hdbe1 =		0x59,
+	reg_vdbe0 =		0x5a,
+	reg_vdbe1 =		0x5b,
+	reg_bewr0 =		0x5c,
+	reg_bewr1 =		0x5d,
+	reg_behr0 =		0x5e,
+	reg_behr1 =		0x5f,
 	reg_ltpr0 =		0x52,
 	reg_ltpr1 =		0x53,
 	reg_bgcr0 =		0x60,
@@ -227,6 +241,43 @@ enum
 	reg_dpcr_vert_scan_ltor =				0b00000000,
 	reg_dpcr_vert_scan_rtol =				0b00000100,
 
+	reg_becr0_idle =						0b00000000,
+	reg_becr0_busy =						0b10000000,
+	reg_becr0_src_block =					0b00000000,
+	reg_becr0_src_lineair =					0b01000000,
+	reg_becr0_dst_block =					0b00000000,
+	reg_becr0_dst_lineair =					0b00100000,
+
+	reg_becr1_rop_code_write =				0b00000000,
+	reg_becr1_rop_code_read =				0b00000001,
+	reg_becr1_rop_code_move_pos =			0b00000010,
+	reg_becr1_rop_code_move_neg =			0b00000011,
+	reg_becr1_rop_code_write_transp =		0b00000100,
+	reg_becr1_rop_code_move_transp =		0b00000101,
+	reg_becr1_rop_code_fill_pattern =		0b00000110,
+	reg_becr1_rop_code_fill_pattern_transp=	0b00000111,
+	reg_becr1_rop_code_expand_colour =		0b00001000,
+	reg_becr1_rop_code_expand_colour_transp=0b00001001,
+	reg_becr1_rop_code_move_expand_colour=	0b00001010,
+	reg_becr1_rop_code_move_expand_transp=	0b00001011,
+	reg_becr1_rop_code_fill =				0b00001100,
+
+	reg_becr1_rop_func_black =				0b00000000,
+	reg_becr1_rop_func_ns_and_nd =			0b00010000,
+	reg_becr1_rop_func_ns_and_d =			0b00100000,
+	reg_becr1_rop_func_ns =					0b00110000,
+	reg_becr1_rop_func_s_and_nd =			0b01000000,
+	reg_becr1_rop_func_nd =					0b01010000,
+	reg_becr1_rop_func_s_xor_d =			0b01100000,
+	reg_becr1_rop_func_ns_or_nd =			0b01110000,
+	reg_becr1_rop_func_s_and_d =			0b10000000,
+	reg_becr1_rop_func_n_s_xor_d =			0b10010000,
+	reg_becr1_rop_func_d =					0b10100000,
+	reg_becr1_rop_func_ns_or_d =			0b10110000,
+	reg_becr1_rop_func_s =					0b11000000,
+	reg_becr1_rop_func_s_or_nd =			0b11010000,
+	reg_becr1_rop_func_s_or_d =				0b11100000,
+
 	display_width = 480,
 	display_height = 272,
 	display_horizontal_blanking = 38,
@@ -236,13 +287,18 @@ enum
 	display_vertical_blanking = 14,
 	display_vertical_sync_start = 6,
 	display_vertical_sync_length = 2,
-	display_slot_width = 24,
+	display_text_width = 25,
+	display_text_height = 8,
 	display_slot_height = 4,
 	display_character_width = 16,
 	display_character_width_padding = 3,
 	display_character_height = 32,
-	display_character_height_padding = 0,
 	display_character_slot_padding = 16,
+	display_logmode_text_width = 48,
+	display_logmode_text_height = 17,
+	display_logmode_character_width = 8,
+	display_logmode_character_width_padding = 2,
+	display_logmode_character_height = 16,
 };
 
 typedef struct
@@ -253,6 +309,7 @@ typedef struct
 
 static bool display_inited = false;
 static bool display_low_brightness = false;
+static bool display_logmode = false;
 static unsigned int display_current_x, display_current_y, display_current_slot_offset;
 static int display_current_slot;
 
@@ -372,13 +429,17 @@ static uint8_t display_text_buffer[32];
 
 static unsigned int display_text_to_graphic_x(unsigned int text_x)
 {
-	return(text_x * (display_character_width + display_character_width_padding));
+	unsigned int width =	display_logmode ? display_logmode_character_width :			display_character_width;
+	unsigned int padding =	display_logmode ? display_logmode_character_width_padding : display_character_width_padding;
+
+	return(text_x * (width + padding));
 }
 
 static unsigned int display_text_to_graphic_y(unsigned int slot_offset, unsigned int text_y)
 {
+	unsigned int height = display_logmode ? display_logmode_character_height : display_character_height;
+	unsigned int cell_height = height;
 	unsigned int graphic_y;
-	unsigned int cell_height = display_character_height + display_character_height_padding;
 
 	graphic_y = slot_offset * display_slot_height * cell_height;
 	graphic_y += slot_offset * display_character_slot_padding;
@@ -452,6 +513,85 @@ static bool display_bgcolour(unsigned int r, unsigned int g, unsigned int b)
 
 	if(!display_write(reg_bgcr2, b))
 		return(false);
+
+	return(true);
+}
+
+static bool display_scroll(unsigned int textlines)
+{
+					unsigned int text_height =		display_logmode ? display_logmode_text_height :			display_text_height;
+					unsigned int char_height =		display_logmode ? display_logmode_character_height :	display_character_height;
+	static const	unsigned int sx = 0;
+					unsigned int sy = textlines * char_height;
+	static const	unsigned int dx = 0;
+	static const	unsigned int dy = 0;
+	static const	unsigned int width = display_width;
+					unsigned int height = text_height * char_height;
+					uint8_t data;
+					unsigned int timeout;
+
+	// from (0, sy)
+
+	if(!display_write(reg_hsbe0, (sx >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_hsbe1, (sx >> 8) & 0x03))
+		return(false);
+
+	if(!display_write(reg_vsbe0, (sy >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_vsbe1, (sy >> 8) & 0x01))
+		return(false);
+
+	// to (0, 0)
+
+	if(!display_write(reg_hdbe0, (dx >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_hdbe1, (dx >> 8) & 0x03))
+		return(false);
+
+	if(!display_write(reg_vdbe0, (dy >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_vdbe1, (dy >> 8) & 0x01))
+		return(false);
+
+	// (width, height) = (display width, display text height - scroll height)
+
+	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_bewr1, (width >> 8) & 0x03))
+		return(false);
+
+	if(!display_write(reg_behr0, ((height - sy) >> 0) & 0xff))
+		return(false);
+
+	if(!display_write(reg_behr1, ((height - sy) >> 8) & 0x03))
+		return(false);
+
+	// config BTE
+
+	if(!display_write(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
+		return(false);
+
+	// start BTE
+
+	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
+		return(false);
+
+	for(timeout = 30; timeout > 0; timeout--)
+	{
+		if(!display_read(reg_becr0, &data))
+			return(false);
+
+		if(!(data & reg_becr0_busy))
+			break;
+
+		msleep(1);
+	}
 
 	return(true);
 }
@@ -631,9 +771,6 @@ bool display_eastrising_init(void)
 	if(!display_write(reg_fncr0, reg_fncr0_font_cgrom | reg_fncr0_font_internal | reg_fncr0_encoding_8859_1))
 		return(false);
 
-	if(!display_write(reg_fncr1, reg_fncr1_font_align_disable | reg_fncr1_font_transparent | reg_fncr1_font_straight | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2))
-		return(false);
-
 	if(!display_write(reg_fncr2, reg_fncr2_font_size_16x16 | display_character_width_padding))
 		return(false);
 
@@ -657,9 +794,11 @@ bool display_eastrising_init(void)
 	return(true);
 }
 
-void display_eastrising_begin(int slot, unsigned int slot_offset, bool wraparound)
+void display_eastrising_begin(int slot, unsigned int slot_offset, bool logmode)
 {
-	unsigned int y0, y1;
+	roflash static const unsigned int font_config_normal  = reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2;
+	roflash static const unsigned int font_config_logmode = reg_fncr1_font_opaque      | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
+	unsigned int font_config = logmode ? font_config_logmode : font_config_normal;
 
 	if(!display_inited)
 	{
@@ -667,17 +806,24 @@ void display_eastrising_begin(int slot, unsigned int slot_offset, bool wraparoun
 		return;
 	}
 
-	display_current_x = display_current_y = 0;
+	display_write(reg_fncr1, reg_fncr1_font_align_disable | reg_fncr1_font_straight | font_config);
 
+	display_current_x = display_current_y = 0;
 	display_current_slot = slot;
 	display_current_slot_offset = slot_offset;
+	display_logmode = logmode;
 
-	if(display_current_slot < 0)
+	if(!logmode && (display_current_slot < 0))
 	{
-		y0 = slot_offset ? (display_height / 2) : 0;
-		y1 = (y0 + display_height / 2) - 1;
+		static const	unsigned int x0 = 0;
+						unsigned int y0;
+		static const	unsigned int x1 = display_width;
+						unsigned int y1;
 
-		display_fill_box(0, 0, y0, display_width - 1, y1, 0, 0, 0);
+		y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
+		y1 = display_text_to_graphic_y(display_current_slot_offset, display_slot_height);
+
+		display_fill_box(0, x0, y0, x1, y1, 0, 0, 0);
 	}
 
 	text_goto(display_current_slot_offset, 0, 0);
@@ -686,16 +832,37 @@ void display_eastrising_begin(int slot, unsigned int slot_offset, bool wraparoun
 void display_eastrising_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
+	unsigned int text_height =	display_logmode ? display_logmode_text_height :	display_text_height;
+	unsigned int text_width =	display_logmode ? display_logmode_text_width :	display_text_width;
 
 	if(unicode == '\n')
 	{
 		display_current_x = 0;
 		display_current_y++;
 
+		if(display_logmode)
+		{
+			text_flush();
+
+			if(display_current_y >= text_height)
+			{
+				display_scroll(1);
+				display_fill_box(0, 0, display_text_to_graphic_y(0, text_height - 1), display_width, display_height, 0x00, 0x00, 0x00);
+				display_current_y = text_height - 1;
+			}
+
+			text_goto(0, display_current_x, display_current_y);
+		}
+		else
+		{
+			if(display_current_y < text_height)
+				text_goto(display_current_slot_offset, display_current_x, display_current_y);
+		}
+
 		return;
 	}
 
-	if((display_current_y < display_slot_height) && (display_current_x < (display_slot_width + 1)))
+	if((display_current_y < text_height) && (display_current_x < text_width))
 	{
 		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
 			if(unicode_map_ptr->unicode == unicode)
@@ -717,10 +884,12 @@ end:
 
 void display_eastrising_end(void)
 {
+	unsigned int text_width = display_logmode ? display_logmode_text_width : display_text_width;
+
 	if(display_current_slot < 0)
 		return;
 
-	if(display_current_x >= display_slot_width)
+	if(display_current_x >= text_width)
 	{
 		display_current_x = 0;
 		display_current_y++;
@@ -730,7 +899,7 @@ void display_eastrising_end(void)
 	{
 		text_goto(display_current_slot_offset, display_current_x, display_current_y);
 
-		while(display_current_x++ < (display_slot_width + 1))
+		while(display_current_x++ < (text_width + 1))
 			text_send(' ');
 	}
 
@@ -970,8 +1139,10 @@ bool display_eastrising_standout(bool standout)
 	if(!display_inited)
 		return(false);
 
-	if(0)
+	if(display_logmode)
 	{
+		fg = &colour_white;
+		bg = &colour_black;
 	}
 	else
 	{
