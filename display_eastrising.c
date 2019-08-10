@@ -335,12 +335,25 @@ static bool display_write_data(uint8_t data)
 	return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
 }
 
+static bool display_read_data(uint8_t *data)
+{
+	return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
+}
+
 static bool display_write(uint8_t cmd, uint8_t data)
 {
 	if(!display_write_command(cmd))
 		return(false);
 
 	return(display_write_data(data));
+}
+
+static bool display_read(uint8_t cmd, uint8_t *data)
+{
+	if(!display_write_command(cmd))
+		return(false);
+
+	return(display_read_data(data));
 }
 
 static bool display_set_mode_graphic(void)
@@ -487,6 +500,9 @@ static bool display_show_layer(unsigned int layer)
 
 static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int g, unsigned int b)
 {
+	unsigned int timeout;
+	uint8_t data;
+
 	if(!display_set_active_layer(layer))
 		return(false);
 
@@ -496,7 +512,16 @@ static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int 
 	if(!display_write(reg_mclr, reg_mclr_memory_clear_start | reg_mclr_memory_area_active_window))
 		return(false);
 
-	msleep(8);
+	for(timeout = 20; timeout > 0; timeout--)
+	{
+		if(!display_read(reg_mclr, &data))
+			return(false);
+
+		if(!(data & reg_mclr_memory_clear_start))
+			break;
+
+		msleep(1);
+	}
 
 	if(!display_set_active_layer(0))
 		return(false);
