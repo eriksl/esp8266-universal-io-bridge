@@ -292,7 +292,7 @@ bool display_cfa634_init(void)
 
 attr_const bool display_cfa634_bright(int brightness)
 {
-	static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
+	roflash static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
 	if(!detected)
 		return(false);
