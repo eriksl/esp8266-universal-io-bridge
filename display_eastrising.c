@@ -689,15 +689,6 @@ void display_eastrising_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(display_current_y < display_slot_height)
-		{
-			while(display_current_x++ < (display_slot_width + 1))
-				text_send(' ');
-
-			if(display_current_y < (display_slot_height - 1))
-				text_goto(display_current_slot_offset, 0, display_current_y + 1);
-		}
-
 		display_current_x = 0;
 		display_current_y++;
 
