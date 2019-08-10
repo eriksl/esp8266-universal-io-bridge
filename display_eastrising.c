@@ -310,7 +310,7 @@ typedef struct
 static bool display_inited = false;
 static bool display_low_brightness = false;
 static bool display_logmode = false;
-static unsigned int display_current_x, display_current_y, display_current_slot_offset;
+static unsigned int display_current_x, display_current_y;
 static int display_current_slot;
 
 roflash static const unicode_map_t unicode_map[] =
@@ -435,15 +435,18 @@ static unsigned int display_text_to_graphic_x(unsigned int text_x)
 	return(text_x * (width + padding));
 }
 
-static unsigned int display_text_to_graphic_y(unsigned int slot_offset, unsigned int text_y)
+static unsigned int display_text_to_graphic_y(unsigned int text_y)
 {
-	unsigned int height = display_logmode ? display_logmode_character_height : display_character_height;
-	unsigned int cell_height = height;
+	unsigned int cell_height = display_logmode ? display_logmode_character_height : display_character_height;
 	unsigned int graphic_y;
 
-	graphic_y = slot_offset * display_slot_height * cell_height;
-	graphic_y += slot_offset * display_character_slot_padding;
-	graphic_y += text_y * cell_height;
+	graphic_y = text_y * cell_height;
+
+	if(!display_logmode)
+	{
+		graphic_y += display_slot_height * cell_height;
+		graphic_y += display_character_slot_padding;
+	}
 
 	return(graphic_y);
 }
@@ -466,12 +469,12 @@ static void text_send(unsigned int text)
 	display_text_buffer[display_text_current++] = (uint8_t)text;
 }
 
-static void text_goto(unsigned int slot_offset, unsigned int textx, unsigned int texty)
+static void text_goto(unsigned int textx, unsigned int texty)
 {
 	unsigned int x, y;
 
 	x = display_text_to_graphic_x(textx) + 4;
-	y = display_text_to_graphic_y(slot_offset, texty);
+	y = display_text_to_graphic_y(texty);
 
 	text_flush();
 
@@ -481,7 +484,47 @@ static void text_goto(unsigned int slot_offset, unsigned int textx, unsigned int
 	display_write(reg_curyh, (y >> 8) & 0x03);
 }
 
-static bool display_fgcolour(unsigned int r, unsigned int g, unsigned int b)
+static bool display_fgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
+{
+	uint8_t R, G, B;
+
+	if(!display_read(reg_fgcr0, &R))
+		return(false);
+
+	if(!display_read(reg_fgcr1, &G))
+		return(false);
+
+	if(!display_read(reg_fgcr2, &B))
+		return(false);
+
+	*r = (R << 3);
+	*g = (G << 2);
+	*b = (B << 3);
+
+	return(true);
+}
+
+static bool display_bgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
+{
+	uint8_t R, G, B;
+
+	if(!display_read(reg_bgcr0, &R))
+		return(false);
+
+	if(!display_read(reg_bgcr1, &G))
+		return(false);
+
+	if(!display_read(reg_bgcr2, &B))
+		return(false);
+
+	*r = (R << 3);
+	*g = (G << 2);
+	*b = (B << 3);
+
+	return(true);
+}
+
+static bool display_fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
@@ -499,7 +542,7 @@ static bool display_fgcolour(unsigned int r, unsigned int g, unsigned int b)
 	return(true);
 }
 
-static bool display_bgcolour(unsigned int r, unsigned int g, unsigned int b)
+static bool display_bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
@@ -517,48 +560,34 @@ static bool display_bgcolour(unsigned int r, unsigned int g, unsigned int b)
 	return(true);
 }
 
-static bool display_scroll(unsigned int textlines)
+static bool display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
 {
-					unsigned int text_height =		display_logmode ? display_logmode_text_height :			display_text_height;
-					unsigned int char_height =		display_logmode ? display_logmode_character_height :	display_character_height;
-	static const	unsigned int sx = 0;
-					unsigned int sy = textlines * char_height;
-	static const	unsigned int dx = 0;
-	static const	unsigned int dy = 0;
-	static const	unsigned int width = display_width;
-					unsigned int height = text_height * char_height;
-					uint8_t data;
-					unsigned int timeout;
+	uint8_t data;
+	unsigned int timeout;
 
-	// from (0, sy)
-
-	if(!display_write(reg_hsbe0, (sx >> 0) & 0xff))
+	if(!display_write(reg_hsbe0, (x0 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_hsbe1, (sx >> 8) & 0x03))
+	if(!display_write(reg_hsbe1, (x0 >> 8) & 0x03))
 		return(false);
 
-	if(!display_write(reg_vsbe0, (sy >> 0) & 0xff))
+	if(!display_write(reg_vsbe0, (y0 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_vsbe1, (sy >> 8) & 0x01))
+	if(!display_write(reg_vsbe1, (y0 >> 8) & 0x01))
 		return(false);
 
-	// to (0, 0)
-
-	if(!display_write(reg_hdbe0, (dx >> 0) & 0xff))
+	if(!display_write(reg_hdbe0, (x1 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_hdbe1, (dx >> 8) & 0x03))
+	if(!display_write(reg_hdbe1, (x1 >> 8) & 0x03))
 		return(false);
 
-	if(!display_write(reg_vdbe0, (dy >> 0) & 0xff))
+	if(!display_write(reg_vdbe0, (y1 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_vdbe1, (dy >> 8) & 0x01))
+	if(!display_write(reg_vdbe1, (y1 >> 8) & 0x01))
 		return(false);
-
-	// (width, height) = (display width, display text height - scroll height)
 
 	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
 		return(false);
@@ -566,10 +595,10 @@ static bool display_scroll(unsigned int textlines)
 	if(!display_write(reg_bewr1, (width >> 8) & 0x03))
 		return(false);
 
-	if(!display_write(reg_behr0, ((height - sy) >> 0) & 0xff))
+	if(!display_write(reg_behr0, (height >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_behr1, ((height - sy) >> 8) & 0x03))
+	if(!display_write(reg_behr1, (height >> 8) & 0x03))
 		return(false);
 
 	// config BTE
@@ -582,7 +611,7 @@ static bool display_scroll(unsigned int textlines)
 	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		return(false);
 
-	for(timeout = 30; timeout > 0; timeout--)
+	for(timeout = 50; timeout > 0; timeout--)
 	{
 		if(!display_read(reg_becr0, &data))
 			return(false);
@@ -651,11 +680,22 @@ static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int 
 {
 	unsigned int timeout;
 	uint8_t data;
+	unsigned int fg_r, fg_g, fg_b;
+	unsigned int bg_r, bg_g, bg_b;
 
 	if(!display_set_active_layer(layer))
 		return(false);
 
-	if(!display_bgcolour(r, g, b))
+	if(!display_fgcolour_get(&fg_r, &fg_g, &fg_b))
+		return(false);
+
+	if(!display_bgcolour_get(&bg_r, &bg_g, &bg_b))
+		return(false);
+
+	if(!display_fgcolour_set(r, g, b))
+		return(false);
+
+	if(!display_bgcolour_set(r, g, b))
 		return(false);
 
 	if(!display_write(reg_mclr, reg_mclr_memory_clear_start | reg_mclr_memory_area_active_window))
@@ -673,6 +713,12 @@ static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int 
 	}
 
 	if(!display_set_active_layer(0))
+		return(false);
+
+	if(!display_fgcolour_set(fg_r, fg_g, fg_b))
+		return(false);
+
+	if(!display_bgcolour_set(bg_r, bg_g, bg_b))
 		return(false);
 
 	return(true);
@@ -794,7 +840,7 @@ bool display_eastrising_init(void)
 	return(true);
 }
 
-void display_eastrising_begin(int slot, unsigned int slot_offset, bool logmode)
+void display_eastrising_begin(int slot, bool logmode)
 {
 	roflash static const unsigned int font_config_normal  = reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2;
 	roflash static const unsigned int font_config_logmode = reg_fncr1_font_opaque      | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
@@ -810,30 +856,36 @@ void display_eastrising_begin(int slot, unsigned int slot_offset, bool logmode)
 
 	display_current_x = display_current_y = 0;
 	display_current_slot = slot;
-	display_current_slot_offset = slot_offset;
 	display_logmode = logmode;
 
-	if(!logmode && (display_current_slot < 0))
+	if(!display_logmode)
 	{
-		static const	unsigned int x0 = 0;
-						unsigned int y0;
-		static const	unsigned int x1 = display_width;
-						unsigned int y1;
+		unsigned int x0 = 0;
+		unsigned int y0 = (display_slot_height * display_character_height) + display_character_slot_padding;
+		unsigned int x1 = 0;
+		unsigned int y1 = 0;
+		unsigned int width = display_width;
+		unsigned int height = display_slot_height * display_character_height;
 
-		y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
-		y1 = display_text_to_graphic_y(display_current_slot_offset, display_slot_height);
+		display_scroll(x0, y0, x1, y1, width, height);
 
-		display_fill_box(0, x0, y0, x1, y1, 0, 0, 0);
+		x0 = 0;
+		y0 = (display_slot_height * display_character_height) + 0;
+		x1 = display_width;
+		y1 = (display_slot_height * display_character_height) + display_character_slot_padding;
+
+		display_fill_box(0, x0, y0, x1, y1, 0x00, 0x00, 0x00);
 	}
 
-	text_goto(display_current_slot_offset, 0, 0);
+	text_goto(0, 0);
 }
 
 void display_eastrising_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
-	unsigned int text_height =	display_logmode ? display_logmode_text_height :	display_text_height;
-	unsigned int text_width =	display_logmode ? display_logmode_text_width :	display_text_width;
+	unsigned int text_width =	display_logmode ? display_logmode_text_width :			display_text_width;
+	unsigned int text_height =	display_logmode ? display_logmode_text_height :			display_text_height;
+	unsigned int char_height =	display_logmode ? display_logmode_character_height :	display_character_height;
 
 	if(unicode == '\n')
 	{
@@ -846,17 +898,24 @@ void display_eastrising_output(unsigned int unicode)
 
 			if(display_current_y >= text_height)
 			{
-				display_scroll(1);
-				display_fill_box(0, 0, display_text_to_graphic_y(0, text_height - 1), display_width, display_height, 0x00, 0x00, 0x00);
+				static const	unsigned int x0 = 0;
+								unsigned int y0 = 1 * char_height;
+				static const	unsigned int x1 = 0;
+				static const	unsigned int y1 = 0;
+				static const	unsigned int width = display_width;
+								unsigned int height = text_height * char_height;
+
+				display_scroll(x0, y0, x1, y1, width, height);
+				display_fill_box(0, 0, display_text_to_graphic_y(text_height - 1), display_width, display_height, 0x00, 0x00, 0x00);
 				display_current_y = text_height - 1;
 			}
 
-			text_goto(0, display_current_x, display_current_y);
+			text_goto(display_current_x, display_current_y);
 		}
 		else
 		{
 			if(display_current_y < text_height)
-				text_goto(display_current_slot_offset, display_current_x, display_current_y);
+				text_goto(display_current_x, display_current_y);
 		}
 
 		return;
@@ -897,7 +956,7 @@ void display_eastrising_end(void)
 
 	for(; display_current_y < display_slot_height; display_current_y++, display_current_x = 0)
 	{
-		text_goto(display_current_slot_offset, display_current_x, display_current_y);
+		text_goto(display_current_x, display_current_y);
 
 		while(display_current_x++ < (text_width + 1))
 			text_send(' ');
@@ -1175,20 +1234,20 @@ bool display_eastrising_standout(bool standout)
 
 		if(display_current_y == 0)
 		{
-			y0 = display_text_to_graphic_y(display_current_slot_offset, 0);
-			y1 = display_text_to_graphic_y(display_current_slot_offset, 1) + 2;
+			y0 = display_text_to_graphic_y(0);
+			y1 = display_text_to_graphic_y(1) + 2;
 		}
 		else
 		{
-			y0 = display_text_to_graphic_y(display_current_slot_offset, display_current_y) + 2;
-			y1 = display_text_to_graphic_y(display_current_slot_offset, 4) + 0;
+			y0 = display_text_to_graphic_y(display_current_y) + 2;
+			y1 = display_text_to_graphic_y(4) + 0;
 		}
 
 		display_fill_box(0, 0, y0, display_width, y1, bg->r, bg->g, bg->b);
 	}
 
-	display_fgcolour(fg->r, fg->g, fg->b);
-	display_bgcolour(bg->r, bg->g, bg->b);
+	display_fgcolour_set(fg->r, fg->g, fg->b);
+	display_bgcolour_set(bg->r, bg->g, bg->b);
 
 	return(true);
 }

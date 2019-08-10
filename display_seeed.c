@@ -9,7 +9,8 @@
 
 static bool inited = false;
 static bool display_logmode;
-static unsigned int x, y, slot_offset;
+static unsigned int slot_offset;
+static unsigned int x, y;
 
 enum
 {
@@ -257,7 +258,8 @@ static void udg_send(unsigned int udg)
 {
 	uint8_t ram_byte[9];
 	unsigned int byte, bit;
-	unsigned int gx, gy;
+	unsigned int gx = x * display_font_width;
+	unsigned int gy = y;
 
 	for(byte = 0; byte < sizeof(ram_byte); byte++)
 		ram_byte[byte] = 0;
@@ -268,9 +270,6 @@ static void udg_send(unsigned int udg)
 		for(bit = 0; bit < 6; bit++)
 			if(udg_map[udg].pattern[byte] & (1 << (5 - bit)))
 				ram_byte[bit + 1] |= 1 << byte;
-
-	gx = x * display_font_width;
-	gy = (slot_offset * display_slot_height) + y;
 
 	if(gx > 0)
 		gx--;
@@ -305,27 +304,32 @@ bool display_seeed_init(void)
 	return(display_seeed_bright(1));
 }
 
-void display_seeed_begin(int select_slot, unsigned int select_slot_offset, bool logmode)
+void display_seeed_begin(int select_slot, bool logmode)
 {
+	static unsigned int counter = 0;
+
 	if(!inited)
 		log("! display seeed not inited\n");
 
 	x = y = 0;
-	slot_offset = select_slot_offset;
 	display_logmode = logmode;
 
 	if(display_logmode)
 	{
+		slot_offset = 0;
+
 		for(y = 0; y < display_text_height; y++)
 		{
 			text_goto(0, 0, y);
 
 			for(x = 0; x < display_text_width; x++)
-				text_send('*');
+				text_send(' ');
 		}
 
 		x = y = 0;
 	}
+	else
+		slot_offset = (counter++) & 0x01 ? 1 : 0;
 
 	msleep(1);
 	text_goto(slot_offset, 0, 0);
