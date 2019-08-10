@@ -381,6 +381,9 @@ void display_periodic(void) // gets called 10 times per second
 	static bool picture_autoload_checked = false;
 	static unsigned int picture_autoload_waiting = 0;
 	unsigned int picture_autoload_index;
+	static bool display_initial_log_active = true;
+	static unsigned int display_initial_log_counter = 0;
+	bool log_to_display;
 
 	if(!display_detected())
 		return;
@@ -388,6 +391,14 @@ void display_periodic(void) // gets called 10 times per second
 	display_info_entry = &display_info[display_data.detected];
 
 	if(config_flags_match(flag_log_to_display))
+		log_to_display = true;
+	else
+		if((display_initial_log_active) && (display_initial_log_counter++ < 300))
+			log_to_display = true;
+		else
+			log_to_display = false;
+
+	if(log_to_display)
 	{
 		uint8_t current;
 
@@ -481,13 +492,12 @@ void display_init(void)
 	if(!config_get_uint("display.fliptimeout", &flip_timeout, -1, -1))
 		flip_timeout = 4;
 
-	if(config_flags_match(flag_log_to_display))
-	{
-		display_info_entry->begin_fn(-1, 0, true);
+	// for log to display
 
-		if(display_info_entry->standout_fn)
-			display_info_entry->standout_fn(0);
-	}
+	display_info_entry->begin_fn(-1, 0, true);
+
+	if(display_info_entry->standout_fn)
+		display_info_entry->standout_fn(0);
 }
 
 static void display_dump(string_t *dst)
