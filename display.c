@@ -156,6 +156,7 @@ roflash static display_info_t display_info[display_size] =
 	},
 };
 
+attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 

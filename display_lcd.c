@@ -12,8 +12,10 @@ static bool nibble_mode;
 static int bl_io;
 static int bl_pin;
 static int lcd_io;
-static int lcd_pin[io_lcd_size];
+static int *lcd_pin = (int *)(void *)display_buffer; // this memory is int aligned
 static unsigned int pin_mask;
+
+_Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
 
 enum
 {

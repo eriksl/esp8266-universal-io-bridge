@@ -5,6 +5,7 @@
 #define roflash __attribute__((section(".flash.rodata")))
 #define fallthrough __attribute__((fallthrough))
 #define attr_flash_align __attribute__((aligned(4)))
+#define attr_align_int __attribute__((aligned(sizeof(int))))
 #define attr_inline inline __attribute__((always_inline)) __attribute__((flatten)) static
 #define attr_unused __attribute__ ((unused))
 #define attr_used __attribute__ ((used))

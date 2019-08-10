@@ -223,29 +223,21 @@ roflash static const udg_map_t udg_map[] =
 	},
 };
 
-static unsigned int text_current = 0;
-static uint8_t text_buffer[32];
+static unsigned int display_buffer_current;
 
 static void text_flush(void)
 {
-	uint8_t i2c_buffer[sizeof(text_buffer) + 1];
-
-	i2c_buffer[0] = reg_DisRAMAddr;
-	memcpy(i2c_buffer + 1, text_buffer, text_current);
-
-	uint64_t start = time_get_us();
-	i2c_send(0x51, text_current + 1, i2c_buffer);
-	stat_debug_2 = time_get_us() - start;
-
-	text_current = 0;
+	i2c_send(0x51, display_buffer_current, display_buffer);
+	display_buffer[0] = reg_DisRAMAddr;
+	display_buffer_current = 1;
 }
 
 static void text_send(unsigned int text)
 {
-	if((text_current + 1) >= sizeof(text_buffer))
+	if((display_buffer_current + 1) >= display_buffer_size)
 		text_flush();
 
-	text_buffer[text_current++] = (uint8_t)text;
+	display_buffer[display_buffer_current++] = (uint8_t)text;
 }
 
 static void text_goto(unsigned int slot_in, unsigned int x_in, unsigned int y_in)
@@ -284,6 +276,8 @@ static void udg_send(unsigned int udg)
 
 bool display_seeed_init(void)
 {
+	display_buffer_current = 1;
+
 	if(!display_seeed_standout(0))
 		return(false);
 

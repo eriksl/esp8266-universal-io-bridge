@@ -11,6 +11,13 @@ void display_init(void);
 void display_periodic(void);
 bool display_detected(void);
 
+enum
+{
+	display_buffer_size = 64,
+};
+
+extern uint8_t display_buffer[display_buffer_size];
+
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);
 app_action_t application_function_display_dump(string_t *src, string_t *dst);
 app_action_t application_function_display_default_message(string_t *src, string_t *dst);

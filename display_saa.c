@@ -172,26 +172,27 @@ bool display_saa1064_bright(int bright_in)
 	return(true);
 }
 
-static unsigned int x;
-static char text[4];
+static unsigned int display_buffer_index;
+
+_Static_assert(sizeof(display_buffer_size) >= 4, "display buffer too small");
 
 void display_saa1064_begin(int slot, bool logmode)
 {
 	if(i2c_bus < 0)
 		return;
 
-	strecpy(text,  "    ", sizeof(text));
+	strecpy((char *)display_buffer,  "    ", 4);
 
-	x = 0;
+	display_buffer_index = 0;
 }
 
 void display_saa1064_output(unsigned int unicode)
 {
-	if((unicode == '.') && (x > 0))
-		text[x - 1] |= 0x80;
+	if((unicode == '.') && (display_buffer_index > 0))
+		display_buffer[display_buffer_index - 1] |= 0x80;
 	else
-		if(x < 4)
-			text[x++] = unicode & 0x7f;
+		if(display_buffer_index < 4)
+			display_buffer[display_buffer_index++] = unicode & 0x7f;
 }
 
 void display_saa1064_end(void)
@@ -208,8 +209,8 @@ void display_saa1064_end(void)
 	i2cdata[1] = 0x07;	// multiplex mode, enable all digits, no test mode
 	i2cdata[1] |= bright_to_saa[brightness];
 
-	for(x = 0; x < 4; x++)
-		i2cdata[5 - x] = led_render_char(text[x]); // reverse digit's position
+	for(display_buffer_index = 0; display_buffer_index < 4; display_buffer_index++)
+		i2cdata[5 - display_buffer_index] = led_render_char(display_buffer[display_buffer_index]); // reverse digit's position
 
 	i2c_send(0x38, 6, i2cdata);
 }

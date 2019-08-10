@@ -425,7 +425,6 @@ static bool display_set_mode_text(void)
 }
 
 static unsigned int display_text_current = 0;
-static uint8_t display_text_buffer[32];
 
 static unsigned int display_text_to_graphic_x(unsigned int text_x)
 {
@@ -456,17 +455,17 @@ static void text_flush(void)
 	display_set_mode_text();
 	display_write_command(reg_mrwc);
 
-	i2c_send(i2c_addr_data, display_text_current, display_text_buffer);
+	i2c_send(i2c_addr_data, display_text_current, display_buffer);
 
 	display_text_current = 0;
 }
 
 static void text_send(unsigned int text)
 {
-	if((display_text_current + 1) >= sizeof(display_text_buffer))
+	if((display_text_current + 1) >= display_buffer_size)
 		text_flush();
 
-	display_text_buffer[display_text_current++] = (uint8_t)text;
+	display_buffer[display_text_current++] = (uint8_t)text;
 }
 
 static void text_goto(unsigned int textx, unsigned int texty)
