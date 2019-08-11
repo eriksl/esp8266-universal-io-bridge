@@ -281,11 +281,11 @@ static void io_strings_from_modes(string_t *dst)
 
 typedef struct
 {
-	io_pin_ll_mode_t	mode;
-	const char			*name;
+	const io_pin_ll_mode_t	mode;
+	const char				*name;
 } io_ll_mode_trait_t;
 
-static io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
+roflash static const io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 {
 	{ io_pin_ll_disabled,			"disabled"			},
 	{ io_pin_ll_input_digital,		"digital input"		},
@@ -395,11 +395,11 @@ static void io_string_from_renc_pin(string_t *name, io_renc_pin_t mode)
 
 typedef struct
 {
-	io_lcd_mode_t	mode;
-	const char		*name;
+	const io_lcd_mode_t	mode;
+	const char			*name;
 } io_lcd_mode_trait_t;
 
-static io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
+roflash static const io_lcd_mode_trait_t io_lcd_mode_traits[io_lcd_size] =
 {
 	{ io_lcd_rs,	"rs"	},
 	{ io_lcd_rw,	"rw"	},
@@ -452,11 +452,11 @@ static void io_string_from_lcd_mode(string_t *name, io_lcd_mode_t mode)
 
 typedef struct
 {
-	io_trigger_t	id;
-	const char		*name;
+	const io_trigger_t	id;
+	const char			*name;
 } io_trigger_action_t;
 
-static io_trigger_action_t io_trigger_action[io_trigger_size] =
+roflash static const io_trigger_action_t io_trigger_action[io_trigger_size] =
 {
 	{ io_trigger_none,		"none"		},
 	{ io_trigger_off,		"off"		},
