@@ -194,6 +194,7 @@ roflash static const unsigned int ram_offsets[4] =
 _Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
 
 static bool display_inited = false;
+static bool display_logmode;
 static bool nibble_mode;
 static int bl_io;
 static int bl_pin;
@@ -412,6 +413,8 @@ void display_lcd_begin(int slot, bool logmode)
 
 	display_x = display_y = 0;
 
+	display_logmode = logmode;
+
 	send_byte(cmd_home, false);
 }
 
@@ -423,17 +426,33 @@ void display_lcd_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(display_y < 4)
+		if(display_logmode)
 		{
-			while(display_x++ < 20)
+			display_y = (display_y + 1) % 4;
+
+			send_byte(cmd_set_ram_ptr | ram_offsets[display_y], false);
+
+			for(display_x = 0; display_x < 20; display_x++)
 				send_byte(' ', true);
 
-			if(display_y < 3)
-				send_byte(cmd_set_ram_ptr | ram_offsets[display_y + 1], false);
+			send_byte(cmd_set_ram_ptr | ram_offsets[display_y], false);
+
+		}
+		else
+		{
+			if(display_y < 4)
+			{
+				while(display_x++ < 20)
+					send_byte(' ', true);
+
+				if(display_y < 3)
+					send_byte(cmd_set_ram_ptr | ram_offsets[display_y + 1], false);
+			}
+
+			display_y++;
 		}
 
 		display_x = 0;
-		display_y++;
 
 		return;
 	}
