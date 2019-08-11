@@ -193,14 +193,14 @@ roflash static const unsigned int ram_offsets[4] =
 
 _Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
 
-static bool inited = false;
+static bool display_inited = false;
 static bool nibble_mode;
 static int bl_io;
 static int bl_pin;
 static int lcd_io;
 static int *lcd_pin = (int *)(void *)display_buffer; // this memory is int aligned
 static unsigned int pin_mask;
-static unsigned int x, y;
+static unsigned int display_x, display_y;
 
 static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
@@ -375,7 +375,7 @@ bool display_lcd_init(void)
 			if(!send_byte(udg_map_ptr->pattern[byte], true))
 				return(false);
 
-	inited = true;
+	display_inited = true;
 
 	return(display_lcd_bright(1));
 }
@@ -407,10 +407,10 @@ bool display_lcd_bright(int brightness)
 
 void display_lcd_begin(int slot, bool logmode)
 {
-	if(!inited)
-		log("! display lcd not inited\n");
+	if(!display_inited)
+		log("! display lcd not display_inited\n");
 
-	x = y = 0;
+	display_x = display_y = 0;
 
 	send_byte(cmd_home, false);
 }
@@ -423,22 +423,22 @@ void display_lcd_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(y < 4)
+		if(display_y < 4)
 		{
-			while(x++ < 20)
+			while(display_x++ < 20)
 				send_byte(' ', true);
 
-			if(y < 3)
-				send_byte(cmd_set_ram_ptr | ram_offsets[y + 1], false);
+			if(display_y < 3)
+				send_byte(cmd_set_ram_ptr | ram_offsets[display_y + 1], false);
 		}
 
-		x = 0;
-		y++;
+		display_x = 0;
+		display_y++;
 
 		return;
 	}
 
-	if((y < 4) && (x < 20))
+	if((display_y < 4) && (display_x < 20))
 	{
 		mapped = false;
 
@@ -464,29 +464,29 @@ void display_lcd_output(unsigned int unicode)
 		else
 			send_byte(' ', true);
 
-		if((y == 3) && (x == 19)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
+		if((display_y == 3) && (display_x == 19)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
 		{
-			send_byte(cmd_set_ram_ptr | (ram_offsets[y] + x), false);
+			send_byte(cmd_set_ram_ptr | (ram_offsets[display_y] + display_x), false);
 			send_byte(unicode & 0xff, true);
 		}
 	}
 
-	x++;
+	display_x++;
 }
 
 void display_lcd_end(void)
 {
-	if(x > 19)
+	if(display_x > 19)
 	{
-		x = 0;
-		y++;
+		display_x = 0;
+		display_y++;
 	}
 
-	for(; y < 4; y++, x = 0)
+	for(; display_y < 4; display_y++, display_x = 0)
 	{
-		send_byte(cmd_set_ram_ptr | (ram_offsets[y] + x), false);
+		send_byte(cmd_set_ram_ptr | (ram_offsets[display_y] + display_x), false);
 
-		while(x++ < 20)
+		while(display_x++ < 20)
 			send_byte(' ', true);
 	}
 
