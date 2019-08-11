@@ -211,8 +211,8 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
-static bool inited = false;
-static unsigned int x, y;
+static bool display_inited = false;
+static unsigned int display_x, display_y;
 
 bool display_orbital_init(void)
 {
@@ -242,7 +242,7 @@ bool display_orbital_init(void)
 				return(false);
 	}
 
-	inited = true;
+	display_inited = true;
 
 	return(display_orbital_bright(1));
 }
@@ -280,10 +280,10 @@ bool display_orbital_bright(int brightness)
 
 void display_orbital_begin(int slot, bool logmode)
 {
-	if(!inited)
+	if(!display_inited)
 		log("! display orbital not inited\n");
 
-	x = y = 0;
+	display_x = display_y = 0;
 
 	i2c_send2(0x28, 0xfe, 0x44);		// line wrap off
 	i2c_send2(0x28, 0xfe, 0x52);		// scroll off
@@ -299,22 +299,22 @@ void display_orbital_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(y < 4)
+		if(display_y < 4)
 		{
-			while(x++ < 20)
+			while(display_x++ < 20)
 				i2c_send1(0x28, ' ');
 
-			if(y < 3)
-				i2c_send4(0x28, 0xfe, 0x47, 1, y + 2);	// set position
+			if(display_y < 3)
+				i2c_send4(0x28, 0xfe, 0x47, 1, display_y + 2);	// set position
 		}
 
-		x = 0;
-		y++;
+		display_x = 0;
+		display_y++;
 
 		return;
 	}
 
-	if((y < 4) && (x < 20))
+	if((display_y < 4) && (display_x < 20))
 	{
 		mapped = false;
 
@@ -341,22 +341,22 @@ void display_orbital_output(unsigned int unicode)
 			i2c_send1(0x28, ' ');
 	}
 
-	x++;
+	display_x++;
 }
 
 void display_orbital_end(void)
 {
-	if(x > 19)
+	if(display_x > 19)
 	{
-		x = 0;
-		y++;
+		display_x = 0;
+		display_y++;
 	}
 
-	for(; y < 4; y++, x = 0)
+	for(; display_y < 4; display_y++, display_x = 0)
 	{
-		i2c_send4(0x28, 0xfe, 0x47, x + 1, y + 1);	// set position
+		i2c_send4(0x28, 0xfe, 0x47, display_x + 1, display_y + 1);	// set position
 
-		while(x++ < 20)
+		while(display_x++ < 20)
 			i2c_send1(0x28, ' ');
 	}
 }
