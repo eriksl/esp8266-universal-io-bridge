@@ -212,6 +212,7 @@ roflash static const udg_map_t udg_map[] =
 };
 
 static bool display_inited = false;
+static bool display_logmode;
 static unsigned int display_x, display_y;
 
 bool display_orbital_init(void)
@@ -278,17 +279,28 @@ bool display_orbital_bright(int brightness)
 	return(true);
 }
 
+static void display_goto(unsigned int x, unsigned y)
+{
+	i2c_send4(0x28, 0xfe, 0x47, x + 1, y + 1);
+}
+
+static void display_setup(void)
+{
+	i2c_send2(0x28, 0xfe, 0x54);							// cursor off
+	i2c_send2(0x28, 0xfe, 0x44);							// line wrap off
+	i2c_send2(0x28, 0xfe, display_logmode ? 0x51 : 0x52);	// scroll on / off
+}
+
 void display_orbital_begin(int slot, bool logmode)
 {
 	if(!display_inited)
 		log("! display orbital not inited\n");
 
+	display_logmode = logmode;
 	display_x = display_y = 0;
 
-	i2c_send2(0x28, 0xfe, 0x44);		// line wrap off
-	i2c_send2(0x28, 0xfe, 0x52);		// scroll off
-	i2c_send2(0x28, 0xfe, 0x54);		// cursor off
-	i2c_send4(0x28, 0xfe, 0x47, 1, 1);	// set position
+	display_setup();
+	display_goto(0, 0);
 }
 
 void display_orbital_output(unsigned int unicode)
@@ -299,17 +311,34 @@ void display_orbital_output(unsigned int unicode)
 
 	if(unicode == '\n')
 	{
-		if(display_y < 4)
+		if(display_logmode)
 		{
+			if(++display_y > 3)
+				display_y = 3;
+
 			while(display_x++ < 20)
 				i2c_send1(0x28, ' ');
 
-			if(display_y < 3)
-				i2c_send4(0x28, 0xfe, 0x47, 1, display_y + 2);	// set position
+			i2c_send1(0x28, ' ');
+
+			display_setup();
+			display_goto(0, display_y);
+		}
+		else
+		{
+			if(display_y < 4)
+			{
+				while(display_x++ < 20)
+					i2c_send1(0x28, ' ');
+
+				if(display_y < 3)
+					display_goto(0, display_y + 1);
+			}
+
+			display_y++;
 		}
 
 		display_x = 0;
-		display_y++;
 
 		return;
 	}
@@ -354,7 +383,7 @@ void display_orbital_end(void)
 
 	for(; display_y < 4; display_y++, display_x = 0)
 	{
-		i2c_send4(0x28, 0xfe, 0x47, display_x + 1, display_y + 1);	// set position
+		display_goto(display_x, display_y);
 
 		while(display_x++ < 20)
 			i2c_send1(0x28, ' ');
