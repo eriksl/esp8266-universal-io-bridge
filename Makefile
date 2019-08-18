@@ -213,7 +213,7 @@ LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
-						display_seeed.o display_eastrising.o display_font_6x8.o \
+						display_seeed.o display_eastrising.o display_ssd1306.o display_font_6x8.o \
 						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_pcf.o ota.o queue.o \
 						stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o lwip-interface.o sys_string.o
 
@@ -234,7 +234,7 @@ OBJS			+= rboot-interface.o
 endif
 
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
-						display_seeed.h display_eastrising.h display_font_6x8.h \
+						display_seeed.h display_eastrising.h display_font_6x8.h display_ssd1306.h \
 						http.h i2c.h i2c_sensor.h io.h io_gpio.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h queue.h stats.h uart.h user_config.h \
 						dispatch.h util.h sequencer.h init.h rboot-interface.h lwip-interface.h \
@@ -356,6 +356,7 @@ display_orbital.o:		$(HEADERS)
 display_saa.o:			$(HEADERS)
 display_seeed.o:		$(HEADERS)
 display_eastrising.o:	$(HEADERS)
+display_ssd1306.o:		$(HEADERS)
 display_font_6x8.o:		$(HEADERS)
 http.o:					$(HEADERS)
 i2c.o:					$(HEADERS)

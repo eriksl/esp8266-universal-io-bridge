@@ -5,6 +5,7 @@
 #include "display_cfa634.h"
 #include "display_seeed.h"
 #include "display_eastrising.h"
+#include "display_ssd1306.h"
 
 #include "util.h"
 #include "sys_string.h"
@@ -31,6 +32,7 @@ enum
 	display_cfa634 = 3,
 	display_seeed = 4,
 	display_eastrising = 5,
+	display_ssd1306 = 6,
 	display_error,
 	display_size = display_error
 };
@@ -151,6 +153,18 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_periodic,
 		display_eastrising_picture_load,
 		display_eastrising_layer_select,
+	},
+	{
+		"solomon systech OLED", "128x64 OLED",
+		display_ssd1306_init,
+		display_ssd1306_begin,
+		display_ssd1306_output,
+		display_ssd1306_end,
+		display_ssd1306_bright,
+		display_ssd1306_standout,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 };
 
