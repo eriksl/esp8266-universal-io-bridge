@@ -36,6 +36,7 @@ enum
 	flag_enable_orbital =	1 << 16,
 	flag_cmd_from_uart =	1 << 17,
 	flag_log_to_display =	1 << 18,
+	flag_ssd_height_32 =	1 << 19,
 };
 
 void			config_flags_to_string(bool nl, const char *, string_t *);

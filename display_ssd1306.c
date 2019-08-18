@@ -17,14 +17,11 @@ typedef struct
 enum
 {
 	display_width = 128,
-	display_height = 64,
+	display_height_32 = 32,
+	display_height_64 = 64,
 	display_text_width = 21,
-	display_text_height = 4,
 	display_font_width = 6,
-	display_font_height = 16,
-	display_logmode_text_height = 8,
-	display_logmode_font_width = 6,
-	display_logmode_font_height = 8,
+	display_font_height = 8,
 
 	mapeof = 0xffffffff,
 };
@@ -46,13 +43,13 @@ enum
 	reg_display_start_line =	0x40,
 	reg_contrast =				0x81,
 	reg_charge_pump =			0x8d,
-	reg_display_normal =		0xa6,
-	reg_display_inverse =		0xa7,
-	reg_mux_ratio =				0xa8,
 	reg_remap_segment_off =		0xa0,
 	reg_remap_segment_on =		0xa1,
 	reg_test_mode_off =			0xa4,
 	reg_test_mode_on =			0xa5,
+	reg_display_normal =		0xa6,
+	reg_display_inverse =		0xa7,
+	reg_mux_ratio =				0xa8,
 	reg_display_off =			0xae,
 	reg_display_on =			0xaf,
 	reg_set_current_page =		0xb0,
@@ -62,6 +59,7 @@ enum
 	reg_set_oscillator =		0xd5,
 	reg_pin_layout =			0xda,
 
+	reg_pin_layout_normal =		0x02,
 	reg_pin_layout_alt =		0x12,
 	reg_address_mode_hor =		0b00000000,
 	reg_address_mode_vert =		0b00000001,
@@ -69,7 +67,6 @@ enum
 	reg_set_oscillator_default=	0b10000000,
 	reg_charge_pump_off =		0b00010000,
 	reg_charge_pump_on =		0b00010100,
-
 };
 
 roflash static const unicode_map_t unicode_map[] =
@@ -211,6 +208,17 @@ static bool display_standout = false;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current = 0;
 
+attr_inline unsigned int text_height(void)
+{
+	if(config_flags_match(flag_ssd_height_32))
+		return(4);
+	else
+		if(display_logmode)
+			return(8);
+		else
+			return(4);
+}
+
 static bool send_command1(unsigned int cmd)
 {
 	if(i2c_send2(display_address, display_control_command, cmd) != i2c_error_ok)
@@ -254,8 +262,8 @@ static bool display_cursor(unsigned int x, unsigned int y)
 
 	display_data_flush();
 
-	column = x * display_logmode_font_width;
-	page = y * display_logmode_font_height / 8;
+	column = x * display_font_width;
+	page = y * display_font_height / 8;
 
 	if(!send_command1(reg_set_current_page | (page & 0x07)))
 		return(false);
@@ -271,8 +279,6 @@ static bool display_cursor(unsigned int x, unsigned int y)
 
 static bool text_goto(int x, int y)
 {
-	unsigned int text_height = display_logmode ? display_logmode_text_height : display_text_height;
-
 	if(x >= 0)
 		display_x = x;
 
@@ -282,10 +288,10 @@ static bool text_goto(int x, int y)
 	x = display_x;
 	y = display_y;
 
-	if(((unsigned int)x >= display_text_width) || ((unsigned int)y >= text_height))
+	if(((unsigned int)x >= display_text_width) || ((unsigned int)y >= text_height()))
 		return(false);
 
-	if(!display_logmode)
+	if(!config_flags_match(flag_ssd_height_32) && !display_logmode)
 		y *= 2;
 
 	if(!display_cursor(x, y))
@@ -298,11 +304,10 @@ static bool text_send(unsigned int text)
 {
 	const unsigned int *font_6x8 = (const unsigned int *)(const void *)display_font_6x8;
 	const unsigned int *font_entry;
-	unsigned int text_height = display_logmode ? display_logmode_text_height : display_text_height;
 	unsigned int run, column, dot, output;
 	unsigned int font_line[8];
 
-	if((display_x >= display_text_width) || (display_y >= text_height))
+	if((display_x >= display_text_width) || (display_y >= text_height()))
 		goto text_invisible;
 
 	font_entry = &font_6x8[text * 8 /*sizeof(entry)*/ / 4 /*sizeof(int)*/];
@@ -316,13 +321,16 @@ static bool text_send(unsigned int text)
 	font_line[6] = (font_entry[0] & 0x0000ff00) >> 8;
 	font_line[7] = (font_entry[0] & 0x000000ff) >> 0;
 
-	if(display_logmode)
+	if(display_logmode || config_flags_match(flag_ssd_height_32))
 	{
 		for(column = 0; column < 6; column++)
 		{
 			for(dot = 0, output = 0; dot < 8; dot++)
 				if(font_line[dot] & (1 << (6 - column)))
 					output |= 1 << (7 - dot);
+
+			if(display_standout)
+				output ^= 0xff;
 
 			if(!display_data_output(output))
 				return(false);
@@ -359,18 +367,17 @@ text_invisible:
 
 static bool text_newline(void)
 {
-	unsigned int text_height = display_logmode ? display_logmode_text_height : display_text_height;
 	unsigned int x, y;
 
 	if(display_logmode)
 	{
-		y = (display_y + 1) % text_height;
+		y = (display_y + 1) % text_height();
 		text_goto(0, y);
 	}
 	else
 		y = display_y + 1;
 
-	if(display_y < text_height)
+	if(display_y < text_height())
 		for(x = display_x; x < display_text_width; x++)
 			text_send(' ');
 
@@ -393,7 +400,7 @@ static bool clear_screen(void)
 
 	memset(display_buffer + 1, 0, chunk_size);
 
-	for(line = 0; line < display_logmode_text_height; line++)
+	for(line = 0; line < 8; line++)
 	{
 		if(!display_cursor(0, line))
 			return(false);
@@ -408,6 +415,11 @@ static bool clear_screen(void)
 
 bool display_ssd1306_init(void)
 {
+	unsigned int display_height = config_flags_match(flag_ssd_height_32) ? display_height_32 : display_height_64;
+
+	if(!send_command1(reg_display_off))
+		return(false);
+
 	if(!send_command2(reg_mux_ratio, display_height - 1))
 		return(false);
 
@@ -423,7 +435,7 @@ bool display_ssd1306_init(void)
 	if(!send_command1(reg_remap_common_on))
 		return(false);
 
-	if(!send_command2(reg_pin_layout, reg_pin_layout_alt))
+	if(!send_command2(reg_pin_layout, config_flags_match(flag_ssd_height_32) ? reg_pin_layout_normal : reg_pin_layout_alt))
 		return(false);
 
 	if(!send_command2(reg_address_mode, reg_address_mode_page))
@@ -465,7 +477,6 @@ void display_ssd1306_begin(int select_slot, bool logmode)
 void display_ssd1306_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
-	unsigned int text_height = display_logmode ? display_logmode_text_height : display_text_height;
 
 	if(unicode == '\n')
 	{
@@ -473,7 +484,7 @@ void display_ssd1306_output(unsigned int unicode)
 		return;
 	}
 
-	if((display_y < text_height) && (display_x < display_text_width))
+	if((display_y < text_height()) && (display_x < display_text_width))
 	{
 		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
 			if(unicode_map_ptr->unicode == unicode)
@@ -492,7 +503,7 @@ void display_ssd1306_output(unsigned int unicode)
 
 void display_ssd1306_end(void)
 {
-	while(display_y < display_text_height)
+	while(display_y < text_height())
 		text_newline();
 
 	display_data_flush();

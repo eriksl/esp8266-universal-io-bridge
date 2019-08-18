@@ -42,6 +42,7 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_enable_orbital,	"enable-orbital",	},
 	{	flag_cmd_from_uart,		"cmd-from-uart",	},
 	{	flag_log_to_display,	"log-to-display",	},
+	{	flag_ssd_height_32,		"ssd-height-32",	},
 	{	flag_none,				""					},
 };
 

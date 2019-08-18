@@ -155,7 +155,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_layer_select,
 	},
 	{
-		"solomon systech OLED", "128x64 OLED",
+		"SSD1306 / SH1106", "128x32 / 128x64 OLED",
 		display_ssd1306_init,
 		display_ssd1306_begin,
 		display_ssd1306_output,
