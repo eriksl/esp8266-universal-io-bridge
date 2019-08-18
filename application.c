@@ -1640,6 +1640,27 @@ static app_action_t application_function_log_clear(string_t *src, string_t *dst)
 	return(rv);
 }
 
+static app_action_t application_function_log_write(string_t *src, string_t *dst)
+{
+	string_new(, text, 64);
+	unsigned int start, current, length;
+
+	if((start = string_sep(src, 0, 1, ' ')) > 0)
+	{
+		string_splice(&text, 0, src, start, -1);
+		length = string_length(&text);
+
+		for(current = 0; current < length; current++)
+			logchar(string_at(&text, current));
+
+		logchar('\n');
+	}
+
+	string_append(dst, "log write ok\n");
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 {
 	wifi_station_scan(0, wlan_scan_done_callback);
@@ -1912,6 +1933,7 @@ roflash static const char help_description_i2c_sensor_calibrate[] =	"calibrate i
 roflash static const char help_description_i2c_sensor_dump[] =		"dump all i2c sensors";
 roflash static const char help_description_log_display[] =			"display log";
 roflash static const char help_description_log_clear[] =			"display and clear the log";
+roflash static const char help_description_log_write[] =			"write to the log";
 roflash static const char help_description_sntp_set[] =				"set sntp <ip addr> <timezone GMT+/-x>";
 roflash static const char help_description_time_set[] =				"set time base [h m (s)] or [unix timestamp tz_offset]";
 roflash static const char help_description_sequencer_add[] =		"add sequencer entry";
@@ -2165,6 +2187,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"lc", "log-clear",
 		application_function_log_clear,
 		help_description_log_clear,
+	},
+	{
+		"lw", "log-write",
+		application_function_log_write,
+		help_description_log_write,
 	},
 	{
 		"sns", "sntp-set",
