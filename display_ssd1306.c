@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "config.h"
 #include "sys_time.h"
+#include "dispatch.h"
 #include "display_font_6x8.h"
 
 #include <stdint.h>
@@ -205,8 +206,11 @@ roflash static const unicode_map_t unicode_map[] =
 static bool display_inited = false;
 static bool display_logmode = false;
 static bool display_standout = false;
+static bool display_disable_text = false;
+static unsigned int display_height;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current = 0;
+static unsigned int display_picture_load_flash_sector;
 
 attr_inline unsigned int text_height(void)
 {
@@ -256,22 +260,32 @@ attr_inline bool display_data_output(unsigned int character)
 	return(true);
 }
 
-static bool display_cursor(unsigned int x, unsigned int y)
+static bool display_cursor_row_column(unsigned int row, unsigned int column)
 {
-	unsigned int column, page;
-
 	display_data_flush();
 
-	column = x * display_font_width;
-	page = y * display_font_height / 8;
-
-	if(!send_command1(reg_set_current_page | (page & 0x07)))
+	if(!send_command1(reg_set_current_page | (row & 0x07)))
 		return(false);
 
 	if(!send_command1(reg_set_current_col_low | ((column & 0x0f) >> 0)))
 		return(false);
 
 	if(!send_command1(reg_set_current_col_high | ((column & 0xf0) >> 4)))
+		return(false);
+
+	return(true);
+}
+
+static bool display_cursor(unsigned int x, unsigned int y)
+{
+	unsigned int row, column;
+
+	display_data_flush();
+
+	row = y * display_font_height / 8;
+	column = x * display_font_width;
+
+	if(!display_cursor_row_column(row, column))
 		return(false);
 
 	return(true);
@@ -390,7 +404,7 @@ static bool text_newline(void)
 static bool clear_screen(void)
 {
 	static const unsigned int chunk_size = 32;
-	unsigned int line, chunk;
+	unsigned int row, chunk;
 
 	if(!display_data_flush())
 		return(false);
@@ -400,9 +414,9 @@ static bool clear_screen(void)
 
 	memset(display_buffer + 1, 0, chunk_size);
 
-	for(line = 0; line < 8; line++)
+	for(row = 0; row < 8; row++)
 	{
-		if(!display_cursor(0, line))
+		if(!display_cursor_row_column(row, 0))
 			return(false);
 
 		for(chunk = 0; chunk < (display_width / chunk_size); chunk++)
@@ -415,7 +429,7 @@ static bool clear_screen(void)
 
 bool display_ssd1306_init(void)
 {
-	unsigned int display_height = config_flags_match(flag_ssd_height_32) ? display_height_32 : display_height_64;
+	display_height = config_flags_match(flag_ssd_height_32) ? display_height_32 : display_height_64;
 
 	if(!send_command1(reg_display_off))
 		return(false);
@@ -469,6 +483,9 @@ bool display_ssd1306_init(void)
 
 void display_ssd1306_begin(int select_slot, bool logmode)
 {
+	if(display_disable_text)
+		return;
+
 	text_goto(0, 0);
 
 	display_logmode = logmode;
@@ -477,6 +494,9 @@ void display_ssd1306_begin(int select_slot, bool logmode)
 void display_ssd1306_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
+
+	if(display_disable_text)
+		return;
 
 	if(unicode == '\n')
 	{
@@ -503,6 +523,9 @@ void display_ssd1306_output(unsigned int unicode)
 
 void display_ssd1306_end(void)
 {
+	if(display_disable_text)
+		return;
+
 	while(display_y < text_height())
 		text_newline();
 
@@ -540,4 +563,89 @@ bool display_ssd1306_standout(bool onoff)
 	display_standout = onoff;
 
 	return(true);
+}
+
+bool display_ssd1306_picture_load(unsigned int picture_load_index)
+{
+	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("display ssd1306: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	return(true);
+}
+
+bool display_ssd1306_layer_select(unsigned int layer)
+{
+	static const char pbm_header[] = "P4\n128 64\n";
+	unsigned int row, column, output, bit, offset, bitoffset;
+	const uint8_t *bitmap;
+
+	if(layer == 0)
+	{
+		display_disable_text = false;
+		return(true);
+	}
+
+	display_disable_text = true;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display ssd1306: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display ssd1306: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+
+	for(row = 0; row < (display_height / 8); row++)
+	{
+		display_cursor_row_column(row, 0);
+
+		for(column = 0; column < 128; column++)
+		{
+			output = 0;
+
+			for(bit = 0; bit < 8; bit++)
+			{
+				offset		= (row * 8) * (128 / 8) * (2 / (display_height / display_height_32));
+				offset		+= bit * (128 / 8);
+				offset		+= column / 8;
+				bitoffset	= column % 8;
+
+				if(bitmap[offset] & (1 << (7 - bitoffset)))
+					output |= 1 << bit;
+			}
+
+			display_data_output(output);
+		}
+	}
+
+	display_data_flush();
+
+	flash_sector_buffer_use = fsb_free;
+	return(true);
+
+error:
+	flash_sector_buffer_use = fsb_free;
+	return(false);
 }

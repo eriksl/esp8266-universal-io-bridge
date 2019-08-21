@@ -10,5 +10,7 @@ void display_ssd1306_output(unsigned int);
 void display_ssd1306_end(void);
 bool display_ssd1306_bright(int);
 bool display_ssd1306_standout(bool);
+bool display_ssd1306_picture_load(unsigned int);
+bool display_ssd1306_layer_select(unsigned int);
 
 #endif

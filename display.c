@@ -163,8 +163,8 @@ roflash static display_info_t display_info[display_size] =
 		display_ssd1306_bright,
 		display_ssd1306_standout,
 		(void *)0,
-		(void *)0,
-		(void *)0,
+		display_ssd1306_picture_load,
+		display_ssd1306_layer_select,
 	},
 };
 
