@@ -407,10 +407,8 @@ bool display_seeed_begin(int select_slot, bool logmode)
 	display_logmode = logmode;
 	display_slot_offset = (counter++) & 0x01 ? 1 : 0;
 
-	msleep(1);
 	if(!text_goto(0, 0))
 		return(false);;
-	msleep(1);
 
 	return(true);
 }
