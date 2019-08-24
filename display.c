@@ -51,12 +51,12 @@ typedef const struct
 	const char *	const name;
 	const char *	const description;
 	bool			(* const init_fn)(void);
-	void			(* const begin_fn)(int slot, bool logmode);
-	void			(* const output_fn)(unsigned int);
-	void			(* const end_fn)(void);
+	bool			(* const begin_fn)(int slot, bool logmode);
+	bool			(* const output_fn)(unsigned int);
+	bool			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
 	bool			(* const standout_fn)(bool);
-	void			(* const periodic_fn)(void);
+	bool			(* const periodic_fn)(void);
 	bool			(* const picture_load_fn)(unsigned int);
 	bool			(* const layer_select_fn)(unsigned int);
 } display_info_t;
@@ -251,7 +251,12 @@ static void display_update(bool advance)
 		string_append_cstr_flash(&tag_string, display_slot[slot].tag);
 	}
 
-	display_info_entry->begin_fn(slot, false);
+	if(!display_info_entry->begin_fn(slot, false))
+	{
+		log("display update: display begin failed\n");
+		display_data.detected = -1;
+		return;
+	}
 
 	tag_text = string_to_cstr(&tag_string);
 
@@ -259,15 +264,23 @@ static void display_update(bool advance)
 	{
 		current_text = tag_text;
 
-		if(display_info_entry->standout_fn)
-			display_info_entry->standout_fn(1);
+		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(1))
+		{
+			log("display update: display standout (1) failed\n");
+			display_data.detected = -1;
+			return;
+		}
 	}
 	else
 	{
 		current_text = display_text;
 
-		if(display_info_entry->standout_fn)
-			display_info_entry->standout_fn(0);
+		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+		{
+			log("display update: display standout (2) failed\n");
+			display_data.detected = -1;
+			return;
+		}
 	}
 
 	state = u8p_state_base;
@@ -281,10 +294,20 @@ static void display_update(bool advance)
 		{
 			current_text = display_text;
 			display_text = (const char *)0;
-			display_info_entry->output_fn('\n');
 
-			if(display_info_entry->standout_fn)
-				display_info_entry->standout_fn(0);
+			if(!display_info_entry->output_fn('\n'))
+			{
+				log("display update: display output (1) failed\n");
+				display_data.detected = -1;
+				return;
+			}
+
+			if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+			{
+				log("display update: display standout (3) failed\n");
+				display_data.detected = -1;
+				return;
+			}
 
 			state = u8p_state_base;
 			continue;
@@ -347,15 +370,23 @@ static void display_update(bool advance)
 
 		if(state == u8p_state_output)
 		{
-			display_info_entry->output_fn(unicode);
+			if(!display_info_entry->output_fn(unicode))
+			{
+				log("display update: display output (2) failed\n");
+				display_data.detected = -1;
+				return;
+			}
+
 			state = u8p_state_base;
 		}
 	}
 
-	display_info_entry->end_fn();
-
-	if(display_info_entry->layer_select_fn)
-		display_info_entry->layer_select_fn(0);
+	if(!display_info_entry->end_fn())
+	{
+		log("display update: display end failed\n");
+		display_data.detected = -1;
+		return;
+	}
 
 skip:
 	spent = time_get_us() - start;
@@ -397,7 +428,12 @@ void display_periodic(void) // gets called 10 times per second
 		while(logbuffer_display_current < (unsigned int)string_length(&logbuffer))
 		{
 			current = string_at(&logbuffer, logbuffer_display_current++);
-			display_info_entry->output_fn(current);
+			if(!display_info_entry->output_fn(current))
+			{
+				log("display update: display output (3) failed\n");
+				display_data.detected = -1;
+				return;
+			}
 
 			if(current == '\n')
 				break;
@@ -442,15 +478,26 @@ void display_periodic(void) // gets called 10 times per second
 		}
 	}
 
-	if(display_info_entry->periodic_fn)
-		display_info_entry->periodic_fn();
+	if(display_info_entry->periodic_fn && !display_info_entry->periodic_fn())
+	{
+		log("display update: display periodic failed\n");
+		display_data.detected = -1;
+		return;
+	}
 
 	if(!picture_autoload_checked && (picture_autoload_waiting++ == 300))
 	{
 		picture_autoload_checked = true;
 
-		if(display_info_entry->picture_load_fn && config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) && (picture_autoload_index < 2))
-			display_info_entry->picture_load_fn(picture_autoload_index);
+		if(display_info_entry->picture_load_fn &&
+				config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
+				(picture_autoload_index < 2) &&
+				!display_info_entry->picture_load_fn(picture_autoload_index))
+		{
+			log("display update: display picture autoload failed\n");
+			display_data.detected = -1;
+			return;
+		}
 	}
 }
 
@@ -486,10 +533,19 @@ void display_init(void)
 
 	// for log to display
 
-	display_info_entry->begin_fn(0, true);
+	if(!display_info_entry->begin_fn(0, true))
+	{
+		log("display init: display begin failed\n");
+		display_data.detected = -1;
+		return;
+	}
 
-	if(display_info_entry->standout_fn)
-		display_info_entry->standout_fn(0);
+	if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+	{
+		log("display init: display standout failed\n");
+		display_data.detected = -1;
+		return;
+	}
 }
 
 static void display_dump(string_t *dst)
