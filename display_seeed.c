@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "config.h"
 #include "sys_time.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -22,9 +23,10 @@ typedef struct
 
 enum
 {
+	display_address = 0x51,
+	display_width = 128,
+	display_height = 64,
 	display_text_width = 21,
-	display_text_height = 8,
-	display_slot_height = 4,
 	display_font_width = 6,
 	display_font_height = 8,
 	mapeof = 0xffffffff,
@@ -218,39 +220,114 @@ roflash static const udg_map_t udg_map[] =
 	},
 };
 
-static bool inited = false;
+static bool display_inited = false;
 static bool display_logmode = false;
-static unsigned int slot_offset;
-static unsigned int x, y;
+static bool display_disable_text = false;
+static unsigned int display_slot_offset;
+static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
+static unsigned int display_picture_load_flash_sector;
 
-static void text_flush(void)
+attr_inline unsigned int text_height(void)
 {
-	i2c_send(0x51, display_buffer_current, display_buffer);
-	display_buffer[0] = reg_DisRAMAddr;
-	display_buffer_current = 1;
+	if(display_logmode)
+		return(8);
+	else
+		return(4);
 }
 
-static void text_send(unsigned int text)
+static bool display_data_flush(void)
 {
-	if((display_buffer_current + 1) >= display_buffer_size)
-		text_flush();
+	if((display_buffer_current > 1) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
+		return(false);
 
-	display_buffer[display_buffer_current++] = (uint8_t)text;
+	display_buffer_current = 0;
+	display_buffer[display_buffer_current++] = reg_DisRAMAddr;
+
+	return(true);
 }
 
-static void text_goto(unsigned int slot_in, unsigned int x_in, unsigned int y_in)
+attr_inline bool display_data_output(unsigned int byte)
 {
-	text_flush();
-	i2c_send3(0x51, reg_CharXPosRegAddr, x_in * display_font_width, (slot_in * display_slot_height * display_font_height) + (y_in * display_font_height));
+	if(((display_buffer_current + 1) >= display_buffer_size) && !display_data_flush())
+		return(false);
+
+	display_buffer[display_buffer_current++] = (uint8_t)byte;
+
+	return(true);
 }
 
-static void udg_send(unsigned int udg)
+static bool display_cursor(unsigned int x, unsigned int y)
+{
+	if(!display_data_flush())
+		return(false);
+
+	if(i2c_send3(display_address, reg_CharXPosRegAddr, x, y) != i2c_error_ok)
+		return(false);
+
+	return(true);
+}
+
+static bool text_goto(int x, int y)
+{
+	if(x >= 0)
+		display_x = x;
+
+	if(y >= 0)
+		display_y = y;
+
+	x = display_x;
+	y = display_y;
+
+	if(((unsigned int)x >= display_text_width) || ((unsigned int)y >= text_height()) || (display_slot_offset > 1))
+		return(true);
+
+	if(!display_cursor(x * display_font_width, (display_slot_offset * 4 * display_font_height) + (y * display_font_height)))
+		return(false);
+
+	return(true);
+}
+
+static bool text_send(unsigned int byte)
+{
+	if((display_x < display_text_width) && (display_y < text_height()) && !display_data_output(byte))
+		return(false);
+
+	display_x++;
+
+	return(true);
+}
+
+static bool text_newline(void)
+{
+	unsigned int x, y;
+
+	if(display_logmode)
+	{
+		y = (display_y + 1) % text_height();
+		if(!text_goto(0, y))
+			return(false);
+	}
+	else
+		y = display_y + 1;
+
+	if(display_y < text_height())
+		for(x = display_x; x < display_text_width; x++)
+			if(!text_send(' '))
+				return(false);
+
+	if(!text_goto(0, y))
+		return(false);
+
+	return(true);
+}
+
+static bool udg_send(unsigned int udg)
 {
 	uint8_t ram_byte[9];
 	unsigned int byte, bit;
-	unsigned int gx = x * display_font_width;
-	unsigned int gy = y;
+	unsigned int gx = display_x * display_font_width;
+	unsigned int gy = display_y;
 
 	for(byte = 0; byte < sizeof(ram_byte); byte++)
 		ram_byte[byte] = 0;
@@ -265,145 +342,132 @@ static void udg_send(unsigned int udg)
 	if(gx > 0)
 		gx--;
 
-	text_send(' ');
-	text_flush();
-	i2c_send2(0x51, reg_WorkingModeRegAddr, workmode_extra | workmode_ram | workmode_backlight_on | workmode_logo_off);
-	i2c_send3(0x51, reg_WriteRAM_XPosRegAddr, gx, gy);
-	i2c_send(0x51, 7, ram_byte);
-	i2c_send2(0x51, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off);
+	if(!display_data_output(' '))
+		return(false);
+
+	if(!display_data_flush())
+		return(false);
+
+	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_ram | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
+		return(false);
+
+	if(i2c_send3(display_address, reg_WriteRAM_XPosRegAddr, gx, gy) != i2c_error_ok)
+		return(false);
+
+	if(i2c_send(display_address, 7, ram_byte) != i2c_error_ok)
+		return(false);
+
+	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
+		return(false);
+
+	return(true);
 }
 
 bool display_seeed_init(void)
 {
-	display_buffer_current = 1;
+	if(!display_data_flush()) // init data buffer
+		return(false);
 
 	if(!display_seeed_standout(0))
 		return(false);
 
-	if(!display_seeed_bright(0))
+	if(i2c_send2(display_address, reg_CursorConfigRegAddr, cursor_off | 0) != i2c_error_ok)
 		return(false);
 
-	if(i2c_send2(0x51, reg_CursorConfigRegAddr, cursor_off | 0) != i2c_error_ok)
+	if(i2c_send2(display_address, reg_DisplayConfigRegAddr, display_mode_normal) != i2c_error_ok)
 		return(false);
 
-	if(i2c_send2(0x51, reg_DisplayConfigRegAddr, display_mode_normal) != i2c_error_ok)
+	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
 		return(false);
 
-	if(i2c_send2(0x51, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
+	if(!display_seeed_picture_load(0))
 		return(false);
 
-	inited = true;
+	if(!display_seeed_bright(1))
+		return(false);
 
-	return(display_seeed_bright(1));
+	display_inited = true;
+
+	return(true);
 }
 
-void display_seeed_begin(int select_slot, bool logmode)
+bool display_seeed_begin(int select_slot, bool logmode)
 {
 	static unsigned int counter = 0;
 
-	if(!inited)
-		log("! display seeed not inited\n");
-
-	x = y = 0;
-	display_logmode = logmode;
-
-	if(display_logmode)
+	if(!display_inited)
 	{
-		slot_offset = 0;
-
-		for(y = 0; y < display_text_height; y++)
-		{
-			text_goto(0, 0, y);
-
-			for(x = 0; x < display_text_width; x++)
-				text_send(' ');
-		}
-
-		x = y = 0;
+		log("! display seeed not inited\n");
+		return(false);
 	}
-	else
-		slot_offset = (counter++) & 0x01 ? 1 : 0;
+
+	if(display_disable_text)
+		return(true);
+
+	display_logmode = logmode;
+	display_slot_offset = (counter++) & 0x01 ? 1 : 0;
 
 	msleep(1);
-	text_goto(slot_offset, 0, 0);
+	if(!text_goto(0, 0))
+		return(false);;
 	msleep(1);
+
+	return(true);
 }
 
-void display_seeed_output(unsigned int unicode)
+bool display_seeed_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
 
+	if(display_disable_text)
+		return(true);
+
 	if(unicode == '\n')
-	{
-		if(display_logmode)
-		{
-			y = (y + 1) % display_text_height;
-			text_goto(0, 0, y);
-			for(x = 0; x < display_text_width; x++)
-				text_send(' ');
-			text_goto(0, 0, y);
-		}
-		else
-		{
-			y++;
+		return(text_newline());
 
-			while(x++ < 21)
-				text_send(' ');
+	if((display_y >= text_height()) || (display_x >= display_text_width))
+		return(true);
 
-			if(y < display_slot_height)
-				text_goto(slot_offset, 0, y);
+	for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+		if(unicode_map_ptr->unicode == unicode)
+		{
+			unicode = unicode_map_ptr->internal;
+			if(!text_send(unicode))
+				return(false);
+			return(true);
 		}
 
-		x = 0;
+	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		if((udg_map_ptr->unicode == unicode))
+		{
+			if(!udg_send(udg_map_ptr->internal))
+				return(false);
+			return(true);
+		}
 
-		return;
-	}
+	if((unicode < ' ') || (unicode > '}'))
+		unicode = ' ';
 
-	if((y < (display_logmode ? display_text_height : display_slot_height)) && (x < 21))
-	{
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				text_send(unicode);
-				goto end;
-			}
+	if(!text_send(unicode))
+		return(false);
 
-		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-			if((udg_map_ptr->unicode == unicode))
-			{
-				udg_send(udg_map_ptr->internal);
-				goto end;
-			}
-
-		if((unicode >= ' ') && (unicode <= '}'))
-			text_send(unicode);
-		else
-			text_send(' ');
-	}
-
-end:
-	x++;
+	return(true);
 }
 
-void display_seeed_end(void)
+bool display_seeed_end(void)
 {
-	if(x >= (display_text_width - 1))
-	{
-		x = 0;
-		y++;
-	}
+	if(display_disable_text)
+		return(true);
 
-	for(; y < display_slot_height; y++, x = 0)
-	{
-		text_goto(slot_offset, x, y);
+	while(display_y < text_height())
+		if(!text_newline())
+			break;
 
-		while(x++ < display_text_width)
-			text_send(' ');
-	}
+	if(!display_data_flush())
+		return(false);
 
-	text_flush();
+	return(true);
 }
 
 bool display_seeed_bright(int brightness)
@@ -420,10 +484,10 @@ bool display_seeed_bright(int brightness)
 	if(brightness > 4)
 		return(false);
 
-	if(i2c_send2(0x51, reg_ContrastConfigRegAddr, bright_to_internal[brightness][0]) != i2c_error_ok)
+	if(i2c_send2(display_address, reg_ContrastConfigRegAddr, bright_to_internal[brightness][0]) != i2c_error_ok)
 		return(false);
 
-	if(i2c_send2(0x51, reg_BackLightConfigRegAddr, bright_to_internal[brightness][1]) != i2c_error_ok)
+	if(i2c_send2(display_address, reg_BackLightConfigRegAddr, bright_to_internal[brightness][1]) != i2c_error_ok)
 		return(false);
 
 	return(true);
@@ -433,5 +497,101 @@ bool display_seeed_standout(bool onoff)
 {
 	unsigned int value = render_manualnl_autoincr | font_6x8 | (onoff ? charmode_white_inc_background : charmode_black_inc_background);
 
-	return(i2c_send2(0x51, reg_FontModeRegAddr, value) == i2c_error_ok);
+	return(i2c_send2(display_address, reg_FontModeRegAddr, value) == i2c_error_ok);
+}
+
+bool display_seeed_picture_load(unsigned int picture_load_index)
+{
+	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("display seeed: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	return(true);
+}
+
+bool display_seeed_layer_select(unsigned int layer)
+{
+	static const char pbm_header[] = "P4\n128 64\n";
+	bool success = false;
+	unsigned int row, column, output, bit, offset, bitoffset;
+	const uint8_t *bitmap;
+
+	if(layer == 0)
+	{
+		display_disable_text = false;
+		return(true);
+	}
+
+	display_disable_text = true;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display seeed: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display seeed: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display seeed: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+
+	i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_ram | workmode_backlight_on | workmode_logo_off);
+
+	for(row = 0; row < (display_height / 8); row++)
+	{
+		if(!display_data_flush())
+			return(false);
+
+		if(i2c_send3(display_address, reg_WriteRAM_XPosRegAddr, 0, row) != i2c_error_ok)
+			return(false);
+
+		for(column = 0; column < display_width; column++)
+		{
+			output = 0;
+
+			for(bit = 0; bit < 8; bit++)
+			{
+				offset		= (row * 8) * (display_width / 8);
+				offset		+= bit * (display_width / 8);
+				offset		+= column / 8;
+				bitoffset	= column % 8;
+
+				if(bitmap[offset] & (1 << (7 - bitoffset)))
+					output |= 1 << bit;
+			}
+
+			if(!display_data_output(output))
+				return(false);
+		}
+	}
+
+	success = true;
+
+error:
+	flash_sector_buffer_use = fsb_free;
+	if(!display_data_flush())
+		return(false);
+	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
+		return(false);
+	if(!text_goto(-1, -1))
+		return(false);
+	return(success);
 }

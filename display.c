@@ -139,8 +139,8 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_bright,
 		display_seeed_standout,
 		(void *)0,
-		(void *)0,
-		(void *)0,
+		display_seeed_picture_load,
+		display_seeed_layer_select,
 	},
 	{
 		"eastrising TFT", "480x272 LCD",
