@@ -184,7 +184,7 @@ attr_pure bool display_detected(void)
 static void display_update(bool advance)
 {
 	const char *display_text, *tag_text, *current_text;
-	unsigned int previous_slot, slot;
+	unsigned int slot;
 	unsigned int utf8, unicode;
 	uint64_t start, spent;
 	utf8_parser_state_t state;
@@ -198,8 +198,6 @@ static void display_update(bool advance)
 	start = time_get_us();
 
 	display_info_entry = &display_info[display_data.detected];
-
-	previous_slot = ~0UL;
 
 	for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 		if(display_slot[slot].content[0])
@@ -231,7 +229,7 @@ static void display_update(bool advance)
 		goto skip;
 	}
 
-	display_data.current_slot = previous_slot = slot;
+	display_data.current_slot = slot;
 
 	if(!strcmp(display_text, "%%%%"))
 	{
@@ -512,7 +510,7 @@ void display_init(void)
 	{
 		display_info_entry = &display_info[current];
 
-		if(display_info_entry->init_fn && (display_info_entry->init_fn()))
+		if(display_info_entry->init_fn && display_info_entry->init_fn())
 		{
 			display_data.detected = current;
 			break;
