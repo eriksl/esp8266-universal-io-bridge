@@ -213,20 +213,39 @@ static void display_update(bool advance)
 
 	display_text = display_slot[slot].content;
 
-	if(!strcmp(display_text, "****"))
+	if(!strcmp(display_slot[slot].tag, "picture") && !strcmp(display_text, "picture"))
 	{
 		if(display_info_entry->layer_select_fn)
 		{
-			if(previous_slot == ~0UL)
-			{
-				display_data.current_slot = slot;
-				display_info_entry->layer_select_fn(1);
-			}
-			else
-				display_data.current_slot = previous_slot;
-		}
+			display_data.current_slot = slot;
 
-		goto skip;
+			if(!display_info_entry->layer_select_fn(1))
+			{
+				log("display update: display layer select (1) failed\n");
+				display_data.detected = -1;
+				return;
+			}
+
+			goto skip;
+		}
+		else
+		{
+			for(slot++; slot < display_slot_amount; slot++)
+				if(display_slot[slot].content[0])
+					break;
+
+			if(slot >= display_slot_amount)
+				for(slot = 0; slot < display_slot_amount; slot++)
+					if(display_slot[slot].content[0])
+						break;
+		}
+	}
+
+	if(display_info_entry->layer_select_fn && !display_info_entry->layer_select_fn(0))
+	{
+		log("display update: display layer select (2) failed\n");
+		display_data.detected = -1;
+		return;
 	}
 
 	display_data.current_slot = slot;
