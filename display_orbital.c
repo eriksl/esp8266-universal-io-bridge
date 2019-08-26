@@ -21,6 +21,22 @@ typedef struct
 
 enum
 {
+	display_address = 0x28,
+	display_text_width = 20,
+	display_text_height = 4,
+
+	command_prefix =		0xfe,
+	command_timeout =		0x42,
+	command_line_wrap_off =	0x44,
+	command_display_on =	0x46,
+	command_goto =			0x47,
+	command_scroll_on =		0x51,
+	command_scroll_off =	0x52,
+	command_cursor_off =	0x54,
+	command_clear_display =	0x58,
+	command_brightness =	0x59,
+	command_udg =			0x4e,
+
 	mapeof = 0xffffffff,
 };
 
@@ -211,9 +227,121 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
-static bool display_inited = false;
+static bool display_inited;
 static bool display_logmode;
+static bool display_scroll_pending;
 static unsigned int display_x, display_y;
+static unsigned int display_buffer_current;
+
+static bool display_data_flush(void)
+{
+	if((display_buffer_current > 0) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
+		return(false);
+
+	display_buffer_current = 0;
+
+	return(true);
+}
+
+attr_inline bool display_data_output(unsigned int byte)
+{
+	if(((display_buffer_current + 1) >= display_buffer_size) && !display_data_flush())
+		return(false);
+
+	display_buffer[display_buffer_current++] = (uint8_t)byte;
+
+	return(true);
+}
+
+attr_inline bool display_command1(unsigned int byte)
+{
+	if(!display_data_flush() || !display_data_output(command_prefix) || !display_data_output(byte) || !display_data_flush())
+		return(false);
+
+	return(true);
+}
+
+attr_inline bool display_command2(unsigned int byte1, unsigned int byte2)
+{
+	if(!display_data_flush() || !display_data_output(command_prefix) || !display_data_output(byte1) || !display_data_output(byte2) || !display_data_flush())
+		return(false);
+
+	return(true);
+}
+
+attr_inline bool display_command3(unsigned int byte1, unsigned int byte2, unsigned int byte3)
+{
+	if(!display_data_flush() || !display_data_output(command_prefix) || !display_data_output(byte1) || !display_data_output(byte2) || !display_data_output(byte3) || !display_data_flush())
+		return(false);
+
+	return(true);
+}
+
+static bool text_goto(int x, int y)
+{
+	if(x >= 0)
+		display_x = x;
+
+	if(y >= 0)
+		display_y = y;
+
+	if((display_x >= display_text_width) || (display_y >= display_text_height))
+		return(true);
+
+	if(!display_command3(command_goto, display_x + 1, display_y + 1))
+		return(false);
+
+	return(true);
+}
+
+static bool text_send(unsigned int byte)
+{
+	if(display_logmode && display_scroll_pending)
+	{
+		display_scroll_pending = false;
+
+		if(!display_command3(command_goto, display_text_width + 1, display_text_height - 1 + 1))
+			return(false);
+
+		if(!display_data_output(' ')) // make display scroll
+			return(false);
+
+		if(!text_goto(0, display_text_height - 1))
+			return(false);
+	}
+
+	if((display_x < display_text_width) && (display_y < display_text_height) && !display_data_output(byte))
+		return(false);
+
+	display_x++;
+
+	return(true);
+}
+
+static bool text_newline(void)
+{
+	unsigned int x, y;
+
+	y = display_y + 1;
+
+	if(display_y < display_text_height)
+	{
+		for(x = display_x; x < display_text_width; x++)
+			if(!text_send(' '))
+				return(false);
+	}
+
+	if(display_logmode && (y >= display_text_height))
+	{
+		y = display_text_height - 1;
+		display_scroll_pending = true;
+	}
+
+	if(!text_goto(0, y))
+		return(false);
+
+	return(true);
+}
 
 bool display_orbital_init(void)
 {
@@ -225,7 +353,7 @@ bool display_orbital_init(void)
 
 	for(ix = 10; ix > 0; ix--)
 	{
-		if(i2c_send1(0x28, 0x21) == i2c_error_ok)
+		if(i2c_send1(display_address, '!') == i2c_error_ok)
 			break;
 		msleep(20);
 	}
@@ -235,13 +363,22 @@ bool display_orbital_init(void)
 
 	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
 	{
-		if(i2c_send3(0x28, 0xfe, 0x4e, udg_map_ptr->internal) != i2c_error_ok)
+		if(!display_command2(command_udg, udg_map_ptr->internal))
 			return(false);
 
 		for(byte = 0; byte < 8; byte++)
-			if(i2c_send1(0x28, udg_map_ptr->pattern[byte]) != i2c_error_ok)
+			if(!display_data_output(udg_map_ptr->pattern[byte]))
 				return(false);
+
+		if(!display_data_flush())
+			return(false);
 	}
+
+	if(!display_command1(command_clear_display))
+		return(false);
+
+	if(!text_goto(0, 0))
+		return(false);
 
 	display_inited = true;
 
@@ -264,128 +401,100 @@ bool display_orbital_bright(int brightness)
 
 	if(brightness_map[brightness][0])
 	{
-		if(i2c_send3(0x28, 0xfe, 0x42, 0x00) != i2c_error_ok)
+		if(!display_command2(command_timeout, 0x00))
 			return(false);
 	}
 	else
 	{
-		if(i2c_send2(0x28, 0xfe, 0x46) != i2c_error_ok)
+		if(!display_command1(command_display_on))
 			return(false);
 	}
 
-	if(i2c_send3(0x28, 0xfe, 0x59, brightness_map[brightness][1]) != i2c_error_ok)
+	if(!display_command2(command_brightness, brightness_map[brightness][1]))
 		return(false);
 
 	return(true);
 }
 
-static void display_goto(unsigned int x, unsigned y)
+static bool display_setup(void)
 {
-	i2c_send4(0x28, 0xfe, 0x47, x + 1, y + 1);
+	if(!display_command1(command_cursor_off))
+		return(false);
+
+	if(!display_command1(command_line_wrap_off))
+		return(false);
+
+	if(!display_command1(display_logmode ? command_scroll_on : command_scroll_off))
+		return(false);
+
+	return(true);
 }
 
-static void display_setup(void)
-{
-	i2c_send2(0x28, 0xfe, 0x54);							// cursor off
-	i2c_send2(0x28, 0xfe, 0x44);							// line wrap off
-	i2c_send2(0x28, 0xfe, display_logmode ? 0x51 : 0x52);	// scroll on / off
-}
-
-void display_orbital_begin(int slot, bool logmode)
+bool display_orbital_begin(int slot, bool logmode)
 {
 	if(!display_inited)
+	{
 		log("! display orbital not inited\n");
+		return(false);
+	}
 
 	display_logmode = logmode;
-	display_x = display_y = 0;
 
-	display_setup();
-	display_goto(0, 0);
+	if(!display_setup())
+		return(false);
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
 }
 
-void display_orbital_output(unsigned int unicode)
+bool display_orbital_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
-	bool mapped;
 
 	if(unicode == '\n')
+		return(text_newline());
+
+	if((display_y < display_text_height) && (display_x < display_text_width))
 	{
-		if(display_logmode)
-		{
-			if(++display_y > 3)
-				display_y = 3;
-
-			while(display_x++ < 20)
-				i2c_send1(0x28, ' ');
-
-			i2c_send1(0x28, ' ');
-
-			display_setup();
-			display_goto(0, display_y);
-		}
-		else
-		{
-			if(display_y < 4)
-			{
-				while(display_x++ < 20)
-					i2c_send1(0x28, ' ');
-
-				if(display_y < 3)
-					display_goto(0, display_y + 1);
-			}
-
-			display_y++;
-		}
-
-		display_x = 0;
-
-		return;
-	}
-
-	if((display_y < 4) && (display_x < 20))
-	{
-		mapped = false;
-
 		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
 			if(unicode_map_ptr->unicode == unicode)
 			{
 				unicode = unicode_map_ptr->internal;
-				mapped = true;
-				break;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
 			}
 
-		if(!mapped)
-			for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-				if((udg_map_ptr->unicode == unicode))
-				{
-					unicode = udg_map_ptr->internal;
-					mapped = true;
-					break;
-				}
+		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+			if((udg_map_ptr->unicode == unicode))
+			{
+				unicode = udg_map_ptr->internal;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
+			}
 
-		if(mapped || ((unicode >= ' ') && (unicode <= '}')))
-			i2c_send1(0x28, unicode & 0xff);
-		else
-			i2c_send1(0x28, ' ');
+		if((unicode < ' ') || (unicode > '}'))
+			unicode = ' ';
+
+		if(!text_send(unicode))
+			return(false);
 	}
 
-	display_x++;
+	return(true);
 }
 
-void display_orbital_end(void)
+bool display_orbital_end(void)
 {
-	if(display_x > 19)
-	{
-		display_x = 0;
-		display_y++;
-	}
+	while(display_y < display_text_height)
+		if(!text_newline())
+			break;
 
-	for(; display_y < 4; display_y++, display_x = 0)
-	{
-		display_goto(display_x, display_y);
+	if(!display_data_flush())
+		return(false);
 
-		while(display_x++ < 20)
-			i2c_send1(0x28, ' ');
-	}
+	return(true);
 }

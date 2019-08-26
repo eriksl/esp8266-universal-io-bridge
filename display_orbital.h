@@ -6,8 +6,8 @@
 
 bool display_orbital_init(void);
 bool display_orbital_bright(int);
-void display_orbital_begin(int slot, bool logmode);
-void display_orbital_output(unsigned int);
-void display_orbital_end(void);
+bool display_orbital_begin(int slot, bool logmode);
+bool display_orbital_output(unsigned int);
+bool display_orbital_end(void);
 
 #endif
