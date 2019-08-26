@@ -6,9 +6,9 @@
 
 bool display_lcd_init(void);
 bool display_lcd_bright(int);
-void display_lcd_begin(int slot, bool logmode);
-void display_lcd_output(unsigned int);
-void display_lcd_end(void);
+bool display_lcd_begin(int slot, bool logmode);
+bool display_lcd_output(unsigned int);
+bool display_lcd_end(void);
 
 
 #endif

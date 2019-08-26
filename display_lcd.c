@@ -21,6 +21,12 @@ typedef struct
 
 enum
 {
+	display_text_width =	20,
+	display_text_height =	4,
+};
+
+enum
+{
 	cmd_clear_screen =		0b00000001,
 	cmd_home =				0b00000011,
 	cmd_cursor_config =		0b00000110, // cursor move direction = LTR / no display shift
@@ -199,7 +205,7 @@ static bool nibble_mode;
 static int bl_io;
 static int bl_pin;
 static int lcd_io;
-static int *lcd_pin = (int *)(void *)display_buffer; // this memory is int aligned
+static int *lcd_pin = (int *)(void *)display_buffer; // this memory is guaranteed int aligned
 static unsigned int pin_mask;
 static unsigned int display_x, display_y;
 
@@ -250,6 +256,60 @@ static bool send_byte(unsigned int byte, bool data)
 	}
 
 	return(send_byte_raw(byte, data));
+}
+
+static bool text_send(unsigned int byte)
+{
+	display_x++;
+
+	if((display_x >= display_text_width) || (display_y >= display_text_height))
+		return(true);
+
+	if(!send_byte(byte, true))
+		return(false);
+
+	return(true);
+}
+
+static bool text_goto(int x, int y)
+{
+	if(x >= 0)
+		display_x = x;
+
+	if(y >= 0)
+		display_y = y;
+
+	if((display_x >= display_text_width) || (display_y >= display_text_height))
+		return(true);
+
+	if(!send_byte(cmd_set_ram_ptr | (ram_offsets[display_y] + display_x), false))
+		return(false);
+
+	return(true);
+}
+
+static bool text_newline(void)
+{
+	unsigned int x, y;
+
+	if(display_logmode)
+	{
+		y = (display_y + 1) % display_text_height;
+		if(!text_goto(0, y))
+			return(false);
+	}
+	else
+		y = display_y + 1;
+
+	if(display_y < display_text_height)
+		for(x = display_x; x < display_text_width; x++)
+			if(!text_send(' '))
+				return(false);
+
+	if(!text_goto(0, y))
+		return(false);
+
+	return(true);
 }
 
 bool display_lcd_init(void)
@@ -381,6 +441,78 @@ bool display_lcd_init(void)
 	return(display_lcd_bright(1));
 }
 
+bool display_lcd_begin(int slot, bool logmode)
+{
+	if(!display_inited)
+	{
+		log("! display lcd not display_inited\n");
+		return(false);
+	}
+
+	display_logmode = logmode;
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
+}
+
+bool display_lcd_output(unsigned int unicode)
+{
+	const unicode_map_t *unicode_map_ptr;
+	const udg_map_t *udg_map_ptr;
+
+	if(unicode == '\n')
+		return(text_newline());
+
+	if((display_y < display_text_height) && (display_x < display_text_width))
+	{
+		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+			if(unicode_map_ptr->unicode == unicode)
+			{
+				unicode = unicode_map_ptr->internal;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
+			}
+
+		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+			if((udg_map_ptr->unicode == unicode))
+			{
+				unicode = udg_map_ptr->internal;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
+			}
+
+		if((unicode < ' ') || (unicode > '}'))
+			unicode = ' ';
+
+		if(!text_send(unicode))
+			return(false);
+
+		if((display_y == (display_text_height - 1)) && (display_x == display_text_width)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
+		{
+			if(!text_goto(display_x - 1, -1))
+				return(false);
+
+			if(!text_send(unicode))
+				return(false);
+		}
+	}
+
+	return(true);
+}
+
+bool display_lcd_end(void)
+{
+	while(display_y < display_text_height)
+		if(!text_newline())
+			break;
+
+	return(true);
+}
+
 bool display_lcd_bright(int brightness)
 {
 	unsigned int max_value, value;
@@ -404,111 +536,4 @@ bool display_lcd_bright(int brightness)
 	}
 
 	return(true);
-}
-
-void display_lcd_begin(int slot, bool logmode)
-{
-	if(!display_inited)
-		log("! display lcd not display_inited\n");
-
-	display_x = display_y = 0;
-
-	display_logmode = logmode;
-
-	send_byte(cmd_home, false);
-}
-
-void display_lcd_output(unsigned int unicode)
-{
-	const unicode_map_t *unicode_map_ptr;
-	const udg_map_t *udg_map_ptr;
-	bool mapped;
-
-	if(unicode == '\n')
-	{
-		if(display_logmode)
-		{
-			display_y = (display_y + 1) % 4;
-
-			send_byte(cmd_set_ram_ptr | ram_offsets[display_y], false);
-
-			for(display_x = 0; display_x < 20; display_x++)
-				send_byte(' ', true);
-
-			send_byte(cmd_set_ram_ptr | ram_offsets[display_y], false);
-
-		}
-		else
-		{
-			if(display_y < 4)
-			{
-				while(display_x++ < 20)
-					send_byte(' ', true);
-
-				if(display_y < 3)
-					send_byte(cmd_set_ram_ptr | ram_offsets[display_y + 1], false);
-			}
-
-			display_y++;
-		}
-
-		display_x = 0;
-
-		return;
-	}
-
-	if((display_y < 4) && (display_x < 20))
-	{
-		mapped = false;
-
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				mapped = true;
-				break;
-			}
-
-		if(!mapped)
-			for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-				if((udg_map_ptr->unicode == unicode))
-				{
-					unicode = udg_map_ptr->internal;
-					mapped = true;
-					break;
-				}
-
-		if(mapped || ((unicode >= ' ') && (unicode <= '}')))
-			send_byte(unicode & 0xff, true);
-		else
-			send_byte(' ', true);
-
-		if((display_y == 3) && (display_x == 19)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
-		{
-			send_byte(cmd_set_ram_ptr | (ram_offsets[display_y] + display_x), false);
-			send_byte(unicode & 0xff, true);
-		}
-	}
-
-	display_x++;
-}
-
-void display_lcd_end(void)
-{
-	if(display_x > 19)
-	{
-		display_x = 0;
-		display_y++;
-	}
-
-	for(; display_y < 4; display_y++, display_x = 0)
-	{
-		send_byte(cmd_set_ram_ptr | (ram_offsets[display_y] + display_x), false);
-
-		while(display_x++ < 20)
-			send_byte(' ', true);
-	}
-
-	send_byte(cmd_set_ram_ptr | (ram_offsets[3] + 19), false); // workaround for bug in some LCD controllers that need last row/column to be sent twice
-	send_byte(' ', true);
 }
