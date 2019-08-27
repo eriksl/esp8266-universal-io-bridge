@@ -5,9 +5,9 @@
 #include <stdbool.h>
 
 bool display_ssd1306_init(void);
-void display_ssd1306_begin(int slot, bool logmode);
-void display_ssd1306_output(unsigned int);
-void display_ssd1306_end(void);
+bool display_ssd1306_begin(int slot, bool logmode);
+bool display_ssd1306_output(unsigned int);
+bool display_ssd1306_end(void);
 bool display_ssd1306_bright(int);
 bool display_ssd1306_standout(bool);
 bool display_ssd1306_picture_load(unsigned int);

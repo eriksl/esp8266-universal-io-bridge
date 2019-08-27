@@ -209,7 +209,7 @@ static bool display_standout = false;
 static bool display_disable_text = false;
 static unsigned int display_height;
 static unsigned int display_x, display_y;
-static unsigned int display_buffer_current = 0;
+static unsigned int display_buffer_current;
 static unsigned int display_picture_load_flash_sector;
 
 attr_inline unsigned int text_height(void)
@@ -250,19 +250,20 @@ static bool display_data_flush(void)
 	return(true);
 }
 
-attr_inline bool display_data_output(unsigned int character)
+attr_inline bool display_data_output(unsigned int byte)
 {
 	if(((display_buffer_current + 1) >= display_buffer_size) && !display_data_flush())
 		return(false);
 
-	display_buffer[display_buffer_current++] = (uint8_t)character;
+	display_buffer[display_buffer_current++] = (uint8_t)byte;
 
 	return(true);
 }
 
 static bool display_cursor_row_column(unsigned int row, unsigned int column)
 {
-	display_data_flush();
+	if(!display_data_flush())
+		return(false);
 
 	if(!send_command1(reg_set_current_page | (row & 0x07)))
 		return(false);
@@ -276,11 +277,12 @@ static bool display_cursor_row_column(unsigned int row, unsigned int column)
 	return(true);
 }
 
-static bool display_cursor(unsigned int x, unsigned int y)
+static attr_result_used bool display_cursor(unsigned int x, unsigned int y)
 {
 	unsigned int row, column;
 
-	display_data_flush();
+	if(!display_data_flush())
+		return(false);
 
 	row = y * display_font_height / 8;
 	column = x * display_font_width;
@@ -303,7 +305,7 @@ static bool text_goto(int x, int y)
 	y = display_y;
 
 	if(((unsigned int)x >= display_text_width) || ((unsigned int)y >= text_height()))
-		return(false);
+		return(true);
 
 	if(!config_flags_match(flag_ssd_height_32) && !display_logmode)
 		y *= 2;
@@ -324,7 +326,7 @@ static bool text_send(unsigned int text)
 	if((display_x >= display_text_width) || (display_y >= text_height()))
 		goto text_invisible;
 
-	font_entry = &font_6x8[text * 8 /*sizeof(entry)*/ / 4 /*sizeof(int)*/];
+	font_entry = &font_6x8[byte * 8 /*sizeof(entry)*/ / 4 /*sizeof(int)*/];
 
 	font_line[0] = (font_entry[1] & 0xff000000) >> 24;
 	font_line[1] = (font_entry[1] & 0x00ff0000) >> 16;
@@ -354,7 +356,8 @@ static bool text_send(unsigned int text)
 	{
 		for(run = 0; run < 2; run++)
 		{
-			display_cursor(display_x, (display_y * 2) + run);
+			if(!display_cursor(display_x, (display_y * 2) + run))
+				return(false);
 
 			for(column = 0; column < 6; column++)
 			{
@@ -370,7 +373,8 @@ static bool text_send(unsigned int text)
 			}
 		}
 
-		display_cursor(display_x, (display_y * 2) + 0);
+		if(!display_cursor(display_x, (display_y * 2) + 0))
+			return(false);
 	}
 
 text_invisible:
@@ -386,14 +390,16 @@ static bool text_newline(void)
 	if(display_logmode)
 	{
 		y = (display_y + 1) % text_height();
-		text_goto(0, y);
+		if(!text_goto(0, y))
+			return(false);
 	}
 	else
 		y = display_y + 1;
 
 	if(display_y < text_height())
 		for(x = display_x; x < display_text_width; x++)
-			text_send(' ');
+			if(!text_send(' '))
+				return(false);
 
 	if(!text_goto(0, y))
 		return(false);
@@ -481,55 +487,68 @@ bool display_ssd1306_init(void)
 	return(display_ssd1306_bright(1));
 }
 
-void display_ssd1306_begin(int select_slot, bool logmode)
+bool display_ssd1306_begin(int select_slot, bool logmode)
 {
-	if(display_disable_text)
-		return;
+	if(!display_inited)
+	{
+		log("! display ssd1306 not inited\n");
+		return(false);
+	}
 
-	text_goto(0, 0);
+	if(display_disable_text)
+		return(true);
 
 	display_logmode = logmode;
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
 }
 
-void display_ssd1306_output(unsigned int unicode)
+bool display_ssd1306_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 
 	if(display_disable_text)
-		return;
+		return(true);
 
 	if(unicode == '\n')
-	{
-		text_newline();
-		return;
-	}
+		return(text_newline());
 
-	if((display_y < text_height()) && (display_x < display_text_width))
-	{
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				text_send(unicode);
-				return;
-			}
+	if((display_y >= text_height()) || (display_x >= display_text_width))
+		return(true);
 
-		if((unicode >= ' ') && (unicode <= '}'))
-			text_send(unicode);
-		else
-			text_send(' ');
-	}
+	for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+		if(unicode_map_ptr->unicode == unicode)
+		{
+			unicode = unicode_map_ptr->internal;
+			if(!text_send(unicode))
+				return(false);
+			return(true);
+		}
+
+	if((unicode < ' ') || (unicode > '}'))
+		unicode = ' ';
+
+	if(!text_send(unicode))
+		return(false);
+
+	return(true);
 }
 
-void display_ssd1306_end(void)
+bool display_ssd1306_end(void)
 {
 	if(display_disable_text)
-		return;
+		return(true);
 
 	while(display_y < text_height())
-		text_newline();
+		if(!text_newline())
+			break;
 
-	display_data_flush();
+	if(!display_data_flush())
+		return(false);
+
+	return(true);
 }
 
 bool display_ssd1306_bright(int brightness)
@@ -542,9 +561,6 @@ bool display_ssd1306_bright(int brightness)
 		{	reg_display_on,		80	},
 		{	reg_display_on,		255	},
 	};
-
-	if(!display_inited)
-		return(false);
 
 	if(brightness > 4)
 		return(false);
@@ -581,6 +597,7 @@ bool display_ssd1306_picture_load(unsigned int picture_load_index)
 bool display_ssd1306_layer_select(unsigned int layer)
 {
 	static const char pbm_header[] = "P4\n128 64\n";
+	bool success = false;
 	unsigned int row, column, output, bit, offset, bitoffset;
 	const uint8_t *bitmap;
 
@@ -619,16 +636,17 @@ bool display_ssd1306_layer_select(unsigned int layer)
 
 	for(row = 0; row < (display_height / 8); row++)
 	{
-		display_cursor_row_column(row, 0);
+		if(!display_cursor_row_column(row, 0))
+			return(false);
 
-		for(column = 0; column < 128; column++)
+		for(column = 0; column < display_width; column++)
 		{
 			output = 0;
 
 			for(bit = 0; bit < 8; bit++)
 			{
-				offset		= (row * 8) * (128 / 8) * (2 / (display_height / display_height_32));
-				offset		+= bit * (128 / 8);
+				offset		= (row * 8) * (display_width / 8) * (2 / (display_height / display_height_32));
+				offset		+= bit * (display_width / 8);
 				offset		+= column / 8;
 				bitoffset	= column % 8;
 
@@ -636,16 +654,16 @@ bool display_ssd1306_layer_select(unsigned int layer)
 					output |= 1 << bit;
 			}
 
-			display_data_output(output);
+			if(!display_data_output(output))
+				return(false);
 		}
 	}
 
-	display_data_flush();
-
-	flash_sector_buffer_use = fsb_free;
-	return(true);
+	success = true;
 
 error:
 	flash_sector_buffer_use = fsb_free;
-	return(false);
+	if(!display_data_flush())
+		return(false);
+	return(success);
 }
