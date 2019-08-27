@@ -13,6 +13,7 @@
 #define attr_const __attribute__ ((const))
 #define attr_packed __attribute__ ((__packed__))
 #define attr_nonnull __attribute__ ((nonnull))
+#define attr_result_used __attribute__ ((warn_unused_result))
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 #define assert_enum(name, value) _Static_assert((name) == (value), "enum value for " #name " != " #value)
 

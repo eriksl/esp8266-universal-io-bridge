@@ -209,7 +209,7 @@ static int *lcd_pin = (int *)(void *)display_buffer; // this memory is guarantee
 static unsigned int pin_mask;
 static unsigned int display_x, display_y;
 
-static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
+static unsigned int attr_result_used bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
 	unsigned int pin = 0;
 
@@ -219,7 +219,7 @@ static unsigned int bit_to_pin(unsigned int value, unsigned int src_bitindex, un
 	return(pin << lcd_pin[function]);
 }
 
-static bool send_byte_raw(unsigned int byte, bool data)
+static bool attr_result_used send_byte_raw(unsigned int byte, bool data)
 {
 	unsigned int pins = 0;
 
@@ -242,7 +242,7 @@ static bool send_byte_raw(unsigned int byte, bool data)
 	return(true);
 }
 
-static bool send_byte(unsigned int byte, bool data)
+static bool attr_result_used send_byte(unsigned int byte, bool data)
 {
 	if(nibble_mode)
 	{
@@ -258,7 +258,7 @@ static bool send_byte(unsigned int byte, bool data)
 	return(send_byte_raw(byte, data));
 }
 
-static bool text_send(unsigned int byte)
+static bool attr_result_used text_send(unsigned int byte)
 {
 	display_x++;
 
@@ -271,7 +271,7 @@ static bool text_send(unsigned int byte)
 	return(true);
 }
 
-static bool text_goto(int x, int y)
+static bool attr_result_used text_goto(int x, int y)
 {
 	if(x >= 0)
 		display_x = x;
@@ -288,7 +288,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_newline(void)
+static bool attr_result_used text_newline(void)
 {
 	unsigned int x, y;
 

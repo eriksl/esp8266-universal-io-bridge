@@ -233,7 +233,7 @@ static bool display_scroll_pending;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
 
-static bool display_data_flush(void)
+static bool attr_result_used display_data_flush(void)
 {
 	if((display_buffer_current > 0) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
 		return(false);
@@ -277,7 +277,7 @@ attr_inline bool display_command3(unsigned int byte1, unsigned int byte2, unsign
 	return(true);
 }
 
-static bool text_goto(int x, int y)
+static bool attr_result_used text_goto(int x, int y)
 {
 	if(x >= 0)
 		display_x = x;
@@ -294,7 +294,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_send(unsigned int byte)
+static bool attr_result_used text_send(unsigned int byte)
 {
 	if(display_logmode && display_scroll_pending)
 	{
@@ -318,7 +318,7 @@ static bool text_send(unsigned int byte)
 	return(true);
 }
 
-static bool text_newline(void)
+static bool attr_result_used text_newline(void)
 {
 	unsigned int x, y;
 
@@ -416,7 +416,7 @@ bool display_orbital_bright(int brightness)
 	return(true);
 }
 
-static bool display_setup(void)
+static bool attr_result_used display_setup(void)
 {
 	if(!display_command1(command_cursor_off))
 		return(false);

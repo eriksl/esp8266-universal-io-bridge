@@ -212,7 +212,7 @@ static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
 static unsigned int display_picture_load_flash_sector;
 
-attr_inline unsigned int text_height(void)
+attr_result_used attr_inline unsigned int text_height(void)
 {
 	if(config_flags_match(flag_ssd_height_32))
 		return(4);
@@ -223,7 +223,7 @@ attr_inline unsigned int text_height(void)
 			return(4);
 }
 
-static bool send_command1(unsigned int cmd)
+static attr_result_used bool send_command1(unsigned int cmd)
 {
 	if(i2c_send2(display_address, display_control_command, cmd) != i2c_error_ok)
 		return(false);
@@ -231,7 +231,7 @@ static bool send_command1(unsigned int cmd)
 	return(true);
 }
 
-static bool send_command2(unsigned int cmd1, unsigned int cmd2)
+static attr_result_used bool send_command2(unsigned int cmd1, unsigned int cmd2)
 {
 	if(i2c_send3(display_address, display_control_command, cmd1, cmd2) != i2c_error_ok)
 		return(false);
@@ -239,7 +239,7 @@ static bool send_command2(unsigned int cmd1, unsigned int cmd2)
 	return(true);
 }
 
-static bool display_data_flush(void)
+static attr_result_used bool display_data_flush(void)
 {
 	if((display_buffer_current > 1) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
 		return(false);
@@ -250,7 +250,7 @@ static bool display_data_flush(void)
 	return(true);
 }
 
-attr_inline bool display_data_output(unsigned int byte)
+attr_inline attr_result_used bool display_data_output(unsigned int byte)
 {
 	if(((display_buffer_current + 1) >= display_buffer_size) && !display_data_flush())
 		return(false);
@@ -260,7 +260,7 @@ attr_inline bool display_data_output(unsigned int byte)
 	return(true);
 }
 
-static bool display_cursor_row_column(unsigned int row, unsigned int column)
+static attr_result_used bool display_cursor_row_column(unsigned int row, unsigned int column)
 {
 	if(!display_data_flush())
 		return(false);
@@ -293,7 +293,7 @@ static attr_result_used bool display_cursor(unsigned int x, unsigned int y)
 	return(true);
 }
 
-static bool text_goto(int x, int y)
+static attr_result_used bool text_goto(int x, int y)
 {
 	if(x >= 0)
 		display_x = x;
@@ -316,7 +316,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_send(unsigned int text)
+static attr_result_used bool text_send(unsigned int byte)
 {
 	const unsigned int *font_6x8 = (const unsigned int *)(const void *)display_font_6x8;
 	const unsigned int *font_entry;
@@ -383,7 +383,7 @@ text_invisible:
 	return(true);
 }
 
-static bool text_newline(void)
+static attr_result_used bool text_newline(void)
 {
 	unsigned int x, y;
 
@@ -407,7 +407,7 @@ static bool text_newline(void)
 	return(true);
 }
 
-static bool clear_screen(void)
+static attr_result_used bool clear_screen(void)
 {
 	static const unsigned int chunk_size = 32;
 	unsigned int row, chunk;

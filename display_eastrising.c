@@ -394,22 +394,22 @@ static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 
-static bool display_write_command(uint8_t cmd)
+static bool attr_result_used display_write_command(uint8_t cmd)
 {
 	return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
 }
 
-static bool display_write_data(uint8_t data)
+static bool attr_result_used display_write_data(uint8_t data)
 {
 	return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
 }
 
-static bool display_read_data(uint8_t *data)
+static bool attr_result_used display_read_data(uint8_t *data)
 {
 	return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
 }
 
-static bool display_write(uint8_t cmd, uint8_t data)
+static bool attr_result_used display_write(uint8_t cmd, uint8_t data)
 {
 	if(!display_write_command(cmd))
 		return(false);
@@ -417,7 +417,7 @@ static bool display_write(uint8_t cmd, uint8_t data)
 	return(display_write_data(data));
 }
 
-static bool display_read(uint8_t cmd, uint8_t *data)
+static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 {
 	if(!display_write_command(cmd))
 		return(false);
@@ -425,17 +425,17 @@ static bool display_read(uint8_t cmd, uint8_t *data)
 	return(display_read_data(data));
 }
 
-static bool display_set_mode_graphic(void)
+static bool attr_result_used display_set_mode_graphic(void)
 {
     return(display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
 }
 
-static bool display_set_mode_text(void)
+static bool attr_result_used display_set_mode_text(void)
 {
     return(display_write(reg_mwcr0, reg_mwcr0_mode_text | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
 }
 
-static bool display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
+static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
 {
 	uint8_t data;
 	unsigned int timeout;
@@ -500,12 +500,12 @@ static bool display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, un
 	return(true);
 }
 
-static bool display_set_active_layer(unsigned int layer)
+static bool attr_result_used display_set_active_layer(unsigned int layer)
 {
 	return(display_write(reg_mwcr1, reg_mwcr1_graphic_cursor_disable | reg_mwcr1_write_destination_layer | (layer & 0x01)));
 }
 
-static bool display_fgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
+static bool attr_result_used display_fgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
 {
 	uint8_t R, G, B;
 
@@ -525,7 +525,7 @@ static bool display_fgcolour_get(unsigned int *r, unsigned int *g, unsigned int 
 	return(true);
 }
 
-static bool display_bgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
+static bool attr_result_used display_bgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
 {
 	uint8_t R, G, B;
 
@@ -545,7 +545,7 @@ static bool display_bgcolour_get(unsigned int *r, unsigned int *g, unsigned int 
 	return(true);
 }
 
-static bool display_fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used display_fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
@@ -563,7 +563,7 @@ static bool display_fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 	return(true);
 }
 
-static bool display_bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used display_bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
@@ -582,7 +582,7 @@ static bool display_bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 }
 
 
-static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used display_clear_area(unsigned int layer, unsigned int r, unsigned int g, unsigned int b)
 {
 	unsigned int timeout;
 	uint8_t data;
@@ -630,7 +630,7 @@ static bool display_clear_area(unsigned int layer, unsigned int r, unsigned int 
 	return(true);
 }
 
-static bool display_set_active_window(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1)
+static bool attr_result_used display_set_active_window(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1)
 {
 	x0 = umin(x0, display_width - 1);
 	x1 = umin(x1, display_width - 1);
@@ -664,7 +664,7 @@ static bool display_set_active_window(unsigned int x0, unsigned int y0, unsigned
 	return(true);
 }
 
-static bool display_fill_box(unsigned int layer, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used display_fill_box(unsigned int layer, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int r, unsigned int g, unsigned int b)
 {
 	if(!display_set_active_window(x0, y0, x1, y1))
 		return(false);
@@ -678,7 +678,7 @@ static bool display_fill_box(unsigned int layer, unsigned int x0, unsigned int y
 	return(true);
 }
 
-static unsigned int display_text_to_graphic_x(unsigned int text_x)
+static unsigned int attr_result_used display_text_to_graphic_x(unsigned int text_x)
 {
 	unsigned int width =	display_logmode ? display_logmode_character_width :			display_character_width;
 	unsigned int padding =	display_logmode ? display_logmode_character_width_padding : display_character_width_padding;
@@ -686,7 +686,7 @@ static unsigned int display_text_to_graphic_x(unsigned int text_x)
 	return(text_x * (width + padding));
 }
 
-static unsigned int display_text_to_graphic_y(unsigned int text_y)
+static unsigned int attr_result_used display_text_to_graphic_y(unsigned int text_y)
 {
 	unsigned int cell_height = display_logmode ? display_logmode_character_height : display_character_height;
 	unsigned int graphic_y;
@@ -702,7 +702,7 @@ static unsigned int display_text_to_graphic_y(unsigned int text_y)
 	return(graphic_y);
 }
 
-static bool display_data_flush(void)
+static bool attr_result_used display_data_flush(void)
 {
 	if(!display_set_mode_text())
 		return(false);
@@ -717,7 +717,7 @@ static bool display_data_flush(void)
 	return(true);
 }
 
-static bool display_data_output(unsigned int text)
+static bool attr_result_used display_data_output(unsigned int text)
 {
 	if(((display_text_current + 1) >= display_buffer_size) && !display_data_flush())
 		return(false);
@@ -743,7 +743,7 @@ attr_inline unsigned int text_height(void)
 		return(display_slot_height);
 }
 
-static bool text_goto(int x, int y)
+static bool attr_result_used text_goto(int x, int y)
 {
 	unsigned int gx, gy;
 
@@ -777,7 +777,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_send(unsigned int byte)
+static bool attr_result_used text_send(unsigned int byte)
 {
 	if((display_x < text_width()) && (display_y < text_height()) && !display_data_output(byte))
 		return(false);
@@ -787,7 +787,7 @@ static bool text_send(unsigned int byte)
 	return(true);
 }
 
-static bool text_newline(void)
+static bool attr_result_used text_newline(void)
 {
 	unsigned int char_height =	display_logmode ? display_logmode_character_height : display_character_height;
 	unsigned int y;
@@ -825,7 +825,7 @@ static bool text_newline(void)
 	return(true);
 }
 
-static bool display_show_layer(unsigned int layer)
+static bool attr_result_used display_show_layer(unsigned int layer)
 {
 	unsigned int value = reg_ltpr0_scroll_both | reg_ltpr0_floatwin_transparency_dis;
 

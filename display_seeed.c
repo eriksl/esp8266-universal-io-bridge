@@ -236,7 +236,7 @@ attr_inline unsigned int text_height(void)
 		return(4);
 }
 
-static bool display_data_flush(void)
+static bool attr_result_used display_data_flush(void)
 {
 	if((display_buffer_current > 1) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
 		return(false);
@@ -257,7 +257,7 @@ attr_inline bool display_data_output(unsigned int byte)
 	return(true);
 }
 
-static bool display_cursor(unsigned int x, unsigned int y)
+static bool attr_result_used display_cursor(unsigned int x, unsigned int y)
 {
 	if(!display_data_flush())
 		return(false);
@@ -268,7 +268,7 @@ static bool display_cursor(unsigned int x, unsigned int y)
 	return(true);
 }
 
-static bool text_goto(int x, int y)
+static bool attr_result_used text_goto(int x, int y)
 {
 	if(x >= 0)
 		display_x = x;
@@ -288,7 +288,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_send(unsigned int byte)
+static bool attr_result_used text_send(unsigned int byte)
 {
 	if((display_x < display_text_width) && (display_y < text_height()) && !display_data_output(byte))
 		return(false);
@@ -298,7 +298,7 @@ static bool text_send(unsigned int byte)
 	return(true);
 }
 
-static bool text_newline(void)
+static bool attr_result_used text_newline(void)
 {
 	unsigned int x, y;
 
@@ -322,7 +322,7 @@ static bool text_newline(void)
 	return(true);
 }
 
-static bool udg_send(unsigned int udg)
+static bool attr_result_used udg_send(unsigned int udg)
 {
 	uint8_t ram_byte[9];
 	unsigned int byte, bit;

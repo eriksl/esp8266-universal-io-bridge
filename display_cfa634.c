@@ -256,7 +256,7 @@ static bool			display_logmode;
 static unsigned int display_uart;
 static unsigned int display_x, display_y;
 
-static bool text_goto(int x, int y)
+static bool attr_result_used text_goto(int x, int y)
 {
 	if(x >= 0)
 		display_x = x;
@@ -276,7 +276,7 @@ static bool text_goto(int x, int y)
 	return(true);
 }
 
-static bool text_send(unsigned int byte)
+static bool attr_result_used text_send(unsigned int byte)
 {
 	if((display_x < display_text_width) && (display_y < display_text_height))
 	{
@@ -295,7 +295,7 @@ static bool text_send(unsigned int byte)
 	return(true);
 }
 
-static bool text_newline(void)
+static bool attr_result_used text_newline(void)
 {
 	unsigned int x, y;
 
