@@ -176,26 +176,30 @@ static unsigned int display_buffer_index;
 
 _Static_assert(sizeof(display_buffer_size) >= 4, "display buffer too small");
 
-void display_saa1064_begin(int slot, bool logmode)
+bool display_saa1064_begin(int slot, bool logmode)
 {
 	if(i2c_bus < 0)
-		return;
+		return(false);
 
 	strecpy((char *)display_buffer,  "    ", 4);
 
 	display_buffer_index = 0;
+
+	return(true);
 }
 
-void display_saa1064_output(unsigned int unicode)
+bool display_saa1064_output(unsigned int unicode)
 {
 	if((unicode == '.') && (display_buffer_index > 0))
 		display_buffer[display_buffer_index - 1] |= 0x80;
 	else
 		if(display_buffer_index < 4)
 			display_buffer[display_buffer_index++] = unicode & 0x7f;
+
+	return(true);
 }
 
-void display_saa1064_end(void)
+bool display_saa1064_end(void)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
@@ -213,4 +217,6 @@ void display_saa1064_end(void)
 		i2cdata[5 - display_buffer_index] = led_render_char(display_buffer[display_buffer_index]); // reverse digit's position
 
 	i2c_send(0x38, 6, i2cdata);
+
+	return(true);
 }
