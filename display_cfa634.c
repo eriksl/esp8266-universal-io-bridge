@@ -23,6 +23,17 @@ typedef struct
 
 enum
 {
+	display_text_width =	20,
+	display_text_height =	4,
+
+	command_escape_2 =		0x01,
+	command_restore =		0x03,
+	command_contrast =		0x0f,
+	command_goto =			0x11,
+	command_scroll_off =	0x14,
+	command_wrap_off =		0x18,
+	command_escape_1 =		0x1e,
+
 	mapeof = 0xffffffff,
 };
 
@@ -240,20 +251,85 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
-static bool		detected = false;
-static unsigned int uart;
+static bool			display_inited;
+static bool			display_logmode;
+static unsigned int display_uart;
+static unsigned int display_x, display_y;
+
+static bool text_goto(int x, int y)
+{
+	if(x >= 0)
+		display_x = x;
+
+	if(y >= 0)
+		display_y = y;
+
+	if((display_x >= display_text_width) || (display_y >= display_text_height))
+		return(true);
+
+	uart_send(display_uart, command_goto);
+	uart_send(display_uart, display_x);
+	uart_send(display_uart, display_y);
+
+	uart_flush(display_uart);
+
+	return(true);
+}
+
+static bool text_send(unsigned int byte)
+{
+	if((display_x < display_text_width) && (display_y < display_text_height))
+	{
+		if((byte < ' ') || ((byte >= 128) && (byte <= 135)))
+		{
+			uart_send(display_uart, command_escape_1);
+			uart_send(display_uart, command_escape_2);
+		}
+
+		uart_send(display_uart, byte);
+		display_x++;
+	}
+
+	uart_flush(display_uart);
+
+	return(true);
+}
+
+static bool text_newline(void)
+{
+	unsigned int x, y;
+
+	if(display_logmode)
+	{
+		y = (display_y + 1) % display_text_height;
+		if(!text_goto(0, y))
+			return(false);
+	}
+	else
+		y = display_y + 1;
+
+	if(display_y < display_text_height)
+		for(x = display_x; x < display_text_width; x++)
+			if(!text_send(' '))
+				return(false);
+
+	if(!text_goto(0, y))
+		return(false);
+
+	return(true);
+}
 
 bool display_cfa634_setup(unsigned int io, unsigned int pin)
 {
 	if((io != io_id_gpio) || (pin >= max_pins_per_io))
 		return(false);
 
-	uart = io_gpio_get_uart_from_pin(pin);
+	display_uart = io_gpio_get_uart_from_pin(pin);
 
-	if((uart != 0) && (uart != 1))
+	if((display_uart != 0) && (display_uart != 1))
 		return(false);
 
-	detected = true;
+	display_inited = true;
 
 	return(true);
 }
@@ -263,26 +339,26 @@ bool display_cfa634_init(void)
 	const udg_map_t *map;
 	unsigned int ix, byte;
 
-	if(!detected)
+	if(!display_inited)
 		return(false);
 
-	uart_baudrate(uart, 19200);
-	uart_data_bits(uart, 8);
-	uart_stop_bits(uart, 1);
-	uart_parity(uart, parity_none);
+	uart_baudrate(display_uart, 19200);
+	uart_data_bits(display_uart, 8);
+	uart_stop_bits(display_uart, 1);
+	uart_parity(display_uart, parity_none);
 
 	for(map = udg_map, ix = 0; map->unicode != mapeof; map++, ix++)
 	{
-		uart_send(uart, 25);	// send UDG
-		uart_send(uart, map->internal);
+		uart_send(display_uart, 25);	// send UDG
+		uart_send(display_uart, map->internal);
 
-		uart_flush(uart);
+		uart_flush(display_uart);
 		msleep(1);
 
 		for(byte = 0; byte < 8; byte++)
 		{
-			uart_send(uart, map->pattern[byte] & 0xff);
-			uart_flush(uart);
+			uart_send(display_uart, map->pattern[byte] & 0xff);
+			uart_flush(display_uart);
 			msleep(1);
 		}
 	}
@@ -290,125 +366,83 @@ bool display_cfa634_init(void)
 	return(display_cfa634_bright(1));
 }
 
+bool display_cfa634_begin(int slot, bool logmode)
+{
+	uart_send(display_uart, command_restore);
+	uart_send(display_uart, command_scroll_off);
+	uart_send(display_uart, command_wrap_off);
+
+	display_logmode = logmode;
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	uart_flush(display_uart);
+
+	return(true);
+}
+
+bool display_cfa634_output(unsigned int unicode)
+{
+	const unicode_map_t *unicode_map_ptr;
+	const udg_map_t *udg_map_ptr;
+
+	if(unicode == '\n')
+		return(text_newline());
+
+	if((display_y < display_text_height) && (display_x < display_text_width))
+	{
+		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+			if(unicode_map_ptr->unicode == unicode)
+			{
+				unicode = unicode_map_ptr->internal;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
+			}
+
+		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+			if((udg_map_ptr->unicode == unicode))
+			{
+				unicode = udg_map_ptr->internal;
+				if(!text_send(unicode))
+					return(false);
+				return(true);
+			}
+
+		if((unicode < ' ') || (unicode > '}'))
+			unicode = ' ';
+
+		uart_send(display_uart, unicode);
+	}
+
+	return(true);
+}
+
+bool display_cfa634_end(void)
+{
+	while(display_y < display_text_height)
+		if(!text_newline())
+			break;
+
+	uart_flush(display_uart);
+
+	return(true);
+}
+
 attr_const bool display_cfa634_bright(int brightness)
 {
 	roflash static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
-	if(!detected)
+	if(!display_inited)
 		return(false);
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	uart_send(uart, 15); // set contrast
-	uart_send(uart, values[brightness]);
-	uart_flush(uart);
+	uart_send(display_uart, command_contrast);
+	uart_send(display_uart, values[brightness]);
+	uart_flush(display_uart);
 
 	return(true);
-}
-
-static unsigned int x, y;
-
-void display_cfa634_begin(int slot, bool logmode)
-{
-	uart_send(uart, 3);	// restore blanked display
-	uart_send(uart, 20);	// scroll off
-	uart_send(uart, 24);	// wrap off
-
-	uart_send(uart, 17);	// goto column,row
-	uart_send(uart, 0);
-	uart_send(uart, 0);
-
-	x = y = 0;
-}
-
-void display_cfa634_output(unsigned int unicode)
-{
-	const unicode_map_t *unicode_map_ptr;
-	const udg_map_t *udg_map_ptr;
-	bool mapped;
-
-	if(unicode == '\n')
-	{
-		if(y < 4)
-		{
-			while(x++ < 20)
-				uart_send(uart, ' ');
-
-			if(y < 3)
-			{
-				uart_send(uart, 17);	// goto column,row
-				uart_send(uart, 0);
-				uart_send(uart, y + 1);
-			}
-		}
-
-		x = 0;
-		y++;
-
-
-		return;
-	}
-
-	if((y < 4) && (x < 20))
-	{
-		mapped = false;
-
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				mapped = true;
-				break;
-			}
-
-		if(!mapped)
-			for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-				if((udg_map_ptr->unicode == unicode))
-				{
-					unicode = udg_map_ptr->internal;
-					mapped = true;
-					break;
-				}
-
-		if((unicode >= ' ') && (unicode <= '}'))
-			uart_send(uart, unicode & 0xff);
-		else
-		{
-			if(!mapped)
-				uart_send(uart, ' ');
-			else
-			{
-				if((unicode < ' ') || ((unicode >= 128) && (unicode <= 135)))
-				{
-					uart_send(uart, 30);	// prefix for sending data directly to LCD controller
-					uart_send(uart, 1);
-				}
-				uart_send(uart, unicode & 0xff);
-			}
-		}
-	}
-
-	x++;
-}
-
-void display_cfa634_end(void)
-{
-	if(x > 19)
-	{
-		x = 0;
-		y++;
-	}
-
-	for(; y < 4; y++, x = 0)
-	{
-		uart_send(uart, 17);	// goto column,row
-		uart_send(uart, x);
-		uart_send(uart, y);
-
-		while(x++ < 20)
-			uart_send(uart, ' ');
-	}
-
-	uart_flush(uart);
 }
