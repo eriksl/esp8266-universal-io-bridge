@@ -3607,7 +3607,7 @@ static i2c_error_t bmx280_init(int bus, const i2c_sensor_device_table_entry_t *e
 		return(error);
 
 	if(i2c_buffer[0] != 0x00)
-		return(error);
+		return(i2c_error_address_nak);
 
 	/* read calibration data */
 
@@ -3714,13 +3714,13 @@ static void bmx280_periodic(const struct i2c_sensor_device_table_entry_T *entry,
 	if((i2c_buffer[0] & bmx280_reg_ctrl_meas_mode_mask) != bmx280_reg_ctrl_meas_mode_sleep)
 		return;
 
-	if(i2c_send2(entry->address, bmx280_reg_ctrl_hum, bmx280_reg_ctrl_hum_osrs_h_16))
+	if(i2c_send2(entry->address, bmx280_reg_ctrl_hum, bmx280_reg_ctrl_hum_osrs_h_16) != i2c_error_ok)
 		return;
 
-	if(i2c_send2(entry->address, bmx280_reg_config, bmx280_reg_config_filter_2))
+	if(i2c_send2(entry->address, bmx280_reg_config, bmx280_reg_config_filter_2) != i2c_error_ok)
 		return;
 
-	if(i2c_send2(entry->address, bmx280_reg_ctrl_meas, bmx280_reg_ctrl_meas_osrs_t_16 | bmx280_reg_ctrl_meas_osrs_p_16 | bmx280_reg_ctrl_meas_mode_forced))
+	if(i2c_send2(entry->address, bmx280_reg_ctrl_meas, bmx280_reg_ctrl_meas_osrs_t_16 | bmx280_reg_ctrl_meas_osrs_p_16 | bmx280_reg_ctrl_meas_mode_forced) != i2c_error_ok)
 		return;
 }
 
