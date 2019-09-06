@@ -2,6 +2,7 @@
 #include "display_lcd.h"
 #include "io.h"
 #include "config.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -202,12 +203,14 @@ _Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffe
 static bool display_inited = false;
 static bool display_logmode;
 static bool nibble_mode;
+static bool display_disable_text;
 static int bl_io;
 static int bl_pin;
 static int lcd_io;
 static int *lcd_pin = (int *)(void *)display_buffer; // this memory is guaranteed int aligned
 static unsigned int pin_mask;
 static unsigned int display_x, display_y;
+static unsigned int display_picture_load_flash_sector;
 
 static unsigned int attr_result_used bit_to_pin(unsigned int value, unsigned int src_bitindex, unsigned int function)
 {
@@ -312,11 +315,28 @@ static bool attr_result_used text_newline(void)
 	return(true);
 }
 
+static bool attr_result_used udg_init(void)
+{
+	const udg_map_t *udg_map_ptr;
+	unsigned int byte;
+
+	if(!send_byte(cmd_set_udg_ptr, false))
+		return(false);
+
+	msleep(2);
+
+	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		for(byte = 0; byte < 8; byte++)
+			if(!send_byte(udg_map_ptr->pattern[byte], true))
+				return(false);
+
+	return(true);
+}
+
 bool display_lcd_init(void)
 {
 	io_config_pin_entry_t *pin_config;
-	int io, pin, byte;
-	const udg_map_t *udg_map_ptr;
+	int io, pin;
 
 	bl_io	= -1;
 	bl_pin	= -1;
@@ -426,15 +446,8 @@ bool display_lcd_init(void)
 	if(!send_byte(cmd_display_config, false))			// display on, cursor off, blink off
 		return(false);
 
-	if(!send_byte(cmd_set_udg_ptr, false))				// start writing to CGRAM @ 0
+	if(!udg_init())
 		return(false);
-
-	msleep(2);
-
-	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-		for(byte = 0; byte < 8; byte++)
-			if(!send_byte(udg_map_ptr->pattern[byte], true))
-				return(false);
 
 	display_inited = true;
 
@@ -443,6 +456,9 @@ bool display_lcd_init(void)
 
 bool display_lcd_begin(int slot, bool logmode)
 {
+	if(display_disable_text)
+		return(true);
+
 	if(!display_inited)
 	{
 		log("! display lcd not display_inited\n");
@@ -461,6 +477,9 @@ bool display_lcd_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
+
+	if(display_disable_text)
+		return(true);
 
 	if(unicode == '\n')
 		return(text_newline());
@@ -506,6 +525,9 @@ bool display_lcd_output(unsigned int unicode)
 
 bool display_lcd_end(void)
 {
+	if(display_disable_text)
+		return(false);
+
 	while(display_y < display_text_height)
 		if(!text_newline())
 			break;
@@ -536,4 +558,121 @@ bool display_lcd_bright(int brightness)
 	}
 
 	return(true);
+}
+
+bool display_lcd_picture_load(unsigned int picture_load_index)
+{
+	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("display lcd: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	return(true);
+}
+
+bool display_lcd_layer_select(unsigned int layer)
+{
+	static const char pbm_header[] = "P4\n20 16\n";
+	bool success = false;
+	unsigned int row, column;
+	unsigned int udg, udg_line, udg_bit, udg_value;
+	unsigned int byte_offset, bit_offset;
+	const uint8_t *bitmap;
+
+	if(layer == 0)
+	{
+		if(!send_byte(cmd_clear_screen, false))
+			return(false);
+
+		if(!udg_init())
+			return(false);
+
+		display_disable_text = false;
+		return(true);
+	}
+
+	display_disable_text = true;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display lcd: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+
+	if(!send_byte(cmd_set_udg_ptr, false))
+		goto error;
+
+	msleep(2);
+
+	for(udg = 0; udg < 8; udg++)
+	{
+		for(udg_line = 0; udg_line < 8; udg_line++)
+		{
+			udg_value = 0;
+
+			row = ((udg / 4) * 8) + udg_line;
+
+			for(udg_bit = 0; udg_bit < 5; udg_bit++)
+			{
+				column = ((udg % 4) * 5) + udg_bit;
+
+				byte_offset = ((24 / 8) * row) + (column / 8);
+				bit_offset = column % 8;
+
+				if(bitmap[byte_offset] & (1 << (7 - bit_offset)))
+					udg_value |= (1 << (4 - udg_bit));
+			}
+
+			msleep(1);
+
+			if(!send_byte(udg_value, true))
+				goto error;
+		}
+	}
+
+	if(!send_byte(cmd_clear_screen, false))
+		return(false);
+
+	for(row = 0; row < 2; row++)
+	{
+		if(!send_byte(cmd_set_ram_ptr | (ram_offsets[row + 1] + 8), false))
+			return(false);
+
+		msleep(2);
+
+		for(column = 0; column < 4; column++)
+			if(!send_byte((row * 4) + column, true))
+				goto error;
+	}
+
+	success = true;
+
+error:
+	flash_sector_buffer_use = fsb_free;
+	if(!text_goto(-1, -1))
+		return(false);
+
+	return(success);
 }
