@@ -1325,6 +1325,7 @@ bool display_eastrising_periodic(void)
 bool display_eastrising_periodic(void)
 {
 	static const char ppm_header[] = "P6\n480 272\n255\n";
+	bool success = false;
 
 	switch(picture_load_state)
 	{
@@ -1342,10 +1343,7 @@ bool display_eastrising_periodic(void)
 			}
 
 			if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-			{
-				log("display eastrising: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-				goto error1;
-			}
+				return(true); // buffer currently in use, try again later
 
 			picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 			flash_sector_buffer_use = fsb_display_picture;
@@ -1395,7 +1393,24 @@ bool display_eastrising_periodic(void)
 			uint8_t *sector_buffer = (uint8_t *)string_buffer_nonconst(&flash_sector_buffer);
 
 			if(picture_load_current >= picture_ppm_data_length)
+			{
+				success = true;
 				goto error2;
+			}
+
+			if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_display_picture))
+				return(true); // buffer currently in use, try again later
+
+			if(flash_sector_buffer_use != fsb_display_picture)
+			{
+				flash_sector_buffer_use = fsb_display_picture;
+
+				if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+				{
+					log("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
+					goto error2;
+				}
+			}
 
 			chunk_length = umin(picture_ppm_data_length - picture_load_current, 1024 /*sizeof(flash_dram_buffer)*/ / 4);
 			output_buffer_offset = 0;
@@ -1460,7 +1475,7 @@ error2:
 error1:
 	picture_load_state = pls_idle;
 
-	return(false);
+	return(success);
 }
 #endif
 

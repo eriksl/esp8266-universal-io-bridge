@@ -77,7 +77,8 @@ static bool clear_all_flash_entries(unsigned int mirror)
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		return(false);
 
-	if(flash_sector_buffer_use != fsb_free)
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
+			(flash_sector_buffer_use != fsb_display_picture))
 	{
 		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);
@@ -164,7 +165,8 @@ static bool update_flash_entry(unsigned int index, unsigned int mirror, const se
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		return(false);
 
-	if(flash_sector_buffer_use != fsb_free)
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
+			(flash_sector_buffer_use != fsb_display_picture))
 	{
 		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);

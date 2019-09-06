@@ -85,7 +85,7 @@ bool config_open_read(void)
 
 	if(flash_sector_buffer_use != fsb_config_cache)
 	{
-		if(flash_sector_buffer_use != fsb_free)
+		if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_display_picture))
 		{
 			log("config_open_read: sector buffer in use: %u\n", flash_sector_buffer_use);
 			return(false);

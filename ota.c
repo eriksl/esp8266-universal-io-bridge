@@ -160,7 +160,8 @@ app_action_t application_function_flash_send(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
+			(flash_sector_buffer_use != fsb_ota) && (flash_sector_buffer_use != fsb_display_picture))
 	{
 		string_format(dst, "ERROR flash_send: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
@@ -215,7 +216,8 @@ app_action_t application_function_flash_receive(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_ota))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
+			(flash_sector_buffer_use != fsb_ota) && (flash_sector_buffer_use != fsb_display_picture))
 	{
 		string_format(dst, "ERROR: flash_send: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
@@ -258,7 +260,8 @@ app_action_t application_function_flash_read(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
+			(flash_sector_buffer_use != fsb_display_picture))
 	{
 		string_format(dst, "ERROR: flash-read: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(app_action_error);
