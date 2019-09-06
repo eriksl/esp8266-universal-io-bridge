@@ -2,6 +2,7 @@
 #include "display_orbital.h"
 #include "i2c.h"
 #include "config.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -228,9 +229,11 @@ roflash static const udg_map_t udg_map[] =
 
 static bool display_inited;
 static bool display_logmode;
+static bool display_disable_text;
 static bool display_scroll_pending;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
+static unsigned int display_picture_load_flash_sector;
 
 static bool attr_result_used display_data_flush(void)
 {
@@ -342,10 +345,30 @@ static bool attr_result_used text_newline(void)
 	return(true);
 }
 
+static attr_result_used bool udg_init(void)
+{
+	unsigned int byte;
+	const udg_map_t *udg_map_ptr;
+
+	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+	{
+		if(!display_command2(command_udg, udg_map_ptr->internal))
+			return(false);
+
+		for(byte = 0; byte < 8; byte++)
+			if(!display_data_output(udg_map_ptr->pattern[byte]))
+				return(false);
+
+		if(!display_data_flush())
+			return(false);
+	}
+
+	return(true);
+}
+
 bool display_orbital_init(void)
 {
-	unsigned int ix, byte;
-	const udg_map_t *udg_map_ptr;
+	unsigned int ix;
 
 	if(!config_flags_match(flag_enable_orbital))
 		return(false);
@@ -360,18 +383,8 @@ bool display_orbital_init(void)
 	if(ix == 0)
 		return(false);
 
-	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-	{
-		if(!display_command2(command_udg, udg_map_ptr->internal))
-			return(false);
-
-		for(byte = 0; byte < 8; byte++)
-			if(!display_data_output(udg_map_ptr->pattern[byte]))
-				return(false);
-
-		if(!display_data_flush())
-			return(false);
-	}
+	if(!udg_init())
+		return(false);
 
 	if(!display_command1(command_clear_display))
 		return(false);
@@ -431,6 +444,9 @@ static bool attr_result_used display_setup(void)
 
 bool display_orbital_begin(int slot, bool logmode)
 {
+	if(display_disable_text)
+		return(true);
+
 	if(!display_inited)
 	{
 		log("! display orbital not inited\n");
@@ -452,6 +468,9 @@ bool display_orbital_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
+
+	if(display_disable_text)
+		return(true);
 
 	if(unicode == '\n')
 		return(text_newline());
@@ -488,6 +507,9 @@ bool display_orbital_output(unsigned int unicode)
 
 bool display_orbital_end(void)
 {
+	if(display_disable_text)
+		return(true);
+
 	while(display_y < display_text_height)
 		if(!text_newline())
 			break;
@@ -496,4 +518,114 @@ bool display_orbital_end(void)
 		return(false);
 
 	return(true);
+}
+
+bool display_orbital_picture_load(unsigned int picture_load_index)
+{
+	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+
+	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
+	{
+		log("display orbital: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	return(true);
+}
+
+bool display_orbital_layer_select(unsigned int layer)
+{
+	static const char pbm_header[] = "P4\n20 16\n";
+	bool success = false;
+	unsigned int row, column;
+	unsigned int udg, udg_line, udg_bit, udg_value;
+	unsigned int byte_offset, bit_offset;
+	const uint8_t *bitmap;
+
+	if(layer == 0)
+	{
+		if(!udg_init())
+			return(false);
+
+		display_disable_text = false;
+		return(true);
+	}
+
+	display_disable_text = true;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display orbital: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display orbital: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+
+	for(udg = 0; udg < 8; udg++)
+	{
+		if(!display_command2(command_udg, udg))
+			goto error;
+
+		for(udg_line = 0; udg_line < 8; udg_line++)
+		{
+			udg_value = 0;
+
+			row = ((udg / 4) * 8) + udg_line;
+
+			for(udg_bit = 0; udg_bit < 5; udg_bit++)
+			{
+				column = ((udg % 4) * 5) + udg_bit;
+
+				byte_offset = ((24 / 8) * row) + (column / 8);
+				bit_offset = column % 8;
+
+				if(bitmap[byte_offset] & (1 << (7 - bit_offset)))
+					udg_value |= (1 << (4 - udg_bit));
+			}
+
+			if(!display_data_output(udg_value))
+				goto error;
+		}
+	}
+
+	if(!display_command1(command_clear_display))
+		goto error;
+
+	for(row = 0; row < 2; row++)
+	{
+		if(!display_command3(command_goto, 9, row + 1 + 1))
+			goto error;
+
+		for(column = 0; column < 4; column++)
+			if(!display_data_output((row * 4) + column))
+				goto error;
+	}
+
+	success = true;
+
+error:
+	flash_sector_buffer_use = fsb_free;
+	if(!display_data_flush())
+		return(false);
+	if(!text_goto(-1, -1))
+		return(false);
+
+	return(success);
 }

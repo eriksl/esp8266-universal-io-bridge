@@ -9,5 +9,7 @@ bool display_orbital_bright(int);
 bool display_orbital_begin(int slot, bool logmode);
 bool display_orbital_output(unsigned int);
 bool display_orbital_end(void);
+bool display_orbital_picture_load(unsigned int);
+bool display_orbital_layer_select(unsigned int);
 
 #endif

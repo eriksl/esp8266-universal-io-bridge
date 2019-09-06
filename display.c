@@ -115,8 +115,8 @@ roflash static display_info_t display_info[display_size] =
 		display_orbital_bright,
 		(void *)0,
 		(void *)0,
-		(void *)0,
-		(void *)0,
+		display_orbital_picture_load,
+		display_orbital_layer_select,
 	},
 	{
 		"cfa634", "4x20 character LCD",
