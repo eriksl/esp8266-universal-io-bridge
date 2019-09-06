@@ -418,9 +418,6 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
 	display_info_t *display_info_entry;
-	static bool picture_autoload_checked = false;
-	static unsigned int picture_autoload_waiting = 0;
-	unsigned int picture_autoload_index;
 	static bool display_initial_log_active = true;
 	static unsigned int display_initial_log_counter = 0;
 	bool log_to_display;
@@ -429,6 +426,13 @@ void display_periodic(void) // gets called 10 times per second
 		return;
 
 	display_info_entry = &display_info[display_data.detected];
+
+	if(display_info_entry->periodic_fn && !display_info_entry->periodic_fn())
+	{
+		log("display update: display periodic failed\n");
+		display_data.detected = -1;
+		return;
+	}
 
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
@@ -494,34 +498,13 @@ void display_periodic(void) // gets called 10 times per second
 			display_update(true);
 		}
 	}
-
-	if(display_info_entry->periodic_fn && !display_info_entry->periodic_fn())
-	{
-		log("display update: display periodic failed\n");
-		display_data.detected = -1;
-		return;
-	}
-
-	if(!picture_autoload_checked && (picture_autoload_waiting++ == 300))
-	{
-		picture_autoload_checked = true;
-
-		if(display_info_entry->picture_load_fn &&
-				config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
-				(picture_autoload_index < 2) &&
-				!display_info_entry->picture_load_fn(picture_autoload_index))
-		{
-			log("display update: display picture autoload failed\n");
-			display_data.detected = -1;
-			return;
-		}
-	}
 }
 
 void display_init(void)
 {
 	display_info_t *display_info_entry;
 	int current, slot;
+	unsigned int picture_autoload_index;
 
 	display_data.detected = -1;
 
@@ -553,16 +536,29 @@ void display_init(void)
 	if(!display_info_entry->begin_fn(0, true))
 	{
 		log("display init: display begin failed\n");
-		display_data.detected = -1;
-		return;
+		goto error;
 	}
 
 	if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
 	{
 		log("display init: display standout failed\n");
-		display_data.detected = -1;
-		return;
+		goto error;
 	}
+
+	if(display_info_entry->picture_load_fn &&
+			config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
+			(picture_autoload_index < 2) &&
+			!display_info_entry->picture_load_fn(picture_autoload_index))
+	{
+		log("display update: display picture autoload failed\n");
+		goto error;
+	}
+
+	return;
+
+error:
+	display_data.detected = -1;
+	return;
 }
 
 static void display_dump(string_t *dst)
