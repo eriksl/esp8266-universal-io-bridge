@@ -4648,14 +4648,14 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 	{
 		i2c_sensor_htu21_temperature, 0x40, 1, 0,
-		"htu21", "temperature", "C",
+		"htu21/si7021", "temperature", "C",
 		sensor_htu21_init,
 		sensor_htu21_temperature_read,
 		sensor_htu21_periodic,
 	},
 	{
 		i2c_sensor_htu21_humidity, 0x40, 0, 1,
-		"htu21", "humidity", "%",
+		"htu21/si7021", "humidity", "%",
 		(void *)0,
 		sensor_htu21_humidity_read,
 		(void *)0,
