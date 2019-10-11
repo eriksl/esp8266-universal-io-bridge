@@ -2463,6 +2463,7 @@ enum
 	ccs811_reg_meas_mode		= 0x01,
 	ccs811_reg_alg_result		= 0x02,
 	ccs811_reg_hw_id			= 0x20,
+	ccs811_reg_error_id			= 0xf4,
 	ccs811_reg_app_start		= 0xf4,
 	ccs811_reg_reset			= 0xff,
 
@@ -2552,10 +2553,24 @@ static i2c_error_t sensor_ccs811_read(int bus, const i2c_sensor_device_table_ent
 
 	value->raw = value->cooked = -1;
 
+	if((error = i2c_send1_receive(entry->address, ccs811_reg_status, 1, i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] & ccs811_status_error)
+	{
+		if((error = i2c_send1_receive(entry->address, ccs811_reg_error_id, 1, i2c_buffer)) != i2c_error_ok)
+			return(error);
+
+		return(i2c_error_device_error_1);
+	}
+
+	if(!(i2c_buffer[0] & ccs811_status_data_ready))
+		return(i2c_error_device_error_2);
+
 	if((error = i2c_send1_receive(entry->address, ccs811_reg_alg_result, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	value->raw = (i2c_buffer[ccs811_algdata_eco2 + 0] << 8) | (i2c_buffer[ccs811_algdata_eco2 + 1] << 0);
+	value->raw = unsigned_16(i2c_buffer[ccs811_algdata_eco2 + 0], i2c_buffer[ccs811_algdata_eco2 + 1]);
 	value->cooked = 100 - ((value->raw - 400) / 76);
 
 	if(value->cooked < 0)
@@ -3035,7 +3050,7 @@ static i2c_error_t sensor_htu21_init(int bus, const i2c_sensor_device_table_entr
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
 
-	msleep(1);
+	msleep(2);
 
 	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
