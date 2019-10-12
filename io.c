@@ -2806,7 +2806,6 @@ typedef enum
 	ds_id_cfa634,
 	ds_id_lcd,
 	ds_id_unknown,
-	ds_id_not_detected,
 	ds_id_max_value,
 	ds_id_info_1,
 	ds_id_info_2,
@@ -2832,7 +2831,7 @@ static const roflash dump_string_t roflash_dump_strings =
 {
 	.plain =
 	{
-		/* ds_id_io */				"io[%d]: %s@%02x\n",
+		/* ds_id_io */				"%c io[%d]: %s@%02x\n",
 		/* ds_id_pin_1 */			"  pin: %2d, ",
 		/* ds_id_pin_2 */			"\n",
 		/* ds_id_flags_1 */			" flags: [",
@@ -2858,7 +2857,6 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"cfa634",
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_unknown */			"unknown",
-		/* ds_id_not_detected */	"  not found\n",
 		/* ds_id_max_value */		", max value: %u",
 		/* ds_id_info_1 */			", info: ",
 		/* ds_id_info_2 */			"",
@@ -2872,7 +2870,7 @@ static const roflash dump_string_t roflash_dump_strings =
 
 	.html =
 	{
-		/* ds_id_io */				"<tr><th colspan=\"6\" align=\"center\">IO %d: %s@%02x</th></tr>\n",
+		/* ds_id_io */				"<tr><th colspan=\"6\" align=\"center\">%c IO %d: %s@%02x</th></tr>\n",
 		/* ds_id_pin_1 */			"<tr><td align=\"center\">%d</td>",
 		/* ds_id_pin_2 */			"</tr>\n",
 		/* ds_id_flags_1 */			"<td>",
@@ -2898,7 +2896,6 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"<td>cfa634</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
-		/* ds_id_not_detected */	"<tr><td colspan=\"6\">not connected</td></tr>\n",
 		/* ds_id_max_value */		"<td>%u</td>",
 		/* ds_id_info_1 */			"<td>",
 		/* ds_id_info 2 */			"</td>",
@@ -2936,13 +2933,10 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 		info = &io_info[io];
 		data = &io_data[io];
 
-		string_format_flash_ptr(dst, (*roflash_strings)[ds_id_io], io, info->name, info->address);
+		string_format_flash_ptr(dst, (*roflash_strings)[ds_id_io], data->detected ? '*' : ' ', io, info->name, info->address);
 
-		if(!data->detected)
-		{
-			string_append_cstr_flash(dst, (*roflash_strings)[ds_id_not_detected]);
+		if(!data->detected || (io_id < 0))
 			continue;
-		}
 
 		string_append_cstr_flash(dst, (*roflash_strings)[ds_id_pins_header]);
 
