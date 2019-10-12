@@ -113,12 +113,9 @@ roflash static const char roflash_html_table_end[] =
 
 static void http_range_form(string_t *dst, int io, int pin, int low, int high, int step, int current)
 {
-	unsigned int pwm_period;
 	string_new(, id, 32);
 
 	string_format(&id, "range_%d_%d", io, pin);
-
-	pwm_period = io_gpio_pwm1_width_get();
 
 	string_format(dst,	"<form id=\"form_%s\" class=\"form\" method=\"get\" action=\"%s\">\n", string_to_cstr(&id), "set");
 	string_append(dst,		"	<div class=\"div\">\n");
@@ -126,7 +123,7 @@ static void http_range_form(string_t *dst, int io, int pin, int low, int high, i
 	string_append(dst,		"	</div>\n");
 	string_format(dst,	"	<input name=\"io\" type=\"hidden\" value=\"%d\" />\n", io);
 	string_format(dst,	"	<input name=\"pin\" type=\"hidden\" value=\"%d\" />\n", pin);
-	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%d\" max=\"%u\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0, pwm_period, current, string_to_cstr(&id));
+	string_format(dst,	"	<input name=\"value\" type=\"range\" class=\"range\" min=\"%u\" max=\"%u\" value=\"%d\" onchange=\"changed_%s(this.value);\" />\n", 0U, 1U << io_gpio_pwm1_width_get(), current, string_to_cstr(&id));
 	string_append(dst,		"	<script type=\"text/javascript\">\n");
 	string_format(dst,	"	function changed_%s(value)\n", string_to_cstr(&id));
 	string_append(dst,		"	{\n");
