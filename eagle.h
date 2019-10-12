@@ -213,6 +213,11 @@ enum
 
 enum
 {
+	WDT_CNTL_ENABLE =	1 << 0,
+};
+
+enum
+{
 	UART_CLK_FREQ = 80000000,
 };
 
