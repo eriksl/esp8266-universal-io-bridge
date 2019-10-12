@@ -262,7 +262,7 @@ clean:
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
-				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,79570)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,79810)
 				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,417792)
 
 showsymbols:	$(ELF_IMAGE)
