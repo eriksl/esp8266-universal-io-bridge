@@ -667,6 +667,9 @@ bool display_lcd_layer_select(unsigned int layer)
 				goto error;
 	}
 
+	if(!text_goto(0, 0))
+		goto error;
+
 	success = true;
 
 error:
