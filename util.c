@@ -147,24 +147,20 @@ attr_pure ip_addr_t ip_addr(const char *src)
 
 void *_malloc_r(struct _reent *r, size_t sz)
 {
-	extern void* pvPortMalloc(size_t sz, const char *, unsigned, bool);
 	return(pvPortMalloc(sz, "", 0, false));
 }
 
 void *_calloc_r(struct _reent *r, size_t a, size_t b)
 {
-	extern void* pvPortCalloc(size_t count,size_t size,const char *,unsigned);
 	return(pvPortCalloc(a, b, "", 0));
 }
 
 void _free_r(struct _reent *r, void *x)
 {
-	extern void vPortFree (void *p, const char *, unsigned);
 	return(vPortFree(x, "", 0));
 }
 
 void *_realloc_r(struct _reent *r, void *x, size_t sz)
 {
-	extern void* pvPortRealloc (void *p, size_t n, const char *, unsigned);
 	return(pvPortRealloc(x, sz, "", 0));
 }

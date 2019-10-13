@@ -474,7 +474,6 @@ uint16_t			system_adc_read(void);
 uint32_t			system_get_chip_id(void);
 uint8_t				system_get_cpu_freq(void);
 enum flash_size_map	system_get_flash_size_map(void);
-uint32_t			system_get_free_heap_size(void);
 const char *		system_get_sdk_version(void);
 struct rst_info* 	system_get_rst_info(void);
 uint32_t			system_get_rtc_time(void);
@@ -488,6 +487,8 @@ bool				system_os_task(os_task_t, uint8_t, os_event_t *, uint8_t);
 bool				system_rtc_mem_read(uint8_t, void *, uint16_t);
 bool				system_rtc_mem_write(uint8_t, const void *, uint16_t);
 void				system_restart(void);
+void				system_restart_local(void); // skip ap/sta disconnect
+void				system_restart_core(void);
 void				system_set_os_print(uint8_t onoff);
 uint32_t			system_rtc_clock_cali_proc(void);
 void				system_soft_wdt_feed(void);
@@ -540,7 +541,13 @@ bool				wifi_station_scan(struct scan_config *config, scan_done_cb_t);
 bool				wifi_station_set_auto_connect(uint8_t);
 bool				wifi_station_set_config(struct station_config *);
 
-void		gpio_init(void);
-void		gpio_pin_intr_state_set(uint32_t, GPIO_INT_TYPE);
+void				gpio_init(void);
+void				gpio_pin_intr_state_set(uint32_t, GPIO_INT_TYPE);
+
+void *				pvPortMalloc(size_t sz, const char *, unsigned, bool);
+void *				pvPortCalloc(size_t count, size_t size, const char *, unsigned);
+void				vPortFree(void *p, const char *, unsigned);
+void *				pvPortRealloc(void *p, size_t n, const char *, unsigned);
+unsigned int		xPortGetFreeHeapSize();
 
 #endif

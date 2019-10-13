@@ -89,7 +89,7 @@ void user_init(void)
 
 static void user_init2(void)
 {
-	stat_heap_min = stat_heap_max = system_get_free_heap_size();
+	stat_heap_min = stat_heap_max = xPortGetFreeHeapSize();
 
 	dispatch_init2();
 

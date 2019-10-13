@@ -171,7 +171,7 @@ void stats_firmware(string_t *dst)
 		stack_used = stack_bottom - (unsigned int)sp;
 	}
 
-	heap = system_get_free_heap_size();
+	heap = xPortGetFreeHeapSize();
 
 	if(heap < stat_heap_min)
 		stat_heap_min = heap;
