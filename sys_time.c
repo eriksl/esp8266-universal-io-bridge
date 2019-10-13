@@ -50,7 +50,7 @@ string_new(static, sntp_socket_receive_buffer, sizeof(sntp_network_t));
 string_new(static, sntp_socket_send_buffer, sizeof(sntp_network_t));
 static lwip_if_socket_t sntp_socket;
 
-static void sms_to_date(string_t *dst, int s, int ms, int r1, int r2, int b, int w);
+static void sms_to_date(string_t *dst, unsigned int s, unsigned int ms, unsigned int r1, unsigned int r2, unsigned int b, unsigned int w);
 
 static time_flags_t time_flags;
 
@@ -455,9 +455,9 @@ void time_sntp_stats(string_t *dst)
 
 // generic interface
 
-static void sms_to_date(string_t *dst, int s, int ms, int r1, int r2, int b, int w)
+static void sms_to_date(string_t *dst, unsigned int s, unsigned int ms, unsigned int r1, unsigned int r2, unsigned int b, unsigned int w)
 {
-	int d, h, m;
+	unsigned int d, h, m;
 
 	d = s / (24 * 60 * 60);
 	s -= d * 24 * 60 * 60;
@@ -466,7 +466,7 @@ static void sms_to_date(string_t *dst, int s, int ms, int r1, int r2, int b, int
 	m = s / 60;
 	s -= m * 60;
 
-	string_format(dst, "%2d %02d:%02d:%02d.%03d (r1=%d,r2=%d,b=%d,w=%d)", d, h, m, s, ms, r1, r2, b, w);
+	string_format(dst, "%2u %02u:%02u:%02u.%03u (r1=%u,r2=%u,b=%u,w=%u)", d, h, m, s, ms, r1, r2, b, w);
 }
 
 static unsigned int time_base_s;
