@@ -1,0 +1,34 @@
+esp8266 memory map								flash memory map (start from 40100000)
+
+segment			size	sub size		start					size	start
+	-									700.00000
+	-									600.02000	I/O
+	-									600.01800	I/O
+	-									600.01000	I/O
+	-									600.00000	I/O
+	-									403.00000
+	irom0								402.10000
+SPI-MAPPED								402.00000	<---				10000	irom0
+	-									401.40000
+	-									401.10000
+	icache1		4000					401.0c000				4000	0c000	cache / "dummy when writing composite image"
+	icache0		4000					401.08000				4000	08000	cache / "dummy when writing composite image"
+	iram1		8000					401.00000	<---		8000	00000	iram0
+	-									400.10000
+	brom		10000					400.00000	stack bottom
+	-					14cc	5324	3ff.feb34	stack top (grows downwards)
+	-					8		8		3ff.feb2c	"system data ram #3"
+	-					b2c		2860	3ff.fe000	ram free to use #1 (apparently, tested)
+						190c	6412	3ff.fc6f4	"system data ram #2"
+						33c		828		3ff.fc3b8	ram free to use #2 (untested)
+	-					3b8		952		3ff.fc000	"system data ram #1"
+	dram0 		18000	14000			3ff.e8000	bss, rodata, data, system heap
+	-									3ff.e0000
+	-			20000					3ff.c0000
+	-									3ff.30000
+	-									3ff.20000
+	-									3ff.00010
+	dport0		10						3ff.00000
+	-									200.00000
+	-									000.00000
+
