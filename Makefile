@@ -177,11 +177,10 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-packed \
 						-Wno-unused-parameter \
 
-CFLAGS			:=	-pipe -O3 -g -std=gnu11 -fdiagnostics-color=always \
+CFLAGS			:=	-pipe -Os -g -std=gnu11 -fdiagnostics-color=always \
 						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
 						-ftree-vrp \
-						-fno-tree-forwprop \
 						-ffunction-sections -fdata-sections
 
 ifeq ($(USE_LTO),1)
@@ -262,7 +261,7 @@ clean:
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
-				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,79810)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265)
 				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,417792)
 
 showsymbols:	$(ELF_IMAGE)

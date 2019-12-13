@@ -1,12 +1,13 @@
---- .config	2019-04-12 09:20:32.446663258 +0200
-+++ .config	2019-04-12 09:28:06.047950392 +0200
-@@ -34,17 +34,17 @@
+--- .config 2019-12-12 19:42:27.109713273 +0100
++++ .config	2019-12-12 20:03:08.165932076 +0100
+@@ -44,18 +44,18 @@
  #
  # Paths
  #
 -CT_LOCAL_TARBALLS_DIR="${HOME}/src"
 +CT_LOCAL_TARBALLS_DIR="${CT_TOP_DIR}/sources"
  CT_SAVE_TARBALLS=y
+ # CT_TARBALLS_BUILDROOT_LAYOUT is not set
  CT_WORK_DIR="${CT_TOP_DIR}/.build"
  CT_BUILD_TOP_DIR="${CT_WORK_DIR:-${CT_TOP_DIR}/.build}/${CT_HOST:+HOST-${CT_HOST}/}${CT_TARGET}"
 -CT_PREFIX_DIR="${CT_PREFIX:-${HOME}/x-tools}/${CT_HOST:+HOST-${CT_HOST}/}${CT_TARGET}"
@@ -22,7 +23,7 @@
  
  #
  # Downloading
-@@ -55,7 +55,7 @@
+@@ -66,7 +66,7 @@
  # CT_FORBID_DOWNLOAD is not set
  # CT_FORCE_DOWNLOAD is not set
  CT_CONNECT_TIMEOUT=10
@@ -31,7 +32,7 @@
  # CT_ONLY_DOWNLOAD is not set
  # CT_USE_MIRROR is not set
  CT_VERIFY_DOWNLOAD_DIGEST=y
-@@ -153,7 +153,7 @@
+@@ -164,7 +164,7 @@
  CT_DEMULTILIB=y
  CT_ARCH_SUPPORTS_BOTH_MMU=y
  CT_ARCH_DEFAULT_HAS_MMU=y
@@ -40,16 +41,18 @@
  CT_ARCH_SUPPORTS_FLAT_FORMAT=y
  CT_ARCH_SUPPORTS_EITHER_ENDIAN=y
  CT_ARCH_DEFAULT_LE=y
-@@ -167,7 +167,7 @@
+@@ -178,8 +178,8 @@
  #
  # Target optimisations
  #
 -CT_TARGET_CFLAGS="-mlongcalls"
+-CT_TARGET_LDFLAGS=""
 +CT_TARGET_CFLAGS="-mlongcalls -mno-target-align -mno-serialize-volatile"
- CT_TARGET_LDFLAGS=""
++CT_TARGET_LDFLAGS="-Wl,--size-opt"
  CT_TARGET_USE_OVERLAY=y
  CT_OVERLAY_NAME="lx106"
-@@ -181,7 +181,7 @@
+ CT_OVERLAY_LOCATION="${CT_TOP_DIR}/overlays"
+@@ -192,7 +192,7 @@
  # General toolchain options
  #
  CT_SHOW_CT_VERSION=y
@@ -58,26 +61,18 @@
  CT_TOOLCHAIN_BUGURL=""
  
  #
-@@ -236,6 +236,8 @@
- # Binary utilities
- #
- CT_ARCH_BINFMT_ELF=y
-+# CT_ARCH_BINFMT_FLAT is not set
-+# CT_ARCH_BINFMT_FDPIC is not set
- CT_BINUTILS_BINUTILS=y
- CT_BINUTILS="binutils"
- CT_BINUTILS_CHOICE_KSYM="BINUTILS"
-@@ -353,22 +355,23 @@
+@@ -367,25 +367,26 @@
+ CT_NEWLIB_later_than_2_0=y
  CT_NEWLIB_2_0_or_later=y
  CT_NEWLIB_CXA_ATEXIT=y
- CT_LIBC_NEWLIB_TARGET_CFLAGS="-DMALLOC_PROVIDED"
--# CT_LIBC_NEWLIB_IO_C99FMT is not set
+-CT_LIBC_NEWLIB_TARGET_CFLAGS="-DMALLOC_PROVIDED"
++CT_LIBC_NEWLIB_TARGET_CFLAGS="-DMALLOC_PROVIDED -ffunction-sections -fdata-sections -Wl,--size-opt"
+ # CT_LIBC_NEWLIB_IO_C99FMT is not set
 -# CT_LIBC_NEWLIB_IO_LL is not set
 -# CT_LIBC_NEWLIB_IO_FLOAT is not set
-+CT_LIBC_NEWLIB_IO_C99FMT=y
 +CT_LIBC_NEWLIB_IO_LL=y
 +CT_LIBC_NEWLIB_IO_FLOAT=y
-+# CT_LIBC_NEWLIB_IO_LDBL is not set
++CT_LIBC_NEWLIB_IO_LDBL=y
  # CT_LIBC_NEWLIB_IO_POS_ARGS is not set
 -CT_LIBC_NEWLIB_FVWRITE_IN_STREAMIO=y
 -CT_LIBC_NEWLIB_UNBUF_STREAM_OPT=y
@@ -90,18 +85,40 @@
 -CT_LIBC_NEWLIB_ATEXIT_DYNAMIC_ALLOC=y
 +# CT_LIBC_NEWLIB_ATEXIT_DYNAMIC_ALLOC is not set
  # CT_LIBC_NEWLIB_GLOBAL_ATEXIT is not set
- # CT_LIBC_NEWLIB_LITE_EXIT is not set
- # CT_LIBC_NEWLIB_REENT_SMALL is not set
--CT_LIBC_NEWLIB_MULTITHREAD=y
+-# CT_LIBC_NEWLIB_LITE_EXIT is not set
++CT_LIBC_NEWLIB_LITE_EXIT=y
+-# CT_LIBC_NEWLIB_REENT_SMALL is not set
++CT_LIBC_NEWLIB_REENT_SMALL=y
+ CT_LIBC_NEWLIB_MULTITHREAD=y
 -# CT_LIBC_NEWLIB_EXTRA_SECTIONS is not set
 -CT_LIBC_NEWLIB_WIDE_ORIENT=y
-+# CT_LIBC_NEWLIB_MULTITHREAD is not set
 +CT_LIBC_NEWLIB_EXTRA_SECTIONS=y
 +# CT_LIBC_NEWLIB_WIDE_ORIENT is not set
  CT_LIBC_NEWLIB_ENABLE_TARGET_OPTSPACE=y
  # CT_LIBC_NEWLIB_LTO is not set
  CT_LIBC_NEWLIB_EXTRA_CONFIG_ARRAY=""
-@@ -444,12 +447,12 @@
+ CT_ALL_LIBC_CHOICES="AVR_LIBC BIONIC GLIBC MINGW_W64 MOXIEBOX MUSL NEWLIB NONE UCLIBC"
+ CT_LIBC_SUPPORT_THREADS_NONE=y
+@@ -400,12 +401,12 @@
+ # C compiler
+ #
+ CT_CC_CORE_PASS_2_NEEDED=y
+-CT_CC_SUPPORT_CXX=y
+-CT_CC_SUPPORT_FORTRAN=y
+-CT_CC_SUPPORT_ADA=y
+-CT_CC_SUPPORT_OBJC=y
+-CT_CC_SUPPORT_OBJCXX=y
+-CT_CC_SUPPORT_GOLANG=y
++#CT_CC_SUPPORT_CXX is not set
++#CT_CC_SUPPORT_FORTRAN is not set
++#CT_CC_SUPPORT_ADA is not set
++#CT_CC_SUPPORT_OBJC is not set
++#CT_CC_SUPPORT_OBJCXX is not set
++#CT_CC_SUPPORT_GOLANG is not set
+ CT_CC_GCC=y
+ CT_CC="gcc"
+ CT_CC_CHOICE_KSYM="GCC"
+@@ -459,12 +460,12 @@
  CT_CC_GCC_CORE_EXTRA_CONFIG_ARRAY=""
  CT_CC_GCC_EXTRA_CONFIG_ARRAY=""
  # CT_CC_GCC_SYSTEM_ZLIB is not set
@@ -116,27 +133,26 @@
  CT_CC_GCC_USE_LTO=y
  
  #
-@@ -464,8 +467,8 @@
+@@ -479,15 +480,15 @@
  # Misc. obscure options.
  #
  # CT_CC_CXA_ATEXIT is not set
 -# CT_CC_GCC_DISABLE_PCH is not set
 -# CT_CC_GCC_LDBL_128 is not set
 +CT_CC_GCC_DISABLE_PCH=y
-+CT_CC_GCC_LDBL_128=m
++CT_CC_GCC_LDBL_128=y
  # CT_CC_GCC_BUILD_ID is not set
  CT_CC_GCC_LNK_HASH_STYLE_DEFAULT=y
  # CT_CC_GCC_LNK_HASH_STYLE_SYSV is not set
-@@ -481,7 +484,7 @@
- #
- # Additional supported languages:
- #
--CT_CC_LANG_CXX=y
-+# CT_CC_LANG_CXX is not set
- # CT_CC_LANG_FORTRAN is not set
- CT_CC_LANG_OTHERS=""
- 
-@@ -529,45 +532,7 @@
+ # CT_CC_GCC_LNK_HASH_STYLE_GNU is not set
+ # CT_CC_GCC_LNK_HASH_STYLE_BOTH is not set
+ CT_CC_GCC_LNK_HASH_STYLE=""
+-CT_CC_GCC_DEC_FLOAT_AUTO=y
++# CT_CC_GCC_DEC_FLOAT_AUTO is not set
+ # CT_CC_GCC_DEC_FLOAT_BID is not set
+ # CT_CC_GCC_DEC_FLOAT_DPD is not set
+ # CT_CC_GCC_DEC_FLOATS_NO is not set
+@@ -545,21 +546,21 @@
  CT_GMP_later_than_5_0_0=y
  CT_GMP_5_0_0_or_later=y
  CT_GMP_REQUIRE_5_0_0_or_later=y
@@ -145,22 +161,32 @@
 -CT_ISL_DIR_NAME="isl"
 -CT_ISL_PKG_NAME="isl"
 -CT_ISL_SRC_RELEASE=y
--# CT_ISL_SRC_DEVEL is not set
--# CT_ISL_SRC_CUSTOM is not set
++# CT_COMP_LIBS_ISL is not set
++# CT_COMP_LIBS_ISL_PKG_KSYM="ISL"
++# CT_ISL_DIR_NAME="isl"
++# CT_ISL_PKG_NAME="isl"
++# CT_ISL_SRC_RELEASE=y
+ # CT_ISL_SRC_DEVEL is not set
+ # CT_ISL_SRC_CUSTOM is not set
 -CT_ISL_PATCH_GLOBAL=y
--# CT_ISL_PATCH_BUNDLED is not set
--# CT_ISL_PATCH_LOCAL is not set
--# CT_ISL_PATCH_BUNDLED_LOCAL is not set
--# CT_ISL_PATCH_LOCAL_BUNDLED is not set
--# CT_ISL_PATCH_NONE is not set
++# CT_ISL_PATCH_GLOBAL=y
+ # CT_ISL_PATCH_BUNDLED is not set
+ # CT_ISL_PATCH_LOCAL is not set
+ # CT_ISL_PATCH_BUNDLED_LOCAL is not set
+ # CT_ISL_PATCH_LOCAL_BUNDLED is not set
+ # CT_ISL_PATCH_NONE is not set
 -CT_ISL_PATCH_ORDER="global"
--CT_ISL_V_0_20=y
--# CT_ISL_V_0_19 is not set
--# CT_ISL_V_0_18 is not set
--# CT_ISL_V_0_17_1 is not set
--# CT_ISL_V_0_16_1 is not set
--# CT_ISL_V_0_15 is not set
--CT_ISL_VERSION="0.20"
+-CT_ISL_V_0_21=y
++# CT_ISL_PATCH_ORDER="global"
++# CT_ISL_V_0_21=y
+ # CT_ISL_V_0_20 is not set
+ # CT_ISL_V_0_19 is not set
+ # CT_ISL_V_0_18 is not set
+@@ -567,25 +568,25 @@
+ # CT_ISL_V_0_16 is not set
+ # CT_ISL_V_0_15 is not set
+ # CT_ISL_NO_VERSIONS is not set
+-CT_ISL_VERSION="0.21"
 -CT_ISL_MIRRORS="http://isl.gforge.inria.fr"
 -CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"
 -CT_ISL_ARCHIVE_DIRNAME="@{pkg_name}-@{version}"
@@ -179,74 +205,40 @@
 -CT_ISL_later_than_0_12=y
 -CT_ISL_0_12_or_later=y
 -CT_ISL_REQUIRE_0_12_or_later=y
-+# CT_COMP_LIBS_ISL is not set
++# CT_ISL_VERSION="0.21"
++# CT_ISL_MIRRORS="http://isl.gforge.inria.fr"
++# CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"
++# CT_ISL_ARCHIVE_DIRNAME="@{pkg_name}-@{version}"
++# CT_ISL_ARCHIVE_FORMATS=".tar.xz .tar.bz2 .tar.gz"
++# CT_ISL_SIGNATURE_FORMAT=""
++# CT_ISL_later_than_0_18=y
++# CT_ISL_0_18_or_later=y
++# CT_ISL_later_than_0_15=y
++# CT_ISL_0_15_or_later=y
++# CT_ISL_REQUIRE_0_15_or_later=y
++# CT_ISL_later_than_0_14=y
++# CT_ISL_0_14_or_later=y
++# CT_ISL_REQUIRE_0_14_or_later=y
++# CT_ISL_later_than_0_13=y
++# CT_ISL_0_13_or_later=y
++# CT_ISL_later_than_0_12=y
++# CT_ISL_0_12_or_later=y
++# CT_ISL_REQUIRE_0_12_or_later=y
  # CT_COMP_LIBS_LIBELF is not set
  # CT_COMP_LIBS_LIBICONV is not set
  CT_COMP_LIBS_MPC=y
-@@ -632,64 +597,18 @@
+@@ -673,12 +674,12 @@
  # CT_GETTEXT_NEEDED is not set
  CT_GMP_NEEDED=y
  CT_MPFR_NEEDED=y
 -CT_ISL_NEEDED=y
++# CT_ISL_NEEDED is not set
  CT_MPC_NEEDED=y
- # CT_ZLIB_NEEDED is not set
+ CT_ZLIB_NEEDED=y
  CT_GMP=y
  CT_MPFR=y
 -CT_ISL=y
++# CT_ISL is not set
  CT_MPC=y
+ CT_ZLIB=y
  
- #
- # Companion tools
- #
- # CT_COMP_TOOLS_FOR_HOST is not set
--CT_COMP_TOOLS_AUTOCONF=y
--CT_COMP_TOOLS_AUTOCONF_PKG_KSYM="AUTOCONF"
--CT_AUTOCONF_DIR_NAME="autoconf"
--CT_AUTOCONF_PKG_NAME="autoconf"
--CT_AUTOCONF_SRC_RELEASE=y
--# CT_AUTOCONF_SRC_DEVEL is not set
--# CT_AUTOCONF_SRC_CUSTOM is not set
--CT_AUTOCONF_PATCH_GLOBAL=y
--# CT_AUTOCONF_PATCH_BUNDLED is not set
--# CT_AUTOCONF_PATCH_LOCAL is not set
--# CT_AUTOCONF_PATCH_BUNDLED_LOCAL is not set
--# CT_AUTOCONF_PATCH_LOCAL_BUNDLED is not set
--# CT_AUTOCONF_PATCH_NONE is not set
--CT_AUTOCONF_PATCH_ORDER="global"
--CT_AUTOCONF_V_2_69=y
--# CT_AUTOCONF_V_2_65 is not set
--CT_AUTOCONF_VERSION="2.69"
--CT_AUTOCONF_MIRRORS="$(CT_Mirrors GNU autoconf)"
--CT_AUTOCONF_ARCHIVE_FILENAME="@{pkg_name}-@{version}"
--CT_AUTOCONF_ARCHIVE_DIRNAME="@{pkg_name}-@{version}"
--CT_AUTOCONF_ARCHIVE_FORMATS=".tar.xz .tar.gz"
--CT_AUTOCONF_SIGNATURE_FORMAT="packed/.sig"
--CT_COMP_TOOLS_AUTOMAKE=y
--CT_COMP_TOOLS_AUTOMAKE_PKG_KSYM="AUTOMAKE"
--CT_AUTOMAKE_DIR_NAME="automake"
--CT_AUTOMAKE_PKG_NAME="automake"
--CT_AUTOMAKE_SRC_RELEASE=y
--# CT_AUTOMAKE_SRC_DEVEL is not set
--# CT_AUTOMAKE_SRC_CUSTOM is not set
--CT_AUTOMAKE_PATCH_GLOBAL=y
--# CT_AUTOMAKE_PATCH_BUNDLED is not set
--# CT_AUTOMAKE_PATCH_LOCAL is not set
--# CT_AUTOMAKE_PATCH_BUNDLED_LOCAL is not set
--# CT_AUTOMAKE_PATCH_LOCAL_BUNDLED is not set
--# CT_AUTOMAKE_PATCH_NONE is not set
--CT_AUTOMAKE_PATCH_ORDER="global"
--CT_AUTOMAKE_V_1_16_1=y
--# CT_AUTOMAKE_V_1_15_1 is not set
--# CT_AUTOMAKE_V_1_14_1 is not set
--# CT_AUTOMAKE_V_1_11_6 is not set
--CT_AUTOMAKE_VERSION="1.16.1"
--CT_AUTOMAKE_MIRRORS="$(CT_Mirrors GNU automake)"
--CT_AUTOMAKE_ARCHIVE_FILENAME="@{pkg_name}-@{version}"
--CT_AUTOMAKE_ARCHIVE_DIRNAME="@{pkg_name}-@{version}"
--CT_AUTOMAKE_ARCHIVE_FORMATS=".tar.xz .tar.gz"
--CT_AUTOMAKE_SIGNATURE_FORMAT="packed/.sig"
-+# CT_COMP_TOOLS_AUTOCONF is not set
-+# CT_COMP_TOOLS_AUTOMAKE is not set
- # CT_COMP_TOOLS_DTC is not set
- # CT_COMP_TOOLS_LIBTOOL is not set
- # CT_COMP_TOOLS_M4 is not set
