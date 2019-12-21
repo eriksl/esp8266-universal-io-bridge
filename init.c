@@ -213,10 +213,12 @@ bool wlan_init_from_config(void)
 void wlan_init_start_recovery(void)
 {
 	config_flag_change_nosave(flag_log_to_uart, true);
-	config_flag_change_nosave(flag_uart0_tx_inv, false);
-	config_flag_change_nosave(flag_uart0_rx_inv, false);
 	config_flag_change_nosave(flag_log_to_buffer, true);
 	config_flag_change_nosave(flag_cmd_from_uart, true);
+
+	uart_invert(0, uart_dir_tx, false);
+	uart_invert(0, uart_dir_rx, false);
+	uart_loopback(0, false);
 
 	string_init(static, wlan_default_ssid, "esp");
 	string_init(static, wlan_default_password, "espespesp");

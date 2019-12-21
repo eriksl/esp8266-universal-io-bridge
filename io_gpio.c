@@ -1008,7 +1008,10 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 
 		case(io_pin_ll_uart):
 		{
-			if(gpio_info->uart_pin == io_uart_none)
+			uart_direction_t direction;
+			bool enable;
+
+			if(gpio_info->uart_pin == io_uart_pin_none)
 			{
 				if(error_message)
 					string_format(error_message, "gpio pin %d cannot be used for uart\n", pin);
@@ -1022,8 +1025,12 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 				return(io_error);
 			}
 
+			direction = gpio_info->uart_pin == io_uart_pin_rx ? uart_dir_rx : uart_dir_tx;
+			enable = !!(pin_config->flags & io_flag_invert);
+
 			gpio_func_select(pin, io_gpio_func_uart);
 			gpio_enable_pullup(pin, pin_config->flags & io_flag_pullup);
+			uart_invert(gpio_info->uart_instance, direction, enable);
 
 			break;
 		}
@@ -1171,6 +1178,8 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 							break;
 						}
 					}
+
+					string_format(dst, ", inverted: %s", yesno(pin_config->flags & io_flag_invert));
 				}
 
 				break;
@@ -1241,22 +1250,29 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 		{
 			bool			enabled;
 			unsigned int	character;
-			int				uart = gpio_info_table[pin].uart;
 
-			if((uart < 0) || (uart > 1))
+			switch(gpio_info_table[pin].uart_pin)
 			{
-				if(error_message)
-					string_format(error_message, "cannot uart read from gpio %d\n", pin);
-				return(io_error);
-			}
+				case(io_uart_pin_none):
+				{
+					if(error_message)
+						string_format(error_message, "cannot uart read from gpio %d\n", pin);
+					return(io_error);
+				}
 
-			if(gpio_info_table[pin].uart_pin == io_uart_tx)
-			{
-				uart_is_autofill(uart, &enabled, &character);
-				*value = !!enabled;
+				case(io_uart_pin_tx):
+				{
+					uart_is_autofill(gpio_info_table[pin].uart_instance, &enabled, &character);
+					*value = !!enabled;
+					break;
+				}
+
+				case(io_uart_pin_rx):
+				{
+					*value = 0;
+					break;
+				}
 			}
-			else
-				*value = 0;
 
 			break;
 		}
@@ -1373,6 +1389,12 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 					uart_baudrate(uart, value << 1);
 					uart_autofill(uart, true, 0x55);
 				}
+			}
+			else
+			{
+				if(error_message)
+					string_format(error_message, "cannot uart write to gpio %d\n", pin);
+				return(io_error);
 			}
 
 			break;

@@ -16,6 +16,13 @@ typedef enum attr_packed
 	parity_error
 } uart_parity_t;
 
+typedef enum
+{
+	uart_dir_none,
+	uart_dir_tx,
+	uart_dir_rx,
+} uart_direction_t;
+
 assert_size(uart_parity_t, 1);
 
 typedef struct attr_packed
@@ -39,6 +46,7 @@ void 			uart_data_bits(unsigned int uart, unsigned int data_bits);
 void			uart_stop_bits(unsigned int uart, unsigned int stop_bits);
 void			uart_parity(unsigned int uart, uart_parity_t parity);
 void			uart_loopback(unsigned int, bool);
+bool			uart_invert(unsigned int, uart_direction_t, bool enable);
 void			uart_autofill(unsigned int uart, bool enable, unsigned int character);
 void			uart_is_autofill(unsigned int uart, bool *enable, unsigned int *character);
 bool			uart_full(unsigned int uart);

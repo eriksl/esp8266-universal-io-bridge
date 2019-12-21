@@ -268,6 +268,42 @@ void uart_loopback(unsigned int uart, bool enable)
 			enable ? UART_LOOPBACK : 0);
 }
 
+bool uart_invert(unsigned int uart, uart_direction_t dir, bool enable)
+{
+	if(uart > 1)
+		false;
+
+	switch(dir)
+	{
+		case(uart_dir_rx):
+		{
+			if(enable)
+				clear_set_peri_reg_mask(UART_CONF0(uart), 0, UART_RXD_INV);
+			else
+				clear_set_peri_reg_mask(UART_CONF0(uart), UART_RXD_INV, 0);
+
+			break;
+		}
+
+		case(uart_dir_tx):
+		{
+			if(enable)
+				clear_set_peri_reg_mask(UART_CONF0(uart), 0, UART_TXD_INV);
+			else
+				clear_set_peri_reg_mask(UART_CONF0(uart), UART_TXD_INV, 0);
+
+			break;
+		}
+
+		default:
+		{
+			return(false);
+		}
+	}
+
+	return(true);
+}
+
 void uart_autofill(unsigned int uart, bool enable, unsigned int character)
 {
 	if((uart == 0) || (uart == 1))
@@ -315,14 +351,10 @@ void uart_init(void)
 	// If the fifo contains less than this numbers of bytes, raise an
 	// interrupt.
 
-	clear_set_peri_reg_mask(UART_CONF0(0),
-			(UART_RXD_INV | UART_TXD_INV),
-			((config_flags_match(flag_uart0_tx_inv)) ? UART_TXD_INV : 0) |
-			((config_flags_match(flag_uart0_rx_inv)) ? UART_RXD_INV : 0));
-
-	clear_set_peri_reg_mask(UART_CONF0(1),
-			(UART_RXD_INV | UART_TXD_INV),
-			((config_flags_match(flag_uart1_tx_inv)) ? UART_TXD_INV : 0));
+	uart_invert(0, uart_dir_tx, false);
+	uart_invert(0, uart_dir_rx, false);
+	uart_invert(1, uart_dir_tx, false);
+	uart_invert(1, uart_dir_rx, false);
 
 	write_peri_reg(UART_CONF1(0),
 			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
