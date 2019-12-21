@@ -105,6 +105,7 @@ typedef enum
 	io_flag_grb =			1 << 5,
 	io_flag_linear =		1 << 6,
 	io_flag_fill8 =			1 << 7,
+	io_flag_invert =		1 << 8,
 } io_pin_flag_t;
 
 assert_size(io_pin_flag_t, 4);

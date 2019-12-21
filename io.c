@@ -34,6 +34,7 @@ roflash static const io_flag_name_t io_flag_names[] =
 	{	io_flag_grb,			"grb"			},
 	{	io_flag_linear,			"linear",		},
 	{	io_flag_fill8,			"fill8",		},
+	{	io_flag_invert,			"invert",		},
 	{	io_flag_none,			""				},
 };
 
