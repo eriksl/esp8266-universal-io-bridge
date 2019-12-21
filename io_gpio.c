@@ -25,12 +25,12 @@ typedef enum
 
 typedef enum
 {
-	io_uart_none = 0,
-	io_uart_rx,
-	io_uart_tx,
-} io_uart_t;
+	io_uart_pin_none = 0,
+	io_uart_pin_rx,
+	io_uart_pin_tx,
+} io_uart_pin_t;
 
-assert_size(io_uart_t, 4);
+assert_size(io_uart_pin_t, 4);
 
 enum
 {
@@ -42,9 +42,9 @@ typedef const struct
 	const uint32_t		flags;
 	const uint32_t		mux;
 	const uint32_t		func;
-	const io_uart_t		uart_pin;
-	const uint32_t		func_uart;
-	const uint32_t		uart;
+	const io_uart_pin_t	uart_pin;
+	const uint32_t		uart_func;
+	const uint32_t		uart_instance;
 } gpio_info_t;
 
 assert_size(bool, 1);
@@ -72,22 +72,22 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 roflash static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_tx,		FUNC_U0TXD,		0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_tx,		FUNC_U1TXD_BK,	1	},
-	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_rx,		FUNC_U0RXD,		0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_none,	0,				0	},
-	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_none,	0,				0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_none,	0,				0	},
+	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_pin_tx,		FUNC_U0TXD,		0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_pin_tx,		FUNC_U1TXD_BK,	1	},
+	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_pin_rx,		FUNC_U0RXD,		0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_pin_none,	0,				~0	},
+	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_pin_none,	0,				~0	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_pin_none,	0,				~0	},
 };
 
 typedef struct
@@ -239,7 +239,7 @@ attr_inline bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 	switch(gpio_pin_mode)
 	{
 		case(io_gpio_func_gpio): func = gpio_pin_info->func; break;
-		case(io_gpio_func_uart): func = gpio_pin_info->func_uart; break;
+		case(io_gpio_func_uart): func = gpio_pin_info->uart_func; break;
 		default: return(false);
 	}
 
@@ -1006,7 +1006,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 				return(io_error);
 			}
 
-			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->uart_pin != io_uart_tx))
+			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->uart_pin != io_uart_pin_tx))
 			{
 				if(error_message)
 					string_format(error_message, "gpio pin %d (uart rx) cannot be used for ledpixel mode\n", pin);
@@ -1115,7 +1115,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 
 			case(io_pin_ll_uart):
 			{
-				unsigned int uart = gpio_info_table[pin].uart;
+				unsigned int uart = gpio_info_table[pin].uart_instance;
 
 				if((uart != 0) && (uart != 1))
 					string_append(dst, "<invalid uart>");
@@ -1125,7 +1125,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 
 					switch(gpio_info_table[pin].uart_pin)
 					{
-						case(io_uart_tx):
+						case(io_uart_pin_tx):
 						{
 							bool			enabled;
 							unsigned int	character;
@@ -1136,7 +1136,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 							break;
 						}
 
-						case(io_uart_rx):
+						case(io_uart_pin_rx):
 						{
 							string_append(dst, "rx");
 							break;
@@ -1305,7 +1305,7 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 
 		case(io_pin_ll_uart):
 		{
-			int uart = gpio_info_table[pin].uart;
+			int uart = gpio_info_table[pin].uart_instance;
 
 			if((uart < 0) || (uart > 1))
 			{
@@ -1314,7 +1314,7 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 				return(io_error);
 			}
 
-			if(gpio_info_table[pin].uart_pin == io_uart_tx)
+			if(gpio_info_table[pin].uart_pin == io_uart_pin_tx)
 			{
 				if(value == 0)
 				{
@@ -1350,8 +1350,8 @@ attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 	if(pin >= max_pins_per_io)
 		return(-1);
 
-	if(gpio_info_table[pin].uart_pin == io_uart_none)
+	if(gpio_info_table[pin].uart_pin == io_uart_pin_none)
 		return(-1);
 
-	return(gpio_info_table[pin].uart);
+	return(gpio_info_table[pin].uart_instance);
 }
