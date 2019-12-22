@@ -52,17 +52,25 @@ static unsigned int config_current_index;
 
 static int config_tail(void)
 {
-	int current;
+	int current, c[2];
 
-	for(current = sizeof(CONFIG_MAGIC) + 1; (current + 1) < string_size(&flash_sector_buffer); current++)
-		if((string_at(&flash_sector_buffer, current) == '\n') &&
-				(string_at(&flash_sector_buffer, current + 1) == '\n'))
+	for(current = sizeof(CONFIG_MAGIC) - 1; (current + 1) < string_size(&flash_sector_buffer); current++)
+	{
+		c[0] = string_at(&flash_sector_buffer, current + 0);
+		c[1] = string_at(&flash_sector_buffer, current + 1);
+
+		if(c[0] == '\0')
+		{
+			log("config_tail: config corrupt, clearing\n");
+			current = sizeof(CONFIG_MAGIC) - 2;
 			break;
+		}
 
-	if((current + 1) >= string_size(&flash_sector_buffer))
-		current = sizeof(CONFIG_MAGIC) + 1;
-	else
-		current++;
+		if((c[0] == '\n') && (c[1] == '\n'))
+			break;
+	}
+
+	current++;
 
 	return(current);
 }
@@ -118,7 +126,7 @@ bool config_open_read(void)
 		log("config_open_read: magic mismatch\n");
 		string_clear(&flash_sector_buffer);
 		string_append_string(&flash_sector_buffer, &magic_string);
-		string_append(&flash_sector_buffer, "\n");
+		string_append(&flash_sector_buffer, "\n"); // config sector should end at \n\n
 	}
 
 	config_current_index = string_length(&magic_string);
@@ -240,7 +248,7 @@ bool config_walk(string_t *id, string_t *value)
 		return(false);
 	}
 
-	if((id_start_index = config_current_index) >= string_length(&flash_sector_buffer))
+	if((id_start_index = config_current_index) > string_length(&flash_sector_buffer))
 	{
 		log("config get entry: sector length overrun\n");
 		return(false);
@@ -327,7 +335,7 @@ unsigned int config_delete_flashptr(const char *match_name_flash, bool wildcard,
 	deleted = 0;
 	name_start_index = config_current_index;
 
-	if(name_start_index  >= string_length(&flash_sector_buffer))
+	if(name_start_index > string_length(&flash_sector_buffer))
 	{
 		log("config delete: sector length overrun\n");
 		return(0);
