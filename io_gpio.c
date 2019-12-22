@@ -967,6 +967,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			gpio_direction(pin, true);
 			gpio_enable_open_drain(pin, false);
 			gpio_enable_pdm(pin, false);
+			gpio_set(pin, !!(pin_config->flags & io_flag_invert));
 			break;
 		}
 
@@ -1216,6 +1217,9 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 		{
 			*value = gpio_get(pin);
 
+			if(pin_config->flags & io_flag_invert)
+				*value = !*value;
+
 			break;
 		}
 
@@ -1310,8 +1314,10 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 		}
 
 		case(io_pin_ll_output_digital):
-		case(io_pin_ll_i2c):
 		{
+			if(pin_config->flags & io_flag_invert)
+				value = !value;
+
 			gpio_set(pin, value);
 
 			break;
