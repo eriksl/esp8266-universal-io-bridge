@@ -240,6 +240,10 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 				case(io_pin_ll_output_digital):
 				{
 					*value = !!(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01);
+
+					if(pin_config->flags & io_flag_invert)
+						*value = !*value;
+
 					break;
 				}
 
@@ -256,7 +260,6 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 						string_append(error_message, "invalid mode for this pin\n");
 					return(io_error);
 				}
-
 			}
 
 			break;
@@ -315,6 +318,9 @@ iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 
 				case(io_pin_ll_output_digital):
 				{
+					if(pin_config->flags & io_flag_invert)
+						value = !value;
+
 					clear_set_peri_reg_mask(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
 					break;
 				}

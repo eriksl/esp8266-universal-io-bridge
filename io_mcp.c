@@ -225,8 +225,16 @@ io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_en
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
 
-	if(clear_set_register(error_message, info->address, IPOL(bank), 1 << bankpin, 0) != io_ok) // polarity inversion = 0
-		return(io_error);
+	if((pin_config->llmode == io_pin_ll_input_digital) && (pin_config->flags & io_flag_invert))
+	{
+		if(clear_set_register(error_message, info->address, IPOL(bank), 0, 1 << bankpin) != io_ok) // input polarity inversion = 1
+			return(io_error);
+	}
+	else
+	{
+		if(clear_set_register(error_message, info->address, IPOL(bank), 1 << bankpin, 0) != io_ok) // input polarity inversion = 0
+			return(io_error);
+	}
 
 	if(clear_set_register(error_message, info->address, GPINTEN(bank), 1 << bankpin, 0) != io_ok) // pc int enable = 0
 		return(io_error);
@@ -371,6 +379,9 @@ io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T
 
 			*value = !!(tv & (1 << bankpin));
 
+			if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->flags & io_flag_invert))
+				*value = !*value;
+
 			break;
 		}
 
@@ -402,6 +413,9 @@ io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_
 	bankpin = pin & 0x07;
 
 	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
+
+	if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->flags & io_flag_invert))
+		value = !value;
 
 	if(value)
 		pin_output_cache[instance_index(info)][bank] |= 1 << bankpin;
