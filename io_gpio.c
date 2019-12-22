@@ -729,9 +729,12 @@ iram static void pwm_go(void)
 
 // other
 
-attr_inline void pin_arm_counter(int pin, bool enable)
+attr_inline void pin_arm_counter(int pin, bool inverted, bool enable)
 {
-	gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_NEGEDGE : GPIO_PIN_INTR_DISABLE);
+	if(inverted)
+		gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_POSEDGE : GPIO_PIN_INTR_DISABLE);
+	else
+		gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_NEGEDGE : GPIO_PIN_INTR_DISABLE);
 }
 
 iram static void pc_int_isr(void *arg)
@@ -761,7 +764,7 @@ iram static void pc_int_isr(void *arg)
 
 		if(pin_config->speed != 0)
 		{
-			pin_arm_counter(pin, false);
+			pin_arm_counter(pin, false, false);
 			gpio_pin_data->counter.debounce = pin_config->speed;
 		}
 
@@ -900,7 +903,7 @@ iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_d
 			else
 			{
 				gpio_pin_data->counter.debounce = 0;
-				pin_arm_counter(pin, true);
+				pin_arm_counter(pin, pin_config->flags & io_flag_invert, true);
 			}
 		}
 	}
@@ -934,7 +937,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 		return(io_error);
 	}
 
-	pin_arm_counter(pin, false);
+	pin_arm_counter(pin, false, false);
 
 	gpio_func_select(pin, io_gpio_func_gpio);
 	gpio_pin_intr_state_set(pin, GPIO_PIN_INTR_DISABLE);
@@ -956,7 +959,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 				gpio_pin_data->counter.counter = 0;
 				gpio_pin_data->counter.debounce = 0;
 
-				pin_arm_counter(pin, true);
+				pin_arm_counter(pin, pin_config->flags & io_flag_invert, true);
 			}
 
 			break;
