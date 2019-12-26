@@ -262,7 +262,7 @@ free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
 				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265)
-				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,417792)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208)
 
 showsymbols:	$(ELF_IMAGE)
 				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
