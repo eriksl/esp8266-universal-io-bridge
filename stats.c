@@ -90,19 +90,6 @@ roflash static const char *const flash_map[] =
 	"unknown",
 };
 
-roflash static const char *const reset_map[] =
-{
-	"power on",
-	"hardware watchdog",
-	"exception",
-	"software watchdog",
-	"user reset",
-	"deep sleep awake",
-	"external system reset",
-	"unknown1"
-	"unknown2"
-};
-
 roflash static const char *const phy[] = {
 	"unknown",
 	"802.11b",
@@ -135,6 +122,47 @@ roflash static const manufacturer_t manufacturers[] =
 	{	0,		(const char *)0	}
 };
 
+static void explain_exception(string_t *dst)
+{
+	const struct rst_info *rst_info;
+	const char *exception;
+
+	rst_info = system_get_rst_info();
+
+	switch(rst_info->reason)
+	{
+		case(2):
+		{
+			switch(rst_info->exccause)
+			{
+				case(0):	exception = "illegal instruction";			break;
+				case(1):	exception = "syscall";						break;
+				case(2):	exception = "instruction fetch failed";		break;
+				case(3):	exception = "data read/write failure";		break;
+				case(4):	exception = "level 1 interrupt";			break;
+				case(6):	exception = "division by zero";				break;
+				case(9):	exception = "unaligned memory access";		break;
+				case(28):	exception = "load prohibited";				break;
+				case(29):	exception = "store prohibited";				break;
+				default:	exception = "<unknown>";					break;
+			}
+
+			string_format(dst, "exception: %s (%lu), epc1: %lx, epc2: %lx, epc3: %lx, excvaddr: %lx, depc: %lx\n",
+					exception, rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc);
+
+			break;
+		}
+
+		case(0):	string_append(dst, "power on reset");			break;
+		case(1):	string_append(dst, "hardware watchdog reset");	break;
+		case(3):	string_append(dst, "software watchdog reset");	break;
+		case(4):	string_append(dst, "user reset");				break;
+		case(5):	string_append(dst, "deep sleep wake");			break;
+		case(6):	string_append(dst, "external system reset");	break;
+		default:	string_append(dst, "<unknown>\n");				break;
+	}
+}
+
 attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 {
 	const manufacturer_t *manufacturer;
@@ -148,7 +176,6 @@ attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 
 void stats_firmware(string_t *dst)
 {
-	const struct rst_info *rst_info;
 	uint32_t flash_id = spi_flash_get_id();
 	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
 	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
@@ -179,33 +206,24 @@ void stats_firmware(string_t *dst)
 	if(heap > stat_heap_max)
 		stat_heap_max = heap;
 
-	rst_info = system_get_rst_info();
-
 	string_format(dst,
 			"> firmware version date: %s\n"
 			"> SDK version: %s\n"
 			"> system id: %lu\n"
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %d kib / %d MiB\n"
 			"> cpu frequency: %u MHz\n"
-			"> reset cause: %s, exception: %lu, epc1: %lx, epc2: %lx, epc3: %lx, excvaddr: %lx, depc: %lx\n"
 			"> heap free current: %u, min: %u, max: %u bytes\n"
 			">\n"
 			"> stack:\n"
-			">   bottom: %p\n"
-			">   top: %p\n"
-			">   initial stack pointer: %p (%d bytes)\n"
-			">   current stack pointer: %p (%d bytes)\n"
-			">   painted: %d bytes\n"
-			">   not painted: %u bytes\n"
-			">   size: %u bytes\n"
-			">   used: %d bytes\n"
-			">   free: %d bytes\n",
+			">   bottom: %p, top: %p\n"
+			">   initial: %p (%d bytes), current: %p (%d bytes)\n"
+			">   painted: %d bytes, not painted: %u bytes\n"
+			">   size: %u bytes, used: %d bytes, free: %d bytes\n",
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
 				(unsigned int)flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
-				reset_map[rst_info->reason], rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc,
 				heap, stat_heap_min, stat_heap_max,
 				(void *)stack_bottom,
 				(void *)stack_top,
@@ -216,6 +234,10 @@ void stats_firmware(string_t *dst)
 				stack_size,
 				stack_used,
 				stack_free);
+
+	string_append(dst, ">\n> reset cause: ");
+	explain_exception(dst);
+	string_append(dst, "\n");
 
 	system_print_meminfo();
 
