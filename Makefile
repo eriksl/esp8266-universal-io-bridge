@@ -87,6 +87,7 @@ CONFIG_RBOOT_BIN			:= rboot-config.bin
 CONFIG_DEFAULT_BIN			:= default-config.bin
 CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
+MEMORY_USAGE_LOG			:= memory-log
 LIBMAIN_PLAIN				:= main
 LIBMAIN_PLAIN_FILE			:= $(ESPSDK_LIB)/lib$(LIBMAIN_PLAIN).a
 LIBMAIN_RBB					:= main_rbb
@@ -264,6 +265,10 @@ free:			$(ELF_IMAGE)
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
 				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265)
 				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208)
+				$(Q) LC_ALL=C date >> $(MEMORY_USAGE_LOG)
+				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768) >> $(MEMORY_USAGE_LOG)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265) >> $(MEMORY_USAGE_LOG)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208) >> $(MEMORY_USAGE_LOG)
 
 showsymbols:	$(ELF_IMAGE)
 				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
