@@ -519,6 +519,9 @@ void display_init(void)
 		}
 	}
 
+	if(display_data.detected < 0)
+		goto error;
+
 	display_data.current_slot = 0;
 
 	for(slot = 0; slot < display_slot_amount; slot++)
