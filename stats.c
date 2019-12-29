@@ -289,7 +289,7 @@ void stats_time(string_t *dst)
 	time_timer_stats(dst);
 	string_append(dst, "\n> ntp:    ");
 	time_sntp_stats(dst);
-	string_append(dst, ">\n");
+	string_append(dst, "\n");
 	string_format(dst, "> time:   %04u/%02u/%02u %02u:%02u:%02u, source: %s\n", Y, M, D, h, m, s, time_source);
 	string_format(dst, "> sntp:   poll: %u, received: %u\n", stat_sntp_poll, stat_sntp_received);
 }
