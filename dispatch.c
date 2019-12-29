@@ -13,6 +13,7 @@
 #include "init.h"
 #include "config.h"
 #include "lwip-interface.h"
+#include "remote_trigger.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -297,6 +298,12 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
 				io_trigger_pin((string_t *)0, assoc_alert.io, assoc_alert.pin, io_trigger_off);
 
+			break;
+		}
+
+		case(task_remote_trigger):
+		{
+			remote_trigger_send(argument);
 			break;
 		}
 	}

@@ -21,6 +21,7 @@ typedef enum
 	task_display_update,
 	task_fallback_wlan,
 	task_update_time,
+	task_remote_trigger,
 } task_id_t;
 
 typedef enum

@@ -15,6 +15,7 @@
 #include "sequencer.h"
 #include "init.h"
 #include "dispatch.h"
+#include "remote_trigger.h"
 #include "sdk.h"
 
 #include <stdint.h>
@@ -1923,6 +1924,7 @@ roflash static const char help_description_i2c_write_read[] =		"write data to i2
 roflash static const char help_description_io_mode[] =				"config i/o pin";
 roflash static const char help_description_io_read[] =				"read from i/o pin";
 roflash static const char help_description_io_trigger[] = 			"trigger i/o pin";
+roflash static const char help_description_trigger_remote[] = 		"remote trigger: <index> <ip>";
 roflash static const char help_description_io_write[] =				"write to i/o pin";
 roflash static const char help_description_io_multiple[] =			"write to multiple pins from one I/O";
 roflash static const char help_description_io_set_flag[] =			"set i/o pin flag";
@@ -2137,6 +2139,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"it", "io-trigger",
 		application_function_io_trigger,
 		help_description_io_trigger,
+	},
+	{
+		"itr", "io-trigger-remote",
+		application_function_trigger_remote,
+		help_description_trigger_remote,
 	},
 	{
 		"iw", "io-write",

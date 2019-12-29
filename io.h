@@ -246,6 +246,7 @@ typedef struct attr_packed
 			unsigned int	partner:8;
 			struct attr_packed
 			{
+				int remote:8;
 				int	io:8;
 				int pin:8;
 			} trigger_pin;
