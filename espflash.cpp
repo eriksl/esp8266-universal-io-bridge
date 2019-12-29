@@ -1152,7 +1152,7 @@ int main(int argc, const char **argv)
 
 					channel.send(1000, std::string("reset"));
 
-					sleep(2);
+					sleep(1);
 
 					channel.reconnect();
 
