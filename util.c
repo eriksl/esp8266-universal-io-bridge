@@ -133,12 +133,42 @@ void msleep(int msec)
 attr_pure ip_addr_t ip_addr(const char *src)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;
+	unsigned int byte_index, current_value;
 
-	sscanf(src, "%3hhu.%3hhu.%3hhu.%3hhu",
-			&ip_addr_to_bytes.byte[0],
-			&ip_addr_to_bytes.byte[1],
-			&ip_addr_to_bytes.byte[2],
-			&ip_addr_to_bytes.byte[3]);
+	if(!src)
+		goto error;
+
+	for(byte_index = 0, current_value = 0; *src && (byte_index < 4); src++)
+	{
+		if(*src == '.')
+		{
+			ip_addr_to_bytes.byte[byte_index++] = current_value;
+			current_value = 0;
+			continue;
+		}
+
+		if((*src >= '0') && (*src <= '9'))
+		{
+			current_value *= 10;
+			current_value += (uint8_t)*src - '0';
+			continue;
+		}
+
+		goto error;
+	}
+
+	if(byte_index != 3)
+		goto error;
+
+	ip_addr_to_bytes.byte[byte_index] = current_value;
+
+	return(ip_addr_to_bytes.ip_addr);
+
+error:
+	ip_addr_to_bytes.byte[0] = 0;
+	ip_addr_to_bytes.byte[1] = 0;
+	ip_addr_to_bytes.byte[2] = 0;
+	ip_addr_to_bytes.byte[3] = 0;
 
 	return(ip_addr_to_bytes.ip_addr);
 }
