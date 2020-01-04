@@ -14,13 +14,14 @@ enum
 {
 	io_gpio_pin_size = 16,
 	io_gpio_pwm_max_channels = 4,
-	io_gpio_rotary_encoder_timeout = 2,
+	io_gpio_rotary_encoder_timeout = 10,
 };
 
 typedef enum
 {
 	io_gpio_func_gpio = 0,
 	io_gpio_func_uart,
+	io_gpio_func_spi,
 } io_func_t;
 
 typedef enum
@@ -31,6 +32,17 @@ typedef enum
 } io_uart_pin_t;
 
 assert_size(io_uart_pin_t, 4);
+
+typedef enum
+{
+	io_spi_pin_none = 0,
+	io_spi_pin_miso,
+	io_spi_pin_mosi,
+	io_spi_pin_sclk,
+	io_spi_pin_cs,
+} io_spi_pin_t;
+
+assert_size(io_spi_pin_t, 4);
 
 enum
 {
@@ -45,10 +57,12 @@ typedef const struct
 	const io_uart_pin_t	uart_pin;
 	const uint32_t		uart_func;
 	const uint32_t		uart_instance;
+	const io_spi_pin_t	spi_pin;
+	const uint32_t		spi_func;
 } gpio_info_t;
 
 assert_size(bool, 1);
-assert_size(gpio_info_t, 24);
+assert_size(gpio_info_t, 32);
 
 typedef union
 {
@@ -72,23 +86,47 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 roflash static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_pin_tx,		FUNC_U0TXD,		0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_pin_tx,		FUNC_U1TXD_BK,	1	},
-	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_pin_rx,		FUNC_U0RXD,		0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_pin_none,	0,				~0	},
-	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_pin_none,	0,				~0	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_pin_none,	0,				~0	},
+	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_pin_tx,		FUNC_U0TXD,		0,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_pin_tx,		FUNC_U1TXD_BK,	1,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_pin_rx,		FUNC_U0RXD,		0,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_pin_none,	0,				~0,	io_spi_pin_miso,	FUNC_HSPIQ		},
+	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_pin_none,	0,				~0,	io_spi_pin_mosi,	FUNC_HSPID		},
+	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_pin_none,	0,				~0,	io_spi_pin_sclk,	FUNC_HSPICLK	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_pin_none,	0,				~0,	io_spi_pin_cs,		FUNC_HSPICS		},
 };
+
+static bool spi_pin_to_string(string_t *string, unsigned int pin)
+{
+	gpio_info_t *gpio_pin_info;
+
+	if(pin >= io_gpio_pin_size)
+	{
+		string_append(string, "<invalid>");
+		return(false);
+	}
+
+	gpio_pin_info = &gpio_info_table[pin];
+
+	switch(gpio_pin_info->spi_pin)
+	{
+		case(io_spi_pin_miso):	string_append(string, "miso");		break;
+		case(io_spi_pin_mosi):	string_append(string, "mosi");		break;
+		case(io_spi_pin_sclk):	string_append(string, "sclk");		break;
+		case(io_spi_pin_cs):	string_append(string, "cs");		break;
+		default:				string_append(string, "<invalid>");	return(false);
+	}
+
+	return(true);
+}
 
 typedef struct
 {
@@ -238,10 +276,14 @@ attr_inline bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 
 	switch(gpio_pin_mode)
 	{
-		case(io_gpio_func_gpio): func = gpio_pin_info->func; break;
-		case(io_gpio_func_uart): func = gpio_pin_info->uart_func; break;
+		case(io_gpio_func_gpio):	func = gpio_pin_info->func;			break;
+		case(io_gpio_func_uart):	func = gpio_pin_info->uart_func;	break;
+		case(io_gpio_func_spi):		func = gpio_pin_info->spi_func;		break;
 		default: return(false);
 	}
+
+	if(func == ~0UL)
+		return(false);
 
 	value = read_peri_reg(gpio_pin_info->mux);
 
@@ -1039,6 +1081,18 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			break;
 		}
 
+		case(io_pin_ll_spi):
+		{
+			gpio_direction(pin, true);
+			gpio_enable_pullup(pin, false);
+			gpio_enable_open_drain(pin, false);
+			gpio_enable_pdm(pin, false);
+			gpio_set(pin, false);
+			gpio_func_select(pin, io_gpio_func_spi);
+
+			break;
+		}
+
 		default:
 		{
 			if(error_message)
@@ -1185,6 +1239,14 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 
 					string_format(dst, ", inverted: %s", yesno(pin_config->flags & io_flag_invert));
 				}
+
+				break;
+			}
+
+			case(io_pin_ll_spi):
+			{
+				string_append(dst, "spi, pin: ");
+				spi_pin_to_string(dst, pin);
 
 				break;
 			}

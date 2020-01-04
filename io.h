@@ -88,6 +88,7 @@ typedef enum
 	io_pin_cfa634,
 	io_pin_output_pwm2,
 	io_pin_rotary_encoder,
+	io_pin_spi,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -139,6 +140,7 @@ typedef enum
 	io_pin_ll_i2c,
 	io_pin_ll_uart,
 	io_pin_ll_output_pwm2,
+	io_pin_ll_spi,
 	io_pin_ll_error,
 	io_pin_ll_size = io_pin_ll_error
 } io_pin_ll_mode_t;
@@ -191,6 +193,7 @@ typedef enum
 	caps_uart =				1 << 8,
 	caps_pullup =			1 << 9,
 	caps_rotary_encoder =	1 << 10,
+	caps_spi =				1 << 11,
 } io_caps_t;
 
 assert_size(io_caps_t, 4);
@@ -216,9 +219,9 @@ typedef io_data_entry_t io_data_t[io_id_size];
 
 typedef struct attr_packed
 {
-	io_pin_mode_t		mode:4;
+	io_pin_mode_t		mode:5;
 	io_pin_ll_mode_t	llmode:4;
-	io_pin_flag_t 		flags:12;
+	io_pin_flag_t 		flags:11;
 	io_direction_t		direction:2;
 	unsigned int		speed:18;
 

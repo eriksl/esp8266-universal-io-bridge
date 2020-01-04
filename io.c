@@ -13,6 +13,7 @@
 #include "sequencer.h"
 #include "dispatch.h"
 #include "remote_trigger.h"
+#include "spi.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -57,7 +58,8 @@ roflash static const io_info_t io_info =
 			caps_uart |
 			caps_ledpixel |
 			caps_pullup |
-			caps_rotary_encoder,
+			caps_rotary_encoder |
+			caps_spi,
 		"Internal GPIO",
 		io_gpio_init,
 		(void *)0, // postinit
@@ -221,6 +223,7 @@ roflash static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_cfa634,			"cfa634",		"crystalfontz cfa634"	},
 	{ io_pin_output_pwm2,		"pwm2",			"secondary pwm output"	},
 	{ io_pin_rotary_encoder,	"renc",			"rotary encoder input"	},
+	{ io_pin_spi,				"spi",			"spi"					},
 };
 
 static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -298,6 +301,7 @@ roflash static const io_ll_mode_trait_t io_ll_mode_traits[io_pin_ll_size] =
 	{ io_pin_ll_i2c,				"i2c"				},
 	{ io_pin_ll_uart,				"uart"				},
 	{ io_pin_ll_output_pwm2,		"pwm2 output"		},
+	{ io_pin_ll_spi,				"spi"				},
 };
 
 void io_string_from_ll_mode(string_t *name, io_pin_ll_mode_t mode, int pad)
@@ -595,6 +599,7 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 		case(io_pin_error):
 		case(io_pin_ledpixel):
 		case(io_pin_cfa634):
+		case(io_pin_spi):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot read from this pin");
@@ -624,6 +629,7 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 		case(io_pin_error):
 		case(io_pin_ledpixel):
 		case(io_pin_cfa634):
+		case(io_pin_spi):
 		{
 			if(errormsg)
 				string_append(errormsg, "cannot write to this pin");
@@ -1174,6 +1180,7 @@ io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_p
 
 void io_init(void)
 {
+	string_new(, error, 32);
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
@@ -1187,12 +1194,16 @@ void io_init(void)
 	int trigger;
 	unsigned int debounce;
 	int trigger_io, trigger_pin, trigger_type;
+	unsigned int spi_pins[4];
+	unsigned int spi_pin = 0;
 	uint64_t start = time_get_us();
 
 	for(io = 0; io < io_id_size; io++)
 	{
 		info = &io_info[io];
 		data = &io_data[io];
+
+		spi_pin = 0;
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -1541,11 +1552,24 @@ void io_init(void)
 					break;
 				}
 
+				case(io_pin_spi):
+				{
+					if(!(info->caps & caps_spi))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					spi_pins[spi_pin++] = pin;
+
+					break;
+				}
+
 				default:
 				{
 					break;
 				}
-
 			}
 		}
 
@@ -1626,6 +1650,12 @@ void io_init(void)
 					}
 				}
 			}
+		}
+
+		if(spi_pin == 4)
+		{
+			if(!spi_init(io, spi_pins[0], spi_pins[1], spi_pins[2], spi_pins[3], &error))
+				log("io: %s\n", string_to_cstr(&error));
 		}
 	}
 
@@ -2442,6 +2472,24 @@ skip:
 			break;
 		}
 
+		case(io_pin_spi):
+		{
+			if(!(info->caps & caps_spi))
+			{
+				config_abort_write();
+				string_append(dst, "spi mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			llmode = io_pin_ll_spi;
+
+			config_delete("io.%u.%u.", true, io, pin);
+			config_set_int("io.%u.%u.mode", mode, io, pin);
+			config_set_int("io.%u.%u.llmode", io_pin_ll_spi, io, pin);
+
+			break;
+		}
+
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
@@ -2835,6 +2883,7 @@ typedef enum
 	ds_id_ledpixel,
 	ds_id_cfa634,
 	ds_id_lcd,
+	ds_id_spi,
 	ds_id_unknown,
 	ds_id_max_value,
 	ds_id_info_1,
@@ -2886,6 +2935,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_ledpixel */		"ledpixel",
 		/* ds_id_cfa634 */			"cfa634",
 		/* ds_id_lcd */				"lcd",
+		/* ds_id_spi */				"spi",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_max_value */		", max value: %u",
 		/* ds_id_info_1 */			", info: ",
@@ -2925,6 +2975,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_ledpixel */		"<td>ledpixel</td>",
 		/* ds_id_cfa634 */			"<td>cfa634</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
+		/* ds_id_spi */				"<td>spi</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_max_value */		"<td>%u</td>",
 		/* ds_id_info_1 */			"<td>",
@@ -3179,6 +3230,13 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_cfa634):
 				{
 					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_cfa634]);
+
+					break;
+				}
+
+				case(io_pin_spi):
+				{
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_spi]);
 
 					break;
 				}

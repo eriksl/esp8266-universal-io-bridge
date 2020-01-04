@@ -56,6 +56,14 @@ enum
 
 enum
 {
+	PERIPHS_IO_MUX_SPI_ENABLE =		0x005,
+	PERIPHS_IO_MUX_SPI_SYSCLK =		1UL << 8,
+	PERIPHS_IO_MUX_HSPI_ENABLE =	0x105,
+	PERIPHS_IO_MUX_HSPI_SYSCLK =	1UL << 9,
+} PERIPHS_IO_MUX_bits;
+
+enum
+{
 	ETS_SLC_INUM =			1,
 	ETS_SPI_INUM =			2,
 	ETS_RTC_INUM =			3,
@@ -82,9 +90,13 @@ enum
 	FUNC_GPIO9 =	3,
 	FUNC_GPIO10 =	3,
 	FUNC_GPIO11 =	3,
+	FUNC_HSPIQ =	2,
 	FUNC_GPIO12 =	3,
+	FUNC_HSPID =	2,
 	FUNC_GPIO13 =	3,
+	FUNC_HSPICLK =	2,
 	FUNC_GPIO14 =	3,
+	FUNC_HSPICS	=	2,
 	FUNC_GPIO15 =	3,
 	FUNC_U0RXD =	0,
 	FUNC_U0TXD =	0,
@@ -392,6 +404,266 @@ enum
 	UART_PULSE_NUM_CNT =					0x0003ff,
 	UART_PULSE_NUM_CNT_S =					0,
 };
+
+attr_inline unsigned int REG_SPI_BASE(unsigned int i)	{ return(0x60000200 - (i * 0x100)); }
+
+attr_inline unsigned int SPI_CMD(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x00); }
+attr_inline unsigned int SPI_ADDR(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x04); }
+attr_inline unsigned int SPI_CTRL(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x08); }
+attr_inline unsigned int SPI_CTRL1(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x0c); }
+attr_inline unsigned int SPI_RD_STATUS(unsigned int i)	{ return(REG_SPI_BASE(i) + 0x10); }
+attr_inline unsigned int SPI_CTRL2(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x14); }
+attr_inline unsigned int SPI_CLOCK(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x18); }
+attr_inline unsigned int SPI_USER(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x1c); }
+attr_inline unsigned int SPI_USER1(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x20); }
+attr_inline unsigned int SPI_USER2(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x24); }
+attr_inline unsigned int SPI_WR_STATUS(unsigned int i)	{ return(REG_SPI_BASE(i) + 0x28); }
+attr_inline unsigned int SPI_PIN(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x2c); }
+attr_inline unsigned int SPI_SLAVE(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x30); }
+attr_inline unsigned int SPI_SLAVE1(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x34); }
+attr_inline unsigned int SPI_SLAVE2(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x38); }
+attr_inline unsigned int SPI_SLAVE3(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x3c); }
+attr_inline unsigned int SPI_W0(unsigned int i)			{ return(REG_SPI_BASE(i) + 0x40); }
+attr_inline unsigned int SPI_EXT0(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xf0); }
+attr_inline unsigned int SPI_EXT1(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xf4); }
+attr_inline unsigned int SPI_EXT2(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xf8); }
+attr_inline unsigned int SPI_EXT3(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xfc); }
+
+enum
+{
+	SPI_USR =			1UL << 18,
+} SPI_CMD_bits;
+
+enum
+{
+	SPI_WR_BIT_ORDER =	1UL << 26,		//	write: 1: LSB first, 0: MSB first
+	SPI_RD_BIT_ORDER =	1UL << 25,		//	read:  1: LSB first, 0: MSB first
+	SPI_QIO_MODE =		1UL << 24,
+	SPI_DIO_MODE =		1UL << 23,
+	SPI_QOUT_MODE =		1UL << 20,
+	SPI_DOUT_MODE =		1UL << 14,
+	SPI_FASTRD_MODE =	1UL << 13,
+} SPI_CTRL_bits;
+
+enum
+{
+	SPI_STATUS_EXT =				0xff,
+	SPI_STATUS_EXT_S =				24,
+	SPI_WB_MODE =					0xff,
+	SPI_WB_MODE_S =					16,
+	SPI_FLASH_STATUS_PRO_FLAG =		1UL << 7,
+	SPI_FLASH_TOP_BOT_PRO_FLAG =	1UL << 5,
+	SPI_FLASH_BP2 =					1UL << 4,
+	SPI_FLASH_BP1 =					1UL << 3,
+	SPI_FLASH_BP0 =					1UL << 2,
+	SPI_FLASH_WRENABLE_FLAG =		1UL << 1,
+	SPI_FLASH_BUSY_FLAG =			1UL << 0,
+} SPI_RD_STATUS_bits;
+
+enum
+{
+	SPI_CS_DELAY_NUM =			0xf,
+	SPI_CS_DELAY_NUM_S =		28,
+	SPI_CS_DELAY_MODE_0_0 =		(0b00 << 26),
+	SPI_CS_DELAY_MODE_0_5 =		(0b01 << 26),
+	SPI_CS_DELAY_MODE_1_0 =		(0b10 << 26),
+	SPI_MOSI_DELAY_NUM =		0x7,
+	SPI_MOSI_DELAY_NUM_S =		23,
+	SPI_MOSI_DELAY_MODE_0_0 =	(0b00 << 21),
+	SPI_MOSI_DELAY_MODE_0_5 =	(0b01 << 21),
+	SPI_MOSI_DELAY_MODE_1_0 =	(0b10 << 21),
+	SPI_MISO_DELAY_NUM =		0x7,
+	SPI_MISO_DELAY_NUM_S =		0x7,
+	SPI_MISO_DELAY_MODE_0_0 =	(0b00 << 16),
+	SPI_MISO_DELAY_MODE_0_5 =	(0b01 << 16),
+	SPI_MISO_DELAY_MODE_1_0 =	(0b10 << 16),
+	SPI_CK_OUT_HIGH_MODE =		0xf,
+	SPI_CK_OUT_HIGH_MODE_S =	12,
+	SPI_CK_OUT_LOW_MODE =		0xf,
+	SPI_CK_OUT_LOW_MODE_S =		8,
+	SPI_HOLD_TIME =				0xf,
+	SPI_HOLD_TIME_S =			4,
+	SPI_SETUP_TIME =			0xf,
+	SPI_SETUP_TIME_S =			0,
+} SPI_CTRL2_bits;
+
+enum
+{
+	SPI_CLK_EQU_SYSCLK =		1UL << 31,
+	SPI_CLKDIV_PRE =			0x1fff,
+	SPI_CLKDIV_PRE_S =			18,
+	SPI_CLKCNT_N =				0x3f,
+	SPI_CLKCNT_N_S =			12,
+	SPI_CLKCNT_H =				0x3f,			// "in the master mode, it must be floor((SPI_CLKCNT_N + 1) / 2 - 1). In the slave mode, it must be 0."
+	SPI_CLKCNT_H_S =			6,
+	SPI_CLKCNT_L =				0x3f,			// "in the master mode, it must be equal to SPI_CLKCNT_N. In the slave mode, it must be 0."
+	SPI_CLKCNT_L_S =			0,
+} SPI_CLOCK_bits;
+
+enum
+{
+	SPI_USR_COMMAND =			1UL << 31,
+	SPI_USR_ADDR =				1UL << 30,
+	SPI_USR_DUMMY =				1UL << 29,
+	SPI_USR_MISO =				1UL << 28,
+	SPI_USR_MOSI =				1UL << 27,
+	SPI_USR_DUMMY_IDLE =		1UL << 26,
+	SPI_USR_MOSI_HIGHPART =		1UL << 25,
+	SPI_USR_MISO_HIGHPART =		1UL << 24,
+	SPI_USR_PREP_HOLD =			1UL << 23,
+	SPI_USR_CMD_HOLD =			1UL << 22,
+	SPI_USR_ADDR_HOLD =			1UL << 21,
+	SPI_USR_DUMMY_HOLD =		1UL << 20,
+	SPI_USR_DIN_HOLD =			1UL << 19,
+	SPI_USR_DOUT_HOLD =			1UL << 18,
+	SPI_USR_HOLD_POL =			1UL << 17,
+	SPI_SIO =					1UL << 16,
+	SPI_FWRITE_QIO =			1UL << 15,
+	SPI_FWRITE_DIO =			1UL << 14,
+	SPI_FWRITE_QUAD =			1UL << 13,
+	SPI_FWRITE_DUAL =			1UL << 12,
+	SPI_WR_BYTE_ORDER =			1UL << 11,		//	write: 	1: little endian, 0: big endian
+	SPI_RD_BYTE_ORDER =			1UL << 10,		//	read:	1: little endian, 0: big endian
+	SPI_AHB_ENDIAN_MODE =		0x3,
+	SPI_AHB_ENDIAN_MODE_S =		8,
+	SPI_CK_OUT_EDGE =			1UL << 7,		//	master:	clock phase: 0: data valid on active phase of clock, 1: data valid on inactive phase of clock
+	SPI_CK_I_EDGE =				1UL << 6,		//	slave:	clock phase: 0: data valid on active phase of clock, 1: data valid on inactive phase of clock
+	SPI_CS_SETUP =				1UL << 5,
+	SPI_CS_HOLD =				1UL << 4,
+	SPI_AHB_USR_COMMAND =		1UL << 3,
+	SPI_FLASH_MODE =			1UL << 2,
+	SPI_AHB_USR_COMMAND_4BYTE =	1UL << 1,
+	SPI_DOUTDIN =				1UL << 0,
+} SPI_USER_bits;
+
+enum
+{
+	SPI_USR_ADDR_BITLEN =		0x3f,
+	SPI_USR_ADDR_BITLEN_S =		26,
+	SPI_USR_MOSI_BITLEN =		0x1ff,
+	SPI_USR_MOSI_BITLEN_S =		17,
+	SPI_USR_MISO_BITLEN =		0x1ff,
+	SPI_USR_MISO_BITLEN_S =		8,
+	SPI_USR_DUMMY_CYCLELEN =	0xff,
+	SPI_USR_DUMMY_CYCLELEN_S =	0,
+} SPI_USER1_bits;
+
+enum
+{
+	SPI_USR_COMMAND_BITLEN =	0xf,
+	SPI_USR_COMMAND_BITLEN_S =	28,
+	SPI_USR_COMMAND_VALUE =		0xffff,
+	SPI_USR_COMMAND_VALUE_S =	0,
+} SPI_USER2_bits;
+
+enum
+{
+	SPI_IDLE_EDGE =				1UL << 29,		//	0: clock polarity normal (CPOL = 0, active high), 1: clock polarity inverted (CPOL = 1, active low)
+	SPI_CS2_DIS =				1UL << 2,
+	SPI_CS1_DIS =				1UL << 1,
+	SPI_CS0_DIS =				1UL << 0,
+} SPI_PIN_bits;
+
+enum
+{
+	SPI_SYNC_RESET =			1UL << 31,
+	SPI_SLAVE_MODE =			1UL << 30,
+	SPI_SLV_WR_RD_BUF_EN =		1UL << 29,
+	SPI_SLV_WR_RD_STA_EN =		1UL << 28,
+	SPI_SLV_CMD_DEFINE =		1UL << 27,
+	SPI_TRANS_CNT =				0xf,
+	SPI_TRANS_CNT_S =			23,
+	SPI_SLV_LAST_STATE =		0x7,
+	SPI_SLV_LAST_STATE_S =		20,
+	SPI_SLV_LAST_COMMAND =		0x7,
+	SPI_SLV_LAST_COMMAND_S =	17,
+	SPI_CS_I_MODE =				0x3,
+	SPI_CS_I_MODE_S =			10,
+	SPI_TRANS_DONE_EN =			1UL << 9,
+	SPI_SLV_WR_STA_DONE_EN =	1UL << 8,
+	SPI_SLV_RD_STA_DONE_EN =	1UL << 7,
+	SPI_SLV_WR_BUF_DONE_EN =	1UL << 6,
+	SPI_SLV_RD_BUF_DONE_EN =	1UL << 5,
+	SLV_SPI_INT_EN =			0x1f,
+	SLV_SPI_INT_EN_S =			5,
+	SPI_TRANS_DONE =			1UL << 4,
+	SPI_SLV_WR_STA_DONE =		1UL << 3,
+	SPI_SLV_RD_STA_DONE =		1UL << 2,
+	SPI_SLV_WR_BUF_DONE =		1UL << 1,
+	SPI_SLV_RD_BUF_DONE =		1UL << 0,
+} SPI_SLAVE_bits;
+
+enum
+{
+	SPI_SLV_STATUS_BITLEN =		0x1f,
+	SPI_SLV_STATUS_BITLEN_S =	27,
+	SPI_SLV_STATUS_FAST_EN =	1UL << 26,
+	SPI_SLV_STATUS_READBACK =	1UL << 25,
+	SPI_SLV_BUF_BITLEN =		0x1ff,
+	SPI_SLV_BUF_BITLEN_S =		16,
+	SPI_SLV_RD_ADDR_BITLEN =	0x3f,
+	SPI_SLV_RD_ADDR_BITLEN_S =	10,
+	SPI_SLV_WR_ADDR_BITLEN =	0x3f,
+	SPI_SLV_WR_ADDR_BITLEN_S =	4,
+	SPI_SLV_WRSTA_DUMMY_EN =	1UL << 3,
+	SPI_SLV_RDSTA_DUMMY_EN =	1UL << 2,
+	SPI_SLV_WRBUF_DUMMY_EN =	1UL << 1,
+	SPI_SLV_RDBUF_DUMMY_EN =	1UL << 0,
+} SPI_SLAVE1_bits;
+
+enum
+{
+	SPI_SLV_WRBUF_DUMMY_CYCLELEN =		0xff,
+	SPI_SLV_WRBUF_DUMMY_CYCLELEN_S =	24,
+	SPI_SLV_RDBUF_DUMMY_CYCLELEN =		0xff,
+	SPI_SLV_RDBUF_DUMMY_CYCLELEN_S =	16,
+	SPI_SLV_WRSTR_DUMMY_CYCLELEN =		0xff,
+	SPI_SLV_WRSTR_DUMMY_CYCLELEN_S =	8,
+	SPI_SLV_RDSTR_DUMMY_CYCLELEN =		0xff,
+	SPI_SLV_RDSTR_DUMMY_CYCLELEN_S =	0,
+} SPI_SLAVE2_bits;
+
+enum
+{
+	SPI_SLV_WRSTA_CMD_VALUE =	0xff,
+	SPI_SLV_WRSTA_CMD_VALUE_S =	24,
+	SPI_SLV_RDSTA_CMD_VALUE =	0xff,
+	SPI_SLV_RDSTA_CMD_VALUE_S =	16,
+	SPI_SLV_WRBUF_CMD_VALUE =	0xff,
+	SPI_SLV_WRBUF_CMD_VALUE_S =	8,
+	SPI_SLV_RDBUF_CMD_VALUE =	0xff,
+	SPI_SLV_RDBUF_CMD_VALUE_S =	0,
+} SPI_SLAVE3_bits;
+
+enum
+{
+	SPI_T_PP_ENA =		1UL << 31,
+	SPI_T_PP_SHIFT =	0xf,
+	SPI_T_PP_SHIFT_S =	16,
+	SPI_T_PP_TIME =		0xfff,
+	SPI_T_PP_TIME_S =	0,
+} SPI_EXT0_bits;
+
+enum
+{
+	SPI_T_ERASE_ENA =		1UL << 31,
+	SPI_T_ERASE_SHIFT =		0xf,
+	SPI_T_ERASE_SHIFT_S =	16,
+	SPI_T_ERASE_TIME =		0xfff,
+	SPI_T_ERASE_TIME_S =	0,
+} SPI_EXT1_bits;
+
+enum
+{
+	SPI_ST =	0x7,
+	SPI_ST_S =	0,
+} SPI_EXT2_bits;
+
+enum
+{
+	SPI_INT_HOLD_ENA =		0x3,
+	SPI_INT_HOLD_ENA_S =	0,
+} SPI_EXT3_bits;
 
 attr_inline uint32_t UART_DATE(uint32_t i)		{ return(REG_UART_BASE(i) + 0x78); }
 attr_inline uint32_t UART_ID(uint32_t i)		{ return(REG_UART_BASE(i) + 0x7c); }
