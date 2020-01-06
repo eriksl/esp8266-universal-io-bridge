@@ -980,10 +980,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 	}
 
 	pin_arm_counter(pin, false, false);
-
 	gpio_func_select(pin, io_gpio_func_gpio);
-	gpio_pin_intr_state_set(pin, GPIO_PIN_INTR_DISABLE);
-
 	gpio_pin_data = &gpio_data[pin];
 
 	switch(pin_config->llmode)
@@ -1043,7 +1040,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 		case(io_pin_ll_i2c):
 		{
 			gpio_direction(pin, false);
-			gpio_enable_pullup(pin, 0);
+			gpio_enable_pullup(pin, false);
 			gpio_direction(pin, true);
 			gpio_enable_open_drain(pin, true);
 			gpio_enable_pdm(pin, false);
