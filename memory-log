@@ -2,3 +2,2195 @@ Sun Dec 29 19:36:50 CET 2019
     iram:    available:  32 k, used:  31376, free:   1392,  4 %
     dram:    available:  78 k, used:  72929, free:   7336,  9 %
     irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Sun Dec 29 19:38:47 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Sun Dec 29 19:39:11 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Sun Dec 29 19:39:29 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Tue Dec 31 11:18:26 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Tue Dec 31 11:20:45 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Tue Dec 31 11:21:39 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388152, free: 218056, 35 %
+Tue Dec 31 11:32:14 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388280, free: 217928, 35 %
+Tue Dec 31 11:32:56 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388280, free: 217928, 35 %
+Tue Dec 31 11:44:56 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388296, free: 217912, 35 %
+Tue Dec 31 11:48:09 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388312, free: 217896, 35 %
+Tue Dec 31 11:49:22 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388312, free: 217896, 35 %
+Tue Dec 31 19:20:18 CET 2019
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388200, free: 218008, 35 %
+Wed Jan  1 10:12:00 CET 2020
+    iram:    available:  32 k, used:  31376, free:   1392,  4 %
+    dram:    available:  78 k, used:  72929, free:   7336,  9 %
+    irom:    available: 592 k, used: 388200, free: 218008, 35 %
+Wed Jan  1 11:50:36 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 389592, free: 216616, 35 %
+Wed Jan  1 11:51:09 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 389592, free: 216616, 35 %
+Wed Jan  1 11:55:43 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 389624, free: 216584, 35 %
+Wed Jan  1 12:16:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 389912, free: 216296, 35 %
+Wed Jan  1 12:16:35 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 389912, free: 216296, 35 %
+Wed Jan  1 12:22:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390152, free: 216056, 35 %
+Wed Jan  1 12:47:44 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390152, free: 216056, 35 %
+Wed Jan  1 12:54:00 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390168, free: 216040, 35 %
+Wed Jan  1 12:59:01 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390184, free: 216024, 35 %
+Wed Jan  1 13:05:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390232, free: 215976, 35 %
+Wed Jan  1 13:10:17 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390248, free: 215960, 35 %
+Wed Jan  1 13:42:00 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390264, free: 215944, 35 %
+Wed Jan  1 13:56:45 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390264, free: 215944, 35 %
+Wed Jan  1 14:15:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390504, free: 215704, 35 %
+Wed Jan  1 14:17:48 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390504, free: 215704, 35 %
+Wed Jan  1 14:18:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390536, free: 215672, 35 %
+Wed Jan  1 14:19:25 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390536, free: 215672, 35 %
+Wed Jan  1 14:20:33 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390584, free: 215624, 35 %
+Wed Jan  1 14:21:26 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390616, free: 215592, 35 %
+Wed Jan  1 14:22:28 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390664, free: 215544, 35 %
+Wed Jan  1 14:23:50 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390584, free: 215624, 35 %
+Wed Jan  1 14:25:22 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 390584, free: 215624, 35 %
+Wed Jan  1 14:28:22 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 14:28:25 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 14:30:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 16:56:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 16:56:41 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 16:57:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391416, free: 214792, 35 %
+Wed Jan  1 17:06:41 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391432, free: 214776, 35 %
+Wed Jan  1 17:15:19 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391416, free: 214792, 35 %
+Wed Jan  1 17:16:50 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391416, free: 214792, 35 %
+Wed Jan  1 17:20:09 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 390728, free: 215480, 35 %
+Wed Jan  1 17:20:41 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391048, free: 215160, 35 %
+Wed Jan  1 17:22:28 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391112, free: 215096, 35 %
+Wed Jan  1 17:24:06 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391240, free: 214968, 35 %
+Wed Jan  1 17:24:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391240, free: 214968, 35 %
+Wed Jan  1 17:26:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391272, free: 214936, 35 %
+Wed Jan  1 17:27:28 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391272, free: 214936, 35 %
+Wed Jan  1 17:27:55 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391256, free: 214952, 35 %
+Wed Jan  1 17:29:15 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391304, free: 214904, 35 %
+Wed Jan  1 17:29:55 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391432, free: 214776, 35 %
+Wed Jan  1 17:30:23 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391368, free: 214840, 35 %
+Wed Jan  1 17:44:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391368, free: 214840, 35 %
+Wed Jan  1 17:45:00 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391368, free: 214840, 35 %
+Wed Jan  1 17:48:15 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391368, free: 214840, 35 %
+Wed Jan  1 18:02:25 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391496, free: 214712, 35 %
+Wed Jan  1 18:11:43 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391496, free: 214712, 35 %
+Wed Jan  1 18:13:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Wed Jan  1 18:14:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391672, free: 214536, 35 %
+Wed Jan  1 18:16:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391688, free: 214520, 35 %
+Wed Jan  1 18:18:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391512, free: 214696, 35 %
+Wed Jan  1 18:19:10 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391384, free: 214824, 35 %
+Wed Jan  1 21:12:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391400, free: 214808, 35 %
+Wed Jan  1 21:12:05 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391400, free: 214808, 35 %
+Wed Jan  1 21:14:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391448, free: 214760, 35 %
+Wed Jan  1 21:15:47 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391464, free: 214744, 35 %
+Wed Jan  1 21:36:05 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391384, free: 214824, 35 %
+Thu Jan  2 19:56:33 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391400, free: 214808, 35 %
+Thu Jan  2 19:56:46 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391400, free: 214808, 35 %
+Thu Jan  2 19:57:55 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391400, free: 214808, 35 %
+Thu Jan  2 20:33:16 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391448, free: 214760, 35 %
+Thu Jan  2 20:33:28 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391448, free: 214760, 35 %
+Thu Jan  2 20:33:44 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391448, free: 214760, 35 %
+Thu Jan  2 20:54:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 20:54:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 20:55:27 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 20:58:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391496, free: 214712, 35 %
+Thu Jan  2 20:59:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391464, free: 214744, 35 %
+Thu Jan  2 20:59:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391480, free: 214728, 35 %
+Thu Jan  2 21:00:21 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391512, free: 214696, 35 %
+Thu Jan  2 21:04:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391592, free: 214616, 35 %
+Thu Jan  2 21:05:43 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391640, free: 214568, 35 %
+Thu Jan  2 21:07:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 21:07:43 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 21:08:47 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Thu Jan  2 21:11:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391560, free: 214648, 35 %
+Fri Jan  3 11:27:14 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391992, free: 214216, 35 %
+Fri Jan  3 11:28:47 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 391992, free: 214216, 35 %
+Fri Jan  3 11:34:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392072, free: 214136, 35 %
+Fri Jan  3 11:38:26 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392152, free: 214056, 35 %
+Fri Jan  3 12:33:51 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392040, free: 214168, 35 %
+Fri Jan  3 12:36:09 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392040, free: 214168, 35 %
+Fri Jan  3 12:39:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392040, free: 214168, 35 %
+Fri Jan  3 12:40:26 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:41:15 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392040, free: 214168, 35 %
+Fri Jan  3 12:43:51 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392008, free: 214200, 35 %
+Fri Jan  3 12:44:46 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:45:22 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:46:40 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:47:18 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:48:58 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 12:49:50 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 13:10:24 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392024, free: 214184, 35 %
+Fri Jan  3 14:47:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392088, free: 214120, 35 %
+Fri Jan  3 14:47:21 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392472, free: 213736, 35 %
+Fri Jan  3 14:53:37 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392568, free: 213640, 35 %
+Fri Jan  3 14:53:46 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392568, free: 213640, 35 %
+Fri Jan  3 14:54:03 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392568, free: 213640, 35 %
+Fri Jan  3 15:03:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 17:07:19 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 17:09:06 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 17:10:36 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 17:48:50 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 20:18:22 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 20:18:25 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392600, free: 213608, 35 %
+Fri Jan  3 20:20:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392616, free: 213592, 35 %
+Fri Jan  3 20:24:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392616, free: 213592, 35 %
+Fri Jan  3 20:28:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392632, free: 213576, 35 %
+Fri Jan  3 20:36:59 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392648, free: 213560, 35 %
+Fri Jan  3 20:38:34 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392648, free: 213560, 35 %
+Fri Jan  3 20:48:57 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Fri Jan  3 20:51:13 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392680, free: 213528, 35 %
+Fri Jan  3 20:51:37 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392680, free: 213528, 35 %
+Fri Jan  3 20:57:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392664, free: 213544, 35 %
+Fri Jan  3 21:00:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392696, free: 213512, 35 %
+Fri Jan  3 21:06:01 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Fri Jan  3 21:06:47 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Fri Jan  3 21:07:47 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Fri Jan  3 21:18:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:23:05 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:23:26 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:24:21 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:25:05 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:25:40 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:26:49 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:29:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:30:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:30:49 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Fri Jan  3 21:31:21 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Sat Jan  4 09:56:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392472, free: 213736, 35 %
+Sat Jan  4 10:17:40 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Sat Jan  4 10:17:52 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Sat Jan  4 10:21:18 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 392648, free: 213560, 35 %
+Sat Jan  4 10:24:15 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Sat Jan  4 10:50:10 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393048, free: 213160, 35 %
+Sat Jan  4 10:50:23 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393048, free: 213160, 35 %
+Sat Jan  4 10:50:35 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393048, free: 213160, 35 %
+Sat Jan  4 10:55:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 10:55:34 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 11:03:59 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat Jan  4 11:07:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 11:12:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393432, free: 212776, 35 %
+Sat Jan  4 11:17:27 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 12:12:45 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 12:21:14 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sat Jan  4 12:23:39 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sat Jan  4 12:23:41 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sat Jan  4 12:31:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72993, free:   7272,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sat Jan  4 13:33:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sat Jan  4 13:34:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sat Jan  4 13:36:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sat Jan  4 14:12:29 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sat Jan  4 14:15:21 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sat Jan  4 14:30:27 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sat Jan  4 14:30:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sat Jan  4 14:35:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393256, free: 212952, 35 %
+Sat Jan  4 14:37:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sat Jan  4 14:38:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sat Jan  4 14:44:10 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sat Jan  4 14:55:09 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sat Jan  4 14:59:43 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sat Jan  4 15:11:40 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sat Jan  4 15:11:46 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sat Jan  4 15:14:19 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393144, free: 213064, 35 %
+Sat Jan  4 15:16:24 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sun Jan  5 12:27:45 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sun Jan  5 12:27:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sun Jan  5 12:30:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sun Jan  5 12:31:00 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393144, free: 213064, 35 %
+Sun Jan  5 12:40:46 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sun Jan  5 12:43:56 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 14:48:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sun Jan  5 14:51:24 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393560, free: 212648, 35 %
+Sun Jan  5 15:08:58 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393672, free: 212536, 35 %
+Sun Jan  5 15:22:22 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393672, free: 212536, 35 %
+Sun Jan  5 15:26:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393704, free: 212504, 35 %
+Sun Jan  5 15:28:07 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393832, free: 212376, 35 %
+Sun Jan  5 15:29:19 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393928, free: 212280, 35 %
+Sun Jan  5 15:30:10 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393928, free: 212280, 35 %
+Sun Jan  5 15:30:33 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393928, free: 212280, 35 %
+Sun Jan  5 15:32:14 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393832, free: 212376, 35 %
+Sun Jan  5 15:32:16 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393832, free: 212376, 35 %
+Sun Jan  5 15:35:54 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393448, free: 212760, 35 %
+Sun Jan  5 15:36:42 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 391448, free: 214760, 35 %
+Sun Jan  5 15:38:44 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72945, free:   7320,  9 %
+    irom:    available: 592 k, used: 391128, free: 215080, 35 %
+Sun Jan  5 15:39:29 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72945, free:   7320,  9 %
+    irom:    available: 592 k, used: 391080, free: 215128, 35 %
+Sun Jan  5 15:41:06 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 15:47:12 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393720, free: 212488, 35 %
+Sun Jan  5 15:49:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393656, free: 212552, 35 %
+Sun Jan  5 15:49:34 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393656, free: 212552, 35 %
+Sun Jan  5 15:51:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Sun Jan  5 15:51:20 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Sun Jan  5 15:51:54 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393288, free: 212920, 35 %
+Sun Jan  5 15:52:40 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 15:54:04 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 15:54:29 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 15:55:07 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393352, free: 212856, 35 %
+Sun Jan  5 15:56:06 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393368, free: 212840, 35 %
+Sun Jan  5 15:56:45 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393400, free: 212808, 35 %
+Sun Jan  5 15:57:26 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393464, free: 212744, 35 %
+Sun Jan  5 15:58:15 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393560, free: 212648, 35 %
+Sun Jan  5 15:59:07 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393592, free: 212616, 35 %
+Sun Jan  5 15:59:55 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393576, free: 212632, 35 %
+Sun Jan  5 16:00:38 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 16:01:01 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393576, free: 212632, 35 %
+Sun Jan  5 17:26:29 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 17:27:02 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sun Jan  5 17:27:41 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393416, free: 212792, 35 %
+Sun Jan  5 17:28:18 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393512, free: 212696, 35 %
+Sun Jan  5 17:29:17 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393560, free: 212648, 35 %
+Sun Jan  5 17:30:08 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:30:51 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393656, free: 212552, 35 %
+Sun Jan  5 17:31:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393656, free: 212552, 35 %
+Sun Jan  5 17:31:32 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:31:51 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393592, free: 212616, 35 %
+Sun Jan  5 17:32:16 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:32:24 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:32:44 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:35:17 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393272, free: 212936, 35 %
+Sun Jan  5 17:38:11 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72977, free:   7288,  9 %
+    irom:    available: 592 k, used: 393608, free: 212600, 35 %
+Sun Jan  5 17:38:53 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:39:09 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:40:31 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:40:55 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sun Jan  5 17:41:18 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:41:39 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:41:54 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393240, free: 212968, 35 %
+Sun Jan  5 17:42:21 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 17:42:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Sun Jan  5 17:43:00 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Sun Jan  5 17:43:12 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Sun Jan  5 17:43:37 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Sun Jan  5 19:37:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392856, free: 213352, 35 %
+Sun Jan  5 19:38:12 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392856, free: 213352, 35 %
+Sun Jan  5 19:42:00 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392856, free: 213352, 35 %
+Sun Jan  5 19:43:03 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392872, free: 213336, 35 %
+Sun Jan  5 19:44:56 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393208, free: 213000, 35 %
+Sun Jan  5 19:52:56 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sun Jan  5 19:52:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393384, free: 212824, 35 %
+Sun Jan  5 19:53:31 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 19:53:52 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393336, free: 212872, 35 %
+Sun Jan  5 19:54:08 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393320, free: 212888, 35 %
+Sun Jan  5 19:54:36 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sun Jan  5 19:54:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393160, free: 213048, 35 %
+Sun Jan  5 19:57:03 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393224, free: 212984, 35 %
+Sun Jan  5 19:57:43 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 19:58:13 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 19:58:27 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 19:58:52 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 19:59:12 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393208, free: 213000, 35 %
+Sun Jan  5 19:59:29 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393208, free: 213000, 35 %
+Sun Jan  5 19:59:42 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:00:11 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:00:24 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:00:38 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sun Jan  5 20:00:57 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:01:16 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:01:30 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:01:43 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sun Jan  5 20:02:00 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:02:21 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393192, free: 213016, 35 %
+Sun Jan  5 20:02:46 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sun Jan  5 20:03:03 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 393176, free: 213032, 35 %
+Sun Jan  5 20:09:11 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:09:57 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:11:13 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392952, free: 213256, 35 %
+Sun Jan  5 20:11:32 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392952, free: 213256, 35 %
+Sun Jan  5 20:12:39 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:12:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:13:40 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:14:20 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:14:33 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:14:54 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:15:45 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:18:51 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:18:53 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:19:37 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:20:08 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:20:26 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:20:42 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:21:55 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:22:04 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:22:58 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:25:51 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:25:54 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:26:28 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:26:47 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:27:17 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 393016, free: 213192, 35 %
+Sun Jan  5 20:28:32 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392872, free: 213336, 35 %
+Sun Jan  5 20:29:06 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392888, free: 213320, 35 %
+Sun Jan  5 20:29:24 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392872, free: 213336, 35 %
+Sun Jan  5 20:30:54 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392888, free: 213320, 35 %
+Sun Jan  5 20:31:32 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:32:03 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73465, free:   6800,  8 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:32:50 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  73977, free:   6288,  7 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:33:27 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:34:25 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 20:34:56 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 20:35:47 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 393080, free: 213128, 35 %
+Sun Jan  5 20:39:11 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:39:25 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:40:12 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:40:33 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:40:57 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:41:15 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Sun Jan  5 20:41:45 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392904, free: 213304, 35 %
+Sun Jan  5 20:42:05 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392888, free: 213320, 35 %
+Sun Jan  5 20:42:25 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392856, free: 213352, 35 %
+Sun Jan  5 20:42:47 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:43:07 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:43:29 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:43:43 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:44:07 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:44:38 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:44:52 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:46:27 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392824, free: 213384, 35 %
+Sun Jan  5 20:52:18 CET 2020
+    iram:    available:  32 k, used:  31448, free:   1320,  4 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:52:52 CET 2020
+    iram:    available:  32 k, used:  31448, free:   1320,  4 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:53:13 CET 2020
+    iram:    available:  32 k, used:  31448, free:   1320,  4 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:53:32 CET 2020
+    iram:    available:  32 k, used:  31448, free:   1320,  4 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:54:30 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:55:11 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:55:29 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392536, free: 213672, 35 %
+Sun Jan  5 20:56:02 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:56:25 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:57:02 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:57:11 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:57:32 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:57:52 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392552, free: 213656, 35 %
+Sun Jan  5 20:58:16 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:58:47 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 20:59:06 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Sun Jan  5 21:00:10 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 21:00:32 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 21:00:46 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 21:01:44 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Sun Jan  5 21:02:21 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392952, free: 213256, 35 %
+Sun Jan  5 21:02:47 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392888, free: 213320, 35 %
+Sun Jan  5 21:03:27 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Sun Jan  5 21:03:42 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  75001, free:   5264,  6 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Sun Jan  5 21:04:21 CET 2020
+    iram:    available:  32 k, used:  31716, free:   1052,  3 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 404488, free: 201720, 33 %
+Sun Jan  5 21:05:05 CET 2020
+    iram:    available:  32 k, used:  31716, free:   1052,  3 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 404488, free: 201720, 33 %
+Sun Jan  5 21:05:44 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407432, free: 198776, 32 %
+Sun Jan  5 21:06:37 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407432, free: 198776, 32 %
+Sun Jan  5 21:08:05 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407128, free: 199080, 32 %
+Sun Jan  5 21:08:46 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407112, free: 199096, 32 %
+Sun Jan  5 21:09:00 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407112, free: 199096, 32 %
+Sun Jan  5 21:09:44 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406776, free: 199432, 32 %
+Sun Jan  5 21:09:58 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406776, free: 199432, 32 %
+Sun Jan  5 21:10:36 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406488, free: 199720, 32 %
+Sun Jan  5 21:11:34 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406488, free: 199720, 32 %
+Sun Jan  5 21:11:47 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406488, free: 199720, 32 %
+Sun Jan  5 21:12:12 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406536, free: 199672, 32 %
+Sun Jan  5 21:12:25 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406536, free: 199672, 32 %
+Sun Jan  5 21:13:06 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406600, free: 199608, 32 %
+Sun Jan  5 21:13:31 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406632, free: 199576, 32 %
+Sun Jan  5 21:14:17 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406632, free: 199576, 32 %
+Sun Jan  5 21:14:33 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406680, free: 199528, 32 %
+Sun Jan  5 21:14:56 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406984, free: 199224, 32 %
+Sun Jan  5 21:15:10 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406984, free: 199224, 32 %
+Sun Jan  5 21:15:53 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407288, free: 198920, 32 %
+Sun Jan  5 21:16:10 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407288, free: 198920, 32 %
+Sun Jan  5 21:16:48 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407336, free: 198872, 32 %
+Sun Jan  5 21:17:03 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407336, free: 198872, 32 %
+Sun Jan  5 21:17:25 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407352, free: 198856, 32 %
+Sun Jan  5 21:17:42 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407352, free: 198856, 32 %
+Sun Jan  5 21:17:51 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407352, free: 198856, 32 %
+Sun Jan  5 21:20:49 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 407352, free: 198856, 32 %
+Sun Jan  5 21:42:07 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76277, free:   3988,  4 %
+    irom:    available: 592 k, used: 406808, free: 199400, 32 %
+Sun Jan  5 22:46:09 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76469, free:   3796,  4 %
+    irom:    available: 592 k, used: 407176, free: 199032, 32 %
+Sun Jan  5 22:46:15 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76469, free:   3796,  4 %
+    irom:    available: 592 k, used: 407176, free: 199032, 32 %
+Sun Jan  5 22:46:47 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76469, free:   3796,  4 %
+    irom:    available: 592 k, used: 407224, free: 198984, 32 %
+Sun Jan  5 22:47:03 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76469, free:   3796,  4 %
+    irom:    available: 592 k, used: 407224, free: 198984, 32 %
+Sun Jan  5 22:47:27 CET 2020
+    iram:    available:  32 k, used:  31972, free:    796,  2 %
+    dram:    available:  78 k, used:  76469, free:   3796,  4 %
+    irom:    available: 592 k, used: 407160, free: 199048, 32 %
+Sun Jan  5 23:08:14 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  77293, free:   2972,  3 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 09:09:55 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  77293, free:   2972,  3 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 09:10:23 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  77293, free:   2972,  3 %
+    irom:    available: 592 k, used: 407816, free: 198392, 32 %
+Mon Jan  6 09:14:45 CET 2020
+    iram:    available:  32 k, used:  31948, free:    820,  2 %
+    dram:    available:  78 k, used:  77805, free:   2460,  3 %
+    irom:    available: 592 k, used: 407272, free: 198936, 32 %
+Mon Jan  6 09:15:29 CET 2020
+    iram:    available:  32 k, used:  31948, free:    820,  2 %
+    dram:    available:  78 k, used:  77805, free:   2460,  3 %
+    irom:    available: 592 k, used: 407304, free: 198904, 32 %
+Mon Jan  6 09:16:16 CET 2020
+    iram:    available:  32 k, used:  31948, free:    820,  2 %
+    dram:    available:  78 k, used:  77805, free:   2460,  3 %
+    irom:    available: 592 k, used: 407208, free: 199000, 32 %
+Mon Jan  6 09:16:39 CET 2020
+    iram:    available:  32 k, used:  31948, free:    820,  2 %
+    dram:    available:  78 k, used:  77293, free:   2972,  3 %
+    irom:    available: 592 k, used: 407720, free: 198488, 32 %
+Mon Jan  6 09:24:18 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 407704, free: 198504, 32 %
+Mon Jan  6 09:24:41 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 407800, free: 198408, 32 %
+Mon Jan  6 09:25:45 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 407800, free: 198408, 32 %
+Mon Jan  6 09:26:20 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 407896, free: 198312, 32 %
+Mon Jan  6 09:37:07 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 407896, free: 198312, 32 %
+Mon Jan  6 09:37:43 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 408008, free: 198200, 32 %
+Mon Jan  6 09:37:59 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 408008, free: 198200, 32 %
+Mon Jan  6 09:38:42 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  77101, free:   3164,  3 %
+    irom:    available: 592 k, used: 408104, free: 198104, 32 %
+Mon Jan  6 09:41:18 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 408104, free: 198104, 32 %
+Mon Jan  6 09:42:03 CET 2020
+    iram:    available:  32 k, used:  31940, free:    828,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 408104, free: 198104, 32 %
+Mon Jan  6 09:50:18 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 09:51:53 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407720, free: 198488, 32 %
+Mon Jan  6 09:53:05 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407720, free: 198488, 32 %
+Mon Jan  6 10:16:53 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:17:00 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:18:53 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:26:34 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:26:37 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:30:04 CET 2020
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:30:21 CET 2020
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:30:54 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:31:08 CET 2020
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:31:28 CET 2020
+    iram:    available:  32 k, used:  31928, free:    840,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:31:54 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:32:42 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:33:00 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:33:23 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:33:41 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:34:31 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:34:39 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:34:47 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:35:16 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:35:25 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:35:57 CET 2020
+    iram:    available:  32 k, used:  31920, free:    848,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:36:17 CET 2020
+    iram:    available:  32 k, used:  31832, free:    936,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:38:11 CET 2020
+    iram:    available:  32 k, used:  31988, free:    780,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407896, free: 198312, 32 %
+Mon Jan  6 10:39:05 CET 2020
+    iram:    available:  32 k, used:  31864, free:    904,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407832, free: 198376, 32 %
+Mon Jan  6 10:39:28 CET 2020
+    iram:    available:  32 k, used:  31924, free:    844,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407848, free: 198360, 32 %
+Mon Jan  6 10:40:40 CET 2020
+    iram:    available:  32 k, used:  31864, free:    904,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:40:52 CET 2020
+    iram:    available:  32 k, used:  31864, free:    904,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:41:29 CET 2020
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:42:39 CET 2020
+    iram:    available:  32 k, used:  31896, free:    872,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:42:57 CET 2020
+    iram:    available:  32 k, used:  31896, free:    872,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:43:46 CET 2020
+    iram:    available:  32 k, used:  31932, free:    836,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:43:56 CET 2020
+    iram:    available:  32 k, used:  31932, free:    836,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:44:45 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407544, free: 198664, 32 %
+Mon Jan  6 10:44:59 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407544, free: 198664, 32 %
+Mon Jan  6 10:45:30 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407656, free: 198552, 32 %
+Mon Jan  6 10:45:43 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407656, free: 198552, 32 %
+Mon Jan  6 10:50:40 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407768, free: 198440, 32 %
+Mon Jan  6 10:51:10 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407784, free: 198424, 32 %
+Mon Jan  6 10:52:14 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407784, free: 198424, 32 %
+Mon Jan  6 10:52:35 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407800, free: 198408, 32 %
+Mon Jan  6 10:53:03 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407848, free: 198360, 32 %
+Mon Jan  6 10:53:23 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407848, free: 198360, 32 %
+Mon Jan  6 10:54:04 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:54:26 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:54:52 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:55:01 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:55:09 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:55:19 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 10:56:10 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:56:28 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:56:59 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:57:20 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:57:36 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:57:44 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:58:01 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:58:09 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 10:58:17 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 11:00:51 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407832, free: 198376, 32 %
+Mon Jan  6 11:01:10 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407848, free: 198360, 32 %
+Mon Jan  6 11:01:31 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 11:01:52 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407880, free: 198328, 32 %
+Mon Jan  6 11:02:09 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:02:32 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:02:48 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:03:47 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:04:11 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:04:29 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:04:43 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:04:51 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:04:59 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:05:14 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:06:58 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:07:23 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:07:36 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:08:05 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:09:06 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:09:18 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:09:31 CET 2020
+    iram:    available:  32 k, used:  31944, free:    824,  2 %
+    dram:    available:  78 k, used:  79149, free:   1116,  1 %
+    irom:    available: 592 k, used: 407864, free: 198344, 32 %
+Mon Jan  6 11:11:39 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  77877, free:   2388,  2 %
+    irom:    available: 592 k, used: 395336, free: 210872, 34 %
+Mon Jan  6 11:11:55 CET 2020
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  77877, free:   2388,  2 %
+    irom:    available: 592 k, used: 395336, free: 210872, 34 %
+Mon Jan  6 11:12:53 CET 2020
+    iram:    available:  32 k, used:  31428, free:   1340,  4 %
+    dram:    available:  78 k, used:  77877, free:   2388,  2 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Mon Jan  6 11:13:19 CET 2020
+    iram:    available:  32 k, used:  31428, free:   1340,  4 %
+    dram:    available:  78 k, used:  77877, free:   2388,  2 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Mon Jan  6 11:15:29 CET 2020
+    iram:    available:  32 k, used:  31428, free:   1340,  4 %
+    dram:    available:  78 k, used:  73781, free:   6484,  8 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Mon Jan  6 12:07:38 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Mon Jan  6 12:08:34 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Mon Jan  6 12:10:09 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392712, free: 213496, 35 %
+Mon Jan  6 12:10:56 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72953, free:   7312,  9 %
+    irom:    available: 592 k, used: 392728, free: 213480, 35 %
+Mon Jan  6 12:13:09 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:13:11 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:14:06 CET 2020
+    iram:    available:  32 k, used:  31464, free:   1304,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:15:13 CET 2020
+    iram:    available:  32 k, used:  31476, free:   1292,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:15:30 CET 2020
+    iram:    available:  32 k, used:  31488, free:   1280,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:15:57 CET 2020
+    iram:    available:  32 k, used:  31500, free:   1268,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:16:29 CET 2020
+    iram:    available:  32 k, used:  31512, free:   1256,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:16:55 CET 2020
+    iram:    available:  32 k, used:  31524, free:   1244,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:17:21 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:17:46 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392776, free: 213432, 35 %
+Mon Jan  6 12:18:38 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:19:33 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392808, free: 213400, 35 %
+Mon Jan  6 12:20:03 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392840, free: 213368, 35 %
+Mon Jan  6 12:20:21 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392856, free: 213352, 35 %
+Mon Jan  6 12:20:40 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392872, free: 213336, 35 %
+Mon Jan  6 12:20:55 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392904, free: 213304, 35 %
+Mon Jan  6 12:21:44 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392920, free: 213288, 35 %
+Mon Jan  6 12:22:09 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392936, free: 213272, 35 %
+Mon Jan  6 12:23:07 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392920, free: 213288, 35 %
+Mon Jan  6 12:23:33 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392952, free: 213256, 35 %
+Mon Jan  6 12:24:17 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:24:59 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:25:26 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:25:46 CET 2020
+    iram:    available:  32 k, used:  31572, free:   1196,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Mon Jan  6 12:26:10 CET 2020
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Mon Jan  6 12:27:06 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:27:35 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Mon Jan  6 12:29:04 CET 2020
+    iram:    available:  32 k, used:  31536, free:   1232,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:30:15 CET 2020
+    iram:    available:  32 k, used:  31556, free:   1212,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392968, free: 213240, 35 %
+Mon Jan  6 12:30:47 CET 2020
+    iram:    available:  32 k, used:  31556, free:   1212,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Mon Jan  6 12:32:15 CET 2020
+    iram:    available:  32 k, used:  31556, free:   1212,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392984, free: 213224, 35 %
+Mon Jan  6 12:34:11 CET 2020
+    iram:    available:  32 k, used:  31412, free:   1356,  4 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:34:30 CET 2020
+    iram:    available:  32 k, used:  31432, free:   1336,  4 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:34:58 CET 2020
+    iram:    available:  32 k, used:  31452, free:   1316,  4 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:35:15 CET 2020
+    iram:    available:  32 k, used:  31472, free:   1296,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:35:41 CET 2020
+    iram:    available:  32 k, used:  31492, free:   1276,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:36:32 CET 2020
+    iram:    available:  32 k, used:  31512, free:   1256,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:37:04 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392760, free: 213448, 35 %
+Mon Jan  6 12:38:34 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392776, free: 213432, 35 %
+Mon Jan  6 12:39:03 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:40:54 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:41:35 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:43:24 CET 2020
+    iram:    available:  32 k, used:  31576, free:   1192,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:45:06 CET 2020
+    iram:    available:  32 k, used:  31576, free:   1192,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:47:35 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:47:50 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:48:03 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:49:32 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:51:35 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 12:52:27 CET 2020
+    iram:    available:  32 k, used:  31532, free:   1236,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 392792, free: 213416, 35 %
+Mon Jan  6 13:08:02 CET 2020
+    iram:    available:  32 k, used:  31548, free:   1220,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 393080, free: 213128, 35 %
+Mon Jan  6 13:08:05 CET 2020
+    iram:    available:  32 k, used:  31548, free:   1220,  3 %
+    dram:    available:  78 k, used:  72961, free:   7304,  9 %
+    irom:    available: 592 k, used: 393080, free: 213128, 35 %
+Mon Jan  6 13:13:37 CET 2020
+    iram:    available:  32 k, used:  31572, free:   1196,  3 %
+    dram:    available:  78 k, used:  72985, free:   7280,  9 %
+    irom:    available: 592 k, used: 393448, free: 212760, 35 %
+Mon Jan  6 13:13:39 CET 2020
+    iram:    available:  32 k, used:  31572, free:   1196,  3 %
+    dram:    available:  78 k, used:  72985, free:   7280,  9 %
+    irom:    available: 592 k, used: 393448, free: 212760, 35 %
