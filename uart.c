@@ -222,7 +222,7 @@ void uart_task_handler_fill_fifo(unsigned int uart)
 
 	if(autofill_info[uart].enabled)
 	{
-		while(tx_fifo_length(uart) < 128)
+		while(tx_fifo_length(uart) < 64)
 			write_peri_reg(UART_FIFO(uart), autofill_info[uart].character);
 
 		clear_interrupts(uart);
@@ -230,7 +230,7 @@ void uart_task_handler_fill_fifo(unsigned int uart)
 	}
 	else
 	{
-		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 128))
+		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 64))
 			write_peri_reg(UART_FIFO(uart), queue_pop(&uart_send_queue[uart]));
 
 		clear_interrupts(uart);
@@ -395,10 +395,10 @@ void uart_init(void)
 			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
 			UART_RX_TOUT_EN |
 			((8 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
-			((8 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	write_peri_reg(UART_CONF1(1),
-			((8 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	// Don't enable the send fifo interrupt here but enable it when the fifo has
 	// something in it that should be written to the uart's fifo
