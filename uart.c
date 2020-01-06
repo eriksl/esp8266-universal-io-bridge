@@ -304,7 +304,7 @@ void uart_loopback(unsigned int uart, bool enable)
 bool uart_invert(unsigned int uart, uart_direction_t dir, bool enable)
 {
 	if(uart > 1)
-		false;
+		return(false);
 
 	switch(dir)
 	{
