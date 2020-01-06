@@ -257,7 +257,7 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 
 	if(len > socket->sent_remaining)
 	{
-		log("tcp sent callback: acked (%u) > sent_remaining (%d)\n", len, socket->sent_remaining);
+		logf("tcp sent callback: acked (%u) > sent_remaining (%d)\n", len, socket->sent_remaining);
 		socket->sent_remaining = 0;
 	}
 	else
@@ -277,7 +277,7 @@ static void tcp_error_callback(void *callback_arg, err_t error)
 
 	if(error != ERR_ISCONN)
 	{
-		log("tcp error callback: socket %p, tcp pcb: %p, error: ", socket, *pcb_tcp);
+		logf("tcp error callback: socket %p, tcp pcb: %p, error: ", socket, *pcb_tcp);
 		log_error(error);
 	}
 
@@ -296,7 +296,7 @@ static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_
 
 	if(error != ERR_OK)
 	{
-		log("tcp accepted callback: socket  %p, pcb: %p, tcp_pcb: %p, error: ", socket, pcb, *pcb_tcp);
+		logf("tcp accepted callback: socket  %p, pcb: %p, tcp_pcb: %p, error: ", socket, pcb, *pcb_tcp);
 		log_error(error);
 	}
 
@@ -375,7 +375,7 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
 		{
 			stat_lwip_udp_send_error++;
-			log("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
+			logf("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
 			log_error(error);
 			return(false);
 		}
@@ -408,13 +408,13 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 
 	if(socket->sending_remaining > 0)
 	{
-		log("lwip if send: still sending %d bytes\n", socket->sending_remaining);
+		logf("lwip if send: still sending %d bytes\n", socket->sending_remaining);
 		return(false);
 	}
 
 	if(socket->sent_remaining > 0)
 	{
-		log("lwip if send: still waiting for %d bytes to be sent\n", socket->sent_remaining);
+		logf("lwip if send: still waiting for %d bytes to be sent\n", socket->sent_remaining);
 		return(false);
 	}
 
@@ -440,7 +440,7 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
 			{
 				stat_lwip_udp_send_error++;
-				log("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
+				logf("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
 				log_error(error);
 			}
 

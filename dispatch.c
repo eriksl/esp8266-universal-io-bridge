@@ -116,7 +116,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 	if(stat_task_current_queue[prio] > 0)
 		stat_task_current_queue[prio]--;
 	else
-		log("task queue %u underrun\n", prio);
+		logf("task queue %u underrun\n", prio);
 
 	switch(command)
 	{

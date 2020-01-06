@@ -95,13 +95,13 @@ bool config_open_read(void)
 	{
 		if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_display_picture))
 		{
-			log("config_open_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+			logf("config_open_read: sector buffer in use: %u\n", flash_sector_buffer_use);
 			return(false);
 		}
 
 		if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 		{
-			log("config_open_read: sector buffer too small: %u\n", flash_sector_buffer_use);
+			logf("config_open_read: sector buffer too small: %u\n", flash_sector_buffer_use);
 			return(false);
 		}
 
@@ -109,7 +109,7 @@ bool config_open_read(void)
 
 		if(spi_flash_read(USER_CONFIG_SECTOR * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		{
-			log("config_open_read: failed to read config sector 0x%x\n", (unsigned int)USER_CONFIG_SECTOR);
+			logf("config_open_read: failed to read config sector 0x%x\n", (unsigned int)USER_CONFIG_SECTOR);
 			flash_sector_buffer_use = fsb_free;
 			return(false);
 		}
@@ -139,7 +139,7 @@ bool config_close_read(void)
 {
 	if(flash_sector_buffer_use != fsb_config_read)
 	{
-		log("config_close_read: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config_close_read: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -215,7 +215,7 @@ bool config_close_write(void)
 
 	if(flash_sector_buffer_use != fsb_config_write)
 	{
-		log("config_close_write: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config_close_write: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -244,7 +244,7 @@ bool config_walk(string_t *id, string_t *value)
 
 	if(flash_sector_buffer_use != fsb_config_read)
 	{
-		log("config get entry: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config get entry: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -325,7 +325,7 @@ unsigned int config_delete_flashptr(const char *match_name_flash, bool wildcard,
 
 	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
 	{
-		log("config delete: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config delete: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(0);
 	}
 
@@ -368,7 +368,7 @@ bool config_set_string_flashptr(const char *match_name_flash, const char *value,
 
 	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
 	{
-		log("config set string: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config set string: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -391,7 +391,7 @@ bool config_set_int_flashptr(const char *match_name_flash, int value, int param1
 
 	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
 	{
-		log("config set int: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config set int: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -406,7 +406,7 @@ bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value, 
 
 	if((flash_sector_buffer_use != fsb_config_write) && (flash_sector_buffer_use != fsb_config_write_dirty))
 	{
-		log("config set uint: sector buffer in use: %u\n", flash_sector_buffer_use);
+		logf("config set uint: sector buffer in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 

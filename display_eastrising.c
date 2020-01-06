@@ -1338,7 +1338,7 @@ bool display_eastrising_periodic(void)
 		{
 			if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 			{
-				log("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+				logf("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
 				goto error1;
 			}
 
@@ -1350,7 +1350,7 @@ bool display_eastrising_periodic(void)
 
 			if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 			{
-				log("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
+				logf("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
 				goto error2;
 			}
 
@@ -1358,7 +1358,7 @@ bool display_eastrising_periodic(void)
 
 			if(!string_match_cstr(&flash_sector_buffer, ppm_header))
 			{
-				log("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+				logf("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
 				goto error2;
 			}
 
@@ -1407,7 +1407,7 @@ bool display_eastrising_periodic(void)
 
 				if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 				{
-					log("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
+					logf("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
 					goto error2;
 				}
 			}
@@ -1425,7 +1425,7 @@ bool display_eastrising_periodic(void)
 
 						if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 						{
-							log("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
+							logf("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
 							goto error2;
 						}
 

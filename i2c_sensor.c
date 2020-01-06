@@ -905,7 +905,7 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 
 		if(local_response != 0x00)
 		{
-			log("si114x: response not 0: %u\n", local_response);
+			logf("si114x: response not 0: %u\n", local_response);
 			goto failed;
 		}
 
@@ -927,12 +927,12 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 
 			if((local_response & 0b10001000) == 0b10001000)		// overflow, treat as OK
 			{
-				log("si114x: response overflow: %x\n", local_response);
+				logf("si114x: response overflow: %x\n", local_response);
 				break;
 			}
 
-			log("si114x: response invalid command / timeout: %x\n", local_response);
-			log("si114x: attempt2: %u\n", attempt2);
+			logf("si114x: response invalid command / timeout: %x\n", local_response);
+			logf("si114x: attempt2: %u\n", attempt2);
 
 			msleep(1);
 		}
@@ -941,7 +941,7 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 			break;
 
 failed:
-		log("si114x: attempt1: %u\n", attempt1);
+		logf("si114x: attempt1: %u\n", attempt1);
 		msleep(1);
 	}
 
@@ -2560,6 +2560,8 @@ static i2c_error_t sensor_ccs811_read(int bus, const i2c_sensor_device_table_ent
 	{
 		if((error = i2c_send1_receive(entry->address, ccs811_reg_error_id, 1, i2c_buffer)) != i2c_error_ok)
 			return(error);
+
+		logf("ccs811: error %x\n", i2c_buffer[0]);
 
 		return(i2c_error_device_error_1);
 	}
@@ -4813,7 +4815,7 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 
 	if(device_table_entry->id != sensor)
 	{
-		log("*** i2c_sensor_init: sensor id != index: %u, %u\n", device_table_entry->id, sensor);
+		logf("*** i2c_sensor_init: sensor id != index: %u, %u\n", device_table_entry->id, sensor);
 		return(i2c_error_out_of_range);
 	}
 

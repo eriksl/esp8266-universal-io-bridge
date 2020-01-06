@@ -74,19 +74,19 @@ extern string_t logbuffer;
 extern unsigned int logbuffer_display_current;
 void logbuffer_clear(void);
 
-unsigned int attr_nonnull log_from_flash_no_format(const char *data);
-unsigned int attr_nonnull log_from_flash(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
+unsigned int attr_nonnull log_from_flash(const char *data);
+unsigned int attr_nonnull log_from_flash_format(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
 
-#define log(fmt, ...) \
+#define log(str) \
 do { \
-	static roflash const char log_flash[] = fmt; \
-	log_from_flash(log_flash, ## __VA_ARGS__); \
+	static roflash const char log_str_flash[] = str; \
+	log_from_flash(log_str_flash); \
 } while(0)
 
-#define log_no_format(fmt, ...) \
+#define logf(fmt, ...) \
 do { \
-	static roflash const char log_flash[] = fmt; \
-	log_from_flash_no_format(log_flash, ## __VA_ARGS__); \
+	static roflash const char log_fmt_flash[] = fmt; \
+	log_from_flash_format(log_fmt_flash, __VA_ARGS__); \
 } while(0)
 
 void logchar(char c);

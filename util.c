@@ -52,7 +52,7 @@ void logbuffer_clear(void)
 	string_clear(&logbuffer);
 }
 
-unsigned int log_from_flash_no_format(const char *data)
+unsigned int log_from_flash(const char *data)
 {
 	unsigned int length;
 
@@ -73,7 +73,7 @@ unsigned int log_from_flash_no_format(const char *data)
 	return(length);
 }
 
-unsigned int log_from_flash(const char *fmt_in_flash, ...)
+unsigned int log_from_flash_format(const char *fmt_in_flash, ...)
 {
 	va_list ap;
 	int length;
