@@ -15,7 +15,7 @@ typedef struct
 	unsigned int	character;
 } autofill_info_t;
 
-static bool init_done = false;
+static bool queues_alive = false;
 
 static autofill_info_t autofill_info[2] =
 {
@@ -103,16 +103,22 @@ iram static void uart_callback(void *p)
 
 iram attr_pure bool uart_full(unsigned int uart)
 {
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return(true);
+	}
 
 	return(queue_full(&uart_send_queue[uart]));
 }
 
 iram void uart_send(unsigned int uart, unsigned int byte)
 {
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return;
+	}
 
 	if(!queue_full(&uart_send_queue[uart]))
 		queue_push(&uart_send_queue[uart], byte);
@@ -122,8 +128,11 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 {
 	unsigned int current, length;
 
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return;
+	}
 
 	for(current = 0, length = string_length(string); (current < length) && !queue_full(&uart_send_queue[uart]); current++)
 		queue_push(&uart_send_queue[uart], string_at(string, current));
@@ -133,32 +142,44 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 
 iram void uart_flush(unsigned int uart)
 {
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return;
+	}
 
 	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
 iram attr_pure bool uart_empty(unsigned int uart)
 {
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return(false);
+	}
 
 	return(queue_empty(&uart_receive_queue));
 }
 
 iram unsigned int uart_receive(unsigned int uart)
 {
-	if(!init_done)
-		return(-1);
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
+		return(0);
+	}
 
 	return(queue_pop(&uart_receive_queue));
 }
 
 iram void uart_clear_receive_queue(unsigned int uart)
 {
-	if(!init_done)
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
 		return;
+	}
 
 	queue_flush(&uart_receive_queue);
 }
@@ -166,6 +187,12 @@ iram void uart_clear_receive_queue(unsigned int uart)
 void uart_task_handler_fetch_fifo(unsigned int uart)
 {
 	unsigned int byte;
+
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
+		return;
+	}
 
 	// make sure to fetch all data from the fifo, or we'll get a another
 	// interrupt immediately after we enable it
@@ -187,6 +214,12 @@ void uart_task_handler_fetch_fifo(unsigned int uart)
 
 void uart_task_handler_fill_fifo(unsigned int uart)
 {
+	if(!queues_alive)
+	{
+		stat_uart_spurious++;
+		return;
+	}
+
 	if(autofill_info[uart].enabled)
 	{
 		while(tx_fifo_length(uart) < 128)
@@ -337,8 +370,15 @@ void uart_init(void)
 	queue_new(&uart_send_queue[1], sizeof(uart_send_queue_buffer1), uart_send_queue_buffer1);
 	queue_new(&uart_receive_queue, sizeof(uart_receive_queue_buffer), uart_receive_queue_buffer);
 
+	queues_alive = true;
+
 	clear_fifos(0);
 	clear_fifos(1);
+
+	uart_invert(0, uart_dir_tx, false);
+	uart_invert(0, uart_dir_rx, false);
+	uart_invert(1, uart_dir_tx, false);
+	uart_invert(1, uart_dir_rx, false);
 
 	// Set receive fifo "timeout" threshold.
 	// when no data comes in for this amount of bytes' times and the fifo
@@ -351,11 +391,6 @@ void uart_init(void)
 	// If the fifo contains less than this numbers of bytes, raise an
 	// interrupt.
 
-	uart_invert(0, uart_dir_tx, false);
-	uart_invert(0, uart_dir_rx, false);
-	uart_invert(1, uart_dir_tx, false);
-	uart_invert(1, uart_dir_rx, false);
-
 	write_peri_reg(UART_CONF1(0),
 			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
 			UART_RX_TOUT_EN |
@@ -365,19 +400,17 @@ void uart_init(void)
 	write_peri_reg(UART_CONF1(1),
 			((8 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
-	clear_interrupts(0);
-	clear_interrupts(1);
-
 	// Don't enable the send fifo interrupt here but enable it when the fifo has
 	// something in it that should be written to the uart's fifo
+
+	clear_interrupts(0);
+	clear_interrupts(1);
 
 	enable_receive_int(0, true);
 	enable_transmit_int(0, false);
 	enable_transmit_int(1, false);
 
 	ets_isr_unmask(1 << ETS_UART_INUM);
-
-	init_done = true;
 }
 
 attr_pure uart_parity_t uart_string_to_parity(const string_t *src)

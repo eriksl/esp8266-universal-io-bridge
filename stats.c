@@ -11,6 +11,7 @@
 
 stat_flags_t stat_flags;
 
+unsigned int stat_uart_spurious;
 unsigned int stat_uart0_rx_interrupts;
 unsigned int stat_uart0_tx_interrupts;
 unsigned int stat_uart1_tx_interrupts;
@@ -320,9 +321,11 @@ void stats_counters(string_t *dst)
 {
 	string_format(dst,
 			"> INTERRUPTS\n"
-			">   uart0 rx:    %8u, tx: %u\n"
-			">   uart1 tx:    %8u\n"
-			">   nonmaskable: %u, while masked: %u\n",
+			">   uart spurious: %8u\n"
+			">   uart0 rx:      %8u, tx: %u\n"
+			">   uart1 tx:      %8u\n"
+			">   nonmaskable:   %u, while masked: %u\n",
+				stat_uart_spurious,
 				stat_uart0_rx_interrupts, stat_uart0_tx_interrupts,
 				stat_uart1_tx_interrupts,
 				stat_pwm_timer_interrupts, stat_pwm_timer_interrupts_while_nmi_masked);

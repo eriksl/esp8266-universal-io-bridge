@@ -20,6 +20,7 @@ typedef struct
 
 extern stat_flags_t stat_flags;
 
+extern unsigned int stat_uart_spurious;
 extern unsigned int stat_uart0_rx_interrupts;
 extern unsigned int stat_uart0_tx_interrupts;
 extern unsigned int stat_uart1_tx_interrupts;
