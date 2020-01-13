@@ -66,6 +66,7 @@ app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 	unsigned int address, length;
 	int sector_offset, sector_count, erased;
 	uint32_t time_start, time_finish;
+	SpiFlashOpResult flash_result;
 
 	if(parse_uint(1, src, &address, 0, ' ') != parse_ok)
 	{
@@ -96,8 +97,20 @@ app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 	for(erased = 0; erased < sector_count; erased++)
 	{
 		system_soft_wdt_feed();
-		if(spi_flash_erase_sector(sector_offset + erased) != SPI_FLASH_RESULT_OK)
-			break;
+
+		flash_result = spi_flash_erase_sector(sector_offset + erased);
+
+		if(flash_result == SPI_FLASH_RESULT_ERR)
+		{
+			string_append(dst, "ERROR flash-erase: erase error\n");
+			return(app_action_error);
+		}
+
+		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+		{
+			string_append(dst, "ERROR flash-erase: erase timeout\n");
+			return(app_action_error);
+		}
 	}
 
 	time_finish = system_get_time();
@@ -241,6 +254,7 @@ app_action_t application_function_flash_read(string_t *src, string_t *dst)
 	SHA_CTX sha_context;
 	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	SpiFlashOpResult flash_result;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -270,8 +284,20 @@ app_action_t application_function_flash_read(string_t *src, string_t *dst)
 	flash_sector_buffer_use = fsb_ota;
 
 	sector = address / SPI_FLASH_SEC_SIZE;
-	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
 	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+
+	if(flash_result == SPI_FLASH_RESULT_ERR)
+	{
+		string_append(dst, "ERROR: flash-read: read error\n");
+		return(app_action_error);
+	}
+
+	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+	{
+		string_append(dst, "ERROR: flash-read: read timeout\n");
+		return(app_action_error);
+	}
 
 	SHA1Init(&sha_context);
 	SHA1Update(&sha_context, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
@@ -296,6 +322,7 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, bool verif
 	SHA_CTX sha_context;
 	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	SpiFlashOpResult flash_result;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
@@ -328,7 +355,19 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, bool verif
 	}
 
 	sector = address / SPI_FLASH_SEC_SIZE;
-	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+
+	if(flash_result == SPI_FLASH_RESULT_ERR)
+	{
+		string_format(dst, "ERROR: flash-%s: read error\n", caller);
+		return(app_action_error);
+	}
+
+	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+	{
+		string_format(dst, "ERROR: flash-%s: read timeout\n", caller);
+		return(app_action_error);
+	}
 
 	erase = 0;
 	same = 0;
@@ -355,9 +394,35 @@ static app_action_t flash_write_verify_(string_t *src, string_t *dst, bool verif
 			}
 
 			if(erase)
-				spi_flash_erase_sector(sector);
+			{
+				flash_result = spi_flash_erase_sector(sector);
 
-			spi_flash_write(sector * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+				if(flash_result == SPI_FLASH_RESULT_ERR)
+				{
+					string_format(dst, "ERROR: flash-%s: erase error\n", caller);
+					return(app_action_error);
+				}
+
+				if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+				{
+					string_format(dst, "ERROR: flash-%s: erase timeout\n", caller);
+					return(app_action_error);
+				}
+			}
+
+			flash_result = spi_flash_write(sector * SPI_FLASH_SEC_SIZE, string_buffer(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+
+			if(flash_result == SPI_FLASH_RESULT_ERR)
+			{
+				string_format(dst, "ERROR: flash-%s: read error\n", caller);
+				return(app_action_error);
+			}
+
+			if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+			{
+				string_format(dst, "ERROR: flash-%s: read timeout\n", caller);
+				return(app_action_error);
+			}
 		}
 		else
 			same = 1;
@@ -394,6 +459,7 @@ app_action_t application_function_flash_verify(string_t *src, string_t *dst)
 app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 {
 	unsigned int address, current, length, done;
+	SpiFlashOpResult flash_result;
 
 	SHA_CTX sha_context;
 	unsigned char sha_result[SHA_DIGEST_LENGTH];
@@ -427,7 +493,20 @@ app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 
 	for(current = address, done = 0; done < length; current += SPI_FLASH_SEC_SIZE, done += SPI_FLASH_SEC_SIZE)
 	{
-		spi_flash_read(current, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+		flash_result = spi_flash_read(current, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+
+		if(flash_result == SPI_FLASH_RESULT_ERR)
+		{
+			string_append(dst, "ERROR: flash-checksum: read error\n");
+			return(app_action_error);
+		}
+
+		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
+		{
+			string_append(dst, "ERROR: flash-checksum: read timeout\n");
+			return(app_action_error);
+		}
+
 		SHA1Update(&sha_context, string_buffer(dst), SPI_FLASH_SEC_SIZE);
 	}
 
