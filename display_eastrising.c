@@ -1,9 +1,12 @@
 #include "display.h"
 #include "display_eastrising.h"
 #include "i2c.h"
+#include "spi.h"
 #include "config.h"
 #include "sys_time.h"
 #include "dispatch.h"
+#include "util.h"
+#include "font/ter-u32n.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -28,8 +31,16 @@ enum
 
 enum
 {
-	i2c_addr_data = 0x06,
-	i2c_addr_command = 0x07,
+	i2c_addr_data =		0x06,
+	i2c_addr_command =	0x07,
+};
+
+enum
+{
+	spi_rs_data =	0UL << 7,
+	spi_rs_cmd =	1UL << 7,
+	spi_rw_write =	0UL << 6,
+	spi_rw_read =	1UL << 6,
 };
 
 enum
@@ -37,6 +48,8 @@ enum
 	reg_pwrr =		0x01,
 	reg_mrwc =		0x02,
 	reg_pcsr =		0x04,
+	reg_sroc =		0x05,
+	reg_sfclr =		0x06,
 	reg_sysr =		0x10,
 	reg_hdwr =		0x14,
 	reg_hndftr =	0x15,
@@ -98,11 +111,24 @@ enum
 	reg_bgtr0 =		0x67,
 	reg_bgtr1 =		0x68,
 	reg_bgtr2 =		0x69,
+	reg_pll_c1 =	0x88,
+	reg_pll_c2 =	0x89,
 	reg_p1cr =		0x8a,
 	reg_p1dcr =		0x8b,
 	reg_mclr =		0x8e,
-	reg_pll_c1 =	0x88,
-	reg_pll_c2 =	0x89,
+	reg_sacs_mode =	0xe0,
+	reg_sacs_addr = 0xe1,
+	reg_sacs_data =	0xe2,
+
+	reg_pllc1_plldivm_div_1 =				0b000000,
+	reg_pllc1_plldivm_div_2 =				0b100000,
+	reg_pllc1_plldivn_bitpos =				0x00,
+	reg_pllc1_plldivn_mask =				0x1f,
+	reg_pllc1_value =						reg_pllc1_plldivm_div_1 | ((11 & reg_pllc1_plldivn_mask) << reg_pllc1_plldivn_bitpos),
+
+	reg_pllc2_plldivk_div_bitpos =			0x00,
+	reg_pllc2_plldivk_div_mask =			0x07,
+	reg_pllc2_value =						(2 & reg_pllc2_plldivk_div_mask) << reg_pllc2_plldivk_div_bitpos,
 
 	reg_sysr_color_depth_8 =				0b00000000,
 	reg_sysr_color_depth_16 =				0b00001000,
@@ -115,6 +141,25 @@ enum
 	reg_pcsr_clock_period_system_by_2 =		0b00000001,
 	reg_pcsr_clock_period_system_by_4 =		0b00000010,
 	reg_pcsr_clock_period_system_by_8 =		0b00000011,
+
+	reg_sroc_if_select_0 =					0b00000000,
+	reg_sroc_if_select_1 =					0b10000000,
+	reg_sroc_addr_mode_24 =					0b00000000,
+	reg_sroc_addr_mode_32 =					0b01000000,
+	reg_sroc_spi_mode_0 =					0b00000000,
+	reg_sroc_spi_mode_3 =					0b00100000,
+	reg_sroc_mode_4bus =					0b00000000,
+	reg_sroc_mode_5bus =					0b00001000,
+	reg_sroc_mode_6bus =					0b00010000,
+	reg_sroc_access_font =					0b00000000,
+	reg_sroc_access_dma =					0b00000100,
+	reg_sroc_data_mode_dual_1 =				0b00000011,
+	reg_sroc_data_mode_dual_0 =				0b00000010,
+	reg_sroc_data_mode_single =				0b00000000,
+
+	reg_sfclr_by_1 =						0b00000000,
+	reg_sfclr_by_2 =						0b00000010,
+	reg_sfclr_by_4 =						0b00000011,
 
 	reg_hndftr_de_polarity_active_high =	0b00000000,
 	reg_hndftr_de_polarity_active_low =		0b10000000,
@@ -253,6 +298,12 @@ enum
 	reg_ltpr1_transparency_layer_1_1_8 =	0b00000111,
 	reg_ltpr1_transparency_layer_1_0_8 =	0b00001000,
 
+	reg_vsbe1_source_layer_0 =				0b00000000,
+	reg_vsbe1_source_layer_1 =				0b10000000,
+
+	reg_vdbe1_destination_layer0 =			0b00000000,
+	reg_vdbe1_destination_layer1 =			0b10000000,
+
 	reg_dpcr_one_layer =					0b00000000,
 	reg_dpcr_two_layer =					0b10000000,
 	reg_dpcr_hor_scan_ltor =				0b00000000,
@@ -281,6 +332,8 @@ enum
 	reg_becr1_rop_code_move_expand_transp=	0b00001011,
 	reg_becr1_rop_code_fill =				0b00001100,
 
+	reg_becr1_rop_expand_col_bit_start_0 =	0b01110000,
+
 	reg_becr1_rop_func_black =				0b00000000,
 	reg_becr1_rop_func_ns_and_nd =			0b00010000,
 	reg_becr1_rop_func_ns_and_d =			0b00100000,
@@ -296,6 +349,9 @@ enum
 	reg_becr1_rop_func_s =					0b11000000,
 	reg_becr1_rop_func_s_or_nd =			0b11010000,
 	reg_becr1_rop_func_s_or_d =				0b11100000,
+
+	reg_sacs_mode_font_dma =				0b00000000,
+	reg_sacs_mode_direct_access =			0b00000001,
 
 	display_width = 480,
 	display_height = 272,
@@ -318,6 +374,8 @@ enum
 	display_logmode_character_width = 8,
 	display_logmode_character_width_padding = 2,
 	display_logmode_character_height = 16,
+
+	display_flash_memory_map_start = 0x40200000,
 };
 
 roflash static const unicode_map_t unicode_map[] =
@@ -384,29 +442,62 @@ roflash static const unicode_map_t unicode_map[] =
 	{	mapeof,	0x00	}, // EOF
 };
 
-static bool display_inited = false;
+static bool display_inited_i2c = false;
+static bool display_inited_spi = false;
 static bool display_low_brightness = false;
 static bool display_logmode = false;
-static unsigned int display_text_current = 0;
+static bool display_font_valid = false;
+static unsigned int display_text_current;
 static unsigned int display_x, display_y;
 static int display_current_slot;
 static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 
+static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text);
+
+static bool attr_result_used display_using_32x16_font_in_flash(void)
+{
+	return(!display_logmode && display_font_valid);
+}
+
 static bool attr_result_used display_write_command(uint8_t cmd)
 {
-	return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
+	string_new(, error, 64);
+
+	if(display_inited_i2c)
+		return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
+
+	if(display_inited_spi)
+	{
+		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
+					true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
+			return(true);
+
+		logf("eastrising write command: %s\n", string_to_cstr(&error));
+	}
+
+	return(false);
 }
 
-static bool attr_result_used display_write_data(uint8_t data)
+static bool display_write_data(uint8_t data)
 {
-	return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
-}
+	string_new(, error, 64);
 
-static bool attr_result_used display_read_data(uint8_t *data)
-{
-	return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
+	if(display_inited_i2c)
+		return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
+
+	if(display_inited_spi)
+	{
+		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
+					true, spi_rs_data | spi_rw_write,
+					1, &data, 0, 0, (uint8_t *)0, &error))
+			return(true);
+
+		logf("eastrising write data: %s\n", string_to_cstr(&error));
+	}
+
+	return(false);
 }
 
 static bool attr_result_used display_write(uint8_t cmd, uint8_t data)
@@ -417,12 +508,75 @@ static bool attr_result_used display_write(uint8_t cmd, uint8_t data)
 	return(display_write_data(data));
 }
 
+static bool attr_result_used display_write_string(bool raw_data, unsigned int amount, const uint8_t *data)
+{
+	string_new(, error, 64);
+
+	if(!display_write_command(reg_mrwc))
+		return(false);
+
+	if(display_inited_i2c)
+		return(i2c_send(i2c_addr_data, amount, data));
+
+	if(display_inited_spi)
+	{
+		unsigned int offset, left, chunk;
+		spi_clock_t clock;
+
+		if(raw_data)
+			clock = spi_clock_20M;
+		else
+			clock = spi_clock_1M;
+
+		for(offset = 0, left = amount; (left > 0) && (offset < amount);)
+		{
+			chunk = left;
+
+			if(chunk > 32)
+				chunk = 32;
+
+			if(!spi_send_receive(clock, spi_mode_0, false, -1, -1,
+						true, spi_rs_data | spi_rw_write,
+						chunk, &data[offset],
+						0,
+						0, (uint8_t *)0, &error))
+			{
+				logf("eastrising write string: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			offset += chunk;
+			left -= chunk;
+		}
+
+		return(true);
+	}
+
+	return(false);
+}
+
 static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 {
+	string_new(, error, 64);
+
 	if(!display_write_command(cmd))
 		return(false);
 
-	return(display_read_data(data));
+	if(display_inited_i2c)
+		return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
+
+	if(display_inited_spi)
+	{
+		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
+					true, spi_rs_data | spi_rw_read,
+					0, (const uint8_t *)0, 0, 1, data, &error))
+
+			return(true);
+
+		logf("eastrising read: %s\n", string_to_cstr(&error));
+	}
+
+	return(false);
 }
 
 static bool attr_result_used display_set_mode_graphic(void)
@@ -449,7 +603,7 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 	if(!display_write(reg_vsbe0, (y0 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_vsbe1, (y0 >> 8) & 0x01))
+	if(!display_write(reg_vsbe1, ((y0 >> 8) & 0x01) | reg_vsbe1_source_layer_0))
 		return(false);
 
 	if(!display_write(reg_hdbe0, (x1 >> 0) & 0xff))
@@ -461,7 +615,7 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 	if(!display_write(reg_vdbe0, (y1 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_vdbe1, (y1 >> 8) & 0x01))
+	if(!display_write(reg_vdbe1, ((y1 >> 8) & 0x01) | reg_vsbe1_source_layer_0))
 		return(false);
 
 	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
@@ -580,7 +734,6 @@ static bool attr_result_used display_bgcolour_set(unsigned int r, unsigned int g
 
 	return(true);
 }
-
 
 static bool attr_result_used display_clear_area(unsigned int layer, unsigned int r, unsigned int g, unsigned int b)
 {
@@ -702,29 +855,50 @@ static unsigned int attr_result_used display_text_to_graphic_y(unsigned int text
 	return(graphic_y);
 }
 
-static bool attr_result_used display_data_flush(void)
+static void display_data_clear(void)
 {
-	if(!display_set_mode_text())
-		return(false);
-
-	if(!display_write_command(reg_mrwc))
-		return(false);
-
-	i2c_send(i2c_addr_data, display_text_current, display_buffer);
-
 	display_text_current = 0;
-
-	return(true);
 }
 
-static bool attr_result_used display_data_output(unsigned int text)
+static bool attr_result_used display_flush(void)
 {
-	if(((display_text_current + 1) >= display_buffer_size) && !display_data_flush())
-		return(false);
+	bool result = false;
 
-	display_buffer[display_text_current++] = (uint8_t)text;
+	if(display_using_32x16_font_in_flash())
+	{
+		if((display_text_current == 0) || (display_y >= display_slot_height))
+		{
+			result = true;
+			goto done;
+		}
 
-	return(true);
+		if(!display_render_line_16x32(true, display_y + 4, display_text_current, display_buffer))
+			goto done;
+	}
+	else
+	{
+		if(!display_set_mode_text())
+			goto done;
+
+		if(!display_write_string(false, display_text_current, display_buffer))
+			goto done;
+	}
+
+	result = true;
+done:
+	display_data_clear();
+	return(result);
+}
+
+static void display_data_output(unsigned int text)
+{
+	if((display_text_current + 2) >= display_buffer_size)
+		return;
+
+	if(display_using_32x16_font_in_flash())
+		display_buffer[display_text_current++] = (text & 0x0000ff00) >> 8;
+
+	display_buffer[display_text_current++] = (text & 0x000000ff) >> 0;
 }
 
 attr_inline unsigned int text_width(void)
@@ -743,24 +917,15 @@ attr_inline unsigned int text_height(void)
 		return(display_slot_height);
 }
 
-static bool attr_result_used text_goto(int x, int y)
+static bool attr_result_used text_goto_line(unsigned int y)
 {
 	unsigned int gx, gy;
 
-	if(x >= 0)
-		display_x = x;
-
-	if(y >= 0)
-		display_y = y;
-
-	if(((unsigned int)x >= text_width()) || ((unsigned int)y >= text_height()))
-		return(true);
+	display_x = 0;
+	display_y = y;
 
 	gx = display_text_to_graphic_x(display_x) + 4;
 	gy = display_text_to_graphic_y(display_y);
-
-	if(!display_data_flush())
-		return(false);
 
 	if(!display_write(reg_curxl, (gx >> 0) & 0xff))
 		return(false);
@@ -777,28 +942,18 @@ static bool attr_result_used text_goto(int x, int y)
 	return(true);
 }
 
-static bool attr_result_used text_send(unsigned int byte)
-{
-	if((display_x < text_width()) && (display_y < text_height()) && !display_data_output(byte))
-		return(false);
-
-	display_x++;
-
-	return(true);
-}
-
-static bool attr_result_used text_newline(void)
+static bool display_newline(void)
 {
 	unsigned int char_height =	display_logmode ? display_logmode_character_height : display_character_height;
 	unsigned int y;
+
+	if(!display_flush())
+		return(false);
 
 	y = display_y + 1;
 
 	if(display_logmode)
 	{
-		if(!display_data_flush())
-			return(false);
-
 		if(y >= text_height())
 		{
 			static const	unsigned int x0 = 0;
@@ -816,10 +971,9 @@ static bool attr_result_used text_newline(void)
 
 			y = text_height() - 1;
 		}
-
 	}
 
-	if(!text_goto(0, y))
+	if(!text_goto_line(y))
 		return(false);
 
 	return(true);
@@ -837,106 +991,275 @@ static bool attr_result_used display_show_layer(unsigned int layer)
 	return(display_write(reg_ltpr0, value));
 }
 
+static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text)
+{
+	static const	unsigned int dx;
+					unsigned int dy;
+	static const	unsigned int dl = 0;
+					unsigned int width;
+	static const	unsigned int height = 32;
+
+	const font_bitmap_t 		*font_bitmap;
+	const font_bitmap_entry_t	*font_bitmap_entry;
+
+	uint8_t			dataline[32][60];
+	uint32_t		bitmap;
+	unsigned int	x, y;
+	unsigned int	charlength;
+	unsigned int	codepoint;
+
+	if(!display_using_32x16_font_in_flash())
+		goto error;
+
+	charlength = ucs2 ? length / 2 : length;
+	width = charlength * 16;
+
+	if((width > display_width) || (charlength > 30))
+		goto error;
+
+	dy = line * 32 + ((line > 3) ? 16 : 0);
+
+	if((dy + height) > display_height)
+		goto error;
+
+	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
+	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+
+	for(x = 0; x < charlength; x++)
+	{
+		if(ucs2)
+			codepoint = ((text[(x * 2) + 0] & 0xff) << 8) | ((text[(x * 2) + 1] & 0xff) << 0);
+		else
+			codepoint = text[x] & 0xff;
+
+		for(font_bitmap_entry = font_bitmap->entries; font_bitmap_entry->codepoint != (uint32_t)font_codepoint_last_entry; font_bitmap_entry++)
+		{
+			if(!ucs2 && (font_bitmap_entry->codepoint > 0xff))
+				break;
+
+			if(font_bitmap_entry->codepoint == codepoint)
+				break;
+		}
+
+		if(font_bitmap_entry->codepoint == (uint32_t)font_codepoint_last_entry)
+			font_bitmap_entry = font_bitmap->entries;
+
+		for(y = 0; y < 32; y++)
+		{
+			bitmap = font_bitmap_entry->bitmap[y / 2];
+
+			if((y & 0x01) == 0x00)
+			{
+				dataline[y][(x * 2) + 0] = (bitmap & 0xff000000) >> 24;
+				dataline[y][(x * 2) + 1] = (bitmap & 0x00ff0000) >> 16;
+			}
+			else
+			{
+				dataline[y][(x * 2) + 0] = (bitmap & 0x0000ff00) >> 8;
+				dataline[y][(x * 2) + 1] = (bitmap & 0x000000ff) >> 0;
+			}
+		}
+	}
+
+	if(!display_set_mode_graphic())
+		goto error;
+
+	if(!display_write(reg_hdbe0, (dx >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_hdbe1, (dx >> 8) & 0x03))
+		goto error;
+
+	if(!display_write(reg_vdbe0, (dy >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_vdbe1, ((dy >> 8) & 0x01) | (dl ? reg_vdbe1_destination_layer1 : reg_vdbe1_destination_layer0)))
+		goto error;
+
+	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_bewr1, (width >> 8) & 0x03))
+		goto error;
+
+	if(!display_write(reg_behr0, (height >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_behr1, (height >> 8) & 0x03))
+		goto error;
+
+	// config BTE
+
+	if(!display_write(reg_becr1, reg_becr1_rop_code_expand_colour_transp | reg_becr1_rop_expand_col_bit_start_0))
+		goto error;
+
+	// start BTE
+
+	if(!display_write(reg_becr0, reg_becr0_busy))
+		goto error;
+
+	if(!display_write_command(reg_mrwc))
+		goto error;
+
+	for(y = 0; y < 32; y++)
+	{
+		if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, -1, -1,
+					true, spi_rs_data | spi_rw_write,
+					x * 2, dataline[y],
+					0,
+					0, (uint8_t *)0,
+					(string_t *)0))
+			goto error;
+	}
+
+	if(!display_write(reg_becr0, 0))
+		goto error;
+
+	if(!display_set_mode_text())
+		goto error;
+
+	return(true);
+
+error:
+	if(!display_write(reg_becr0, 0))
+		return(false);
+
+	if(!display_set_mode_text())
+		return(false);
+
+	return(false);
+}
+
 bool display_eastrising_init(void)
 {
-#if 0
+	const font_bitmap_t *font_bitmap;
+	uint8_t cmd = reg_mrwc;
+
+	if(!config_flags_match(flag_enable_eastrising))
+		goto error;
+
+	if(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok)
+	{
+		display_inited_i2c = true;
+		display_inited_spi = false;
+	}
+	else
+	{
+		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
+				true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, (string_t *)0))
+		{
+			display_inited_i2c = false;
+			display_inited_spi = true;
+		}
+		else
+			goto error;
+	}
+
+	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
+	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+
+	if((font_bitmap->magic == font_magic) && (font_bitmap->version == font_version))
+		display_font_valid = true;
+
 	// init PLL
 
 	if(!display_write_command(reg_pll_c1))
-		return(false);
+		goto error;
 
-	display_write_data(0x0a);	//	"PLL input parameter" (1-31)
+	display_write_data(reg_pllc1_value);
 
 	msleep(1);
 
 	if(!display_write_command(reg_pll_c2))
-		return(false);
+		goto error;
 
-	display_write_data(0x02);	//	divide by 4
+	display_write_data(reg_pllc2_value);
 
 	msleep(1);
-#endif
 
 	if(!display_write(reg_sysr, reg_sysr_color_depth_16 | reg_sysr_if_8bit))
-		return(false);
+		goto error;
 
-	if(!display_write(reg_pcsr, reg_pcsr_sample_falling_edge | reg_pcsr_clock_period_system_by_4))
-		return(false);
+	if(!display_write(reg_pcsr, reg_pcsr_sample_falling_edge | reg_pcsr_clock_period_system_by_8))
+		goto error;
 
 	// horizontal
 
 	if(!display_write(reg_hdwr, (display_width / 8) - 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_hndftr, reg_hndftr_de_polarity_active_high | (display_horizontal_blanking_fine / 2)))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_hndr, (display_horizontal_blanking / 8) - 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_hstr, (display_horizontal_sync_start / 8) - 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_hpwr, reg_hpwr_hsync_polarity_active_low | ((display_horizontal_sync_length / 8) - 1)))
-		return(false);
+		goto error;
 
 	// vertical
 
 	if(!display_write(reg_vdhr0, ((display_height >> 0) & 0xff) + 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vdhr1, ((display_height >> 8) & 0x01) + 0))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vndr0, ((display_vertical_blanking >> 0) & 0xff) + 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vndr1, ((display_vertical_blanking >> 8) & 0x01) + 0))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vstr0, ((display_vertical_sync_start >> 0) & 0xff) + 1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vstr1, ((display_vertical_sync_start >> 8) & 0x01) + 0))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_vpwr, reg_vpwr_vsync_polarity_active_low | (display_vertical_sync_length - 1)))
-		return(false);
+		goto error;
 
 	// PWM
 
-	if(!display_write(reg_p1cr, reg_p1cr_pwm1_enable | reg_p1cr_function_pwm1 | reg_p1cr_clock_ratio_128))
-		return(false);
+	if(!display_write(reg_p1cr, reg_p1cr_pwm1_enable | reg_p1cr_function_pwm1 | reg_p1cr_clock_ratio_2048)) // 114 Hz refresh
+		goto error;
 
 	if(!display_write(reg_pwrr, reg_pwrr_display_enable | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
-		return(false);
+		goto error;
 
 	// MISC
 
 	if(!display_write(reg_fncr0, reg_fncr0_font_cgrom | reg_fncr0_font_internal | reg_fncr0_encoding_8859_1))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_fncr2, reg_fncr2_font_size_16x16 | display_character_width_padding))
-		return(false);
+		goto error;
 
 	if(!display_write(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
-		return(false);
+		goto error;
 
 	if(!display_show_layer(0))
-		return(false);
+		goto error;
 
 	if(!display_fill_box(0, 0, 0, display_width, display_height, 0x00, 0x00, 0x00))
-		return(false);
+		goto error;
 
 	if(!display_fill_box(1, 0, 0, display_width, display_height, 0x90, 0xa0, 0x90))
-		return(false);
+		goto error;
 
 	if(!display_eastrising_bright(1))
-		return(false);
-
-	display_inited = true;
+		goto error;
 
 	return(true);
+
+error:
+	display_inited_i2c = false;
+	display_inited_spi = false;
+	return(false);
 }
 
 bool display_eastrising_begin(int slot, bool logmode)
@@ -945,7 +1268,7 @@ bool display_eastrising_begin(int slot, bool logmode)
 	roflash static const unsigned int font_config_logmode = reg_fncr1_font_opaque      | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
 	unsigned int font_config = logmode ? font_config_logmode : font_config_normal;
 
-	if(!display_inited)
+	if(!display_inited_i2c && !display_inited_spi)
 	{
 		log("display eastrising not inited\n");
 		return(false);
@@ -956,6 +1279,11 @@ bool display_eastrising_begin(int slot, bool logmode)
 
 	display_current_slot = slot;
 	display_logmode = logmode;
+
+	display_data_clear();
+
+	if(!text_goto_line(0))
+		return(false);
 
 	if(!display_logmode)
 	{
@@ -978,35 +1306,37 @@ bool display_eastrising_begin(int slot, bool logmode)
 			return(false);
 	}
 
-	if(!text_goto(0, 0))
-		return(false);
-
 	return(true);
 }
 
 bool display_eastrising_output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
+	bool mapped = false;
 
 	if(unicode == '\n')
-		return(text_newline());
+		return(display_newline());
 
 	if((display_y < text_height()) && (display_x < text_width()))
 	{
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
+		if(!display_using_32x16_font_in_flash())
+		{
+			for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
 			{
-				unicode = unicode_map_ptr->internal;
-				if(!text_send(unicode))
-					return(false);
-				return(true);
+				if(unicode_map_ptr->unicode == unicode)
+				{
+					unicode = unicode_map_ptr->internal;
+					mapped = true;
+					break;
+				}
 			}
 
-		if(((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff)))
-			unicode = ' ';
+			if(!mapped && ((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff)))
+				unicode = ' ';
+		}
 
-		if(!text_send(unicode))
-			return(false);
+		display_data_output(unicode);
+		display_x++;
 	}
 
 	return(true);
@@ -1015,11 +1345,10 @@ bool display_eastrising_output(unsigned int unicode)
 bool display_eastrising_end(void)
 {
 	while(display_y < text_height())
-		if(!text_newline())
+		if(!display_newline())
 			break;
 
-	if(!display_data_flush())
-		return(false);
+	display_newline();
 
 	return(true);
 }
@@ -1254,7 +1583,7 @@ bool display_eastrising_standout(bool standout)
 	roflash static const rgb_t colour_black = { 0x00, 0x00, 0x00 };
 	roflash static const rgb_t colour_white = { 0xff, 0xff, 0xff };
 
-	if(!display_inited)
+	if(!display_inited_i2c && !display_inited_spi)
 		return(false);
 
 	if(display_logmode)
@@ -1359,6 +1688,7 @@ bool display_eastrising_periodic(void)
 			if(!string_match_cstr(&flash_sector_buffer, ppm_header))
 			{
 				logf("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+				success = true;
 				goto error2;
 			}
 
@@ -1452,10 +1782,7 @@ bool display_eastrising_periodic(void)
 			if(!display_set_active_layer(1))
 				goto error2;
 
-			if(!display_write_command(reg_mrwc))
-				goto error2;
-
-			if(i2c_send(i2c_addr_data, output_buffer_offset, (uint8_t *)flash_dram_buffer) != i2c_error_ok)
+			if(!display_write_string(true, output_buffer_offset, (uint8_t *)flash_dram_buffer))
 				goto error2;
 
 			if(!display_set_mode_text())

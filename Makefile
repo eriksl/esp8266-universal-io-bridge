@@ -173,7 +173,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs \
 						-Wmissing-noreturn -Wbool-compare \
 						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \
-						-Wuninitialized -Wtrampolines -Wframe-larger-than=1024 \
+						-Wuninitialized -Wtrampolines -Wframe-larger-than=2048 \
 						-Wunsafe-loop-optimizations -Wshadow -Wpointer-arith -Wbad-function-cast \
 						-Wcast-qual -Wwrite-strings -Wsequence-point -Wlogical-op -Wlogical-not-parentheses \
 						-Wredundant-decls -Wvla -Wdisabled-optimization \
