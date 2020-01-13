@@ -97,6 +97,7 @@ bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, uns
 }
 
 bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_io, int cs_pin,
+		bool send_command, uint8_t command,
 		unsigned int send_amount, const uint8_t *send_data, unsigned int skip_amount, unsigned int receive_amount, uint8_t *receive_data,
 		string_t *error)
 {
@@ -106,6 +107,7 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 	unsigned int spi_user_static, spi_user_active;
 	unsigned int spi_pin_mode_static, spi_pin_mode_active;
 	unsigned int spi_user1_static, spi_user1_active;
+	unsigned int spi_user2_static, spi_user2_active;
 	const spi_clock_map_t *clock_map_ptr;
 	bool success;
 
@@ -148,6 +150,8 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 	spi_user_active =		0x00;
 	spi_user1_static =		0x00;
 	spi_user1_active =		0x00;
+	spi_user2_static =		0x00;
+	spi_user2_active =		0x00;
 	spi_pin_mode_static =	0x00;
 	spi_pin_mode_active =	0x00;
 
@@ -178,6 +182,13 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 	spi_user_static |=		mode_table[(unsigned int)mode][1] ? SPI_CK_OUT_EDGE : 0;	// CPHA
 
 	spi_user_static |= cs_hold ? (SPI_CS_SETUP | SPI_CS_HOLD) : 0x00;
+
+	if(send_command)
+	{
+		spi_user_active |= SPI_USR_COMMAND;
+		spi_user2_active |= (((1 * 8) - 1) & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S;
+		spi_user2_active |= (command & SPI_USR_COMMAND_VALUE) << SPI_USR_COMMAND_VALUE_S;
+	}
 
 	if(skip_amount > 0)
 	{
@@ -224,6 +235,7 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 
 	write_peri_reg(SPI_USER(1), spi_user_static | spi_user_active);
 	write_peri_reg(SPI_USER1(1), spi_user1_static | spi_user1_active);
+	write_peri_reg(SPI_USER2(1), spi_user2_static | spi_user2_active);
 	write_peri_reg(SPI_PIN(1), spi_pin_mode_static | spi_pin_mode_active );
 
 	if(cs_io != -1)
@@ -244,6 +256,7 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 
 	write_peri_reg(SPI_USER(1), spi_user_static);
 	write_peri_reg(SPI_USER1(1), spi_user1_static);
+	write_peri_reg(SPI_USER2(1), spi_user2_static);
 	write_peri_reg(SPI_PIN(1), spi_pin_mode_static);
 
 	if(!success)
@@ -346,7 +359,7 @@ app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 		sendbytes[to_write] = (uint8_t)(byte & 0xff);
 	}
 
-	if(!spi_send_receive(clock_speed_enum, spi_mode_enum, cs_hold != 0, cs_io, cs_pin, to_write, sendbytes, to_skip, to_read, receivebytes, dst))
+	if(!spi_send_receive(clock_speed_enum, spi_mode_enum, cs_hold != 0, cs_io, cs_pin, false, 0, to_write, sendbytes, to_skip, to_read, receivebytes, dst))
 	{
 		string_append(dst, "\n");
 		return(app_action_error);

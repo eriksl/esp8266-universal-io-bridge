@@ -58,6 +58,7 @@ attr_inline void spi_wait_completion(void)
 
 attr_result_used bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_spiclk, unsigned int pin_spics, string_t *error);
 attr_result_used bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_io, int cs_pin,
+						bool send_command, uint8_t command,
 						unsigned int send_amount, const uint8_t *send_data, unsigned int skip_amount, unsigned int receive_amount, uint8_t *receive_data,
 						string_t *error);
 attr_result_used app_action_t application_function_spi_write_read(string_t *src, string_t *dst);
