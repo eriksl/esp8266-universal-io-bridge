@@ -1791,6 +1791,8 @@ bool display_eastrising_periodic(void)
 			if(!display_set_active_layer(0))
 				goto error2;
 
+			dispatch_post_task(2, task_display_update, 0);
+
 			break;
 		}
 	}
