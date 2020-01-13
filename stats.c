@@ -177,16 +177,10 @@ attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 
 void stats_firmware(string_t *dst)
 {
-	uint32_t flash_id = spi_flash_get_id();
-	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
-	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
-	unsigned int flash_size				= (flash_id & 0x00ff0000) >> 16;
 	unsigned int stack_size = stack_bottom - stack_top;
 	int stack_used = -1; // no painted words found, overflow
 	int stack_free = -1;
-	unsigned int current_partition;
 	unsigned int heap;
-	partition_item_t partition_item;
 	uint32_t *sp;
 
 	for(sp = (typeof(sp))stack_top; sp < (typeof(sp))stack_bottom; sp++)
@@ -211,7 +205,6 @@ void stats_firmware(string_t *dst)
 			"> firmware version date: %s\n"
 			"> SDK version: %s\n"
 			"> system id: %lu\n"
-			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %d kib / %d MiB\n"
 			"> cpu frequency: %u MHz\n"
 			"> heap free current: %u, min: %u, max: %u bytes\n"
 			">\n"
@@ -223,7 +216,6 @@ void stats_firmware(string_t *dst)
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
 				system_get_chip_id(),
-				(unsigned int)flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17),
 				system_get_cpu_freq(),
 				heap, stat_heap_min, stat_heap_max,
 				(void *)stack_bottom,
@@ -241,6 +233,20 @@ void stats_firmware(string_t *dst)
 	string_append(dst, "\n");
 
 	system_print_meminfo();
+}
+
+void stats_flash(string_t *dst)
+{
+	uint32_t flash_id = spi_flash_get_id();
+	unsigned int flash_manufacturer_id	= (flash_id & 0x000000ff) >> 0;
+	unsigned int flash_speed			= (flash_id & 0x0000ff00) >> 8;
+	unsigned int flash_size				= (flash_id & 0x00ff0000) >> 16;
+	unsigned int current_partition;
+	partition_item_t partition_item;
+
+	string_format(dst,
+			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %d kib / %d MiB\n",
+				(unsigned int)flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17));
 
 #if IMAGE_OTA == 1
 	rboot_if_info(dst);

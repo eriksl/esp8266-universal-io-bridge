@@ -323,6 +323,12 @@ static app_action_t application_function_stats_firmware(string_t *src, string_t 
 	return(app_action_normal);
 }
 
+static app_action_t application_function_stats_flash(string_t *src, string_t *dst)
+{
+	stats_flash(dst);
+	return(app_action_normal);
+}
+
 static app_action_t application_function_stats_time(string_t *src, string_t *dst)
 {
 	stats_time(dst);
@@ -1897,6 +1903,7 @@ roflash static const char help_description_quit[] =					"quit";
 roflash static const char help_description_reset[] =				"reset";
 roflash static const char help_description_identification[] =		"hostname/identification/location/comment";
 roflash static const char help_description_statistics[] =			"generic info and statistics";
+roflash static const char help_description_stats_flash[] =			"statistics about flash use";
 roflash static const char help_description_stats_counters[] =		"statistics from counters";
 roflash static const char help_description_stats_i2c[] =			"statistics from i2c subsystem";
 roflash static const char help_description_stats_sequencer[] =		"statistics from the sequencer";
@@ -2001,6 +2008,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"s", "stats",
 		application_function_stats_firmware,
 		help_description_statistics,
+	},
+	{
+		"sf", "stats-flash",
+		application_function_stats_flash,
+		help_description_stats_flash,
 	},
 	{
 		"sc", "stats-counters",
