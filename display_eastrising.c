@@ -1809,7 +1809,12 @@ error1:
 bool display_eastrising_layer_select(unsigned int layer)
 {
 	if(layer > 1)
-		return(false);
+	{
+		if(!display_fill_box(1, 0, 0, display_width, display_height, (layer >> 16) & 0xff, (layer >> 8) & 0xff, (layer >> 0) & 0xff))
+			return(false);
+
+		return(display_show_layer(1));
+	}
 
 	return(display_show_layer(layer));
 }
