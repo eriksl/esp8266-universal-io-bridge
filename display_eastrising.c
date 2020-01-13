@@ -369,7 +369,7 @@ enum
 	display_character_width_padding = 3,
 	display_character_height = 32,
 	display_character_slot_padding = 16,
-	display_logmode_text_width = 48,
+	display_logmode_text_width = 42,
 	display_logmode_text_height = 17,
 	display_logmode_character_width = 8,
 	display_logmode_character_width_padding = 2,
