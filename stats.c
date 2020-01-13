@@ -292,6 +292,8 @@ void stats_flash(string_t *dst)
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+6):				string_append(dst, "sequencer slot 1 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+7):				string_append(dst, "picture slot 0   "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+8):				string_append(dst, "picture slot 1   "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+9):				string_append(dst, "font slot 0      "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+10):				string_append(dst, "font slot 1      "); break;
 #endif
 				default:												string_append(dst, "unknown partition"); break;
 			}
