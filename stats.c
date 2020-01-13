@@ -296,7 +296,7 @@ void stats_flash(string_t *dst)
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06lx size: %3lu kB\n", (unsigned long int)partition_item.addr, partition_item.size / 1024);
+			string_format(dst, " start: 0x%06lx size: %4lu kB\n", (unsigned long int)partition_item.addr, partition_item.size / 1024);
 		}
 	}
 }

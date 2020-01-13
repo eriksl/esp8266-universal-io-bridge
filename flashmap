@@ -8,14 +8,13 @@
 010000-075fff	66000	102	irom contents					SYSTEM_PARTITION_CUSTOMER_BEGIN+2
 000000-00ffff	10000	16	iram contents					SYSTEM_PARTITION_CUSTOMER_BEGIN+1
 
-* OTA (2048 kbyte, 16 mbit, 2 identical slots)
+* OTA (2 Mbyte, 16 Mbit, 2 identical slots)
 
 1fd000-1fffff	03000	3	default system parameter values	SYSTEM_PARTITION_SYSTEM_PARAMETER	blank.bin
 1fc000-1fcfff	01000	1	default RF parameter values		SYSTEM_PARTITION_PHY_DATA			default.bin
 1fb000-1fbfff	01000	1	unused (mirror 0fb000)
 1fa000-1fafff	01000	1	unused (mirror 0fa000)
 1f6000-1f9fff	04000	4	sequencer storage mirror 1		SYSTEM_PARTITION_CUSTOMER_BEGIN+6
-196000-1f5fff	60000	96	picture storage #1				SYSTEM_PARTITION_CUSTOMER_BEGIN+8
 102000-195fff	94000	148	ota image slot 1				SYSTEM_PARTITION_CUSTOMER_BEGIN+4
 101000-101fff	01000	1	unused (mirror 001000)
 100000-100fff	01000	1	unused (mirror 000000)
@@ -25,7 +24,11 @@
 0fb000-0fbfff	01000	1	RF calibration storage			SYSTEM_PARTITION_RF_CAL
 0fa000-0fafff	01000	1	user config						SYSTEM_PARTITION_CUSTOMER_BEGIN+0
 0f6000-0f9fff	04000	4	sequencer storage mirror 0		SYSTEM_PARTITION_CUSTOMER_BEGIN+5
-096000-0f5fff	60000	96	picture storage #0				SYSTEM_PARTITION_CUSTOMER_BEGIN+7
 002000-095fff	94000	148	ota image slot 0				SYSTEM_PARTITION_CUSTOMER_BEGIN+3
 001000-001fff	01000	1	rboot config					SYSTEM_PARTITION_CUSTOMER_BEGIN+2
 000000-000fff	01000	1	rboot ota boot					SYSTEM_PARTITION_CUSOMTER_BEGIN+1
+
+* OTA+ (4 Mbyte, 32 Mbit, space of slot 3-4 can be used for data)
+
+206000-265fff	60000	96	picture storage #1				SYSTEM_PARTITION_CUSTOMER_BEGIN+8
+200000-205fff	60000	96	picture storage #0				SYSTEM_PARTITION_CUSTOMER_BEGIN+7
