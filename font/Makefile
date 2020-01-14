@@ -1,7 +1,7 @@
 # generate bitmap 32x16 font for Eastrising graphical LCD
 
 HOST =					esp1
-FONT =					ter-u32n
+FONT =					font_32x16
 BDF2C =					bdf2c
 
 MAKEFLAGS += --no-builtin-rules

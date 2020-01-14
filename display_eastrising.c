@@ -6,7 +6,7 @@
 #include "sys_time.h"
 #include "dispatch.h"
 #include "util.h"
-#include "font/ter-u32n.h"
+#include "font/font_32x16.h"
 
 #include <stdint.h>
 #include <stdbool.h>
