@@ -19,6 +19,13 @@ typedef struct
 
 typedef enum
 {
+	render_mode_internal,
+	render_mode_external,
+	render_mode_graphic,
+} render_mode_t;
+
+typedef enum
+{
 	pls_idle = 0,
 	pls_start,
 	pls_in_progress,
@@ -72,6 +79,7 @@ enum
 	reg_curyl =		0x2c,
 	reg_curyh =		0x2d,
 	reg_fncr2 =		0x2e,
+	reg_serfont =	0x2f,
 	reg_hsaw0 =		0x30,
 	reg_hsaw1 =		0x31,
 	reg_vsaw0 =		0x32,
@@ -164,11 +172,11 @@ enum
 	reg_hndftr_de_polarity_active_high =	0b00000000,
 	reg_hndftr_de_polarity_active_low =		0b10000000,
 
-	reg_hpwr_hsync_polarity_active_low = 	0b00000000,
-	reg_hpwr_hsync_polarity_active_high = 	0b10000000,
+	reg_hpwr_hsync_polarity_active_low =	0b00000000,
+	reg_hpwr_hsync_polarity_active_high =	0b10000000,
 
-	reg_vpwr_vsync_polarity_active_low = 	0b00000000,
-	reg_vpwr_vsync_polarity_active_high = 	0b10000000,
+	reg_vpwr_vsync_polarity_active_low =	0b00000000,
+	reg_vpwr_vsync_polarity_active_high =	0b10000000,
 
 	reg_p1cr_pwm1_enable =					0b10000000,
 	reg_p1cr_disable_level_low =			0b00000000,
@@ -236,6 +244,8 @@ enum
 	reg_mwcr0_memory_read_autoincr_en =		0b00000000,
 	reg_mwcr0_memory_read_autoincr_dis =	0b00000001,
 
+	reg_mwcr0_default =						reg_mwcr0_cursor_invisible | reg_mwcr0_cursor_steady | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en,
+
 	reg_fncr0_font_cgrom =					0b00000000,
 	reg_fncr0_font_cgram =					0b10000000,
 	reg_fncr0_font_internal =				0b00000000,
@@ -263,6 +273,24 @@ enum
 	reg_fncr2_font_size_16x16 =				0b00000000,
 	reg_fncr2_font_size_24x24 =				0b01000000,
 	reg_fncr2_font_size_32x32 =				0b10000000,
+
+	reg_serfont_type_gt21l16tw =			0b00000000,
+	reg_serfont_type_gt30l16u2w =			0b00100000,
+	reg_serfont_type_gt30l24t3y =			0b01000000,
+	reg_serfont_type_gt30l24m1z =			0b01100000,
+	reg_serfont_type_gt30l32s4w =			0b10000000,
+	reg_serfont_enc_gb2312 =				0b00000000,
+	reg_serfont_enc_gb12345 =				0b00000100,
+	reg_serfont_enc_big5 =					0b00001000,
+	reg_serfont_enc_unicode =				0b00001100,
+	reg_serfont_enc_ascii =					0b00010000,
+	reg_serfont_enc_unijapanese =			0b00010100,
+	reg_serfont_enc_jis0208 =				0b00011000,
+	reg_serfont_enc_iso =					0b00011100,
+	reg_serfont_font_alternative_1 =		0b00000000,
+	reg_serfont_font_alternative_2 =		0b00000001,
+	reg_serfont_font_alternative_3 =		0b00000010,
+	reg_serfont_font_alternative_4 =		0b00000011,
 
 	reg_ltpr0_scroll_both =					0b00000000,
 	reg_ltpr0_scroll_layer_1 =				0b01000000,
@@ -378,7 +406,7 @@ enum
 	display_flash_memory_map_start = 0x40200000,
 };
 
-roflash static const unicode_map_t unicode_map[] =
+roflash static const unicode_map_t unicode_map_internal_font[] =
 {
 	{	0x263a, 0x01	},	//	☺ 
 	{	0x263b, 0x02	},	//	☻ 
@@ -439,7 +467,24 @@ roflash static const unicode_map_t unicode_map[] =
 	{	0x0153,	0x9c	},	//	œ 
 	{	0x017e,	0x9e	},	//	ž
 	{	0x0178,	0x9f	},	//	Ÿ
-	{	mapeof,	0x00	}, // EOF
+	{	mapeof,	0x00	},	// EOF
+};
+
+roflash static const unicode_map_t unicode_map_external_font_chip[] =
+{
+	{	0x00e0,	0xa8a4	},	//	à
+	{	0x00e1,	0xa8a2	},	//	á
+	{	0x00e8,	0xa8a8	},	//	è
+	{	0x00e9,	0xa8a6	},	//	é
+	{	0x00ea,	0xa8ba	},	//	ê
+	{	0x00ec,	0xa8ac	},	//	ì
+	{	0x00ed,	0xa8aa	},	//	í
+	{	0x00f2,	0xa8b0	},	//	ò
+	{	0x00f3,	0xa8ae	},	//	ó
+	{	0x00f9,	0xa8b4	},	//	ù
+	{	0x00fa,	0xa8b2	},	//	ú
+	{	0x00fc,	0xa8b9	},	//	ü
+	{	mapeof,	0x00	},	// EOF
 };
 
 static bool display_inited_i2c = false;
@@ -456,9 +501,18 @@ static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 
 
 static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text);
 
-static bool attr_result_used display_using_32x16_font_in_flash(void)
+static render_mode_t display_render_mode(void)
 {
-	return(!display_logmode && display_font_valid);
+	if(display_logmode)
+		return(render_mode_internal);
+
+	if(config_flags_match(flag_eastrising_fontchip))
+		return(render_mode_external);
+
+	if(display_font_valid)
+		return(render_mode_graphic);
+
+	return(render_mode_internal);
 }
 
 static bool attr_result_used display_write_command(uint8_t cmd)
@@ -500,7 +554,7 @@ static bool display_write_data(uint8_t data)
 	return(false);
 }
 
-static bool attr_result_used display_write(uint8_t cmd, uint8_t data)
+static bool display_write(uint8_t cmd, uint8_t data)
 {
 	if(!display_write_command(cmd))
 		return(false);
@@ -508,7 +562,7 @@ static bool attr_result_used display_write(uint8_t cmd, uint8_t data)
 	return(display_write_data(data));
 }
 
-static bool attr_result_used display_write_string(bool raw_data, unsigned int amount, const uint8_t *data)
+static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned int amount, const uint8_t *data)
 {
 	string_new(, error, 64);
 
@@ -523,10 +577,17 @@ static bool attr_result_used display_write_string(bool raw_data, unsigned int am
 		unsigned int offset, left, chunk;
 		spi_clock_t clock;
 
-		if(raw_data)
+		if(raw_pixel_data)
 			clock = spi_clock_20M;
 		else
-			clock = spi_clock_1M;
+		{
+			switch(display_render_mode())
+			{
+				case(render_mode_internal):	clock = spi_clock_500k;	break;
+				case(render_mode_external):	clock = spi_clock_50k;	break;
+				default:					clock = spi_clock_100k;	break; // never hit
+			}
+		}
 
 		for(offset = 0, left = amount; (left > 0) && (offset < amount);)
 		{
@@ -577,16 +638,6 @@ static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 	}
 
 	return(false);
-}
-
-static bool attr_result_used display_set_mode_graphic(void)
-{
-    return(display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
-}
-
-static bool attr_result_used display_set_mode_text(void)
-{
-    return(display_write(reg_mwcr0, reg_mwcr0_mode_text | reg_mwcr0_cursor_invisible | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en));
 }
 
 static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
@@ -864,24 +915,30 @@ static bool attr_result_used display_flush(void)
 {
 	bool result = false;
 
-	if(display_using_32x16_font_in_flash())
+	switch(display_render_mode())
 	{
-		if((display_text_current == 0) || (display_y >= display_slot_height))
+		case(render_mode_graphic):
 		{
-			result = true;
-			goto done;
+			if((display_text_current == 0) || (display_y >= display_slot_height))
+			{
+				result = true;
+				goto done;
+			}
+
+			if(!display_render_line_16x32(true, display_y + 4, display_text_current, display_buffer))
+				goto done;
+
+			break;
 		}
 
-		if(!display_render_line_16x32(true, display_y + 4, display_text_current, display_buffer))
-			goto done;
-	}
-	else
-	{
-		if(!display_set_mode_text())
-			goto done;
+		case(render_mode_internal):
+		case(render_mode_external):
+		{
+			if(!display_write_string(false, display_text_current, display_buffer))
+				goto done;
 
-		if(!display_write_string(false, display_text_current, display_buffer))
-			goto done;
+			break;
+		}
 	}
 
 	result = true;
@@ -895,10 +952,7 @@ static void display_data_output(unsigned int text)
 	if((display_text_current + 2) >= display_buffer_size)
 		return;
 
-	if(display_using_32x16_font_in_flash())
-		display_buffer[display_text_current++] = (text & 0x0000ff00) >> 8;
-
-	display_buffer[display_text_current++] = (text & 0x000000ff) >> 0;
+	display_buffer[display_text_current++] = text & 0xff;
 }
 
 attr_inline unsigned int text_width(void)
@@ -999,7 +1053,7 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 					unsigned int width;
 	static const	unsigned int height = 32;
 
-	const font_bitmap_t 		*font_bitmap;
+	const font_bitmap_t			*font_bitmap;
 	const font_bitmap_entry_t	*font_bitmap_entry;
 
 	uint8_t			dataline[32][60];
@@ -1007,8 +1061,9 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 	unsigned int	x, y;
 	unsigned int	charlength;
 	unsigned int	codepoint;
+	bool			success = false;
 
-	if(!display_using_32x16_font_in_flash())
+	if(display_render_mode() != render_mode_graphic)
 		goto error;
 
 	charlength = ucs2 ? length / 2 : length;
@@ -1061,9 +1116,6 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 		}
 	}
 
-	if(!display_set_mode_graphic())
-		goto error;
-
 	if(!display_write(reg_hdbe0, (dx >> 0) & 0xff))
 		goto error;
 
@@ -1112,22 +1164,13 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 			goto error;
 	}
 
-	if(!display_write(reg_becr0, 0))
-		goto error;
-
-	if(!display_set_mode_text())
-		goto error;
-
-	return(true);
+	success = true;
 
 error:
 	if(!display_write(reg_becr0, 0))
 		return(false);
 
-	if(!display_set_mode_text())
-		return(false);
-
-	return(false);
+	return(success);
 }
 
 bool display_eastrising_init(void)
@@ -1233,10 +1276,13 @@ bool display_eastrising_init(void)
 
 	// MISC
 
-	if(!display_write(reg_fncr0, reg_fncr0_font_cgrom | reg_fncr0_font_internal | reg_fncr0_encoding_8859_1))
+	if(!display_write(reg_sfclr, reg_sfclr_by_1))
 		goto error;
 
-	if(!display_write(reg_fncr2, reg_fncr2_font_size_16x16 | display_character_width_padding))
+	if(!display_write(reg_sroc, reg_sroc_if_select_1 | reg_sroc_addr_mode_24 | reg_sroc_spi_mode_0 | reg_sroc_mode_6bus | reg_sroc_access_font | reg_sroc_data_mode_dual_0))
+		goto error;
+
+	if(!display_write(reg_serfont, reg_serfont_type_gt30l32s4w | reg_serfont_enc_gb2312 | reg_serfont_font_alternative_2))
 		goto error;
 
 	if(!display_write(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
@@ -1264,9 +1310,7 @@ error:
 
 bool display_eastrising_begin(int slot, bool logmode)
 {
-	roflash static const unsigned int font_config_normal  = reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2;
-	roflash static const unsigned int font_config_logmode = reg_fncr1_font_opaque      | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
-	unsigned int font_config = logmode ? font_config_logmode : font_config_normal;
+	unsigned int fncr0, fncr1, fncr2, mwcr0;
 
 	if(!display_inited_i2c && !display_inited_spi)
 	{
@@ -1274,13 +1318,65 @@ bool display_eastrising_begin(int slot, bool logmode)
 		return(false);
 	}
 
-	if(!display_write(reg_fncr1, reg_fncr1_font_align_disable | reg_fncr1_font_straight | font_config))
-		return(false);
-
 	display_current_slot = slot;
 	display_logmode = logmode;
 
 	display_data_clear();
+
+	fncr0 = reg_fncr0_font_cgrom;
+	fncr1 = reg_fncr1_font_align_enable | reg_fncr1_font_straight;
+	fncr2 = display_character_width_padding;
+	mwcr0 = reg_mwcr0_default;
+
+	switch(display_render_mode())
+	{
+		case(render_mode_internal):
+		{
+			fncr0 |= reg_fncr0_font_internal | reg_fncr0_encoding_8859_1;
+
+			if(display_logmode)
+				fncr1 |= reg_fncr1_font_opaque | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
+			else
+				fncr1 |= reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2;
+
+			fncr2 |= reg_fncr2_font_size_16x16;
+			mwcr0 |= reg_mwcr0_mode_text;
+
+			break;
+		}
+
+		case(render_mode_external):
+		{
+			fncr0 |= reg_fncr0_font_external;
+			fncr1 |= reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
+			fncr2 |= reg_fncr2_font_size_32x32;
+			mwcr0 |= reg_mwcr0_mode_text;
+
+			break;
+		}
+
+		case(render_mode_graphic):
+		{
+			fncr0 |= 0;
+			fncr1 |= 0;
+			fncr2 |= 0;
+			mwcr0 |= reg_mwcr0_mode_graphic;
+
+			break;
+		}
+	}
+
+	if(!display_write(reg_fncr0, fncr0))
+		return(false);
+
+	if(!display_write(reg_fncr1, fncr1))
+		return(false);
+
+	if(!display_write(reg_fncr2, fncr2))
+		return(false);
+
+	if(!display_write(reg_mwcr0, mwcr0))
+		return(false);
 
 	if(!text_goto_line(0))
 		return(false);
@@ -1309,9 +1405,17 @@ bool display_eastrising_begin(int slot, bool logmode)
 	return(true);
 }
 
+typedef enum
+{
+	map_none,
+	map_transparent,
+	map_font_internal,
+	map_font_external
+} map_t;
+
 bool display_eastrising_output(unsigned int unicode)
 {
-	const unicode_map_t *unicode_map_ptr;
+	const unicode_map_t *unicode_map_ptr = (unicode_map_t *)0;
 	bool mapped = false;
 
 	if(unicode == '\n')
@@ -1319,23 +1423,63 @@ bool display_eastrising_output(unsigned int unicode)
 
 	if((display_y < text_height()) && (display_x < text_width()))
 	{
-		if(!display_using_32x16_font_in_flash())
+		switch(display_render_mode())
 		{
-			for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			{
-				if(unicode_map_ptr->unicode == unicode)
-				{
-					unicode = unicode_map_ptr->internal;
-					mapped = true;
-					break;
-				}
-			}
-
-			if(!mapped && ((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff)))
-				unicode = ' ';
+			case(render_mode_internal):	unicode_map_ptr = unicode_map_internal_font; break;
+			case(render_mode_external):	unicode_map_ptr = unicode_map_external_font_chip; break;
+			case(render_mode_graphic):	unicode_map_ptr = (unicode_map_t *)0; break;
 		}
 
-		display_data_output(unicode);
+		for(; unicode_map_ptr && (unicode_map_ptr->unicode != mapeof); unicode_map_ptr++)
+			if(unicode_map_ptr->unicode == unicode)
+			{
+				unicode = unicode_map_ptr->internal;
+				mapped = true;
+				break;
+			}
+
+		switch(display_render_mode())
+		{
+			case(render_mode_internal):
+			{
+				if(mapped)
+					display_data_output(unicode);
+				else
+					if((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff))
+						display_data_output(' ');
+					else
+						display_data_output(unicode);
+
+				break;
+			}
+
+			case(render_mode_external):
+			{
+				if(mapped)
+				{
+					if((unicode & 0xff00) != 0x0000)
+						display_data_output((unicode & 0xff00) >> 8);
+
+					display_data_output((unicode & 0x00ff) >> 0);
+				}
+				else
+					if((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff))
+						display_data_output(' ');
+					else
+						display_data_output((unicode & 0x00ff) >> 0);
+
+				break;
+			}
+
+			case(render_mode_graphic):
+			{
+				display_data_output((unicode & 0xff00) >> 8);
+				display_data_output((unicode & 0x00ff) >> 0);
+
+				break;
+			}
+		}
+
 		display_x++;
 	}
 
@@ -1647,7 +1791,6 @@ bool display_eastrising_standout(bool standout)
 #if IMAGE_OTA == 0
 bool display_eastrising_periodic(void)
 {
-	(void)display_set_mode_graphic;
 	return(true);
 }
 #else
@@ -1655,6 +1798,7 @@ bool display_eastrising_periodic(void)
 {
 	static const char ppm_header[] = "P6\n480 272\n255\n";
 	bool success = false;
+	uint8_t mwcr0;
 
 	switch(picture_load_state)
 	{
@@ -1776,16 +1920,19 @@ bool display_eastrising_periodic(void)
 				flash_dram_buffer[output_buffer_offset++] = ((rgb[1] & 0x1c) << 3) | ((rgb[2] & 0xf8) >> 3);
 			}
 
-			if(!display_set_mode_graphic())
+			if(!display_read(reg_mwcr0, &mwcr0))
 				goto error2;
+
+			if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
+				goto error3;
 
 			if(!display_set_active_layer(1))
-				goto error2;
+				goto error3;
 
 			if(!display_write_string(true, output_buffer_offset, (uint8_t *)flash_dram_buffer))
-				goto error2;
+				goto error3;
 
-			if(!display_set_mode_text())
+			if(!display_write(reg_mwcr0, mwcr0))
 				goto error2;
 
 			if(!display_set_active_layer(0))
@@ -1799,6 +1946,8 @@ bool display_eastrising_periodic(void)
 
 	return(true);
 
+error3:
+	display_write(reg_mwcr0, mwcr0);
 error2:
 	flash_sector_buffer_use = fsb_free;
 error1:
