@@ -18,6 +18,7 @@
 #include "remote_trigger.h"
 #include "sdk.h"
 #include "spi.h"
+#include "display_eastrising.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -1969,6 +1970,7 @@ roflash static const char help_description_config_set[] =			"set config entry";
 roflash static const char help_description_config_delete[] =		"delete config entry";
 roflash static const char help_description_http_get[] =				"get access over http";
 roflash static const char help_description_i2c_sensor_init[] =		"(re-)init i2c sensor";
+roflash		   const char help_description_display_eastrising[] =	"display eastrising <mode=0=disabled|1=i2c|2=hspi [<use_fontchip 0=no|1=yes>] [<user cs io> <user cs pin>]";
 roflash static const char help_description_flash_info[] =			"flash-info";
 roflash static const char help_description_flash_erase[] =			"flash-erase";
 roflash static const char help_description_flash_send[] =			"flash-send";
@@ -2338,6 +2340,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"isi", "i2c-sensor-init",
 		application_function_i2c_sensor_init,
 		help_description_i2c_sensor_init,
+	},
+	{
+		"de", "display-eastrising",
+		application_function_display_eastrising,
+		help_description_display_eastrising,
 	},
 	{
 		"flash-info", "flash-info",

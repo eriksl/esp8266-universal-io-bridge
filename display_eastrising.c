@@ -19,6 +19,13 @@ typedef struct
 
 typedef enum
 {
+	display_mode_disabled = 0,
+	display_mode_i2c,
+	display_mode_spi,
+} display_mode_t;
+
+typedef enum
+{
 	render_mode_internal,
 	render_mode_external,
 	render_mode_graphic,
@@ -487,8 +494,10 @@ roflash static const unicode_map_t unicode_map_external_font_chip[] =
 	{	mapeof,	0x00	},	// EOF
 };
 
-static bool display_inited_i2c = false;
-static bool display_inited_spi = false;
+static display_mode_t display_mode;
+static unsigned int display_user_cs_io;
+static unsigned int display_user_cs_pin;
+static bool display_use_fontchip;
 static bool display_low_brightness = false;
 static bool display_logmode = false;
 static bool display_font_valid = false;
@@ -506,7 +515,7 @@ static render_mode_t display_render_mode(void)
 	if(display_logmode)
 		return(render_mode_internal);
 
-	if(config_flags_match(flag_eastrising_fontchip))
+	if(display_use_fontchip)
 		return(render_mode_external);
 
 	if(display_font_valid)
@@ -517,18 +526,24 @@ static render_mode_t display_render_mode(void)
 
 static bool attr_result_used display_write_command(uint8_t cmd)
 {
-	string_new(, error, 64);
-
-	if(display_inited_i2c)
-		return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
-
-	if(display_inited_spi)
+	switch(display_mode)
 	{
-		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
-					true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
-			return(true);
+		case(display_mode_disabled): return(false);
+		case(display_mode_i2c):
+		{
+			return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
+		}
 
-		logf("eastrising write command: %s\n", string_to_cstr(&error));
+		case(display_mode_spi):
+		{
+			string_new(, error, 64);
+
+			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+						true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
+				return(true);
+
+			logf("eastrising write command: %s\n", string_to_cstr(&error));
+		}
 	}
 
 	return(false);
@@ -536,19 +551,25 @@ static bool attr_result_used display_write_command(uint8_t cmd)
 
 static bool display_write_data(uint8_t data)
 {
-	string_new(, error, 64);
-
-	if(display_inited_i2c)
-		return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
-
-	if(display_inited_spi)
+	switch(display_mode)
 	{
-		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
-					true, spi_rs_data | spi_rw_write,
-					1, &data, 0, 0, (uint8_t *)0, &error))
-			return(true);
+		case(display_mode_disabled): return(false);
+		case(display_mode_i2c):
+		{
+			return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
+		}
 
-		logf("eastrising write data: %s\n", string_to_cstr(&error));
+		case(display_mode_spi):
+		{
+			string_new(, error, 64);
+
+			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+						true, spi_rs_data | spi_rw_write,
+						1, &data, 0, 0, (uint8_t *)0, &error))
+				return(true);
+
+			logf("eastrising write data: %s\n", string_to_cstr(&error));
+		}
 	}
 
 	return(false);
@@ -569,48 +590,54 @@ static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned 
 	if(!display_write_command(reg_mrwc))
 		return(false);
 
-	if(display_inited_i2c)
-		return(i2c_send(i2c_addr_data, amount, data));
-
-	if(display_inited_spi)
+	switch(display_mode)
 	{
-		unsigned int offset, left, chunk;
-		spi_clock_t clock;
-
-		if(raw_pixel_data)
-			clock = spi_clock_20M;
-		else
+		case(display_mode_disabled): return(false);
+		case(display_mode_i2c):
 		{
-			switch(display_render_mode())
-			{
-				case(render_mode_internal):	clock = spi_clock_500k;	break;
-				case(render_mode_external):	clock = spi_clock_50k;	break;
-				default:					clock = spi_clock_100k;	break; // never hit
-			}
+			return(i2c_send(i2c_addr_data, amount, data));
 		}
 
-		for(offset = 0, left = amount; (left > 0) && (offset < amount);)
+		case(display_mode_spi):
 		{
-			chunk = left;
+			unsigned int offset, left, chunk;
+			spi_clock_t clock;
 
-			if(chunk > 32)
-				chunk = 32;
-
-			if(!spi_send_receive(clock, spi_mode_0, false, -1, -1,
-						true, spi_rs_data | spi_rw_write,
-						chunk, &data[offset],
-						0,
-						0, (uint8_t *)0, &error))
+			if(raw_pixel_data)
+				clock = spi_clock_20M;
+			else
 			{
-				logf("eastrising write string: %s\n", string_to_cstr(&error));
-				return(false);
+				switch(display_render_mode())
+				{
+					case(render_mode_internal):	clock = spi_clock_500k;	break;
+					case(render_mode_external):	clock = spi_clock_50k;	break;
+					default:					clock = spi_clock_100k;	break; // never hit
+				}
 			}
 
-			offset += chunk;
-			left -= chunk;
-		}
+			for(offset = 0, left = amount; (left > 0) && (offset < amount);)
+			{
+				chunk = left;
 
-		return(true);
+				if(chunk > 32)
+					chunk = 32;
+
+				if(!spi_send_receive(clock, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+							true, spi_rs_data | spi_rw_write,
+							chunk, &data[offset],
+							0,
+							0, (uint8_t *)0, &error))
+				{
+					logf("eastrising write string: %s\n", string_to_cstr(&error));
+					return(false);
+				}
+
+				offset += chunk;
+				left -= chunk;
+			}
+
+			return(true);
+		}
 	}
 
 	return(false);
@@ -618,23 +645,29 @@ static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned 
 
 static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 {
-	string_new(, error, 64);
-
 	if(!display_write_command(cmd))
 		return(false);
 
-	if(display_inited_i2c)
-		return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
-
-	if(display_inited_spi)
+	switch(display_mode)
 	{
-		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
-					true, spi_rs_data | spi_rw_read,
-					0, (const uint8_t *)0, 0, 1, data, &error))
+		case(display_mode_disabled): return(false);
+		case(display_mode_i2c):
+		{
+			return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
+		}
 
-			return(true);
+		case(display_mode_spi):
+		{
+			string_new(, error, 64);
 
-		logf("eastrising read: %s\n", string_to_cstr(&error));
+			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+						true, spi_rs_data | spi_rw_read,
+						0, (const uint8_t *)0, 0, 1, data, &error))
+
+				return(true);
+
+			logf("eastrising read: %s\n", string_to_cstr(&error));
+		}
 	}
 
 	return(false);
@@ -1155,7 +1188,7 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 
 	for(y = 0; y < 32; y++)
 	{
-		if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, -1, -1,
+		if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
 					true, spi_rs_data | spi_rw_write,
 					x * 2, dataline[y],
 					0,
@@ -1177,25 +1210,54 @@ bool display_eastrising_init(void)
 {
 	const font_bitmap_t *font_bitmap;
 	uint8_t cmd = reg_mrwc;
+	unsigned int mode, fontchip;
+	int user_cs_io, user_cs_pin;
 
-	if(!config_flags_match(flag_enable_eastrising))
-		goto error;
+	if(!config_get_uint("display_eastrising.mode", &mode, -1, -1))
+		display_mode = display_mode_disabled;
+	else
+		display_mode = (display_mode_t)mode;
 
-	if(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok)
+	if(!config_get_uint("display_eastrising.fontchip", &fontchip, -1, -1))
+		display_use_fontchip = false;
+	else
+		display_use_fontchip = fontchip != 0;
+
+	if(!config_get_int("display_eastrising.io", &user_cs_io, -1, -1) ||
+			!config_get_int("display_eastrising.pin", &user_cs_pin, -1, -1))
 	{
-		display_inited_i2c = true;
-		display_inited_spi = false;
+		display_user_cs_io = -1;
+		display_user_cs_pin = -1;
 	}
 	else
 	{
-		if(spi_send_receive(spi_clock_1M, spi_mode_0, false, -1, -1,
-				true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, (string_t *)0))
+		display_user_cs_io = user_cs_io;
+		display_user_cs_pin = user_cs_pin;
+	}
+
+	switch(display_mode)
+	{
+		default:
 		{
-			display_inited_i2c = false;
-			display_inited_spi = true;
-		}
-		else
 			goto error;
+		}
+
+		case(display_mode_i2c):
+		{
+			if(i2c_send1(i2c_addr_command, cmd) != i2c_error_ok)
+				goto error;
+
+			break;
+		}
+
+		case(display_mode_spi):
+		{
+			if(!spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+					true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, (string_t *)0))
+				goto error;
+
+			break;
+		}
 	}
 
 	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
@@ -1303,8 +1365,7 @@ bool display_eastrising_init(void)
 	return(true);
 
 error:
-	display_inited_i2c = false;
-	display_inited_spi = false;
+	display_mode = display_mode_disabled;
 	return(false);
 }
 
@@ -1312,10 +1373,17 @@ bool display_eastrising_begin(int slot, bool logmode)
 {
 	unsigned int fncr0, fncr1, fncr2, mwcr0;
 
-	if(!display_inited_i2c && !display_inited_spi)
+	switch(display_mode)
 	{
-		log("display eastrising not inited\n");
-		return(false);
+		case(display_mode_i2c):
+		case(display_mode_spi):
+			break;
+
+		default:
+		{
+			log("display eastrising not inited\n");
+			return(false);
+		}
 	}
 
 	display_current_slot = slot;
@@ -1727,8 +1795,17 @@ bool display_eastrising_standout(bool standout)
 	roflash static const rgb_t colour_black = { 0x00, 0x00, 0x00 };
 	roflash static const rgb_t colour_white = { 0xff, 0xff, 0xff };
 
-	if(!display_inited_i2c && !display_inited_spi)
-		return(false);
+	switch(display_mode)
+	{
+		case(display_mode_i2c):
+		case(display_mode_spi):
+			break;
+
+		default:
+		{
+			return(false);
+		}
+	}
 
 	if(display_logmode)
 	{
@@ -1982,4 +2059,130 @@ bool display_eastrising_picture_load(unsigned int entry)
 	picture_load_index = entry;
 
 	return(true);
+}
+
+extern roflash const char help_description_display_eastrising[];
+
+app_action_t application_function_display_eastrising(string_t *src, string_t *dst)
+{
+	unsigned int mode, fontchip;
+	int user_cs_io, user_cs_pin;
+
+	if(parse_uint(1, src, &mode, 0, ' ') == parse_ok)
+	{
+		if(mode > 2)
+		{
+			string_append_cstr_flash(dst, help_description_display_eastrising);
+			return(app_action_error);
+		}
+
+		if(parse_uint(2, src, &fontchip, 0, ' ') != parse_ok)
+		{
+			fontchip = 0;
+			user_cs_io = -1;
+			user_cs_pin = -1;
+		}
+		else
+		{
+			if((parse_int(3, src, &user_cs_io, 0, ' ') == parse_ok) && (parse_int(4, src, &user_cs_pin, 0, ' ') == parse_ok))
+			{
+				if(mode != 2)
+				{
+					string_append_cstr_flash(dst, help_description_display_eastrising);
+					return(app_action_error);
+				}
+
+				if((user_cs_io < 0) || (user_cs_io >= io_id_size) || (user_cs_pin < 0) || (user_cs_pin >= max_pins_per_io))
+				{
+					string_append_cstr_flash(dst, help_description_display_eastrising);
+					return(app_action_error);
+				}
+			}
+			else
+			{
+				user_cs_io = -1;
+				user_cs_pin = -1;
+			}
+		}
+
+		if(!config_open_write())
+			goto config_error;
+
+		if(mode == 0)
+		{
+			config_delete("display_eastrising.mode", false, -1, -1);
+			config_delete("display_eastrising.fontchip", false, -1, -1);
+			config_delete("display_eastrising.io", false, -1, -1);
+			config_delete("display_eastrising.pin", false, -1, -1);
+		}
+		else
+		{
+			if(!config_set_uint("display_eastrising.mode", mode, -1, -1))
+				goto config_error;
+
+			if(fontchip == 0)
+				config_delete("display_eastrising.fontchip", false, -1, -1);
+			else
+				if(!config_set_uint("display_eastrising.fontchip", fontchip, -1, -1))
+					goto config_error;
+
+			if((user_cs_io < 0) || (user_cs_pin < 0))
+			{
+				config_delete("display_eastrising.io", false, -1, -1);
+				config_delete("display_eastrising.pin", false, -1, -1);
+			}
+			else
+			{
+				if(!config_set_uint("display_eastrising.io", user_cs_io, -1, -1))
+					goto config_error;
+
+				if(!config_set_uint("display_eastrising.pin", user_cs_pin, -1, -1))
+					goto config_error;
+			}
+		}
+
+		if(!config_close_write())
+			goto config_error;
+	}
+
+	if(!config_get_uint("display_eastrising.mode", &mode, -1, -1))
+		mode = 0;
+
+	if(!config_get_uint("display_eastrising.fontchip", &fontchip, -1, -1))
+		fontchip = 0;
+
+	display_use_fontchip = fontchip != 0;
+
+	if(!config_get_int("display_eastrising.io", &user_cs_io, -1, -1) ||
+			!config_get_int("display_eastrising.pin", &user_cs_pin, -1, -1))
+		user_cs_io = user_cs_pin = -1;
+
+	switch(mode)
+	{
+		case(display_mode_disabled): string_append(dst, "> mode 0 (disabled)"); break;
+		case(display_mode_i2c): string_append(dst, "> mode 1 (i2c)"); break;
+		case(display_mode_spi):
+		{
+			string_append(dst, "> mode 2 (spi), ");
+
+			if((user_cs_io >= 0) && (user_cs_pin >= 0))
+				string_format(dst, "user cs pin: %d/%d", user_cs_io, user_cs_pin);
+			else
+				string_append(dst, "default cs pin");
+
+			break;
+		}
+
+		default: string_append(dst, "> unknown mode"); break;
+	}
+
+	string_format(dst, "\n> font chip is enabled: %s\n", yesno(fontchip));
+
+	return(app_action_normal);
+
+config_error:
+	config_abort_write();
+	string_clear(dst);
+	string_append(dst, "> cannot set config\n");
+	return(app_action_error);
 }
