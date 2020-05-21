@@ -4710,7 +4710,7 @@ Thu May 21 20:19:25 CEST 2020
     iram:    available:  32 k, used:  31744, free:   1024,  3 %
     dram:    available:  78 k, used:  72717, free:   7548,  9 %
     irom:    available: 592 k, used: 393400, free: 212808, 35 %
-Thu May 21 20:20:48 CEST 2020
+Thu May 21 20:39:19 CEST 2020 4a50e34 memory-log: update
     iram:    available:  32 k, used:  31744, free:   1024,  3 %
     dram:    available:  78 k, used:  72717, free:   7548,  9 %
     irom:    available: 592 k, used: 393416, free: 212792, 35 %
