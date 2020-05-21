@@ -490,6 +490,7 @@ void				system_restart(void);
 void				system_restart_local(void); // skip ap/sta disconnect
 void				system_restart_core(void);
 void				system_set_os_print(uint8_t onoff);
+void				system_phy_set_powerup_option(uint8_t);
 uint32_t			system_rtc_clock_cali_proc(void);
 void				system_soft_wdt_feed(void);
 bool				system_update_cpu_freq(uint8_t);

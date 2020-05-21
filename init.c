@@ -49,6 +49,7 @@ iram void user_pre_init(void)
 {
 	stat_flags.user_pre_init_called = 1;
 	stat_flags.user_pre_init_success = system_partition_table_regist(partition_items, sizeof(partition_items) / sizeof(*partition_items), FLASH_SIZE_SDK);
+	system_phy_set_powerup_option(3); /* request full calibration */
 }
 
 uint32_t user_iram_memory_is_enabled(void);
