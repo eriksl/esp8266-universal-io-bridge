@@ -20,8 +20,8 @@
 enum
 {
 	display_slot_amount = 8,
-	display_slot_tag_size = 12,
-	display_slot_content_size = 64
+	display_slot_tag_size = 16,
+	display_slot_content_size = 92,
 };
 
 enum
@@ -78,7 +78,7 @@ typedef struct
 	char	content[display_slot_content_size];
 } display_slot_t;
 
-assert_size(display_slot_t, 80);
+assert_size(display_slot_t, 112);
 
 roflash static display_info_t display_info[display_size] =
 {
@@ -174,7 +174,7 @@ static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 static unsigned int display_layer = 0;
 
-assert_size(display_slot, 640);
+assert_size(display_slot, 896);
 
 attr_pure bool display_detected(void)
 {

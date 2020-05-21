@@ -397,7 +397,7 @@ enum
 	display_vertical_blanking = 14,
 	display_vertical_sync_start = 6,
 	display_vertical_sync_length = 2,
-	display_text_width = 25,
+	display_text_width = 30,
 	display_text_height = 8,
 	display_slot_height = 4,
 	display_character_width = 16,
