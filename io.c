@@ -1190,7 +1190,7 @@ void io_init(void)
 	unsigned int mode, llmode;
 	int i2c_sda = -1;
 	int i2c_scl = -1;
-	unsigned int i2c_speed_delay;
+	unsigned int i2c_set_speed_delay;
 	int trigger;
 	unsigned int debounce;
 	int trigger_io, trigger_pin, trigger_type;
@@ -1621,9 +1621,10 @@ void io_init(void)
 
 							if((i2c_sda >= 0) && (i2c_scl >= 0))
 							{
-								if(!config_get_uint("i2c.speed_delay", &i2c_speed_delay, -1, -1))
-									i2c_speed_delay = 1000;
-								i2c_init(i2c_sda, i2c_scl, i2c_speed_delay);
+								if(!config_get_uint("i2c.speed_delay", &i2c_set_speed_delay, -1, -1))
+									i2c_set_speed_delay = 1000;
+								i2c_init(i2c_sda, i2c_scl);
+								i2c_speed_delay(i2c_set_speed_delay);
 							}
 
 							break;

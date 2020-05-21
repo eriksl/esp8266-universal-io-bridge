@@ -72,7 +72,8 @@ typedef struct attr_packed
 
 assert_size(i2c_info_t, 1);
 
-void		i2c_init(int sda_index, int scl_index, unsigned int delay);
+void		i2c_init(unsigned int sda_index, unsigned int scl_index);
+void		i2c_speed_delay(unsigned int speed_delay);
 void		i2c_error_format_string(string_t *dst, i2c_error_t error);
 i2c_error_t	i2c_select_bus(unsigned int bus);
 void		i2c_get_info(i2c_info_t *);

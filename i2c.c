@@ -696,18 +696,11 @@ iram i2c_error_t i2c_reset(void)
 	return(i2c_error_ok);
 }
 
-void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
+void i2c_speed_delay(unsigned int speed_delay)
 {
-	uint8_t byte;
 	i2c_delay_enum_t current;
 	i2c_delay_t *entry;
 	unsigned int config_factor;
-
-	if((sda_in >= 0) && (scl_in >= 0))
-	{
-		sda_pin = sda_in;
-		scl_pin = scl_in;
-	}
 
 	for(current = 0; current < i2c_delay_size; current++)
 	{
@@ -720,9 +713,18 @@ void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 
 		entry->delay = speed_delay * config_factor / 1000;
 	}
+}
+
+void i2c_init(unsigned int sda_in, unsigned int scl_in)
+{
+	uint8_t byte;
+
+	sda_pin = sda_in;
+	scl_pin = scl_in;
 
 	i2c_flags.init_done = 1;
 
+	i2c_speed_delay(1000);
 	i2c_reset();
 
 	if(i2c_receive(0x06, 1, &byte) == i2c_error_ok)

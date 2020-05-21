@@ -1104,7 +1104,7 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 	if(!config_get_uint("i2c.speed_delay", &speed_delay, -1, -1))
 		speed_delay = 1000;
 
-	i2c_init(-1, -1, speed_delay);
+	i2c_speed_delay(speed_delay);
 
 	string_format(dst, "> i2c speed delay: %u\n", speed_delay);
 
