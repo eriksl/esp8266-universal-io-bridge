@@ -510,6 +510,21 @@ static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 
 
 static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text);
 
+static void set_i2c_speed(int speed)
+{
+	unsigned int config_speed;
+
+	if(speed < 0)
+	{
+		if(config_get_uint("i2c.speed_delay", &config_speed, -1, -1))
+			speed = config_speed;
+		else
+			speed = 1000;
+	}
+
+	i2c_speed_delay(speed);
+}
+
 static render_mode_t display_render_mode(void)
 {
 	if(display_logmode)
@@ -595,7 +610,7 @@ static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned 
 		case(display_mode_disabled): return(false);
 		case(display_mode_i2c):
 		{
-			return(i2c_send(i2c_addr_data, amount, data));
+			return(i2c_send(i2c_addr_data, amount, data) == i2c_error_ok);
 		}
 
 		case(display_mode_spi):
@@ -1188,13 +1203,34 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 
 	for(y = 0; y < 32; y++)
 	{
-		if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-					true, spi_rs_data | spi_rw_write,
-					x * 2, dataline[y],
-					0,
-					0, (uint8_t *)0,
-					(string_t *)0))
-			goto error;
+		switch(display_mode)
+		{
+			case(display_mode_spi):
+			{
+				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+							true, spi_rs_data | spi_rw_write,
+							x * 2, dataline[y],
+							0,
+							0, (uint8_t *)0,
+							(string_t *)0))
+					goto error;
+
+				break;
+			}
+
+			case(display_mode_i2c):
+			{
+				if(i2c_send(i2c_addr_data, x * 2, dataline[y]) != i2c_error_ok)
+					goto error;
+
+				break;
+			}
+
+			default:
+			{
+				goto error;
+			}
+		}
 	}
 
 	success = true;
@@ -1237,16 +1273,8 @@ bool display_eastrising_init(void)
 
 	switch(display_mode)
 	{
-		default:
-		{
-			goto error;
-		}
-
 		case(display_mode_i2c):
 		{
-			if(i2c_send1(i2c_addr_command, cmd) != i2c_error_ok)
-				goto error;
-
 			break;
 		}
 
@@ -1258,6 +1286,11 @@ bool display_eastrising_init(void)
 
 			break;
 		}
+
+		default:
+		{
+			goto error;
+		}
 	}
 
 	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
@@ -1267,6 +1300,9 @@ bool display_eastrising_init(void)
 		display_font_valid = true;
 
 	// init PLL
+
+	if(display_mode == display_mode_i2c)
+		set_i2c_speed(10000);
 
 	if(!display_write_command(reg_pll_c1))
 		goto error;
@@ -1281,6 +1317,9 @@ bool display_eastrising_init(void)
 	display_write_data(reg_pllc2_value);
 
 	msleep(1);
+
+	if(display_mode == display_mode_i2c)
+		set_i2c_speed(-1);
 
 	if(!display_write(reg_sysr, reg_sysr_color_depth_16 | reg_sysr_if_8bit))
 		goto error;
@@ -1365,6 +1404,8 @@ bool display_eastrising_init(void)
 	return(true);
 
 error:
+	if(display_mode == display_mode_i2c)
+		set_i2c_speed(-1);
 	display_mode = display_mode_disabled;
 	return(false);
 }
