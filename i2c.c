@@ -726,7 +726,7 @@ void i2c_init(int sda_in, int scl_in, unsigned int speed_delay)
 	i2c_reset();
 
 	if(i2c_receive(0x06, 1, &byte) == i2c_error_ok)
-		log("eastrising display detected, i2c multiplexer disabled\n");
+		log("possible eastrising display at i2c detected, i2c multiplexer disabled\n");
 	else
 		if(i2c_receive(0x70, 1, &byte) == i2c_error_ok)
 		{
