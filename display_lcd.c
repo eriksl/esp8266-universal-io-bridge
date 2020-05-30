@@ -7,18 +7,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct
+enum
 {
-	unsigned int	unicode;
-	unsigned int	internal;
-} unicode_map_t;
-
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-	unsigned int	pattern[8];
-} udg_map_t;
+	udg_number_pattern_cols = 3,
+	udg_number_pattern_rows = 4,
+};
 
 enum
 {
@@ -46,6 +39,21 @@ enum
 {
 	mapeof = 0xffffffff,
 };
+
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+} unicode_map_t;
+
+typedef struct
+{
+	unsigned int	unicode;
+	unsigned int	internal;
+	unsigned int	pattern[8];
+} udg_map_t;
+
+typedef unsigned int udg_number_pattern_t[udg_number_pattern_rows][udg_number_pattern_cols];
 
 roflash static const unicode_map_t unicode_map[] =
 {
@@ -77,7 +85,7 @@ roflash static const unicode_map_t unicode_map[] =
 	{	mapeof,	0x00	},	//	EOF
 };
 
-roflash static const udg_map_t udg_map[] =
+roflash static const udg_map_t udg_generic_map[] =
 {
 	{
 		0x00e8,	0,	//	è
@@ -190,6 +198,119 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
+roflash static const udg_map_t udg_number_map[] =
+{
+	{
+		0,	0,
+		{
+			0b00000000,
+			0b00000000,
+			0b00000000,
+			0b00011111,
+			0b00011111,
+			0b00011111,
+			0b00011111,
+			0b00000000,
+		}
+	},
+	{
+		0,	1,
+		{
+			0b00011111,
+			0b00011111,
+			0b00011111,
+			0b00011111,
+			0b00011111,
+			0b00000000,
+			0b00000000,
+			0b00000000,
+		}
+	},
+	{
+		0,	2,
+		{
+			0b00000000,
+			0b00000000,
+			0b00000000,
+			0b00000001,
+			0b00000011,
+			0b00000111,
+			0b00001111,
+			0b00000000,
+		}
+	},
+	{
+		0,	3,
+		{
+			0b00000000,
+			0b00000000,
+			0b00000000,
+			0b00010000,
+			0b00011000,
+			0b00011100,
+			0b00011110,
+			0b00000000,
+		}
+	},
+	{
+		0,	4,
+		{
+			0b00011111,
+			0b00001111,
+			0b00000111,
+			0b00000011,
+			0b00000001,
+			0b00000000,
+			0b00000000,
+			0b00000000,
+		}
+	},
+	{
+		0,	5,
+		{
+			0b00011111,
+			0b00011110,
+			0b00011100,
+			0b00011000,
+			0b00010000,
+			0b00000000,
+			0b00000000,
+			0b00000000,
+		}
+	},
+	{
+		0,	6,
+		{
+			0b00011111,
+			0b00011111,
+			0b00011110,
+			0b00011110,
+			0b00011100,
+			0b00011100,
+			0b00011000,
+			0b00000000,
+		}
+	},
+	{
+		0,	7,
+		{
+			0b00010000,
+			0b00011000,
+			0b00011100,
+			0b00011100,
+			0b00011110,
+			0b00011111,
+			0b00011111,
+			0b00000000,
+		}
+	},
+	{
+		mapeof,	0,	//	EOF
+		{
+		}
+	}
+};
+
 roflash static const unsigned int ram_offsets[4] =
 {
 	0	+	0,
@@ -198,6 +319,71 @@ roflash static const unsigned int ram_offsets[4] =
 	20	+	64
 };
 
+roflash static const udg_number_pattern_t udg_number_pattern[] =
+{
+	{	// 0
+		{	2,	0,	3,		},
+		{	255, 32, 255,	},
+		{	255, 32, 255,	},
+		{	4,	1,	5,		},
+	},
+	{	// 1
+		{	2, 0, 32		},
+		{	32, 255, 32		},
+		{	32, 255, 32		},
+		{	1, 1, 1			},
+	},
+	{	// 2
+		{	2, 0, 3			},
+		{	32, 2, 6		},
+		{	2, 5, 32,		},
+		{	1, 1, 1,		},
+	},
+	{	// 3
+		{	2, 0, 3			},
+		{	32, 2, 6		},
+		{	32, 4, 7		},
+		{	4, 1, 5			},
+	},
+	{	// 4
+		{	0, 32, 0		},
+		{	255, 0, 255		},
+		{	32, 32, 255		},
+		{	32, 32, 1		},
+	},
+	{	// 5
+		{	0, 0, 0			},
+		{	255, 3, 32		},
+		{	32, 4, 7		},
+		{	4, 1, 5			},
+	},
+	{	// 6
+		{	2, 0, 3			},
+		{	255, 32, 32		},
+		{	255, 1, 255		},
+		{	4, 1, 5			},
+	},
+	{	// 7
+		{	0, 0, 0			},
+		{	32, 32, 255		},
+		{	32, 32, 255		},
+		{	32, 32, 1		},
+	},
+	{	// 8
+		{	2, 0, 3			},
+		{	255, 0, 255		},
+		{	255, 32, 255		},
+		{	4, 1, 5			},
+	},
+	{	// 9
+		{	2, 0, 3			},
+		{	255, 0, 255		},
+		{	32, 32, 255		},
+		{	4, 1, 5			},
+	},
+};
+
+assert_size(udg_number_pattern, sizeof(unsigned long) * udg_number_pattern_rows * udg_number_pattern_cols * 10);
 _Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
 
 static bool display_inited = false;
@@ -315,7 +501,7 @@ static bool attr_result_used text_newline(void)
 	return(true);
 }
 
-static bool attr_result_used udg_init(void)
+static bool attr_result_used udg_generic_init(void)
 {
 	const udg_map_t *udg_map_ptr;
 	unsigned int byte;
@@ -325,7 +511,25 @@ static bool attr_result_used udg_init(void)
 
 	msleep(2);
 
-	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+	for(udg_map_ptr = udg_generic_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		for(byte = 0; byte < 8; byte++)
+			if(!send_byte(udg_map_ptr->pattern[byte], true))
+				return(false);
+
+	return(true);
+}
+
+static bool attr_result_used udg_number_init(void)
+{
+	const udg_map_t *udg_map_ptr;
+	unsigned int byte;
+
+	if(!send_byte(cmd_set_udg_ptr, false))
+		return(false);
+
+	msleep(2);
+
+	for(udg_map_ptr = udg_number_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
 		for(byte = 0; byte < 8; byte++)
 			if(!send_byte(udg_map_ptr->pattern[byte], true))
 				return(false);
@@ -446,7 +650,7 @@ bool display_lcd_init(void)
 	if(!send_byte(cmd_display_config, false))			// display on, cursor off, blink off
 		return(false);
 
-	if(!udg_init())
+	if(!udg_generic_init())
 		return(false);
 
 	display_inited = true;
@@ -495,7 +699,7 @@ bool display_lcd_output(unsigned int unicode)
 				return(true);
 			}
 
-		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		for(udg_map_ptr = udg_generic_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
 			if((udg_map_ptr->unicode == unicode))
 			{
 				unicode = udg_map_ptr->internal;
@@ -587,7 +791,7 @@ bool display_lcd_layer_select(unsigned int layer)
 		if(!send_byte(cmd_clear_screen, false))
 			return(false);
 
-		if(!udg_init())
+		if(!udg_generic_init())
 			return(false);
 
 		display_disable_text = false;
@@ -678,4 +882,115 @@ error:
 		return(false);
 
 	return(success);
+}
+
+static bool large_digit(unsigned int digit, unsigned int position)
+{
+	const udg_number_pattern_t *pattern;
+	unsigned int row, col;
+
+	if(digit > 9)
+		return(false);
+
+	pattern = &udg_number_pattern[digit];
+
+	msleep(1);
+
+	if(!send_byte(' ', true))
+		return(false);
+
+	msleep(1);
+
+	for(row = 0; row < udg_number_pattern_rows; row++)
+	{
+		msleep(1);
+
+		if(!send_byte(cmd_set_ram_ptr | (ram_offsets[row] + position), false))
+			return(false);
+
+		msleep(1);
+
+		for(col = 0; col < udg_number_pattern_cols; col++)
+			if(!send_byte((*pattern)[row][col], true))
+				return(false);
+
+		msleep(1);
+	}
+
+	if(!send_byte(' ', true))
+		return(false);
+
+	return(true);
+}
+
+bool display_lcd_start_show_time(unsigned int hour, unsigned int minute)
+{
+	bool success;
+
+	display_disable_text = true;
+	success = false;
+
+	if(!udg_number_init())
+		return(false);
+
+	if(!send_byte(cmd_clear_screen, false))
+		return(false);
+
+	if(!large_digit(hour / 10, 2))
+		goto error;
+
+	if(!large_digit(hour % 10, 6))
+		goto error;
+
+	if(!large_digit(minute / 10, 12))
+		goto error;
+
+	if(!large_digit(minute % 10, 16))
+		goto error;
+
+	if(!send_byte(cmd_set_ram_ptr | (ram_offsets[1] + 10), false))
+		return(false);
+
+	msleep(1);
+
+	if(!send_byte(0xdf, true))
+		return(false);
+
+	if(!send_byte(cmd_set_ram_ptr | (ram_offsets[2] + 10), false))
+		return(false);
+
+	msleep(1);
+
+	if(!send_byte(0xdf, true))
+		return(false);
+
+	if(!send_byte(' ', true))
+		return(false);
+
+	success = true;
+
+error:
+	if(!text_goto(-1, -1))
+		return(false);
+
+	if(!success)
+		display_disable_text = false;
+
+	return(success);
+}
+
+bool display_lcd_stop_show_time(void)
+{
+	display_disable_text = false;
+
+	if(!udg_generic_init())
+		return(false);
+
+	if(!send_byte(cmd_clear_screen, false))
+		return(false);
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
 }

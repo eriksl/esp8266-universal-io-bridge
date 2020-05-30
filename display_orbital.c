@@ -27,6 +27,7 @@ enum
 	display_text_height = 4,
 
 	command_prefix =		0xfe,
+	command_place_digit =	0x23,
 	command_timeout =		0x42,
 	command_line_wrap_off =	0x44,
 	command_display_on =	0x46,
@@ -37,6 +38,7 @@ enum
 	command_clear_display =	0x58,
 	command_brightness =	0x59,
 	command_udg =			0x4e,
+	command_init_digits =	0x6e,
 
 	mapeof = 0xffffffff,
 };
@@ -628,4 +630,71 @@ error:
 		return(false);
 
 	return(success);
+}
+
+bool display_orbital_start_show_time(unsigned int hour, unsigned int minute)
+{
+	bool success;
+
+	display_disable_text = true;
+	success = false;
+
+	if(!display_command1(command_clear_display))
+		return(false);
+
+	if(!display_command1(command_init_digits))
+		goto error;
+
+	if(!display_command3(command_place_digit, 1 + (0 * 4) + 2, hour / 10))
+		goto error;
+
+	if(!display_command3(command_place_digit, 1 + (1 * 4) + 2, hour % 10))
+		goto error;
+
+	if(!display_command3(command_place_digit, 1 + (2 * 4) + 4, minute / 10))
+		goto error;
+
+	if(!display_command3(command_place_digit, 1 + (3 * 4) + 4, minute % 10))
+		goto error;
+
+	if(!display_command3(command_goto, 11, 2))
+		goto error;
+
+	if(!display_data_output(0x1c))
+		goto error;
+
+	if(!display_command3(command_goto, 11, 3))
+		goto error;
+
+	if(!display_data_output(0x1f))
+		goto error;
+
+	success = true;
+
+error:
+	if(!display_data_flush())
+		return(false);
+	if(!text_goto(-1, -1))
+		return(false);
+
+	if(!success)
+		display_disable_text = false;
+
+	return(success);
+}
+
+bool display_orbital_stop_show_time(void)
+{
+	display_disable_text = false;
+
+	if(!udg_init())
+		return(false);
+
+	if(!display_command1(command_clear_display))
+		return(false);
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
 }

@@ -11,5 +11,7 @@ bool display_lcd_output(unsigned int);
 bool display_lcd_end(void);
 bool display_lcd_picture_load(unsigned int);
 bool display_lcd_layer_select(unsigned int);
+bool display_lcd_start_show_time(unsigned int hour, unsigned int minute);
+bool display_lcd_stop_show_time(void);
 
 #endif

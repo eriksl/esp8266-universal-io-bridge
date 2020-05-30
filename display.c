@@ -59,9 +59,11 @@ typedef const struct
 	bool			(* const periodic_fn)(void);
 	bool			(* const picture_load_fn)(unsigned int);
 	bool			(* const layer_select_fn)(unsigned int);
+	bool			(* const show_time_start_fn)(unsigned int, unsigned int);
+	bool			(* const show_time_stop_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 44);
+assert_size(display_info_t, 52);
 
 typedef struct
 {
@@ -93,6 +95,8 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD",
@@ -105,6 +109,8 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_lcd_picture_load,
 		display_lcd_layer_select,
+		display_lcd_start_show_time,
+		display_lcd_stop_show_time,
 	},
 	{
 		"matrix orbital", "4x20 character VFD",
@@ -117,6 +123,8 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_orbital_picture_load,
 		display_orbital_layer_select,
+		display_orbital_start_show_time,
+		display_orbital_stop_show_time,
 	},
 	{
 		"cfa634", "4x20 character LCD",
@@ -125,6 +133,8 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -141,6 +151,8 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_seeed_picture_load,
 		display_seeed_layer_select,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"eastrising TFT", "480x272 LCD",
@@ -153,6 +165,8 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_periodic,
 		display_eastrising_picture_load,
 		display_eastrising_layer_select,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"SSD1306 / SH1106", "128x32 / 128x64 OLED",
@@ -165,6 +179,8 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_ssd1306_picture_load,
 		display_ssd1306_layer_select,
+		(void *)0,
+		(void *)0,
 	},
 };
 
@@ -198,6 +214,39 @@ static void display_update(bool advance)
 	start = time_get_us();
 
 	display_info_entry = &display_info[display_data.detected];
+
+	if(config_flags_match(flag_display_clock) && display_info_entry->show_time_start_fn && display_info_entry->show_time_stop_fn)
+	{
+		static bool time_shown = false;
+
+		if(time_shown)
+		{
+			if(!display_info_entry->show_time_stop_fn())
+			{
+				log("display update: time show stop failed\n");
+				display_data.detected = -1;
+				return;
+			}
+
+			time_shown = false;
+		}
+		else
+		{
+			unsigned int h, m;
+
+			time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
+
+			if(!display_info_entry->show_time_start_fn(h, m))
+			{
+				log("display update: show time start failed\n");
+				display_data.detected = -1;
+				return;
+			}
+
+			time_shown = true;
+			return;
+		}
+	}
 
 	for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 		if(display_slot[slot].content[0])

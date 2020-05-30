@@ -29,7 +29,7 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_bh_high_sens,			"bh-high-sens",				},
 	{	flag_cpu_high_speed,		"cpu-high-speed",			},
 	{	flag_wlan_power_save,		"wlan-power-save",			},
-	{	flag_dummy0,				"dummy0",					},
+	{	flag_display_clock,			"display-clock",			},
 	{	flag_dummy1,				"dummy1",					},
 	{	flag_log_to_buffer,			"log-to-buffer",			},
 	{	flag_auto_sequencer,		"auto-sequencer",			},
