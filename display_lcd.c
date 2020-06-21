@@ -749,22 +749,31 @@ bool display_lcd_end(void)
 
 bool display_lcd_bright(int brightness)
 {
+	roflash static const unsigned int bright_data[5][2] =
+	{
+		{	cmd_off_off_off,	0		},
+		{	cmd_on_off_off,		0		},
+		{	cmd_on_off_off,		512		},
+		{	cmd_on_off_off,		16384	},
+		{	cmd_on_off_off,		65535	}
+	};
+
 	unsigned int max_value, value;
 
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	if(!send_byte((brightness > 0) ? cmd_on_off_off : cmd_off_off_off, false))
+	if(!send_byte(bright_data[brightness][0], false))
 		return(false);
 
 	if((bl_io >= 0) && (bl_pin >= 0))
 	{
 		max_value = io_pin_max_value(bl_io, bl_pin);
 
-		if(brightness == 0)
-			value = 0;
-		else
-			value = max_value >> ((4 - brightness) << 1);
+		value = bright_data[brightness][1] / (65536 / max_value);
+
+		if((value + 8) > max_value)
+			value = max_value;
 
 		io_write_pin((string_t *)0, bl_io, bl_pin, value);
 	}
