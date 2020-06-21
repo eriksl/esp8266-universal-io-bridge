@@ -32,5 +32,6 @@
 
 * OTA+ (4 Mbyte, 32 Mbit, space of slot 3-4 can be used for data)
 
-206000-265fff	60000	96	picture storage #1				SYSTEM_PARTITION_CUSTOMER_BEGIN+8
-200000-205fff	60000	96	picture storage #0				SYSTEM_PARTITION_CUSTOMER_BEGIN+7
+300000-3fffff	100000	256	not yet in use					SYSTEM_PARTITION_CUSTOMER_BEGIN+11
+280000-2fffff	80000	128	picture storage #1				SYSTEM_PARTITION_CUSTOMER_BEGIN+8
+200000-27ffff	80000	128	picture storage #0				SYSTEM_PARTITION_CUSTOMER_BEGIN+7

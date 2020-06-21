@@ -294,11 +294,15 @@ void stats_flash(string_t *dst)
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+8):				string_append(dst, "picture slot 1   "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+9):				string_append(dst, "font slot 0      "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+10):				string_append(dst, "font slot 1      "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+11):				string_append(dst, "spare space      "); break;
 #endif
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06lx size: %4lu kB\n", (unsigned long int)partition_item.addr, partition_item.size / 1024);
+			string_format(dst, " start: 0x%06lx, end: 0x%06lx, size: %4lu kB\n",
+					(unsigned long int)partition_item.addr,
+					(unsigned long int)(partition_item.addr + partition_item.size - 1),
+					partition_item.size / 1024);
 		}
 	}
 }
