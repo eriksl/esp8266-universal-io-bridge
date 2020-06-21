@@ -462,7 +462,7 @@ io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T
 	pin_output_cache[index][1] |= (pins & 0xff00) >> 8;
 
 	if(i2c_send3(info->address, GPIO(0), pin_output_cache[index][0], pin_output_cache[index][1]) != i2c_error_ok)
-		return(false);
+		return(io_error);
 
 	return(io_ok);
 }
