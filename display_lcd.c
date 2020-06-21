@@ -412,6 +412,8 @@ static bool attr_result_used send_byte_raw(unsigned int byte, bool data)
 {
 	unsigned int pins = 0;
 
+	os_delay_us(1000);
+
 	io_set_mask((string_t *)0, lcd_io, pin_mask, 0);
 
 	pins |= bit_to_pin(!!data, 0, io_lcd_rs);
@@ -424,8 +426,14 @@ static bool attr_result_used send_byte_raw(unsigned int byte, bool data)
 	pins |= bit_to_pin(byte, 5, io_lcd_d5);
 	pins |= bit_to_pin(byte, 6, io_lcd_d6);
 	pins |= bit_to_pin(byte, 7, io_lcd_d7);
-	pins |= bit_to_pin(1, 0, io_lcd_e);
 
+	os_delay_us(100);
+
+	io_set_mask((string_t *)0, lcd_io, pin_mask, pins);
+
+	os_delay_us(700);
+
+	pins |= bit_to_pin(1, 0, io_lcd_e);
 	io_set_mask((string_t *)0, lcd_io, pin_mask, pins);
 
 	return(true);
