@@ -137,7 +137,7 @@ ifeq ($(IMAGE),ota)
 	IMAGE_OTA := 1
 # this must be 4 MB otherwise we can't access the part in flash above 2 MB when using a 4 MB flash
 # only 2 MB is actually used for image
-	FLASH_SIZE_ESPTOOL := 4MB
+	FLASH_SIZE_ESPTOOL := 4MB-c1
 	FLASH_SIZE_ESPTOOL2 := 4096
 	FLASH_SIZE_SDK := FLASH_SIZE_32M_MAP_1024_1024
 	RBOOT_SPI_SIZE := 4Mb
