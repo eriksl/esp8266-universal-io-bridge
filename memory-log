@@ -4762,3 +4762,643 @@ Fri May 22 12:37:24 CEST 2020 cc2b585 memory-log: add current commit to date on 
     iram:    available:  32 k, used:  31744, free:   1024,  3 %
     dram:    available:  78 k, used:  72845, free:   7420,  9 %
     irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat May 30 11:31:11 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat May 30 11:31:40 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat May 30 11:50:52 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72837, free:   7428,  9 %
+    irom:    available: 592 k, used: 392744, free: 213464, 35 %
+Sat May 30 11:50:55 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72837, free:   7428,  9 %
+    irom:    available: 592 k, used: 392744, free: 213464, 35 %
+Sat May 30 12:00:56 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat May 30 12:03:05 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 393480, free: 212728, 35 %
+Sat May 30 12:05:16 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394408, free: 211800, 34 %
+Sat May 30 12:12:33 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394600, free: 211608, 34 %
+Sat May 30 12:12:38 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394600, free: 211608, 34 %
+Sat May 30 12:15:41 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394664, free: 211544, 34 %
+Sat May 30 12:16:59 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394680, free: 211528, 34 %
+Sat May 30 12:19:00 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394808, free: 211400, 34 %
+Sat May 30 12:24:05 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394840, free: 211368, 34 %
+Sat May 30 12:25:39 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394840, free: 211368, 34 %
+Sat May 30 12:26:35 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394840, free: 211368, 34 %
+Sat May 30 12:28:14 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394840, free: 211368, 34 %
+Sat May 30 12:29:31 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 394840, free: 211368, 34 %
+Sat May 30 12:35:35 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 12:36:20 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 12:37:04 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72845, free:   7420,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 12:50:12 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 12:50:15 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 12:55:18 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Sat May 30 14:30:46 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 395592, free: 210616, 34 %
+Sat May 30 14:31:09 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396072, free: 210136, 34 %
+Sat May 30 14:31:22 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396072, free: 210136, 34 %
+Sat May 30 14:31:35 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396072, free: 210136, 34 %
+Sat May 30 14:32:53 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396504, free: 209704, 34 %
+Sat May 30 14:36:34 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Sat May 30 14:39:38 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 14:43:32 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396024, free: 210184, 34 %
+Sat May 30 14:45:31 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396024, free: 210184, 34 %
+Sat May 30 14:46:59 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396040, free: 210168, 34 %
+Sat May 30 14:48:11 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396536, free: 209672, 34 %
+Sat May 30 14:49:53 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 14:51:43 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396536, free: 209672, 34 %
+Sat May 30 14:52:47 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396536, free: 209672, 34 %
+Sat May 30 14:57:17 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396536, free: 209672, 34 %
+Sat May 30 15:00:20 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 15:01:49 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396440, free: 209768, 34 %
+Sat May 30 15:03:11 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396440, free: 209768, 34 %
+Sat May 30 15:05:07 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396440, free: 209768, 34 %
+Sat May 30 15:06:22 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396440, free: 209768, 34 %
+Sat May 30 15:08:39 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396440, free: 209768, 34 %
+Sat May 30 15:10:30 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396456, free: 209752, 34 %
+Sat May 30 15:13:10 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:20:12 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 15:22:45 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:25:02 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:26:30 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:27:54 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:32:56 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:34:12 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:40:56 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396472, free: 209736, 34 %
+Sat May 30 15:43:14 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 15:43:56 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 15:44:19 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396520, free: 209688, 34 %
+Sat May 30 15:47:18 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396536, free: 209672, 34 %
+Sat May 30 15:48:43 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396552, free: 209656, 34 %
+Sat May 30 15:50:42 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 16:07:55 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 16:11:35 CEST 2020 73db45d memory-log: add current commit to date on header line
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 16:51:17 CEST 2020 1a52580 display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 17:14:01 CEST 2020 1a52580 display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 20:10:34 CEST 2020 1a52580 display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396584, free: 209624, 34 %
+Sat May 30 20:11:55 CEST 2020 1a52580 display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Sun May 31 13:37:34 CEST 2020 3b1d8c3 display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 14:56:46 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:22:29 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:31:25 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:31:42 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:31:55 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:35:06 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:35:40 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:53:35 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:53:45 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:58:36 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:59:10 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 15:59:55 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:02:19 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72829, free:   7436,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:04:39 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:05:21 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:05:28 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:23:54 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:30:25 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 16:31:42 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:57:06 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:57:26 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:57:36 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:57:48 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:59:25 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:59:33 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:59:41 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Fri Jun  5 17:59:50 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396600, free: 209608, 34 %
+Sun Jun  7 12:30:06 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sun Jun  7 12:31:45 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72861, free:   7404,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sun Jun  7 12:33:23 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396696, free: 209512, 34 %
+Sun Jun  7 12:36:00 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun  7 12:36:47 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Fri Jun 19 20:38:42 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sat Jun 20 12:22:26 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sat Jun 20 12:23:36 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sat Jun 20 12:26:06 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sat Jun 20 13:41:02 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sat Jun 20 13:42:09 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sat Jun 20 13:42:28 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sat Jun 20 18:27:10 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sat Jun 20 20:41:17 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sat Jun 20 20:41:55 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sat Jun 20 20:43:56 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Sun Jun 21 11:17:04 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:17:33 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:18:35 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:20:49 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396744, free: 209464, 34 %
+Sun Jun 21 11:21:13 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396744, free: 209464, 34 %
+Sun Jun 21 11:22:08 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:22:54 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:23:19 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:23:37 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:24:01 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:24:21 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:24:38 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:24:55 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:25:12 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:25:48 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:26:05 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:26:18 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:31:03 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:31:34 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:31:58 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:32:11 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396712, free: 209496, 34 %
+Sun Jun 21 11:33:15 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:33:52 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:34:13 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:34:28 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:35:02 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:35:20 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:35:40 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:35:54 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:36:07 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:36:26 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:36:37 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:39:07 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396760, free: 209448, 34 %
+Sun Jun 21 11:39:40 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396744, free: 209464, 34 %
+Sun Jun 21 11:40:03 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396744, free: 209464, 34 %
+Sun Jun 21 11:41:49 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:42:06 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:42:21 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:42:35 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:42:47 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:59:21 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 11:59:32 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 12:00:02 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 12:00:20 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396760, free: 209448, 34 %
+Sun Jun 21 12:00:36 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396760, free: 209448, 34 %
+Sun Jun 21 12:00:54 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396760, free: 209448, 34 %
+Sun Jun 21 12:01:09 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 12:02:19 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 12:03:03 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 12:03:25 CEST 2020 18a762f display: add clock mode (large digits) to orbital and lcd displays.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
