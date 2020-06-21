@@ -15,6 +15,7 @@ io_error_t		io_gpio_init_pin_mode(string_t *, const struct io_info_entry_T *, io
 io_error_t		io_gpio_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 io_error_t		io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
 io_error_t		io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
+io_error_t		io_gpio_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins);
 int				io_gpio_get_uart_from_pin(unsigned int pin);
 bool			io_gpio_pwm1_width_set(unsigned int period, bool load, bool save);
 unsigned int	io_gpio_pwm1_width_get(void);

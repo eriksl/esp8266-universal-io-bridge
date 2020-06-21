@@ -1479,6 +1479,19 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 	return(io_ok);
 }
 
+io_error_t io_gpio_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+{
+	unsigned int current;
+
+	current = gpio_reg_read(GPIO_IN_ADDRESS);
+	current &= ~mask;
+	current |= (pins & mask);
+
+	gpio_reg_write(GPIO_OUT_ADDRESS, current);
+
+	return(io_ok);
+}
+
 attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 {
 	if(pin >= max_pins_per_io)

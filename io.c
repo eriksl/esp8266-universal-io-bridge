@@ -70,7 +70,7 @@ roflash static const io_info_t io_info =
 		io_gpio_get_pin_info,
 		io_gpio_read_pin,
 		io_gpio_write_pin,
-		(void *)0, // set_mask
+		io_gpio_set_mask,
 	},
 	{
 		io_id_aux,/* = 1 */
