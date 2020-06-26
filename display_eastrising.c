@@ -553,7 +553,7 @@ static bool attr_result_used display_write_command(uint8_t cmd)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
 						true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
 				return(true);
 
@@ -578,7 +578,7 @@ static bool display_write_data(uint8_t data)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
 						true, spi_rs_data | spi_rw_write,
 						1, &data, 0, 0, (uint8_t *)0, &error))
 				return(true);
@@ -675,7 +675,7 @@ static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
 						true, spi_rs_data | spi_rw_read,
 						0, (const uint8_t *)0, 0, 1, data, &error))
 
