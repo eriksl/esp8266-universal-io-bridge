@@ -486,7 +486,7 @@ void display_periodic(void) // gets called 10 times per second
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
 	else
-		if((display_initial_log_active) && (display_initial_log_counter++ < 200))
+		if((display_initial_log_active) && (display_initial_log_counter++ < 100))
 			log_to_display = true;
 		else
 			log_to_display = false;
