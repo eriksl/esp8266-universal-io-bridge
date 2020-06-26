@@ -739,7 +739,7 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		return(false);
 
-	for(timeout = 50; timeout > 0; timeout--)
+	for(timeout = 5; timeout > 0; timeout--)
 	{
 		if(!display_read(reg_becr0, &data))
 			return(false);
@@ -747,8 +747,11 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 		if(!(data & reg_becr0_busy))
 			break;
 
-		msleep(1);
+		msleep(10);
 	}
+
+	if(timeout == 0)
+		log("scroll BTE timeout\n");
 
 	return(true);
 }
