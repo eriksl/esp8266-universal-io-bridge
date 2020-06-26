@@ -508,7 +508,7 @@ static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 
-static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text);
+static bool attr_result_used display_write_glyphs_16x32(bool ucs2, unsigned int length, const uint8_t *text);
 
 static void set_i2c_speed(int speed)
 {
@@ -973,7 +973,7 @@ static bool attr_result_used display_flush(void)
 				goto done;
 			}
 
-			if(!display_render_line_16x32(true, display_y + 4, display_text_current, display_buffer))
+			if(!display_write_glyphs_16x32(true, display_text_current, display_buffer))
 				goto done;
 
 			break;
@@ -1093,87 +1093,26 @@ static bool attr_result_used display_show_layer(unsigned int layer)
 	return(display_write(reg_ltpr0, value));
 }
 
-static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int line, unsigned int length, const uint8_t *text)
+static bool attr_result_used display_blit(unsigned int layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint8_t *data)
 {
-	static const	unsigned int dx;
-					unsigned int dy;
-	static const	unsigned int dl = 0;
-					unsigned int width;
-	static const	unsigned int height = 32;
+	bool success = false;
 
-	const font_bitmap_t			*font_bitmap;
-	const font_bitmap_entry_t	*font_bitmap_entry;
+	if((x + width) > display_width)
+		return(true);
 
-	uint8_t			dataline[32][60];
-	uint32_t		bitmap;
-	unsigned int	x, y;
-	unsigned int	charlength;
-	unsigned int	codepoint;
-	bool			success = false;
+	if((y + height) > display_height)
+		return(true);
 
-	if(display_render_mode() != render_mode_graphic)
+	if(!display_write(reg_hdbe0, (x >> 0) & 0xff))
 		goto error;
 
-	charlength = ucs2 ? length / 2 : length;
-	width = charlength * 16;
-
-	if((width > display_width) || (charlength > 30))
+	if(!display_write(reg_hdbe1, (x >> 8) & 0x03))
 		goto error;
 
-	dy = line * 32 + ((line > 3) ? 16 : 0);
-
-	if((dy + height) > display_height)
+	if(!display_write(reg_vdbe0, (y >> 0) & 0xff))
 		goto error;
 
-	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
-
-	for(x = 0; x < charlength; x++)
-	{
-		if(ucs2)
-			codepoint = ((text[(x * 2) + 0] & 0xff) << 8) | ((text[(x * 2) + 1] & 0xff) << 0);
-		else
-			codepoint = text[x] & 0xff;
-
-		for(font_bitmap_entry = font_bitmap->entries; font_bitmap_entry->codepoint != (uint32_t)font_codepoint_last_entry; font_bitmap_entry++)
-		{
-			if(!ucs2 && (font_bitmap_entry->codepoint > 0xff))
-				break;
-
-			if(font_bitmap_entry->codepoint == codepoint)
-				break;
-		}
-
-		if(font_bitmap_entry->codepoint == (uint32_t)font_codepoint_last_entry)
-			font_bitmap_entry = font_bitmap->entries;
-
-		for(y = 0; y < 32; y++)
-		{
-			bitmap = font_bitmap_entry->bitmap[y / 2];
-
-			if((y & 0x01) == 0x00)
-			{
-				dataline[y][(x * 2) + 0] = (bitmap & 0xff000000) >> 24;
-				dataline[y][(x * 2) + 1] = (bitmap & 0x00ff0000) >> 16;
-			}
-			else
-			{
-				dataline[y][(x * 2) + 0] = (bitmap & 0x0000ff00) >> 8;
-				dataline[y][(x * 2) + 1] = (bitmap & 0x000000ff) >> 0;
-			}
-		}
-	}
-
-	if(!display_write(reg_hdbe0, (dx >> 0) & 0xff))
-		goto error;
-
-	if(!display_write(reg_hdbe1, (dx >> 8) & 0x03))
-		goto error;
-
-	if(!display_write(reg_vdbe0, (dy >> 0) & 0xff))
-		goto error;
-
-	if(!display_write(reg_vdbe1, ((dy >> 8) & 0x01) | (dl ? reg_vdbe1_destination_layer1 : reg_vdbe1_destination_layer0)))
+	if(!display_write(reg_vdbe1, ((y >> 8) & 0x01) | ((layer > 0) ? reg_vdbe1_destination_layer1 : reg_vdbe1_destination_layer0)))
 		goto error;
 
 	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
@@ -1209,7 +1148,7 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 			{
 				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
 							true, spi_rs_data | spi_rw_write,
-							x * 2, dataline[y],
+							width / 8, &data[y * (width / 8)],
 							0,
 							0, (uint8_t *)0,
 							(string_t *)0))
@@ -1220,7 +1159,7 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 
 			case(display_mode_i2c):
 			{
-				if(i2c_send(i2c_addr_data, x * 2, dataline[y]) != i2c_error_ok)
+				if(i2c_send(i2c_addr_data, width / 8, &data[y * (width / 8)]) != i2c_error_ok)
 					goto error;
 
 				break;
@@ -1237,9 +1176,80 @@ static bool attr_result_used display_render_line_16x32(bool ucs2, unsigned int l
 
 error:
 	if(!display_write(reg_becr0, 0))
-		return(false);
+		success = false;
 
 	return(success);
+}
+
+static bool attr_result_used display_write_glyph(unsigned int column, unsigned int row, unsigned int codepoint)
+{
+	const font_bitmap_t			*font_bitmap;
+	const font_bitmap_entry_t	*font_bitmap_entry;
+	unsigned int				x, y;
+	uint32_t					bitmap;
+	uint8_t						data[32 * 2];
+
+	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
+	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+
+	for(font_bitmap_entry = font_bitmap->entries; font_bitmap_entry->codepoint != (uint32_t)font_codepoint_last_entry; font_bitmap_entry++)
+		if(font_bitmap_entry->codepoint == codepoint)
+			break;
+
+	if(font_bitmap_entry->codepoint == (uint32_t)font_codepoint_last_entry)
+		font_bitmap_entry = font_bitmap->entries - 1;
+
+	for(y = 0; y < 32; y++)
+	{
+		bitmap = font_bitmap_entry->bitmap[y / 2];
+
+		if((y & 0x01) == 0x00)
+		{
+			data[(y * 2) + 0] = (bitmap & 0xff000000) >> 24;
+			data[(y * 2) + 1] = (bitmap & 0x00ff0000) >> 16;
+		}
+		else
+		{
+			data[(y * 2) + 0] = (bitmap & 0x0000ff00) >> 8;
+			data[(y * 2) + 1] = (bitmap & 0x000000ff) >> 0;
+		}
+	}
+
+	x = column * 18;
+	y = row * 32;
+
+	if(row >= display_slot_height)
+		y += 32 / 2;
+
+	return(display_blit(0, x, y, 16, 32, data));
+}
+
+static bool attr_result_used display_write_glyphs_16x32(bool ucs2, unsigned int length, const uint8_t *text)
+{
+	unsigned int charlength;
+	unsigned int codepoint;
+	unsigned int entry;
+
+	if(display_render_mode() != render_mode_graphic)
+		return(false);
+
+	charlength = ucs2 ? length / 2 : length;
+
+	for(entry = 0; entry < charlength; entry++)
+	{
+		if(ucs2)
+			codepoint = ((text[(entry * 2) + 0] & 0xff) << 8) | ((text[(entry * 2) + 1] & 0xff) << 0);
+		else
+			if(codepoint > 0xff)
+				codepoint = ' ';
+			else
+				codepoint = text[entry];
+
+		if(!display_write_glyph(entry, display_y + 4, codepoint))
+			return(false);
+	}
+
+	return(true);
 }
 
 bool display_eastrising_init(void)
