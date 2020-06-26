@@ -21,7 +21,9 @@ enum
 {
 	display_slot_amount = 8,
 	display_slot_tag_size = 16,
-	display_slot_content_size = 92,
+	display_slot_content_lines = 3,
+	display_slot_content_line_length = 27,
+	display_slot_content_size = (display_slot_content_lines * (display_slot_content_line_length + 1)),
 };
 
 enum
@@ -80,7 +82,7 @@ typedef struct
 	char	content[display_slot_content_size];
 } display_slot_t;
 
-assert_size(display_slot_t, 112);
+assert_size(display_slot_t, 104);
 
 roflash static display_info_t display_info[display_size] =
 {
@@ -190,7 +192,7 @@ static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 static unsigned int display_layer = 0;
 
-assert_size(display_slot, 896);
+assert_size(display_slot, 832);
 
 attr_pure bool display_detected(void)
 {

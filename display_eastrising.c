@@ -397,7 +397,7 @@ enum
 	display_vertical_blanking = 14,
 	display_vertical_sync_start = 6,
 	display_vertical_sync_length = 2,
-	display_text_width = 30,
+	display_text_width = 26,
 	display_text_height = 8,
 	display_slot_height = 4,
 	display_character_width = 16,
@@ -1218,7 +1218,7 @@ static bool attr_result_used display_write_glyph(unsigned int column, unsigned i
 		}
 	}
 
-	x = column * 18;
+	x = (column * 18) + 6;
 	y = row * 32;
 
 	if(row >= display_slot_height)
