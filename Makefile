@@ -92,6 +92,7 @@ CONFIG_RBOOT_BIN			:= rboot-config.bin
 CONFIG_DEFAULT_BIN			:= default-config.bin
 CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
+MEMORY_USAGE_OUTPUT			:= memory
 MEMORY_USAGE_LOG			:= memory-log
 LIBMAIN_PLAIN				:= main
 LIBMAIN_PLAIN_FILE			:= $(ESPSDK_LIB)/lib$(LIBMAIN_PLAIN).a
@@ -279,10 +280,15 @@ free:			$(ELF_IMAGE)
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
 				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265)
 				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208)
-				$(Q) export LC_ALL=C; echo "`date` `git log -n 1 --oneline`" >>$(MEMORY_USAGE_LOG)
-				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768) >> $(MEMORY_USAGE_LOG)
-				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265) >> $(MEMORY_USAGE_LOG)
-				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208) >> $(MEMORY_USAGE_LOG)
+				$(Q) export LC_ALL=C; echo "`date` `git log -n 1 --oneline`" > $(MEMORY_USAGE_OUTPUT)
+				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768) >> $(MEMORY_USAGE_OUTPUT)
+				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265) >> $(MEMORY_USAGE_OUTPUT)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208) >> $(MEMORY_USAGE_OUTPUT)
+				$(Q) rm -f .diff-a .diff-b
+				$(Q) tail -n 3 $(MEMORY_USAGE_OUTPUT) > .diff-a
+				$(Q) tail -n 3 $(MEMORY_USAGE_LOG) > .diff-b
+				$(Q) if [ `diff .diff-a .diff-b | wc -l` -gt 0 ]; then cat $(MEMORY_USAGE_OUTPUT) >> $(MEMORY_USAGE_LOG); fi
+				$(Q) rm -f .diff-a .diff-b $(MEMORY_USAGE_OUTPUT)
 
 showsymbols:	$(ELF_IMAGE)
 				./symboltable.pl $(ELF_IMAGE) 2>&1 | less
