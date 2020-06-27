@@ -1840,6 +1840,7 @@ bool display_eastrising_begin(unsigned int slot, bool logmode)
 						unsigned int y0;
 		static const	unsigned int x1 = display_width - 1;
 						unsigned int y1;
+		const rgb_t *	background = &themes[8].low_bright.normal.bg;
 
 		y0 = display_text_to_graphic_y(second_part, 0) + 0;
 		y1 = display_text_to_graphic_y(second_part, 1) + 2;
@@ -1851,6 +1852,12 @@ bool display_eastrising_begin(unsigned int slot, bool logmode)
 		y1 = display_text_to_graphic_y(second_part, 4) + 0;
 
 		if(!display_fill_rectangle(x0, y0, x1, y1, colours->normal.bg.r, colours->normal.bg.g, colours->normal.bg.b))
+			return(false);
+
+		y0 = display_text_to_graphic_y(false, 4) + 0;
+		y1 = display_text_to_graphic_y(false, 4) + display_character_slot_padding - 1;
+
+		if(!display_fill_rectangle(x0, y0, x1, y1, background->r, background->g, background->b))
 			return(false);
 	}
 
