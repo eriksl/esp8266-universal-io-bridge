@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#######################################################################################
+# convert and upload (flash) random picture to ESP with Eastrising colour TFT display #
+# for now only Eastrising display, also only slot #0.                                 #
+# it uses ImageMagick ("convert") for the conversion.                                 #
+#######################################################################################
+
+if [ $# != 2 ]; then
+	echo "usage: $0: <host> <image>"
+	exit 1
+fi
+
+tmpfile="$(mktemp --suffix=.ppm)"
+
+convert -resize '480x272!' -depth 8 "$2" "ppm:$tmpfile"
+identify "$tmpfile"
+espflash --write  --host "$1" --start 0x200000 --file "$tmpfile" 
+espflash --verify --host "$1" --start 0x200000 --file "$tmpfile"
+rm -f "$tmpfile"
