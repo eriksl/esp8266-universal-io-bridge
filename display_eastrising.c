@@ -1539,17 +1539,26 @@ static bool display_newline(void)
 	{
 		if(y >= text_lines())
 		{
-			static const	unsigned int x0 = 0;
-							unsigned int y0 = char_height();
-			static const	unsigned int x1 = 0;
-			static const	unsigned int y1 = 0;
-			static const	unsigned int width = display_width;
-							unsigned int height = display_height - y0;
+			unsigned int x0, y0, x1, y1;
+			unsigned int width, height;
+
+			x0 = 0;
+			y0 = char_height();
+			x1 = 0;
+			y1 = 0;
+			width = display_width;
+			height = display_height - y0;
 
 			if(!display_scroll(x0, y0, x1, y1, width, height))
 				return(false);
 
-			if(!display_fill_rectangle(0, display_text_to_graphic_y(false, text_lines() - 1), display_width, char_height(), 0x00, 0x00, 0x00))
+			x0 = 0;
+			y0 = display_text_to_graphic_y(false, text_lines() - 1);
+			x1 = display_width;
+			y1 = display_text_to_graphic_y(false, text_lines()) -1;
+
+
+			if(!display_fill_rectangle(x0, y0, x1, y1, colours->normal.bg.r, colours->normal.bg.g, colours->normal.bg.b))
 				return(false);
 
 			y = text_lines() - 1;
