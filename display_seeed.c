@@ -391,7 +391,7 @@ bool display_seeed_init(void)
 	return(true);
 }
 
-bool display_seeed_begin(int select_slot, bool logmode)
+bool display_seeed_begin(unsigned int select_slot, bool logmode)
 {
 	static unsigned int counter = 0;
 

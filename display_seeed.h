@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 bool display_seeed_init(void);
-bool display_seeed_begin(int slot, bool logmode);
+bool display_seeed_begin(unsigned int slot, bool logmode);
 bool display_seeed_output(unsigned int);
 bool display_seeed_end(void);
 bool display_seeed_bright(int);

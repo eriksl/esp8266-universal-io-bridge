@@ -503,7 +503,7 @@ static bool display_logmode = false;
 static bool display_font_valid = false;
 static unsigned int display_text_current;
 static unsigned int display_x, display_y;
-static int display_current_slot;
+static unsigned int display_current_slot;
 static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
@@ -1423,7 +1423,7 @@ error:
 	return(false);
 }
 
-bool display_eastrising_begin(int slot, bool logmode)
+bool display_eastrising_begin(unsigned int slot, bool logmode)
 {
 	unsigned int fncr0, fncr1, fncr2, mwcr0;
 

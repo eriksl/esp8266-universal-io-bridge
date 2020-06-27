@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 bool display_ssd1306_init(void);
-bool display_ssd1306_begin(int slot, bool logmode);
+bool display_ssd1306_begin(unsigned int slot, bool logmode);
 bool display_ssd1306_output(unsigned int);
 bool display_ssd1306_end(void);
 bool display_ssd1306_bright(int);

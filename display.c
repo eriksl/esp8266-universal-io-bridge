@@ -53,7 +53,7 @@ typedef const struct
 	const char *	const name;
 	const char *	const description;
 	bool			(* const init_fn)(void);
-	bool			(* const begin_fn)(int slot, bool logmode);
+	bool			(* const begin_fn)(unsigned int slot, bool logmode);
 	bool			(* const output_fn)(unsigned int);
 	bool			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
@@ -69,8 +69,8 @@ assert_size(display_info_t, 52);
 
 typedef struct
 {
-	int	detected;
-	int	current_slot;
+	int				detected;
+	unsigned int	current_slot;
 } display_data_t;
 
 assert_size(display_data_t, 8);
@@ -554,7 +554,8 @@ void display_periodic(void) // gets called 10 times per second
 void display_init(void)
 {
 	display_info_t *display_info_entry;
-	int current, slot;
+	int current;
+	unsigned int slot;
 	unsigned int picture_autoload_index;
 
 	display_data.detected = -1;
@@ -618,7 +619,8 @@ error:
 static void display_dump(string_t *dst)
 {
 	display_info_t *display_info_entry;
-	int slot, ix;
+	unsigned int slot;
+	int ix;
 	char current;
 	unsigned int newlines_pending;
 
@@ -645,7 +647,7 @@ static void display_dump(string_t *dst)
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
-		string_format(dst, "\n> %c slot %d: timeout %d, tag: \"%s\", length: %u",
+		string_format(dst, "\n> %c slot %u: timeout %d, tag: \"%s\", length: %u",
 				slot == display_data.current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag, strlen(display_slot[slot].content));
 
 		for(ix = 0, newlines_pending = 1; ix < display_slot_content_size; ix++)
@@ -767,7 +769,8 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 
 app_action_t application_function_display_set(string_t *src, string_t *dst)
 {
-	int slot, timeout, from, to;
+	int user_slot, timeout, from, to;
+	unsigned int slot;
 	char current;
 	bool cleared = false;
 
@@ -777,7 +780,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if((parse_int(1, src, &slot, 0, ' ') != parse_ok) ||
+	if((parse_int(1, src, &user_slot, 0, ' ') != parse_ok) ||
 		(parse_int(2, src, &timeout, 0, ' ') != parse_ok) ||
 		(parse_string(3, src, dst, ' ') != parse_ok))
 	{
@@ -793,7 +796,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if(slot < 0)
+	if(user_slot < 0)
 	{
 		for(slot = 0; slot < display_slot_amount; slot++)
 		{
@@ -805,11 +808,13 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 		cleared = true;
 		slot = 0;
 	}
+	else
+		slot = (unsigned int)user_slot;
 
 	if(slot >= display_slot_amount)
 	{
 		string_clear(dst);
-		string_format(dst, "display-set: slot #%d out of limits\n", slot);
+		string_format(dst, "display-set: slot #%d out of limits\n", user_slot);
 		return(app_action_error);
 	}
 
@@ -837,7 +842,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	string_clear(dst);
 
-	string_format(dst, "display-set: set slot %d with tag %s to \"%s\"\n",
+	string_format(dst, "display-set: set slot %u with tag %s to \"%s\"\n",
 				slot, display_slot[slot].tag,
 				display_slot[slot].content);
 

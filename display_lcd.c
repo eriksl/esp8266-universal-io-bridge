@@ -666,7 +666,7 @@ bool display_lcd_init(void)
 	return(display_lcd_bright(1));
 }
 
-bool display_lcd_begin(int slot, bool logmode)
+bool display_lcd_begin(unsigned int slot, bool logmode)
 {
 	if(display_disable_text)
 		return(true);

@@ -176,7 +176,7 @@ static unsigned int display_buffer_index;
 
 _Static_assert(sizeof(display_buffer_size) >= 4, "display buffer too small");
 
-bool display_saa1064_begin(int slot, bool logmode)
+bool display_saa1064_begin(unsigned int slot, bool logmode)
 {
 	if(i2c_bus < 0)
 		return(false);

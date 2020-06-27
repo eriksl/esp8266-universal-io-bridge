@@ -487,7 +487,7 @@ bool display_ssd1306_init(void)
 	return(display_ssd1306_bright(1));
 }
 
-bool display_ssd1306_begin(int select_slot, bool logmode)
+bool display_ssd1306_begin(unsigned int select_slot, bool logmode)
 {
 	if(!display_inited)
 	{

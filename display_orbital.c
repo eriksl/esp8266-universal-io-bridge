@@ -444,7 +444,7 @@ static bool attr_result_used display_setup(void)
 	return(true);
 }
 
-bool display_orbital_begin(int slot, bool logmode)
+bool display_orbital_begin(unsigned int slot, bool logmode)
 {
 	if(display_disable_text)
 		return(true);

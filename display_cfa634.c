@@ -366,7 +366,7 @@ bool display_cfa634_init(void)
 	return(display_cfa634_bright(1));
 }
 
-bool display_cfa634_begin(int slot, bool logmode)
+bool display_cfa634_begin(unsigned int slot, bool logmode)
 {
 	uart_send(display_uart, command_restore);
 	uart_send(display_uart, command_scroll_off);

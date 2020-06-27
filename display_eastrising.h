@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 bool display_eastrising_init(void);
-bool display_eastrising_begin(int slot, bool logmode);
+bool display_eastrising_begin(unsigned int slot, bool logmode);
 bool display_eastrising_output(unsigned int);
 bool display_eastrising_end(void);
 bool display_eastrising_bright(int);
