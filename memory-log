@@ -5402,3 +5402,639 @@ Sun Jun 21 12:03:25 CEST 2020 18a762f display: add clock mode (large digits) to 
     iram:    available:  32 k, used:  31744, free:   1024,  3 %
     dram:    available:  78 k, used:  72877, free:   7388,  9 %
     irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Sun Jun 21 14:04:09 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396792, free: 209416, 34 %
+Mon Jun 22 20:07:33 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396792, free: 209416, 34 %
+Fri Jun 26 11:00:15 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:01:26 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:08:57 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:09:09 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:13:54 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396808, free: 209400, 34 %
+Fri Jun 26 11:14:28 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396856, free: 209352, 34 %
+Fri Jun 26 11:15:14 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396856, free: 209352, 34 %
+Fri Jun 26 11:16:38 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:17:36 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 11:27:59 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396888, free: 209320, 34 %
+Fri Jun 26 11:30:55 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 11:32:46 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 11:37:28 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 11:40:32 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 11:41:03 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 11:41:46 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 11:48:46 CEST 2020 64e5a14 Rearrange free flash sections
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 11:58:56 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:00:22 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:01:21 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:01:55 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:03:16 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:04:10 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:05:06 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:05:56 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:07:42 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:10:05 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:11:16 CEST 2020 e3bf134 display_eastrising: allow for extra inter-glyph spacing in "external font" mode
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:19:57 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:21:34 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72877, free:   7388,  9 %
+    irom:    available: 592 k, used: 396840, free: 209368, 34 %
+Fri Jun 26 12:33:49 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 12:34:13 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 12:37:10 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 12:39:33 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:40:08 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:40:33 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:41:12 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:44:32 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:46:10 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:46:38 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:47:59 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:48:45 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:49:28 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:50:31 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:51:03 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:51:19 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:51:45 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:52:10 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:54:30 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:56:13 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 12:57:40 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:57:46 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:57:54 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 12:58:52 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 13:02:05 CEST 2020 2fa38f9 display_eastrising: adjust SPI timings for new external font rendering scheme.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 13:07:50 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396856, free: 209352, 34 %
+Fri Jun 26 13:08:12 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396856, free: 209352, 34 %
+Fri Jun 26 13:10:47 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 13:25:40 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72813, free:   7452,  9 %
+    irom:    available: 592 k, used: 396680, free: 209528, 34 %
+Fri Jun 26 14:35:41 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396936, free: 209272, 34 %
+Fri Jun 26 14:36:04 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396936, free: 209272, 34 %
+Fri Jun 26 14:57:12 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 14:57:22 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 15:01:19 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 15:03:23 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 15:48:40 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:48:55 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:50:18 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:51:05 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:51:33 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:52:36 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 15:53:42 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Fri Jun 26 17:18:26 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 17:20:02 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397064, free: 209144, 34 %
+Fri Jun 26 17:20:04 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397064, free: 209144, 34 %
+Fri Jun 26 17:20:18 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397064, free: 209144, 34 %
+Fri Jun 26 17:21:33 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 17:24:35 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 17:25:22 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 17:32:16 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396936, free: 209272, 34 %
+Fri Jun 26 17:33:04 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396920, free: 209288, 34 %
+Fri Jun 26 17:39:55 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 17:46:01 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 18:28:14 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 18:30:10 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396936, free: 209272, 34 %
+Fri Jun 26 18:39:29 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396728, free: 209480, 34 %
+Fri Jun 26 18:42:57 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396680, free: 209528, 34 %
+Fri Jun 26 18:49:27 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Fri Jun 26 18:50:39 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Fri Jun 26 18:52:38 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Fri Jun 26 18:53:47 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396616, free: 209592, 34 %
+Fri Jun 26 18:53:49 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396616, free: 209592, 34 %
+Fri Jun 26 18:54:18 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396616, free: 209592, 34 %
+Fri Jun 26 19:06:36 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396616, free: 209592, 34 %
+Fri Jun 26 19:09:02 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396632, free: 209576, 34 %
+Fri Jun 26 19:10:28 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Fri Jun 26 19:11:35 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396664, free: 209544, 34 %
+Fri Jun 26 19:13:19 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396680, free: 209528, 34 %
+Fri Jun 26 19:13:42 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396648, free: 209560, 34 %
+Fri Jun 26 19:14:11 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396680, free: 209528, 34 %
+Fri Jun 26 19:15:22 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396872, free: 209336, 34 %
+Fri Jun 26 19:16:47 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 19:19:08 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 19:20:12 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 396904, free: 209304, 34 %
+Fri Jun 26 19:22:02 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:22:44 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:23:51 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:24:11 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:25:06 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:26:24 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397048, free: 209160, 34 %
+Fri Jun 26 19:26:57 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397048, free: 209160, 34 %
+Fri Jun 26 19:27:44 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72821, free:   7444,  9 %
+    irom:    available: 592 k, used: 397016, free: 209192, 34 %
+Fri Jun 26 19:28:23 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396936, free: 209272, 34 %
+Fri Jun 26 19:32:24 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:33:29 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:36:39 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:38:09 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:40:14 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:42:44 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396968, free: 209240, 34 %
+Fri Jun 26 19:46:53 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 19:51:46 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:11:57 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397048, free: 209160, 34 %
+Fri Jun 26 20:18:01 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:18:05 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:18:09 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:21:44 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396952, free: 209256, 34 %
+Fri Jun 26 20:30:10 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:30:31 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:32:44 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 20:45:36 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397128, free: 209080, 34 %
+Fri Jun 26 20:45:40 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397128, free: 209080, 34 %
+Fri Jun 26 20:50:38 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397144, free: 209064, 34 %
+Fri Jun 26 20:52:32 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:53:56 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:55:00 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:55:53 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:56:51 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:58:19 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 20:59:37 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 21:01:57 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 21:02:37 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397144, free: 209064, 34 %
+Fri Jun 26 21:03:41 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 21:04:45 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397160, free: 209048, 34 %
+Fri Jun 26 21:08:50 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:12:46 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:14:33 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:16:56 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:17:30 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:18:33 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:19:02 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:20:33 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:22:16 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:24:50 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Fri Jun 26 21:28:14 CEST 2020 2182b3f display_eastrising: make glyph cell of external font 16 -> 18.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 396984, free: 209224, 34 %
+Sat Jun 27 13:49:38 CEST 2020 4f6ba1c display_eastrising: generic overhaul.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397096, free: 209112, 34 %
+Sat Jun 27 14:05:43 CEST 2020 3c7969c display_eastrising: generic overhaul.
+    iram:    available:  32 k, used:  31780, free:    988,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397080, free: 209128, 34 %
+Sat Jun 27 14:06:00 CEST 2020 3c7969c display_eastrising: generic overhaul.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397096, free: 209112, 34 %
