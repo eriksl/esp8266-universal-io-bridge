@@ -922,7 +922,7 @@ app_action_t application_function_display_picture_load(string_t *src, string_t *
 
 app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst)
 {
-	unsigned int entry;
+	int entry;
 
 	if(!config_open_write())
 	{
@@ -930,24 +930,29 @@ app_action_t application_function_display_picture_autoload(string_t *src, string
 		return(app_action_error);
 	}
 
-	if(parse_uint(1, src, &entry, 0, ' ') == parse_ok)
+	if(parse_int(1, src, &entry, 0, ' ') == parse_ok)
 	{
-		if(entry > 1)
+		if((entry == 0) || (entry == 1))
 		{
-			string_append(dst, "picture set autoload: usage: [entry (0/1)]\n");
-			config_abort_write();
-			return(app_action_error);
+			if(!config_set_uint("picture.autoload", entry, -1, -1))
+			{
+				string_append(dst, "picture set autoload: config set failed\n");
+				config_abort_write();
+				return(app_action_error);
+			}
 		}
-
-		if(!config_set_uint("picture.autoload", entry, -1, -1))
+		else
 		{
-			string_append(dst, "picture set autoload: config set failed\n");
-			config_abort_write();
-			return(app_action_error);
+			if(entry < -1)
+			{
+				string_append(dst, "picture set autoload: usage: [entry (-1[off]/0/1)]\n");
+				config_abort_write();
+				return(app_action_error);
+			}
+			else
+				config_delete("picture.autoload", false, -1, -1);
 		}
 	}
-	else
-		config_delete("picture.autoload", false, -1, -1);
 
 	if(!config_close_write())
 	{
@@ -955,12 +960,12 @@ app_action_t application_function_display_picture_autoload(string_t *src, string
 		return(app_action_error);
 	}
 
-	if(!config_get_uint("picture.autoload", &entry, -1, -1))
+	if(!config_get_int("picture.autoload", &entry, -1, -1))
 	{
 		string_append(dst, "picture set autoload: not set\n");
 		return(app_action_normal);
 	}
 
-	string_format(dst, "picture set autoload: active for entry %u\n", entry);
+	string_format(dst, "picture set autoload: active for entry %d\n", entry);
 	return(app_action_normal);
 }
