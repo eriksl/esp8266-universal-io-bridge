@@ -6,15 +6,28 @@
 # it uses ImageMagick ("convert") for the conversion.                                 #
 #######################################################################################
 
-if [ $# != 2 ]; then
-	echo "usage: $0: <host> <image>"
+if [ $# != 3 ]; then
+	echo "usage: $0: <host> <slot> <image>"
 	exit 1
 fi
 
+case $2 in
+	0)
+		offset=0x200000
+		;;
+	1)
+		offset=0x280000
+		;;
+	*)
+		echo "$0: use slot 0 or slot 1"
+		exit 1
+		;;
+esac
+
 tmpfile="$(mktemp --suffix=.ppm)"
 
-convert -resize '480x272!' -depth 8 "$2" "ppm:$tmpfile"
-identify "$tmpfile"
-espflash --write  --host "$1" --start 0x200000 --file "$tmpfile" 
-espflash --verify --host "$1" --start 0x200000 --file "$tmpfile"
-rm -f "$tmpfile"
+trap 'rm -f "$tmpfile"' 0
+
+convert -resize '480x272!' -gamma 0.6 -depth 8 "$3" "ppm:$tmpfile"
+espflash --write  --host "$1" --start $offset --file "$tmpfile"
+espflash --verify --host "$1" --start $offset --file "$tmpfile"
