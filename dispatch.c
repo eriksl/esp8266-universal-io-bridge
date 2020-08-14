@@ -349,7 +349,7 @@ iram static void fast_timer_callback(void *arg)
 	os_timer_arm(&fast_timer, 10, 0);
 }
 
-iram static void slow_timer_callback(void *arg)
+static void slow_timer_callback(void *arg)
 {
 	int ix;
 
