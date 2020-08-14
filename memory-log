@@ -6038,3 +6038,63 @@ Sat Jun 27 14:06:00 CEST 2020 3c7969c display_eastrising: generic overhaul.
     iram:    available:  32 k, used:  31744, free:   1024,  3 %
     dram:    available:  78 k, used:  72817, free:   7448,  9 %
     irom:    available: 592 k, used: 397096, free: 209112, 34 %
+Sat Jun 27 14:08:36 CEST 2020 1006bec memory log: only update on change.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397064, free: 209144, 34 %
+Sat Jun 27 14:11:53 CEST 2020 1006bec memory log: only update on change.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397096, free: 209112, 34 %
+Sat Jun 27 14:13:17 CEST 2020 1006bec memory log: only update on change.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397032, free: 209176, 34 %
+Sat Jun 27 14:14:09 CEST 2020 1006bec memory log: only update on change.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397096, free: 209112, 34 %
+Sat Jun 27 14:22:15 CEST 2020 1006bec memory log: only update on change.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397112, free: 209096, 34 %
+Sat Jun 27 14:30:39 CEST 2020 191fb0a display_eastrising: fix scrolling in log mode.
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397144, free: 209064, 34 %
+Fri Jul 10 10:28:50 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397208, free: 209000, 34 %
+Fri Aug 14 13:24:09 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  32376, free:    392,  1 %
+    dram:    available:  78 k, used:  72881, free:   7384,  9 %
+    irom:    available: 592 k, used: 397624, free: 208584, 34 %
+Fri Aug 14 13:25:21 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397208, free: 209000, 34 %
+Fri Aug 14 13:29:20 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397256, free: 208952, 34 %
+Fri Aug 14 13:41:38 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31744, free:   1024,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397304, free: 208904, 34 %
+Fri Aug 14 13:59:58 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31792, free:    976,  2 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397224, free: 208984, 34 %
+Fri Aug 14 14:03:49 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31800, free:    968,  2 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397288, free: 208920, 34 %
+Fri Aug 14 14:04:24 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397464, free: 208744, 34 %
+Fri Aug 14 14:17:08 CEST 2020 e9791cc display: fix display autoload picture not being able to disable
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  72817, free:   7448,  9 %
+    irom:    available: 592 k, used: 397480, free: 208728, 34 %
