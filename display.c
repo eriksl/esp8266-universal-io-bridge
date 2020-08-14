@@ -270,14 +270,24 @@ static void display_update(bool advance)
 		{
 			display_data.current_slot = slot;
 
-			if(!display_info_entry->layer_select_fn(1))
+			if(display_info_entry->layer_select_fn(1))
+				goto skip;
+			else
 			{
 				log("display update: display layer select (1) failed\n");
-				display_data.detected = -1;
-				return;
-			}
 
-			goto skip;
+				for(slot++; slot < display_slot_amount; slot++)
+					if(display_slot[slot].content[0])
+						break;
+
+				if(slot >= display_slot_amount)
+					for(slot = 0; slot < display_slot_amount; slot++)
+						if(display_slot[slot].content[0])
+							break;
+
+				if(slot >= display_slot_amount)
+					slot = 0;
+			}
 		}
 		else
 		{
@@ -289,6 +299,9 @@ static void display_update(bool advance)
 				for(slot = 0; slot < display_slot_amount; slot++)
 					if(display_slot[slot].content[0])
 						break;
+
+			if(slot >= display_slot_amount)
+				slot = 0;
 		}
 	}
 
