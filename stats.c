@@ -231,8 +231,6 @@ void stats_firmware(string_t *dst)
 	string_append(dst, ">\n> reset cause: ");
 	explain_exception(dst);
 	string_append(dst, "\n");
-
-	system_print_meminfo();
 }
 
 void stats_flash(string_t *dst)
@@ -425,6 +423,8 @@ void stats_counters(string_t *dst)
 				(unsigned int)stat_debug_1, stat_debug_1,
 				(unsigned int)stat_debug_2, stat_debug_2,
 				(unsigned int)stat_debug_3, stat_debug_3);
+
+	system_print_meminfo();
 }
 
 void stats_i2c(string_t *dst)
