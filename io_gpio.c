@@ -1524,13 +1524,21 @@ io_error_t io_gpio_set_mask(string_t *error_message, const struct io_info_entry_
 
 attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 {
+	unsigned int uart;
+
 	if(pin >= max_pins_per_io)
 		return(-1);
 
 	if(gpio_info_table[pin].uart_pin == io_uart_pin_none)
 		return(-1);
 
-	return(gpio_info_table[pin].uart_instance);
+	uart = gpio_info_table[pin].uart_instance;
+
+	if(uart > 1)
+		return(-1);
+
+	return(uart);
+}
 
 attr_const gpio_i2s_pin_t io_gpio_get_i2s_from_pin(unsigned int pin)
 {
