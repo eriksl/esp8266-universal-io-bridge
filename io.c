@@ -1411,25 +1411,13 @@ void io_init(void)
 					}
 
 					if(!config_get_uint("io.%u.%u.outputa.speed", &speed, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						speed = 0;
 
 					if(!config_get_uint("io.%u.%u.outputa.lower", &lower_bound, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						lower_bound = 0;
 
 					if(!config_get_uint("io.%u.%u.outputa.upper", &upper_bound, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						upper_bound = ~0;
 
 					pin_config->shared.output_pwm.lower_bound = lower_bound;
 					pin_config->shared.output_pwm.upper_bound = upper_bound;
@@ -1452,25 +1440,13 @@ void io_init(void)
 					}
 
 					if(!config_get_uint("io.%u.%u.outputa.speed", &speed, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						speed = 0;
 
 					if(!config_get_uint("io.%u.%u.outputa.lower", &lower_bound, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						lower_bound = 0;
 
 					if(!config_get_uint("io.%u.%u.outputa.upper", &upper_bound, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
+						upper_bound = ~0;
 
 					pin_config->shared.output_pwm.lower_bound = lower_bound;
 					pin_config->shared.output_pwm.upper_bound = upper_bound;
@@ -2259,9 +2235,15 @@ skip:
 			config_delete("io.%u.%u.", true, io, pin);
 			config_set_int("io.%u.%u.mode", mode, io, pin);
 			config_set_int("io.%u.%u.llmode", io_pin_ll_output_pwm1, io, pin);
-			config_set_int("io.%u.%u.outputa.lower", lower_bound, io, pin);
-			config_set_int("io.%u.%u.outputa.upper", upper_bound, io, pin);
-			config_set_int("io.%u.%u.outputa.speed", speed, io, pin);
+
+			if(speed > 0)
+				config_set_int("io.%u.%u.outputa.speed", speed, io, pin);
+
+			if(lower_bound > 0)
+				config_set_int("io.%u.%u.outputa.lower", lower_bound, io, pin);
+
+			if(upper_bound < ~0UL)
+				config_set_int("io.%u.%u.outputa.upper", upper_bound, io, pin);
 
 			break;
 		}
@@ -2302,9 +2284,15 @@ skip:
 			config_delete("io.%u.%u.", true, io, pin);
 			config_set_int("io.%u.%u.mode", mode, io, pin);
 			config_set_int("io.%u.%u.llmode", io_pin_ll_output_pwm2, io, pin);
-			config_set_int("io.%u.%u.outputa.lower", lower_bound, io, pin);
-			config_set_int("io.%u.%u.outputa.upper", upper_bound, io, pin);
-			config_set_int("io.%u.%u.outputa.speed", speed, io, pin);
+
+			if(speed > 0)
+				config_set_int("io.%u.%u.outputa.speed", speed, io, pin);
+
+			if(lower_bound > 0)
+				config_set_int("io.%u.%u.outputa.lower", lower_bound, io, pin);
+
+			if(upper_bound < ~0UL)
+				config_set_int("io.%u.%u.outputa.upper", upper_bound, io, pin);
 
 			break;
 		}
