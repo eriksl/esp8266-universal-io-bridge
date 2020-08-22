@@ -6098,3 +6098,391 @@ Fri Aug 14 14:17:08 CEST 2020 e9791cc display: fix display autoload picture not 
     iram:    available:  32 k, used:  31552, free:   1216,  3 %
     dram:    available:  78 k, used:  72817, free:   7448,  9 %
     irom:    available: 592 k, used: 397480, free: 208728, 34 %
+Sun Aug 16 14:01:32 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73113, free:   7152,  8 %
+    irom:    available: 592 k, used: 397608, free: 208600, 34 %
+Sun Aug 16 14:08:37 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73257, free:   7008,  8 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sun Aug 16 14:14:37 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73145, free:   7120,  8 %
+    irom:    available: 592 k, used: 397704, free: 208504, 34 %
+Sun Aug 16 14:16:45 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73161, free:   7104,  8 %
+    irom:    available: 592 k, used: 398392, free: 207816, 34 %
+Sun Aug 16 14:59:10 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398024, free: 208184, 34 %
+Sun Aug 16 15:03:58 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398040, free: 208168, 34 %
+Sun Aug 16 15:10:31 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398296, free: 207912, 34 %
+Sun Aug 16 15:15:15 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398344, free: 207864, 34 %
+Sun Aug 16 15:18:11 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398424, free: 207784, 34 %
+Sun Aug 16 15:32:43 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398488, free: 207720, 34 %
+Sun Aug 16 18:05:56 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398664, free: 207544, 34 %
+Sun Aug 16 18:11:50 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398696, free: 207512, 34 %
+Mon Aug 17 19:23:30 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398680, free: 207528, 34 %
+Wed Aug 19 19:12:50 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398824, free: 207384, 34 %
+Wed Aug 19 19:13:13 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73097, free:   7168,  8 %
+    irom:    available: 592 k, used: 398840, free: 207368, 34 %
+Fri Aug 21 15:02:30 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 399048, free: 207160, 34 %
+Fri Aug 21 15:14:02 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398840, free: 207368, 34 %
+Fri Aug 21 15:26:26 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 398872, free: 207336, 34 %
+Fri Aug 21 15:29:11 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 398856, free: 207352, 34 %
+Fri Aug 21 15:29:51 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398824, free: 207384, 34 %
+Fri Aug 21 15:31:08 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Fri Aug 21 15:31:41 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398744, free: 207464, 34 %
+Fri Aug 21 15:31:55 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398728, free: 207480, 34 %
+Fri Aug 21 15:45:31 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398744, free: 207464, 34 %
+Fri Aug 21 15:46:03 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398776, free: 207432, 34 %
+Fri Aug 21 15:47:27 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398808, free: 207400, 34 %
+Fri Aug 21 15:53:00 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 398904, free: 207304, 34 %
+Fri Aug 21 16:07:50 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 398920, free: 207288, 34 %
+Fri Aug 21 16:09:23 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399192, free: 207016, 34 %
+Fri Aug 21 16:33:03 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399272, free: 206936, 34 %
+Fri Aug 21 16:46:29 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399304, free: 206904, 34 %
+Fri Aug 21 16:47:12 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399288, free: 206920, 34 %
+Fri Aug 21 16:47:54 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Fri Aug 21 16:49:10 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399176, free: 207032, 34 %
+Fri Aug 21 16:52:24 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399192, free: 207016, 34 %
+Fri Aug 21 17:49:00 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Fri Aug 21 17:56:28 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399112, free: 207096, 34 %
+Fri Aug 21 17:59:45 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Fri Aug 21 18:00:42 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399288, free: 206920, 34 %
+Fri Aug 21 18:57:03 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399432, free: 206776, 34 %
+Fri Aug 21 19:09:26 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Fri Aug 21 19:10:07 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399480, free: 206728, 34 %
+Fri Aug 21 19:14:32 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73353, free:   6912,  8 %
+    irom:    available: 592 k, used: 399544, free: 206664, 34 %
+Fri Aug 21 19:16:23 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Fri Aug 21 19:17:37 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Fri Aug 21 19:21:58 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398792, free: 207416, 34 %
+Fri Aug 21 19:23:28 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398808, free: 207400, 34 %
+Fri Aug 21 19:23:54 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 398968, free: 207240, 34 %
+Fri Aug 21 19:26:02 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 399000, free: 207208, 34 %
+Fri Aug 21 19:26:44 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 399032, free: 207176, 34 %
+Fri Aug 21 19:27:13 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 399016, free: 207192, 34 %
+Fri Aug 21 19:30:16 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73225, free:   7040,  8 %
+    irom:    available: 592 k, used: 399048, free: 207160, 34 %
+Fri Aug 21 19:32:37 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Fri Aug 21 19:33:44 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Fri Aug 21 19:50:47 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399288, free: 206920, 34 %
+Fri Aug 21 19:55:13 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399176, free: 207032, 34 %
+Fri Aug 21 19:59:07 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399048, free: 207160, 34 %
+Fri Aug 21 20:02:43 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399112, free: 207096, 34 %
+Fri Aug 21 20:03:16 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399112, free: 207096, 34 %
+Fri Aug 21 20:17:39 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399144, free: 207064, 34 %
+Fri Aug 21 20:33:37 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399144, free: 207064, 34 %
+Fri Aug 21 20:34:49 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399160, free: 207048, 34 %
+Fri Aug 21 20:35:18 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399128, free: 207080, 34 %
+Fri Aug 21 20:36:10 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399112, free: 207096, 34 %
+Fri Aug 21 20:37:13 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 399128, free: 207080, 34 %
+Fri Aug 21 20:41:32 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73249, free:   7016,  8 %
+    irom:    available: 592 k, used: 398920, free: 207288, 34 %
+Fri Aug 21 21:17:25 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399128, free: 207080, 34 %
+Sat Aug 22 15:35:08 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399176, free: 207032, 34 %
+Sat Aug 22 15:49:14 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 16:17:40 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399176, free: 207032, 34 %
+Sat Aug 22 16:35:56 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31628, free:   1140,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 16:38:57 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31640, free:   1128,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 16:40:14 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31668, free:   1100,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 16:46:57 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399176, free: 207032, 34 %
+Sat Aug 22 16:47:59 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31668, free:   1100,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:00:29 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:04:48 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31704, free:   1064,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:14:36 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Sat Aug 22 17:15:18 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31668, free:   1100,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Sat Aug 22 17:18:51 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31668, free:   1100,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:20:57 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31668, free:   1100,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Sat Aug 22 17:22:04 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31656, free:   1112,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:22:44 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31652, free:   1116,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:23:44 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31552, free:   1216,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:25:43 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:26:31 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31680, free:   1088,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:31:34 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31708, free:   1060,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Sat Aug 22 17:34:07 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31724, free:   1044,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:35:55 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31708, free:   1060,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Sat Aug 22 17:36:57 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31724, free:   1044,  3 %
+    dram:    available:  78 k, used:  73233, free:   7032,  8 %
+    irom:    available: 592 k, used: 399208, free: 207000, 34 %
+Sat Aug 22 17:42:15 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:44:20 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31680, free:   1088,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:45:12 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31672, free:   1096,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:45:45 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31660, free:   1108,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:49:28 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399304, free: 206904, 34 %
+Sat Aug 22 17:49:40 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31696, free:   1072,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399240, free: 206968, 34 %
+Sat Aug 22 17:49:53 CEST 2020 4f453a9 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73241, free:   7024,  8 %
+    irom:    available: 592 k, used: 399304, free: 206904, 34 %
