@@ -1195,7 +1195,7 @@ void io_init(void)
 	unsigned int debounce;
 	int trigger_io, trigger_pin, trigger_type;
 	unsigned int spi_pins[4];
-	unsigned int spi_pin = 0;
+	unsigned int spi_pin;
 	uint64_t start = time_get_us();
 
 	for(io = 0; io < io_id_size; io++)
@@ -1214,43 +1214,35 @@ void io_init(void)
 
 			pin_config = &io_config[io][pin];
 
+			mode = io_pin_disabled;
+			llmode = io_pin_ll_disabled;
+
 			if(!config_get_uint("io.%u.%u.mode", &mode, io, pin))
-			{
-				if((io == 0) && (pin == 1))
-				{
-					mode = io_pin_uart;
-					llmode = io_pin_ll_uart;
-				}
-				else
-				{
-					pin_config->mode = io_pin_disabled;
-					pin_config->llmode = io_pin_ll_disabled;
-					continue;
-				}
-			}
+				mode = io_pin_disabled;
 
 			if(!config_get_uint("io.%u.%u.llmode", &llmode, io, pin))
-			{
-				if((io == 0) && (pin == 1))
-				{
-					mode = io_pin_uart;
-					llmode = io_pin_ll_uart;
-				}
-				else
-				{
-					pin_config->mode = io_pin_disabled;
-					pin_config->llmode = io_pin_ll_disabled;
-					continue;
-				}
-			}
+				llmode = io_pin_ll_disabled;
 
 			if(!config_get_uint("io.%u.%u.flags", &flags.intvalue, io, pin))
 				flags.intvalue = 0;
 
-			pin_config->flags = flags.io_pin_flags;
+			if((mode == io_pin_disabled) || (llmode == io_pin_ll_disabled))
+			{
+				if((io == 0) && (pin == 1))		// emergency mode if no config present, make sure serial output works
+				{
+					mode = io_pin_uart;
+					llmode = io_pin_ll_uart;
+				}
+				else
+				{
+					mode = io_pin_disabled;
+					llmode = io_pin_ll_disabled;
+				}
+			}
 
 			pin_config->mode = mode;
 			pin_config->llmode = llmode;
+			pin_config->flags = flags.io_pin_flags;
 
 			switch(mode)
 			{
