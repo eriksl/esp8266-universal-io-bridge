@@ -32,7 +32,8 @@ typedef enum
 	io_id_mcp_21,
 	io_id_mcp_22,
 	io_id_pcf_3a,
-	io_id_ledpixel,
+	io_id_ledpixel_uart,
+	io_id_ledpixel_i2s,
 	io_id_size,
 } io_id_t;
 
@@ -141,6 +142,7 @@ typedef enum
 	io_pin_ll_uart,
 	io_pin_ll_output_pwm2,
 	io_pin_ll_spi,
+	io_pin_ll_i2s,
 	io_pin_ll_error,
 	io_pin_ll_size = io_pin_ll_error
 } io_pin_ll_mode_t;
@@ -189,11 +191,12 @@ typedef enum
 	caps_output_pwm1 =		1 << 4,
 	caps_output_pwm2 =		1 << 5,
 	caps_i2c =				1 << 6,
-	caps_ledpixel =			1 << 7,
+	caps_ledpixel_uart =	1 << 7,
 	caps_uart =				1 << 8,
 	caps_pullup =			1 << 9,
 	caps_rotary_encoder =	1 << 10,
 	caps_spi =				1 << 11,
+	caps_ledpixel_i2s =		1 << 12,
 } io_caps_t;
 
 assert_size(io_caps_t, 4);

@@ -8,6 +8,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum
+{
+	gpio_i2s_pin_none,
+	gpio_i2s_pin_input_bitclock,
+	gpio_i2s_pin_input_wordclock,
+	gpio_i2s_pin_input_data,
+	gpio_i2s_pin_output_bitclock,
+	gpio_i2s_pin_output_wordclock,
+	gpio_i2s_pin_output_data,
+} gpio_i2s_pin_t;
+
 void			io_gpio_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *);
 io_error_t		io_gpio_init(const struct io_info_entry_T *);
 unsigned int	io_gpio_pin_max_value(const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
@@ -17,6 +28,7 @@ io_error_t		io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data
 io_error_t		io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
 io_error_t		io_gpio_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins);
 int				io_gpio_get_uart_from_pin(unsigned int pin);
+gpio_i2s_pin_t	io_gpio_get_i2s_from_pin(unsigned int pin);
 bool			io_gpio_pwm1_width_set(unsigned int period, bool load, bool save);
 unsigned int	io_gpio_pwm1_width_get(void);
 

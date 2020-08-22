@@ -1,3 +1,4 @@
+#include "io_ledpixel_uart.h"
 #include "io_ledpixel.h"
 #include "i2c.h"
 #include "util.h"
@@ -11,15 +12,6 @@
 
 static bool			detected = false;
 static unsigned int	uart;
-
-typedef struct
-{
-	unsigned int	enabled:1;
-	unsigned int	extended:1;
-	unsigned int	grb:1;
-	unsigned int	fill8:1;
-	uint32_t		value;
-} ledpixel_data_pin_t;
 
 static ledpixel_data_pin_t ledpixel_data_pin[max_pins_per_io];
 
@@ -99,9 +91,9 @@ static void send_all(bool force)
 	}
 }
 
-bool io_ledpixel_setup(unsigned int io, unsigned int pin)
+bool io_ledpixel_uart_pre_init(unsigned int io, unsigned int pin)
 {
-	if((io != io_id_gpio) || (pin >= max_pins_per_io))
+	if(io != io_id_gpio)
 		return(false);
 
 	uart = io_gpio_get_uart_from_pin(pin);
@@ -114,12 +106,7 @@ bool io_ledpixel_setup(unsigned int io, unsigned int pin)
 	return(true);
 }
 
-void io_ledpixel_post_init(const struct io_info_entry_T *info)
-{
-	send_all(true);
-}
-
-io_error_t io_ledpixel_init(const struct io_info_entry_T *info)
+io_error_t io_ledpixel_uart_init(const struct io_info_entry_T *info)
 {
 	if(!detected)
 		return(io_error);
@@ -132,7 +119,12 @@ io_error_t io_ledpixel_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-attr_pure unsigned int io_ledpixel_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+void io_ledpixel_uart_post_init(const struct io_info_entry_T *info)
+{
+	send_all(true);
+}
+
+attr_pure unsigned int io_ledpixel_uart_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -142,7 +134,7 @@ attr_pure unsigned int io_ledpixel_pin_max_value(const struct io_info_entry_T *i
 	return(value);
 }
 
-io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+io_error_t io_ledpixel_uart_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	ledpixel_data_pin[pin].enabled = pin_config->llmode == io_pin_ll_output_pwm1;
 	ledpixel_data_pin[pin].extended = !!(pin_config->flags & io_flag_extended);
@@ -153,14 +145,14 @@ io_error_t io_ledpixel_init_pin_mode(string_t *error_message, const struct io_in
 	return(io_ok);
 }
 
-io_error_t io_ledpixel_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+io_error_t io_ledpixel_uart_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	*value = ledpixel_data_pin[pin].value;
 
 	return(io_ok);
 }
 
-io_error_t io_ledpixel_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+io_error_t io_ledpixel_uart_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	ledpixel_data_pin[pin].value = value;
 

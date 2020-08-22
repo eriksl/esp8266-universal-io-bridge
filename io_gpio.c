@@ -22,6 +22,7 @@ typedef enum
 	io_gpio_func_gpio = 0,
 	io_gpio_func_uart,
 	io_gpio_func_spi,
+	io_gpio_func_i2s,
 } io_func_t;
 
 typedef enum
@@ -51,18 +52,20 @@ enum
 
 typedef const struct
 {
-	const uint32_t		flags;
-	const uint32_t		mux;
-	const uint32_t		func;
-	const io_uart_pin_t	uart_pin;
-	const uint32_t		uart_func;
-	const uint32_t		uart_instance;
-	const io_spi_pin_t	spi_pin;
-	const uint32_t		spi_func;
+	const uint32_t			flags;
+	const uint32_t			mux;
+	const uint32_t			func;
+	const io_uart_pin_t		uart_pin;
+	const uint32_t			uart_func;
+	const uint32_t			uart_instance;
+	const io_spi_pin_t		spi_pin;
+	const uint32_t			spi_func;
+	const gpio_i2s_pin_t	i2s_pin;
+	const uint32_t			i2s_func;
 } gpio_info_t;
 
 assert_size(bool, 1);
-assert_size(gpio_info_t, 32);
+assert_size(gpio_info_t, 40);
 
 typedef union
 {
@@ -86,22 +89,22 @@ static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
 roflash static gpio_info_t gpio_info_table[io_gpio_pin_size] =
 {
-	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_pin_tx,		FUNC_U0TXD,		0,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_pin_tx,		FUNC_U1TXD_BK,	1,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_pin_rx,		FUNC_U0RXD,		0,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0				},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_pin_none,	0,				~0,	io_spi_pin_miso,	FUNC_HSPIQ		},
-	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_pin_none,	0,				~0,	io_spi_pin_mosi,	FUNC_HSPID		},
-	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_pin_none,	0,				~0,	io_spi_pin_sclk,	FUNC_HSPICLK	},
-	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_pin_none,	0,				~0,	io_spi_pin_cs,		FUNC_HSPICS		},
+	{ gi_valid, 	PERIPHS_IO_MUX_GPIO0_U,		FUNC_GPIO0,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_U0TXD_U,		FUNC_GPIO1,		io_uart_pin_tx,		FUNC_U0TXD,		0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO2_U,		FUNC_GPIO2,		io_uart_pin_tx,		FUNC_U1TXD_BK,	1,	io_spi_pin_none,	~0,				gpio_i2s_pin_output_wordclock,	FUNC_I2SO_WS	},
+	{ gi_valid,		PERIPHS_IO_MUX_U0RXD_U,		FUNC_GPIO3,		io_uart_pin_rx,		FUNC_U0RXD,		0,	io_spi_pin_none,	~0,				gpio_i2s_pin_output_data,		FUNC_I2SO_DATA	},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO4_U,		FUNC_GPIO4,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_GPIO5_U,		FUNC_GPIO5,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_CLK_U,	FUNC_GPIO6,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA0_U,	FUNC_GPIO7,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA1_U,	FUNC_GPIO8,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA2_U,	FUNC_GPIO9,		io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_DATA3_U,	FUNC_GPIO10,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ 0,			PERIPHS_IO_MUX_SD_CMD_U,	FUNC_GPIO11,	io_uart_pin_none,	0,				~0,	io_spi_pin_none,	~0,				gpio_i2s_pin_none,				~0				},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDI_U,		FUNC_GPIO12,	io_uart_pin_none,	0,				~0,	io_spi_pin_miso,	FUNC_HSPIQ,		gpio_i2s_pin_input_data,		FUNC_I2SI_DATA	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTCK_U, 		FUNC_GPIO13,	io_uart_pin_none,	0,				~0,	io_spi_pin_mosi,	FUNC_HSPID,		gpio_i2s_pin_input_bitclock,	FUNC_I2SI_BCK	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTMS_U, 		FUNC_GPIO14,	io_uart_pin_none,	0,				~0,	io_spi_pin_sclk,	FUNC_HSPICLK,	gpio_i2s_pin_input_wordclock,	FUNC_I2SI_WS	},
+	{ gi_valid,		PERIPHS_IO_MUX_MTDO_U, 		FUNC_GPIO15,	io_uart_pin_none,	0,				~0,	io_spi_pin_cs,		FUNC_HSPICS,	gpio_i2s_pin_output_bitclock,	FUNC_I2SO_BCK	},
 };
 
 static bool spi_pin_to_string(string_t *string, unsigned int pin)
@@ -279,6 +282,7 @@ attr_inline bool gpio_func_select(unsigned int pin, io_func_t gpio_pin_mode)
 		case(io_gpio_func_gpio):	func = gpio_pin_info->func;			break;
 		case(io_gpio_func_uart):	func = gpio_pin_info->uart_func;	break;
 		case(io_gpio_func_spi):		func = gpio_pin_info->spi_func;		break;
+		case(io_gpio_func_i2s):		func = gpio_pin_info->i2s_func;		break;
 		default: return(false);
 	}
 
@@ -1064,7 +1068,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->uart_pin != io_uart_pin_tx))
 			{
 				if(error_message)
-					string_format(error_message, "gpio pin %d (uart rx) cannot be used for ledpixel mode\n", pin);
+					string_format(error_message, "gpio pin %d (uart rx) cannot be used for ledpixel uart mode\n", pin);
 				return(io_error);
 			}
 
@@ -1086,6 +1090,32 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			gpio_enable_pdm(pin, false);
 			gpio_set(pin, false);
 			gpio_func_select(pin, io_gpio_func_spi);
+
+			break;
+		}
+
+		case(io_pin_ll_i2s):
+		{
+			if(gpio_info->i2s_pin == gpio_i2s_pin_none)
+			{
+				if(error_message)
+					string_format(error_message, "gpio pin %d cannot be used for i2s\n", pin);
+				return(io_error);
+			}
+
+			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->i2s_pin != gpio_i2s_pin_output_data))
+			{
+				if(error_message)
+					string_format(error_message, "gpio pin %d cannot be used for ledpixel in i2s mode\n", pin);
+				return(io_error);
+			}
+
+			gpio_direction(pin, true);
+			gpio_enable_open_drain(pin, false);
+			gpio_enable_pdm(pin, false);
+			gpio_set(pin, true);
+			gpio_func_select(pin, io_gpio_func_i2s);
+			gpio_enable_pullup(pin, pin_config->flags & io_flag_pullup);
 
 			break;
 		}
@@ -1501,4 +1531,11 @@ attr_const int io_gpio_get_uart_from_pin(unsigned int pin)
 		return(-1);
 
 	return(gpio_info_table[pin].uart_instance);
+
+attr_const gpio_i2s_pin_t io_gpio_get_i2s_from_pin(unsigned int pin)
+{
+	if(pin >= max_pins_per_io)
+		return(-1);
+
+	return(gpio_info_table[pin].i2s_pin);
 }

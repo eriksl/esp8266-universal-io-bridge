@@ -70,6 +70,9 @@ unsigned int stat_display_update_max_us;
 unsigned int stat_sntp_received;
 unsigned int stat_sntp_poll;
 
+unsigned int stat_spi_slave_interrupts;
+unsigned int stat_spi_slave_i2s_interrupts;
+
 int stat_debug_1;
 int stat_debug_2;
 int stat_debug_3;
@@ -334,11 +337,13 @@ void stats_counters(string_t *dst)
 			">   uart spurious: %8u\n"
 			">   uart0 rx:      %8u, tx: %u\n"
 			">   uart1 tx:      %8u\n"
-			">   nonmaskable:   %u, while masked: %u\n",
+			">   nonmaskable:   %u, while masked: %u\n"
+			">   spi slave/i2s: %u, i2s: %u\n",
 				stat_uart_spurious,
 				stat_uart0_rx_interrupts, stat_uart0_tx_interrupts,
 				stat_uart1_tx_interrupts,
-				stat_pwm_timer_interrupts, stat_pwm_timer_interrupts_while_nmi_masked);
+				stat_pwm_timer_interrupts, stat_pwm_timer_interrupts_while_nmi_masked,
+				stat_spi_slave_interrupts, stat_spi_slave_i2s_interrupts);
 
 	string_format(dst,
 			">\n> TIMERS\n"
