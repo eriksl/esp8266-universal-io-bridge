@@ -396,6 +396,7 @@ io_ledpixel_i2s.o:		$(HEADERS)
 io_pcf.o:				$(HEADERS)
 ota.o:					$(HEADERS)
 queue.o:				queue.h
+spi.o:					$(HEADERS)
 stats.o:				$(HEADERS) always
 time.o:					$(HEADERS)
 uart.o:					$(HEADERS)
