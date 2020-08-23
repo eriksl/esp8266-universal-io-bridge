@@ -145,3 +145,24 @@ io_error_t io_ledpixel_i2s_write_pin(string_t *error_message, const struct io_in
 
 	return(io_ok);
 }
+
+io_error_t io_ledpixel_i2s_pinmask(unsigned int mask)
+{
+	unsigned int pin;
+	unsigned int pinmask, flag, rgb;
+
+	io_ledpixel_value_mask_to_rgb(mask, &pinmask, &flag, &rgb);
+
+	for(pin = 0; pin < max_pins_per_io; pin++)
+	{
+		if(!ledpixel_data_pin[pin].enabled)
+			break;
+
+		if(pinmask & (1 << pin))
+			ledpixel_data_pin[pin].value = rgb;
+	}
+
+	send_all(false);
+
+	return(io_ok);
+}

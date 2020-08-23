@@ -14,5 +14,6 @@ unsigned int	io_ledpixel_uart_pin_max_value(const struct io_info_entry_T *info, 
 io_error_t		io_ledpixel_uart_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin);
 io_error_t		io_ledpixel_uart_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
 io_error_t		io_ledpixel_uart_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
+io_error_t		io_ledpixel_uart_pinmask(unsigned int mask);
 
 #endif

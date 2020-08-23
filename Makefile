@@ -228,9 +228,9 @@ LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
-						display_seeed.o display_eastrising.o display_ssd1306.o display_font_6x8.o \
-						http.o i2c.o i2c_sensor.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel_uart.o io_ledpixel_i2s.o \
-						io_pcf.o ota.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o \
+						display_seeed.o display_eastrising.o display_ssd1306.o display_font_6x8.o io_pcf.o http.o \
+						io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o io_ledpixel_uart.o io_ledpixel_i2s.o \
+						ota.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
 						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
@@ -391,6 +391,7 @@ io_aux.o:				$(HEADERS)
 io.o:					$(HEADERS)
 io_gpio.o:				$(HEADERS)
 io_mcp.o:				$(HEADERS)
+io_ledpixel.o:			$(HEADERS)
 io_ledpixel_uart.o:		$(HEADERS)
 io_ledpixel_i2s.o:		$(HEADERS)
 io_pcf.o:				$(HEADERS)

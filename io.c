@@ -618,7 +618,6 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 	{
 		case(io_pin_disabled):
 		case(io_pin_error):
-		case(io_pin_ledpixel):
 		case(io_pin_cfa634):
 		case(io_pin_spi):
 		{
@@ -626,6 +625,13 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 				string_append(errormsg, "cannot read from this pin");
 
 			return(io_error);
+		}
+
+		case(io_pin_ledpixel):
+		{
+			*value = 0;
+
+			break;
 		}
 
 		default:
@@ -656,7 +662,6 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 	{
 		case(io_pin_disabled):
 		case(io_pin_error):
-		case(io_pin_ledpixel):
 		case(io_pin_cfa634):
 		case(io_pin_spi):
 		{
@@ -664,6 +669,24 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 				string_append(errormsg, "cannot write to this pin");
 
 			return(io_error);
+		}
+
+		case(io_pin_ledpixel):
+		{
+			if(pin_config->llmode == io_pin_ll_uart)
+				io_ledpixel_uart_pinmask(value);
+			else
+				if(pin_config->llmode == io_pin_ll_i2s)
+					io_ledpixel_i2s_pinmask(value);
+				else
+				{
+					if(errormsg)
+						string_append(errormsg, "cannot access this ledpixel pin");
+
+					return(io_error);
+				}
+
+			break;
 		}
 
 		default:
