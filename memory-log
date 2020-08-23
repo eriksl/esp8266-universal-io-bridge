@@ -6486,3 +6486,55 @@ Sat Aug 22 17:49:53 CEST 2020 4f453a9 memory-log: update.
     iram:    available:  32 k, used:  31676, free:   1092,  3 %
     dram:    available:  78 k, used:  73241, free:   7024,  8 %
     irom:    available: 592 k, used: 399304, free: 206904, 34 %
+Sun Aug 23 11:11:43 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399352, free: 206856, 34 %
+Sun Aug 23 11:38:51 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399736, free: 206472, 34 %
+Sun Aug 23 11:47:38 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399800, free: 206408, 34 %
+Sun Aug 23 11:53:47 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399848, free: 206360, 34 %
+Sun Aug 23 11:55:54 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399832, free: 206376, 34 %
+Sun Aug 23 11:56:42 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399912, free: 206296, 34 %
+Sun Aug 23 11:57:51 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73273, free:   6992,  8 %
+    irom:    available: 592 k, used: 399928, free: 206280, 34 %
+Sun Aug 23 13:58:29 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73281, free:   6984,  8 %
+    irom:    available: 592 k, used: 400056, free: 206152, 34 %
+Sun Aug 23 13:59:52 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73281, free:   6984,  8 %
+    irom:    available: 592 k, used: 399992, free: 206216, 34 %
+Sun Aug 23 14:00:42 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73177, free:   7088,  8 %
+    irom:    available: 592 k, used: 400600, free: 205608, 33 %
+Sun Aug 23 14:01:35 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73305, free:   6960,  8 %
+    irom:    available: 592 k, used: 400472, free: 205736, 33 %
+Sun Aug 23 14:01:43 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73177, free:   7088,  8 %
+    irom:    available: 592 k, used: 400600, free: 205608, 33 %
+Sun Aug 23 14:28:28 CEST 2020 4fc6aa0 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  73177, free:   7088,  8 %
+    irom:    available: 592 k, used: 400488, free: 205720, 33 %
