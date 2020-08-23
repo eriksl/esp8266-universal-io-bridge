@@ -630,6 +630,14 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 
 		default:
 		{
+			if(!info->read_pin_fn)
+			{
+				if(errormsg)
+					string_append(errormsg, "cannot read from this pin");
+
+				return(io_error);
+			}
+
 			if((error = info->read_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
 
@@ -660,6 +668,14 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 
 		default:
 		{
+			if(!info->write_pin_fn)
+			{
+				if(errormsg)
+					string_append(errormsg, "cannot write to this pin");
+
+				return(io_error);
+			}
+
 			if((error = info->write_pin_fn(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
 				return(error);
 
