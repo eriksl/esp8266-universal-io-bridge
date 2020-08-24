@@ -2,8 +2,7 @@
 #include "io_aux.h"
 #include "io_mcp.h"
 #include "io_pcf.h"
-#include "io_ledpixel_uart.h"
-#include "io_ledpixel_i2s.h"
+#include "io_ledpixel.h"
 #include "display_cfa634.h"
 #include "io.h"
 #include "i2c.h"
@@ -57,11 +56,10 @@ roflash static const io_info_t io_info =
 			caps_output_pwm2 |
 			caps_i2c |
 			caps_uart |
-			caps_ledpixel_uart |
+			caps_ledpixel |
 			caps_pullup |
 			caps_rotary_encoder |
-			caps_spi |
-			caps_ledpixel_i2s,
+			caps_spi,
 		"Internal GPIO",
 		io_gpio_init,
 		(void *)0, // postinit
@@ -178,41 +176,23 @@ roflash static const io_info_t io_info =
 		io_mcp_set_mask,
 	},
 	{
-		io_id_ledpixel_uart, /* = 6 */
+		io_id_ledpixel, /* = 6 */
 		0x00,
 		0,
 		16,
 		caps_output_pwm1,
-		"led string uart",
-		io_ledpixel_uart_init,
-		io_ledpixel_uart_post_init,
-		io_ledpixel_uart_pin_max_value,
+		"led string",
+		io_ledpixel_init,
+		io_ledpixel_post_init,
+		io_ledpixel_pin_max_value,
 		(void *)0, // periodic slow
 		(void *)0, // periodic fast
-		io_ledpixel_uart_init_pin_mode,
+		io_ledpixel_init_pin_mode,
 		(void *)0, // get pin info
-		io_ledpixel_uart_read_pin,
-		io_ledpixel_uart_write_pin,
-		(void *)0, // set_mask
+		io_ledpixel_read_pin,
+		io_ledpixel_write_pin,
+		(void *)0, // set_mask // FIXME this can be implemented, but may not be very useful
 	},
-	{
-		io_id_ledpixel_i2s, /* = 7 */
-		0x00,
-		0,
-		16,
-		caps_output_pwm1,
-		"led string i2s",
-		io_ledpixel_i2s_init,
-		io_ledpixel_i2s_post_init,
-		io_ledpixel_i2s_pin_max_value,
-		(void *)0, // periodic slow
-		(void *)0, // periodic fast
-		io_ledpixel_i2s_init_pin_mode,
-		(void *)0, // get pin info
-		io_ledpixel_i2s_read_pin,
-		io_ledpixel_i2s_write_pin,
-		(void *)0, // set_mask
-	}
 };
 
 static io_data_t io_data;
@@ -673,18 +653,13 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 
 		case(io_pin_ledpixel):
 		{
-			if(pin_config->llmode == io_pin_ll_uart)
-				io_ledpixel_uart_pinmask(value);
-			else
-				if(pin_config->llmode == io_pin_ll_i2s)
-					io_ledpixel_i2s_pinmask(value);
-				else
-				{
-					if(errormsg)
-						string_append(errormsg, "cannot access this ledpixel pin");
+			if(io_ledpixel_pinmask(value) != io_ok)
+			{
+				if(errormsg)
+					string_append(errormsg, "cannot access this ledpixel pin");
 
-					return(io_error);
-				}
+				return(io_error);
+			}
 
 			break;
 		}
@@ -1558,8 +1533,7 @@ void io_init(void)
 
 				case(io_pin_ledpixel):
 				{
-					if(	((pin_config->llmode == io_pin_ll_uart)	&& !(info->caps & caps_ledpixel_uart)) ||
-						((pin_config->llmode == io_pin_ll_i2s)	&& !(info->caps & caps_ledpixel_i2s)))
+					if(!(info->caps & caps_ledpixel) || (io_ledpixel_mode(io, pin) == ledpixel_invalid))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1661,11 +1635,7 @@ void io_init(void)
 
 						case(io_pin_ledpixel):
 						{
-							if(pin_config->llmode == io_pin_ll_uart)
-								io_ledpixel_uart_pre_init(io, pin);
-
-							if(pin_config->llmode == io_pin_ll_i2s)
-								io_ledpixel_i2s_pre_init(io, pin);
+							io_ledpixel_pre_init(io, pin);
 
 							break;
 						}
@@ -2484,19 +2454,34 @@ skip:
 
 		case(io_pin_ledpixel):
 		{
-			llmode = io_pin_ll_error;
-
-			if((info->caps & caps_ledpixel_i2s) && (io_gpio_get_i2s_from_pin(pin) == gpio_i2s_pin_output_data))
-				llmode = io_pin_ll_i2s;
-			else
-				if((info->caps & caps_ledpixel_uart) && (io_gpio_get_uart_from_pin(pin) >= 0))
-					llmode = io_pin_ll_uart;
-
-			if(llmode == io_pin_ll_error)
+			if(!(info->caps & caps_ledpixel))
 			{
 				config_abort_write();
-				string_append(dst, "ledpixel mode invalid for this io or pin\n");
+				string_append(dst, "ledpixel mode invalid for this io\n");
 				return(app_action_error);
+			}
+
+			switch(io_ledpixel_mode(io, pin))
+			{
+				case(ledpixel_i2s):
+				{
+					llmode = io_pin_ll_i2s;
+					break;
+				}
+
+				case(ledpixel_uart_0):
+				case(ledpixel_uart_1):
+				{
+					llmode = io_pin_ll_uart;
+					break;
+				}
+
+				default:
+				{
+					config_abort_write();
+					string_append(dst, "ledpixel mode invalid for this pin\n");
+					return(app_action_error);
+				}
 			}
 
 			config_delete("io.%u.%u.", true, io, pin);

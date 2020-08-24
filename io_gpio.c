@@ -1065,13 +1065,6 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 				return(io_error);
 			}
 
-			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->uart_pin != io_uart_pin_tx))
-			{
-				if(error_message)
-					string_format(error_message, "gpio pin %d (uart rx) cannot be used for ledpixel uart mode\n", pin);
-				return(io_error);
-			}
-
 			direction = gpio_info->uart_pin == io_uart_pin_rx ? uart_dir_rx : uart_dir_tx;
 			enable = !!(pin_config->flags & io_flag_invert);
 
@@ -1100,13 +1093,6 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			{
 				if(error_message)
 					string_format(error_message, "gpio pin %d cannot be used for i2s\n", pin);
-				return(io_error);
-			}
-
-			if((pin_config->mode == io_pin_ledpixel) && (gpio_info->i2s_pin != gpio_i2s_pin_output_data))
-			{
-				if(error_message)
-					string_format(error_message, "gpio pin %d cannot be used for ledpixel in i2s mode\n", pin);
 				return(io_error);
 			}
 
