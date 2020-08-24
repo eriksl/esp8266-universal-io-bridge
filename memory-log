@@ -6538,3 +6538,11 @@ Sun Aug 23 14:28:28 CEST 2020 4fc6aa0 memory-log: update.
     iram:    available:  32 k, used:  31676, free:   1092,  3 %
     dram:    available:  78 k, used:  73177, free:   7088,  8 %
     irom:    available: 592 k, used: 400488, free: 205720, 33 %
+Mon Aug 24 20:07:54 CEST 2020 ef3e39b memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72805, free:   7460,  9 %
+    irom:    available: 592 k, used: 399400, free: 206808, 34 %
+Mon Aug 24 20:32:49 CEST 2020 ef3e39b memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
