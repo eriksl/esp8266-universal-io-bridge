@@ -213,7 +213,7 @@ void stats_firmware(string_t *dst)
 			">\n"
 			"> stack:\n"
 			">   bottom: %p, top: %p\n"
-			">   initial: %p (%d bytes), current: %p (%d bytes)\n"
+			">   initial: %p (%lu bytes), current: %p (%lu bytes)\n"
 			">   painted: %d bytes, not painted: %u bytes\n"
 			">   size: %u bytes, used: %d bytes, free: %d bytes\n",
 				__DATE__ " " __TIME__,
@@ -221,15 +221,10 @@ void stats_firmware(string_t *dst)
 				system_get_chip_id(),
 				system_get_cpu_freq(),
 				heap, stat_heap_min, stat_heap_max,
-				(void *)stack_bottom,
-				(void *)stack_top,
-				stat_stack_sp_initial, (typeof(stat_stack_sp_initial))stack_bottom - stat_stack_sp_initial,
-				&sp, (typeof(&sp))stack_bottom - &sp,
-				stat_stack_painted,
-				stack_size - stat_stack_painted,
-				stack_size,
-				stack_used,
-				stack_free);
+				(void *)stack_bottom, (void *)stack_top,
+				stat_stack_sp_initial, (uint32_t)stack_bottom - (uint32_t)stat_stack_sp_initial, &sp, (uint32_t)stack_bottom - (uint32_t)&sp,
+				stat_stack_painted, stack_size - stat_stack_painted,
+				stack_size, stack_used, stack_free);
 
 	string_append(dst, ">\n> reset cause: ");
 	explain_exception(dst);
