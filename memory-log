@@ -6546,3 +6546,235 @@ Mon Aug 24 20:32:49 CEST 2020 ef3e39b memory-log: update.
     iram:    available:  32 k, used:  31676, free:   1092,  3 %
     dram:    available:  78 k, used:  72801, free:   7464,  9 %
     irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Wed Sep  2 17:46:30 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 17:49:11 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Wed Sep  2 18:51:40 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 18:53:18 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399960, free: 206248, 34 %
+Wed Sep  2 18:54:58 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 18:59:51 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32316, free:    452,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 19:01:02 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32332, free:    436,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 19:02:38 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32328, free:    440,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Wed Sep  2 19:03:35 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32316, free:    452,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399960, free: 206248, 34 %
+Wed Sep  2 19:10:59 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399960, free: 206248, 34 %
+Wed Sep  2 20:03:36 CEST 2020 b6a346f memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399544, free: 206664, 34 %
+Fri Sep  4 10:55:25 CEST 2020 7d04f5e stats: fix incorrectly calculated stack offsets.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72849, free:   7416,  9 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Fri Sep  4 11:01:15 CEST 2020 7d04f5e stats: fix incorrectly calculated stack offsets.
+    iram:    available:  32 k, used:  32328, free:    440,  1 %
+    dram:    available:  78 k, used:  72849, free:   7416,  9 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Fri Sep  4 11:03:48 CEST 2020 7d04f5e stats: fix incorrectly calculated stack offsets.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399528, free: 206680, 34 %
+Fri Sep  4 11:10:35 CEST 2020 7d04f5e stats: fix incorrectly calculated stack offsets.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Fri Sep  4 11:19:35 CEST 2020 e3fb311 NONOS-SDK: changed url to forked repo.
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Fri Sep  4 11:22:52 CEST 2020 e3fb311 NONOS-SDK: changed url to forked repo.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399944, free: 206264, 34 %
+Fri Sep  4 13:42:43 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399748, free: 206460, 34 %
+Fri Sep  4 13:46:03 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399880, free: 206328, 34 %
+Fri Sep  4 13:50:22 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72801, free:   7464,  9 %
+    irom:    available: 592 k, used: 399996, free: 206212, 34 %
+Fri Sep  4 14:20:01 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72917, free:   7348,  9 %
+    irom:    available: 592 k, used: 400172, free: 206036, 33 %
+Fri Sep  4 14:29:08 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  74337, free:   5928,  7 %
+    irom:    available: 592 k, used: 399996, free: 206212, 34 %
+Fri Sep  4 14:32:52 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72905, free:   7360,  9 %
+    irom:    available: 592 k, used: 401660, free: 204548, 33 %
+Fri Sep  4 14:34:50 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 400236, free: 205972, 33 %
+Fri Sep  4 14:39:13 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 399868, free: 206340, 34 %
+Fri Sep  4 14:44:05 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 400012, free: 206196, 34 %
+Fri Sep  4 14:53:08 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 399868, free: 206340, 34 %
+Fri Sep  4 14:55:25 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 399996, free: 206212, 34 %
+Fri Sep  4 15:03:48 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 400120, free: 206088, 33 %
+Fri Sep  4 15:06:16 CEST 2020 df89bd9 font32: update, remove ugly slash from zero.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 399964, free: 206244, 34 %
+Fri Sep  4 15:13:17 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72725, free:   7540,  9 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:14:40 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72581, free:   7684,  9 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:15:46 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72157, free:   8108, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:16:14 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71997, free:   8268, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:19:34 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71925, free:   8340, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:22:50 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72069, free:   8196, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:25:17 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72141, free:   8124, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:26:09 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71997, free:   8268, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:35:19 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71909, free:   8356, 10 %
+    irom:    available: 592 k, used: 399804, free: 206404, 34 %
+Fri Sep  4 15:41:04 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71845, free:   8420, 10 %
+    irom:    available: 592 k, used: 399820, free: 206388, 34 %
+Fri Sep  4 15:46:08 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71845, free:   8420, 10 %
+    irom:    available: 592 k, used: 399500, free: 206708, 34 %
+Fri Sep  4 15:47:02 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71845, free:   8420, 10 %
+    irom:    available: 592 k, used: 399484, free: 206724, 34 %
+Fri Sep  4 15:48:55 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71837, free:   8428, 10 %
+    irom:    available: 592 k, used: 398172, free: 208036, 34 %
+Fri Sep  4 16:09:02 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  71829, free:   8436, 10 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:13:17 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  70293, free:   9972, 12 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:13:42 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68757, free:  11508, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:14:30 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68741, free:  11524, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:14:51 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:15:38 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68629, free:  11636, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:16:07 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68565, free:  11700, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:17:49 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68325, free:  11940, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:18:24 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68245, free:  12020, 14 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:18:51 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68085, free:  12180, 15 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:19:21 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68005, free:  12260, 15 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:20:51 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  68045, free:  12220, 15 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:21:36 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65997, free:  14268, 17 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:22:23 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  63949, free:  16316, 20 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Fri Sep  4 16:23:46 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  64973, free:  15292, 19 %
+    irom:    available: 592 k, used: 398156, free: 208052, 34 %
