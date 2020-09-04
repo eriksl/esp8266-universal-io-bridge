@@ -1,6 +1,3 @@
-[submodule "rboot"]
-	path = third-party/rboot
-	url = https://github.com/raburton/rboot.git
 [submodule "ESP8266_NONOS_SDK"]
 	path = third-party/ESP8266_NONOS_SDK
 	url = https://github.com/eriksl/ESP8266_NONOS_SDK.git
@@ -13,3 +10,6 @@
 [submodule "third-party/esptool2"]
 	path = third-party/esptool2
 	url = http://github.com/raburton/esptool2
+[submodule "third-party/rboot"]
+	path = third-party/rboot
+	url = http://github.com/raburton/rboot
