@@ -1,6 +1,3 @@
-[submodule "esptool2"]
-	path = third-party/esptool2
-	url = https://github.com/raburton/esptool2.git
 [submodule "rboot"]
 	path = third-party/rboot
 	url = https://github.com/raburton/rboot.git
@@ -13,3 +10,6 @@
 [submodule "third-party/lwip-for-esp8266-nonos-sdk"]
 	path = third-party/lwip-for-esp8266-nonos-sdk
 	url = https://github.com/eriksl/lwip-for-esp8266-nonos-sdk.git
+[submodule "third-party/esptool2"]
+	path = third-party/esptool2
+	url = http://github.com/raburton/esptool2
