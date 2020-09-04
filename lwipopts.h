@@ -15,8 +15,8 @@
 #define IP_REASSEMBLY				0
 #define IP_FRAG						0
 #define IP_DEFAULT_TTL				128
-#define IP_SOF_BROADCAST			1
-#define IP_SOF_BROADCAST_RECV		1
+#define IP_SOF_BROADCAST			0
+#define IP_SOF_BROADCAST_RECV		0
 #define LWIP_BROADCAST_PING			1
 #define LWIP_MULTICAST_PING			1
 #define LWIP_RAW					0
