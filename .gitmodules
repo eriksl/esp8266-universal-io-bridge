@@ -6,7 +6,7 @@
 	url = https://github.com/raburton/rboot.git
 [submodule "ESP8266_NONOS_SDK"]
 	path = third-party/ESP8266_NONOS_SDK
-	url = https://github.com/espressif/ESP8266_NONOS_SDK
+	url = https://github.com/eriksl/ESP8266_NONOS_SDK.git
 [submodule "third-party/crosstool-ng"]
 	path = third-party/crosstool-ng
 	url = https://github.com/someburner/crosstool-ng.git
