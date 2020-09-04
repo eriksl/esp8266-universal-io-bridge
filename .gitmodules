@@ -1,12 +1,12 @@
-[submodule "ESP8266_NONOS_SDK"]
+[submodule "third-party/ESP8266_NONOS_SDK"]
 	path = third-party/ESP8266_NONOS_SDK
-	url = https://github.com/eriksl/ESP8266_NONOS_SDK.git
+	url = http://github.com/eriksl/ESP8266_NONOS_SDK
 [submodule "third-party/crosstool-ng"]
 	path = third-party/crosstool-ng
-	url = https://github.com/someburner/crosstool-ng.git
+	url = http://github.com/someburner/crosstool-ng
 [submodule "third-party/lwip-for-esp8266-nonos-sdk"]
 	path = third-party/lwip-for-esp8266-nonos-sdk
-	url = https://github.com/eriksl/lwip-for-esp8266-nonos-sdk.git
+	url = http://github.com/eriksl/lwip-for-esp8266-nonos-sdk
 [submodule "third-party/esptool2"]
 	path = third-party/esptool2
 	url = http://github.com/raburton/esptool2
