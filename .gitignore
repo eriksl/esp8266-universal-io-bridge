@@ -2,6 +2,7 @@
 *.bin
 *.elf
 *.a
+.*.swp
 /doc
 /linkmap
 /t
@@ -11,3 +12,16 @@
 /otapush
 /espflash
 /universalbridge.odt
+/demo
+/dump
+/espplay
+/font/bdf2c
+/font/font_32x16.c
+/font/t
+/furelise
+/listsymbols.pl
+/oxygene
+/pins
+/resetserial
+/t.c
+/t.pl
