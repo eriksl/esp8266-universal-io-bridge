@@ -228,9 +228,9 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 			{
 				stat_lwip_tcp_send_error++;
 				log("lwip tcp write: error: ");
+				log_error(error);
 			}
 
-			log_error(error);
 			break;
 		}
 
