@@ -75,6 +75,7 @@ roflash static const unsigned int lut_5_8[32] =
 static bool	use_uart_0 = false;
 static bool	use_uart_1 = false;
 static bool	use_i2s = false;
+static bool use_i2s_invert = false;
 
 static ledpixel_data_pin_t ledpixel_data_pin[max_pins_per_io];
 
@@ -133,8 +134,10 @@ static void send_byte_uart(unsigned int byte)
 
 static void send_byte_i2s(unsigned int byte_value_in)
 {
-	static const unsigned int off_pattern = 0b1000;
-	static const unsigned int on_pattern = 0b1110;
+	static const unsigned int off_pattern_normal = 0b1000;
+	static const unsigned int on_pattern_normal = 0b1110;
+	static const unsigned int off_pattern_invert = 0b0111;
+	static const unsigned int on_pattern_invert = 0b0001;
 	uint8_t buffer[4];
 	unsigned int bit_in;
 	unsigned int byte_out;
@@ -142,7 +145,7 @@ static void send_byte_i2s(unsigned int byte_value_in)
 
 	for(bit_in = 0, byte_out = 0; (bit_in < 8) && (byte_out < 4); bit_in++)
 	{
-		pattern = (byte_value_in & (1 << (7 - bit_in))) ? on_pattern : off_pattern;
+		pattern = (byte_value_in & (1 << (7 - bit_in))) ? (use_i2s_invert ? on_pattern_invert : on_pattern_normal) : (use_i2s_invert ? off_pattern_invert : off_pattern_normal);
 
 		if(bit_in & 0x01) // after every second input bit the output nibble is full
 		{
@@ -170,7 +173,8 @@ static void send_byte(unsigned int byte)
 
 static void send_all(bool force)
 {
-	static const uint8_t zero_sample[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static const uint8_t zero_sample_normal[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static const uint8_t zero_sample_invert[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 	unsigned int pin, fill;
 
 	for(pin = 0; pin < max_pins_per_io; pin++)
@@ -208,7 +212,11 @@ static void send_all(bool force)
 
 	if(use_i2s)
 	{
-		i2s_send(sizeof(zero_sample), zero_sample); // the last "sample" (4 bytes) get repeated until the transmitter is stopped
+		if(use_i2s_invert)
+			i2s_send(sizeof(zero_sample_invert), zero_sample_invert); // the last "sample" (4 bytes) get repeated until the transmitter is stopped
+		else
+			i2s_send(sizeof(zero_sample_normal), zero_sample_normal); // the last "sample" (4 bytes) get repeated until the transmitter is stopped
+
 		i2s_flush();
 	}
 }
@@ -236,11 +244,18 @@ io_ledpixel_mode_t io_ledpixel_mode(unsigned int io, unsigned int pin)
 
 bool io_ledpixel_pre_init(unsigned int io, unsigned int pin)
 {
+	io_config_pin_entry_t *pin_config;
+
 	switch(io_ledpixel_mode(io, pin))
 	{
 		case(ledpixel_i2s):
 		{
 			use_i2s = true;
+			pin_config = &io_config[io][pin];
+
+			if(pin_config->flags & io_flag_invert)
+				use_i2s_invert = true;
+
 			break;
 		}
 
