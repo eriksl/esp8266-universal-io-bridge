@@ -6778,3 +6778,199 @@ Fri Sep  4 16:23:46 CEST 2020 e9ae7d9 Fix dhcp server in access point mode.
     iram:    available:  32 k, used:  31676, free:   1092,  3 %
     dram:    available:  78 k, used:  64973, free:  15292, 19 %
     irom:    available: 592 k, used: 398156, free: 208052, 34 %
+Sat Sep  5 10:48:17 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  64973, free:  15292, 19 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 10:54:39 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65997, free:  14268, 17 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 10:56:02 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65005, free:  15260, 19 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 10:56:46 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65157, free:  15108, 18 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 10:57:06 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65005, free:  15260, 19 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 10:58:54 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65157, free:  15108, 18 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 11:02:30 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65461, free:  14804, 18 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 11:03:26 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65357, free:  14908, 18 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 11:04:08 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72325, free:   7940,  9 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Sat Sep  5 13:40:43 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72325, free:   7940,  9 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:42:43 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  81541, free: 18446744073709550340, 18446744073709551615 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:43:29 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  75397, free:   4868,  6 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:45:01 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  78469, free:   1796,  2 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:46:17 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72389, free:   7876,  9 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:49:03 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  72357, free:   7908,  9 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:50:33 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65189, free:  15076, 18 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:51:32 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  65221, free:  15044, 18 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:52:20 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66245, free:  14020, 17 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:53:17 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66181, free:  14084, 17 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:54:01 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 13:55:22 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66241, free:  14024, 17 %
+    irom:    available: 592 k, used: 397944, free: 208264, 34 %
+Sat Sep  5 13:56:09 CEST 2020 01a8c36 memory-log: update.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397816, free: 208392, 34 %
+Sat Sep  5 16:09:47 CEST 2020 b80f0ef lwip-interface: fix mysterious "error" logs when low on memory.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397784, free: 208424, 34 %
+Wed Sep  9 17:46:08 CEST 2020 b80f0ef lwip-interface: fix mysterious "error" logs when low on memory.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397944, free: 208264, 34 %
+Sat Sep 19 14:42:00 CEST 2020 e8f3552 ledpixel: add inverted mode for I2S output mode.
+    iram:    available:  32 k, used:  31676, free:   1092,  3 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397864, free: 208344, 34 %
+Fri Oct  9 12:15:05 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32308, free:    460,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397864, free: 208344, 34 %
+Fri Oct  9 12:45:23 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32420, free:    348,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397880, free: 208328, 34 %
+Fri Oct  9 12:48:31 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  31788, free:    980,  2 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397448, free: 208760, 34 %
+Fri Oct  9 12:50:52 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  31788, free:    980,  2 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397400, free: 208808, 34 %
+Fri Oct  9 12:52:14 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  31788, free:    980,  2 %
+    dram:    available:  78 k, used:  66213, free:  14052, 17 %
+    irom:    available: 592 k, used: 397416, free: 208792, 34 %
+Fri Oct  9 12:53:34 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32420, free:    348,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397848, free: 208360, 34 %
+Fri Oct  9 12:54:17 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32420, free:    348,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397864, free: 208344, 34 %
+Fri Oct  9 12:59:45 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32432, free:    336,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397880, free: 208328, 34 %
+Fri Oct  9 13:01:48 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32432, free:    336,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397848, free: 208360, 34 %
+Fri Oct  9 13:02:34 CEST 2020 b141700 Revert "NONOS-SDK: changed url to forked repo."
+    iram:    available:  32 k, used:  32420, free:    348,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397848, free: 208360, 34 %
+Fri Oct  9 13:11:15 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  32416, free:    352,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397848, free: 208360, 34 %
+Fri Oct  9 13:12:06 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  32412, free:    356,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397848, free: 208360, 34 %
+Fri Oct  9 13:14:30 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  32380, free:    388,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397880, free: 208328, 34 %
+Fri Oct  9 13:16:15 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  32340, free:    428,  1 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 397880, free: 208328, 34 %
+Fri Oct  9 13:19:07 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31856, free:    912,  2 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398248, free: 207960, 34 %
+Fri Oct  9 13:20:04 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31796, free:    972,  2 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398248, free: 207960, 34 %
+Fri Oct  9 13:22:23 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31736, free:   1032,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398312, free: 207896, 34 %
+Fri Oct  9 13:25:02 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31600, free:   1168,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398440, free: 207768, 34 %
+Fri Oct  9 13:26:17 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31424, free:   1344,  4 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398648, free: 207560, 34 %
+Fri Oct  9 13:27:16 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  30928, free:   1840,  5 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 399144, free: 207064, 34 %
+Fri Oct  9 13:28:09 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  30668, free:   2100,  6 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 399336, free: 206872, 34 %
+Fri Oct  9 13:29:57 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  30676, free:   2092,  6 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 399320, free: 206888, 34 %
+Fri Oct  9 13:30:33 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31172, free:   1596,  4 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398824, free: 207384, 34 %
+Fri Oct  9 13:31:09 CEST 2020 3a46530 init: workaround for new init procedure in SDK.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398424, free: 207784, 34 %
