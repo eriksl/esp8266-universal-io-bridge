@@ -45,6 +45,22 @@ iram void user_spi_flash_dio_to_qio_pre_init(void)
 {
 }
 
+static volatile uint32_t *stack_paint_ptr; // this cannot be on the stack
+
+iram void paint_stack(void)
+{
+	// don't declare stack variables here, they will get overwritten
+
+	volatile uint32_t sp;
+	stat_stack_sp_initial = &sp;
+
+	for(stack_paint_ptr = (uint32_t *)stack_top; (stack_paint_ptr < (uint32_t *)stack_bottom) && (stack_paint_ptr < (volatile uint32_t *)stat_stack_sp_initial); stack_paint_ptr++)
+	{
+		*stack_paint_ptr = stack_paint_magic;
+		stat_stack_painted += 4;
+	}
+}
+
 void user_pre_init(void);
 iram void user_pre_init(void)
 {
@@ -61,18 +77,7 @@ iram attr_const uint32_t user_iram_memory_is_enabled(void)
 
 void user_init(void)
 {
-	// don't declare stack variables here, they will get overwritten
-
-	register uint32_t *paint;
-	volatile uint32_t sp;
-
-	stat_stack_sp_initial = &sp;
-
-	for(paint = (typeof(paint))stack_top; (paint < (typeof(paint))stack_bottom) && (paint < &sp); paint++)
-	{
-		*paint = stack_paint_magic;
-		stat_stack_painted += 4;
-	}
+	paint_stack();
 
 	system_set_os_print(0);
 	dispatch_init1();

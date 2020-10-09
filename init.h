@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+void paint_stack(void);
 bool wlan_init_from_config(void);
 void wlan_init_start_recovery(void);
 
