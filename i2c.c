@@ -433,7 +433,7 @@ attr_inline i2c_error_t send_header(int address, i2c_direction_t direction)
 	return(i2c_error_ok);
 }
 
-iram static i2c_error_t i2c_send_sequence(int address, int length, const uint8_t *bytes)
+static i2c_error_t i2c_send_sequence(int address, int length, const uint8_t *bytes)
 {
 	int current;
 	i2c_error_t error;
@@ -521,7 +521,7 @@ attr_inline i2c_error_t i2c_receive_sequence(int address, int length, uint8_t *b
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
+i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 {
 	i2c_error_t error;
 
@@ -540,7 +540,7 @@ iram i2c_error_t i2c_send(int address, int length, const uint8_t *bytes)
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
+i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 {
 	i2c_error_t error;
 
@@ -559,7 +559,7 @@ iram i2c_error_t i2c_receive(int address, int length, uint8_t *bytes)
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
+i2c_error_t i2c_send_receive(int address, int sendlength, const uint8_t *sendbytes, int receivelength, uint8_t *receivebytes)
 {
 	i2c_error_t error;
 
@@ -607,7 +607,7 @@ i2c_error_t i2c_send1_receive(int address, int byte0, int receivelength, uint8_t
 	return(i2c_send_receive(address, sizeof(bytes), bytes, receivelength, receivebytes));
 }
 
-iram i2c_error_t i2c_select_bus(unsigned int bus)
+i2c_error_t i2c_select_bus(unsigned int bus)
 {
 	if(!i2c_flags.multiplexer)
 		return((bus == 0) ? i2c_error_ok : i2c_error_invalid_bus);
@@ -666,7 +666,7 @@ static i2c_error_t i2c_reset_fixup_bus(void)
 	return(i2c_error_ok);
 }
 
-iram i2c_error_t i2c_reset(void)
+i2c_error_t i2c_reset(void)
 {
 	i2c_error_t error;
 
