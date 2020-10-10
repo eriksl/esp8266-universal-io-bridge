@@ -12,6 +12,7 @@ USE_LTO				?= 0
 
 MAKEFLAGS += --no-builtin-rules
 
+GIT_COMMIT					:= "\"`export LC_ALL=C; git log -n 1 --oneline`\""
 ARCH						:= xtensa-lx106-elf
 THIRDPARTY					:= $(PWD)/third-party
 ESPSDK						:= $(THIRDPARTY)/ESP8266_NONOS_SDK
@@ -201,6 +202,7 @@ CFLAGS 			+=	-flto=8 -flto-compression-level=0 -fuse-linker-plugin -ffat-lto-obj
 endif
 
 CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
+						-DGIT_COMMIT=$(GIT_COMMIT) \
 						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
 						-DRFCAL_OFFSET=$(RFCAL_OFFSET) -DRFCAL_SIZE=$(RFCAL_SIZE) \

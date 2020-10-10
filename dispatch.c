@@ -408,8 +408,8 @@ static void slow_timer_callback(void *arg)
 
 	io_periodic_slow();
 
-	if(stat_stack_painted <= 0)
-		paint_stack();
+	if(stack_stack_painted <= 0)
+		stack_paint_stack();
 
 	os_timer_arm(&slow_timer, 100, 0);
 }

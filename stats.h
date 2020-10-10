@@ -4,13 +4,6 @@
 #include <stdint.h>
 #include "util.h"
 
-enum
-{
-	stack_paint_magic = 0xabcdefaa,
-	stack_top = 0x3fffeb30,
-	stack_bottom = 0x40000000 - sizeof(void *)
-};
-
 typedef struct
 {
 	unsigned int user_pre_init_called:1;
@@ -85,8 +78,6 @@ extern unsigned int stat_i2c_bus_lock_max_period;
 extern unsigned int stat_i2c_soft_resets;
 extern unsigned int stat_i2c_hard_resets;
 
-extern volatile uint32_t *stat_stack_sp_initial;
-extern int stat_stack_painted;
 extern unsigned int stat_heap_min, stat_heap_max;
 
 void stats_firmware(string_t *dst);

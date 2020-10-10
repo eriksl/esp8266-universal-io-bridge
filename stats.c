@@ -1,6 +1,7 @@
 #include "stats.h"
 
 #include "util.h"
+#include "init.h"
 #include "sys_string.h"
 #include "config.h"
 #include "sys_time.h"
@@ -77,8 +78,6 @@ int stat_debug_1;
 int stat_debug_2;
 int stat_debug_3;
 
-volatile uint32_t	*stat_stack_sp_initial;
-int					stat_stack_painted;
 unsigned int		stat_heap_min, stat_heap_max;
 
 roflash static const char *const flash_map[] =
@@ -180,20 +179,25 @@ attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 
 void stats_firmware(string_t *dst)
 {
-	unsigned int stack_size = stack_bottom - stack_top;
-	int stack_used = -1; // no painted words found, overflow
-	int stack_free = -1;
+	roflash static const char git_commit[] = GIT_COMMIT;
+
+	int32_t stack_size = stack_bottom - stack_top;
+	int32_t stack_used = -1;
+	int32_t stack_free = -1;
 	unsigned int heap;
 	uint32_t *sp;
 
-	for(sp = (typeof(sp))stack_top; sp < (typeof(sp))stack_bottom; sp++)
-		if(*sp != stack_paint_magic)
-			break;
-
-	if(sp != (typeof(sp))stack_top)
+	if(stack_stack_painted > 0)
 	{
-		stack_free = (unsigned int)sp - stack_top;
-		stack_used = stack_bottom - (unsigned int)sp;
+		for(sp = (uint32_t *)stack_top; (uint32_t)sp < stack_bottom; sp++)
+			if(*sp != stack_paint_magic)
+				break;
+
+		if((uint32_t)sp != stack_top)
+		{
+			stack_free = (int32_t)sp - stack_top;
+			stack_used = stack_bottom - (int32_t)sp;
+		}
 	}
 
 	heap = xPortGetFreeHeapSize();
@@ -205,30 +209,40 @@ void stats_firmware(string_t *dst)
 		stat_heap_max = heap;
 
 	string_format(dst,
-			"> firmware version date: %s\n"
-			"> SDK version: %s\n"
-			"> system id: %02lx:%02lx:%02lx\n"
-			"> cpu frequency: %u MHz\n"
-			"> heap free current: %u, min: %u, max: %u bytes\n"
+			"> firmware\n"
+			">   date: %s %s\n"
+			">   git commit: %s\n"
+			">\n"
+			"> heap:\n"
+			">   free: current: %u, min: %u, max: %u\n"
 			">\n"
 			"> stack:\n"
-			">   bottom: %p, top: %p\n"
-			">   initial: %p (%lu bytes), current: %p (%lu bytes)\n"
-			">   painted: %d bytes, not painted: %u bytes\n"
-			">   size: %u bytes, used: %d bytes, free: %d bytes\n",
-				__DATE__ " " __TIME__,
-				system_get_sdk_version(),
+			">   bottom: %p (%d kiB), top: %p (%d kiB), initial: %p (%ld), current: %p (%ld)\n"
+			">   size: %ld, painted: %d, not painted: %ld\n"
+			">   currently used: %ld/%ld%%, max used: %ld/%ld%%, unused: %ld/%ld%%\n"
+			">\n"
+			"> system\n"
+			">   id: %02lx:%02lx:%02lx\n"
+			">   cpu frequency: %u MHz\n"
+			">   SDK version: %s\n",
+				__DATE__, __TIME__,
+				git_commit,
+				heap, stat_heap_min, stat_heap_max,
+					(void *)stack_bottom, stack_bottom >> 10,
+					(void *)stack_top, stack_top >> 10,
+					stack_stack_sp_initial, stack_bottom - (int32_t)stack_stack_sp_initial,
+					&sp, stack_bottom - (int32_t)&sp,
+				stack_size, stack_stack_painted, stack_size - stack_stack_painted,
+					stack_bottom - (int32_t)&sp, ((stack_bottom - (int32_t)&sp) * 100) / stack_size,
+					stack_used, (stack_used * 100) / stack_size,
+					stack_free, (stack_free * 100) / stack_size,
 				(system_get_chip_id() & 0x00ff0000) >> 16,
 				(system_get_chip_id() & 0x0000ff00) >>  8,
 				(system_get_chip_id() & 0x000000ff) >>  0,
 				system_get_cpu_freq(),
-				heap, stat_heap_min, stat_heap_max,
-				(void *)stack_bottom, (void *)stack_top,
-				stat_stack_sp_initial, (uint32_t)stack_bottom - (uint32_t)stat_stack_sp_initial, &sp, (uint32_t)stack_bottom - (uint32_t)&sp,
-				stat_stack_painted, stack_size - stat_stack_painted,
-				stack_size, stack_used, stack_free);
+				system_get_sdk_version());
 
-	string_append(dst, ">\n> reset cause: ");
+	string_append(dst, ">   reset cause: ");
 	explain_exception(dst);
 	string_append(dst, "\n");
 }

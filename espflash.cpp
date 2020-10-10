@@ -1190,7 +1190,7 @@ int main(int argc, const char **argv)
 					}
 				}
 
-				process(channel, "stats", reply, "> firmware version date: ([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 1000);
+				process(channel, "stats", reply, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 1000);
 
 				std::cout << "firmware version: " << string_value[0] << std::endl;
 			}
