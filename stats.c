@@ -207,7 +207,7 @@ void stats_firmware(string_t *dst)
 	string_format(dst,
 			"> firmware version date: %s\n"
 			"> SDK version: %s\n"
-			"> system id: %lu\n"
+			"> system id: %02lx:%02lx:%02lx\n"
 			"> cpu frequency: %u MHz\n"
 			"> heap free current: %u, min: %u, max: %u bytes\n"
 			">\n"
@@ -218,7 +218,9 @@ void stats_firmware(string_t *dst)
 			">   size: %u bytes, used: %d bytes, free: %d bytes\n",
 				__DATE__ " " __TIME__,
 				system_get_sdk_version(),
-				system_get_chip_id(),
+				(system_get_chip_id() & 0x00ff0000) >> 16,
+				(system_get_chip_id() & 0x0000ff00) >>  8,
+				(system_get_chip_id() & 0x000000ff) >>  0,
 				system_get_cpu_freq(),
 				heap, stat_heap_min, stat_heap_max,
 				(void *)stack_bottom, (void *)stack_top,
