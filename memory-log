@@ -7050,3 +7050,131 @@ Sat Dec 12 18:04:39 CET 2020 2384ff8 stats: add git commit oneline message to st
     iram:    available:  32 k, used:  31688, free:   1080,  3 %
     dram:    available:  78 k, used:  66277, free:  13988, 17 %
     irom:    available: 592 k, used: 398744, free: 207464, 34 %
+Mon Feb 15 18:07:37 CET 2021 338cf4c lwip: fix possible array lookup overflow for LWIP status messages.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398760, free: 207448, 34 %
+Mon Feb 15 19:13:50 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:27:49 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  68769, free:  11496, 14 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:28:01 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66721, free:  13544, 16 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:28:18 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 400488, free: 205720, 33 %
+Mon Feb 15 19:28:49 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  70817, free:   9448, 11 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:32:16 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72345, free:   7920,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:34:05 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72865, free:   7400,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:37:45 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72329, free:   7936,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:42:30 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72253, free:   8012,  9 %
+    irom:    available: 592 k, used: 400408, free: 205800, 33 %
+Mon Feb 15 19:43:12 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72329, free:   7936,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:43:47 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72289, free:   7976,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:44:25 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:44:57 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72417, free:   7848,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:45:07 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72289, free:   7976,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:45:29 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72257, free:   8008,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:45:36 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:46:13 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72177, free:   8088, 10 %
+    irom:    available: 592 k, used: 400552, free: 205656, 33 %
+Mon Feb 15 19:46:24 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:46:31 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72177, free:   8088, 10 %
+    irom:    available: 592 k, used: 400552, free: 205656, 33 %
+Mon Feb 15 19:49:36 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400504, free: 205704, 33 %
+Mon Feb 15 19:49:47 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:50:04 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400504, free: 205704, 33 %
+Mon Feb 15 19:50:12 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72241, free:   8024,  9 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 19:52:15 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72225, free:   8040, 10 %
+    irom:    available: 592 k, used: 400520, free: 205688, 33 %
+Mon Feb 15 20:34:04 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72225, free:   8040, 10 %
+    irom:    available: 592 k, used: 400200, free: 206008, 33 %
+Mon Feb 15 20:34:41 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72209, free:   8056, 10 %
+    irom:    available: 592 k, used: 399224, free: 206984, 34 %
+Mon Feb 15 20:34:49 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72225, free:   8040, 10 %
+    irom:    available: 592 k, used: 400520, free: 205688, 33 %
+Mon Feb 15 20:37:04 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72225, free:   8040, 10 %
+    irom:    available: 592 k, used: 400536, free: 205672, 33 %
+Mon Feb 15 20:38:17 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72225, free:   8040, 10 %
+    irom:    available: 592 k, used: 400520, free: 205688, 33 %
+Mon Feb 15 20:39:50 CET 2021 e8d7085 Revert lwip: put it on diet. No tcp resend or oos re-assembly is required.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  72065, free:   8200, 10 %
+    irom:    available: 592 k, used: 400520, free: 205688, 33 %
+Mon Feb 15 20:45:10 CET 2021 338cf4c lwip: fix possible array lookup overflow for LWIP status messages.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66797, free:  13468, 16 %
+    irom:    available: 592 k, used: 398760, free: 207448, 34 %
