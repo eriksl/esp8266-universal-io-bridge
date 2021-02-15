@@ -6974,3 +6974,79 @@ Fri Oct  9 13:31:09 CEST 2020 3a46530 init: workaround for new init procedure in
     iram:    available:  32 k, used:  31688, free:   1080,  3 %
     dram:    available:  78 k, used:  66277, free:  13988, 17 %
     irom:    available: 592 k, used: 398424, free: 207784, 34 %
+Sat Oct 10 11:04:33 CEST 2020 3bf0407 memory-log: update.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398472, free: 207736, 34 %
+Sat Oct 10 11:09:43 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398504, free: 207704, 34 %
+Sat Oct 10 11:12:19 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398536, free: 207672, 34 %
+Sat Oct 10 11:21:58 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398632, free: 207576, 34 %
+Sat Oct 10 11:24:40 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398616, free: 207592, 34 %
+Sat Oct 10 11:32:23 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398632, free: 207576, 34 %
+Sat Oct 10 11:43:21 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398600, free: 207608, 34 %
+Sat Oct 10 11:58:14 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Sat Oct 10 12:02:56 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398664, free: 207544, 34 %
+Sat Oct 10 12:05:30 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398632, free: 207576, 34 %
+Sat Oct 10 12:09:58 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398664, free: 207544, 34 %
+Sat Oct 10 12:12:55 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398680, free: 207528, 34 %
+Sat Oct 10 12:29:27 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398664, free: 207544, 34 %
+Sat Oct 10 12:30:23 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398680, free: 207528, 34 %
+Sat Oct 10 12:32:10 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398648, free: 207560, 34 %
+Sat Oct 10 12:49:12 CEST 2020 c6741c1 stats: display system id as three part one byte hex address.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398760, free: 207448, 34 %
+Sat Oct 10 13:30:51 CEST 2020 3535efe stats: add git commit oneline message to stats output.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398744, free: 207464, 34 %
+Sat Dec 12 18:03:34 CET 2020 2384ff8 stats: add git commit oneline message to stats output.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66293, free:  13972, 17 %
+    irom:    available: 592 k, used: 398744, free: 207464, 34 %
+Sat Dec 12 18:04:39 CET 2020 2384ff8 stats: add git commit oneline message to stats output.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66277, free:  13988, 17 %
+    irom:    available: 592 k, used: 398744, free: 207464, 34 %
