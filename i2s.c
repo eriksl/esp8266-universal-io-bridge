@@ -47,7 +47,6 @@ iram static void i2s_callback(void *arg)
 	clear_peri_reg_mask(I2SCONF, I2S_I2S_TX_START);
 
 done:
-	(void)0;
 	ets_isr_unmask(1 << ETS_SPI_INUM);
 }
 
