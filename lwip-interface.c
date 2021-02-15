@@ -31,7 +31,12 @@ enum
 	lwip_tcp_max_payload =		lwip_ethernet_max_payload - lwip_ip_header_size - lwip_tcp_header_size,
 };
 
-static const char * const lwip_error_strings[] roflash =
+enum
+{
+	lwip_error_strings_size = 17
+};
+
+static const char * const lwip_error_strings[lwip_error_strings_size] roflash =
 {
 	"ok",						// 0		ERR_OK
 	"out of memory",			// -1		ERR_MEM
@@ -59,8 +64,8 @@ static void log_error(err_t error)
 	if(ix < 0)
 		ix = 0 - ix;
 
-	if(ix > 17)
-		ix = 17;
+	if(ix >= lwip_error_strings_size)
+		ix = lwip_error_strings_size - 1;
 
 	log("error: ");
 	log_from_flash(lwip_error_strings[ix]);
