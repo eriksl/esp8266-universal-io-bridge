@@ -112,8 +112,8 @@ bool i2s_init(void)
 	static const unsigned int conf_reset_mask = I2S_I2S_TX_FIFO_RESET | I2S_I2S_RX_FIFO_RESET | I2S_I2S_TX_RESET | I2S_I2S_RX_RESET;
 
 	static const unsigned int conf_setup =
-				(( 3 & I2S_BCK_DIV_NUM)		<< I2S_BCK_DIV_NUM_S) |		// bitclock = 4.70 MHz / 3 = 1.56 MHz
-				((17 & I2S_CLKM_DIV_NUM)	<< I2S_CLKM_DIV_NUM_S) |	// prescaler = 17, 80 MHz / 17 = 4.70 MHz
+				(( 4 & I2S_BCK_DIV_NUM)		<< I2S_BCK_DIV_NUM_S) |		// bitclock = 4.70 MHz / 3 = 1.57 MHz
+				((17 & I2S_CLKM_DIV_NUM)	<< I2S_CLKM_DIV_NUM_S) |	// prescaler = 17, 80 MHz / 17 = 4.71 MHz
 				(( 0 & I2S_BITS_MOD)		<< I2S_BITS_MOD_S) |		// see note above, has to do with the word clock, not used here
 			//	I2S_RECE_MSB_SHIFT |									// unknown
 			//	I2S_TRANS_MSB_SHIFT |									// unknown
