@@ -835,7 +835,11 @@ bool display_lcd_layer_select(unsigned int layer)
 
 	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
 	{
-		logf("display lcd: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		logf("display lcd: show picture: invalid image header: %02x %02x %02x %02x\n",
+				((uint8_t *)&flash_sector_buffer)[0],
+				((uint8_t *)&flash_sector_buffer)[1],
+				((uint8_t *)&flash_sector_buffer)[2],
+				((uint8_t *)&flash_sector_buffer)[3]);
 		goto error;
 	}
 
