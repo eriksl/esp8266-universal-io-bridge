@@ -1,7 +1,7 @@
 // lwip core
 
 #define MEM_SIZE					(6 * 1024)
-#define MEMP_NUM_PBUF				6
+#define MEMP_NUM_PBUF				32
 #define MEMP_NUM_UDP_PCB			4
 #define MEMP_NUM_TCP_PCB			2
 #define MEMP_NUM_TCP_PCB_LISTEN		2
