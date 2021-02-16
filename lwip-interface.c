@@ -380,7 +380,7 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
 		{
 			stat_lwip_udp_send_error++;
-			logf("lwip if send: udp send failed: offset: %u, length: %u, error: ", offset, length);
+			logf("lwip if sendto: udp send failed: offset: %u, length: %u, error: ", offset, length);
 			log_error(error);
 			return(false);
 		}
@@ -395,7 +395,7 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
 		{
 			stat_lwip_udp_send_error++;
-			log("lwip if send: udp terminate failed, error: ");
+			log("lwip if sendto: udp terminate failed, error: ");
 			log_error(error);
 			return(false);
 		}
