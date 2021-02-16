@@ -7178,3 +7178,23 @@ Mon Feb 15 20:45:10 CET 2021 338cf4c lwip: fix possible array lookup overflow fo
     iram:    available:  32 k, used:  31688, free:   1080,  3 %
     dram:    available:  78 k, used:  66797, free:  13468, 16 %
     irom:    available: 592 k, used: 398760, free: 207448, 34 %
+Mon Feb 15 20:56:44 CET 2021 78a895f memory-log: update
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66797, free:  13468, 16 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Tue Feb 16 17:36:34 CET 2021 78a895f memory-log: update
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65773, free:  14492, 18 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Tue Feb 16 17:38:05 CET 2021 78a895f memory-log: update
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  64749, free:  15516, 19 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Tue Feb 16 17:55:08 CET 2021 78a895f memory-log: update
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65653, free:  14612, 18 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
+Tue Feb 16 17:55:57 CET 2021 78a895f memory-log: update
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65853, free:  14412, 17 %
+    irom:    available: 592 k, used: 398712, free: 207496, 34 %
