@@ -1970,22 +1970,14 @@ static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_ent
 	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
 		return(error);
 
-	if(data->high_sensitivity)
-		// mode = hmode2, timing = 254
-		// hmode2 = 1/2 lx / count
-		// timing = 1 / 254 / 69 = 0.27
-		luxpercount = 1.2 * 0.5 * 0.27;
-	else
-		// mode = hmode, timing = default = 69
-		// hmode =  1 lx / count
-		luxpercount = 1.2;
+	luxpercount = data->high_sensitivity ? 0.1 : 0.8;
 
 	value->raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
 
 	if(value->raw >= 0xffff)
-		value->cooked = -1;
-	else
-		value->cooked = value->raw * luxpercount * 0.6;
+		return(i2c_error_overflow);
+
+	value->cooked = value->raw * luxpercount;
 
 	return(i2c_error_ok);
 }
