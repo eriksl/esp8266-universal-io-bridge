@@ -1581,6 +1581,225 @@ static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_en
 				else
 					value->cooked = (0.0304 * ch0) - (0.062 * ch0 * pow(ratio, 1.4));
 
+typedef enum
+{
+	tsl2591_reg_enable =		0x00,
+	tsl2591_reg_control =		0x01,
+	tsl2591_reg_ailtl =			0x04,
+	tsl2591_reg_ailth =			0x05,
+	tsl2591_reg_aihtl =			0x06,
+	tsl2591_reg_aihth =			0x07,
+	tsl2591_reg_npailtl =		0x08,
+	tsl2591_reg_npailth =		0x09,
+	tsl2591_reg_npaihtl =		0x0a,
+	tsl2591_reg_npaihth =		0x0b,
+	tsl2591_reg_persist =		0x0c,
+	tsl2591_reg_pid =			0x11,
+	tsl2591_reg_id =			0x12,
+	tsl2591_reg_status =		0x13,
+	tsl2591_reg_c0datal =		0x14,
+	tsl2591_reg_c0datah =		0x15,
+	tsl2591_reg_c1datal =		0x16,
+	tsl2591_reg_c1datah =		0x17,
+} tsl2591_reg_t;
+
+typedef enum
+{
+	tsl2591_cmd_cmd =							0b1 << 7,
+	tsl2591_cmd_transaction_normal =			0b01 << 5,
+	tsl2591_cmd_transaction_special =			0b11 << 5,
+	tsl2591_cmd_sf_interrupt_set =				0b00100 << 0,
+	tsl2591_cmd_sf_interrupt_clear_als =		0b00110 << 0,
+	tsl2591_cmd_sf_interrupt_clear_als_nals =	0b00111 << 0,
+	tsl2591_cmd_sf_interrupt_clear_nals =		0b01010 << 0,
+} tsl2591_cmd_t;
+
+typedef enum
+{
+	tsl2591_enable_npien =	0b1 << 7,
+	tsl2591_enable_sai =	0b1 << 6,
+	tsl2591_enable_aien =	0b1 << 4,
+	tsl2591_enable_aen =	0b1 << 1,
+	tsl2591_enable_pon =	0b1 << 0,
+} tsl2591_enable_t;
+
+typedef enum
+{
+	tsl2591_control_sreset =		0b1 << 7,
+	tsl2591_control_again_0 =		0b00 << 4,
+	tsl2591_control_again_25 =		0b01 << 4,
+	tsl2591_control_again_400 =		0b10 << 4,
+	tsl2591_control_again_9500 =	0b11 << 4,
+	tsl2591_control_atime_100 =		0b000 << 0,
+	tsl2591_control_atime_200 =		0b001 << 0,
+	tsl2591_control_atime_300 =		0b010 << 0,
+	tsl2591_control_atime_400 =		0b011 << 0,
+	tsl2591_control_atime_500 =		0b100 << 0,
+	tsl2591_control_atime_600 =		0b101 << 0,
+} tsl2591_control_t;
+
+typedef enum
+{
+	tsl2591_pid_mask =	0b11 << 4,
+	tsl2591_pid_value = 0b00 << 4,
+} tsl2591_pid_t;
+
+typedef enum
+{
+	tsl2591_id_mask =	0xff,
+	tsl2591_id_value =	0x50,
+} tsl2591_id_t;
+
+typedef enum
+{
+	tsl2591_status_npintr = 0b1 << 5,
+	tsl2591_status_aint =	0b1 << 4,
+	tsl2591_status_avalid =	0b1 << 0,
+} tsl2591_status_t;
+
+static const double tsl2591_correction_factor = 1.0;
+
+enum { tsl2591_factor_size = 7 };
+
+roflash static const struct
+{
+	int32_t	lower_bound_1000;
+	int32_t	upper_bound_1000;
+	int32_t	ch0_factor_1000;
+	int32_t	ch1_factor_1000;
+} tsl2591_factors[tsl2591_factor_size] =
+{
+	{	0,		125,	1000,	-895	},
+	{	125,	250,	1070,	-1145	},
+	{	250,	375,	1115,	-1790	},
+	{	375,	500,	1126,	-2050	},
+	{	500,	610,	740,	-1002	},
+	{	610,	800,	420,	-500	},
+	{	800,	1300,	48,		-37		},
+};
+
+static i2c_error_t tsl2591_write(int address, tsl2591_reg_t reg, unsigned int value)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send2(address, tsl2591_cmd_cmd | reg, value)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t tsl2591_read_byte(int address, tsl2591_reg_t reg, uint8_t *byte)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send1_receive(address, tsl2591_cmd_cmd | reg, sizeof(*byte), byte)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t tsl2591_write_check(int address, tsl2591_reg_t reg, unsigned int value)
+{
+	i2c_error_t error;
+	uint8_t rv;
+
+	if((error = tsl2591_write(address, reg, value)) != i2c_error_ok)
+		return(error);
+
+	if((error = tsl2591_read_byte(address, reg, &rv)) != i2c_error_ok)
+		return(error);
+
+	if(value != rv)
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_tsl2591_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t regval;
+
+	if((error = tsl2591_read_byte(entry->address, tsl2591_reg_pid, &regval)) != i2c_error_ok)
+		return(error);
+
+	if((regval & tsl2591_pid_mask) != tsl2591_pid_value)
+		return(i2c_error_address_nak);
+
+	if((error = tsl2591_read_byte(entry->address, tsl2591_reg_id, &regval)) != i2c_error_ok)
+		return(error);
+
+	if((regval & tsl2591_id_mask) != tsl2591_id_value)
+		return(i2c_error_address_nak);
+
+	if(tsl2591_write_check(entry->address, tsl2591_reg_id, 0x00) == i2c_error_ok) // id register should not be writable
+		return(i2c_error_address_nak);
+
+	tsl2591_write(entry->address, tsl2591_reg_control, tsl2591_control_sreset);
+
+	data->high_sensitivity = config_flags_match(flag_tsl_high_sens);
+
+	if(data->high_sensitivity)
+		regval = tsl2591_control_again_400 | tsl2591_control_atime_600;
+	else
+		regval = tsl2591_control_again_0 | tsl2591_control_atime_200;
+
+	if((error = tsl2591_write_check(entry->address, tsl2591_reg_control, regval)) != i2c_error_ok)
+		return(error);
+
+	if((error = tsl2591_write_check(entry->address, tsl2591_reg_enable, tsl2591_enable_aen | tsl2591_enable_pon)) != i2c_error_ok)
+		return(error);
+
+	sensor_register(bus, entry->id);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[4];
+	int ch0, ch1, ch0_factor, ch1_factor, ratio_1000, ratio_index, cpl;
+
+	if(data->high_sensitivity)
+		cpl = 400;	// high sensitivity = 600 ms integration time, analogue amplification = 400x
+	else
+		cpl = 1;	// low  sensitivity = 200 ms integration time, analogue amplification = 1x
+
+	value->raw = value->cooked = -1;
+
+	if((error = i2c_send1_receive(entry->address, tsl2591_cmd_cmd | tsl2591_reg_c0datal, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	ch0 = (unsigned int)(i2c_buffer[1] << 8) | i2c_buffer[0];
+	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
+
+	value->raw = (ch0 * 1000 + ch1);
+
+	if((ch0 == 65535) || (ch1 == 65535))
+		return(i2c_error_out_of_range);
+
+	if(ch0 == 0)
+		return(i2c_error_out_of_range);
+
+	ratio_1000 = (1000UL * ch1) / ch0;
+
+	ch0_factor = 0;
+	ch1_factor = 0;
+
+	for(ratio_index = 0; ratio_index < tsl2591_factor_size; ratio_index++)
+	{
+		if((ratio_1000 >= tsl2591_factors[ratio_index].lower_bound_1000) &&
+				(ratio_1000 < tsl2591_factors[ratio_index].upper_bound_1000))
+		{
+			ch0_factor = tsl2591_factors[ratio_index].ch0_factor_1000;
+			ch1_factor = tsl2591_factors[ratio_index].ch1_factor_1000;
+			break;
+		}
+	}
+
+	value->cooked = (((ch0 * ch0_factor) + (ch1 * ch1_factor)) / 1000.0 / cpl) * tsl2591_correction_factor;
+
 	return(i2c_error_ok);
 }
 
@@ -4787,6 +5006,13 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"digipicco", "humidity", "%",
 		(void *)0,
 		sensor_digipicco_humidity_read,
+		(void *)0,
+	},
+	{
+		i2c_sensor_tsl2591, 0x29, 3, 0,
+		"tsl2591", "visible light", "lx",
+		sensor_tsl2591_init,
+		sensor_tsl2591_read,
 		(void *)0,
 	},
 };
