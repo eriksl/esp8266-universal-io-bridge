@@ -1367,6 +1367,58 @@ static i2c_error_t sensor_veml6070_39_read(int bus, const i2c_sensor_device_tabl
 	return(sensor_veml6070_38_read(bus, entry, value, data));
 }
 
+enum { tsl_factor_size = 7 };
+
+roflash static const struct
+{
+	int32_t	lower_bound_1000;
+	int32_t	upper_bound_1000;
+	int32_t	ch0_factor_1000;
+	int32_t	ch1_factor_1000;
+} tsl_factors[tsl_factor_size] =
+{
+	{	0,		125,	1000,	-895	},
+	{	125,	250,	1070,	-1145	},
+	{	250,	375,	1115,	-1790	},
+	{	375,	500,	1126,	-2050	},
+	{	500,	610,	740,	-1002	},
+	{	610,	800,	420,	-500	},
+	{	800,	1300,	48,		-37		},
+};
+
+static i2c_error_t sensor_tsl_convert(double cpl, unsigned int ch0, unsigned int ch1, i2c_sensor_value_t *value)
+{
+	int ch0_factor, ch1_factor, ratio_1000, ratio_index;
+
+	value->raw = (ch0 * 1000 + ch1);
+
+	if((ch0 == 65535) || (ch1 == 65535))
+		return(i2c_error_out_of_range);
+
+	if(ch0 == 0)
+		return(i2c_error_out_of_range);
+
+	ratio_1000 = (1000UL * ch1) / ch0;
+
+	ch0_factor = 0;
+	ch1_factor = 0;
+
+	for(ratio_index = 0; ratio_index < tsl_factor_size; ratio_index++)
+	{
+		if((ratio_1000 >= tsl_factors[ratio_index].lower_bound_1000) &&
+				(ratio_1000 < tsl_factors[ratio_index].upper_bound_1000))
+		{
+			ch0_factor = tsl_factors[ratio_index].ch0_factor_1000;
+			ch1_factor = tsl_factors[ratio_index].ch1_factor_1000;
+			break;
+		}
+	}
+
+	value->cooked = (((ch0 * ch0_factor) + (ch1 * ch1_factor)) / cpl / 1000.0);
+
+	return(i2c_error_ok);
+}
+
 typedef enum
 {
 	tsl2561_reg_control =		0x00,
@@ -1518,68 +1570,22 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t	error;
-	uint8_t i2c_buffer[2];
-	unsigned int ch0r, ch1r;
-	double ratio, ch0, ch1;
+	uint8_t i2c_buffer[4];
+	unsigned int ch0, ch1;
+	double cpl;
 
 	value->raw = value->cooked = -1;
+
+	cpl = data->high_sensitivity ? 42 : 0.6;
 
 	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | tsl2561_reg_data0, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	ch0r = (i2c_buffer[1] << 8) | i2c_buffer[0];
+	ch0 = (unsigned int)(i2c_buffer[1] << 8) | i2c_buffer[0];
+	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | tsl2561_reg_data1, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	ch1r = (i2c_buffer[1] << 8) | i2c_buffer[0];
-
-	if(ch0r == 0)
-	{
-		value->raw = value->cooked = 0;
-		return(i2c_error_device_error_1);
-	}
-
-	if(data->high_sensitivity)
-	{
-		// high sensitivity = 402 ms integration time, scaling factor = 1
-		// analogue amplification = 16x, scaling factor = 1
-
-		if((ch0r == 65535) || (ch1r == 65535))
-			return(i2c_error_overflow);
-
-		ch0 = (double)ch0r * 1.0 * 1.0;
-		ch1 = (double)ch1r * 1.0 * 1.0;
-	}
-	else
-	{
-		// low  sensitivity = 101 ms integration time, scaling factor = 3.98 (402 / 101)
-		// analogue amplification = 1x, scaling factor = 16
-
-		if((ch0r >= 37177) || (ch1r >= 37177))
-			return(i2c_error_overflow);
-
-		ch0 = (double)ch0r * 3.98 * 16.0;
-		ch1 = (double)ch1r * 3.98 * 16.0;
-	}
-
-	ratio = ch1 / ch0;
-
-	value->raw = ch0;
-
-	if(ratio > 1.30)
-		value->cooked = 0;
-	else
-		if(ratio >= 0.80)
-			value->cooked = (0.00146 * ch0) - (0.00112 * ch1);
-		else
-			if(ratio >= 0.61)
-				value->cooked = (0.0128 * ch0) - (0.0153 * ch1);
-			else
-				if(ratio >= 0.50)
-					value->cooked = (0.0224 * ch0) - (0.031 * ch1);
-				else
-					value->cooked = (0.0304 * ch0) - (0.062 * ch0 * pow(ratio, 1.4));
+	return(sensor_tsl_convert(cpl, ch0, ch1, value));
+}
 
 typedef enum
 {
@@ -1656,27 +1662,6 @@ typedef enum
 	tsl2591_status_aint =	0b1 << 4,
 	tsl2591_status_avalid =	0b1 << 0,
 } tsl2591_status_t;
-
-static const double tsl2591_correction_factor = 1.0;
-
-enum { tsl2591_factor_size = 7 };
-
-roflash static const struct
-{
-	int32_t	lower_bound_1000;
-	int32_t	upper_bound_1000;
-	int32_t	ch0_factor_1000;
-	int32_t	ch1_factor_1000;
-} tsl2591_factors[tsl2591_factor_size] =
-{
-	{	0,		125,	1000,	-895	},
-	{	125,	250,	1070,	-1145	},
-	{	250,	375,	1115,	-1790	},
-	{	375,	500,	1126,	-2050	},
-	{	500,	610,	740,	-1002	},
-	{	610,	800,	420,	-500	},
-	{	800,	1300,	48,		-37		},
-};
 
 static i2c_error_t tsl2591_write(int address, tsl2591_reg_t reg, unsigned int value)
 {
@@ -1757,16 +1742,13 @@ static i2c_error_t sensor_tsl2591_init(int bus, const i2c_sensor_device_table_en
 
 static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t	error;
+	i2c_error_t error;
 	uint8_t i2c_buffer[4];
-	int ch0, ch1, ch0_factor, ch1_factor, ratio_1000, ratio_index, cpl;
-
-	if(data->high_sensitivity)
-		cpl = 400;	// high sensitivity = 600 ms integration time, analogue amplification = 400x
-	else
-		cpl = 1;	// low  sensitivity = 200 ms integration time, analogue amplification = 1x
+	unsigned int ch0, ch1;
+	double cpl;
 
 	value->raw = value->cooked = -1;
+	cpl = data->high_sensitivity ? 500 : 0.7;
 
 	if((error = i2c_send1_receive(entry->address, tsl2591_cmd_cmd | tsl2591_reg_c0datal, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
@@ -1774,33 +1756,7 @@ static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_en
 	ch0 = (unsigned int)(i2c_buffer[1] << 8) | i2c_buffer[0];
 	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	value->raw = (ch0 * 1000 + ch1);
-
-	if((ch0 == 65535) || (ch1 == 65535))
-		return(i2c_error_out_of_range);
-
-	if(ch0 == 0)
-		return(i2c_error_out_of_range);
-
-	ratio_1000 = (1000UL * ch1) / ch0;
-
-	ch0_factor = 0;
-	ch1_factor = 0;
-
-	for(ratio_index = 0; ratio_index < tsl2591_factor_size; ratio_index++)
-	{
-		if((ratio_1000 >= tsl2591_factors[ratio_index].lower_bound_1000) &&
-				(ratio_1000 < tsl2591_factors[ratio_index].upper_bound_1000))
-		{
-			ch0_factor = tsl2591_factors[ratio_index].ch0_factor_1000;
-			ch1_factor = tsl2591_factors[ratio_index].ch1_factor_1000;
-			break;
-		}
-	}
-
-	value->cooked = (((ch0 * ch0_factor) + (ch1 * ch1_factor)) / 1000.0 / cpl) * tsl2591_correction_factor;
-
-	return(i2c_error_ok);
+	return(sensor_tsl_convert(cpl, ch0, ch1, value));
 }
 
 roflash static const uint32_t tsl2550_count[128] =
