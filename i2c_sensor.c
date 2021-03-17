@@ -1088,7 +1088,7 @@ static i2c_error_t sensor_si114x_ultraviolet_read(int bus, const i2c_sensor_devi
 		return(error);
 
 	value->raw = regval;
-	value->cooked = value->raw / (100 / 2 / 0.9);
+	value->cooked = value->raw / 230;
 
 	return(i2c_error_ok);
 }
@@ -1114,15 +1114,11 @@ static i2c_error_t sensor_si114x_visible_light_read(int bus, const i2c_sensor_de
 
 	visible -= 256;
 
-	if(visible < 0)
-		visible = 0;
-
 	value->raw = visible;
+	value->cooked = visible * 28.0;
 
-	if(value->raw < 20)
+	if(value->cooked < 2000)
 		return(i2c_error_overflow);
-
-	value->cooked = visible * 12;
 
 	return(i2c_error_ok);
 }
