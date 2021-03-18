@@ -4547,21 +4547,21 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_visible_light, 0x60, 1, 1,
+		i2c_sensor_si114x_visible_light, 0x60, 1, sdte_secondary,
 		"si114x", "visible light", "lx",
 		(void *)0,
 		sensor_si114x_visible_light_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_infrared, 0x60, 0, 1,
+		i2c_sensor_si114x_infrared, 0x60, 0, sdte_secondary,
 		"si114x", "infrared light", "%",
 		(void *)0,
 		sensor_si114x_infrared_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_temperature, 0x60, 1, 1,
+		i2c_sensor_si114x_temperature, 0x60, 1, sdte_secondary,
 		"si114x", "temperature", "C",
 		(void *)0,
 		sensor_si114x_temperature_read,
@@ -4778,7 +4778,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_mpl3115a2_airpressure, 0x60, 2, 1,
+		i2c_sensor_mpl3115a2_airpressure, 0x60, 2, sdte_secondary,
 		"mpl3115a2", "air pressure", "hPa",
 		(void *)0,
 		sensor_mpl3115a2_airpressure_read,
@@ -4799,7 +4799,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_sht30_periodic,
 	},
 	{
-		i2c_sensor_sht30_humidity, 0x44, 0, 1,
+		i2c_sensor_sht30_humidity, 0x44, 0, sdte_secondary,
 		"sht30", "humidity", "%",
 		(void *)0,
 		sensor_sht30_humidity_read,
@@ -4820,7 +4820,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_hdc1080_periodic,
 	},
 	{
-		i2c_sensor_hdc1080_humidity, 0x40, 0, 1,
+		i2c_sensor_hdc1080_humidity, 0x40, 0, sdte_secondary,
 		"hdc1080", "humidity", "",
 		(void *)0,
 		sensor_hdc1080_humidity_read,
@@ -4834,7 +4834,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_htu21_periodic,
 	},
 	{
-		i2c_sensor_htu21_humidity, 0x40, 0, 1,
+		i2c_sensor_htu21_humidity, 0x40, 0, sdte_secondary,
 		"htu21/si7021", "humidity", "%",
 		(void *)0,
 		sensor_htu21_humidity_read,
@@ -4848,14 +4848,14 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bme680_periodic,
 	},
 	{
-		i2c_sensor_bme680_humidity, 0x76, 0, 1,
+		i2c_sensor_bme680_humidity, 0x76, 0, sdte_secondary,
 		"bme680", "humidity", "%",
 		(void *)0,
 		sensor_bme680_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme680_airpressure, 0x76, 2, 1,
+		i2c_sensor_bme680_airpressure, 0x76, 2, sdte_secondary,
 		"bme680", "air pressure", "hPa",
 		(void *)0,
 		sensor_bme680_airpressure_read,
@@ -4869,14 +4869,14 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bme280_periodic,
 	},
 	{
-		i2c_sensor_bme280_humidity, 0x76, 1, 1,
+		i2c_sensor_bme280_humidity, 0x76, 1, sdte_secondary,
 		"bme280", "humidity", "%",
 		(void *)0,
 		sensor_bme280_read_humidity,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme280_airpressure, 0x76, 2, 1,
+		i2c_sensor_bme280_airpressure, 0x76, 2, sdte_secondary,
 		"bme280", "air pressure", "hPa",
 		(void *)0,
 		sensor_bme280_read_airpressure,
@@ -4890,7 +4890,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bmp280_periodic,
 	},
 	{
-		i2c_sensor_bmp280_airpressure, 0x76, 2, 1,
+		i2c_sensor_bmp280_airpressure, 0x76, 2, sdte_secondary,
 		"bmp280", "air pressure", "hPa",
 		(void *)0,
 		sensor_bmp280_read_airpressure,
@@ -4904,7 +4904,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bmp085_periodic,
 	},
 	{
-		i2c_sensor_bmp085_airpressure, 0x77, 2, 1,
+		i2c_sensor_bmp085_airpressure, 0x77, 2, sdte_secondary,
 		"bmp085/bmp180", "air pressure", "hPa",
 		(void *)0,
 		sensor_bmp085_read_airpressure,
@@ -4918,7 +4918,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_am2320_humidity, 0x5c, 0, 1,
+		i2c_sensor_am2320_humidity, 0x5c, 0, sdte_secondary,
 		"am2320/1/2", "humidity", "%",
 		(void *)0,
 		sensor_am2320_humidity_read,
@@ -4932,7 +4932,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_hih6130_temperature, 0x27, 2, 1,
+		i2c_sensor_hih6130_temperature, 0x27, 2, sdte_secondary,
 		"hih6130", "temperature", "C",
 		(void *)0,
 		sensor_hih6130_temperature_read,
@@ -4946,7 +4946,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_digipicco_humidity, 0x78, 0, 1,
+		i2c_sensor_digipicco_humidity, 0x78, 0, sdte_secondary,
 		"digipicco", "humidity", "%",
 		(void *)0,
 		sensor_digipicco_humidity_read,
