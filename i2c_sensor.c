@@ -5154,10 +5154,7 @@ static void sensor_aht10_periodic(const struct i2c_sensor_device_table_entry_T *
 		case(aht10_state_calibrating):
 		{
 			if((status & (aht10_status_mode_mask | aht10_status_calibrated)) != aht10_status_calibrated)
-			{
-				log("*** aht10: not finished calibrating\n");
 				return;
-			}
 
 			sensor_aht10_state = aht10_state_start_measure;
 
