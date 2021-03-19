@@ -4699,6 +4699,102 @@ static void sensor_aht10_periodic(const struct i2c_sensor_device_table_entry_T *
 		}
 	}
 }
+
+typedef enum
+{
+	veml6040_reg_conf =		0x00,
+	veml6040_reg_data_r =	0x08,
+	veml6040_reg_data_g =	0x09,
+	veml6040_reg_data_b =	0x0a,
+	veml6040_reg_data_w =	0x0b,
+} veml6040_register_t;
+
+typedef enum
+{
+	veml6040_conf_zero_0 =		0b1 << 7,
+	veml6040_conf_it_shift =	4,
+	veml6040_conf_it_mask =		0b111,
+	veml6040_conf_it_min =		0,
+	veml6040_conf_it_max =		5,
+	veml6040_conf_zero_1 =		0b1 << 3,
+	veml6040_conf_trigger =		0b1 << 2,
+	veml6040_conf_forcemode =	0b1 << 1,
+	veml6040_conf_shutdown =	0b1 << 0,
+} veml6040_conf_t;
+
+static double veml6040_lux_per_step(unsigned int integration_time)
+{
+	double lux_step;
+
+	if(integration_time > veml6040_conf_it_max)
+		return(0);
+
+	for(lux_step = 0.25168; integration_time > 0; integration_time--)
+		lux_step /= 2.0;
+
+	return(lux_step);
+}
+
+static i2c_error_t sensor_veml6040_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t		i2c_buffer[2];
+
+	if((error = i2c_send1_receive(entry->address, veml6040_reg_conf, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if(i2c_buffer[0] & (veml6040_conf_zero_0 | veml6040_conf_zero_1))
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send2(entry->address, veml6040_reg_conf, (veml6040_conf_it_min & veml6040_conf_it_mask)) << veml6040_conf_it_shift) != i2c_error_ok)
+		return(error);
+
+	sensor_register(bus, entry->id);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_veml6040_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
+	unsigned int it;
+	double lux_step;
+
+	if((error = i2c_send1_receive(entry->address, veml6040_reg_conf, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	it = (i2c_buffer[0] >> veml6040_conf_it_shift) & veml6040_conf_it_mask;
+
+	if(it > veml6040_conf_it_max)
+		it = veml6040_conf_it_max;
+
+	lux_step = veml6040_lux_per_step(it);
+
+	if((error = i2c_send1_receive(entry->address, veml6040_reg_data_g, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[1] < 0x20) && (it < veml6040_conf_it_max))
+		it++;
+
+	if((i2c_buffer[1] > 0xc0) && (it > veml6040_conf_it_min))
+		it--;
+
+	if((error = i2c_send2(entry->address, veml6040_reg_conf, (it & veml6040_conf_it_mask) << veml6040_conf_it_shift)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] == 0xff) && (i2c_buffer[1] == 0x0ff))
+	{
+		value->cooked = -1;
+		return(i2c_error_out_of_range);
+	}
+
+	value->raw = (it * 100000) + (i2c_buffer[1] << 8) + i2c_buffer[1];
+	value->cooked = (i2c_buffer[0] + (256 * i2c_buffer[1])) * lux_step;
+
+	return(i2c_error_ok);
+}
+
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
@@ -5175,6 +5271,13 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"aht10", "humidity", "%",
 		(void *)0,
 		sensor_aht10_humidity_read,
+		(void *)0,
+	},
+	{
+		i2c_sensor_veml6040, 0x10, 3, 0,
+		"veml6040", "visible light", "lx",
+		sensor_veml6040_init,
+		sensor_veml6040_read,
 		(void *)0,
 	},
 };
