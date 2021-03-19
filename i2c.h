@@ -72,9 +72,20 @@ typedef struct attr_packed
 
 assert_size(i2c_info_t, 1);
 
+void i2c_error_format_string(string_t *dst, i2c_error_t error);
+
+#define i2c_log(__prefix__,__error__) \
+do { \
+	static roflash const char prefix_flash[] = __prefix__; \
+	string_new(, string_error, 128); \
+	string_append_cstr_flash(&string_error, prefix_flash); \
+	i2c_error_format_string(&string_error, __error__); \
+	string_append_cstr(&string_error, "\n"); \
+	log_from_flash(string_to_cstr(&string_error)); \
+} while(0)
+
 void		i2c_init(unsigned int sda_index, unsigned int scl_index);
 void		i2c_speed_delay(unsigned int speed_delay);
-void		i2c_error_format_string(string_t *dst, i2c_error_t error);
 i2c_error_t	i2c_select_bus(unsigned int bus);
 void		i2c_get_info(i2c_info_t *);
 
