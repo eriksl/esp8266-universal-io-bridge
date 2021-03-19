@@ -3135,33 +3135,43 @@ static i2c_error_t sht30_register_access(int address, sht30_cmd_t cmd, unsigned 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_sht30_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sht30_reset(unsigned int address)
 {
 	unsigned int result;
 	i2c_error_t error;
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
 		return(error);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_reset, 0, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_reset, 0, 0)) != i2c_error_ok)
 		return(error);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
 		return(error);
 
 	if((result & (sht30_status_write_checksum | sht30_status_command_status)) != 0x00)
 		return(i2c_error_device_error_1);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_clear_status, 0, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_clear_status, 0, 0)) != i2c_error_ok)
 		return(error);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
 		return(error);
 
 	if((result & (sht30_status_write_checksum | sht30_status_command_status | sht30_status_reset_detected)) != 0x00)
 		return(i2c_error_device_error_2);
 
-	if((error = sht30_register_access(entry->address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
+	if((error = sht30_register_access(address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
+		return(error);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_sht30_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+
+	if((error = sht30_reset(entry->address)) != i2c_error_ok)
 		return(error);
 
 	sensor_register(bus, entry->id);
@@ -3178,6 +3188,10 @@ static void sensor_sht30_periodic(const struct i2c_sensor_device_table_entry_T *
 	if((error = sht30_register_access(entry->address, sht30_cmd_fetch_data, &result[0], &result[1])) != i2c_error_ok)
 	{
 		i2c_log("sht30", error);
+
+		if((error = sht30_reset(entry->address)) != i2c_error_ok)
+			i2c_log("sht30 reset 1", error);
+
 		return;
 	}
 
@@ -3187,6 +3201,10 @@ static void sensor_sht30_periodic(const struct i2c_sensor_device_table_entry_T *
 	if((error = sht30_register_access(entry->address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
 	{
 		i2c_log("sht30", error);
+
+		if((error = sht30_reset(entry->address)) != i2c_error_ok)
+			i2c_log("sht30 reset 2", error);
+
 		return;
 	}
 }
