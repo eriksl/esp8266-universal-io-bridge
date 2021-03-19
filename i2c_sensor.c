@@ -4945,7 +4945,7 @@ static i2c_error_t sensor_hih6130_read(int bus, const i2c_sensor_device_table_en
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_hih6130_humidity_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_hih6130_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
@@ -5742,7 +5742,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 	{
 		i2c_sensor_hih6130_humidity, 0x27, 0, 0,
 		"hih6130", "humidity", "",
-		sensor_hih6130_humidity_init,
+		sensor_hih6130_init,
 		sensor_hih6130_humidity_read,
 		(void *)0,
 	},
