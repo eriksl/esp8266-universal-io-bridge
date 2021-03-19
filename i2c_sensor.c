@@ -5782,14 +5782,14 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 	},
 	{
-		i2c_sensor_aht10_temperature, 0x38, 3, 0,
+		i2c_sensor_aht10_temperature, 0x38, 2, 0,
 		"aht10", "temperature", "C",
 		sensor_aht10_init,
 		sensor_aht10_temperature_read,
 		sensor_aht10_periodic,
 	},
 	{
-		i2c_sensor_aht10_humidity, 0x38, 3, sdte_secondary,
+		i2c_sensor_aht10_humidity, 0x38, 0, sdte_secondary,
 		"aht10", "humidity", "%",
 		(void *)0,
 		sensor_aht10_humidity_read,
