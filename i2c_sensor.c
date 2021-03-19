@@ -4522,6 +4522,183 @@ static i2c_error_t sensor_digipicco_temperature_read(int bus, const i2c_sensor_d
 	return(i2c_error_ok);
 }
 
+enum
+{
+	aht10_cmd_calibrate_0 =	0xe1,
+	aht10_cmd_calibrate_1 = 0x08,
+	aht10_cmd_calibrate_2 = 0x00,
+	aht10_cmd_normal_0 =	0xa8,
+	aht10_cmd_normal_1 =	0x00,
+	aht10_cmd_normal_2 =	0x00,
+	aht10_cmd_measure_0 =	0xac,
+	aht10_cmd_measure_1 =	0x33,
+	aht10_cmd_measure_2 =	0x00,
+	aht10_cmd_reset =		0xba,
+} aht10_cmd;
+
+enum
+{
+	aht10_status_busy =			0b1 << 7,
+	aht10_status_mode_mask =	0b11 << 5,
+	aht10_status_mode_nor =		0b00 << 5,
+	aht10_status_mode_cyc =		0b01 << 5,
+	aht10_status_mode_cmd =		0b10 << 5,
+	aht10_status_calibrated =	0b1 << 3,
+} aht10_status;
+
+typedef enum
+{
+	aht10_state_needinit,
+	aht10_state_calibrating,
+	aht10_state_start_measure,
+	aht10_state_measuring,
+} aht10_state_t;
+
+static aht10_state_t	sensor_aht10_state = aht10_state_needinit;
+static double			sensor_aht10_value_temperature = 1000UL;
+static double			sensor_aht10_value_humidity = 1000UL;
+
+static i2c_error_t sensor_aht10_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[1];
+	int attempt;
+
+	if(sensor_aht10_state != aht10_state_needinit)
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	i2c_send1(entry->address, aht10_cmd_reset);
+
+	for(attempt = 0; attempt < 4; attempt++)
+	{
+		msleep(1);
+		if(i2c_receive(entry->address, 1, i2c_buffer) == i2c_error_ok)
+			break;
+	}
+
+	if(attempt >= 4)
+		return(i2c_error_device_error_2);
+
+	if((error = i2c_send3(entry->address, aht10_cmd_calibrate_0, aht10_cmd_calibrate_1, aht10_cmd_calibrate_2)) != i2c_error_ok)
+		return(error);
+
+	sensor_aht10_state = aht10_state_calibrating;
+
+	sensor_register(bus, entry->id);
+	sensor_register(bus, i2c_sensor_aht10_humidity);
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_aht10_temperature_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	value->raw = sensor_aht10_value_temperature;
+	value->cooked = 0;
+
+	if(sensor_aht10_state == aht10_state_needinit)
+		return(i2c_error_device_error_1);
+
+	if(sensor_aht10_state == aht10_state_calibrating)
+		return(i2c_error_device_error_2);
+
+	if(value->raw > 200)
+		return(i2c_error_device_error_3);
+
+	value->cooked = value->raw;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_aht10_humidity_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	value->raw = sensor_aht10_value_humidity;
+	value->cooked = 0;
+
+	if(sensor_aht10_state == aht10_state_needinit)
+		return(i2c_error_device_error_1);
+
+	if(sensor_aht10_state == aht10_state_calibrating)
+		return(i2c_error_device_error_2);
+
+	if(value->raw > 200)
+		return(i2c_error_device_error_3);
+
+	value->cooked = value->raw;
+
+	return(i2c_error_ok);
+}
+
+static void sensor_aht10_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
+{
+	uint8_t i2c_buffer[6];
+	unsigned int status;
+	unsigned int temperature;
+	unsigned int humidity;
+
+	if(i2c_receive(entry->address, 1, i2c_buffer) != i2c_error_ok)
+		return;
+
+	status = i2c_buffer[0];
+
+	switch(sensor_aht10_state)
+	{
+		case(aht10_state_needinit):
+		{
+			break;
+		}
+
+		case(aht10_state_calibrating):
+		{
+			if((status & (aht10_status_mode_mask | aht10_status_calibrated)) != aht10_status_calibrated)
+			{
+				log("*** aht10: not finished calibrating\n");
+				return;
+			}
+
+			sensor_aht10_state = aht10_state_start_measure;
+
+			break;
+		}
+
+		case(aht10_state_start_measure):
+		{
+			if(status & aht10_status_busy)
+				return;
+
+			if(i2c_send3(entry->address, aht10_cmd_measure_0, aht10_cmd_measure_1, aht10_cmd_measure_2) != i2c_error_ok)
+				return;
+
+			/* note if we skip this, the measurement won't start... */
+			msleep(1);
+			i2c_receive(entry->address, 1, i2c_buffer);
+
+			sensor_aht10_state = aht10_state_measuring;
+
+			break;
+		}
+
+		case(aht10_state_measuring):
+		{
+			if(status & aht10_status_busy)
+				return;
+
+			if(i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
+				return;
+
+			humidity =		((i2c_buffer[1] << 16) | (i2c_buffer[2] << 8) | (i2c_buffer[3] & 0xf0)) >> 4;
+			temperature =	((i2c_buffer[3] & 0x0f) << 16) | (i2c_buffer[4] << 8) | i2c_buffer[5];
+
+			sensor_aht10_value_temperature = ((200 * temperature) / 1048576.0) - 50;
+			sensor_aht10_value_humidity = humidity * 100.0 / 1048576.0;
+
+			sensor_aht10_state = aht10_state_start_measure;
+
+			break;
+		}
+	}
+}
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
@@ -4984,6 +5161,20 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"tsl2591 index #1", "visible light", "lx",
 		sensor_tsl2591_28_init,
 		sensor_tsl2591_28_read,
+		(void *)0,
+	},
+	{
+		i2c_sensor_aht10_temperature, 0x38, 3, 0,
+		"aht10", "temperature", "C",
+		sensor_aht10_init,
+		sensor_aht10_temperature_read,
+		sensor_aht10_periodic,
+	},
+	{
+		i2c_sensor_aht10_humidity, 0x38, 3, sdte_secondary,
+		"aht10", "humidity", "%",
+		(void *)0,
+		sensor_aht10_humidity_read,
 		(void *)0,
 	},
 };

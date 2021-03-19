@@ -76,6 +76,8 @@ typedef enum
 	i2c_sensor_digipicco_humidity,
 	i2c_sensor_tsl2591_29,
 	i2c_sensor_tsl2591_28,
+	i2c_sensor_aht10_temperature,
+	i2c_sensor_aht10_humidity,
 	i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
 } i2c_sensor_t;
