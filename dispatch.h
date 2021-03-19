@@ -14,7 +14,6 @@ typedef enum
 	task_alert_disassociation,
 	task_reset,
 	task_run_sequencer,
-	task_init_i2c_sensors,
 	task_periodic_i2c_sensors,
 	task_init_displays,
 	task_received_command,

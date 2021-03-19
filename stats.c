@@ -497,11 +497,15 @@ void stats_i2c(string_t *dst)
 
 	string_format(dst,
 			"> i2c sensors periodic called: %u\n"
+			"> i2c sensors periodic background: %u\n"
+			"> i2c sensors periodic bus select failed: %u\n"
 			"> i2c sensors periodic sensor called: %u\n"
 			"> i2c sensors periodic wrapped: %u\n"
 			"> i2c sensors periodic current bus: %u\n"
 			"> i2c sensors periodic current sensor: %u\n",
 				i2c_sensor_info.periodic_called,
+				i2c_sensor_info.periodic_background_called,
+				i2c_sensor_info.periodic_bus_select_failed,
 				i2c_sensor_info.periodic_sensor_called,
 				i2c_sensor_info.periodic_wrapped,
 				i2c_sensor_info.periodic_current_bus,

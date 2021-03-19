@@ -101,13 +101,15 @@ typedef struct
 	unsigned int	init_started:1;
 	unsigned int	init_finished:1;
 	unsigned int	periodic_called;
+	unsigned int	periodic_background_called;
+	unsigned int	periodic_bus_select_failed;
 	unsigned int	periodic_sensor_called;
 	unsigned int	periodic_wrapped;
 	unsigned int	periodic_current_bus;
 	unsigned int	periodic_current_sensor;
 } i2c_sensor_info_t;
 
-assert_size(i2c_sensor_info_t, 80);
+assert_size(i2c_sensor_info_t, 88);
 
 typedef struct
 {
@@ -146,7 +148,6 @@ assert_size(i2c_sensor_device_table_entry_t, 40);
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_init(int bus, i2c_sensor_t);
-bool		i2c_sensors_init(void);
 void		i2c_sensors_periodic(void);
 bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);
 bool		i2c_sensor_registered(int bus, i2c_sensor_t);

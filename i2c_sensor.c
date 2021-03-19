@@ -4,6 +4,7 @@
 #include "sys_string.h"
 #include "config.h"
 #include "sys_time.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -5347,10 +5348,58 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 	return(i2c_error_ok);
 }
 
-bool i2c_sensors_init(void)
+void i2c_sensors_periodic(void)
 {
 	i2c_info_t i2c_info;
-	unsigned int buses;
+	const i2c_sensor_device_table_entry_t *device_table_entry;
+
+	sensor_info.periodic_called++;
+
+	if(sensor_info.init_finished) // init finished, call sensors' periodic functions one by one
+	{
+		sensor_info.periodic_background_called++;
+
+		for(; sensor_info.periodic_current_sensor < i2c_sensor_size; sensor_info.periodic_current_sensor++)
+		{
+			device_table_entry = &device_table[sensor_info.periodic_current_sensor];
+
+			if(device_table_entry->id != sensor_info.periodic_current_sensor)
+				return;
+
+			if(i2c_sensor_registered(sensor_info.periodic_current_bus, sensor_info.periodic_current_sensor) && !(device_table_entry->flags & sdte_secondary) && device_table_entry->periodic_fn)
+			{
+				if(i2c_select_bus(sensor_info.periodic_current_bus) != i2c_error_ok)
+				{
+					sensor_info.periodic_bus_select_failed++;
+					sensor_info.periodic_current_sensor = 0;
+					sensor_info.periodic_current_bus = 0;
+					return;
+				}
+
+				sensor_info.periodic_sensor_called++;
+				device_table_entry->periodic_fn(device_table_entry, &device_data[sensor_info.periodic_current_sensor]);
+				break;
+			}
+		}
+
+		i2c_select_bus(0);
+		i2c_get_info(&i2c_info);
+
+		if(++sensor_info.periodic_current_sensor >= i2c_sensor_size)
+		{
+			sensor_info.periodic_current_sensor = 0;
+			sensor_info.periodic_current_bus++;
+
+			if(sensor_info.periodic_current_bus >= i2c_info.buses)
+			{
+				sensor_info.periodic_current_sensor = 0;
+				sensor_info.periodic_current_bus = 0;
+				sensor_info.periodic_wrapped++;
+			}
+		}
+
+		return;
+	}
 
 	sensor_info.init_called++;
 
@@ -5359,9 +5408,6 @@ bool i2c_sensors_init(void)
 		sensor_info.init_started_us = time_get_us();
 		sensor_info.init_started = 1;
 	}
-
-	if(sensor_info.init_finished)
-		return(false);
 
 	switch(i2c_sensor_init(sensor_info.init_current_bus, sensor_info.init_current_sensor))
 	{
@@ -5403,73 +5449,23 @@ bool i2c_sensors_init(void)
 	}
 
 	i2c_get_info(&i2c_info);
-	buses = i2c_info.buses;
 
 	if(++sensor_info.init_current_sensor >= i2c_sensor_size)
 	{
 		sensor_info.init_current_sensor = 0;
 		sensor_info.init_current_bus++;
 
-		if(sensor_info.init_current_bus >= buses)
+		if(sensor_info.init_current_bus >= i2c_info.buses)
 		{
 			sensor_info.init_current_sensor = 0;
 			sensor_info.init_current_bus = 0;
 			sensor_info.init_finished = 1;
 			sensor_info.init_finished_us = time_get_us();
-			return(false);
 		}
 	}
-
-	return(true);
-}
-
-void i2c_sensors_periodic(void)
-{
-	i2c_info_t i2c_info;
-	unsigned int buses;
-	const i2c_sensor_device_table_entry_t *device_table_entry;
-
-	sensor_info.periodic_called++;
 
 	if(!sensor_info.init_finished)
-		return;
-
-	device_table_entry = &device_table[sensor_info.periodic_current_sensor];
-
-	if(device_table_entry->id != sensor_info.periodic_current_sensor)
-		return;
-
-	if(i2c_sensor_registered(sensor_info.periodic_current_bus, sensor_info.periodic_current_sensor) && !(device_table_entry->flags & sdte_secondary) && device_table_entry->periodic_fn)
-	{
-		if(i2c_select_bus(sensor_info.periodic_current_bus) != i2c_error_ok)
-		{
-			sensor_info.periodic_current_sensor = 0;
-			sensor_info.periodic_current_bus = 0;
-		}
-		else
-		{
-			sensor_info.periodic_sensor_called++;
-			device_table_entry->periodic_fn(device_table_entry, &device_data[sensor_info.periodic_current_sensor]);
-		}
-
-		i2c_select_bus(0);
-	}
-
-	i2c_get_info(&i2c_info);
-	buses = i2c_info.buses;
-
-	if(++sensor_info.periodic_current_sensor >= i2c_sensor_size)
-	{
-		sensor_info.periodic_current_sensor = 0;
-		sensor_info.periodic_current_bus++;
-
-		if(sensor_info.periodic_current_bus >= buses)
-		{
-			sensor_info.periodic_current_sensor = 0;
-			sensor_info.periodic_current_bus = 0;
-			sensor_info.periodic_wrapped++;
-		}
-	}
+		dispatch_post_task(2, task_periodic_i2c_sensors, 0);
 }
 
 bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, bool html)

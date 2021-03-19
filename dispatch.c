@@ -163,13 +163,6 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			break;
 		}
 
-		case(task_init_i2c_sensors):
-		{
-			if(i2c_sensors_init())
-				dispatch_post_task(2, task_init_i2c_sensors, 0);
-			break;
-		}
-
 		case(task_periodic_i2c_sensors):
 		{
 			i2c_sensors_periodic();
@@ -364,8 +357,6 @@ iram static void fast_timer_callback(void *arg)
 
 static void slow_timer_callback(void *arg)
 {
-	int ix;
-
 	// run background task every ~100 ms = ~10 Hz
 
 	stat_slow_timer++;
@@ -378,8 +369,7 @@ static void slow_timer_callback(void *arg)
 	if(display_detected())
 		dispatch_post_task(2, task_display_update, 0);
 
-	for(ix = 5; ix > 0; ix--)
-		dispatch_post_task(2, task_periodic_i2c_sensors, 0);
+	dispatch_post_task(2, task_periodic_i2c_sensors, 0);
 
 	// fallback to config-ap-mode when not connected or no ip within 30 seconds
 
@@ -440,7 +430,6 @@ static void wlan_event_handler(System_Event_t *event)
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
 			dispatch_post_task(2, task_alert_association, 0);
-			dispatch_post_task(2, task_init_i2c_sensors, 0);
 			break;
 		}
 
