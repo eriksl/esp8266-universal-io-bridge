@@ -1514,59 +1514,6 @@ static i2c_error_t sensor_veml6070_39_read(int bus, const i2c_sensor_device_tabl
 {
 	return(sensor_veml6070_38_read(bus, entry, value, data));
 }
-
-enum { tsl_factor_size = 7 };
-
-roflash static const struct
-{
-	int32_t	lower_bound_1000;
-	int32_t	upper_bound_1000;
-	int32_t	ch0_factor_1000;
-	int32_t	ch1_factor_1000;
-} tsl_factors[tsl_factor_size] =
-{
-	{	0,		125,	1000,	-895	},
-	{	125,	250,	1070,	-1145	},
-	{	250,	375,	1115,	-1790	},
-	{	375,	500,	1126,	-2050	},
-	{	500,	610,	740,	-1002	},
-	{	610,	800,	420,	-500	},
-	{	800,	1300,	48,		-37		},
-};
-
-static i2c_error_t sensor_tsl_convert(double cpl, unsigned int ch0, unsigned int ch1, i2c_sensor_value_t *value)
-{
-	int ch0_factor, ch1_factor, ratio_1000, ratio_index;
-
-	value->raw = (ch0 * 1000 + ch1);
-
-	if((ch0 == 65535) || (ch1 == 65535))
-		return(i2c_error_out_of_range);
-
-	if(ch0 == 0)
-		return(i2c_error_out_of_range);
-
-	ratio_1000 = (1000UL * ch1) / ch0;
-
-	ch0_factor = 0;
-	ch1_factor = 0;
-
-	for(ratio_index = 0; ratio_index < tsl_factor_size; ratio_index++)
-	{
-		if((ratio_1000 >= tsl_factors[ratio_index].lower_bound_1000) &&
-				(ratio_1000 < tsl_factors[ratio_index].upper_bound_1000))
-		{
-			ch0_factor = tsl_factors[ratio_index].ch0_factor_1000;
-			ch1_factor = tsl_factors[ratio_index].ch1_factor_1000;
-			break;
-		}
-	}
-
-	value->cooked = (((ch0 * ch0_factor) + (ch1 * ch1_factor)) / cpl / 1000.0);
-
-	return(i2c_error_ok);
-}
-
 typedef enum
 {
 	tsl2561_reg_control =		0x00,
@@ -1595,6 +1542,7 @@ typedef enum
 	tsl2561_tim_integ_101ms	=	(0 << 1) | (1 << 0),
 	tsl2561_tim_integ_402ms	=	(1 << 1) | (0 << 0),
 	tsl2561_tim_manual		=	1 << 3,
+	tsl2561_tim_low_gain	=	0 << 4,
 	tsl2561_tim_high_gain	=	1 << 4,
 } tsl2561_timeint_t;
 
@@ -1606,6 +1554,31 @@ enum
 	tsl2561_id_tsl2561 =		0x50,
 	tsl2561_probe_threshold =	0x00,
 };
+
+enum
+{
+	tsl2561_scaling_data_size = 4,
+};
+
+static const struct
+{
+	unsigned	int timeint;
+	unsigned	int scale_down_threshold;
+	unsigned	int scale_up_threshold;
+	unsigned	int overflow;
+	unsigned	int factor_1000;
+				int offset_1000;
+} tsl2561_scaling_data[tsl2561_scaling_data_size] =
+{
+	{	tsl2561_tim_integ_402ms	| tsl2561_tim_high_gain,	0,		50000,	65535,	820,	-6000,	},
+	{	tsl2561_tim_integ_402ms	| tsl2561_tim_low_gain,		256,	50000,	65535,	10000,	-14000,	},
+	{	tsl2561_tim_integ_101ms	| tsl2561_tim_low_gain,		256,	28000,	31711,	40000,	0,		},
+	{	tsl2561_tim_integ_13ms	| tsl2561_tim_low_gain,		256,	5047,	5047,	310800,	0		},
+};
+
+static unsigned int tsl2561_current_scaling;
+static unsigned int tsl2561_current_value_ch0;
+static unsigned int tsl2561_current_value_ch1;
 
 static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned int value)
 {
@@ -1660,12 +1633,20 @@ static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned 
 	return(i2c_error_ok);
 }
 
+static i2c_error_t tsl2561_start_measurement(unsigned int address)
+{
+	unsigned int timeint;
+
+	timeint = tsl2561_scaling_data[tsl2561_current_scaling].timeint;
+
+	return(tsl2561_write_check(address, tsl2561_reg_timeint, timeint));
+}
+
 static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t regval;
 	uint16_t word;
-	tsl2561_timeint_t timeint;
 
 	if((error = tsl2561_read_byte(entry->address, tsl2561_reg_id, &regval)) != i2c_error_ok)
 		return(error);
@@ -1694,16 +1675,6 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 	if((error = tsl2561_write_check(entry->address, tsl2561_reg_interrupt, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
 
-	data->high_sensitivity = config_flags_match(flag_tsl_high_sens);
-
-	if(data->high_sensitivity)
-		timeint = tsl2561_tim_integ_402ms | tsl2561_tim_high_gain;
-	else
-		timeint = tsl2561_tim_integ_101ms;
-
-	if((error = tsl2561_write_check(entry->address, tsl2561_reg_timeint, timeint)) != i2c_error_ok)	// start continuous sampling
-		return(error);
-
 	if((error = tsl2561_write(entry->address, tsl2561_reg_control, tsl2561_ctrl_power_on)) != i2c_error_ok)	// power up
 		return(error);
 
@@ -1713,6 +1684,13 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 	if((regval & 0x0f) != tsl2561_ctrl_power_on)
 		return(i2c_error_device_error_1);
 
+	tsl2561_current_scaling = 0;
+	tsl2561_current_value_ch0 = 0;
+	tsl2561_current_value_ch1 = 0;
+
+	if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
+		return(error);
+
 	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
@@ -1720,25 +1698,77 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 
 static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t	error;
+	double ratio;
+
+	if(tsl2561_current_value_ch0 == 0)
+		value->cooked = 0;
+	else
+	{
+		ratio = tsl2561_current_value_ch1 / tsl2561_current_value_ch0;
+
+		if(ratio > 1.30)
+			return(i2c_error_overflow);
+		else
+			if(ratio >= 0.80)
+				value->cooked = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
+			else
+				if(ratio >= 0.61)
+					value->cooked = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
+				else
+					if(ratio >= 0.50)
+						value->cooked = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
+					else
+						value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
+	}
+
+	value->raw = (tsl2561_current_scaling * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
+	value->cooked = ((value->cooked * tsl2561_scaling_data[tsl2561_current_scaling].factor_1000) + tsl2561_scaling_data[tsl2561_current_scaling].offset_1000) / 1000.0;
+
+	if(value->cooked < 0)
+		value->cooked = 0;
+
+	return(i2c_error_ok);
+}
+
+static void sensor_tsl2561_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
 	uint8_t i2c_buffer[4];
 	unsigned int ch0, ch1;
-	double cpl;
+	unsigned int overflow, scale_down_threshold, scale_up_threshold;
 
-	value->raw = value->cooked = -1;
-
-	cpl = data->high_sensitivity ? 42 : 0.6;
+	scale_down_threshold =	tsl2561_scaling_data[tsl2561_current_scaling].scale_down_threshold;
+	scale_up_threshold =	tsl2561_scaling_data[tsl2561_current_scaling].scale_up_threshold;
+	overflow =				tsl2561_scaling_data[tsl2561_current_scaling].overflow;
 
 	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | tsl2561_reg_data0, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("tsl2561", error);
-		return(error);
+		return;
 	}
 
-	ch0 = (unsigned int)(i2c_buffer[1] << 8) | i2c_buffer[0];
-	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
+	ch0 = (i2c_buffer[1] << 8) | i2c_buffer[0];
+	ch1 = (i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	return(sensor_tsl_convert(cpl, ch0, ch1, value));
+	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (tsl2561_current_scaling > 0))
+	{
+		tsl2561_current_scaling--;
+		if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
+			i2c_log("tsl2561", error);
+	}
+
+	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2561_current_scaling + 1) < tsl2561_scaling_data_size))
+	{
+		tsl2561_current_scaling++;
+		if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
+			i2c_log("tsl2561", error);
+	}
+
+	if((ch0 < overflow) && (ch1 < overflow) && (ch0 > 0) && (ch1 > 0))
+	{
+		tsl2561_current_value_ch0 = ch0;
+		tsl2561_current_value_ch1 = ch1;
+	}
 }
 
 typedef enum
@@ -1816,6 +1846,59 @@ typedef enum
 	tsl2591_status_aint =	0b1 << 4,
 	tsl2591_status_avalid =	0b1 << 0,
 } tsl2591_status_t;
+
+enum { tsl2591_factor_size = 7 };
+
+roflash static const struct
+{
+	int32_t	lower_bound_1000;
+	int32_t	upper_bound_1000;
+	int32_t	ch0_factor_1000;
+	int32_t	ch1_factor_1000;
+} tsl2591_factors[tsl2591_factor_size] =
+{
+	{	0,		125,	1000,	-895	},
+	{	125,	250,	1070,	-1145	},
+	{	250,	375,	1115,	-1790	},
+	{	375,	500,	1126,	-2050	},
+	{	500,	610,	740,	-1002	},
+	{	610,	800,	420,	-500	},
+	{	800,	1300,	48,		-37		},
+};
+
+static i2c_error_t sensor_tsl2591_convert(double cpl, unsigned int ch0, unsigned int ch1, i2c_sensor_value_t *value)
+{
+	int ch0_factor, ch1_factor, ratio_1000, ratio_index;
+
+	value->raw = (ch0 * 1000 + ch1);
+
+	if((ch0 == 65535) || (ch1 == 65535))
+		return(i2c_error_out_of_range);
+
+	if(ch0 == 0)
+		return(i2c_error_out_of_range);
+
+	ratio_1000 = (1000UL * ch1) / ch0;
+
+	ch0_factor = 0;
+	ch1_factor = 0;
+
+	for(ratio_index = 0; ratio_index < tsl2591_factor_size; ratio_index++)
+	{
+		if((ratio_1000 >= tsl2591_factors[ratio_index].lower_bound_1000) &&
+				(ratio_1000 < tsl2591_factors[ratio_index].upper_bound_1000))
+		{
+			ch0_factor = tsl2591_factors[ratio_index].ch0_factor_1000;
+			ch1_factor = tsl2591_factors[ratio_index].ch1_factor_1000;
+			break;
+		}
+	}
+
+	value->cooked = (((ch0 * ch0_factor) + (ch1 * ch1_factor)) / cpl / 1000.0);
+
+	return(i2c_error_ok);
+}
+
 
 static i2c_error_t tsl2591_write(int address, tsl2591_reg_t reg, unsigned int value)
 {
@@ -1913,7 +1996,7 @@ static i2c_error_t sensor_tsl2591_read(int bus, unsigned int address, i2c_sensor
 	ch0 = (unsigned int)(i2c_buffer[1] << 8) | i2c_buffer[0];
 	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	return(sensor_tsl_convert(cpl, ch0, ch1, value));
+	return(sensor_tsl2591_convert(cpl, ch0, ch1, value)); // FIXME
 }
 
 static i2c_error_t sensor_tsl2591_29_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
@@ -5445,14 +5528,14 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"tsl2561 #0", "visible light", "lx",
 		sensor_tsl2561_init,
 		sensor_tsl2561_read,
-		(void *)0,
+		sensor_tsl2561_periodic,
 	},
 	{
 		i2c_sensor_tsl2561_29, 0x29, 2, 0,
 		"tsl2561 #1", "visible light", "lx",
 		sensor_tsl2561_init,
 		sensor_tsl2561_read,
-		(void *)0,
+		sensor_tsl2561_periodic,
 	},
 	{
 		i2c_sensor_tsl2550, 0x39, 2, 0,
