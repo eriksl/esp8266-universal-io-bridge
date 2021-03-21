@@ -2092,86 +2092,123 @@ typedef enum
 	bh1750_opcode_change_meas_lo =	0b01100000,	// 0x60
 } bh1740_opcode_t;
 
+enum
+{
+	bh1750_sensitivity_data_size = 4
+};
+
+roflash static const struct
+{
+	unsigned	int mode_command;
+	unsigned	int measurement_time;
+	unsigned	int factor_1000;
+				int offset_1000;
+} bh1750_sensitivity_data[bh1750_sensitivity_data_size] =
+{
+	{	bh1750_opcode_one_lmode, 	31,		1360,	16000,	},
+	{	bh1750_opcode_one_hmode2,	31,		680,	16000,	},
+	{	bh1750_opcode_one_hmode2,	69,		330,	12000,	},
+	{	bh1750_opcode_one_hmode2,	254,	110,	4000, 	},
+};
+
+static unsigned int bh1750_current_sensitivity;
+static unsigned int bh1750_current_value;
+
+static i2c_error_t bh1750_start_measurement(unsigned int address)
+{
+	i2c_error_t error;
+	unsigned int timing;
+	unsigned int opcode;
+
+	timing = bh1750_sensitivity_data[bh1750_current_sensitivity].measurement_time;
+	opcode = bh1750_sensitivity_data[bh1750_current_sensitivity].mode_command;
+
+	if((error = i2c_send1(address, bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111))) != i2c_error_ok)
+	{
+		i2c_log("bh1750", error);
+		return(error);
+	}
+
+	if((error = i2c_send1(address, bh1750_opcode_change_meas_lo | ((timing >> 0) & 0b00011111))) != i2c_error_ok)
+	{
+		i2c_log("bh1750", error);
+		return(error);
+	}
+
+	if((error = i2c_send1(address, opcode)) != i2c_error_ok)
+	{
+		i2c_log("bh1750", error);
+		return(error);
+	}
+
+	return(i2c_error_ok);
+}
+
 static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
-	int timing;
-	uint8_t regval[2];
-	bh1740_opcode_t mode;
+	uint8_t i2c_buffer[8];
 
-	// there is no "read register" command on this device, so assume
-	// a device at 0x23 is actually a bh1750, there is no way to be sure.
+	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
 
-	// power on
+	if((i2c_buffer[2] != 0xff) || (i2c_buffer[3] != 0xff) || (i2c_buffer[4] != 0xff) ||
+			(i2c_buffer[5] != 0xff) || (i2c_buffer[6] != 0xff) || (i2c_buffer[7] != 0xff))
+		return(i2c_error_address_nak);
 
 	if((error = i2c_send1(entry->address, bh1750_opcode_poweron)) != i2c_error_ok)
 		return(error);
 
-	// reset
-
 	if((error = i2c_send1(entry->address, bh1750_opcode_reset)) != i2c_error_ok)
 		return(error);
 
-	// set sensitivity
+	bh1750_current_sensitivity = 0;
+	bh1750_current_value = 0;
 
-	data->high_sensitivity = config_flags_match(flag_bh_high_sens);
-
-	if(data->high_sensitivity)
-	{
-		mode = bh1750_opcode_cont_hmode2;
-		timing = 254; // max
-	}
-	else
-	{
-		mode = bh1750_opcode_cont_lmode;
-		timing = 69; // default
-	}
-
-	regval[0] = bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111);
-	regval[1] = bh1750_opcode_change_meas_lo | ((timing >> 0) & 0b00011111);
-
-	if((error = i2c_send1(entry->address, regval[0])) != i2c_error_ok)
-	{
-		i2c_log("bh1750", error);
+	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
 		return(error);
-	}
-
-	if((error = i2c_send1(entry->address, regval[1])) != i2c_error_ok)
-		return(error);
-
-	// start continuous sampling
-
-	if((error = i2c_send1(entry->address, mode)) != i2c_error_ok)
-	{
-		i2c_log("bh1750", error);
-		return(error);
-	}
 
 	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
-	uint8_t	i2cbuffer[2];
-	double luxpercount;
+	uint8_t	i2c_buffer[2];
 
-	if((error = i2c_receive(entry->address, 2, i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bh1750", error);
-		return(error);
+		return;
 	}
 
-	luxpercount = data->high_sensitivity ? 0.1 : 0.8;
+	bh1750_current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
-	value->raw = (i2cbuffer[0] << 8) | i2cbuffer[1];
+	if((bh1750_current_value < 0x2000) && ((bh1750_current_sensitivity + 1) < bh1750_sensitivity_data_size))
+		bh1750_current_sensitivity++;
 
-	if(value->raw >= 0xffff)
+	if((bh1750_current_value > 0xc000) && (bh1750_current_sensitivity > 0))
+		bh1750_current_sensitivity--;
+
+	bh1750_start_measurement(entry->address);
+}
+
+static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	unsigned int factor;
+	int offset;
+
+	factor = bh1750_sensitivity_data[bh1750_current_sensitivity].factor_1000;
+	offset = bh1750_sensitivity_data[bh1750_current_sensitivity].offset_1000;
+
+	value->raw = (bh1750_current_sensitivity * 100000) + bh1750_current_value;
+
+	if(bh1750_current_value >= 0xffff)
 		return(i2c_error_overflow);
 
-	value->cooked = value->raw * luxpercount;
+	value->cooked = ((bh1750_current_value * factor) + offset) / 1000.0;
 
 	return(i2c_error_ok);
 }
@@ -5429,7 +5466,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"bh1750", "visible light", "lx",
 		sensor_bh1750_init,
 		sensor_bh1750_read,
-		(void *)0,
+		sensor_bh1750_periodic,
 	},
 	{
 		i2c_sensor_tmp75_48, 0x48, 2, 0,
