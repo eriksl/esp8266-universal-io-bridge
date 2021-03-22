@@ -1937,7 +1937,7 @@ static i2c_error_t tsl2591_write_check(int address, tsl2591_reg_t reg, unsigned 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_tsl2591_29_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2591_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t regval;
@@ -1973,11 +1973,11 @@ static i2c_error_t sensor_tsl2591_29_init(int bus, const i2c_sensor_device_table
 		return(error);
 
 	sensor_register(bus, entry->id);
-
+	sensor_register(bus, i2c_sensor_tsl2591_28);
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_tsl2591_read(int bus, unsigned int address, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
@@ -1987,7 +1987,7 @@ static i2c_error_t sensor_tsl2591_read(int bus, unsigned int address, i2c_sensor
 	value->raw = value->cooked = -1;
 	cpl = data->high_sensitivity ? 500 : 0.7;
 
-	if((error = i2c_send1_receive(address, tsl2591_cmd_cmd | tsl2591_reg_c0datal, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(0x29, tsl2591_cmd_cmd | tsl2591_reg_c0datal, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("tsl2591", error);
 		return(error);
@@ -1997,26 +1997,6 @@ static i2c_error_t sensor_tsl2591_read(int bus, unsigned int address, i2c_sensor
 	ch1 = (unsigned int)(i2c_buffer[3] << 8) | i2c_buffer[1];
 
 	return(sensor_tsl2591_convert(cpl, ch0, ch1, value)); // FIXME
-}
-
-static i2c_error_t sensor_tsl2591_29_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	return(sensor_tsl2591_read(bus, 0x29, value, data));
-}
-
-static i2c_error_t sensor_tsl2591_28_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
-{
-	if(!i2c_sensor_registered(bus, i2c_sensor_tsl2591_29))
-		return(i2c_error_address_nak);
-
-	sensor_register(bus, entry->id);
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_tsl2591_28_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	return(sensor_tsl2591_read(bus, 0x29, value, data));
 }
 
 roflash static const uint32_t tsl2550_count[128] =
@@ -5902,15 +5882,15 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 	{
 		i2c_sensor_tsl2591_29, 0x29, 3, 0,
 		"tsl2591 index #0", "visible light", "lx",
-		sensor_tsl2591_29_init,
-		sensor_tsl2591_29_read,
+		sensor_tsl2591_init,
+		sensor_tsl2591_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tsl2591_28, 0x28, 3, 0,
+		i2c_sensor_tsl2591_28, 0x28, 3, sdte_secondary,
 		"tsl2591 index #1", "visible light", "lx",
-		sensor_tsl2591_28_init,
-		sensor_tsl2591_28_read,
+		(void *)0,
+		sensor_tsl2591_read,
 		(void *)0,
 	},
 	{
