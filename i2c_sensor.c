@@ -2177,24 +2177,26 @@ typedef enum
 
 enum
 {
-	bh1750_sensitivity_data_size = 4
+	bh1750_scaling_data_size = 4
 };
 
 roflash static const struct
 {
 	unsigned	int mode_command;
 	unsigned	int measurement_time;
+	unsigned	int scale_down_threshold;
+	unsigned	int scale_up_threshold;
 	unsigned	int factor_1000;
 				int offset_1000;
-} bh1750_sensitivity_data[bh1750_sensitivity_data_size] =
+} bh1750_scaling_data[bh1750_scaling_data_size] =
 {
-	{	bh1750_opcode_one_lmode, 	31,		1360,	16000,	},
-	{	bh1750_opcode_one_hmode2,	31,		680,	16000,	},
-	{	bh1750_opcode_one_hmode2,	69,		330,	12000,	},
-	{	bh1750_opcode_one_hmode2,	254,	110,	4000, 	},
+	{	bh1750_opcode_one_hmode2,	254,	0,		50000,	110,	4000, 	},
+	{	bh1750_opcode_one_hmode2,	69,		1000,	50000,	330,	12000,	},
+	{	bh1750_opcode_one_hmode2,	31,		1000,	50000,	680,	16000,	},
+	{	bh1750_opcode_one_lmode, 	31,		1000,	65536,	1360,	16000,	},
 };
 
-static unsigned int bh1750_current_sensitivity;
+static unsigned int bh1750_current_scaling;
 static unsigned int bh1750_current_value;
 
 static i2c_error_t bh1750_start_measurement(unsigned int address)
@@ -2203,8 +2205,8 @@ static i2c_error_t bh1750_start_measurement(unsigned int address)
 	unsigned int timing;
 	unsigned int opcode;
 
-	timing = bh1750_sensitivity_data[bh1750_current_sensitivity].measurement_time;
-	opcode = bh1750_sensitivity_data[bh1750_current_sensitivity].mode_command;
+	timing = bh1750_scaling_data[bh1750_current_scaling].measurement_time;
+	opcode = bh1750_scaling_data[bh1750_current_scaling].mode_command;
 
 	if((error = i2c_send1(address, bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111))) != i2c_error_ok)
 	{
@@ -2245,7 +2247,7 @@ static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_ent
 	if((error = i2c_send1(entry->address, bh1750_opcode_reset)) != i2c_error_ok)
 		return(error);
 
-	bh1750_current_sensitivity = 0;
+	bh1750_current_scaling = 0;
 	bh1750_current_value = 0;
 
 	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
@@ -2260,6 +2262,10 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 {
 	i2c_error_t error;
 	uint8_t	i2c_buffer[2];
+	unsigned int current_value, scale_down_threshold, scale_up_threshold;
+
+	scale_down_threshold =	bh1750_scaling_data[bh1750_current_scaling].scale_down_threshold;
+	scale_up_threshold =	bh1750_scaling_data[bh1750_current_scaling].scale_up_threshold;
 
 	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -2267,31 +2273,37 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 		return;
 	}
 
-	bh1750_current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
-	if((bh1750_current_value < 0x2000) && ((bh1750_current_sensitivity + 1) < bh1750_sensitivity_data_size))
-		bh1750_current_sensitivity++;
+	if((current_value < scale_down_threshold) && (bh1750_current_scaling > 0))
+	{
+		bh1750_current_scaling--;
+		logf("bh1750: dec scale to %u\n", bh1750_current_scaling);
+	}
 
-	if((bh1750_current_value > 0xc000) && (bh1750_current_sensitivity > 0))
-		bh1750_current_sensitivity--;
+	if((current_value >= scale_up_threshold) && ((bh1750_current_scaling + 1) < bh1750_scaling_data_size))
+	{
+		bh1750_current_scaling++;
+		logf("bh1750: inc scale to %u\n", bh1750_current_scaling);
+	}
 
-	bh1750_start_measurement(entry->address);
+	if(current_value < 0xffff)
+		bh1750_current_value = current_value;
+
+	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
+		i2c_log("bh1750", error);
 }
 
 static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	unsigned int factor;
-	int offset;
+	unsigned int factor_1000;
+	int offset_1000;
 
-	factor = bh1750_sensitivity_data[bh1750_current_sensitivity].factor_1000;
-	offset = bh1750_sensitivity_data[bh1750_current_sensitivity].offset_1000;
+	factor_1000 = bh1750_scaling_data[bh1750_current_scaling].factor_1000;
+	offset_1000 = bh1750_scaling_data[bh1750_current_scaling].offset_1000;
 
-	value->raw = (bh1750_current_sensitivity * 100000) + bh1750_current_value;
-
-	if(bh1750_current_value >= 0xffff)
-		return(i2c_error_overflow);
-
-	value->cooked = ((bh1750_current_value * factor) + offset) / 1000.0;
+	value->raw = (bh1750_current_scaling * 1000000UL) + bh1750_current_value;
+	value->cooked = ((bh1750_current_value * factor_1000) + offset_1000) / 1000.0;
 
 	return(i2c_error_ok);
 }
