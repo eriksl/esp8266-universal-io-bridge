@@ -1701,25 +1701,23 @@ static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_en
 	double ratio;
 
 	if(tsl2561_current_value_ch0 == 0)
-		value->cooked = 0;
+		ratio = 0;
 	else
-	{
 		ratio = tsl2561_current_value_ch1 / tsl2561_current_value_ch0;
 
-		if(ratio > 1.30)
-			return(i2c_error_overflow);
+	if(ratio > 1.30)
+		return(i2c_error_overflow);
+	else
+		if(ratio >= 0.80)
+			value->cooked = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
 		else
-			if(ratio >= 0.80)
-				value->cooked = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
+			if(ratio >= 0.61)
+				value->cooked = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
 			else
-				if(ratio >= 0.61)
-					value->cooked = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
+				if(ratio >= 0.50)
+					value->cooked = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
 				else
-					if(ratio >= 0.50)
-						value->cooked = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
-					else
-						value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
-	}
+					value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
 
 	value->raw = (tsl2561_current_scaling * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
 	value->cooked = ((value->cooked * tsl2561_scaling_data[tsl2561_current_scaling].factor_1000) + tsl2561_scaling_data[tsl2561_current_scaling].offset_1000) / 1000.0;
@@ -1764,7 +1762,7 @@ static void sensor_tsl2561_periodic(const struct i2c_sensor_device_table_entry_T
 			i2c_log("tsl2561", error);
 	}
 
-	if((ch0 < overflow) && (ch1 < overflow) && (ch0 > 0) && (ch1 > 0))
+	if((ch0 < overflow) && (ch1 < overflow) && ((ch0 > 0) || (ch1 > 0)))
 	{
 		tsl2561_current_value_ch0 = ch0;
 		tsl2561_current_value_ch1 = ch1;
