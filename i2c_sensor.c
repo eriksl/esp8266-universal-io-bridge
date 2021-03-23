@@ -2033,7 +2033,6 @@ static void sensor_tsl2591_periodic(const struct i2c_sensor_device_table_entry_T
 	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (tsl2591_current_scaling > 0))
 	{
 		tsl2591_current_scaling--;
-		logf("tsl2591 dec scaling to %u\n", tsl2591_current_scaling);
 		if((error = tsl2591_start_measurement(entry->address)) != i2c_error_ok)
 			i2c_log("tsl2591", error);
 	}
@@ -2041,7 +2040,6 @@ static void sensor_tsl2591_periodic(const struct i2c_sensor_device_table_entry_T
 	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2591_current_scaling + 1) < tsl2591_scaling_data_size))
 	{
 		tsl2591_current_scaling++;
-		logf("tsl2591 inc scaling to %u\n", tsl2591_current_scaling);
 		if((error = tsl2591_start_measurement(entry->address)) != i2c_error_ok)
 			i2c_log("tsl2591", error);
 	}
@@ -2310,16 +2308,10 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 	current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
 	if((current_value < scale_down_threshold) && (bh1750_current_scaling > 0))
-	{
 		bh1750_current_scaling--;
-		logf("bh1750: dec scale to %u\n", bh1750_current_scaling);
-	}
 
 	if((current_value >= scale_up_threshold) && ((bh1750_current_scaling + 1) < bh1750_scaling_data_size))
-	{
 		bh1750_current_scaling++;
-		logf("bh1750: inc scale to %u\n", bh1750_current_scaling);
-	}
 
 	if(current_value < 0xffff)
 		bh1750_current_value = current_value;
