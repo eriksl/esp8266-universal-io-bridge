@@ -153,11 +153,12 @@ typedef struct i2c_sensor_device_table_entry_T
 	attr_flash_align	const char *type;
 	attr_flash_align	const char *unity;
 	attr_flash_align	i2c_error_t (* const detect_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
+	attr_flash_align	void (* const init_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
 	attr_flash_align	i2c_error_t (* const read_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
 	attr_flash_align	void (* const periodic_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
 } i2c_sensor_device_table_entry_t;
 
-assert_size(i2c_sensor_device_table_entry_t, 40);
+assert_size(i2c_sensor_device_table_entry_t, 44);
 
 void		i2c_sensor_get_info(i2c_sensor_info_t *);
 i2c_error_t	i2c_sensor_detect(int bus, i2c_sensor_t);
