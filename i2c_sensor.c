@@ -1566,14 +1566,14 @@ static const struct
 	unsigned	int scale_down_threshold;
 	unsigned	int scale_up_threshold;
 	unsigned	int overflow;
-	unsigned	int factor_1000;
-				int offset_1000;
+	unsigned	int factor_1000000;
+				int offset_1000000;
 } tsl2561_scaling_data[tsl2561_scaling_data_size] =
 {
-	{	tsl2561_tim_integ_402ms	| tsl2561_tim_high_gain,	0,		50000,	65535,	820,	-6000,	},
-	{	tsl2561_tim_integ_402ms	| tsl2561_tim_low_gain,		256,	50000,	65535,	10000,	-14000,	},
-	{	tsl2561_tim_integ_101ms	| tsl2561_tim_low_gain,		256,	28000,	31711,	40000,	0,		},
-	{	tsl2561_tim_integ_13ms	| tsl2561_tim_low_gain,		256,	5047,	5047,	310800,	0		},
+	{	tsl2561_tim_integ_402ms	| tsl2561_tim_high_gain,	0,		50000,	65535,	480000,		0,	},
+	{	tsl2561_tim_integ_402ms	| tsl2561_tim_low_gain,		256,	50000,	65535,	7400000,	0,	},
+	{	tsl2561_tim_integ_101ms	| tsl2561_tim_low_gain,		256,	28000,	31711,	28000000,	0,	},
+	{	tsl2561_tim_integ_13ms	| tsl2561_tim_low_gain,		256,	5047,	5047,	200000000,	0	},
 };
 
 static unsigned int tsl2561_current_scaling;
@@ -1699,6 +1699,8 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	double ratio;
+	unsigned int factor_1000000 = tsl2561_scaling_data[tsl2561_current_scaling].factor_1000000;
+	int offset_1000000 = tsl2561_scaling_data[tsl2561_current_scaling].offset_1000000;
 
 	if(tsl2561_current_value_ch0 == 0)
 		ratio = 0;
@@ -1720,7 +1722,7 @@ static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_en
 					value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
 
 	value->raw = (tsl2561_current_scaling * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
-	value->cooked = ((value->cooked * tsl2561_scaling_data[tsl2561_current_scaling].factor_1000) + tsl2561_scaling_data[tsl2561_current_scaling].offset_1000) / 1000.0;
+	value->cooked = ((value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
 
 	if(value->cooked < 0)
 		value->cooked = 0;
@@ -1858,10 +1860,10 @@ roflash static const struct
 } tsl2591_scaling_data[tsl2591_scaling_data_size] =
 {
 	{	tsl2591_control_again_9500	|	tsl2591_control_atime_600, 0,	50000, 56095, 96,		0 },
-	{	tsl2591_control_again_400	|	tsl2591_control_atime_600, 100,	50000, 56095, 2100,		0 },
-	{	tsl2591_control_again_25	|	tsl2591_control_atime_400, 100,	50000, 65536, 32000,	0 },
-	{	tsl2591_control_again_0		|	tsl2591_control_atime_400, 100,	50000, 65536, 1000000,	0 },
-	{	tsl2591_control_again_0		|	tsl2591_control_atime_100, 100,	50000, 65536, 4000000,	0 },
+	{	tsl2591_control_again_400	|	tsl2591_control_atime_600, 100,	50000, 56095, 5800,		0 },
+	{	tsl2591_control_again_25	|	tsl2591_control_atime_400, 100,	50000, 65536, 49000,	0 },
+	{	tsl2591_control_again_0		|	tsl2591_control_atime_400, 100,	50000, 65536, 490000,	0 },
+	{	tsl2591_control_again_0		|	tsl2591_control_atime_100, 100,	50000, 65536, 1960000,	0 },
 };
 
 enum { tsl2591_factor_size = 7 };
@@ -1958,7 +1960,7 @@ static i2c_error_t sensor_tsl2591_init(int bus, const i2c_sensor_device_table_en
 	if((error = tsl2591_write_check(entry->address, tsl2591_reg_enable, tsl2591_enable_aen | tsl2591_enable_pon)) != i2c_error_ok)
 		return(error);
 
-	tsl2591_current_scaling = 4;
+	tsl2591_current_scaling = 0;
 	tsl2591_current_value_ch0 = 0;
 	tsl2591_current_value_ch1 = 0;
 
@@ -2005,7 +2007,7 @@ static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_en
 	}
 
 	value->cooked = ((tsl2591_current_value_ch0 * ch0_factor) + (tsl2591_current_value_ch1 * ch1_factor)) / 1000.0;
-	value->cooked = ((value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
+	value->cooked = (((int64_t)value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
@@ -2216,14 +2218,14 @@ roflash static const struct
 	unsigned	int measurement_time;
 	unsigned	int scale_down_threshold;
 	unsigned	int scale_up_threshold;
-	unsigned	int factor_1000;
-				int offset_1000;
+	unsigned	int factor_1000000;
+				int offset_1000000;
 } bh1750_scaling_data[bh1750_scaling_data_size] =
 {
-	{	bh1750_opcode_one_hmode2,	254,	0,		50000,	110,	4000, 	},
-	{	bh1750_opcode_one_hmode2,	69,		1000,	50000,	330,	12000,	},
-	{	bh1750_opcode_one_hmode2,	31,		1000,	50000,	680,	16000,	},
-	{	bh1750_opcode_one_lmode, 	31,		1000,	65536,	1360,	16000,	},
+	{	bh1750_opcode_one_hmode2,	254,	0,		50000,	130000,		0, 	},
+	{	bh1750_opcode_one_hmode2,	69,		1000,	50000,	500000,		0,	},
+	{	bh1750_opcode_one_hmode2,	31,		1000,	50000,	1100000,	0,	},
+	{	bh1750_opcode_one_lmode, 	31,		1000,	65536,	2400000,	0,	},
 };
 
 static unsigned int bh1750_current_scaling;
@@ -2288,6 +2290,20 @@ static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_ent
 	return(i2c_error_ok);
 }
 
+static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
+{
+	unsigned int factor_1000000;
+	int offset_1000000;
+
+	factor_1000000 = bh1750_scaling_data[bh1750_current_scaling].factor_1000000;
+	offset_1000000 = bh1750_scaling_data[bh1750_current_scaling].offset_1000000;
+
+	value->raw = (bh1750_current_scaling * 1000000UL) + bh1750_current_value;
+	value->cooked = (((int64_t)bh1750_current_value * factor_1000000) + offset_1000000) / 1000000.0;
+
+	return(i2c_error_ok);
+}
+
 static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
 {
 	i2c_error_t error;
@@ -2316,20 +2332,6 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 
 	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
 		i2c_log("bh1750", error);
-}
-
-static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
-{
-	unsigned int factor_1000;
-	int offset_1000;
-
-	factor_1000 = bh1750_scaling_data[bh1750_current_scaling].factor_1000;
-	offset_1000 = bh1750_scaling_data[bh1750_current_scaling].offset_1000;
-
-	value->raw = (bh1750_current_scaling * 1000000UL) + bh1750_current_value;
-	value->cooked = ((bh1750_current_value * factor_1000) + offset_1000) / 1000.0;
-
-	return(i2c_error_ok);
 }
 
 enum
