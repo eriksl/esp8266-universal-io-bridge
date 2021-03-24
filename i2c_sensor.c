@@ -2129,10 +2129,8 @@ static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_en
 	if((error = sensor_tsl2550_write_check(entry->address, 0x03, 0x03)) != i2c_error_ok)
 		return(error);
 
-	if((error = sensor_tsl2550_write_check(entry->address, data->high_sensitivity ? 0x18 : 0x1d, 0x1b)) != i2c_error_ok)
+	if((error = sensor_tsl2550_write_check(entry->address, 0x18, 0x1b)) != i2c_error_ok)
 		return(error);
-
-	data->high_sensitivity = config_flags_match(flag_tsl_high_sens);
 
 	sensor_register(bus, entry->id);
 
@@ -2186,8 +2184,8 @@ error:
 	if(value->cooked < 0)
 		value->cooked = 0;
 
-	if(data->high_sensitivity)
-		value->cooked *= 5;
+	/* high sensitivity */
+	value->cooked *= 5;
 
 	return(i2c_error_ok);
 }

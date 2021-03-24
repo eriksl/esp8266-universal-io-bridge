@@ -25,8 +25,8 @@ roflash static const config_flag_name_t config_flag_names[] =
 {
 	{	flag_strip_telnet,			"strip-telnet",				},
 	{	flag_log_to_uart,			"log-to-uart",				},
-	{	flag_tsl_high_sens,			"tsl-high-sens",			},
-	{	flag_bh_high_sens,			"bh-high-sens",				},
+	{	flag_dummy3,				"dummy3",					},
+	{	flag_dummy4,				"dummy4",					},
 	{	flag_cpu_high_speed,		"cpu-high-speed",			},
 	{	flag_wlan_power_save,		"wlan-power-save",			},
 	{	flag_display_clock,			"display-clock",			},
