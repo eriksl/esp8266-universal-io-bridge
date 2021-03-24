@@ -5388,17 +5388,38 @@ typedef enum
 	veml6040_conf_shutdown =	0b1 << 0,
 } veml6040_conf_t;
 
-static double veml6040_lux_per_step(unsigned int integration_time)
+enum { veml6040_scaling_data_size = 6 };
+
+roflash static const struct
 {
-	double lux_step;
+	unsigned	int opcode;
+	unsigned	int scale_down_threshold;
+	unsigned	int scale_up_threshold;
+	unsigned	int factor_1000000;
+				int offset_1000000;
+} veml6040_scaling_data[veml6040_scaling_data_size] =
+{
+	{	(5 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0,	50000, 7865,	0 },
+	{	(4 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 15730,	0 },
+	{	(3 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 31460,	0 },
+	{	(2 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 62920,	0 },
+	{	(1 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 125840,	0 },
+	{	(0 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	65536, 251680,	0 },
+};
 
-	if(integration_time > veml6040_conf_it_max)
-		return(0);
+static unsigned int veml6040_current_value;
+static unsigned int veml6040_current_scaling;
 
-	for(lux_step = 0.25168; integration_time > 0; integration_time--)
-		lux_step /= 2.0;
+static void veml6040_start_measuring(unsigned int address)
+{
+	i2c_error_t error;
+	unsigned int opcode;
 
-	return(lux_step);
+	opcode =	veml6040_scaling_data[veml6040_current_scaling].opcode;
+	opcode |=	veml6040_conf_forcemode | veml6040_conf_trigger;
+
+	if((error = i2c_send2(address, veml6040_reg_conf, opcode)) != i2c_error_ok)
+		i2c_log("veml6040", error);
 }
 
 static i2c_error_t sensor_veml6040_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
@@ -5412,65 +5433,58 @@ static i2c_error_t sensor_veml6040_init(int bus, const i2c_sensor_device_table_e
 	if(i2c_buffer[0] & (veml6040_conf_zero_0 | veml6040_conf_zero_1))
 		return(i2c_error_device_error_1);
 
-	if((error = i2c_send2(entry->address, veml6040_reg_conf, (veml6040_conf_it_min & veml6040_conf_it_mask)) << veml6040_conf_it_shift) != i2c_error_ok)
-	{
-		i2c_log("veml6040", error);
-		return(error);
-	}
-
 	sensor_register(bus, entry->id);
+
+	veml6040_current_value =	0;
+	veml6040_current_scaling =	0;
+
+	veml6040_start_measuring(entry->address);
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_veml6040_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
-	i2c_error_t	error;
+	unsigned int factor_1000000;
+	int offset_1000000;
+
+	factor_1000000 = veml6040_scaling_data[veml6040_current_scaling].factor_1000000;
+	offset_1000000 = veml6040_scaling_data[veml6040_current_scaling].offset_1000000;
+
+	value->raw =	(veml6040_current_scaling * 10000000UL) + veml6040_current_value;
+	value->cooked = (((int64_t)veml6040_current_value * factor_1000000) + offset_1000000) / 1000000.0;
+
+	return(i2c_error_ok);
+}
+
+static void sensor_veml6040_periodic(const struct i2c_sensor_device_table_entry_T *entry, i2c_sensor_device_data_t *data)
+{
+	i2c_error_t error;
 	uint8_t i2c_buffer[2];
-	unsigned int it;
-	double lux_step;
+	unsigned int value;
+	unsigned int scale_down_threshold, scale_up_threshold;
 
-	if((error = i2c_send1_receive(entry->address, veml6040_reg_conf, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("veml6040", error);
-		return(error);
-	}
-
-	it = (i2c_buffer[0] >> veml6040_conf_it_shift) & veml6040_conf_it_mask;
-
-	if(it > veml6040_conf_it_max)
-		it = veml6040_conf_it_max;
-
-	lux_step = veml6040_lux_per_step(it);
+	scale_down_threshold =	veml6040_scaling_data[veml6040_current_scaling].scale_down_threshold;
+	scale_up_threshold =	veml6040_scaling_data[veml6040_current_scaling].scale_up_threshold;
 
 	if((error = i2c_send1_receive(entry->address, veml6040_reg_data_g, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("veml6040", error);
-		return(error);
+		return;
 	}
 
-	if((i2c_buffer[1] < 0x20) && (it < veml6040_conf_it_max))
-		it++;
+	value = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	if((i2c_buffer[1] > 0xc0) && (it > veml6040_conf_it_min))
-		it--;
+	if((value < scale_down_threshold) && (veml6040_current_scaling > 0))
+		veml6040_current_scaling--;
 
-	if((error = i2c_send2(entry->address, veml6040_reg_conf, (it & veml6040_conf_it_mask) << veml6040_conf_it_shift)) != i2c_error_ok)
-	{
-		i2c_log("veml6040", error);
-		return(error);
-	}
+	if((value >= scale_up_threshold) && ((veml6040_current_scaling + 1) < veml6040_scaling_data_size))
+		veml6040_current_scaling++;
 
-	if((i2c_buffer[0] == 0xff) && (i2c_buffer[1] == 0x0ff))
-	{
-		value->cooked = -1;
-		return(i2c_error_out_of_range);
-	}
+	if((value > 0) && (value < 65535))
+		veml6040_current_value = value;
 
-	value->raw = (it * 100000) + (i2c_buffer[1] << 8) + i2c_buffer[1];
-	value->cooked = (i2c_buffer[0] + (256 * i2c_buffer[1])) * lux_step;
-
-	return(i2c_error_ok);
+	veml6040_start_measuring(entry->address);
 }
 
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
@@ -5956,7 +5970,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		"veml6040", "visible light", "lx",
 		sensor_veml6040_init,
 		sensor_veml6040_read,
-		(void *)0,
+		sensor_veml6040_periodic,
 	},
 };
 
