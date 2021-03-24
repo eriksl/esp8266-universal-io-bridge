@@ -27,20 +27,12 @@ typedef struct
 	} correction_1000000;
 } device_autoranging_data_t;
 
-static void sensor_register(int bus, i2c_sensor_t sensor_id)
+static i2c_sensor_t entry_get_id(const i2c_sensor_device_table_entry_t *entry)
 {
-	if(sensor_id >= i2c_sensor_size)
-		return;
+	i2c_sensor_device_table_id_t id;
 
-	device_data[sensor_id].registered |= (1 << bus);
-}
-
-static void sensor_deregister(int bus, i2c_sensor_t sensor_id)
-{
-	if(sensor_id >= i2c_sensor_size)
-		return;
-
-	device_data[sensor_id].registered &= ~(1 << bus);
+	id.flash = entry->id.flash;
+	return(id.ram.id);
 }
 
 attr_pure bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
@@ -174,8 +166,6 @@ static i2c_error_t sensor_opt3001_init(int bus, const i2c_sensor_device_table_en
 	if(config != (opt3001_conf_range_auto | opt3001_conf_conv_time_800 | opt3001_conf_conv_mode_cont))
 		return(i2c_error_device_error_3);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -275,8 +265,6 @@ static i2c_error_t sensor_veml6075_uvindex_init(int bus, const i2c_sensor_device
 		i2c_log("veml6075", error);
 		return(i2c_error_device_error_3);
 	}
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -440,8 +428,6 @@ static i2c_error_t sensor_tmd2771_init(int bus, const i2c_sensor_device_table_en
 		return(error);
 	}
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -586,8 +572,6 @@ static i2c_error_t sensor_apds9930_init(int bus, const i2c_sensor_device_table_e
 		return(error);
 	}
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -725,8 +709,6 @@ static i2c_error_t sensor_apds9960_init(int bus, const i2c_sensor_device_table_e
 		i2c_log("apds9960", error);
 		return(error);
 	}
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -1206,11 +1188,6 @@ static i2c_error_t sensor_si114x_ultraviolet_init(int bus, const i2c_sensor_devi
 	if((error = si114x_set_param(si114x_param_aux_adcmux, si114x_mux_temp)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_si114x_visible_light);
-	sensor_register(bus, i2c_sensor_si114x_infrared);
-	sensor_register(bus, i2c_sensor_si114x_temperature);
-
 	return(i2c_error_ok);
 }
 
@@ -1394,8 +1371,6 @@ static i2c_error_t sensor_max44009_init(int bus, const i2c_sensor_device_table_e
 	if((i2c_buffer[0] & (max44009_conf_cont | max44009_conf_manual)) != max44009_conf_cont)
 		return(i2c_error_device_error_1);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -1480,8 +1455,6 @@ static i2c_error_t sensor_veml6070_38_init(int bus, const i2c_sensor_device_tabl
 		return(error);
 	}
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -1516,16 +1489,16 @@ static i2c_error_t sensor_veml6070_38_read(int bus, const i2c_sensor_device_tabl
 	return(i2c_error_ok);
 }
 
+//FIXME
 static i2c_error_t sensor_veml6070_39_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
 {
 	if(!i2c_sensor_registered(bus, i2c_sensor_veml6070_38))
 		return(i2c_error_address_nak);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
+//FIXME
 static i2c_error_t sensor_veml6070_39_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	return(sensor_veml6070_38_read(bus, entry, value, data));
@@ -1699,8 +1672,6 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 
 	if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
 		return(error);
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -1971,8 +1942,6 @@ static i2c_error_t sensor_tsl2591_init(int bus, const i2c_sensor_device_table_en
 	if((error = tsl2591_start_measurement(entry->address)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_tsl2591_28);
 	return(i2c_error_ok);
 }
 
@@ -2138,8 +2107,6 @@ static i2c_error_t sensor_tsl2550_init(int bus, const i2c_sensor_device_table_en
 	if((error = sensor_tsl2550_write_check(entry->address, 0x18, 0x1b)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -2281,8 +2248,6 @@ static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_ent
 	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -2391,8 +2356,6 @@ static i2c_error_t sensor_tmp75_init(int bus, const i2c_sensor_device_table_entr
 	if(i2c_buffer[0] != (tmp75_reg_conf_res_12 | tmp75_reg_conf_no_shut))
 		return(i2c_error_device_error_1);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -2484,8 +2447,6 @@ static i2c_error_t sensor_ds7505_init(int bus, const i2c_sensor_device_table_ent
 
 	if(i2c_buffer[0] != (ds7505_reg_conf_res_12 | ds7505_reg_conf_no_shut))
 		return(i2c_error_device_error_1);
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -2585,8 +2546,6 @@ static i2c_error_t sensor_ds1631_init(int bus, const i2c_sensor_device_table_ent
 	if((error = i2c_send1(entry->address, ds1631_reg_start) != i2c_error_ok))
 		return(error);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -2678,8 +2637,6 @@ static i2c_error_t sensor_ds1621_init(int bus, const i2c_sensor_device_table_ent
 
 	if((error = i2c_send1(entry->address, ds1621_reg_start) != i2c_error_ok))
 		return(error);
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -2781,8 +2738,6 @@ static i2c_error_t sensor_tmp102_init(int bus, const i2c_sensor_device_table_ent
 	if((i2c_buffer[0] != (tmp102_reg_conf_res_12 | tmp102_reg_conf_no_shut)) || (i2c_buffer[1] != (tmp102_reg_conf2_cr1 | tmp102_reg_conf2_al)))
 		return(i2c_error_device_error_1);
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -2851,8 +2806,6 @@ static i2c_error_t sensor_lm75_init(int bus, const i2c_sensor_device_table_entry
 
 	if((i2c_buffer[0] & ~lm75_reg_conf_reserved) != lm75_reg_conf_no_shutdown)
 		return(i2c_error_device_error_1);
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -2973,9 +2926,6 @@ static i2c_error_t sensor_mpl3115a2_temperature_init(int bus, const i2c_sensor_d
 
 	if(i2c_buffer != (mpl3115_ctrl1_os_128 | mpl3115_ctrl1_sbyb))
 		return(i2c_error_device_error_1);
-
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_mpl3115a2_airpressure);
 
 	return(i2c_error_ok);
 }
@@ -3109,8 +3059,6 @@ static i2c_error_t sensor_ccs811_init(int bus, const i2c_sensor_device_table_ent
 
 	if(i2c_buffer[0] & ccs811_status_error)
 		return(i2c_error_device_error_2);
-
-	sensor_register(bus, entry->id);
 
 	return(i2c_error_ok);
 }
@@ -3328,9 +3276,6 @@ static i2c_error_t sensor_sht30_init(int bus, const i2c_sensor_device_table_entr
 	if((error = sht30_reset(entry->address)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_sht30_humidity);
-
 	return(i2c_error_ok);
 }
 
@@ -3457,8 +3402,6 @@ static i2c_error_t sensor_mcp9808_init(int bus, const i2c_sensor_device_table_en
 		return(error);
 	}
 
-	sensor_register(bus, entry->id);
-
 	return(i2c_error_ok);
 }
 
@@ -3558,9 +3501,6 @@ static i2c_error_t sensor_hdc1080_init(int bus, const i2c_sensor_device_table_en
 		i2c_log("hdc1080", error);
 		return(error);
 	}
-
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_hdc1080_humidity);
 
 	return(i2c_error_ok);
 }
@@ -3720,9 +3660,6 @@ static i2c_error_t sensor_htu21_init(int bus, const i2c_sensor_device_table_entr
 		i2c_log("htu21", error);
 		return(error);
 	}
-
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_htu21_humidity);
 
 	return(i2c_error_ok);
 }
@@ -4032,10 +3969,6 @@ static i2c_error_t sensor_bme680_init(int bus, const i2c_sensor_device_table_ent
 		i2c_log("bme680", error);
 		return(error);
 	}
-
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_bme680_humidity);
-	sensor_register(bus, i2c_sensor_bme680_airpressure);
 
 	return(i2c_error_ok);
 }
@@ -4461,17 +4394,6 @@ static i2c_error_t bmx280_init(int bus, const i2c_sensor_device_table_entry_t *e
 	}
 	bmx280.dig_H6 = unsigned_8(i2c_buffer[0]);
 
-	sensor_register(bus, entry->id);
-
-	if(device_id ==	bmx280_reg_id_bmp280)
-		sensor_register(bus, i2c_sensor_bmp280_airpressure);
-
-	if(device_id == bmx280_reg_id_bme280)
-	{
-		sensor_register(bus, i2c_sensor_bme280_humidity);
-		sensor_register(bus, i2c_sensor_bme280_airpressure);
-	}
-
 	return(i2c_error_ok);
 }
 
@@ -4796,9 +4718,6 @@ static i2c_error_t sensor_bmp085_init(int bus, const i2c_sensor_device_table_ent
 
 	bmp085_calibration_parameters.md = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_bmp085_airpressure);
-
 	return(i2c_error_ok);
 }
 
@@ -5032,9 +4951,6 @@ static i2c_error_t sensor_am2320_init(int bus, const i2c_sensor_device_table_ent
 	if((error = sensor_am2320_read_registers(entry->address, 0x08, 0x02, values)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_am2320_humidity);
-
 	return(i2c_error_ok);
 }
 
@@ -5107,9 +5023,6 @@ static i2c_error_t sensor_hih6130_init(int bus, const i2c_sensor_device_table_en
 	if((error = i2c_receive(entry->address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_hih6130_temperature);
-
 	return(i2c_error_ok);
 }
 
@@ -5130,9 +5043,6 @@ static i2c_error_t sensor_digipicco_init(int bus, const i2c_sensor_device_table_
 
 	if((error = i2c_receive(entry->address, 4, i2cbuffer)) != i2c_error_ok)
 		return(error);
-
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_digipicco_humidity);
 
 	return(i2c_error_ok);
 }
@@ -5239,8 +5149,6 @@ static i2c_error_t sensor_aht10_init(int bus, const i2c_sensor_device_table_entr
 
 	sensor_aht10_state = aht10_state_calibrating;
 
-	sensor_register(bus, entry->id);
-	sensor_register(bus, i2c_sensor_aht10_humidity);
 	return(i2c_error_ok);
 }
 
@@ -5424,8 +5332,6 @@ static i2c_error_t sensor_veml6040_init(int bus, const i2c_sensor_device_table_e
 	if(i2c_buffer[0] & (veml6040_conf_zero_0 | veml6040_conf_zero_1))
 		return(i2c_error_device_error_1);
 
-	sensor_register(bus, entry->id);
-
 	veml6040_current_value =	0;
 	veml6040_autoranging_current =	0;
 
@@ -5481,483 +5387,552 @@ static void sensor_veml6040_periodic(const struct i2c_sensor_device_table_entry_
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
-		i2c_sensor_opt3001, 0x45, 2, 0,
+		{{ i2c_sensor_opt3001, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x45, 2, 0,
 		"opt3001", "visible light", "lx",
 		sensor_opt3001_init,
 		sensor_opt3001_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_veml6075_uvindex, 0x10, 1, 0,
+		{{ i2c_sensor_veml6075_uvindex, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x10, 1, 0,
 		"veml6075", "ultraviolet light index", "",
 		sensor_veml6075_uvindex_init,
 		sensor_veml6075_uvindex_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmd2771, 0x39, 2, 0,
+		{{ i2c_sensor_tmd2771, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 2, 0,
 		"tmd2771", "visible light", "lx",
 		sensor_tmd2771_init,
 		sensor_tmd2771_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_apds9930, 0x39, 2, 0,
+		{{ i2c_sensor_apds9930, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 2, 0,
 		"apds9930", "visible light", "lx",
 		sensor_apds9930_init,
 		sensor_apds9930_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_apds9960, 0x39, 2, 0,
+		{{ i2c_sensor_apds9960, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 2, 0,
 		"apds9960", "visible light", "lx",
 		sensor_apds9960_init,
 		sensor_apds9960_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_ultraviolet, 0x60, 1, 0,
+		{{ i2c_sensor_si114x_ultraviolet, { i2c_sensor_si114x_visible_light, i2c_sensor_si114x_infrared, i2c_sensor_si114x_temperature }}},
+		0x60, 1, 0,
 		"si114x", "ultraviolet light index", "",
 		sensor_si114x_ultraviolet_init,
 		sensor_si114x_ultraviolet_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_visible_light, 0x60, 1, sdte_secondary,
+		{{ i2c_sensor_si114x_visible_light, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x60, 1, sdte_secondary,
 		"si114x", "visible light", "lx",
 		(void *)0,
 		sensor_si114x_visible_light_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_infrared, 0x60, 0, sdte_secondary,
+		{{ i2c_sensor_si114x_infrared, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x60, 0, sdte_secondary,
 		"si114x", "infrared light", "%",
 		(void *)0,
 		sensor_si114x_infrared_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_si114x_temperature, 0x60, 1, sdte_secondary,
+		{{ i2c_sensor_si114x_temperature, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x60, 1, sdte_secondary,
 		"si114x", "temperature", "C",
 		(void *)0,
 		sensor_si114x_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_max44009, 0x4a, 2, 0,
+		{{ i2c_sensor_max44009, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 2, 0,
 		"max44009", "visible light", "lx",
 		sensor_max44009_init,
 		sensor_max44009_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_veml6070_38, 0x38, 1, 0,
+		{{ i2c_sensor_veml6070_38, { i2c_sensor_veml6070_39, i2c_sensor_none, i2c_sensor_none }}},
+		0x38, 1, 0,
 		"veml6070", "ultraviolet light index #0", "",
 		sensor_veml6070_38_init,
 		sensor_veml6070_38_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_veml6070_39, 0x39, 1, 0,
+		{{ i2c_sensor_veml6070_39, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 1, sdte_secondary,
 		"veml6070", "ultraviolet light index #1", "",
 		sensor_veml6070_39_init,
 		sensor_veml6070_39_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tsl2561_39, 0x39, 2, 0,
+		{{ i2c_sensor_tsl2561_39, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 2, 0,
 		"tsl2561 #0", "visible light", "lx",
 		sensor_tsl2561_init,
 		sensor_tsl2561_read,
 		sensor_tsl2561_periodic,
 	},
 	{
-		i2c_sensor_tsl2561_29, 0x29, 2, 0,
+		{{ i2c_sensor_tsl2561_29, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x29, 2, 0,
 		"tsl2561 #1", "visible light", "lx",
 		sensor_tsl2561_init,
 		sensor_tsl2561_read,
 		sensor_tsl2561_periodic,
 	},
 	{
-		i2c_sensor_tsl2550, 0x39, 2, 0,
+		{{ i2c_sensor_tsl2550, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x39, 2, 0,
 		"tsl2550", "visible light", "lx",
 		sensor_tsl2550_init,
 		sensor_tsl2550_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bh1750, 0x23, 2, 0,
+		{{ i2c_sensor_bh1750, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x23, 2, 0,
 		"bh1750", "visible light", "lx",
 		sensor_bh1750_init,
 		sensor_bh1750_read,
 		sensor_bh1750_periodic,
 	},
 	{
-		i2c_sensor_tmp75_48, 0x48, 2, 0,
+		{{ i2c_sensor_tmp75_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 2, 0,
 		"tmp75/tmp275 #0", "temperature", "C",
 		sensor_tmp75_init,
 		sensor_tmp75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmp75_49, 0x49, 2, 0,
+		{{ i2c_sensor_tmp75_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 2, 0,
 		"tmp75/tmp275 #1", "temperature", "C",
 		sensor_tmp75_init,
 		sensor_tmp75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmp75_4a, 0x4a, 2, 0,
+		{{ i2c_sensor_tmp75_4a, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 2, 0,
 		"tmp75/tmp275 #2", "temperature", "C",
 		sensor_tmp75_init,
 		sensor_tmp75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmp75_4f, 0x4f, 2, 0,
+		{{ i2c_sensor_tmp75_4f, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4f, 2, 0,
 		"tmp75/tmp275 #3", "temperature", "C",
 		sensor_tmp75_init,
 		sensor_tmp75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds7505_48, 0x48, 2, 0,
+		{{ i2c_sensor_ds7505_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 2, 0,
 		"ds7505 #0", "temperature", "C",
 		sensor_ds7505_init,
 		sensor_ds7505_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds7505_49, 0x49, 2, 0,
+		{{ i2c_sensor_ds7505_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 2, 0,
 		"ds7505 #1", "temperature", "C",
 		sensor_ds7505_init,
 		sensor_ds7505_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds7505_4a, 0x4a, 2, 0,
+		{{ i2c_sensor_ds7505_4a, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 2, 0,
 		"ds7505 #2", "temperature", "C",
 		sensor_ds7505_init,
 		sensor_ds7505_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds7505_4f, 0x4f, 2, 0,
+		{{ i2c_sensor_ds7505_4f, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4f, 2, 0,
 		"ds7505 #3", "temperature", "C",
 		sensor_ds7505_init,
 		sensor_ds7505_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1631_48, 0x48, 2, 0,
+		{{ i2c_sensor_ds1631_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 2, 0,
 		"ds1631 #0", "temperature", "C",
 		sensor_ds1631_init,
 		sensor_ds1631_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1631_49, 0x49, 2, 0,
+		{{ i2c_sensor_ds1631_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 2, 0,
 		"ds1631 #1", "temperature", "C",
 		sensor_ds1631_init,
 		sensor_ds1631_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1631_4a, 0x4a, 2, 0,
+		{{ i2c_sensor_ds1631_4a, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 2, 0,
 		"ds1631 #2", "temperature", "C",
 		sensor_ds1631_init,
 		sensor_ds1631_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1631_4f, 0x4f, 2, 0,
+		{{ i2c_sensor_ds1631_4f, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4f, 2, 0,
 		"ds1631 #3", "temperature", "C",
 		sensor_ds1631_init,
 		sensor_ds1631_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1621_48, 0x48, 1, 0,
+		{{ i2c_sensor_ds1621_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 1, 0,
 		"ds1621 #0", "temperature", "C",
 		sensor_ds1621_init,
 		sensor_ds1621_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1621_49, 0x49, 1, 0,
+		{{ i2c_sensor_ds1621_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 1, 0,
 		"ds1621 #1", "temperature", "C",
 		sensor_ds1621_init,
 		sensor_ds1621_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1621_4a, 0x4a, 1, 0,
+		{{ i2c_sensor_ds1621_4a, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 1, 0,
 		"ds1621 #2", "temperature", "C",
 		sensor_ds1621_init,
 		sensor_ds1621_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ds1621_4f, 0x4f, 1, 0,
+		{{ i2c_sensor_ds1621_4f, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4f, 1, 0,
 		"ds1621 #3", "temperature", "C",
 		sensor_ds1621_init,
 		sensor_ds1621_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmp102_48, 0x48, 2, 0,
+		{{ i2c_sensor_tmp102_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 2, 0,
 		"tmp102 #0", "temperature", "C",
 		sensor_tmp102_init,
 		sensor_tmp102_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tmp102_49, 0x49, 2, 0,
+		{{ i2c_sensor_tmp102_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 2, 0,
 		"tmp102 #1", "temperature", "C",
 		sensor_tmp102_init,
 		sensor_tmp102_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_lm75_48, 0x48, 2, 0,
+		{{ i2c_sensor_lm75_48, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x48, 2, 0,
 		"lm75 #0", "temperature", "C",
 		sensor_lm75_init,
 		sensor_lm75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_lm75_49, 0x49, 2, 0,
+		{{ i2c_sensor_lm75_49, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x49, 2, 0,
 		"lm75 #1", "temperature", "C",
 		sensor_lm75_init,
 		sensor_lm75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_lm75_4a, 0x4a, 2, 0,
+		{{ i2c_sensor_lm75_4a, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4a, 2, 0,
 		"lm75 #2", "temperature", "C",
 		sensor_lm75_init,
 		sensor_lm75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_lm75_4f, 0x4f, 2, 0,
+		{{ i2c_sensor_lm75_4f, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x4f, 2, 0,
 		"lm75 #3", "temperature", "C",
 		sensor_lm75_init,
 		sensor_lm75_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_mpl3115a2_temperature, 0x60, 2, 0,
+		{{ i2c_sensor_mpl3115a2_temperature, { i2c_sensor_mpl3115a2_airpressure, i2c_sensor_none, i2c_sensor_none }}},
+		0x60, 2, 0,
 		"mpl3115a2", "temperature", "C",
 		sensor_mpl3115a2_temperature_init,
 		sensor_mpl3115a2_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_mpl3115a2_airpressure, 0x60, 2, sdte_secondary,
+		{{ i2c_sensor_mpl3115a2_airpressure, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x60, 2, sdte_secondary,
 		"mpl3115a2", "air pressure", "hPa",
 		(void *)0,
 		sensor_mpl3115a2_airpressure_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_ccs811, 0x5a, 0, 0,
+		{{ i2c_sensor_ccs811, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x5a, 0, 0,
 		"ccs811", "air quality", "%",
 		sensor_ccs811_init,
 		sensor_ccs811_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_sht30_temperature, 0x44, 2, 0,
+		{{ i2c_sensor_sht30_temperature, { i2c_sensor_sht30_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x44, 2, 0,
 		"sht30", "temperature", "C",
 		sensor_sht30_init,
 		sensor_sht30_temperature_read,
 		sensor_sht30_periodic,
 	},
 	{
-		i2c_sensor_sht30_humidity, 0x44, 0, sdte_secondary,
+		{{ i2c_sensor_sht30_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x44, 0, sdte_secondary,
 		"sht30", "humidity", "%",
 		(void *)0,
 		sensor_sht30_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_mcp9808_temperature, 0x18, 2, 0,
+		{{ i2c_sensor_mcp9808_temperature, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x18, 2, 0,
 		"mcp9808", "temperature", "C",
 		sensor_mcp9808_init,
 		sensor_mcp9808_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_hdc1080_temperature, 0x40, 2, 0,
+		{{ i2c_sensor_hdc1080_temperature, { i2c_sensor_hdc1080_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x40, 2, 0,
 		"hdc1080", "temperature", "C",
 		sensor_hdc1080_init,
 		sensor_hdc1080_temperature_read,
 		sensor_hdc1080_periodic,
 	},
 	{
-		i2c_sensor_hdc1080_humidity, 0x40, 0, sdte_secondary,
+		{{ i2c_sensor_hdc1080_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x40, 0, sdte_secondary,
 		"hdc1080", "humidity", "",
 		(void *)0,
 		sensor_hdc1080_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_htu21_temperature, 0x40, 1, 0,
+		{{ i2c_sensor_htu21_temperature, { i2c_sensor_htu21_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x40, 1, 0,
 		"htu21/si7021", "temperature", "C",
 		sensor_htu21_init,
 		sensor_htu21_temperature_read,
 		sensor_htu21_periodic,
 	},
 	{
-		i2c_sensor_htu21_humidity, 0x40, 0, sdte_secondary,
+		{{ i2c_sensor_htu21_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x40, 0, sdte_secondary,
 		"htu21/si7021", "humidity", "%",
 		(void *)0,
 		sensor_htu21_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme680_temperature, 0x76, 2, 0,
+		{{ i2c_sensor_bme680_temperature, { i2c_sensor_bme680_humidity, i2c_sensor_bme680_airpressure, i2c_sensor_none }}},
+		0x76, 2, 0,
 		"bme680", "temperature", "C",
 		sensor_bme680_init,
 		sensor_bme680_temperature_read,
 		sensor_bme680_periodic,
 	},
 	{
-		i2c_sensor_bme680_humidity, 0x76, 0, sdte_secondary,
+		{{ i2c_sensor_bme680_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 0, sdte_secondary,
 		"bme680", "humidity", "%",
 		(void *)0,
 		sensor_bme680_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme680_airpressure, 0x76, 2, sdte_secondary,
+		{{ i2c_sensor_bme680_airpressure, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 2, sdte_secondary,
 		"bme680", "air pressure", "hPa",
 		(void *)0,
 		sensor_bme680_airpressure_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme280_temperature, 0x76, 2, 0,
+		{{ i2c_sensor_bme280_temperature, { i2c_sensor_bme280_humidity, i2c_sensor_bme280_airpressure, i2c_sensor_none }}},
+		0x76, 2, 0,
 		"bme280", "temperature", "C",
 		sensor_bme280_init,
 		sensor_bme280_read_temperature,
 		sensor_bme280_periodic,
 	},
 	{
-		i2c_sensor_bme280_humidity, 0x76, 1, sdte_secondary,
+		{{ i2c_sensor_bme280_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 1, sdte_secondary,
 		"bme280", "humidity", "%",
 		(void *)0,
 		sensor_bme280_read_humidity,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bme280_airpressure, 0x76, 2, sdte_secondary,
+		{{ i2c_sensor_bme280_airpressure, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 2, sdte_secondary,
 		"bme280", "air pressure", "hPa",
 		(void *)0,
 		sensor_bme280_read_airpressure,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bmp280_temperature, 0x76, 2, 0,
+		{{ i2c_sensor_bmp280_temperature, { i2c_sensor_bmp280_airpressure, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 2, 0,
 		"bmp280", "temperature", "C",
 		sensor_bmp280_init,
 		sensor_bmp280_read_temperature,
 		sensor_bmp280_periodic,
 	},
 	{
-		i2c_sensor_bmp280_airpressure, 0x76, 2, sdte_secondary,
+		{{ i2c_sensor_bmp280_airpressure, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x76, 2, sdte_secondary,
 		"bmp280", "air pressure", "hPa",
 		(void *)0,
 		sensor_bmp280_read_airpressure,
 		(void *)0,
 	},
 	{
-		i2c_sensor_bmp085_temperature, 0x77, 2, 0,
+		{{ i2c_sensor_bmp085_temperature, { i2c_sensor_bmp085_airpressure, i2c_sensor_none, i2c_sensor_none }}},
+		0x77, 2, 0,
 		"bmp085/bmp180", "temperature", "C",
 		sensor_bmp085_init,
 		sensor_bmp085_read_temperature,
 		sensor_bmp085_periodic,
 	},
 	{
-		i2c_sensor_bmp085_airpressure, 0x77, 2, sdte_secondary,
+		{{ i2c_sensor_bmp085_airpressure, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x77, 2, sdte_secondary,
 		"bmp085/bmp180", "air pressure", "hPa",
 		(void *)0,
 		sensor_bmp085_read_airpressure,
 		(void *)0,
 	},
 	{
-		i2c_sensor_am2320_temperature, 0x5c, 1, 0,
+		{{ i2c_sensor_am2320_temperature, { i2c_sensor_am2320_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x5c, 1, 0,
 		"am2320/1/2", "temperature", "C",
 		sensor_am2320_init,
 		sensor_am2320_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_am2320_humidity, 0x5c, 0, sdte_secondary,
+		{{ i2c_sensor_am2320_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x5c, 0, sdte_secondary,
 		"am2320/1/2", "humidity", "%",
 		(void *)0,
 		sensor_am2320_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_hih6130_humidity, 0x27, 0, 0,
+		{{ i2c_sensor_hih6130_humidity, { i2c_sensor_hih6130_temperature, i2c_sensor_none, i2c_sensor_none }}},
+		0x27, 0, 0,
 		"hih6130", "humidity", "",
 		sensor_hih6130_init,
 		sensor_hih6130_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_hih6130_temperature, 0x27, 2, sdte_secondary,
+		{{ i2c_sensor_hih6130_temperature, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x27, 2, sdte_secondary,
 		"hih6130", "temperature", "C",
 		(void *)0,
 		sensor_hih6130_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_digipicco_temperature, 0x78, 2, 0,
+		{{ i2c_sensor_digipicco_temperature, { i2c_sensor_digipicco_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x78, 2, 0,
 		"digipicco", "temperature", "C",
 		sensor_digipicco_init,
 		sensor_digipicco_temperature_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_digipicco_humidity, 0x78, 0, sdte_secondary,
+		{{ i2c_sensor_digipicco_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x78, 0, sdte_secondary,
 		"digipicco", "humidity", "%",
 		(void *)0,
 		sensor_digipicco_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_tsl2591_29, 0x29, 3, 0,
+		{{ i2c_sensor_tsl2591_29, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x29, 3, 0,
 		"tsl2591 index #0", "visible light", "lx",
 		sensor_tsl2591_init,
 		sensor_tsl2591_read,
 		sensor_tsl2591_periodic,
 	},
 	{
-		i2c_sensor_tsl2591_28, 0x28, 3, sdte_secondary,
+		{{ i2c_sensor_tsl2591_28, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x28, 3, sdte_secondary,
 		"tsl2591 index #1", "visible light", "lx",
 		(void *)0,
 		sensor_tsl2591_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_aht10_temperature, 0x38, 2, 0,
+		{{ i2c_sensor_aht10_temperature, { i2c_sensor_aht10_humidity, i2c_sensor_none, i2c_sensor_none }}},
+		0x38, 2, 0,
 		"aht10", "temperature", "C",
 		sensor_aht10_init,
 		sensor_aht10_temperature_read,
 		sensor_aht10_periodic,
 	},
 	{
-		i2c_sensor_aht10_humidity, 0x38, 0, sdte_secondary,
+		{{ i2c_sensor_aht10_humidity, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x38, 0, sdte_secondary,
 		"aht10", "humidity", "%",
 		(void *)0,
 		sensor_aht10_humidity_read,
 		(void *)0,
 	},
 	{
-		i2c_sensor_veml6040, 0x10, 3, 0,
+		{{ i2c_sensor_veml6040, { i2c_sensor_none, i2c_sensor_none, i2c_sensor_none }}},
+		0x10, 3, 0,
 		"veml6040", "visible light", "lx",
 		sensor_veml6040_init,
 		sensor_veml6040_read,
@@ -5978,41 +5953,38 @@ void i2c_sensor_get_info(i2c_sensor_info_t *sensor_info_ptr)
 
 i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 {
-	const i2c_sensor_device_table_entry_t *device_table_entry, *device_table_check_entry;
-	unsigned int device_table_check_index;
+	const i2c_sensor_device_table_entry_t *device_table_entry;
 	i2c_error_t error;
+	i2c_sensor_device_table_id_t device_entry_id;
+	unsigned int id;
 
 	if(sensor >= i2c_sensor_size)
 		return(i2c_error_out_of_range);
 
 	device_table_entry = &device_table[sensor];
+	device_entry_id.flash = device_table_entry->id.flash;
 
-	if(device_table_entry->id != sensor)
+	id = device_entry_id.ram.id;
+
+	if(id != sensor)
 	{
-		logf("*** i2c_sensor_init: sensor id != index: %u, %u\n", device_table_entry->id, sensor);
+		logf("i2c_sensor_init: sensor id != index: %u, %u\n", id, sensor);
 		return(i2c_error_out_of_range);
 	}
 
 	if(device_table_entry->flags & sdte_secondary)
 		return(i2c_error_init_secondary);
 
-	sensor_deregister(bus, sensor);
+	device_data[id].registered &= ~(1 << bus);
 
 	if(!device_table_entry->init_fn)
 		return(i2c_error_disabled);
 
-	for(device_table_check_index = 0, device_table_check_entry = device_table; device_table_check_index < i2c_sensor_size; device_table_check_index++, device_table_check_entry++)
-	{
-		if(device_table_check_entry->init_fn && !(device_table_check_entry->flags & sdte_secondary) &&
-				(device_table_check_entry->address == device_table_entry->address))
-		{
-			if(i2c_sensor_registered(0, device_table_check_entry->id))
-				return(i2c_error_in_use_on_bus_0);
+	if(i2c_sensor_registered(0, id))
+		return(i2c_error_in_use_on_bus_0);
 
-			if(i2c_sensor_registered(bus, device_table_check_entry->id))
-				return(i2c_error_in_use);
-		}
-	}
+	if(i2c_sensor_registered(bus, id))
+		return(i2c_error_in_use);
 
 	if((error = i2c_select_bus(bus)) != i2c_error_ok)
 	{
@@ -6020,14 +5992,23 @@ i2c_error_t i2c_sensor_init(int bus, i2c_sensor_t sensor)
 		return(error);
 	}
 
-	if((error = device_table_entry->init_fn(bus, device_table_entry, &device_data[sensor])) != i2c_error_ok)
+	error = device_table_entry->init_fn(bus, device_table_entry, &device_data[sensor]);
+
+	if(error == i2c_error_ok)
 	{
-		i2c_select_bus(0);
-		return(error);
+		device_data[id].registered |= 1 << bus;
+
+		for(int ix=0; ix < 3; ix++)
+		{
+			unsigned int sid = device_entry_id.ram.secondary[ix];
+
+			if(sid != i2c_sensor_none)
+				device_data[sid].registered |= 1 << bus;
+		}
 	}
 
 	i2c_select_bus(0);
-	return(i2c_error_ok);
+	return(error);
 }
 
 void i2c_sensors_periodic(void)
@@ -6045,7 +6026,7 @@ void i2c_sensors_periodic(void)
 		{
 			device_table_entry = &device_table[sensor_info.periodic_current_sensor];
 
-			if(device_table_entry->id != sensor_info.periodic_current_sensor)
+			if(entry_get_id(device_table_entry) != sensor_info.periodic_current_sensor)
 				return;
 
 			if(i2c_sensor_registered(sensor_info.periodic_current_bus, sensor_info.periodic_current_sensor) && !(device_table_entry->flags & sdte_secondary) && device_table_entry->periodic_fn)
@@ -6163,7 +6144,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 	{
 		entry = &device_table[current];
 
-		if(sensor == entry->id)
+		if(sensor == entry_get_id(entry))
 			break;
 	}
 
@@ -6184,9 +6165,9 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 	error = i2c_error_ok;
 
 	if(html)
-		string_format(dst, "%d</td><td align=\"right\">%u</td><td align=\"right\">0x%02x</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%d</td><td align=\"right\">%u</td><td align=\"right\">0x%02lx</td><td>%s</td><td>%s</td>", bus, sensor, entry->address, entry->name, entry->type);
 	else
-		string_format(dst, "%s sensor %u/%02u@%02x: %s, %s: ", device_data[sensor].registered ? "+" : " ", (unsigned int)bus, sensor, entry->address, entry->name, entry->type);
+		string_format(dst, "%s sensor %u/%02u@%02lx: %s, %s: ", device_data[sensor].registered ? "+" : " ", (unsigned int)bus, sensor, entry->address, entry->name, entry->type);
 
 	if((error = entry->read_fn(bus, entry, &value, &device_data[current])) == i2c_error_ok)
 	{
