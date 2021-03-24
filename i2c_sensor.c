@@ -11,6 +11,22 @@
 
 static i2c_sensor_device_data_t device_data[i2c_sensor_size];
 
+typedef struct
+{
+	unsigned int data[2];
+	struct
+	{
+		unsigned int down;
+		unsigned int up;
+	} threshold;
+	unsigned int overflow;
+	struct
+	{
+		unsigned int factor;
+		int offset;
+	} correction_1000000;
+} device_autoranging_data_t;
+
 static void sensor_register(int bus, i2c_sensor_t sensor_id)
 {
 	if(sensor_id >= i2c_sensor_size)
@@ -1557,26 +1573,18 @@ enum
 
 enum
 {
-	tsl2561_scaling_data_size = 4,
+	tsl2561_autoranging_data_size = 4,
 };
 
-static const struct
+roflash static const device_autoranging_data_t tsl2561_autoranging_data[tsl2561_autoranging_data_size] =
 {
-	unsigned	int timeint;
-	unsigned	int scale_down_threshold;
-	unsigned	int scale_up_threshold;
-	unsigned	int overflow;
-	unsigned	int factor_1000000;
-				int offset_1000000;
-} tsl2561_scaling_data[tsl2561_scaling_data_size] =
-{
-	{	tsl2561_tim_integ_402ms	| tsl2561_tim_high_gain,	0,		50000,	65535,	480000,		0,	},
-	{	tsl2561_tim_integ_402ms	| tsl2561_tim_low_gain,		256,	50000,	65535,	7400000,	0,	},
-	{	tsl2561_tim_integ_101ms	| tsl2561_tim_low_gain,		256,	28000,	31711,	28000000,	0,	},
-	{	tsl2561_tim_integ_13ms	| tsl2561_tim_low_gain,		256,	5047,	5047,	200000000,	0	},
+	{{	tsl2561_tim_integ_402ms,	tsl2561_tim_high_gain	},	{	0,		50000	},	65535,	{	480000,		0	}},
+	{{	tsl2561_tim_integ_402ms,	tsl2561_tim_low_gain	},	{	256,	50000	},	65535,	{	7400000,	0	}},
+	{{	tsl2561_tim_integ_101ms,	tsl2561_tim_low_gain	},	{	256,	50000	},	31711,	{	28000000,	0	}},
+	{{	tsl2561_tim_integ_13ms,		tsl2561_tim_low_gain	},	{	256,	50000	},	5047,	{	200000000,	0	}},
 };
 
-static unsigned int tsl2561_current_scaling;
+static unsigned int tsl2561_autoranging_current;
 static unsigned int tsl2561_current_value_ch0;
 static unsigned int tsl2561_current_value_ch1;
 
@@ -1635,11 +1643,12 @@ static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned 
 
 static i2c_error_t tsl2561_start_measurement(unsigned int address)
 {
-	unsigned int timeint;
+	unsigned int timeint, gain;
 
-	timeint = tsl2561_scaling_data[tsl2561_current_scaling].timeint;
+	timeint =	tsl2561_autoranging_data[tsl2561_autoranging_current].data[0];
+	gain =		tsl2561_autoranging_data[tsl2561_autoranging_current].data[1];
 
-	return(tsl2561_write_check(address, tsl2561_reg_timeint, timeint));
+	return(tsl2561_write_check(address, tsl2561_reg_timeint, timeint | gain));
 }
 
 static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_device_data_t *data)
@@ -1684,7 +1693,7 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 	if((regval & 0x0f) != tsl2561_ctrl_power_on)
 		return(i2c_error_device_error_1);
 
-	tsl2561_current_scaling = 0;
+	tsl2561_autoranging_current = 0;
 	tsl2561_current_value_ch0 = 0;
 	tsl2561_current_value_ch1 = 0;
 
@@ -1699,8 +1708,11 @@ static i2c_error_t sensor_tsl2561_init(int bus, const i2c_sensor_device_table_en
 static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_entry_t *entry, i2c_sensor_value_t *value, i2c_sensor_device_data_t *data)
 {
 	double ratio;
-	unsigned int factor_1000000 = tsl2561_scaling_data[tsl2561_current_scaling].factor_1000000;
-	int offset_1000000 = tsl2561_scaling_data[tsl2561_current_scaling].offset_1000000;
+	unsigned int factor_1000000;
+	int offset_1000000;
+
+	factor_1000000 = tsl2561_autoranging_data[tsl2561_autoranging_current].correction_1000000.factor;
+	offset_1000000 = tsl2561_autoranging_data[tsl2561_autoranging_current].correction_1000000.offset;
 
 	if(tsl2561_current_value_ch0 == 0)
 		ratio = 0;
@@ -1721,7 +1733,7 @@ static i2c_error_t sensor_tsl2561_read(int bus, const i2c_sensor_device_table_en
 				else
 					value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
 
-	value->raw = (tsl2561_current_scaling * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
+	value->raw = (tsl2561_autoranging_current * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
 	value->cooked = ((value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
 
 	if(value->cooked < 0)
@@ -1737,9 +1749,9 @@ static void sensor_tsl2561_periodic(const struct i2c_sensor_device_table_entry_T
 	unsigned int ch0, ch1;
 	unsigned int overflow, scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	tsl2561_scaling_data[tsl2561_current_scaling].scale_down_threshold;
-	scale_up_threshold =	tsl2561_scaling_data[tsl2561_current_scaling].scale_up_threshold;
-	overflow =				tsl2561_scaling_data[tsl2561_current_scaling].overflow;
+	scale_down_threshold =	tsl2561_autoranging_data[tsl2561_autoranging_current].threshold.down;
+	scale_up_threshold =	tsl2561_autoranging_data[tsl2561_autoranging_current].threshold.up;
+	overflow =				tsl2561_autoranging_data[tsl2561_autoranging_current].overflow;
 
 	if((error = i2c_send1_receive(entry->address, tsl2561_cmd_cmd | tsl2561_reg_data0, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -1750,16 +1762,16 @@ static void sensor_tsl2561_periodic(const struct i2c_sensor_device_table_entry_T
 	ch0 = (i2c_buffer[1] << 8) | i2c_buffer[0];
 	ch1 = (i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (tsl2561_current_scaling > 0))
+	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (tsl2561_autoranging_current > 0))
 	{
-		tsl2561_current_scaling--;
+		tsl2561_autoranging_current--;
 		if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
 			i2c_log("tsl2561", error);
 	}
 
-	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2561_current_scaling + 1) < tsl2561_scaling_data_size))
+	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2561_autoranging_current + 1) < tsl2561_autoranging_data_size))
 	{
-		tsl2561_current_scaling++;
+		tsl2561_autoranging_current++;
 		if((error = tsl2561_start_measurement(entry->address)) != i2c_error_ok)
 			i2c_log("tsl2561", error);
 	}
@@ -1847,23 +1859,15 @@ typedef enum
 	tsl2591_status_avalid =	0b1 << 0,
 } tsl2591_status_t;
 
-enum { tsl2591_scaling_data_size = 5 };
+enum { tsl2591_autoranging_data_size = 5 };
 
-roflash static const struct
+roflash static const device_autoranging_data_t tsl2591_autoranging_data[tsl2591_autoranging_data_size] =
 {
-	unsigned	int control_opcode;
-	unsigned	int scale_down_threshold;
-	unsigned	int scale_up_threshold;
-	unsigned	int overflow;
-	unsigned	int factor_1000000;
-				int offset_1000000;
-} tsl2591_scaling_data[tsl2591_scaling_data_size] =
-{
-	{	tsl2591_control_again_9500	|	tsl2591_control_atime_600, 0,	50000, 56095, 96,		0 },
-	{	tsl2591_control_again_400	|	tsl2591_control_atime_600, 100,	50000, 56095, 5800,		0 },
-	{	tsl2591_control_again_25	|	tsl2591_control_atime_400, 100,	50000, 65536, 49000,	0 },
-	{	tsl2591_control_again_0		|	tsl2591_control_atime_400, 100,	50000, 65536, 490000,	0 },
-	{	tsl2591_control_again_0		|	tsl2591_control_atime_100, 100,	50000, 65536, 1960000,	0 },
+	{{	tsl2591_control_again_9500,	tsl2591_control_atime_600 }, {	0,		50000	}, 56095,	{ 96,		0 }},
+	{{	tsl2591_control_again_400,	tsl2591_control_atime_600 }, {	100,	50000	}, 56095,	{ 5800,		0 }},
+	{{	tsl2591_control_again_25,	tsl2591_control_atime_400 }, {	100,	50000	}, 65536,	{ 49000,	0 }},
+	{{	tsl2591_control_again_0,	tsl2591_control_atime_400 }, {	100,	50000	}, 65536,	{ 490000,	0 }},
+	{{	tsl2591_control_again_0,	tsl2591_control_atime_100 }, {	100,	50000	}, 65536,	{ 1960000,	0 }},
 };
 
 enum { tsl2591_factor_size = 7 };
@@ -1930,7 +1934,7 @@ static i2c_error_t tsl2591_start_measurement(unsigned int address)
 {
 	unsigned int control_opcode;
 
-	control_opcode = tsl2591_scaling_data[tsl2591_current_scaling].control_opcode;
+	control_opcode = tsl2591_autoranging_data[tsl2591_current_scaling].data[0] | tsl2591_autoranging_data[tsl2591_current_scaling].data[1] ;
 
 	return(tsl2591_write_check(address, tsl2591_reg_control, control_opcode));
 }
@@ -1981,8 +1985,8 @@ static i2c_error_t sensor_tsl2591_read(int bus, const i2c_sensor_device_table_en
 
 	value->raw = (tsl2591_current_scaling * 1000000000000UL) + (tsl2591_current_value_ch0 * 100000000UL) + tsl2591_current_value_ch1;
 
-	factor_1000000 = tsl2591_scaling_data[tsl2591_current_scaling].factor_1000000;
-	offset_1000000 = tsl2591_scaling_data[tsl2591_current_scaling].offset_1000000;
+	factor_1000000 = tsl2591_autoranging_data[tsl2591_current_scaling].correction_1000000.factor;
+	offset_1000000 = tsl2591_autoranging_data[tsl2591_current_scaling].correction_1000000.offset;
 
 	if(tsl2591_current_value_ch0 == 0)
 	{
@@ -2019,9 +2023,9 @@ static void sensor_tsl2591_periodic(const struct i2c_sensor_device_table_entry_T
 	unsigned int ch0, ch1;
 	unsigned int overflow, scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	tsl2591_scaling_data[tsl2591_current_scaling].scale_down_threshold;
-	scale_up_threshold =	tsl2591_scaling_data[tsl2591_current_scaling].scale_up_threshold;
-	overflow =				tsl2591_scaling_data[tsl2591_current_scaling].overflow;
+	scale_down_threshold =	tsl2591_autoranging_data[tsl2591_current_scaling].threshold.down;
+	scale_up_threshold =	tsl2591_autoranging_data[tsl2591_current_scaling].threshold.up;
+	overflow =				tsl2591_autoranging_data[tsl2591_current_scaling].overflow;
 
 	if((error = i2c_send1_receive(0x29, tsl2591_cmd_cmd | tsl2591_reg_c0datal, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -2039,7 +2043,7 @@ static void sensor_tsl2591_periodic(const struct i2c_sensor_device_table_entry_T
 			i2c_log("tsl2591", error);
 	}
 
-	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2591_current_scaling + 1) < tsl2591_scaling_data_size))
+	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2591_current_scaling + 1) < tsl2591_autoranging_data_size))
 	{
 		tsl2591_current_scaling++;
 		if((error = tsl2591_start_measurement(entry->address)) != i2c_error_ok)
@@ -2209,26 +2213,18 @@ typedef enum
 
 enum
 {
-	bh1750_scaling_data_size = 4
+	bh1750_autoranging_data_size = 4
 };
 
-roflash static const struct
+roflash static const device_autoranging_data_t bh1750_autoranging_data[bh1750_autoranging_data_size] =
 {
-	unsigned	int mode_command;
-	unsigned	int measurement_time;
-	unsigned	int scale_down_threshold;
-	unsigned	int scale_up_threshold;
-	unsigned	int factor_1000000;
-				int offset_1000000;
-} bh1750_scaling_data[bh1750_scaling_data_size] =
-{
-	{	bh1750_opcode_one_hmode2,	254,	0,		50000,	130000,		0, 	},
-	{	bh1750_opcode_one_hmode2,	69,		1000,	50000,	500000,		0,	},
-	{	bh1750_opcode_one_hmode2,	31,		1000,	50000,	1100000,	0,	},
-	{	bh1750_opcode_one_lmode, 	31,		1000,	65536,	2400000,	0,	},
+	{{	bh1750_opcode_one_hmode2, 254	},	{ 0,	50000 }, 0, { 130000,	0, 	}},
+	{{	bh1750_opcode_one_hmode2, 69	}, 	{ 1000,	50000 }, 0, { 500000,	0,	}},
+	{{	bh1750_opcode_one_hmode2, 31	}, 	{ 1000,	50000 }, 0, { 1100000,	0,	}},
+	{{	bh1750_opcode_one_lmode,  31	}, 	{ 1000,	65536 }, 0, { 2400000,	0,	}},
 };
 
-static unsigned int bh1750_current_scaling;
+static unsigned int bh1750_current_ranging;
 static unsigned int bh1750_current_value;
 
 static i2c_error_t bh1750_start_measurement(unsigned int address)
@@ -2237,8 +2233,8 @@ static i2c_error_t bh1750_start_measurement(unsigned int address)
 	unsigned int timing;
 	unsigned int opcode;
 
-	timing = bh1750_scaling_data[bh1750_current_scaling].measurement_time;
-	opcode = bh1750_scaling_data[bh1750_current_scaling].mode_command;
+	opcode = bh1750_autoranging_data[bh1750_current_ranging].data[0];
+	timing = bh1750_autoranging_data[bh1750_current_ranging].data[1];
 
 	if((error = i2c_send1(address, bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111))) != i2c_error_ok)
 	{
@@ -2279,7 +2275,7 @@ static i2c_error_t sensor_bh1750_init(int bus, const i2c_sensor_device_table_ent
 	if((error = i2c_send1(entry->address, bh1750_opcode_reset)) != i2c_error_ok)
 		return(error);
 
-	bh1750_current_scaling = 0;
+	bh1750_current_ranging = 0;
 	bh1750_current_value = 0;
 
 	if((error = bh1750_start_measurement(entry->address)) != i2c_error_ok)
@@ -2295,10 +2291,10 @@ static i2c_error_t sensor_bh1750_read(int bus, const i2c_sensor_device_table_ent
 	unsigned int factor_1000000;
 	int offset_1000000;
 
-	factor_1000000 = bh1750_scaling_data[bh1750_current_scaling].factor_1000000;
-	offset_1000000 = bh1750_scaling_data[bh1750_current_scaling].offset_1000000;
+	factor_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.factor;
+	offset_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.offset;
 
-	value->raw = (bh1750_current_scaling * 1000000UL) + bh1750_current_value;
+	value->raw = (bh1750_current_ranging * 1000000UL) + bh1750_current_value;
 	value->cooked = (((int64_t)bh1750_current_value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
@@ -2310,8 +2306,8 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 	uint8_t	i2c_buffer[2];
 	unsigned int current_value, scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	bh1750_scaling_data[bh1750_current_scaling].scale_down_threshold;
-	scale_up_threshold =	bh1750_scaling_data[bh1750_current_scaling].scale_up_threshold;
+	scale_down_threshold =	bh1750_autoranging_data[bh1750_current_ranging].threshold.down;
+	scale_up_threshold =	bh1750_autoranging_data[bh1750_current_ranging].threshold.up;
 
 	if((error = i2c_receive(entry->address, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -2321,11 +2317,11 @@ static void sensor_bh1750_periodic(const struct i2c_sensor_device_table_entry_T 
 
 	current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
-	if((current_value < scale_down_threshold) && (bh1750_current_scaling > 0))
-		bh1750_current_scaling--;
+	if((current_value < scale_down_threshold) && (bh1750_current_ranging > 0))
+		bh1750_current_ranging--;
 
-	if((current_value >= scale_up_threshold) && ((bh1750_current_scaling + 1) < bh1750_scaling_data_size))
-		bh1750_current_scaling++;
+	if((current_value >= scale_up_threshold) && ((bh1750_current_ranging + 1) < bh1750_autoranging_data_size))
+		bh1750_current_ranging++;
 
 	if(current_value < 0xffff)
 		bh1750_current_value = current_value;
@@ -5390,34 +5386,27 @@ typedef enum
 	veml6040_conf_shutdown =	0b1 << 0,
 } veml6040_conf_t;
 
-enum { veml6040_scaling_data_size = 6 };
+enum { veml6040_autoranging_data_size = 6 };
 
-roflash static const struct
+roflash static const device_autoranging_data_t veml6040_autoranging_data[veml6040_autoranging_data_size] =
 {
-	unsigned	int opcode;
-	unsigned	int scale_down_threshold;
-	unsigned	int scale_up_threshold;
-	unsigned	int factor_1000000;
-				int offset_1000000;
-} veml6040_scaling_data[veml6040_scaling_data_size] =
-{
-	{	(5 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0,	50000, 7865,	0 },
-	{	(4 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 15730,	0 },
-	{	(3 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 31460,	0 },
-	{	(2 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 62920,	0 },
-	{	(1 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	50000, 125840,	0 },
-	{	(0 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 100,	65536, 251680,	0 },
+	{{	(5 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, {   0,	50000 }, 0, { 7865,	0 }},
+	{{	(4 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, { 100,	50000 }, 0, { 15730,	0 }},
+	{{	(3 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, { 100,	50000 }, 0, { 31460,	0 }},
+	{{	(2 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, { 100,	50000 }, 0, { 62920,	0 }},
+	{{	(1 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, { 100,	50000 }, 0, { 125840,	0 }},
+	{{	(0 & veml6040_conf_it_mask) << veml6040_conf_it_shift, 0 }, { 100,	65536 }, 0, { 251680,	0 }},
 };
 
 static unsigned int veml6040_current_value;
-static unsigned int veml6040_current_scaling;
+static unsigned int veml6040_autoranging_current;
 
 static void veml6040_start_measuring(unsigned int address)
 {
 	i2c_error_t error;
 	unsigned int opcode;
 
-	opcode =	veml6040_scaling_data[veml6040_current_scaling].opcode;
+	opcode =	veml6040_autoranging_data[veml6040_autoranging_current].data[0];
 	opcode |=	veml6040_conf_forcemode | veml6040_conf_trigger;
 
 	if((error = i2c_send2(address, veml6040_reg_conf, opcode)) != i2c_error_ok)
@@ -5438,7 +5427,7 @@ static i2c_error_t sensor_veml6040_init(int bus, const i2c_sensor_device_table_e
 	sensor_register(bus, entry->id);
 
 	veml6040_current_value =	0;
-	veml6040_current_scaling =	0;
+	veml6040_autoranging_current =	0;
 
 	veml6040_start_measuring(entry->address);
 
@@ -5450,10 +5439,10 @@ static i2c_error_t sensor_veml6040_read(int bus, const i2c_sensor_device_table_e
 	unsigned int factor_1000000;
 	int offset_1000000;
 
-	factor_1000000 = veml6040_scaling_data[veml6040_current_scaling].factor_1000000;
-	offset_1000000 = veml6040_scaling_data[veml6040_current_scaling].offset_1000000;
+	factor_1000000 = veml6040_autoranging_data[veml6040_autoranging_current].correction_1000000.factor;
+	offset_1000000 = veml6040_autoranging_data[veml6040_autoranging_current].correction_1000000.offset;
 
-	value->raw =	(veml6040_current_scaling * 10000000UL) + veml6040_current_value;
+	value->raw =	(veml6040_autoranging_current * 10000000UL) + veml6040_current_value;
 	value->cooked = (((int64_t)veml6040_current_value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
@@ -5466,8 +5455,8 @@ static void sensor_veml6040_periodic(const struct i2c_sensor_device_table_entry_
 	unsigned int value;
 	unsigned int scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	veml6040_scaling_data[veml6040_current_scaling].scale_down_threshold;
-	scale_up_threshold =	veml6040_scaling_data[veml6040_current_scaling].scale_up_threshold;
+	scale_down_threshold =	veml6040_autoranging_data[veml6040_autoranging_current].threshold.up;
+	scale_up_threshold =	veml6040_autoranging_data[veml6040_autoranging_current].threshold.down;
 
 	if((error = i2c_send1_receive(entry->address, veml6040_reg_data_g, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -5477,11 +5466,11 @@ static void sensor_veml6040_periodic(const struct i2c_sensor_device_table_entry_
 
 	value = (i2c_buffer[1] << 8) | i2c_buffer[0];
 
-	if((value < scale_down_threshold) && (veml6040_current_scaling > 0))
-		veml6040_current_scaling--;
+	if((value < scale_down_threshold) && (veml6040_autoranging_current > 0))
+		veml6040_autoranging_current--;
 
-	if((value >= scale_up_threshold) && ((veml6040_current_scaling + 1) < veml6040_scaling_data_size))
-		veml6040_current_scaling++;
+	if((value >= scale_up_threshold) && ((veml6040_autoranging_current + 1) < veml6040_autoranging_data_size))
+		veml6040_autoranging_current++;
 
 	if((value > 0) && (value < 65535))
 		veml6040_current_value = value;
