@@ -7306,3 +7306,547 @@ Wed Mar 17 18:52:01 CET 2021 d7bd8c5 i2c-sensor: combine lux calculation of tsl2
     iram:    available:  32 k, used:  31688, free:   1080,  3 %
     dram:    available:  78 k, used:  65801, free:  14464, 18 %
     irom:    available: 592 k, used: 393928, free: 212280, 35 %
+Thu Mar 18 17:12:06 CET 2021 6a52143 memory-log: update.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65817, free:  14448, 18 %
+    irom:    available: 592 k, used: 393928, free: 212280, 35 %
+Thu Mar 18 17:19:33 CET 2021 4253835 i2c-sensor: replace literal value 1 with sdte_secondary (cosmetic, as designed that way).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65817, free:  14448, 18 %
+    irom:    available: 592 k, used: 394056, free: 212152, 34 %
+Thu Mar 18 17:27:14 CET 2021 4253835 i2c-sensor: replace literal value 1 with sdte_secondary (cosmetic, as designed that way).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65817, free:  14448, 18 %
+    irom:    available: 592 k, used: 394072, free: 212136, 34 %
+Thu Mar 18 17:38:07 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65833, free:  14432, 17 %
+    irom:    available: 592 k, used: 394200, free: 212008, 34 %
+Thu Mar 18 19:24:53 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 394696, free: 211512, 34 %
+Thu Mar 18 19:30:42 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 394776, free: 211432, 34 %
+Thu Mar 18 19:34:39 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 394968, free: 211240, 34 %
+Thu Mar 18 19:35:52 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395016, free: 211192, 34 %
+Thu Mar 18 20:27:05 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395080, free: 211128, 34 %
+Thu Mar 18 20:28:07 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395144, free: 211064, 34 %
+Thu Mar 18 20:28:51 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395192, free: 211016, 34 %
+Thu Mar 18 20:29:18 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395288, free: 210920, 34 %
+Thu Mar 18 20:32:52 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395192, free: 211016, 34 %
+Thu Mar 18 20:38:45 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395160, free: 211048, 34 %
+Thu Mar 18 20:46:34 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395128, free: 211080, 34 %
+Thu Mar 18 20:47:55 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Thu Mar 18 20:51:05 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395192, free: 211016, 34 %
+Thu Mar 18 21:00:05 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Thu Mar 18 21:11:54 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395400, free: 210808, 34 %
+Thu Mar 18 21:15:29 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395304, free: 210904, 34 %
+Thu Mar 18 21:20:12 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 394792, free: 211416, 34 %
+Fri Mar 19 10:47:13 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 394984, free: 211224, 34 %
+Fri Mar 19 11:04:12 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395016, free: 211192, 34 %
+Fri Mar 19 11:07:16 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395048, free: 211160, 34 %
+Fri Mar 19 11:15:46 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395144, free: 211064, 34 %
+Fri Mar 19 11:25:36 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395272, free: 210936, 34 %
+Fri Mar 19 11:31:20 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395288, free: 210920, 34 %
+Fri Mar 19 11:41:59 CET 2021 e1e5179 i2c-sensor: add second entry for tsl2591, for it's second address (0x28).
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395208, free: 211000, 34 %
+Fri Mar 19 12:17:52 CET 2021 71ff9bb i2c-sensor: add support for veml6040 colour/light sensor.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65857, free:  14408, 17 %
+    irom:    available: 592 k, used: 395192, free: 211016, 34 %
+Fri Mar 19 12:30:06 CET 2021 71ff9bb i2c-sensor: add support for veml6040 colour/light sensor.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  65865, free:  14400, 17 %
+    irom:    available: 592 k, used: 395272, free: 210936, 34 %
+Fri Mar 19 14:19:49 CET 2021 a5f9bf4 i2c-sensor: re-arrange for quicker sensor background acquisition.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395288, free: 210920, 34 %
+Fri Mar 19 14:35:01 CET 2021 90b3a54 lwip: increase memory allocation slightly because of rare out of memory conditions on udp.
+    iram:    available:  32 k, used:  31692, free:   1076,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395304, free: 210904, 34 %
+Fri Mar 19 14:37:59 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31692, free:   1076,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395240, free: 210968, 34 %
+Fri Mar 19 14:47:25 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31692, free:   1076,  3 %
+    dram:    available:  78 k, used:  66825, free:  13440, 16 %
+    irom:    available: 592 k, used: 395400, free: 210808, 34 %
+Fri Mar 19 14:50:21 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31692, free:   1076,  3 %
+    dram:    available:  78 k, used:  66889, free:  13376, 16 %
+    irom:    available: 592 k, used: 395400, free: 210808, 34 %
+Fri Mar 19 15:20:43 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395608, free: 210600, 34 %
+Fri Mar 19 15:23:51 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395832, free: 210376, 34 %
+Fri Mar 19 15:25:57 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 395960, free: 210248, 34 %
+Fri Mar 19 15:26:25 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 396072, free: 210136, 34 %
+Fri Mar 19 15:29:06 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 396344, free: 209864, 34 %
+Fri Mar 19 15:33:34 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 397048, free: 209160, 34 %
+Fri Mar 19 16:09:36 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 410840, free: 195368, 32 %
+Fri Mar 19 16:11:06 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 412120, free: 194088, 32 %
+Fri Mar 19 16:12:15 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417928, free: 188280, 31 %
+Fri Mar 19 16:13:58 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417720, free: 188488, 31 %
+Fri Mar 19 16:17:38 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417336, free: 188872, 31 %
+Fri Mar 19 16:20:03 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417320, free: 188888, 31 %
+Fri Mar 19 16:22:49 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417144, free: 189064, 31 %
+Fri Mar 19 16:26:23 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417160, free: 189048, 31 %
+Fri Mar 19 16:29:17 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 416792, free: 189416, 31 %
+Fri Mar 19 16:45:39 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 416808, free: 189400, 31 %
+Fri Mar 19 16:49:02 CET 2021 9f6bb0e i2c: increase SDA release time.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417144, free: 189064, 31 %
+Fri Mar 19 20:09:35 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417224, free: 188984, 31 %
+Fri Mar 19 20:12:07 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417176, free: 189032, 31 %
+Sat Mar 20 18:10:46 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  67089, free:  13176, 16 %
+    irom:    available: 592 k, used: 417192, free: 189016, 31 %
+Sat Mar 20 18:12:05 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66809, free:  13456, 16 %
+    irom:    available: 592 k, used: 417176, free: 189032, 31 %
+Sun Mar 21 13:07:45 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66817, free:  13448, 16 %
+    irom:    available: 592 k, used: 417336, free: 188872, 31 %
+Sun Mar 21 13:25:28 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66817, free:  13448, 16 %
+    irom:    available: 592 k, used: 417496, free: 188712, 31 %
+Sun Mar 21 13:31:36 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66817, free:  13448, 16 %
+    irom:    available: 592 k, used: 417400, free: 188808, 31 %
+Sun Mar 21 14:34:41 CET 2021 5f59e10 i2c-sensor: aht10: change value precisions.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66817, free:  13448, 16 %
+    irom:    available: 592 k, used: 417512, free: 188696, 31 %
+Sun Mar 21 15:29:39 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417992, free: 188216, 31 %
+Sun Mar 21 15:32:18 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 418008, free: 188200, 31 %
+Sun Mar 21 15:38:36 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417560, free: 188648, 31 %
+Sun Mar 21 15:48:39 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417608, free: 188600, 31 %
+Sun Mar 21 15:49:41 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417624, free: 188584, 31 %
+Sun Mar 21 15:53:56 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31688, free:   1080,  3 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417608, free: 188600, 31 %
+Sun Mar 21 16:08:59 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417640, free: 188568, 31 %
+Sun Mar 21 16:13:13 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66881, free:  13384, 16 %
+    irom:    available: 592 k, used: 417624, free: 188584, 31 %
+Sun Mar 21 16:23:03 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66913, free:  13352, 16 %
+    irom:    available: 592 k, used: 417624, free: 188584, 31 %
+Sun Mar 21 17:06:32 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417656, free: 188552, 31 %
+Sun Mar 21 17:09:03 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417704, free: 188504, 31 %
+Sun Mar 21 17:11:24 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417720, free: 188488, 31 %
+Sun Mar 21 17:13:51 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417704, free: 188504, 31 %
+Sun Mar 21 17:16:02 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417656, free: 188552, 31 %
+Sun Mar 21 17:28:41 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66929, free:  13336, 16 %
+    irom:    available: 592 k, used: 417688, free: 188520, 31 %
+Sun Mar 21 17:50:45 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422808, free: 183400, 30 %
+Sun Mar 21 18:44:20 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422696, free: 183512, 30 %
+Sun Mar 21 18:45:39 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422744, free: 183464, 30 %
+Sun Mar 21 18:47:21 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422776, free: 183432, 30 %
+Sun Mar 21 18:47:52 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422808, free: 183400, 30 %
+Sun Mar 21 18:58:17 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422776, free: 183432, 30 %
+Sun Mar 21 18:59:55 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422792, free: 183416, 30 %
+Sun Mar 21 19:00:48 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422808, free: 183400, 30 %
+Sun Mar 21 19:01:02 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422824, free: 183384, 30 %
+Sun Mar 21 19:05:05 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422808, free: 183400, 30 %
+Sun Mar 21 19:06:25 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 422824, free: 183384, 30 %
+Sun Mar 21 19:36:38 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423352, free: 182856, 30 %
+Sun Mar 21 19:43:58 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423368, free: 182840, 30 %
+Sun Mar 21 19:53:59 CET 2021 24eff96 i2c-sensor: make bh1750 auto ranging.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423288, free: 182920, 30 %
+Sun Mar 21 20:00:40 CET 2021 fc64b7e i2c-sensor: refactor tsl2561
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423272, free: 182936, 30 %
+Mon Mar 22 17:36:55 CET 2021 fc64b7e i2c-sensor: refactor tsl2561
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423320, free: 182888, 30 %
+Mon Mar 22 17:46:44 CET 2021 fc64b7e i2c-sensor: refactor tsl2561
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423432, free: 182776, 30 %
+Mon Mar 22 17:48:14 CET 2021 fc64b7e i2c-sensor: refactor tsl2561
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Mon Mar 22 18:08:39 CET 2021 e5fbca2 i2c-sensor: rework bh1750 autoranging so it works the same as tsl2561.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423496, free: 182712, 30 %
+Mon Mar 22 18:24:28 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  66997, free:  13268, 16 %
+    irom:    available: 592 k, used: 423448, free: 182760, 30 %
+Mon Mar 22 19:28:12 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424008, free: 182200, 30 %
+Mon Mar 22 19:31:06 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 423992, free: 182216, 30 %
+Mon Mar 22 19:32:33 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424024, free: 182184, 30 %
+Mon Mar 22 19:34:36 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67005, free:  13260, 16 %
+    irom:    available: 592 k, used: 423272, free: 182936, 30 %
+Mon Mar 22 19:39:21 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67005, free:  13260, 16 %
+    irom:    available: 592 k, used: 423288, free: 182920, 30 %
+Mon Mar 22 19:48:00 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67005, free:  13260, 16 %
+    irom:    available: 592 k, used: 423320, free: 182888, 30 %
+Mon Mar 22 19:49:35 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67005, free:  13260, 16 %
+    irom:    available: 592 k, used: 423336, free: 182872, 30 %
+Mon Mar 22 19:53:29 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 423608, free: 182600, 30 %
+Mon Mar 22 20:01:11 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Mon Mar 22 20:24:51 CET 2021 6b301ee i2c-sensor: clean up tsl2591 code.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424120, free: 182088, 30 %
+Tue Mar 23 20:30:52 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424040, free: 182168, 30 %
+Tue Mar 23 20:33:18 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424056, free: 182152, 30 %
+Tue Mar 23 20:36:02 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424008, free: 182200, 30 %
+Tue Mar 23 20:38:02 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424056, free: 182152, 30 %
+Tue Mar 23 20:40:04 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424120, free: 182088, 30 %
+Tue Mar 23 20:41:13 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424136, free: 182072, 30 %
+Tue Mar 23 20:43:09 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424248, free: 181960, 30 %
+Tue Mar 23 20:49:09 CET 2021 1d6422a i2c-sensor: autoranging for tsl2591.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 424056, free: 182152, 30 %
+Wed Mar 24 11:19:06 CET 2021 636dc8c i2c-sensor: remove debugging statements.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67013, free:  13252, 16 %
+    irom:    available: 592 k, used: 423992, free: 182216, 30 %
+Wed Mar 24 12:05:59 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423976, free: 182232, 30 %
+Wed Mar 24 12:11:40 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424056, free: 182152, 30 %
+Wed Mar 24 12:14:57 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424088, free: 182120, 30 %
+Wed Mar 24 12:16:06 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424056, free: 182152, 30 %
+Wed Mar 24 12:16:36 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424088, free: 182120, 30 %
+Wed Mar 24 12:19:08 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424008, free: 182200, 30 %
+Wed Mar 24 12:22:45 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423880, free: 182328, 30 %
+Wed Mar 24 12:37:11 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 424008, free: 182200, 30 %
+Wed Mar 24 12:38:36 CET 2021 f8e4533 i2c-sensor: remove tsl_high_sens and bh_high_sens flags, they're no longer used.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423928, free: 182280, 30 %
+Wed Mar 24 12:49:09 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423896, free: 182312, 30 %
+Wed Mar 24 12:53:52 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Wed Mar 24 13:03:30 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423464, free: 182744, 30 %
+Wed Mar 24 13:26:01 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423432, free: 182776, 30 %
+Wed Mar 24 13:37:54 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423480, free: 182728, 30 %
+Wed Mar 24 13:40:57 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423048, free: 183160, 30 %
+Wed Mar 24 14:41:18 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31812, free:    956,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423480, free: 182728, 30 %
+Wed Mar 24 14:48:19 CET 2021 6219863 i2c-sensor: re-work autoranging of veml6040.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423464, free: 182744, 30 %
+Wed Mar 24 14:53:41 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423912, free: 182296, 30 %
+Wed Mar 24 15:02:14 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423944, free: 182264, 30 %
+Wed Mar 24 15:15:43 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67021, free:  13244, 16 %
+    irom:    available: 592 k, used: 423960, free: 182248, 30 %
+Wed Mar 24 16:02:44 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424072, free: 182136, 30 %
+Wed Mar 24 16:11:06 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424120, free: 182088, 30 %
