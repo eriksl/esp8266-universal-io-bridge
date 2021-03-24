@@ -54,7 +54,7 @@ typedef enum
 	i2c_error_invalid_bus,
 	i2c_error_out_of_range,
 	i2c_error_disabled,
-	i2c_error_init_secondary,
+	i2c_error_secondary,
 	i2c_error_in_use,
 	i2c_error_in_use_on_bus_0,
 	i2c_error_overflow,

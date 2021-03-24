@@ -1111,42 +1111,6 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_sensor_init(string_t *src, string_t *dst)
-{
-	unsigned int intin, bus;
-	i2c_error_t error;
-	i2c_sensor_t sensor;
-
-	if((parse_uint(1, src, &intin, 0, ' ')) != parse_ok)
-	{
-		string_format(dst, "> invalid i2c sensor: %u\n", intin);
-		return(app_action_error);
-	}
-
-	sensor = (i2c_sensor_t)intin;
-
-	if((parse_uint(2, src, &bus, 0, ' ')) != parse_ok)
-		bus = 0;
-
-	if(bus >= i2c_busses)
-	{
-		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
-		return(app_action_error);
-	}
-
-	if((error = i2c_sensor_init(bus, sensor)) != i2c_error_ok)
-	{
-		string_format(dst, "sensor init %u:%u", bus, sensor);
-		i2c_error_format_string(dst, error);
-		string_append(dst, "\n");
-		return(app_action_error);
-	}
-
-	string_format(dst, "init sensor %u/%u ok\n", bus, sensor);
-
-	return(app_action_normal);
-}
-
 static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
 {
 	unsigned int intin, bus;
@@ -1969,7 +1933,6 @@ roflash static const char help_description_config_query_int[] =		"query config i
 roflash static const char help_description_config_set[] =			"set config entry";
 roflash static const char help_description_config_delete[] =		"delete config entry";
 roflash static const char help_description_http_get[] =				"get access over http";
-roflash static const char help_description_i2c_sensor_init[] =		"(re-)init i2c sensor";
 roflash		   const char help_description_display_eastrising[] =	"display eastrising <mode=0=disabled|1=i2c|2=hspi [<use_fontchip 0=no|1=yes>] [<user cs io> <user cs pin>]";
 roflash static const char help_description_flash_info[] =			"flash-info";
 roflash static const char help_description_flash_erase[] =			"flash-erase";
@@ -2335,11 +2298,6 @@ roflash static const application_function_table_t application_function_table[] =
 		"GET", "http-get",
 		application_function_http_get,
 		help_description_http_get,
-	},
-	{
-		"isi", "i2c-sensor-init",
-		application_function_i2c_sensor_init,
-		help_description_i2c_sensor_init,
 	},
 	{
 		"de", "display-eastrising",

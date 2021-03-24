@@ -470,30 +470,30 @@ void stats_i2c(string_t *dst)
 				i2c_info.buses);
 
 	string_format(dst,
-			"> i2c sensors init called: %u\n"
-			"> i2c sensors init succeeded: %u\n"
-			"> i2c sensors init skip disabled: %u (%u)\n"
-			"> i2c sensors init skip secondary: %u (%u)\n"
-			"> i2c sensors init skip found on bus 0: %u\n"
-			"> i2c sensors init skip dup address: %u\n"
-			"> i2c sensors init failed: %u\n"
-			"> i2c sensors init current bus: %u\n"
-			"> i2c sensors init current sensor id: %u\n"
-			"> i2c sensors init finished: %s\n"
-			"> i2c sensors init duration: %lu ms\n",
-				i2c_sensor_info.init_called,
-				i2c_sensor_info.init_succeeded,
-				i2c_sensor_info.init_skip_disabled,
-				i2c_sensor_info.init_skip_disabled / i2c_info.buses,
-				i2c_sensor_info.init_skip_secondary,
-				i2c_sensor_info.init_skip_secondary / i2c_info.buses,
-				i2c_sensor_info.init_skip_found_on_bus_0,
-				i2c_sensor_info.init_skip_duplicate_address,
-				i2c_sensor_info.init_failed,
-				i2c_sensor_info.init_current_bus,
-				i2c_sensor_info.init_current_sensor,
-				yesno(i2c_sensor_info.init_finished),
-				(uint32_t)((i2c_sensor_info.init_finished_us - i2c_sensor_info.init_started_us) / 1000));
+			"> i2c sensors detect called: %u\n"
+			"> i2c sensors detect succeeded: %u\n"
+			"> i2c sensors detect skip disabled: %u (%u)\n"
+			"> i2c sensors detect skip secondary: %u (%u)\n"
+			"> i2c sensors detect skip found on bus 0: %u\n"
+			"> i2c sensors detect skip dup address: %u\n"
+			"> i2c sensors detect failed: %u\n"
+			"> i2c sensors detect current bus: %u\n"
+			"> i2c sensors detect current sensor id: %u\n"
+			"> i2c sensors detect finished: %s\n"
+			"> i2c sensors detect duration: %lu ms\n",
+				i2c_sensor_info.detect_called,
+				i2c_sensor_info.detect_succeeded,
+				i2c_sensor_info.detect_skip_disabled,
+				i2c_sensor_info.detect_skip_disabled / i2c_info.buses,
+				i2c_sensor_info.detect_skip_secondary,
+				i2c_sensor_info.detect_skip_secondary / i2c_info.buses,
+				i2c_sensor_info.detect_skip_found_on_bus_0,
+				i2c_sensor_info.detect_skip_duplicate_address,
+				i2c_sensor_info.detect_failed,
+				i2c_sensor_info.detect_current_bus,
+				i2c_sensor_info.detect_current_sensor,
+				yesno(i2c_sensor_info.detect_finished),
+				(uint32_t)((i2c_sensor_info.detect_finished_us - i2c_sensor_info.detect_started_us) / 1000));
 
 	string_format(dst,
 			"> i2c sensors periodic called: %u\n"
