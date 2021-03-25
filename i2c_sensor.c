@@ -5995,11 +5995,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 };
 
-static i2c_sensor_info_t sensor_info =
-{
-	.detect_started = 0,
-	.detect_finished = 0,
-};
+static i2c_sensor_info_t sensor_info;
 
 void i2c_sensor_get_info(i2c_sensor_info_t *sensor_info_ptr)
 {
@@ -6066,58 +6062,9 @@ i2c_error_t i2c_sensor_detect(int bus, i2c_sensor_t sensor)
 	return(error);
 }
 
-void i2c_sensors_periodic(void)
+static bool i2c_sensors_detect(void)
 {
 	i2c_info_t i2c_info;
-	const i2c_sensor_device_table_entry_t *device_table_entry;
-
-	sensor_info.periodic_called++;
-
-	if(sensor_info.detect_finished) // detect finished, call sensors' periodic functions one by one
-	{
-		sensor_info.periodic_background_called++;
-
-		for(; sensor_info.periodic_current_sensor < i2c_sensor_size; sensor_info.periodic_current_sensor++)
-		{
-			device_table_entry = &device_table[sensor_info.periodic_current_sensor];
-
-			if(entry_get_id(device_table_entry) != sensor_info.periodic_current_sensor)
-				return;
-
-			if(i2c_sensor_registered(sensor_info.periodic_current_bus, sensor_info.periodic_current_sensor) && !(device_table_entry->flags & sdte_secondary) && device_table_entry->periodic_fn)
-			{
-				if(i2c_select_bus(sensor_info.periodic_current_bus) != i2c_error_ok)
-				{
-					sensor_info.periodic_bus_select_failed++;
-					sensor_info.periodic_current_sensor = 0;
-					sensor_info.periodic_current_bus = 0;
-					return;
-				}
-
-				sensor_info.periodic_sensor_called++;
-				device_table_entry->periodic_fn(device_table_entry, &device_data[sensor_info.periodic_current_sensor]);
-				break;
-			}
-		}
-
-		i2c_select_bus(0);
-		i2c_get_info(&i2c_info);
-
-		if(++sensor_info.periodic_current_sensor >= i2c_sensor_size)
-		{
-			sensor_info.periodic_current_sensor = 0;
-			sensor_info.periodic_current_bus++;
-
-			if(sensor_info.periodic_current_bus >= i2c_info.buses)
-			{
-				sensor_info.periodic_current_sensor = 0;
-				sensor_info.periodic_current_bus = 0;
-				sensor_info.periodic_wrapped++;
-			}
-		}
-
-		return;
-	}
 
 	sensor_info.detect_called++;
 
@@ -6182,7 +6129,140 @@ void i2c_sensors_periodic(void)
 		}
 	}
 
-	if(!sensor_info.detect_finished)
+	return(!sensor_info.detect_finished);
+}
+
+static bool i2c_sensors_init(void) // FIXME
+{
+	i2c_info_t i2c_info;
+	const i2c_sensor_device_table_entry_t *device_table_entry;
+
+	sensor_info.init_called++;
+
+	if(!sensor_info.init_started)
+	{
+		sensor_info.init_started_us = time_get_us();
+		sensor_info.init_started = 1;
+	}
+
+	device_table_entry = &device_table[sensor_info.init_current_sensor];
+
+	if(entry_get_id(device_table_entry) != sensor_info.init_current_sensor)
+	{
+		sensor_info.init_finished = 1;
+		return(false);
+	}
+
+	if(i2c_sensor_registered(sensor_info.init_current_bus, sensor_info.init_current_sensor) &&
+				!(device_table_entry->flags & sdte_secondary) && device_table_entry->init_fn)
+	{
+		if(i2c_select_bus(sensor_info.init_current_bus) != i2c_error_ok)
+		{
+			sensor_info.init_bus_select_failed++;
+			sensor_info.init_finished = 1;
+			return(false);
+		}
+		else
+		{
+			if(device_table_entry->init_fn(device_table_entry, &device_data[sensor_info.init_current_sensor]) == i2c_error_ok)
+				sensor_info.init_succeeded++;
+			else
+				sensor_info.init_failed++;
+		}
+	}
+
+	i2c_select_bus(0);
+	i2c_get_info(&i2c_info);
+
+	if(++sensor_info.init_current_sensor >= i2c_sensor_size)
+	{
+		sensor_info.init_current_sensor = 0;
+		sensor_info.init_current_bus++;
+
+		if(sensor_info.init_current_bus >= i2c_info.buses)
+		{
+			sensor_info.init_current_sensor = 0;
+			sensor_info.init_current_bus = 0;
+			sensor_info.init_finished = 1;
+			sensor_info.init_finished_us = time_get_us();
+		}
+	}
+
+	return(!sensor_info.init_finished);
+}
+
+static bool i2c_sensors_background(void) // FIXME
+{
+	i2c_info_t i2c_info;
+	const i2c_sensor_device_table_entry_t *device_table_entry;
+	bool hit;
+
+	sensor_info.background_called++;
+
+	device_table_entry = &device_table[sensor_info.background_current_sensor];
+
+	if(entry_get_id(device_table_entry) != sensor_info.background_current_sensor)
+	{
+		sensor_info.background_finished = 1;
+		return(false);
+	}
+
+	if(i2c_sensor_registered(sensor_info.background_current_bus, sensor_info.background_current_sensor) &&
+			!(device_table_entry->flags & sdte_secondary) && device_table_entry->background_fn)
+	{
+		if(i2c_select_bus(sensor_info.background_current_bus) != i2c_error_ok)
+		{
+			sensor_info.background_bus_select_failed++;
+			sensor_info.background_finished = 1;
+			return(false);
+		}
+
+		device_table_entry->background_fn(device_table_entry, &device_data[sensor_info.background_current_sensor]);
+
+		i2c_select_bus(0);
+		sensor_info.background_sensor_called++;
+		hit = true;
+	}
+	else
+		hit = false;
+
+	i2c_get_info(&i2c_info);
+
+	if(++sensor_info.background_current_sensor >= i2c_sensor_size)
+	{
+		sensor_info.background_current_sensor = 0;
+		sensor_info.background_current_bus++;
+
+		if(sensor_info.background_current_bus >= i2c_info.buses)
+		{
+			sensor_info.background_current_sensor = 0;
+			sensor_info.background_current_bus = 0;
+			sensor_info.background_wrapped++;
+		}
+	}
+
+	return(!hit);
+}
+
+void i2c_sensors_periodic(void)
+{
+	sensor_info.periodic_called++;
+	bool repost;
+
+	if(sensor_info.init_finished)
+	{
+		if(sensor_info.background_finished)
+			repost = false;
+		else
+			repost = i2c_sensors_background();
+	}
+	else
+		if(sensor_info.detect_finished)
+			repost = i2c_sensors_init();
+		else
+			repost = i2c_sensors_detect();
+
+	if(repost)
 		dispatch_post_task(2, task_periodic_i2c_sensors, 0);
 }
 

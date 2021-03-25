@@ -88,8 +88,12 @@ assert_size(i2c_sensor_t, 4);
 
 typedef struct
 {
+	unsigned int	periodic_called;
+
 	uint64_t		detect_started_us;
 	uint64_t		detect_finished_us;
+	unsigned int	detect_started:1;
+	unsigned int	detect_finished:1;
 	unsigned int	detect_called;
 	unsigned int	detect_succeeded;
 	unsigned int	detect_skip_disabled;
@@ -99,18 +103,29 @@ typedef struct
 	unsigned int	detect_failed;
 	unsigned int	detect_current_bus;
 	i2c_sensor_t	detect_current_sensor;
-	unsigned int	detect_started:1;
-	unsigned int	detect_finished:1;
-	unsigned int	periodic_called;
-	unsigned int	periodic_background_called;
-	unsigned int	periodic_bus_select_failed;
-	unsigned int	periodic_sensor_called;
-	unsigned int	periodic_wrapped;
-	unsigned int	periodic_current_bus;
-	unsigned int	periodic_current_sensor;
+
+	uint64_t		init_started_us;
+	uint64_t		init_finished_us;
+	unsigned int	init_started:1;
+	unsigned int	init_finished:1;
+	unsigned int	init_called;
+	unsigned int	init_bus_select_failed;
+	unsigned int	init_succeeded;
+	unsigned int	init_failed;
+	unsigned int	init_current_bus;
+	unsigned int	init_current_sensor;
+
+	unsigned int	background_called;
+	unsigned int	background_background_called;
+	unsigned int	background_bus_select_failed;
+	unsigned int	background_sensor_called;
+	unsigned int	background_wrapped;
+	unsigned int	background_current_bus;
+	unsigned int	background_current_sensor;
+	unsigned int	background_finished;
 } i2c_sensor_info_t;
 
-assert_size(i2c_sensor_info_t, 88);
+assert_size(i2c_sensor_info_t, 144);
 
 typedef struct
 {
@@ -153,9 +168,9 @@ typedef struct i2c_sensor_device_table_entry_T
 	attr_flash_align	const char *type;
 	attr_flash_align	const char *unity;
 	attr_flash_align	i2c_error_t (* const detect_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
-	attr_flash_align	void (* const init_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
+	attr_flash_align	i2c_error_t (* const init_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
 	attr_flash_align	i2c_error_t (* const read_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
-	attr_flash_align	void (* const periodic_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
+	attr_flash_align	void (* const background_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
 } i2c_sensor_device_table_entry_t;
 
 assert_size(i2c_sensor_device_table_entry_t, 44);

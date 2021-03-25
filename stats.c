@@ -470,6 +470,10 @@ void stats_i2c(string_t *dst)
 				i2c_info.buses);
 
 	string_format(dst,
+			"> i2c sensors periodic called: %u\n",
+				i2c_sensor_info.periodic_called);
+
+	string_format(dst,
 			"> i2c sensors detect called: %u\n"
 			"> i2c sensors detect succeeded: %u\n"
 			"> i2c sensors detect skip disabled: %u (%u)\n"
@@ -479,6 +483,7 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors detect failed: %u\n"
 			"> i2c sensors detect current bus: %u\n"
 			"> i2c sensors detect current sensor id: %u\n"
+			"> i2c sensors detect started: %s\n"
 			"> i2c sensors detect finished: %s\n"
 			"> i2c sensors detect duration: %lu ms\n",
 				i2c_sensor_info.detect_called,
@@ -492,24 +497,43 @@ void stats_i2c(string_t *dst)
 				i2c_sensor_info.detect_failed,
 				i2c_sensor_info.detect_current_bus,
 				i2c_sensor_info.detect_current_sensor,
+				yesno(i2c_sensor_info.detect_started),
 				yesno(i2c_sensor_info.detect_finished),
 				(uint32_t)((i2c_sensor_info.detect_finished_us - i2c_sensor_info.detect_started_us) / 1000));
 
 	string_format(dst,
-			"> i2c sensors periodic called: %u\n"
-			"> i2c sensors periodic background: %u\n"
-			"> i2c sensors periodic bus select failed: %u\n"
-			"> i2c sensors periodic sensor called: %u\n"
-			"> i2c sensors periodic wrapped: %u\n"
-			"> i2c sensors periodic current bus: %u\n"
-			"> i2c sensors periodic current sensor: %u\n",
-				i2c_sensor_info.periodic_called,
-				i2c_sensor_info.periodic_background_called,
-				i2c_sensor_info.periodic_bus_select_failed,
-				i2c_sensor_info.periodic_sensor_called,
-				i2c_sensor_info.periodic_wrapped,
-				i2c_sensor_info.periodic_current_bus,
-				i2c_sensor_info.periodic_current_sensor);
+			"> i2c sensors init called: %u\n"
+			"> i2c sensors init succeeded: %u\n"
+			"> i2c sensors init failed: %u\n"
+			"> i2c sensors init current bus: %u\n"
+			"> i2c sensors init current sensor id: %u\n"
+			"> i2c sensors init started: %s\n"
+			"> i2c sensors init finished: %s\n"
+			"> i2c sensors init duration: %lu ms\n",
+				i2c_sensor_info.init_called,
+				i2c_sensor_info.init_succeeded,
+				i2c_sensor_info.init_failed,
+				i2c_sensor_info.init_current_bus,
+				i2c_sensor_info.init_current_sensor,
+				yesno(i2c_sensor_info.init_started),
+				yesno(i2c_sensor_info.init_finished),
+				(uint32_t)((i2c_sensor_info.init_finished_us - i2c_sensor_info.init_started_us) / 1000));
+
+	string_format(dst,
+			"> i2c sensors background called: %u\n"
+			"> i2c sensors background bus select failed: %u\n"
+			"> i2c sensors background sensor called: %u\n"
+			"> i2c sensors background wrapped: %u\n"
+			"> i2c sensors background current bus: %u\n"
+			"> i2c sensors background current sensor: %u\n"
+			"> i2c sensors background finished: %u\n",
+				i2c_sensor_info.background_called,
+				i2c_sensor_info.background_bus_select_failed,
+				i2c_sensor_info.background_sensor_called,
+				i2c_sensor_info.background_wrapped,
+				i2c_sensor_info.background_current_bus,
+				i2c_sensor_info.background_current_sensor,
+				i2c_sensor_info.background_finished);
 }
 
 void stats_wlan(string_t *dst)
