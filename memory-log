@@ -7850,3 +7850,499 @@ Wed Mar 24 16:11:06 CET 2021 5a5b987 i2c-sensor: tweaking tsl2561, tsl2591 and b
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66925, free:  13340, 16 %
     irom:    available: 592 k, used: 424120, free: 182088, 30 %
+Wed Mar 24 16:22:47 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424088, free: 182120, 30 %
+Wed Mar 24 16:55:37 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424120, free: 182088, 30 %
+Wed Mar 24 17:00:43 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424136, free: 182072, 30 %
+Wed Mar 24 17:03:36 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 424280, free: 181928, 30 %
+Wed Mar 24 17:40:24 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423048, free: 183160, 30 %
+Wed Mar 24 17:43:45 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423208, free: 183000, 30 %
+Wed Mar 24 17:45:45 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423032, free: 183176, 30 %
+Wed Mar 24 17:47:04 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423128, free: 183080, 30 %
+Wed Mar 24 17:55:35 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423192, free: 183016, 30 %
+Wed Mar 24 17:56:48 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423256, free: 182952, 30 %
+Wed Mar 24 18:02:01 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423176, free: 183032, 30 %
+Wed Mar 24 18:04:56 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 423080, free: 183128, 30 %
+Wed Mar 24 18:06:25 CET 2021 d325a9b memory-log: update
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 422984, free: 183224, 30 %
+Wed Mar 24 18:18:09 CET 2021 6e64419 i2c-sensor: move device registration out of init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 422952, free: 183256, 30 %
+Wed Mar 24 18:30:17 CET 2021 8a0237f i2c-sensor: remove bus argument from init and read functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66909, free:  13356, 16 %
+    irom:    available: 592 k, used: 422632, free: 183576, 30 %
+Wed Mar 24 19:08:58 CET 2021 cdb1225 i2c-sensor: rename init_* functions to detect_*.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66909, free:  13356, 16 %
+    irom:    available: 592 k, used: 422920, free: 183288, 30 %
+Wed Mar 24 20:25:24 CET 2021 28c9786 i2c-sensor: add slot for future init function.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66957, free:  13308, 16 %
+    irom:    available: 592 k, used: 423320, free: 182888, 30 %
+Thu Mar 25 17:04:43 CET 2021 28c9786 i2c-sensor: add slot for future init function.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66957, free:  13308, 16 %
+    irom:    available: 592 k, used: 423784, free: 182424, 30 %
+Thu Mar 25 17:38:53 CET 2021 28c9786 i2c-sensor: add slot for future init function.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423832, free: 182376, 30 %
+Thu Mar 25 18:18:12 CET 2021 28c9786 i2c-sensor: add slot for future init function.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423800, free: 182408, 30 %
+Thu Mar 25 18:28:49 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423784, free: 182424, 30 %
+Thu Mar 25 18:32:11 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423800, free: 182408, 30 %
+Thu Mar 25 18:33:17 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423880, free: 182328, 30 %
+Thu Mar 25 19:24:30 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423864, free: 182344, 30 %
+Thu Mar 25 19:30:53 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423880, free: 182328, 30 %
+Thu Mar 25 19:32:20 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423912, free: 182296, 30 %
+Thu Mar 25 19:34:37 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423880, free: 182328, 30 %
+Thu Mar 25 19:36:40 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423928, free: 182280, 30 %
+Thu Mar 25 19:38:10 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423944, free: 182264, 30 %
+Thu Mar 25 19:39:28 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423960, free: 182248, 30 %
+Thu Mar 25 20:28:14 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423976, free: 182232, 30 %
+Thu Mar 25 20:31:02 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 424200, free: 182008, 30 %
+Thu Mar 25 20:35:47 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423864, free: 182344, 30 %
+Thu Mar 25 20:49:01 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423896, free: 182312, 30 %
+Thu Mar 25 20:51:11 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423816, free: 182392, 30 %
+Thu Mar 25 20:54:44 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423832, free: 182376, 30 %
+Thu Mar 25 20:55:12 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423848, free: 182360, 30 %
+Thu Mar 25 21:00:04 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423864, free: 182344, 30 %
+Thu Mar 25 21:07:06 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423912, free: 182296, 30 %
+Thu Mar 25 21:18:26 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423816, free: 182392, 30 %
+Fri Mar 26 11:34:26 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 424072, free: 182136, 30 %
+Fri Mar 26 16:27:03 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66965, free:  13300, 16 %
+    irom:    available: 592 k, used: 423608, free: 182600, 30 %
+Fri Mar 26 16:55:19 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66973, free:  13292, 16 %
+    irom:    available: 592 k, used: 423608, free: 182600, 30 %
+Sat Mar 27 13:56:48 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66973, free:  13292, 16 %
+    irom:    available: 592 k, used: 423736, free: 182472, 30 %
+Sat Mar 27 14:07:04 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66973, free:  13292, 16 %
+    irom:    available: 592 k, used: 423784, free: 182424, 30 %
+Sat Mar 27 15:59:45 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  72285, free:   7980,  9 %
+    irom:    available: 592 k, used: 423720, free: 182488, 30 %
+Sat Mar 27 16:00:32 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  70749, free:   9516, 11 %
+    irom:    available: 592 k, used: 423704, free: 182504, 30 %
+Sat Mar 27 16:13:45 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  70749, free:   9516, 11 %
+    irom:    available: 592 k, used: 423720, free: 182488, 30 %
+Sat Mar 27 16:14:05 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 592 k, used: 423720, free: 182488, 30 %
+Sat Mar 27 16:14:24 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69789, free:  10476, 13 %
+    irom:    available: 592 k, used: 423720, free: 182488, 30 %
+Sat Mar 27 16:39:43 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69789, free:  10476, 13 %
+    irom:    available: 592 k, used: 423656, free: 182552, 30 %
+Sat Mar 27 16:41:14 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69789, free:  10476, 13 %
+    irom:    available: 592 k, used: 423640, free: 182568, 30 %
+Sat Mar 27 16:52:16 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423544, free: 182664, 30 %
+Sat Mar 27 17:04:08 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423528, free: 182680, 30 %
+Sat Mar 27 17:09:06 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sat Mar 27 17:13:59 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423544, free: 182664, 30 %
+Sat Mar 27 17:15:53 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423576, free: 182632, 30 %
+Sat Mar 27 17:17:24 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423544, free: 182664, 30 %
+Sat Mar 27 17:18:52 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423576, free: 182632, 30 %
+Sat Mar 27 17:23:32 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  69781, free:  10484, 13 %
+    irom:    available: 592 k, used: 423544, free: 182664, 30 %
+Sat Mar 27 17:32:16 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423528, free: 182680, 30 %
+Sat Mar 27 17:34:26 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sat Mar 27 17:37:20 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423304, free: 182904, 30 %
+Sat Mar 27 18:04:35 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sat Mar 27 18:07:43 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423480, free: 182728, 30 %
+Sat Mar 27 18:09:44 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 422568, free: 183640, 30 %
+Sat Mar 27 18:10:30 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 422648, free: 183560, 30 %
+Sat Mar 27 18:11:14 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 422904, free: 183304, 30 %
+Sat Mar 27 18:12:22 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423320, free: 182888, 30 %
+Sat Mar 27 18:12:58 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423528, free: 182680, 30 %
+Sat Mar 27 18:13:41 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sat Mar 27 18:14:27 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423464, free: 182744, 30 %
+Sat Mar 27 18:18:16 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Sat Mar 27 18:19:29 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68341, free:  11924, 14 %
+    irom:    available: 592 k, used: 423464, free: 182744, 30 %
+Sat Mar 27 18:22:13 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423528, free: 182680, 30 %
+Sat Mar 27 18:24:02 CET 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423560, free: 182648, 30 %
+Sun Mar 28 12:24:20 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 12:25:12 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 422648, free: 183560, 30 %
+Sun Mar 28 12:25:45 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 422728, free: 183480, 30 %
+Sun Mar 28 12:26:16 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 422808, free: 183400, 30 %
+Sun Mar 28 12:27:01 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423000, free: 183208, 30 %
+Sun Mar 28 12:28:34 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423400, free: 182808, 30 %
+Sun Mar 28 12:29:48 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423432, free: 182776, 30 %
+Sun Mar 28 12:30:30 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sun Mar 28 12:32:45 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423576, free: 182632, 30 %
+Sun Mar 28 12:34:36 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423608, free: 182600, 30 %
+Sun Mar 28 12:35:11 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Sun Mar 28 12:35:34 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423512, free: 182696, 30 %
+Sun Mar 28 12:42:52 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 12:46:39 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Sun Mar 28 12:47:25 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423656, free: 182552, 30 %
+Sun Mar 28 12:48:44 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 12:50:08 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68365, free:  11900, 14 %
+    irom:    available: 592 k, used: 423640, free: 182568, 30 %
+Sun Mar 28 12:50:32 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68365, free:  11900, 14 %
+    irom:    available: 592 k, used: 423688, free: 182520, 30 %
+Sun Mar 28 12:51:32 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68365, free:  11900, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 12:55:42 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68365, free:  11900, 14 %
+    irom:    available: 592 k, used: 423608, free: 182600, 30 %
+Sun Mar 28 12:56:49 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68365, free:  11900, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 12:57:33 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68765, free:  11500, 14 %
+    irom:    available: 592 k, used: 427480, free: 178728, 29 %
+Sun Mar 28 12:59:02 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 464952, free: 141256, 23 %
+Sun Mar 28 13:01:16 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 465032, free: 141176, 23 %
+Sun Mar 28 13:01:55 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 465064, free: 141144, 23 %
+Sun Mar 28 13:03:18 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 465048, free: 141160, 23 %
+Sun Mar 28 13:05:16 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 464824, free: 141384, 23 %
+Sun Mar 28 13:06:00 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 464744, free: 141464, 23 %
+Sun Mar 28 13:06:37 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68925, free:  11340, 14 %
+    irom:    available: 592 k, used: 464792, free: 141416, 23 %
+Sun Mar 28 13:09:37 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68973, free:  11292, 14 %
+    irom:    available: 592 k, used: 434232, free: 171976, 28 %
+Sun Mar 28 13:10:07 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68845, free:  11420, 14 %
+    irom:    available: 592 k, used: 424344, free: 181864, 30 %
+Sun Mar 28 13:10:37 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68845, free:  11420, 14 %
+    irom:    available: 592 k, used: 424968, free: 181240, 29 %
+Sun Mar 28 13:11:06 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 13:19:23 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423432, free: 182776, 30 %
+Sun Mar 28 13:19:56 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423480, free: 182728, 30 %
+Sun Mar 28 13:20:11 CEST 2021 cd24b7f i2c-sensor: implement base for init functions.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68349, free:  11916, 14 %
+    irom:    available: 592 k, used: 423624, free: 182584, 30 %
+Sun Mar 28 16:13:56 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  68285, free:  11980, 14 %
+    irom:    available: 592 k, used: 423592, free: 182616, 30 %
+Sun Mar 28 16:14:14 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67805, free:  12460, 15 %
+    irom:    available: 592 k, used: 424424, free: 181784, 29 %
+Sun Mar 28 16:15:40 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67709, free:  12556, 15 %
+    irom:    available: 592 k, used: 424424, free: 181784, 29 %
+Sun Mar 28 16:16:53 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67501, free:  12764, 15 %
+    irom:    available: 592 k, used: 425000, free: 181208, 29 %
+Sun Mar 28 16:19:23 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  67405, free:  12860, 16 %
+    irom:    available: 592 k, used: 424984, free: 181224, 29 %
+Sun Mar 28 18:44:54 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425256, free: 180952, 29 %
+Sun Mar 28 18:50:16 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425288, free: 180920, 29 %
+Sun Mar 28 18:51:44 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425304, free: 180904, 29 %
+Sun Mar 28 18:55:46 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425272, free: 180936, 29 %
+Sun Mar 28 18:57:27 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425096, free: 181112, 29 %
+Sun Mar 28 18:59:19 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425112, free: 181096, 29 %
+Sun Mar 28 19:02:19 CEST 2021 cc75dc0 memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425288, free: 180920, 29 %
