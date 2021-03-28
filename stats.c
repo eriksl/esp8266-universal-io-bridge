@@ -476,6 +476,7 @@ void stats_i2c(string_t *dst)
 	string_format(dst,
 			"> i2c sensors detect called: %u\n"
 			"> i2c sensors detect succeeded: %u\n"
+			"> i2c sensors detect bus select failed: %u\n"
 			"> i2c sensors detect skip disabled: %u (%u)\n"
 			"> i2c sensors detect skip secondary: %u (%u)\n"
 			"> i2c sensors detect skip found on bus 0: %u\n"
@@ -488,6 +489,7 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors detect duration: %lu ms\n",
 				i2c_sensor_info.detect_called,
 				i2c_sensor_info.detect_succeeded,
+				i2c_sensor_info.detect_bus_select_failed,
 				i2c_sensor_info.detect_skip_disabled,
 				i2c_sensor_info.detect_skip_disabled / i2c_info.buses,
 				i2c_sensor_info.detect_skip_secondary,
@@ -504,16 +506,16 @@ void stats_i2c(string_t *dst)
 	string_format(dst,
 			"> i2c sensors init called: %u\n"
 			"> i2c sensors init succeeded: %u\n"
+			"> i2c sensors init skipped: %u\n"
 			"> i2c sensors init failed: %u\n"
-			"> i2c sensors init current bus: %u\n"
 			"> i2c sensors init current sensor id: %u\n"
 			"> i2c sensors init started: %s\n"
 			"> i2c sensors init finished: %s\n"
 			"> i2c sensors init duration: %lu ms\n",
 				i2c_sensor_info.init_called,
 				i2c_sensor_info.init_succeeded,
+				i2c_sensor_info.init_skipped,
 				i2c_sensor_info.init_failed,
-				i2c_sensor_info.init_current_bus,
 				i2c_sensor_info.init_current_sensor,
 				yesno(i2c_sensor_info.init_started),
 				yesno(i2c_sensor_info.init_finished),
@@ -522,16 +524,16 @@ void stats_i2c(string_t *dst)
 	string_format(dst,
 			"> i2c sensors background called: %u\n"
 			"> i2c sensors background bus select failed: %u\n"
-			"> i2c sensors background sensor called: %u\n"
+			"> i2c sensors background succeeded: %u\n"
+			"> i2c sensors background failed: %u\n"
 			"> i2c sensors background wrapped: %u\n"
-			"> i2c sensors background current bus: %u\n"
 			"> i2c sensors background current sensor: %u\n"
 			"> i2c sensors background finished: %u\n",
 				i2c_sensor_info.background_called,
 				i2c_sensor_info.background_bus_select_failed,
-				i2c_sensor_info.background_sensor_called,
+				i2c_sensor_info.background_succeeded,
+				i2c_sensor_info.background_failed,
 				i2c_sensor_info.background_wrapped,
-				i2c_sensor_info.background_current_bus,
 				i2c_sensor_info.background_current_sensor,
 				i2c_sensor_info.background_finished);
 }

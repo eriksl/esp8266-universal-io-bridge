@@ -1226,37 +1226,17 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 
 static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
 {
-	i2c_sensor_t sensor;
-	unsigned int option, bus;
-	bool all, verbose;
-	int original_length = string_length(dst);
+	unsigned int option;
+	bool verbose;
+	int original_length;
 
-	all = false;
+	original_length = string_length(dst);
 	verbose = false;
 
-	if(parse_uint(1, src, &option, 0, ' ') == parse_ok)
-	{
-		switch(option)
-		{
-			case(2):
-				all = true;
-				fallthrough;
-			case(1):
-				verbose = true;
-			default:
-				(void)0;
-		}
-	}
+	if((parse_uint(1, src, &option, 0, ' ') == parse_ok) && option)
+		verbose = true;
 
-	for(bus = 0; bus < i2c_busses; bus++)
-		for(sensor = 0; sensor < i2c_sensor_size; sensor++)
-		{
-			if(all || i2c_sensor_registered(bus, sensor))
-			{
-				i2c_sensor_read(dst, bus, sensor, verbose, false);
-				string_append(dst, "\n");
-			}
-		}
+	i2c_sensor_dump(verbose, dst);
 
 	if(string_length(dst) == original_length)
 		string_append(dst, "> no sensors detected\n");

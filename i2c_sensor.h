@@ -95,12 +95,13 @@ typedef struct
 	unsigned int	detect_started:1;
 	unsigned int	detect_finished:1;
 	unsigned int	detect_called;
+	unsigned int	detect_failed;
 	unsigned int	detect_succeeded;
+	unsigned int	detect_bus_select_failed;
 	unsigned int	detect_skip_disabled;
 	unsigned int	detect_skip_secondary;
 	unsigned int	detect_skip_found_on_bus_0;
 	unsigned int	detect_skip_duplicate_address;
-	unsigned int	detect_failed;
 	unsigned int	detect_current_bus;
 	i2c_sensor_t	detect_current_sensor;
 
@@ -112,20 +113,20 @@ typedef struct
 	unsigned int	init_bus_select_failed;
 	unsigned int	init_succeeded;
 	unsigned int	init_failed;
-	unsigned int	init_current_bus;
+	unsigned int	init_skipped;
 	unsigned int	init_current_sensor;
 
 	unsigned int	background_called;
-	unsigned int	background_background_called;
+	unsigned int	background_succeeded;
+	unsigned int	background_failed;
 	unsigned int	background_bus_select_failed;
 	unsigned int	background_sensor_called;
 	unsigned int	background_wrapped;
-	unsigned int	background_current_bus;
 	unsigned int	background_current_sensor;
 	unsigned int	background_finished;
 } i2c_sensor_info_t;
 
-assert_size(i2c_sensor_info_t, 144);
+assert_size(i2c_sensor_info_t, 152);
 
 typedef struct
 {
@@ -133,52 +134,10 @@ typedef struct
 	double cooked;
 } i2c_sensor_value_t;
 
-typedef struct attr_packed
-{
-	unsigned int registered:7;
-	unsigned int high_sensitivity:1;
-} i2c_sensor_device_data_t;
-
-assert_size(i2c_sensor_device_data_t, 1);
-
-enum
-{
-	sdte_secondary = 1 << 0,
-};
-
-typedef union
-{
-	struct
-	{
-		uint8_t id;
-		uint8_t secondary[3];
-	} ram;
-	uint32_t flash;
-} i2c_sensor_device_table_id_t;
-
-assert_size(i2c_sensor_device_table_id_t, 4);
-
-typedef struct i2c_sensor_device_table_entry_T
-{
-	attr_flash_align	i2c_sensor_device_table_id_t id;
-	attr_flash_align	uint32_t address;
-	attr_flash_align	uint32_t precision;
-	attr_flash_align	uint32_t flags;
-	attr_flash_align	const char *name;
-	attr_flash_align	const char *type;
-	attr_flash_align	const char *unity;
-	attr_flash_align	i2c_error_t (* const detect_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
-	attr_flash_align	i2c_error_t (* const init_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
-	attr_flash_align	i2c_error_t (* const read_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_value_t *, i2c_sensor_device_data_t *data);
-	attr_flash_align	void (* const background_fn)(const struct i2c_sensor_device_table_entry_T *, i2c_sensor_device_data_t *data);
-} i2c_sensor_device_table_entry_t;
-
-assert_size(i2c_sensor_device_table_entry_t, 44);
-
-void		i2c_sensor_get_info(i2c_sensor_info_t *);
-i2c_error_t	i2c_sensor_detect(int bus, i2c_sensor_t);
-void		i2c_sensors_periodic(void);
-bool		i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);
-bool		i2c_sensor_registered(int bus, i2c_sensor_t);
+void i2c_sensor_get_info(i2c_sensor_info_t *);
+void i2c_sensors_periodic(void);
+bool i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);
+bool i2c_sensor_registered(int bus, i2c_sensor_t);
+void i2c_sensor_dump(bool verbose, string_t *dst);
 
 #endif
