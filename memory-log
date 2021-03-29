@@ -8346,3 +8346,19 @@ Sun Mar 28 19:02:19 CEST 2021 cc75dc0 memory-log.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66733, free:  13532, 16 %
     irom:    available: 592 k, used: 425288, free: 180920, 29 %
+Sun Mar 28 19:52:40 CEST 2021 f9f2d3e memory-log.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425272, free: 180936, 29 %
+Sun Mar 28 19:55:11 CEST 2021 81b8141 i2c-sensor: move strings in device table to flash as well.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66733, free:  13532, 16 %
+    irom:    available: 592 k, used: 425320, free: 180888, 29 %
+Mon Mar 29 19:15:50 CEST 2021 81b8141 i2c-sensor: move strings in device table to flash as well.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66717, free:  13548, 16 %
+    irom:    available: 592 k, used: 424696, free: 181512, 29 %
+Mon Mar 29 19:17:42 CEST 2021 81b8141 i2c-sensor: move strings in device table to flash as well.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66717, free:  13548, 16 %
+    irom:    available: 592 k, used: 424712, free: 181496, 29 %

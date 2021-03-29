@@ -128,12 +128,6 @@ typedef struct
 
 assert_size(i2c_sensor_info_t, 152);
 
-typedef struct
-{
-	double raw;
-	double cooked;
-} i2c_sensor_value_t;
-
 void i2c_sensor_get_info(i2c_sensor_info_t *);
 void i2c_sensors_periodic(void);
 bool i2c_sensor_read(string_t *, int bus, i2c_sensor_t, bool verbose, bool html);

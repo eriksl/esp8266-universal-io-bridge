@@ -45,6 +45,15 @@ assert_size(i2c_sensor_data_t, 20);
 
 typedef struct
 {
+	double			value;
+	int				ch0;
+	int				ch1;
+	int				ch2;
+	unsigned int	scaling;
+} i2c_sensor_value_t;
+
+typedef struct
+{
 	attr_flash_align	i2c_sensor_flash_basic_t basic;
 	attr_flash_align	const char name[i2c_sensor_device_table_name_size];
 	attr_flash_align	const char type[i2c_sensor_device_table_type_size];
@@ -271,10 +280,7 @@ static i2c_error_t sensor_opt3001_read(i2c_sensor_data_t *data, i2c_sensor_value
 		return(i2c_error_device_error_1);
 
 	if(config & opt3001_conf_flag_ovf)
-	{
-		value->raw = value->cooked = -1;
 		return(i2c_error_ok);
-	}
 
 	if((error = i2c_send1_receive(data->basic.address, opt3001_reg_result, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -285,8 +291,9 @@ static i2c_error_t sensor_opt3001_read(i2c_sensor_data_t *data, i2c_sensor_value
 	exponent = (i2c_buffer[0] & 0xf0) >> 4;
 	mantissa = ((i2c_buffer[0] & 0x0f) << 8) | i2c_buffer[1];
 
-	value->raw = exponent * 10000 + mantissa;
-	value->cooked = 0.01 * (1 << exponent) * mantissa;
+	value->ch0 = exponent;
+	value->ch1 = mantissa;
+	value->value = 0.01 * (1 << exponent) * mantissa;
 
 	return(i2c_error_ok);
 }
@@ -422,8 +429,9 @@ static i2c_error_t sensor_veml6075_uvindex_read(i2c_sensor_data_t *data, i2c_sen
 	uvib	= uvb * k2 * uvbr;
 	uvi		= (uvia + uvib) / 2;
 
-	value->raw = (unsigned int)uvia * 10000 + (unsigned int)uvib;
-	value->cooked = uvi * 1.25;
+	value->ch0 = uvia;
+	value->ch1 = uvib;
+	value->value = uvi * 1.25;
 
 	return(i2c_error_ok);
 }
@@ -546,8 +554,6 @@ static i2c_error_t sensor_tmd2771_read(i2c_sensor_data_t *data, i2c_sensor_value
 	double cpl, lux1, lux2, lux;
 	tmd2771_private_data_t *private_data = (tmd2771_private_data_t *)&data->private_data;
 
-	value->raw = value->cooked = -1;
-
 	if((error = i2c_send1_receive(data->basic.address, tmd2771_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("tmd2771", error);
@@ -584,8 +590,9 @@ static i2c_error_t sensor_tmd2771_read(i2c_sensor_data_t *data, i2c_sensor_value
 	lux2 = ((0.6 * ch0) - ch1) / cpl;
 	lux = fmax(fmax(lux1, lux2), 0);
 
-	value->raw = ch0;
-	value->cooked = lux;
+	value->ch0 = ch0;
+	value->ch1 = ch1;
+	value->value = lux * tmd2771_device_factor;
 
 	return(i2c_error_ok);
 }
@@ -707,8 +714,6 @@ static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	double lux, iac1, iac2, iac, lpc;
 	apds9930_private_data_t *private_data = (apds9930_private_data_t *)&data->private_data;
 
-	value->raw = value->cooked = -1;
-
 	if((error = i2c_send1_receive(data->basic.address, apds9930_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("apds9930", error);
@@ -743,8 +748,9 @@ static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	lpc = 25.48 / ((data->high_sensitivity ? 699 : 175) * (data->high_sensitivity ? 16 : 1));
 	lux = iac * lpc;
 
-	value->raw = ch0;
-	value->cooked = lux;
+	value->ch0 = ch0;
+	value->ch1 = ch1;
+	value->value = lux;
 
 	return(i2c_error_ok);
 }
@@ -861,8 +867,6 @@ static i2c_error_t sensor_apds9960_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	unsigned int ch0;
 	apds9960_private_data_t *private_data = (apds9960_private_data_t *)&data->private_data;
 
-	value->raw = value->cooked = -1;
-
 	if((error = i2c_send1_receive(data->basic.address, apds9960_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("apds9960", error);
@@ -892,8 +896,8 @@ static i2c_error_t sensor_apds9960_read(i2c_sensor_data_t *data, i2c_sensor_valu
 		return(i2c_error_overflow);
 	}
 
-	value->raw = ch0;
-	value->cooked = ch0;
+	value->ch0 = ch0;
+	value->value = ch0 * 1.14;
 
 	return(i2c_error_ok);
 }
@@ -1355,8 +1359,8 @@ static i2c_error_t sensor_si114x_ultraviolet_read(i2c_sensor_data_t *data, i2c_s
 	if((error = si114x_read_register_2(si114x_reg_aux_data, &regval)) != i2c_error_ok)
 		return(error);
 
-	value->raw = regval;
-	value->cooked = value->raw / 230;
+	value->ch0 = regval;
+	value->value = regval / 230.0;
 
 	return(i2c_error_ok);
 }
@@ -1365,8 +1369,6 @@ static i2c_error_t sensor_si114x_visible_light_read(i2c_sensor_data_t *data, i2c
 {
 	i2c_error_t error;
 	int visible;
-
-	value->cooked = -1;
 
 	if((error = si114x_write_register_2(si114x_reg_als_vis_data, 0)) != i2c_error_ok)
 		return(error);
@@ -1382,10 +1384,10 @@ static i2c_error_t sensor_si114x_visible_light_read(i2c_sensor_data_t *data, i2c
 
 	visible -= 256;
 
-	value->raw = visible;
-	value->cooked = visible * 28.0;
+	value->ch0 = visible;
+	value->value = visible * 28.0;
 
-	if(value->cooked < 2000)
+	if(value->value < 2000)
 		return(i2c_error_overflow);
 
 	return(i2c_error_ok);
@@ -1423,8 +1425,9 @@ static i2c_error_t sensor_si114x_infrared_read(i2c_sensor_data_t *data, i2c_sens
 	if(visible < 1)
 		visible = 1;
 
-	value->raw = ir * 10000 + visible;
-	value->cooked = (ir * 8.3) / visible;
+	value->ch0 = ir;
+	value->ch1 = visible;
+	value->value = (ir * 8.3) / visible;
 
 	return(i2c_error_ok);
 }
@@ -1446,8 +1449,8 @@ static i2c_error_t sensor_si114x_temperature_read(i2c_sensor_data_t *data, i2c_s
 	if((error = si114x_read_register_2(si114x_reg_aux_data, &regval)) != i2c_error_ok)
 		return(error);
 
-	value->raw = regval;
-	value->cooked = (value->raw / 35) - 299;
+	value->ch0 = regval;
+	value->value = (regval / 35.0) - 299;
 
 	return(i2c_error_ok);
 }
@@ -1545,12 +1548,13 @@ static i2c_error_t sensor_max44009_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	mantissa =	(i2c_buffer[0] & 0x0f) << 4;
 	mantissa |=	(i2c_buffer[1] & 0x0f) << 0;
 
-	value->raw = (exponent * 10000) + mantissa;
+	value->ch0 = exponent;
+	value->ch1 = mantissa;
 
 	if(exponent == 0b1111)
 		return(i2c_error_overflow);
 
-	value->cooked = (1 << exponent) * mantissa * 0.045;
+	value->value = (1 << exponent) * mantissa * 0.045;
 
 	return(i2c_error_ok);
 }
@@ -1642,11 +1646,11 @@ static i2c_error_t sensor_veml6070_read(i2c_sensor_data_t *data, i2c_sensor_valu
 
 	rv = (rv << 8) | i2c_buffer[0];
 
-	value->raw = rv;
-	value->cooked = (((double)rv - 700) / 750) * 1.6; // magic values determined from it = 4 and example relations from Vishay
+	value->ch0 = rv;
+	value->value = (((double)rv - 700) / 750) * 1.6; // magic values determined from it = 4 and example relations from Vishay
 
-	if(value->cooked < 0)
-		value->cooked = 0;
+	if(value->value < 0)
+		value->value = 0;
 
 	return(i2c_error_ok);
 }
@@ -1850,21 +1854,23 @@ static i2c_error_t sensor_tsl2561_read(i2c_sensor_data_t *data, i2c_sensor_value
 		return(i2c_error_overflow);
 	else
 		if(ratio >= 0.80)
-			value->cooked = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
+			value->value = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
 		else
 			if(ratio >= 0.61)
-				value->cooked = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
+				value->value = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
 			else
 				if(ratio >= 0.50)
-					value->cooked = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
+					value->value = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
 				else
-					value->cooked = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
+					value->value = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
 
-	value->raw = (tsl2561_autoranging_current * 1000000000000UL) + (tsl2561_current_value_ch0 * 10000000UL) + tsl2561_current_value_ch1;
-	value->cooked = ((value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
+	value->ch0 = tsl2561_current_value_ch0;
+	value->ch1 = tsl2561_current_value_ch1;
+	value->scaling = tsl2561_autoranging_current;
+	value->value = ((value->value * factor_1000000) + offset_1000000) / 1000000.0;
 
-	if(value->cooked < 0)
-		value->cooked = 0;
+	if(value->value < 0)
+		value->value = 0;
 
 	return(i2c_error_ok);
 }
@@ -2117,14 +2123,16 @@ static i2c_error_t sensor_tsl2591_read(i2c_sensor_data_t *data, i2c_sensor_value
 	unsigned int factor_1000000;
 	int offset_1000000;
 
-	value->raw = (tsl2591_current_scaling * 1000000000000UL) + (tsl2591_current_value_ch0 * 100000000UL) + tsl2591_current_value_ch1;
+	value->ch0 = tsl2591_current_value_ch0;
+	value->ch1 = tsl2591_current_value_ch1;
+	value->scaling = tsl2591_current_scaling;
 
 	factor_1000000 = tsl2591_autoranging_data[tsl2591_current_scaling].correction_1000000.factor;
 	offset_1000000 = tsl2591_autoranging_data[tsl2591_current_scaling].correction_1000000.offset;
 
 	if(tsl2591_current_value_ch0 == 0)
 	{
-		value->cooked = 0;
+		value->value = 0;
 		return(i2c_error_ok);
 	}
 
@@ -2144,8 +2152,8 @@ static i2c_error_t sensor_tsl2591_read(i2c_sensor_data_t *data, i2c_sensor_value
 		}
 	}
 
-	value->cooked = ((tsl2591_current_value_ch0 * ch0_factor) + (tsl2591_current_value_ch1 * ch1_factor)) / 1000.0;
-	value->cooked = (((int64_t)value->cooked * factor_1000000) + offset_1000000) / 1000000.0;
+	value->value = ((tsl2591_current_value_ch0 * ch0_factor) + (tsl2591_current_value_ch1 * ch1_factor)) / 1000.0;
+	value->value = (((int64_t)value->value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
@@ -2307,7 +2315,8 @@ error:
 	ch0 &= 0x7f;
 	ch1 &= 0x7f;
 
-	value->raw = (ch0 * 10000.0) + ch1;
+	value->ch0 = ch0;
+	value->ch1 = ch1;
 
 	if((tsl2550_count[ch1] <= tsl2550_count[ch0]) && (tsl2550_count[ch0] > 0))
 		ratio = (tsl2550_count[ch1] * 128) / tsl2550_count[ch0];
@@ -2317,13 +2326,13 @@ error:
 	if(ratio > 128)
 		ratio = 128;
 
-	value->cooked = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
+	value->value = ((tsl2550_count[ch0] - tsl2550_count[ch1]) * tsl2550_ratio[ratio]) / 2560.0;
 
-	if(value->cooked < 0)
-		value->cooked = 0;
+	if(value->value < 0)
+		value->value = 0;
 
 	/* high sensitivity */
-	value->cooked *= 5;
+	value->value *= 5;
 
 	return(i2c_error_ok);
 }
@@ -2431,8 +2440,10 @@ static i2c_error_t sensor_bh1750_read(i2c_sensor_data_t *data, i2c_sensor_value_
 	factor_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.factor;
 	offset_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.offset;
 
-	value->raw = (bh1750_current_ranging * 1000000UL) + bh1750_current_value;
-	value->cooked = (((int64_t)bh1750_current_value * factor_1000000) + offset_1000000) / 1000000.0;
+
+	value->ch0 = bh1750_current_value;
+	value->scaling = bh1750_current_ranging;
+	value->value = (((int64_t)bh1750_current_value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
@@ -2556,8 +2567,10 @@ static i2c_error_t sensor_tmp75_read(i2c_sensor_data_t *data, i2c_sensor_value_t
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -2656,8 +2669,10 @@ static i2c_error_t sensor_ds7505_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -2762,8 +2777,10 @@ static i2c_error_t sensor_ds1631_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = (int16_t)raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = (int16_t)raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -2862,8 +2879,10 @@ static i2c_error_t sensor_ds1621_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = (int16_t)raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = (int16_t)raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -2970,8 +2989,10 @@ static i2c_error_t sensor_tmp102_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -3047,8 +3068,10 @@ static i2c_error_t sensor_lm75_read(i2c_sensor_data_t *data, i2c_sensor_value_t 
 		return(error);
 	}
 
-	value->raw = raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
-	value->cooked = raw_temperature / 256.0;
+	raw_temperature = (i2c_buffer[0] << 8) | i2c_buffer[1];
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = raw_temperature / 256.0;
 
 	return(i2c_error_ok);
 }
@@ -3165,6 +3188,7 @@ static i2c_error_t sensor_mpl3115a2_temperature_read(i2c_sensor_data_t *data, i2
 {
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
+	unsigned int raw_value;
 
 	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_out_t, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -3172,8 +3196,10 @@ static i2c_error_t sensor_mpl3115a2_temperature_read(i2c_sensor_data_t *data, i2
 		return(error);
 	}
 
-	value->raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
-	value->cooked = value->raw / 256;
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	raw_value = (i2c_buffer[0] << 8) | (i2c_buffer[1]);
+	value->value = raw_value / 256;
 
 	return(i2c_error_ok);
 }
@@ -3182,6 +3208,7 @@ static i2c_error_t sensor_mpl3115a2_airpressure_read(i2c_sensor_data_t *data, i2
 {
 	uint8_t i2c_buffer[3];
 	i2c_error_t error;
+	unsigned int raw_value;
 
 	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_out_p, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -3189,8 +3216,9 @@ static i2c_error_t sensor_mpl3115a2_airpressure_read(i2c_sensor_data_t *data, i2
 		return(error);
 	}
 
-	value->raw = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);
-	value->cooked = value->raw / 64 / 100;
+	raw_value = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);
+	value->ch0 = raw_value;
+	value->value = raw_value / 64 / 100;
 
 	return(i2c_error_ok);
 }
@@ -3304,8 +3332,7 @@ static i2c_error_t sensor_ccs811_read(i2c_sensor_data_t *data, i2c_sensor_value_
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
-
-	value->raw = value->cooked = -1;
+	unsigned int raw_value;
 
 	if((error = i2c_send1_receive(data->basic.address, ccs811_reg_status, 1, i2c_buffer)) != i2c_error_ok)
 	{
@@ -3335,14 +3362,16 @@ static i2c_error_t sensor_ccs811_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		return(error);
 	}
 
-	value->raw = unsigned_16(i2c_buffer[ccs811_algdata_eco2 + 0], i2c_buffer[ccs811_algdata_eco2 + 1]);
-	value->cooked = 100 - ((value->raw - 400) / 76);
+	value->ch0 = i2c_buffer[ccs811_algdata_eco2 + 0];
+	value->ch1 = i2c_buffer[ccs811_algdata_eco2 + 1];
+	raw_value = unsigned_16(i2c_buffer[ccs811_algdata_eco2 + 0], i2c_buffer[ccs811_algdata_eco2 + 1]);
+	value->value = 100 - ((raw_value - 400) / 76);
 
-	if(value->cooked < 0)
-		value->cooked = 0;
+	if(value->value < 0)
+		value->value = 0;
 
-	if(value->cooked > 100)
-		value->cooked = 100;
+	if(value->value > 100)
+		value->value = 100;
 
 	return(i2c_error_ok);
 }
@@ -3539,13 +3568,10 @@ static i2c_error_t sensor_sht30_periodic(i2c_sensor_data_t *data)
 static i2c_error_t sensor_sht30_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	if((sht30.adc.temperature == 0) && (sht30.adc.humidity == 0))
-	{
-		value->raw = value->cooked = -1;
 		return(i2c_error_device_error_1);
-	}
 
-	value->raw = sht30.adc.temperature;
-	value->cooked = ((value->raw * 175) / ((1 << 16) - 1)) - 45;
+	value->ch0 = sht30.adc.temperature;
+	value->value = ((sht30.adc.temperature * 175) / ((1 << 16) - 1)) - 45;
 
 	return(i2c_error_ok);
 
@@ -3554,13 +3580,10 @@ static i2c_error_t sensor_sht30_temperature_read(i2c_sensor_data_t *data, i2c_se
 static i2c_error_t sensor_sht30_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	if((sht30.adc.temperature == 0) && (sht30.adc.humidity == 0))
-	{
-		value->raw = value->cooked = -1;
 		return(i2c_error_device_error_1);
-	}
 
-	value->raw = sht30.adc.humidity;
-	value->cooked = (value->raw * 100) / ((1 << 16) - 1);
+	value->ch0 = sht30.adc.humidity;
+	value->value = (sht30.adc.humidity * 100) / ((1 << 16) - 1);
 
 	return(i2c_error_ok);
 }
@@ -3644,17 +3667,19 @@ static i2c_error_t sensor_mcp9808_read(i2c_sensor_data_t *data, i2c_sensor_value
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
-	unsigned int raw;
+	unsigned int raw_value;
 
 	if((error = i2c_send1_receive(data->basic.address, mcp9808_reg_temperature, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	raw = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
-	value->raw = raw;
-	value->cooked = (raw & 0x0fff) / 16.0;
+	raw_value = (i2c_buffer[0] << 8) | (i2c_buffer[1] << 0);
 
-	if(raw & (1 << 12))
-		value->cooked = 256 - value->cooked;
+	value->ch0 = i2c_buffer[0];
+	value->ch1 = i2c_buffer[1];
+	value->value = (raw_value & 0x0fff) / 16.0;
+
+	if(raw_value & (1 << 12))
+		value->value = 256 - value->value;
 
 	return(i2c_error_ok);
 }
@@ -3772,13 +3797,10 @@ static i2c_error_t sensor_hdc1080_periodic(i2c_sensor_data_t *data)
 static i2c_error_t sensor_hdc1080_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	if((hdc1080.adc.temperature == 0) && (hdc1080.adc.humidity == 0))
-	{
-		value->raw = value->cooked = 0;
 		return(i2c_error_device_error_1);
-	}
 
-	value->raw = hdc1080.adc.temperature;
-	value->cooked = ((value->raw * 165) / (1 << 16)) - 40;
+	value->ch0 = hdc1080.adc.temperature;
+	value->value = ((hdc1080.adc.temperature * 165) / (1 << 16)) - 40;
 
 	return(i2c_error_ok);
 }
@@ -3786,13 +3808,10 @@ static i2c_error_t sensor_hdc1080_temperature_read(i2c_sensor_data_t *data, i2c_
 static i2c_error_t sensor_hdc1080_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	if((hdc1080.adc.temperature == 0) && (hdc1080.adc.humidity == 0))
-	{
-		value->raw = value->cooked = 0;
 		return(i2c_error_device_error_1);
-	}
 
-	value->raw = hdc1080.adc.humidity;
-	value->cooked = ((value->raw * 100) / (1 << 16));
+	value->ch0 = hdc1080.adc.humidity;
+	value->value = (hdc1080.adc.humidity * 100) / 65536.0;
 
 	return(i2c_error_ok);
 }
@@ -3982,8 +4001,8 @@ static i2c_error_t sensor_htu21_temperature_read(i2c_sensor_data_t *data, i2c_se
 	if(htu21.adc.temperature == 0)
 		return(i2c_error_device_error_1);
 
-	value->raw = htu21.adc.temperature;
-	value->cooked = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
+	value->ch0 = htu21.adc.temperature;
+	value->value = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
 
 	return(i2c_error_ok);
 }
@@ -4004,8 +4023,8 @@ static i2c_error_t sensor_htu21_humidity_read(i2c_sensor_data_t *data, i2c_senso
 	if(humidity > 100)
 		humidity = 100;
 
-	value->raw = htu21.adc.humidity;
-	value->cooked = humidity;
+	value->ch0 = htu21.adc.humidity;
+	value->value = humidity;
 
 	return(i2c_error_ok);
 }
@@ -4303,8 +4322,8 @@ static i2c_error_t sensor_bme680_temperature_read(i2c_sensor_data_t *data, i2c_s
 	t1_scaled	= (adc_temperature / 131072.0) - (bme680_calibration_parameters.temperature.t1 / 8192.0);
 	t_fine		= ((adc_temperature / 16384.0) - (bme680_calibration_parameters.temperature.t1 / 1024.0)) * bme680_calibration_parameters.temperature.t2 + (t1_scaled * t1_scaled * bme680_calibration_parameters.temperature.t3 * 16.0);
 
-	value->raw		= t_fine;
-	value->cooked	= t_fine / 5120.0;
+	value->ch0		= t_fine;
+	value->value	= t_fine / 5120.0;
 
 	return(i2c_error_ok);
 }
@@ -4355,8 +4374,8 @@ static i2c_error_t sensor_bme680_humidity_read(i2c_sensor_data_t *data, i2c_sens
 	if(humidity < 0.0)
 		humidity = 0.0;
 
-	value->raw = adc_humidity;
-	value->cooked = humidity;
+	value->ch0 = adc_humidity;
+	value->value = humidity;
 
 	return(i2c_error_ok);
 }
@@ -4403,8 +4422,8 @@ static i2c_error_t sensor_bme680_airpressure_read(i2c_sensor_data_t *data, i2c_s
 	var1 = (1 + (var1 / 32768.0)) * bme680_calibration_parameters.pressure.p1;
 	pressure = 1048576 - adc_pressure;
 
-	value->raw		= adc_pressure;
-	value->cooked	= 0;
+	value->ch0		= adc_pressure;
+	value->value	= 0;
 
 	if((int)var1 != 0)
 	{
@@ -4413,7 +4432,7 @@ static i2c_error_t sensor_bme680_airpressure_read(i2c_sensor_data_t *data, i2c_s
 		var1 = (bme680_calibration_parameters.pressure.p9 * pressure * pressure) / 2147483648.0;
 		var2 = pressure * (bme680_calibration_parameters.pressure.p8 / 32768.0);
 		var3 = pressure_256 * pressure_256 * pressure_256 * (bme680_calibration_parameters.pressure.p10 / 131072.0);
-		value->cooked = (pressure + (var1 + var2 + var3 + (bme680_calibration_parameters.pressure.p7 * 128)) / 16.0) / 100.0;
+		value->value = (pressure + (var1 + var2 + var3 + (bme680_calibration_parameters.pressure.p7 * 128)) / 16.0) / 100.0;
 	}
 	else
 		return(i2c_error_overflow);
@@ -4735,8 +4754,10 @@ static i2c_error_t bmx280_read_temperature(i2c_sensor_data_t *data, i2c_sensor_v
 	var1 = (adc_T / 16384.0 - bmx280.dig_T1 / 1024.0) * bmx280.dig_T2;
 	var2 = (adc_T / 131072.0 - bmx280.dig_T1 / 8192.0) * (adc_T / 131072.0 - bmx280.dig_T1 / 8192.0) * bmx280.dig_T3;
 
-	value->raw = adc_T;
-	value->cooked = (var1 + var2) / 5120.0;
+	value->ch0 = adc_T;
+	value->ch1 = var1;
+	value->ch2 = var2;
+	value->value = (var1 + var2) / 5120.0;
 
 	return(i2c_error_ok);
 }
@@ -4779,8 +4800,10 @@ static i2c_error_t bmx280_read_airpressure(i2c_sensor_data_t *data, i2c_sensor_v
 		pressure = pressure + (var1 + var2 + bmx280.dig_P7) / 16.0;
 	}
 
-	value->raw = adc_P;
-	value->cooked = pressure / 100.0;
+	value->ch0 = adc_P;
+	value->ch1 = var1;
+	value->ch2 = var1;
+	value->value = pressure / 100.0;
 
 	return(i2c_error_ok);
 }
@@ -4814,8 +4837,9 @@ static i2c_error_t bmx280_read_humidity(i2c_sensor_data_t *data, i2c_sensor_valu
 	if(humidity < 0.0)
 		humidity = 0.0;
 
-	value->raw = adc_H;
-	value->cooked = humidity;
+	value->ch0 = adc_H;
+	value->ch1 = adc_T;
+	value->value = humidity;
 
 	return(i2c_error_ok);
 }
@@ -5075,8 +5099,9 @@ static i2c_error_t sensor_bmp085_read_temperature(i2c_sensor_data_t *data, i2c_s
 
 	b5 = x1 + x2;
 
-	value->raw		= ut;
-	value->cooked	= (b5 + 8.0) / 160.0;
+	value->ch0		= ut;
+	value->ch1		= b5;
+	value->value	= (b5 + 8.0) / 160.0;
 
 	return(i2c_error_ok);
 }
@@ -5127,8 +5152,9 @@ static i2c_error_t sensor_bmp085_read_airpressure(i2c_sensor_data_t *data, i2c_s
 	x2	= (-7357 * p) / (1 << 16);
 	p	= p + ((x1 + x2 + 3791) / (1 << 4));
 
-	value->raw = up;
-	value->cooked = p / 100.0;
+	value->ch0 = up;
+	value->ch1 = p;
+	value->value = p / 100.0;
 
 	return(i2c_error_ok);
 }
@@ -5139,8 +5165,8 @@ typedef enum
 	am2320_action_temperature,
 } am2320_action_t;
 
-static i2c_sensor_value_t sensor_am2320_cached_temperature;
-static i2c_sensor_value_t sensor_am2320_cached_humidity;
+static double sensor_am2320_cached_temperature;
+static double sensor_am2320_cached_humidity;
 
 attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
 {
@@ -5214,8 +5240,7 @@ static i2c_error_t sensor_am2320_read(i2c_sensor_data_t *data, i2c_sensor_value_
 		if(raw_hum > 1000)
 			raw_hum = 1000;
 
-		sensor_am2320_cached_humidity.raw = raw_hum;
-		sensor_am2320_cached_humidity.cooked = raw_hum / 10.0;
+		sensor_am2320_cached_humidity = raw_hum / 10.0;
 
 		raw_temp = (values[2] << 8) | values[3];
 
@@ -5225,14 +5250,16 @@ static i2c_error_t sensor_am2320_read(i2c_sensor_data_t *data, i2c_sensor_value_
 			raw_temp = 0 - raw_temp;
 		}
 
-		sensor_am2320_cached_temperature.raw = raw_temp;
-		sensor_am2320_cached_temperature.cooked = raw_temp / 10.0;
+		sensor_am2320_cached_temperature = raw_temp / 10.0;
+
+		value->ch0 = raw_temp;
+		value->ch1 = raw_hum;
 	}
 
 	switch(action)
 	{
-		case(am2320_action_humidity):		{ *value = sensor_am2320_cached_humidity; break; }
-		case(am2320_action_temperature):	{ *value = sensor_am2320_cached_temperature; break; }
+		case(am2320_action_humidity):		{ value->value = sensor_am2320_cached_humidity; break; }
+		case(am2320_action_temperature):	{ value->value = sensor_am2320_cached_temperature; break; }
 		default:							{ break; }
 	}
 
@@ -5281,8 +5308,7 @@ static i2c_error_t sensor_hih6130_read(i2c_sensor_data_t *data, i2c_sensor_value
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
-
-	value->cooked = value->raw = -1;
+	unsigned int raw_value;
 
 	if((error = i2c_send(data->basic.address, 0, 0)) != i2c_error_ok)
 	{
@@ -5302,14 +5328,16 @@ static i2c_error_t sensor_hih6130_read(i2c_sensor_data_t *data, i2c_sensor_value
 
 	if(action == hih6130_action_temperature)
 	{
-		value->raw = ((i2c_buffer[2] << 8) + i2c_buffer[3]) >> 2;
-		value->cooked = ((value->raw * 165) / ((1 << 14) - 2)) - 40;
+		raw_value = ((i2c_buffer[2] << 8) + i2c_buffer[3]) >> 2;
+		value->value = ((raw_value * 165) / ((1 << 14) - 2)) - 40;
 	}
 	else
 	{
-		value->raw = ((i2c_buffer[0] << 8) + i2c_buffer[1]) & 0b0011111111111111;
-		value->cooked = (value->raw * 100) / ((1 << 14) - 2);
+		raw_value = ((i2c_buffer[0] << 8) + i2c_buffer[1]) & 0b0011111111111111;
+		value->value = (raw_value * 100) / ((1 << 14) - 2);
 	}
+
+	value->ch0 = raw_value;
 
 	return(i2c_error_ok);
 }
@@ -5350,6 +5378,7 @@ static i2c_error_t sensor_digipicco_humidity_read(i2c_sensor_data_t *data, i2c_s
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
+	unsigned int raw_value;
 
 	if((error = i2c_receive(data->basic.address, 4, i2cbuffer)) != i2c_error_ok)
 	{
@@ -5357,8 +5386,9 @@ static i2c_error_t sensor_digipicco_humidity_read(i2c_sensor_data_t *data, i2c_s
 		return(error);
 	}
 
-	value->raw = ((uint16_t)i2cbuffer[0] << 8) | (uint16_t)i2cbuffer[1];
-	value->cooked = (value->raw * 100.0) / 32768.0;
+	raw_value = (i2cbuffer[0] << 8) | i2cbuffer[1];
+	value->ch0 = raw_value;
+	value->value = (raw_value * 100.0) / 32768.0;
 
 	return(i2c_error_ok);
 }
@@ -5367,6 +5397,7 @@ static i2c_error_t sensor_digipicco_temperature_read(i2c_sensor_data_t *data, i2
 {
 	i2c_error_t error;
 	uint8_t	i2cbuffer[4];
+	unsigned int raw_value;
 
 	if((error = i2c_receive(data->basic.address, 4, i2cbuffer)) != i2c_error_ok)
 	{
@@ -5374,8 +5405,8 @@ static i2c_error_t sensor_digipicco_temperature_read(i2c_sensor_data_t *data, i2
 		return(error);
 	}
 
-	value->raw = ((uint16_t)i2cbuffer[2] << 8) | (uint16_t)i2cbuffer[3];
-	value->cooked = ((value->raw * 165.0) / 32767.0) - 40.5;
+	raw_value = (i2cbuffer[2] << 8) | i2cbuffer[3];
+	value->value = ((raw_value * 165.0) / 32767.0) - 40.5;
 
 	return(i2c_error_ok);
 }
@@ -5458,38 +5489,32 @@ static i2c_error_t sensor_aht10_init(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_aht10_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	value->raw = sensor_aht10_value_temperature;
-	value->cooked = 0;
-
 	if(sensor_aht10_state == aht10_state_needinit)
 		return(i2c_error_device_error_1);
 
 	if(sensor_aht10_state == aht10_state_calibrating)
 		return(i2c_error_device_error_2);
 
-	if(value->raw > 200)
+	if(sensor_aht10_value_temperature > 200)
 		return(i2c_error_device_error_3);
 
-	value->cooked = value->raw;
+	value->value = sensor_aht10_value_temperature;
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_aht10_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	value->raw = sensor_aht10_value_humidity;
-	value->cooked = 0;
-
 	if(sensor_aht10_state == aht10_state_needinit)
 		return(i2c_error_device_error_1);
 
 	if(sensor_aht10_state == aht10_state_calibrating)
 		return(i2c_error_device_error_2);
 
-	if(value->raw > 200)
+	if(sensor_aht10_value_humidity > 200)
 		return(i2c_error_device_error_3);
 
-	value->cooked = value->raw;
+	value->value = sensor_aht10_value_humidity;
 
 	return(i2c_error_ok);
 }
@@ -5664,8 +5689,9 @@ static i2c_error_t sensor_veml6040_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	factor_1000000 = veml6040_autoranging_data[veml6040_autoranging_current].correction_1000000.factor;
 	offset_1000000 = veml6040_autoranging_data[veml6040_autoranging_current].correction_1000000.offset;
 
-	value->raw =	(veml6040_autoranging_current * 10000000UL) + veml6040_current_value;
-	value->cooked = (((int64_t)veml6040_current_value * factor_1000000) + offset_1000000) / 1000000.0;
+	value->ch0 = veml6040_current_value;
+	value->scaling = veml6040_autoranging_current;
+	value->value = (((int64_t)veml6040_current_value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
@@ -5703,7 +5729,7 @@ static i2c_error_t sensor_veml6040_periodic(i2c_sensor_data_t *data)
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
-		{ 
+		{
 			i2c_sensor_opt3001, i2c_sensor_none,
 			{
 				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none
@@ -6950,6 +6976,12 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 	else
 		string_format(dst, "sensor %d/%02u@%02lx: %s, %s: ", bus, sensor, data_entry->basic.address, device_name, device_type);
 
+	value.value = 0;
+	value.ch0 = 0;
+	value.ch1 = 0;
+	value.ch2 = 0;
+	value.scaling = 0;
+
 	if((error = device_entry->read_fn(data_entry, &value)) == i2c_error_ok)
 	{
 		if(!config_get_int("i2s.%u.%u.factor", &int_factor, bus, sensor))
@@ -6958,7 +6990,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 		if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 			int_offset = 0;
 
-		extracooked = (value.cooked * int_factor / 1000.0) + (int_offset / 1000.0);
+		extracooked = (value.value * int_factor / 1000.0) + (int_offset / 1000.0);
 
 		if(html)
 			string_format(dst, "<td align=\"right\">%.*f %s", data_entry->basic.precision, extracooked, device_unity);
@@ -6966,7 +6998,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 			string_format(dst, "[%.*f] %s", data_entry->basic.precision, extracooked, device_unity);
 
 		if(verbose)
-			string_format(dst, " (uncalibrated: %.*f, raw: %.*f)", data_entry->basic.precision, value.cooked, data_entry->basic.precision, value.raw);
+			string_format(dst, " (uncalibrated: %.*f, ch0: %d, ch1: %d, ch2: %d, scaling: %u)", data_entry->basic.precision, value.value, value.ch0, value.ch1, value.ch2, value.scaling);
 	}
 	else
 	{
