@@ -481,7 +481,7 @@ typedef struct
 	uint32_t dummy[i2c_sensor_data_private_size - 1];
 } tmd2771_private_data_t;
 
-assert_size(tmd2771_private_data_t, i2c_sensor_data_private_size * 4);
+assert_size(tmd2771_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t sensor_tmd2771_detect(i2c_sensor_data_t *data)
 {
@@ -641,7 +641,7 @@ typedef struct
 	uint32_t dummy[i2c_sensor_data_private_size - 1];
 } apds9930_private_data_t;
 
-assert_size(apds9930_private_data_t, i2c_sensor_data_private_size * 4);
+assert_size(apds9930_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t sensor_apds9930_detect(i2c_sensor_data_t *data)
 {
@@ -795,7 +795,7 @@ typedef struct
 	uint32_t dummy[i2c_sensor_data_private_size - 1];
 } apds9960_private_data_t;
 
-assert_size(apds9960_private_data_t, i2c_sensor_data_private_size * 4);
+assert_size(apds9960_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t sensor_apds9960_detect(i2c_sensor_data_t *data)
 {
