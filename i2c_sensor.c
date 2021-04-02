@@ -3948,7 +3948,6 @@ static i2c_error_t sensor_hdc1080_periodic(i2c_sensor_data_t *data)
 	return(i2c_error_ok);
 }
 
-
 enum
 {
 	htu21_cmd_meas_temp_hold_master =		0xe3,
@@ -3975,7 +3974,7 @@ enum
 	htu21_delay_reset =						2,
 };
 
-attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
+attr_pure static uint8_t htu21_crc8(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit, crc;
 
@@ -3997,14 +3996,21 @@ attr_pure static uint8_t htu21_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-static struct
+typedef struct
 {
-	struct
-	{
-		unsigned int temperature;
-		unsigned int humidity;
-	} adc;
-} htu21;
+	uint32_t	raw_temperature_data;
+	bool		raw_temperature_data_valid;
+} htu21_temperature_private_data_t;
+
+assert_size(htu21_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+typedef struct
+{
+	uint32_t	raw_humidity_data;
+	bool		raw_humidity_data_valid;
+} htu21_humidity_private_data_t;
+
+assert_size(htu21_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t sensor_htu21_detect(i2c_sensor_data_t *data)
 {
@@ -4027,10 +4033,13 @@ static i2c_error_t sensor_htu21_detect(i2c_sensor_data_t *data)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_htu21_init(i2c_sensor_data_t *data)
+static i2c_error_t sensor_htu21_temperature_init(i2c_sensor_data_t *data)
 {
+	htu21_temperature_private_data_t *private_data;
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
+
+	private_data = (htu21_temperature_private_data_t *)data->private_data;
 
 	if((error = i2c_send1(data->basic.address, htu21_cmd_read_user)) != i2c_error_ok)
 		return(error);
@@ -4070,10 +4079,73 @@ static i2c_error_t sensor_htu21_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
+	private_data->raw_temperature_data = 0;
+	private_data->raw_temperature_data_valid = false;
+
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_htu21_periodic(i2c_sensor_data_t *data)
+static i2c_error_t sensor_htu21_humidity_init(i2c_sensor_data_t *data)
+{
+	htu21_humidity_private_data_t *private_data;
+
+	private_data = (htu21_humidity_private_data_t *)data->private_data;
+
+	private_data->raw_humidity_data = 0;
+	private_data->raw_humidity_data_valid = false;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_htu21_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	htu21_temperature_private_data_t *private_data;
+
+	private_data = (htu21_temperature_private_data_t *)data->private_data;
+
+	if(private_data->raw_temperature_data_valid)
+		return(i2c_error_device_error_2);
+
+	value->ch0 = private_data->raw_temperature_data;
+	value->value = ((private_data->raw_temperature_data * 175.72) / 65536) - 46.85;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_htu21_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	htu21_humidity_private_data_t *humidity_private_data;
+	htu21_temperature_private_data_t *temperature_private_data;
+	i2c_sensor_data_t *primary_data;
+	double temperature, humidity;
+
+	humidity_private_data = (htu21_humidity_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
+		return(i2c_error_device_error_1);
+
+	temperature_private_data = (htu21_temperature_private_data_t *)primary_data->private_data;
+
+	if(!humidity_private_data->raw_humidity_data_valid || !temperature_private_data->raw_temperature_data_valid)
+		return(i2c_error_device_error_2);
+
+	temperature = ((temperature_private_data->raw_temperature_data * 175.72) / 65536) - 46.85;
+	humidity = (((humidity_private_data->raw_humidity_data * 125.0) / 65536) - 6) + ((25 - temperature) * -0.10); // FIXME, TempCoeff guessed
+
+	if(humidity < 0)
+		humidity = 0;
+
+	if(humidity > 100)
+		humidity = 100;
+
+	value->ch0 = humidity_private_data->raw_humidity_data;
+	value->ch1 = temperature_private_data->raw_temperature_data;
+	value->value = humidity;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_htu21_temperature_periodic(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t	i2c_buffer[4];
@@ -4087,7 +4159,7 @@ static i2c_error_t sensor_htu21_periodic(i2c_sensor_data_t *data)
 	}
 
 	crc1 = i2c_buffer[2];
-	crc2 = htu21_crc(2, &i2c_buffer[0]);
+	crc2 = htu21_crc8(2, &i2c_buffer[0]);
 
 	if(crc1 != crc2)
 	{
@@ -4100,7 +4172,17 @@ static i2c_error_t sensor_htu21_periodic(i2c_sensor_data_t *data)
 
 	if(i2c_buffer[1] & (htu21_status_measure_humidity))
 	{
-		htu21.adc.humidity = result;
+		htu21_humidity_private_data_t *humidity_private_data;
+		i2c_sensor_data_t *secondary_data;
+
+		if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+			return(i2c_error_device_error_1);
+
+		humidity_private_data = (htu21_humidity_private_data_t *)secondary_data->private_data;
+
+		humidity_private_data->raw_humidity_data = result;
+		humidity_private_data->raw_humidity_data_valid = true;
+
 		if((error = i2c_send1(data->basic.address, htu21_cmd_meas_temp_no_hold_master)) != i2c_error_ok)
 		{
 			i2c_log("htu21", error);
@@ -4109,7 +4191,12 @@ static i2c_error_t sensor_htu21_periodic(i2c_sensor_data_t *data)
 	}
 	else
 	{
-		htu21.adc.temperature = result;
+		htu21_temperature_private_data_t *temperature_private_data;
+		temperature_private_data = (htu21_temperature_private_data_t *)data->private_data;
+
+		temperature_private_data->raw_temperature_data = result;
+		temperature_private_data->raw_temperature_data_valid = true;
+
 		if((error = i2c_send1(data->basic.address, htu21_cmd_meas_hum_no_hold_master)) != i2c_error_ok)
 		{
 			i2c_log("htu21", error);
@@ -4127,39 +4214,6 @@ error:
 	}
 
 	return(i2c_error_device_error_2);
-}
-
-static i2c_error_t sensor_htu21_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	if(htu21.adc.temperature == 0)
-		return(i2c_error_device_error_1);
-
-	value->ch0 = htu21.adc.temperature;
-	value->value = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_htu21_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	double temperature, humidity;
-
-	if(htu21.adc.humidity == 0)
-		return(i2c_error_device_error_1);
-
-	temperature = ((htu21.adc.temperature * 175.72) / 65536) - 46.85;
-	humidity = (((htu21.adc.humidity * 125.0) / 65536) - 6) + ((25 - temperature) * -0.10); // FIXME, TempCoeff guessed
-
-	if(humidity < 0)
-		humidity = 0;
-
-	if(humidity > 100)
-		humidity = 100;
-
-	value->ch0 = htu21.adc.humidity;
-	value->value = humidity;
-
-	return(i2c_error_ok);
 }
 
 enum
@@ -6619,9 +6673,9 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"htu21/si7021", "temperature", "C",
 		sensor_htu21_detect,
-		sensor_htu21_init,
+		sensor_htu21_temperature_init,
 		sensor_htu21_temperature_read,
-		sensor_htu21_periodic,
+		sensor_htu21_temperature_periodic,
 	},
 	{
 		{
@@ -6633,7 +6687,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"htu21/si7021", "humidity", "%",
 		(void *)0,
-		(void *)0,
+		sensor_htu21_humidity_init,
 		sensor_htu21_humidity_read,
 		(void *)0,
 	},
