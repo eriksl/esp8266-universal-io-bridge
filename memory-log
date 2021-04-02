@@ -8410,3 +8410,15 @@ Fri Apr  2 13:09:08 CEST 2021 81e0e4a i2c-sensor: implement am2320 with periodic
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66693, free:  13572, 16 %
     irom:    available: 592 k, used: 424776, free: 181432, 29 %
+Fri Apr  2 13:34:07 CEST 2021 6ab5b2d i2c-sensor: better format verbose sensor dump output.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66693, free:  13572, 16 %
+    irom:    available: 592 k, used: 424744, free: 181464, 29 %
+Fri Apr  2 13:44:56 CEST 2021 6ab5b2d i2c-sensor: better format verbose sensor dump output.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66677, free:  13588, 16 %
+    irom:    available: 592 k, used: 424616, free: 181592, 29 %
+Fri Apr  2 13:51:50 CEST 2021 6ab5b2d i2c-sensor: better format verbose sensor dump output.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66677, free:  13588, 16 %
+    irom:    available: 592 k, used: 424696, free: 181512, 29 %

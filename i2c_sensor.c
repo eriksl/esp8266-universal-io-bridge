@@ -1701,6 +1701,16 @@ enum
 	tsl2561_autoranging_data_size = 4,
 };
 
+typedef struct
+{
+	uint16_t	ch0;
+	uint16_t	ch1;
+	uint16_t	current_scaling;
+	uint16_t	dummy;
+} tsl2561_private_data_t;
+
+assert_size(tsl2561_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
 roflash static const device_autoranging_data_t tsl2561_autoranging_data[tsl2561_autoranging_data_size] =
 {
 	{{	tsl2561_tim_integ_402ms,	tsl2561_tim_high_gain	},	{	0,		50000	},	65535,	{	480000,		0	}},
@@ -1708,10 +1718,6 @@ roflash static const device_autoranging_data_t tsl2561_autoranging_data[tsl2561_
 	{{	tsl2561_tim_integ_101ms,	tsl2561_tim_low_gain	},	{	256,	50000	},	31711,	{	28000000,	0	}},
 	{{	tsl2561_tim_integ_13ms,		tsl2561_tim_low_gain	},	{	256,	50000	},	5047,	{	200000000,	0	}},
 };
-
-static unsigned int tsl2561_autoranging_current;
-static unsigned int tsl2561_current_value_ch0;
-static unsigned int tsl2561_current_value_ch1;
 
 static i2c_error_t tsl2561_write(int address, tsl2561_reg_t reg, unsigned int value)
 {
@@ -1766,12 +1772,12 @@ static i2c_error_t tsl2561_write_check(int address, tsl2561_reg_t reg, unsigned 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t tsl2561_start_measurement(unsigned int address)
+static i2c_error_t tsl2561_start_measurement(const tsl2561_private_data_t *private_data, unsigned int address)
 {
 	unsigned int timeint, gain;
 
-	timeint =	tsl2561_autoranging_data[tsl2561_autoranging_current].data[0];
-	gain =		tsl2561_autoranging_data[tsl2561_autoranging_current].data[1];
+	timeint =	tsl2561_autoranging_data[private_data->current_scaling].data[0];
+	gain =		tsl2561_autoranging_data[private_data->current_scaling].data[1];
 
 	return(tsl2561_write_check(address, tsl2561_reg_timeint, timeint | gain));
 }
@@ -1811,8 +1817,11 @@ static i2c_error_t sensor_tsl2561_detect(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_tsl2561_init(i2c_sensor_data_t *data)
 {
+	tsl2561_private_data_t *private_data;
 	i2c_error_t error;
 	uint8_t regval;
+
+	private_data = (tsl2561_private_data_t *)data->private_data;
 
 	if((error = tsl2561_write_check(data->basic.address, tsl2561_reg_interrupt, 0x00)) != i2c_error_ok)	// disable interrupts
 		return(error);
@@ -1826,11 +1835,11 @@ static i2c_error_t sensor_tsl2561_init(i2c_sensor_data_t *data)
 	if((regval & 0x0f) != tsl2561_ctrl_power_on)
 		return(i2c_error_device_error_1);
 
-	tsl2561_autoranging_current = 0;
-	tsl2561_current_value_ch0 = 0;
-	tsl2561_current_value_ch1 = 0;
+	private_data->current_scaling = 0;
+	private_data->ch0 = 0;
+	private_data->ch1 = 0;
 
-	if((error = tsl2561_start_measurement(data->basic.address)) != i2c_error_ok)
+	if((error = tsl2561_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -1838,35 +1847,38 @@ static i2c_error_t sensor_tsl2561_init(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_tsl2561_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
+	tsl2561_private_data_t *private_data;
 	double ratio;
 	unsigned int factor_1000000;
 	int offset_1000000;
 
-	factor_1000000 = tsl2561_autoranging_data[tsl2561_autoranging_current].correction_1000000.factor;
-	offset_1000000 = tsl2561_autoranging_data[tsl2561_autoranging_current].correction_1000000.offset;
+	private_data = (tsl2561_private_data_t *)data->private_data;
 
-	if(tsl2561_current_value_ch0 == 0)
+	factor_1000000 = tsl2561_autoranging_data[private_data->current_scaling].correction_1000000.factor;
+	offset_1000000 = tsl2561_autoranging_data[private_data->current_scaling].correction_1000000.offset;
+
+	if(private_data->ch0 == 0)
 		ratio = 0;
 	else
-		ratio = tsl2561_current_value_ch1 / tsl2561_current_value_ch0;
+		ratio = private_data->ch1 / private_data->ch0;
 
 	if(ratio > 1.30)
 		return(i2c_error_overflow);
 	else
 		if(ratio >= 0.80)
-			value->value = (0.00146 * tsl2561_current_value_ch0) - (0.00112 * tsl2561_current_value_ch1);
+			value->value = (0.00146 * private_data->ch0) - (0.00112 * private_data->ch1);
 		else
 			if(ratio >= 0.61)
-				value->value = (0.0128 * tsl2561_current_value_ch0) - (0.0153 * tsl2561_current_value_ch1);
+				value->value = (0.0128 * private_data->ch0) - (0.0153 * private_data->ch1);
 			else
 				if(ratio >= 0.50)
-					value->value = (0.0224 * tsl2561_current_value_ch0) - (0.031 * tsl2561_current_value_ch1);
+					value->value = (0.0224 * private_data->ch0) - (0.031 * private_data->ch1);
 				else
-					value->value = (0.0304 * tsl2561_current_value_ch0) - (0.062 * tsl2561_current_value_ch0 * pow(ratio, 1.4));
+					value->value = (0.0304 * private_data->ch0) - (0.062 * private_data->ch1 * pow(ratio, 1.4));
 
-	value->ch0 = tsl2561_current_value_ch0;
-	value->ch1 = tsl2561_current_value_ch1;
-	value->scaling = tsl2561_autoranging_current;
+	value->ch0 = private_data->ch0;
+	value->ch1 = private_data->ch1;
+	value->scaling = private_data->current_scaling;
 	value->value = ((value->value * factor_1000000) + offset_1000000) / 1000000.0;
 
 	if(value->value < 0)
@@ -1877,14 +1889,17 @@ static i2c_error_t sensor_tsl2561_read(i2c_sensor_data_t *data, i2c_sensor_value
 
 static i2c_error_t sensor_tsl2561_periodic(i2c_sensor_data_t *data)
 {
+	tsl2561_private_data_t *private_data;
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
 	unsigned int ch0, ch1;
 	unsigned int overflow, scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	tsl2561_autoranging_data[tsl2561_autoranging_current].threshold.down;
-	scale_up_threshold =	tsl2561_autoranging_data[tsl2561_autoranging_current].threshold.up;
-	overflow =				tsl2561_autoranging_data[tsl2561_autoranging_current].overflow;
+	private_data = (tsl2561_private_data_t *)data->private_data;
+
+	scale_down_threshold =	tsl2561_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_up_threshold =	tsl2561_autoranging_data[private_data->current_scaling].threshold.up;
+	overflow =				tsl2561_autoranging_data[private_data->current_scaling].overflow;
 
 	if((error = i2c_send1_receive(data->basic.address, tsl2561_cmd_cmd | tsl2561_reg_data0, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -1895,24 +1910,24 @@ static i2c_error_t sensor_tsl2561_periodic(i2c_sensor_data_t *data)
 	ch0 = (i2c_buffer[1] << 8) | i2c_buffer[0];
 	ch1 = (i2c_buffer[3] << 8) | i2c_buffer[1];
 
-	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (tsl2561_autoranging_current > 0))
+	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (private_data->current_scaling > 0))
 	{
-		tsl2561_autoranging_current--;
-		if((error = tsl2561_start_measurement(data->basic.address)) != i2c_error_ok)
+		private_data->current_scaling--;
+		if((error = tsl2561_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 			i2c_log("tsl2561", error);
 	}
 
-	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((tsl2561_autoranging_current + 1) < tsl2561_autoranging_data_size))
+	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((private_data->current_scaling + 1) < tsl2561_autoranging_data_size))
 	{
-		tsl2561_autoranging_current++;
-		if((error = tsl2561_start_measurement(data->basic.address)) != i2c_error_ok)
+		private_data->current_scaling++;
+		if((error = tsl2561_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 			i2c_log("tsl2561", error);
 	}
 
 	if((ch0 < overflow) && (ch1 < overflow) && ((ch0 > 0) || (ch1 > 0)))
 	{
-		tsl2561_current_value_ch0 = ch0;
-		tsl2561_current_value_ch1 = ch1;
+		private_data->ch0 = ch0;
+		private_data->ch1 = ch1;
 	}
 
 	return(i2c_error_ok);
