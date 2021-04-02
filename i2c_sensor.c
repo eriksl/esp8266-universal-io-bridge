@@ -7017,6 +7017,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 	i2c_error_t error;
 	i2c_sensor_value_t value;
 	int int_factor, int_offset;
+	unsigned int start_offset;
 	double extracooked;
 	i2c_sensor_data_t *data_entry;
 	const i2c_sensor_device_table_entry_t *device_entry;
@@ -7041,6 +7042,8 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 		string_format(dst, "i2c sensor read: sensor #%u/%u unknown (3)", sensor, data_entry->basic.id);
 		return(false);
 	}
+
+	start_offset = string_length(dst);
 
 	device_entry = &device_table[data_entry->basic.id];
 
@@ -7091,7 +7094,13 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 			string_format(dst, "[%.*f] %s", data_entry->basic.precision, extracooked, device_unity);
 
 		if(verbose)
-			string_format(dst, " (uncalibrated: %.*f, ch0: %d, ch1: %d, ch2: %d, scaling: %u)", data_entry->basic.precision, value.value, value.ch0, value.ch1, value.ch2, value.scaling);
+		{
+			while((string_length(dst) - start_offset) < 56)
+				string_append_cstr(dst, " ");
+
+			string_format(dst, " debug: ch0: %7d, ch1: %6d, ch2: %4d, scaling: %1u",
+					value.ch0, value.ch1, value.ch2, value.scaling);
+		}
 	}
 	else
 	{
@@ -7112,7 +7121,7 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 		if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 			int_offset = 0;
 
-		string_format(dst, ", calibration: factor = %4f, offset = %4f", int_factor / 1000.0, int_offset / 1000.0);
+		string_format(dst, ", raw: %7.2f, calibration: f = %.2f, o = %.2f", value.value, int_factor / 1000.0, int_offset / 1000.0);
 	}
 
 	i2c_select_bus(0);
