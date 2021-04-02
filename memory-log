@@ -8422,3 +8422,11 @@ Fri Apr  2 13:51:50 CEST 2021 6ab5b2d i2c-sensor: better format verbose sensor d
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66677, free:  13588, 16 %
     irom:    available: 592 k, used: 424696, free: 181512, 29 %
+Fri Apr  2 14:01:02 CEST 2021 6844a0d i2c-sensor: private data for tsl2561.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66669, free:  13596, 16 %
+    irom:    available: 592 k, used: 424664, free: 181544, 29 %
+Fri Apr  2 14:07:04 CEST 2021 6844a0d i2c-sensor: private data for tsl2561.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66669, free:  13596, 16 %
+    irom:    available: 592 k, used: 424696, free: 181512, 29 %
