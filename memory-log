@@ -8434,3 +8434,27 @@ Fri Apr  2 14:17:13 CEST 2021 b0b069e i2c-sensor: private data for tsl2591.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66661, free:  13604, 16 %
     irom:    available: 592 k, used: 424680, free: 181528, 29 %
+Fri Apr  2 14:37:19 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66645, free:  13620, 16 %
+    irom:    available: 592 k, used: 424520, free: 181688, 29 %
+Fri Apr  2 14:46:51 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66637, free:  13628, 16 %
+    irom:    available: 592 k, used: 424712, free: 181496, 29 %
+Fri Apr  2 14:50:57 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66637, free:  13628, 16 %
+    irom:    available: 592 k, used: 424776, free: 181432, 29 %
+Fri Apr  2 14:52:15 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66637, free:  13628, 16 %
+    irom:    available: 592 k, used: 424600, free: 181608, 29 %
+Fri Apr  2 14:57:02 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66637, free:  13628, 16 %
+    irom:    available: 592 k, used: 424632, free: 181576, 29 %
+Fri Apr  2 14:59:52 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66637, free:  13628, 16 %
+    irom:    available: 592 k, used: 424760, free: 181448, 29 %
