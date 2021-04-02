@@ -2402,17 +2402,23 @@ roflash static const device_autoranging_data_t bh1750_autoranging_data[bh1750_au
 	{{	bh1750_opcode_one_lmode,  31	}, 	{ 1000,	65536 }, 0, { 2400000,	0,	}},
 };
 
-static unsigned int bh1750_current_ranging;
-static unsigned int bh1750_current_value;
+typedef struct
+{
+	uint16_t	raw_data;
+	uint16_t	current_scaling;
+	uint32_t	dummy;
+} bh1750_private_data_t;
 
-static i2c_error_t bh1750_start_measurement(unsigned int address)
+assert_size(bh1750_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+static i2c_error_t bh1750_start_measurement(bh1750_private_data_t *private_data, unsigned int address)
 {
 	i2c_error_t error;
 	unsigned int timing;
 	unsigned int opcode;
 
-	opcode = bh1750_autoranging_data[bh1750_current_ranging].data[0];
-	timing = bh1750_autoranging_data[bh1750_current_ranging].data[1];
+	opcode = bh1750_autoranging_data[private_data->current_scaling].data[0];
+	timing = bh1750_autoranging_data[private_data->current_scaling].data[1];
 
 	if((error = i2c_send1(address, bh1750_opcode_change_meas_hi | ((timing >> 5) & 0b00000111))) != i2c_error_ok)
 	{
@@ -2458,12 +2464,14 @@ static i2c_error_t sensor_bh1750_detect(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_bh1750_init(i2c_sensor_data_t *data)
 {
+	bh1750_private_data_t *private_data;
 	i2c_error_t error;
 
-	bh1750_current_ranging = 0;
-	bh1750_current_value = 0;
+	private_data = (bh1750_private_data_t *)data->private_data;
+	private_data->raw_data = 0;
+	private_data->current_scaling = 0;
 
-	if((error = bh1750_start_measurement(data->basic.address)) != i2c_error_ok)
+	if((error = bh1750_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 		return(error);
 
 	return(i2c_error_ok);
@@ -2471,28 +2479,34 @@ static i2c_error_t sensor_bh1750_init(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_bh1750_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
+	bh1750_private_data_t *private_data;
 	unsigned int factor_1000000;
 	int offset_1000000;
 
-	factor_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.factor;
-	offset_1000000 = bh1750_autoranging_data[bh1750_current_ranging].correction_1000000.offset;
+	private_data = (bh1750_private_data_t *)data->private_data;
+
+	factor_1000000 = bh1750_autoranging_data[private_data->current_scaling].correction_1000000.factor;
+	offset_1000000 = bh1750_autoranging_data[private_data->current_scaling].correction_1000000.offset;
 
 
-	value->ch0 = bh1750_current_value;
-	value->scaling = bh1750_current_ranging;
-	value->value = (((int64_t)bh1750_current_value * factor_1000000) + offset_1000000) / 1000000.0;
+	value->ch0 = private_data->raw_data;
+	value->scaling = private_data->current_scaling;
+	value->value = (((int64_t)private_data->raw_data * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_bh1750_periodic(i2c_sensor_data_t *data)
 {
+	bh1750_private_data_t *private_data;
 	i2c_error_t error;
 	uint8_t	i2c_buffer[2];
 	unsigned int current_value, scale_down_threshold, scale_up_threshold;
 
-	scale_down_threshold =	bh1750_autoranging_data[bh1750_current_ranging].threshold.down;
-	scale_up_threshold =	bh1750_autoranging_data[bh1750_current_ranging].threshold.up;
+	private_data = (bh1750_private_data_t *)data->private_data;
+
+	scale_down_threshold =	bh1750_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_up_threshold =	bh1750_autoranging_data[private_data->current_scaling].threshold.up;
 
 	if((error = i2c_receive(data->basic.address, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -2502,16 +2516,16 @@ static i2c_error_t sensor_bh1750_periodic(i2c_sensor_data_t *data)
 
 	current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
-	if((current_value < scale_down_threshold) && (bh1750_current_ranging > 0))
-		bh1750_current_ranging--;
+	if((current_value < scale_down_threshold) && (private_data->current_scaling > 0))
+		private_data->current_scaling--;
 
-	if((current_value >= scale_up_threshold) && ((bh1750_current_ranging + 1) < bh1750_autoranging_data_size))
-		bh1750_current_ranging++;
+	if((current_value >= scale_up_threshold) && ((private_data->current_scaling + 1) < bh1750_autoranging_data_size))
+		private_data->current_scaling++;
 
 	if(current_value < 0xffff)
-		bh1750_current_value = current_value;
+		private_data->raw_data = current_value;
 
-	if((error = bh1750_start_measurement(data->basic.address)) != i2c_error_ok)
+	if((error = bh1750_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 	{
 		i2c_log("bh1750", error);
 		return(error);

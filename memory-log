@@ -8430,3 +8430,7 @@ Fri Apr  2 14:07:04 CEST 2021 6844a0d i2c-sensor: private data for tsl2561.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66669, free:  13596, 16 %
     irom:    available: 592 k, used: 424696, free: 181512, 29 %
+Fri Apr  2 14:17:13 CEST 2021 b0b069e i2c-sensor: private data for tsl2591.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66661, free:  13604, 16 %
+    irom:    available: 592 k, used: 424680, free: 181528, 29 %
