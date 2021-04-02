@@ -8462,3 +8462,15 @@ Fri Apr  2 15:09:02 CEST 2021 8761616 i2c-sensor: private data for aht10.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66629, free:  13636, 16 %
     irom:    available: 592 k, used: 424728, free: 181480, 29 %
+Fri Apr  2 15:20:40 CEST 2021 5a42906 i2c-sensor: private data for veml6040.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66629, free:  13636, 16 %
+    irom:    available: 592 k, used: 424760, free: 181448, 29 %
+Fri Apr  2 15:23:17 CEST 2021 5a42906 i2c-sensor: private data for veml6040.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66621, free:  13644, 16 %
+    irom:    available: 592 k, used: 424648, free: 181560, 29 %
+Fri Apr  2 15:26:48 CEST 2021 5a42906 i2c-sensor: private data for veml6040.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66621, free:  13644, 16 %
+    irom:    available: 592 k, used: 424776, free: 181432, 29 %

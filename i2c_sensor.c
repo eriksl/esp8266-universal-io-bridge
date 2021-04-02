@@ -3799,14 +3799,21 @@ enum
 	hdc1080_conf_reservd1 =	0b0000000011111111,
 };
 
-static struct
+typedef struct
 {
-	struct
-	{
-		unsigned int temperature;
-		unsigned int humidity;
-	} adc;
-} hdc1080;
+	uint32_t	raw_temperature_data;
+	bool		raw_temperature_data_valid;
+} hdc1080_temperature_private_data_t;
+
+assert_size(hdc1080_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+typedef struct
+{
+	uint32_t	raw_humidity_data;
+	bool		raw_humidity_data_valid;
+} hdc1080_humidity_private_data_t;
+
+assert_size(hdc1080_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t sensor_hdc1080_detect(i2c_sensor_data_t *data)
 {
@@ -3831,11 +3838,14 @@ static i2c_error_t sensor_hdc1080_detect(i2c_sensor_data_t *data)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_hdc1080_init(i2c_sensor_data_t *data)
+static i2c_error_t sensor_hdc1080_temperature_init(i2c_sensor_data_t *data)
 {
+	hdc1080_temperature_private_data_t *private_data;
 	uint8_t i2c_buffer[4];
 	unsigned int conf;
 	i2c_error_t error;
+
+	private_data = (hdc1080_temperature_private_data_t *)data->private_data;
 
 	conf = hdc1080_conf_tres_14 | hdc1080_conf_hres_14 | hdc1080_conf_mode_two;
 
@@ -3855,6 +3865,51 @@ static i2c_error_t sensor_hdc1080_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
+	private_data->raw_temperature_data = 0;
+	private_data->raw_temperature_data_valid = 0;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_hdc1080_humidity_init(i2c_sensor_data_t *data)
+{
+	hdc1080_humidity_private_data_t *private_data;
+
+	private_data = (hdc1080_humidity_private_data_t *)data->private_data;
+
+	private_data->raw_humidity_data = 0;
+	private_data->raw_humidity_data_valid = 0;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_hdc1080_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	hdc1080_temperature_private_data_t *private_data;
+
+	private_data = (hdc1080_temperature_private_data_t *)data->private_data;
+
+	if(!private_data->raw_temperature_data_valid)
+		return(i2c_error_device_error_1);
+
+	value->ch0 = private_data->raw_temperature_data;
+	value->value = ((private_data->raw_temperature_data * 165) / (1 << 16)) - 40;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_hdc1080_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	hdc1080_humidity_private_data_t *private_data;
+
+	private_data = (hdc1080_humidity_private_data_t *)data->private_data;
+
+	if(!private_data->raw_humidity_data_valid)
+		return(i2c_error_device_error_1);
+
+	value->ch0 = private_data->raw_humidity_data;
+	value->value = (private_data->raw_humidity_data * 100) / 65536.0;
+
 	return(i2c_error_ok);
 }
 
@@ -3862,6 +3917,16 @@ static i2c_error_t sensor_hdc1080_periodic(i2c_sensor_data_t *data)
 {
 	uint8_t i2c_buffer[4];
 	i2c_error_t error;
+	i2c_sensor_data_t *secondary_data;
+	hdc1080_humidity_private_data_t *humidity_private_data;
+	hdc1080_temperature_private_data_t *temperature_private_data;
+
+	temperature_private_data = (hdc1080_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	humidity_private_data = (hdc1080_humidity_private_data_t *)secondary_data->private_data;
 
 	if((error = i2c_receive(data->basic.address, 4, i2c_buffer)) != i2c_error_ok)
 	{
@@ -3869,8 +3934,10 @@ static i2c_error_t sensor_hdc1080_periodic(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	hdc1080.adc.temperature	= unsigned_16(i2c_buffer[0], i2c_buffer[1]);
-	hdc1080.adc.humidity	= unsigned_16(i2c_buffer[2], i2c_buffer[3]);
+	temperature_private_data->raw_temperature_data = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+	temperature_private_data->raw_temperature_data_valid = true;
+	humidity_private_data->raw_humidity_data = unsigned_16(i2c_buffer[2], i2c_buffer[3]);
+	humidity_private_data->raw_humidity_data_valid = true;
 
 	if((error = i2c_send1(data->basic.address, hdc1080_reg_data_temp)) != i2c_error_ok)
 	{
@@ -3881,27 +3948,6 @@ static i2c_error_t sensor_hdc1080_periodic(i2c_sensor_data_t *data)
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_hdc1080_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	if((hdc1080.adc.temperature == 0) && (hdc1080.adc.humidity == 0))
-		return(i2c_error_device_error_1);
-
-	value->ch0 = hdc1080.adc.temperature;
-	value->value = ((hdc1080.adc.temperature * 165) / (1 << 16)) - 40;
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_hdc1080_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	if((hdc1080.adc.temperature == 0) && (hdc1080.adc.humidity == 0))
-		return(i2c_error_device_error_1);
-
-	value->ch0 = hdc1080.adc.humidity;
-	value->value = (hdc1080.adc.humidity * 100) / 65536.0;
-
-	return(i2c_error_ok);
-}
 
 enum
 {
@@ -6545,7 +6591,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"hdc1080", "temperature", "C",
 		sensor_hdc1080_detect,
-		sensor_hdc1080_init,
+		sensor_hdc1080_temperature_init,
 		sensor_hdc1080_temperature_read,
 		sensor_hdc1080_periodic,
 	},
@@ -6559,7 +6605,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"hdc1080", "humidity", "%",
 		(void *)0,
-		(void *)0,
+		sensor_hdc1080_humidity_init,
 		sensor_hdc1080_humidity_read,
 		(void *)0,
 	},
