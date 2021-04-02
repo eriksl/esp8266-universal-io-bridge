@@ -5159,16 +5159,36 @@ static i2c_error_t sensor_bmp085_read_airpressure(i2c_sensor_data_t *data, i2c_s
 	return(i2c_error_ok);
 }
 
-typedef enum
+enum
 {
-	am2320_action_humidity,
-	am2320_action_temperature,
-} am2320_action_t;
+	am2320_command_read_register = 0x03,
+};
 
-static double sensor_am2320_cached_temperature;
-static double sensor_am2320_cached_humidity;
+enum
+{
+	am2320_register_values = 0x00,
+	am2320_register_values_length = 0x04,
+	am2320_register_id = 0x08,
+	am2320_register_id_length = 0x02,
+};
 
-attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
+typedef struct
+{
+	uint32_t raw_humidity_data;
+	uint32_t dummy[1];
+} am2320_humidity_private_data_t;
+
+assert_size(am2320_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+typedef struct
+{
+	uint32_t raw_temperature_data;
+	uint32_t dummy[1];
+} am2320_temperature_private_data_t;
+
+assert_size(am2320_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+attr_pure static uint16_t am2320_crc16(int length, const uint8_t *data)
 {
 	uint8_t outer, inner, testbit;
 	uint16_t crc;
@@ -5191,103 +5211,140 @@ attr_pure static uint16_t am2320_crc(int length, const uint8_t *data)
 	return(crc);
 }
 
-static i2c_error_t sensor_am2320_read_registers(int address, int offset, int length, uint8_t *values)
+static i2c_error_t sensor_am2320_detect(i2c_sensor_data_t *data)
 {
 	i2c_error_t	error;
-	uint8_t		i2c_buffer[32];
-	uint16_t	crc1, crc2;
+	uint16_t crc1, crc2;
+	uint8_t i2c_buffer[am2320_register_id_length + 4];
 
-	i2c_send(address, 0, 0);
+	// wake the device
+	i2c_send(data->basic.address, 0, 0);
 
-	if((error = i2c_send3(address, 0x03, offset, length)) != i2c_error_ok)
+	msleep(1);
+
+	// request ID (but do not check it, it's unreliable)
+	if((error = i2c_send3(data->basic.address, am2320_command_read_register, am2320_register_id, am2320_register_id_length)) != i2c_error_ok)
 		return(error);
 
 	msleep(10);
 
-	if((error = i2c_receive(address, length + 4, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("am2320", error);
+	if((error = i2c_receive(data->basic.address, am2320_register_id_length + 4, i2c_buffer)) != i2c_error_ok)
 		return(error);
-	}
 
-	if((i2c_buffer[0] != 0x03) || (i2c_buffer[1] != length))
-		return(i2c_error_device_error_2);
+	if((i2c_buffer[0] != am2320_command_read_register) || (i2c_buffer[1] != am2320_register_id_length))
+		return(i2c_error_device_error_1);
 
-	crc1 = i2c_buffer[length + 2] | (i2c_buffer[length + 3] << 8);
-	crc2 = am2320_crc(length + 2, i2c_buffer);
+	crc1 = i2c_buffer[am2320_register_id_length + 2] | (i2c_buffer[0x02 + 3] << 8);
+	crc2 = am2320_crc16(am2320_register_id_length + 2, i2c_buffer);
 
 	if(crc1 != crc2)
-		return(i2c_error_device_error_3);
-
-	memcpy(values, &i2c_buffer[2], length);
+		return(i2c_error_device_error_2);
 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_am2320_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value, am2320_action_t action)
+static i2c_error_t sensor_am2320_humidity_init(i2c_sensor_data_t *data)
 {
-	i2c_error_t	error;
-	uint8_t		values[4];
-	int32_t		raw_temp, raw_hum;
+	am2320_humidity_private_data_t *private_data;
 
-	//	0x00	start address: humidity (16 bits), temperature (16 bits)
-	//	0x04	length
+	private_data = (am2320_humidity_private_data_t *)data->private_data;
 
-	if((error = sensor_am2320_read_registers(data->basic.address, 0x00, 0x04, values)) == i2c_error_ok)
-	{
-		raw_hum = (values[0] << 8) | values[1];
-
-		if(raw_hum > 1000)
-			raw_hum = 1000;
-
-		sensor_am2320_cached_humidity = raw_hum / 10.0;
-
-		raw_temp = (values[2] << 8) | values[3];
-
-		if(raw_temp & 0x8000)
-		{
-			raw_temp &= 0x7fff;
-			raw_temp = 0 - raw_temp;
-		}
-
-		sensor_am2320_cached_temperature = raw_temp / 10.0;
-
-		value->ch0 = raw_temp;
-		value->ch1 = raw_hum;
-	}
-
-	switch(action)
-	{
-		case(am2320_action_humidity):		{ value->value = sensor_am2320_cached_humidity; break; }
-		case(am2320_action_temperature):	{ value->value = sensor_am2320_cached_temperature; break; }
-		default:							{ break; }
-	}
+	private_data->raw_humidity_data = 0;
 
 	return(i2c_error_ok);
 }
 
-static i2c_error_t sensor_am2320_detect(i2c_sensor_data_t *data) // FIXME, change into periodic
+static i2c_error_t sensor_am2320_temperature_init(i2c_sensor_data_t *data)
 {
-	i2c_error_t	error;
-	uint8_t		values[2];
+	am2320_temperature_private_data_t *private_data;
 
-	//	0x08	start address: device id
-	//	0x02	length
+	private_data = (am2320_temperature_private_data_t *)data->private_data;
 
-	if((error = sensor_am2320_read_registers(data->basic.address, 0x08, 0x02, values)) != i2c_error_ok)
-		return(error);
+	private_data->raw_temperature_data = 0;
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_am2320_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	return(sensor_am2320_read(data, value, am2320_action_humidity));
+	am2320_humidity_private_data_t *private_data;
+	unsigned int raw;
+
+	private_data = (am2320_humidity_private_data_t *)data->private_data;
+
+	raw = private_data->raw_humidity_data;
+
+	if(raw > 1000)
+		raw = 1000;
+
+	value->ch0 = raw;
+	value->value = raw / 10.0;
+
+	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_am2320_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	return(sensor_am2320_read(data, value, am2320_action_temperature));
+	am2320_temperature_private_data_t *private_data;
+	unsigned int raw;
+
+	private_data = (am2320_temperature_private_data_t *)data->private_data;
+
+	raw = private_data->raw_temperature_data;
+
+	value->ch0 = raw;
+
+	if(raw & 0x8000)
+	{
+		raw &= 0x7fff;
+		value->value = 0 - raw;
+	}
+	else
+		value->value = raw;
+
+	value->value /= 10.0;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_am2320_temperature_periodic(i2c_sensor_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[am2320_register_values_length + 4];
+	uint16_t crc1, crc2;
+	i2c_sensor_data_t *secondary_data;
+	am2320_humidity_private_data_t *humidity_private_data;
+	am2320_temperature_private_data_t *temperature_private_data;
+
+	temperature_private_data = (am2320_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	humidity_private_data = (am2320_humidity_private_data_t *)secondary_data->private_data;
+
+	if((error = i2c_send3(data->basic.address, am2320_command_read_register, am2320_register_values, am2320_register_values_length)) != i2c_error_ok)
+		return(i2c_error_ok); // device was sleeping, wake and try again next round
+
+	if((error = i2c_receive(data->basic.address, am2320_register_values_length + 4, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("am2320", error);
+		return(error);
+	}
+
+	if((i2c_buffer[0] != am2320_command_read_register) || (i2c_buffer[1] != am2320_register_values_length))
+		return(i2c_error_device_error_1);
+
+	crc1 = i2c_buffer[am2320_register_values_length + 2] | (i2c_buffer[am2320_register_values_length + 3] << 8);
+	crc2 = am2320_crc16(am2320_register_values_length + 2, i2c_buffer);
+
+	if(crc1 != crc2)
+		return(i2c_error_device_error_2);
+
+	temperature_private_data->raw_temperature_data = (i2c_buffer[4] << 8) | i2c_buffer[5];
+	humidity_private_data->raw_humidity_data = (i2c_buffer[2] << 8) | i2c_buffer[3];
+
+	return(i2c_error_ok);
 }
 
 typedef enum
@@ -6549,9 +6606,9 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"am2320/1/2", "temperature", "C",
 		sensor_am2320_detect,
-		(void *)0,
+		sensor_am2320_temperature_init,
 		sensor_am2320_temperature_read,
-		(void *)0,
+		sensor_am2320_temperature_periodic,
 	},
 	{
 		{
@@ -6563,7 +6620,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		},
 		"am2320/1/2", "humidity", "%",
 		(void *)0,
-		(void *)0,
+		sensor_am2320_humidity_init,
 		sensor_am2320_humidity_read,
 		(void *)0,
 	},

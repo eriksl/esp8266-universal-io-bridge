@@ -8362,3 +8362,15 @@ Mon Mar 29 19:17:42 CEST 2021 81b8141 i2c-sensor: move strings in device table t
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66717, free:  13548, 16 %
     irom:    available: 592 k, used: 424712, free: 181496, 29 %
+Fri Apr  2 11:55:26 CEST 2021 47dacc2 Update lwip-for-esp8266-nonos-sdk for gitignore.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66701, free:  13564, 16 %
+    irom:    available: 592 k, used: 424712, free: 181496, 29 %
+Fri Apr  2 12:21:22 CEST 2021 47dacc2 Update lwip-for-esp8266-nonos-sdk for gitignore.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66701, free:  13564, 16 %
+    irom:    available: 592 k, used: 424872, free: 181336, 29 %
+Fri Apr  2 12:24:23 CEST 2021 47dacc2 Update lwip-for-esp8266-nonos-sdk for gitignore.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66701, free:  13564, 16 %
+    irom:    available: 592 k, used: 424808, free: 181400, 29 %
