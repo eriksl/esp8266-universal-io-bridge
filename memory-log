@@ -8458,3 +8458,7 @@ Fri Apr  2 14:59:52 CEST 2021 7842d67 i2c-sensor: private data for bh1750.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66637, free:  13628, 16 %
     irom:    available: 592 k, used: 424760, free: 181448, 29 %
+Fri Apr  2 15:09:02 CEST 2021 8761616 i2c-sensor: private data for aht10.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66629, free:  13636, 16 %
+    irom:    available: 592 k, used: 424728, free: 181480, 29 %
