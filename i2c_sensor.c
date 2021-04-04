@@ -127,6 +127,32 @@ attr_pure bool i2c_sensor_registered(int bus, i2c_sensor_t sensor)
 {
 	return(sensor_data_get_entry(bus, sensor, (i2c_sensor_data_t **)0));
 }
+
+static bool i2c_sensor_address_registered(int bus, unsigned int address)
+{
+	unsigned int ix;
+	i2c_info_t i2c_info;
+
+	i2c_get_info(&i2c_info);
+
+	if((bus < - 1) || (bus >= i2c_info.buses))
+		return(false);
+
+	for(ix = 0; ix < i2c_sensors; ix++)
+	{
+		if(i2c_sensor_data[ix].basic.address != address)
+			continue;
+
+		if(bus < 0)
+			return(true);
+
+		if(i2c_sensor_data[ix].bus == bus)
+			return(true);
+	}
+
+	return(false);
+}
+
 static int signed_8(unsigned int lsb)
 {
 	int rv = lsb & 0xff;
@@ -7258,20 +7284,20 @@ static i2c_error_t i2c_sensors_detect(void)
 		goto abort;
 	}
 
-	if(i2c_sensor_registered(0, data_entry->basic.id))
-	{
-		sensor_info.detect_skip_found_on_bus_0++;
-		goto finish;
-	}
-
-	if(i2c_sensor_registered(sensor_info.detect_current_bus, data_entry->basic.id))
-	{
-		sensor_info.detect_skip_duplicate_address++;
-		goto finish;
-	}
-
 	if(data_entry->basic.primary == i2c_sensor_none) // primary
 	{
+		if(i2c_sensor_address_registered(0, data_entry->basic.address))
+		{
+			sensor_info.detect_skip_found_on_bus_0++;
+			goto finish;
+		}
+
+		if(i2c_sensor_address_registered(sensor_info.detect_current_bus, data_entry->basic.address))
+		{
+			sensor_info.detect_skip_duplicate_address++;
+			goto finish;
+		}
+
 		if(!device_table_entry->detect_fn)
 		{
 			sensor_info.detect_skip_disabled++;

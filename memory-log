@@ -8534,3 +8534,11 @@ Sun Apr  4 14:36:10 CEST 2021 b2acc19 i2c-sensor: add support for veml7700.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 426568, free: 179640, 29 %
+Sun Apr  4 15:24:14 CEST 2021 6cd382f i2c-sensor: fix veml6040 autoscaling.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Sun Apr  4 15:27:15 CEST 2021 d3688ae i2c-sensor: fix sensors with same address being detected spuriously.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426584, free: 179624, 29 %
