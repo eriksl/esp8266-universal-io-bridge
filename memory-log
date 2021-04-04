@@ -8486,3 +8486,7 @@ Fri Apr  2 15:54:02 CEST 2021 cf56ee8 i2c-sensor: private data for hdc1080.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 424840, free: 181368, 29 %
+Sun Apr  4 12:40:19 CEST 2021 6f4986e i2c-sensor: private data for htu21.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 424872, free: 181336, 29 %

@@ -5881,16 +5881,23 @@ static i2c_error_t sensor_aht10_temperature_periodic(i2c_sensor_data_t *data)
 	return(i2c_error_ok);
 }
 
-typedef enum
+enum
 {
 	veml6040_reg_conf =		0x00,
 	veml6040_reg_data_r =	0x08,
 	veml6040_reg_data_g =	0x09,
 	veml6040_reg_data_b =	0x0a,
 	veml6040_reg_data_w =	0x0b,
-} veml6040_register_t;
+	veml6040_reg_id =		0x0e,
+};
 
-typedef enum
+enum
+{
+	veml6040_reg_id_id_1 =	0x23,
+	veml6040_reg_id_id_2 =	0x01,
+};
+
+enum
 {
 	veml6040_conf_zero_0 =		0b1 << 7,
 	veml6040_conf_it_shift =	4,
@@ -5901,7 +5908,7 @@ typedef enum
 	veml6040_conf_trigger =		0b1 << 2,
 	veml6040_conf_forcemode =	0b1 << 1,
 	veml6040_conf_shutdown =	0b1 << 0,
-} veml6040_conf_t;
+};
 
 enum { veml6040_autoranging_data_size = 6 };
 
@@ -5945,11 +5952,17 @@ static i2c_error_t sensor_veml6040_detect(i2c_sensor_data_t *data)
 	i2c_error_t	error;
 	uint8_t i2c_buffer[2];
 
+	if((error = i2c_send1_receive(data->basic.address, veml6040_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != veml6040_reg_id_id_1) || (i2c_buffer[1] != veml6040_reg_id_id_2))
+		return(i2c_error_device_error_1);
+
 	if((error = i2c_send1_receive(data->basic.address, veml6040_reg_conf, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
 	if(i2c_buffer[0] & (veml6040_conf_zero_0 | veml6040_conf_zero_1))
-		return(i2c_error_device_error_1);
+		return(i2c_error_device_error_2);
 
 	return(i2c_error_ok);
 }
