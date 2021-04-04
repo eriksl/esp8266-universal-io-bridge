@@ -5924,21 +5924,28 @@ roflash static const device_autoranging_data_t veml6040_autoranging_data[veml604
 
 typedef struct
 {
-	uint32_t	current_scaling;
-	uint32_t	raw_data;
+	uint16_t current_scaling;
+	uint16_t raw_data_green;
+	uint16_t raw_data_white;
+	uint16_t dummy;
 } veml6040_private_data_t;
 
 assert_size(veml6040_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
 static i2c_error_t veml6040_start_measuring(const veml6040_private_data_t *private_data, unsigned int address)
 {
+	uint8_t i2c_buffer[3];
 	i2c_error_t error;
 	unsigned int opcode;
 
-	opcode =	veml6040_autoranging_data[private_data->current_scaling].data[0];
-	opcode |=	veml6040_conf_forcemode | veml6040_conf_trigger;
+	opcode  = veml6040_autoranging_data[private_data->current_scaling].data[0];
+	opcode |= veml6040_conf_forcemode | veml6040_conf_trigger;
 
-	if((error = i2c_send2(address, veml6040_reg_conf, opcode)) != i2c_error_ok)
+	i2c_buffer[0] = veml6040_reg_conf;
+	i2c_buffer[1] = (opcode & 0x00ff) >> 0;
+	i2c_buffer[2] = (opcode & 0xff00) >> 8;
+
+	if((error = i2c_send(address, 3, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("veml6040", error);
 		return(error);
@@ -5972,8 +5979,9 @@ static i2c_error_t sensor_veml6040_init(i2c_sensor_data_t *data)
 	veml6040_private_data_t *private_data;
 
 	private_data = (veml6040_private_data_t *)data->private_data;
-	private_data->raw_data = 0;
-	private_data->current_scaling = 0;
+	private_data->raw_data_green = 0;
+	private_data->raw_data_white = 0;
+	private_data->current_scaling = veml6040_autoranging_data_size;
 
 	veml6040_start_measuring(private_data, data->basic.address);
 
@@ -5991,9 +5999,10 @@ static i2c_error_t sensor_veml6040_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	factor_1000000 = veml6040_autoranging_data[private_data->current_scaling].correction_1000000.factor;
 	offset_1000000 = veml6040_autoranging_data[private_data->current_scaling].correction_1000000.offset;
 
-	value->ch0 = private_data->raw_data;
+	value->ch0 = private_data->raw_data_green;
+	value->ch0 = private_data->raw_data_white;
 	value->scaling = private_data->current_scaling;
-	value->value = (((int64_t)private_data->raw_data * factor_1000000) + offset_1000000) / 1000000.0;
+	value->value = (((int64_t)private_data->raw_data_green * factor_1000000) + offset_1000000) / 1000000.0;
 
 	return(i2c_error_ok);
 }
@@ -6008,8 +6017,16 @@ static i2c_error_t sensor_veml6040_periodic(i2c_sensor_data_t *data)
 
 	private_data = (veml6040_private_data_t *)data->private_data;
 
-	scale_down_threshold =	veml6040_autoranging_data[private_data->current_scaling].threshold.up;
-	scale_up_threshold =	veml6040_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_down_threshold = veml6040_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_up_threshold   = veml6040_autoranging_data[private_data->current_scaling].threshold.up;
+
+	if((error = i2c_send1_receive(data->basic.address, veml6040_reg_data_w, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("veml6040", error);
+		return(error);
+	}
+
+	private_data->raw_data_white = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
 
 	if((error = i2c_send1_receive(data->basic.address, veml6040_reg_data_g, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -6017,7 +6034,7 @@ static i2c_error_t sensor_veml6040_periodic(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	value = (i2c_buffer[1] << 8) | i2c_buffer[0];
+	value = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
 
 	if((value < scale_down_threshold) && (private_data->current_scaling > 0))
 		private_data->current_scaling--;
@@ -6026,7 +6043,7 @@ static i2c_error_t sensor_veml6040_periodic(i2c_sensor_data_t *data)
 		private_data->current_scaling++;
 
 	if((value > 0) && (value < 65535))
-		private_data->raw_data = value;
+		private_data->raw_data_green = value;
 
 	return(veml6040_start_measuring(private_data, data->basic.address));
 }

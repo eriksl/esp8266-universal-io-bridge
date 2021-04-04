@@ -8530,3 +8530,7 @@ Sun Apr  4 14:24:58 CEST 2021 6cc9517 i2c-sensor: fix misdetection of veml7700 f
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 426280, free: 179928, 29 %
+Sun Apr  4 14:36:10 CEST 2021 b2acc19 i2c-sensor: add support for veml7700.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426568, free: 179640, 29 %
