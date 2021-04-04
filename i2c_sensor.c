@@ -2151,7 +2151,7 @@ static i2c_error_t sensor_tsl2591_read(i2c_sensor_data_t *data, i2c_sensor_value
 	{
 		if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 			return(i2c_error_device_error_1);
-		
+
 		private_data = (tsl2591_private_data_t *)primary_data->private_data;
 	}
 	else
@@ -6031,6 +6031,192 @@ static i2c_error_t sensor_veml6040_periodic(i2c_sensor_data_t *data)
 	return(veml6040_start_measuring(private_data, data->basic.address));
 }
 
+enum
+{
+	veml7700_reg_conf =		0x00,
+	veml7700_reg_als_wh =	0x01,
+	veml7700_reg_als_wl =	0x02,
+	veml7700_reg_powsave =	0x03,
+	veml7700_reg_als =		0x04,
+	veml7700_reg_white =	0x05,
+	veml7700_reg_als_int =	0x06,
+	veml7700_reg_id =		0x07,
+};
+
+enum
+{
+	veml7700_reg_id_id_1 =	0x81,
+	veml7700_reg_id_id_2 =	0xc4,
+};
+
+enum
+{
+	veml7700_conf_reserved1 =		0b000 << 13,
+	veml7700_conf_als_gain_1 =		0b00 << 11,
+	veml7700_conf_als_gain_2 =		0b01 << 11,
+	veml7700_conf_als_gain_1_8 =	0b10 << 11,
+	veml7700_conf_als_gain_1_4 =	0b11 << 11,
+	veml7700_conf_reserved2 =		0b1 << 10,
+	veml7700_conf_als_it_25 =		0b1100 << 6,
+	veml7700_conf_als_it_50 =		0b1000 << 6,
+	veml7700_conf_als_it_100 =		0b0000 << 6,
+	veml7700_conf_als_it_200 =		0b0001 << 6,
+	veml7700_conf_als_it_400 =		0b0010 << 6,
+	veml7700_conf_als_it_800 =		0b0011 << 6,
+	veml7700_conf_als_pers_1 =		0b00 << 4,
+	veml7700_conf_als_pers_2 =		0b01 << 4,
+	veml7700_conf_als_pers_4 =		0b10 << 4,
+	veml7700_conf_als_pers_8 =		0b11 << 4,
+	veml7700_conf_reserved3 =		0b00 << 2,
+	veml7700_conf_als_int_en =		0b1 << 1,
+	veml7700_conf_als_sd =			0b1 << 0,
+};
+
+enum { veml7700_autoranging_data_size = 6 };
+
+roflash static const device_autoranging_data_t veml7700_autoranging_data[veml7700_autoranging_data_size] =
+{
+	{{	veml7700_conf_als_it_800,	veml7700_conf_als_gain_2 },		{ 0,	1200	}, 0, { 3600,	0 }},
+	{{	veml7700_conf_als_it_800,	veml7700_conf_als_gain_1_8 },	{ 100,	1200	}, 0, { 57600,	0 }},
+	{{	veml7700_conf_als_it_200,	veml7700_conf_als_gain_2 },		{ 100,	1200	}, 0, { 14400,	0 }},
+	{{	veml7700_conf_als_it_200,	veml7700_conf_als_gain_1_8 },	{ 100,	1200	}, 0, { 230400,	0 }},
+	{{	veml7700_conf_als_it_25,	veml7700_conf_als_gain_2 },		{ 100,	1200	}, 0, { 115200,	0 }},
+	{{	veml7700_conf_als_it_25,	veml7700_conf_als_gain_1_8 },	{ 100,	65536	}, 0, { 1843200,0 }},
+};
+
+typedef struct
+{
+	uint16_t current_scaling;
+	uint16_t raw_data_als;
+	uint16_t raw_data_white;
+	uint16_t dummy;
+} veml7700_private_data_t;
+
+assert_size(veml7700_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+static i2c_error_t veml7700_start_measuring(const veml7700_private_data_t *private_data, unsigned int address)
+{
+	uint8_t i2c_buffer[3];
+	i2c_error_t error;
+	unsigned int opcode;
+
+	opcode =  veml7700_autoranging_data[private_data->current_scaling].data[0];
+	opcode |= veml7700_autoranging_data[private_data->current_scaling].data[1];
+
+	i2c_buffer[0] = veml7700_reg_conf;
+	i2c_buffer[1] = (opcode & 0x00ff) >> 0;
+	i2c_buffer[2] = (opcode & 0xff00) >> 8;
+
+	if((error = i2c_send(address, 3, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("veml7700", error);
+		return(error);
+	}
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_veml7700_detect(i2c_sensor_data_t *data)
+{
+	i2c_error_t	error;
+	uint8_t i2c_buffer[2];
+
+	if((error = i2c_send1_receive(data->basic.address, veml7700_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != veml7700_reg_id_id_1) || (i2c_buffer[1] != veml7700_reg_id_id_2))
+		return(i2c_error_device_error_1);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_veml7700_init(i2c_sensor_data_t *data)
+{
+	veml7700_private_data_t *private_data;
+
+	private_data = (veml7700_private_data_t *)data->private_data;
+	private_data->raw_data_als = 0;
+	private_data->raw_data_white = 0;
+	private_data->current_scaling = veml7700_autoranging_data_size - 1;
+	veml7700_start_measuring(private_data, data->basic.address);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_veml7700_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	veml7700_private_data_t *private_data;
+	unsigned int factor_1000000;
+	int offset_1000000;
+	double raw_lux;
+
+	private_data = (veml7700_private_data_t *)data->private_data;
+
+	factor_1000000 = veml7700_autoranging_data[private_data->current_scaling].correction_1000000.factor;
+	offset_1000000 = veml7700_autoranging_data[private_data->current_scaling].correction_1000000.offset;
+	raw_lux = (((int64_t)private_data->raw_data_als * factor_1000000) + offset_1000000) / 1000000.0;
+
+	value->ch0 = private_data->raw_data_als;
+	value->ch1 = (unsigned int)raw_lux;
+	value->ch2 = private_data->raw_data_white;
+	value->scaling = private_data->current_scaling;
+	value->value = (raw_lux * raw_lux * raw_lux * raw_lux * 6.0135e-13)
+				 - (raw_lux * raw_lux * raw_lux * 9.3924e-09)
+				 + (raw_lux * raw_lux * 8.1488e-05)
+				 + (raw_lux * 1.0023e+00);
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_veml7700_periodic(i2c_sensor_data_t *data)
+{
+	veml7700_private_data_t *private_data;
+	i2c_error_t error;
+	uint8_t i2c_buffer[2];
+	unsigned int value;
+	unsigned int scale_down_threshold, scale_up_threshold;
+
+	private_data = (veml7700_private_data_t *)data->private_data;
+
+	scale_down_threshold = veml7700_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_up_threshold =   veml7700_autoranging_data[private_data->current_scaling].threshold.up;
+
+	if((error = i2c_send1_receive(data->basic.address, veml7700_reg_white, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("veml7700", error);
+		return(error);
+	}
+
+	private_data->raw_data_white = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	if((error = i2c_send1_receive(data->basic.address, veml7700_reg_als, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("veml7700", error);
+		return(error);
+	}
+
+	value = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+
+	if((value < scale_down_threshold) && (private_data->current_scaling > 0))
+	{
+		private_data->current_scaling--;
+		if((error = veml7700_start_measuring(private_data, data->basic.address)) != i2c_error_ok)
+			return(error);
+	}
+
+	if((value >= scale_up_threshold) && ((private_data->current_scaling + 1) < veml7700_autoranging_data_size))
+	{
+		private_data->current_scaling++;
+		if((error = veml7700_start_measuring(private_data, data->basic.address)) != i2c_error_ok)
+			return(error);
+	}
+
+	if((value > 0) && (value < 65535))
+		private_data->raw_data_als = value;
+
+	return(i2c_error_ok);
+}
+
 roflash static const i2c_sensor_device_table_entry_t device_table[] =
 {
 	{
@@ -6997,6 +7183,20 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_veml6040_init,
 		sensor_veml6040_read,
 		sensor_veml6040_periodic,
+	},
+	{
+		{
+			i2c_sensor_veml7700, i2c_sensor_none,
+			{
+				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
+			},
+			0x10, 3,
+		},
+		"veml7700", "visible light", "lx",
+		sensor_veml7700_detect,
+		sensor_veml7700_init,
+		sensor_veml7700_read,
+		sensor_veml7700_periodic,
 	},
 };
 

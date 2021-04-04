@@ -79,6 +79,7 @@ typedef enum
 	i2c_sensor_aht10_temperature,
 	i2c_sensor_aht10_humidity,
 	i2c_sensor_veml6040,
+	i2c_sensor_veml7700,
 	i2c_sensor_error,
 	i2c_sensor_none = i2c_sensor_error,
 	i2c_sensor_size = i2c_sensor_error
