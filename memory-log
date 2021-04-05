@@ -8550,3 +8550,15 @@ Mon Apr  5 12:46:14 CEST 2021 f99ff23 i2c-sensor: fix veml7700 flipping between 
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 426520, free: 179688, 29 %
+Mon Apr  5 14:53:11 CEST 2021 7692449 i2c-sensor: fix veml7700 flipping between autoranging levels.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Mon Apr  5 14:56:07 CEST 2021 7692449 i2c-sensor: fix veml7700 flipping between autoranging levels.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426600, free: 179608, 29 %
+Mon Apr  5 15:00:36 CEST 2021 7692449 i2c-sensor: fix veml7700 flipping between autoranging levels.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426568, free: 179640, 29 %
