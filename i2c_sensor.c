@@ -809,7 +809,9 @@ enum
 	apds9960_ctrl_again_1 =		0b00000000,
 	apds9960_ctrl_again_16 =	0b00000010,
 
-	apds9960_id_apds9960 =		0xab,
+	apds9960_id_apds9960_a8 =	0xa8,
+	apds9960_id_apds9960_ab =	0xab,
+	apds9960_id_apds9960_9c =	0x9c,
 
 	apds9960_status_cpsat =		0b10000000,
 	apds9960_status_avalid =	0b00000001,
@@ -831,7 +833,9 @@ static i2c_error_t sensor_apds9960_detect(i2c_sensor_data_t *data)
 	if((error = i2c_send1_receive(data->basic.address, apds9960_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 		return(error);
 
-	if(i2c_buffer[0] != apds9960_id_apds9960)
+	if((i2c_buffer[0] != apds9960_id_apds9960_a8) &&
+			(i2c_buffer[0] != apds9960_id_apds9960_ab) &&
+			(i2c_buffer[0] != apds9960_id_apds9960_9c))
 		return(i2c_error_address_nak);
 
 	return(i2c_error_ok);
