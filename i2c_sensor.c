@@ -734,10 +734,17 @@ static i2c_error_t sensor_apds9930_init(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
+	static const double	apds9930_factor_df = 52;
+	static const double	apds9930_factor_ga = 0.49;
+	static const double	apds9930_factor_b = 1.1862;
+	static const double	apds9930_factor_c = 0.746;
+	static const double	apds9930_factor_d = 1.291;
+
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 	unsigned int ch0, ch1;
-	double lux, iac1, iac2, iac, lpc;
+	double alsit, lux, iac1, iac2, iac, lpc;
+	unsigned int atime, again;
 	apds9930_private_data_t *private_data = (apds9930_private_data_t *)&data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, apds9930_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
@@ -768,11 +775,18 @@ static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	if((ch0 == 0xffff) || (ch1 == 0xffff))
 		return(i2c_error_overflow);
 
-	iac1 = ch0 - (1.862 * ch1);
-	iac2 = (0.746 * ch0) - (1.291 * ch1);
+	atime = private_data->high_sensitivity ? 699 : 175;
+	alsit = 2.73 * (256 - atime);
+	again = private_data->high_sensitivity ? 16 : 1;
+	lpc = (apds9930_factor_ga * apds9930_factor_df) / (alsit * again);
+
+	iac1 = (1.0 * ch0)					- (apds9930_factor_b * ch1);
+	iac2 = (apds9930_factor_c * ch0)	- (apds9930_factor_d * ch1);
 	iac = fmax(fmax(iac1, iac2), 0);
-	lpc = 25.48 / ((data->high_sensitivity ? 699 : 175) * (data->high_sensitivity ? 16 : 1));
 	lux = iac * lpc;
+
+	if(lux > 2500)
+		return(i2c_error_overflow);
 
 	value->ch0 = ch0;
 	value->ch1 = ch1;

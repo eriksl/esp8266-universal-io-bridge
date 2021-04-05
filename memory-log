@@ -8562,3 +8562,7 @@ Mon Apr  5 15:00:36 CEST 2021 7692449 i2c-sensor: fix veml7700 flipping between 
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 426568, free: 179640, 29 %
+Mon Apr  5 16:20:59 CEST 2021 1e72caa i2c-sensor: apds9960 can have one of three possible ID's.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
