@@ -464,176 +464,6 @@ static i2c_error_t sensor_veml6075_uvindex_read(i2c_sensor_data_t *data, i2c_sen
 
 enum
 {
-	tmd2771_reg_enable =		0x80,
-	tmd2771_reg_atime =			0x81,
-	tmd2771_reg_wtime =			0x83,
-	tmd2771_reg_config =		0x8d,
-	tmd2771_reg_control =		0x8f,
-	tmd2771_reg_id =			0x92,
-	tmd2771_reg_status =		0x93,
-	tmd2771_reg_c0data =		0x94,
-	tmd2771_reg_c0datah =		0x95,
-	tmd2771_reg_c1data =		0x96,
-	tmd2771_reg_c1datah =		0x97,
-
-	tmd2771_autoincr =			0b00100000,
-
-	tmd2771_enable_wen =		0b00001000,
-	tmd2771_enable_aen =		0b00000010,
-	tmd2771_enable_pon =		0b00000001,
-	tmd2771_enable_poff =		0b00000000,
-
-	tmd2771_atime_174 =			0xc0,
-	tmd2771_atime_696 =			0x00,
-
-	tmd2771_wtime_200 =			0xb6,
-
-	tmd2771_config_none =		0b00000000,
-
-	tmd2771_ctrl_pdrive_100 =	0b00000000,
-	tmd2771_ctrl_pdiode_pca =	0b00110000,
-	tmd2771_ctrl_again_1 =		0b00000000,
-	tmd2771_ctrl_again_16 =		0b00000010,
-
-	tmd2771_id_tmd27711 =		0x20,
-	tmd2771_id_tmd27713 =		0x29,
-
-	tmd2771_status_avalid =		0b00000001,
-};
-
-typedef struct
-{
-	unsigned int high_sensitivity:1;
-	uint32_t dummy[i2c_sensor_data_private_size - 1];
-} tmd2771_private_data_t;
-
-assert_size(tmd2771_private_data_t, i2c_sensor_data_private_size * sizeof(int));
-
-static const double tmd2771_factor_ga = 1.0;
-
-static i2c_error_t sensor_tmd2771_detect(i2c_sensor_data_t *data)
-{
-	uint8_t i2c_buffer[1];
-	i2c_error_t error;
-
-	if((error = i2c_send1_receive(data->basic.address, tmd2771_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
-	if((i2c_buffer[0] != tmd2771_id_tmd27711) && (i2c_buffer[0] != tmd2771_id_tmd27713))
-		return(i2c_error_address_nak);
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_tmd2771_init(i2c_sensor_data_t *data)
-{
-	i2c_error_t error;
-	tmd2771_private_data_t *private_data = (tmd2771_private_data_t *)&data->private_data;
-
-	private_data->high_sensitivity = config_flags_match(flag_tmd_high_sens); // FIXME
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_enable, tmd2771_enable_poff)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_atime,
-			(private_data->high_sensitivity ? tmd2771_atime_696 : tmd2771_atime_174))) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_wtime, tmd2771_wtime_200)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_config, tmd2771_config_none)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_control, tmd2771_ctrl_pdrive_100 | tmd2771_ctrl_pdiode_pca |
-			(private_data->high_sensitivity ? tmd2771_ctrl_again_16 : tmd2771_ctrl_again_1))) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, tmd2771_reg_enable,
-			tmd2771_enable_wen | tmd2771_enable_aen | tmd2771_enable_pon)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_tmd2771_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	uint8_t i2c_buffer[2];
-	i2c_error_t error;
-	unsigned int ch0, ch1;
-	double atime, cpl, lux1, lux2, lux;
-	unsigned int again;
-	tmd2771_private_data_t *private_data = (tmd2771_private_data_t *)&data->private_data;
-
-	if((error = i2c_send1_receive(data->basic.address, tmd2771_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	if(!(i2c_buffer[0] & tmd2771_status_avalid))
-	{
-		i2c_log("tmd2771", error);
-		return(i2c_error_device_error_1);
-	}
-
-	if((error = i2c_send1_receive(data->basic.address, tmd2771_autoincr | tmd2771_reg_c0data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	ch0 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
-
-	if((error = i2c_send1_receive(data->basic.address, tmd2771_autoincr | tmd2771_reg_c1data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("tmd2771", error);
-		return(error);
-	}
-
-	ch1 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
-
-	if((ch0 == 0xffff) || (ch1 == 0xffff))
-		return(i2c_error_overflow);
-
-	atime = private_data->high_sensitivity ? 696 : 174;
-	again = private_data->high_sensitivity ? 16 : 1;
-
-	cpl = (atime * again) / (tmd2771_factor_ga * 24);
-	lux1 = (1.0 * ch0) - (2.0 * ch1);
-	lux2 = (0.6 * ch0) - (1.0 * ch1);
-	lux = fmax(fmax(lux1, lux2), 0) / cpl;
-
-	value->ch0 = ch0;
-	value->ch1 = ch1;
-	value->value = lux;
-
-	if(lux > 2500)
-		return(i2c_error_overflow);
-
-	return(i2c_error_ok);
-}
-
-enum
-{
 	apds9930_reg_enable =		0x80,
 	apds9930_reg_atime =		0x81,
 	apds9930_reg_wtime =		0x83,
@@ -646,37 +476,139 @@ enum
 	apds9930_reg_c1data =		0x96,
 	apds9930_reg_c1datah =		0x97,
 
-	apds9930_autoincr =			0b00100000,
+	apds9930_repeated =			0b00 << 5,
+	apds9930_autoincr =			0b01 << 5,
+	apds9930_special =			0b11 << 5,
 
-	apds9930_enable_wen =		0b00001000,
-	apds9930_enable_aen =		0b00000010,
-	apds9930_enable_pon =		0b00000001,
-	apds9930_enable_poff =		0b00000000,
+	apds9930_enable_sai =		0b1 << 6,
+	apds9930_enable_pien =		0b1 << 5,
+	apds9930_enable_aien =		0b1 << 4,
+	apds9930_enable_wen =		0b1 << 3,
+	apds9930_enable_pen =		0b1 << 2,
+	apds9930_enable_aen =		0b1 << 1,
+	apds9930_enable_pon =		0b1 << 0,
 
+	apds9930_atime_2_73 =		0xff,
+	apds9930_atime_27_3 =		0xf6,
+	apds9930_atime_101 =		0xdb,
 	apds9930_atime_175 =		0xc0,
 	apds9930_atime_699 =		0x00,
 
-	apds9930_wtime_200 =		0xb6,
+	apds9930_config_agl =		0b1 << 2,
+	apds9930_config_wlong =		0b1 << 1,
+	apds9930_config_pdl =		0b1 << 0,
 
-	apds9930_config_none =		0b00000000,
+	apds9930_ctrl_pdrive_100 =	0b00 << 6,
+	apds9930_ctrl_pdrive_50 =	0b01 << 6,
+	apds9930_ctrl_pdrive_25 =	0b10 << 6,
+	apds9930_ctrl_pdrive_12_5 =	0b11 << 6,
+	apds9930_ctrl_pdiode_ch1 =	0b10 << 4,
+	apds9930_ctrl_pgain_1 =		0b00 << 2,
+	apds9930_ctrl_pgain_2 =		0b01 << 2,
+	apds9930_ctrl_pgain_4 =		0b10 << 2,
+	apds9930_ctrl_pgain_8 =		0b11 << 2,
+	apds9930_ctrl_again_1 =		0b00 << 0,
+	apds9930_ctrl_again_8 =		0b01 << 0,
+	apds9930_ctrl_again_16 =	0b10 << 0,
+	apds9930_ctrl_again_120 =	0b11 << 0,
 
-	apds9930_ctrl_pdrive_100 =	0b00000000,
-	apds9930_ctrl_pdiode_ch1 =	0b00100000,
-	apds9930_ctrl_again_1 =		0b00000000,
-	apds9930_ctrl_again_16 =	0b00000010,
-
+	apds9930_id_tmd27711 =		0x20,
+	apds9930_id_tmd27713 =		0x29,
 	apds9930_id_apds9930 =		0x30,
 
-	apds9930_status_avalid =	0b00000001,
+	apds9930_status_avalid =	0b1 << 0,
 };
 
 typedef struct
 {
-	unsigned int high_sensitivity:1;
-	uint32_t dummy[i2c_sensor_data_private_size - 1];
+	uint16_t current_scaling;
+	uint16_t ch0;
+	uint16_t ch1;
+	uint16_t data_valid;
 } apds9930_private_data_t;
 
 assert_size(apds9930_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+
+enum
+{
+	apds9930_autoranging_data_size = 5,
+	apds9930_autoranging_disable_agl = 0b0 << 30,
+	apds9930_autoranging_enable_agl = 0b1 << 30,
+};
+
+roflash static const device_autoranging_data_t apds9930_autoranging_data[apds9930_autoranging_data_size] =
+{
+	{{	apds9930_atime_699,	apds9930_ctrl_again_120	| apds9930_autoranging_disable_agl	},	{ 0,	32768	}, 0, 	{ 699000,	120000	}},
+	{{	apds9930_atime_699,	apds9930_ctrl_again_16	| apds9930_autoranging_disable_agl	},	{ 100,	32768	}, 0, 	{ 699000,	16000	}},
+	{{	apds9930_atime_175,	apds9930_ctrl_again_16	| apds9930_autoranging_disable_agl	},	{ 100,	32768	}, 0, 	{ 175000,	16000	}},
+	{{	apds9930_atime_175,	apds9930_ctrl_again_1	| apds9930_autoranging_disable_agl	},	{ 100,	32768	}, 0, 	{ 175000,	1000	}},
+	{{	apds9930_atime_175,	apds9930_ctrl_again_1	| apds9930_autoranging_enable_agl	},	{ 100,	65536	}, 0,	{ 175000,	240		}},
+};
+
+static i2c_error_t apds9930_start_measuring(apds9930_private_data_t *private_data, unsigned int address)
+{
+	i2c_error_t error;
+	unsigned int atime;
+	unsigned int again;
+	unsigned int reg_config;
+
+	atime = apds9930_autoranging_data[private_data->current_scaling].data[0];
+	again = apds9930_autoranging_data[private_data->current_scaling].data[1];
+
+	reg_config = 0x00;
+
+	if(again & apds9930_autoranging_enable_agl)
+	{
+		reg_config |= apds9930_config_agl;
+		again &= ~apds9930_autoranging_enable_agl;
+	}
+
+	if((error = i2c_send2(address, apds9930_reg_enable, 0x00)) != i2c_error_ok) // power off
+	{
+		i2c_log("apds9930", error);
+		return(error);
+	}
+
+	if((error = i2c_send2(address, apds9930_reg_atime, atime)) != i2c_error_ok)
+	{
+		i2c_log("apds9930", error);
+		return(error);
+	}
+
+	if((error = i2c_send2(address, apds9930_reg_config, reg_config)) != i2c_error_ok)
+	{
+		i2c_log("apds9930", error);
+		return(error);
+	}
+
+	if((error = i2c_send2(address, apds9930_reg_control, apds9930_ctrl_pdrive_100 | apds9930_ctrl_pdiode_ch1 | again)) != i2c_error_ok)
+	{
+		i2c_log("apds9930", error);
+		return(error);
+	}
+
+	if((error = i2c_send2(address, apds9930_reg_enable, apds9930_enable_aen | apds9930_enable_pon)) != i2c_error_ok)
+	{
+		i2c_log("apds9930", error);
+		return(error);
+	}
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_tmd2771_detect(i2c_sensor_data_t *data)
+{
+	uint8_t i2c_buffer[1];
+	i2c_error_t error;
+
+	if((error = i2c_send1_receive(data->basic.address, apds9930_reg_id, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+		return(error);
+
+	if((i2c_buffer[0] != apds9930_id_tmd27711) && (i2c_buffer[0] != apds9930_id_tmd27713))
+		return(i2c_error_address_nak);
+
+	return(i2c_error_ok);
+}
 
 static i2c_error_t sensor_apds9930_detect(i2c_sensor_data_t *data)
 {
@@ -694,67 +626,80 @@ static i2c_error_t sensor_apds9930_detect(i2c_sensor_data_t *data)
 
 static i2c_error_t sensor_apds9930_init(i2c_sensor_data_t *data)
 {
-	i2c_error_t error;
 	apds9930_private_data_t *private_data = (apds9930_private_data_t *)&data->private_data;
+	unsigned int again, scaling;
 
-	private_data->high_sensitivity = config_flags_match(flag_apds3_high_sens);
-
-	if((error = i2c_send2(data->basic.address, apds9930_reg_enable, apds9930_enable_poff)) != i2c_error_ok)
+	for(scaling = apds9930_autoranging_data_size - 1; scaling > 0; scaling--)
 	{
-		i2c_log("apds9930", error);
-		return(error);
+		if(data->basic.id != i2c_sensor_tmd2771)
+			break;
+
+		again = apds9930_autoranging_data[scaling].data[1];
+
+		if(!(again & apds9930_autoranging_enable_agl))
+			break;
 	}
 
-	if((error = i2c_send2(data->basic.address, apds9930_reg_atime,
-			(private_data->high_sensitivity ? apds9930_atime_699 : apds9930_atime_175))) != i2c_error_ok)
-	{
-		i2c_log("apds9930", error);
-		return(error);
-	}
+	private_data->current_scaling = scaling;
+	private_data->data_valid = 0;
 
-	if((error = i2c_send2(data->basic.address, apds9930_reg_wtime, apds9930_wtime_200)) != i2c_error_ok)
-	{
-		i2c_log("apds9930", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, apds9930_reg_config, apds9930_config_none)) != i2c_error_ok)
-	{
-		i2c_log("apds9930", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, apds9930_reg_control, apds9930_ctrl_pdrive_100 | apds9930_ctrl_pdiode_ch1 |
-			(private_data->high_sensitivity ? apds9930_ctrl_again_16 : apds9930_ctrl_again_1))) != i2c_error_ok)
-	{
-		i2c_log("apds9930", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, apds9930_reg_enable,
-			apds9930_enable_wen | apds9930_enable_aen | apds9930_enable_pon)) != i2c_error_ok)
-	{
-		i2c_log("apds9930", error);
-		return(error);
-	}
-
-	return(i2c_error_ok);
+	return(apds9930_start_measuring(private_data, data->basic.address));
 }
 
 static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	static const double	apds9930_factor_df = 52;
 	static const double	apds9930_factor_ga = 0.49;
+	static const double	apds9930_factor_a = 1;
 	static const double	apds9930_factor_b = 1.1862;
 	static const double	apds9930_factor_c = 0.746;
 	static const double	apds9930_factor_d = 1.291;
 
-	uint8_t i2c_buffer[2];
-	i2c_error_t error;
-	unsigned int ch0, ch1;
-	double alsit, lux, iac1, iac2, iac, lpc;
-	unsigned int atime, again;
+	double ch0, ch1, lux, lpc, alsit, again, iac1, iac2, iac;
 	apds9930_private_data_t *private_data = (apds9930_private_data_t *)&data->private_data;
+
+	if(!private_data->data_valid)
+		return(i2c_error_overflow);
+
+	ch0 = private_data->ch0;
+	ch1 = private_data->ch1;
+
+	alsit = apds9930_autoranging_data[private_data->current_scaling].correction_1000000.factor / 1000.0;
+	again = apds9930_autoranging_data[private_data->current_scaling].correction_1000000.offset / 1000.0;
+
+	if(data->basic.id == i2c_sensor_tmd2771)
+	{
+		ch0 = 0.977 * ch0;
+		ch1 = 1.02 * ch1;
+	}
+
+	lpc = (apds9930_factor_ga * apds9930_factor_df) / (alsit * again);
+	iac1 = (apds9930_factor_a * ch0) - (apds9930_factor_b * ch1);
+	iac2 = (apds9930_factor_c * ch0) - (apds9930_factor_d * ch1);
+	iac = fmax(fmax(iac1, iac2), 0);
+	lux = iac * lpc;
+
+	value->ch0 = ch0;
+	value->ch1 = ch1;
+	value->ch2 = lpc * 1000;
+	value->scaling = private_data->current_scaling;
+	value->value = lux;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_apds9930_periodic(i2c_sensor_data_t *data)
+{
+	uint8_t i2c_buffer[4];
+	i2c_error_t error;
+	unsigned int ch0, ch1, again;
+	apds9930_private_data_t *private_data;
+	unsigned int scale_down_threshold, scale_up_threshold;
+
+	private_data = (apds9930_private_data_t *)&data->private_data;
+
+	scale_down_threshold = apds9930_autoranging_data[private_data->current_scaling].threshold.down;
+	scale_up_threshold =   apds9930_autoranging_data[private_data->current_scaling].threshold.up;
 
 	if((error = i2c_send1_receive(data->basic.address, apds9930_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -763,7 +708,7 @@ static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_valu
 	}
 
 	if(!(i2c_buffer[0] & apds9930_status_avalid))
-		return(i2c_error_device_error_1);
+		goto data_invalid;
 
 	if((error = i2c_send1_receive(data->basic.address, apds9930_autoincr | apds9930_reg_c0data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -771,37 +716,39 @@ static i2c_error_t sensor_apds9930_read(i2c_sensor_data_t *data, i2c_sensor_valu
 		return(error);
 	}
 
-	ch0 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
+	ch0 = (i2c_buffer[0] << 0) | (i2c_buffer[1] << 8);
+	ch1 = (i2c_buffer[2] << 0) | (i2c_buffer[3] << 8);
 
-	if((error = i2c_send1_receive(data->basic.address, apds9930_autoincr | apds9930_reg_c1data, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	if(((ch0 < scale_down_threshold) || (ch1 < scale_down_threshold)) && (private_data->current_scaling > 0))
 	{
-		i2c_log("apds9930", error);
-		return(error);
+		private_data->current_scaling--;
+		goto data_invalid;
 	}
 
-	ch1 = (i2c_buffer[1] << 8) | (i2c_buffer[0]);
+	if(((ch0 >= scale_up_threshold) || (ch1 >= scale_up_threshold)) && ((private_data->current_scaling + 1) < apds9930_autoranging_data_size))
+	{
+		again = apds9930_autoranging_data[private_data->current_scaling + 1].data[1];
 
-	if((ch0 == 0xffff) || (ch1 == 0xffff))
-		return(i2c_error_overflow);
+		if((data->basic.id != i2c_sensor_tmd2771) || !(again & apds9930_autoranging_enable_agl))
+		{
+			private_data->current_scaling++;
+			goto data_invalid;
+		}
+	}
 
-	atime = private_data->high_sensitivity ? 699 : 175;
-	alsit = 2.73 * (256 - atime);
-	again = private_data->high_sensitivity ? 16 : 1;
-	lpc = (apds9930_factor_ga * apds9930_factor_df) / (alsit * again);
+	if((ch0 == 0) || (ch0 >= 65535) || (ch1 == 0) || (ch1 >= 65535))
+		goto data_invalid;
 
-	iac1 = (1.0 * ch0)					- (apds9930_factor_b * ch1);
-	iac2 = (apds9930_factor_c * ch0)	- (apds9930_factor_d * ch1);
-	iac = fmax(fmax(iac1, iac2), 0);
-	lux = iac * lpc;
-
-	if(lux > 2500)
-		return(i2c_error_overflow);
-
-	value->ch0 = ch0;
-	value->ch1 = ch1;
-	value->value = lux;
-
+	private_data->ch0 = ch0;
+	private_data->ch1 = ch1;
+	private_data->data_valid = 1;
 	return(i2c_error_ok);
+
+data_invalid:
+	private_data->ch0 = 0;
+	private_data->ch1 = 0;
+	private_data->data_valid = 0;
+	return(apds9930_start_measuring(private_data, data->basic.address) != i2c_error_ok);
 }
 
 enum
@@ -6338,9 +6285,9 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 			0x39, 2,
 		}, "tmd2771", "visible light", "lx",
 		sensor_tmd2771_detect,
-		sensor_tmd2771_init,
-		sensor_tmd2771_read,
-		(void *)0,
+		sensor_apds9930_init,
+		sensor_apds9930_read,
+		sensor_apds9930_periodic,
 	},
 	{
 		{
@@ -6354,7 +6301,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_apds9930_detect,
 		sensor_apds9930_init,
 		sensor_apds9930_read,
-		(void *)0,
+		sensor_apds9930_periodic,
 	},
 	{
 		{
