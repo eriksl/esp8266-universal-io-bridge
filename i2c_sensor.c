@@ -2488,7 +2488,6 @@ static i2c_error_t sensor_bh1750_read(i2c_sensor_data_t *data, i2c_sensor_value_
 	factor_1000000 = bh1750_autoranging_data[private_data->current_scaling].correction_1000000.factor;
 	offset_1000000 = bh1750_autoranging_data[private_data->current_scaling].correction_1000000.offset;
 
-
 	value->ch0 = private_data->raw_data;
 	value->scaling = private_data->current_scaling;
 	value->value = (((int64_t)private_data->raw_data * factor_1000000) + offset_1000000) / 1000000.0;
