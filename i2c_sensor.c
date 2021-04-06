@@ -283,7 +283,7 @@ static i2c_error_t sensor_opt3001_init(i2c_sensor_data_t *data)
 	config = ((i2c_buffer[0] << 8) | (i2c_buffer[1] << 0)) & (opt3001_conf_mask_exp | opt3001_conf_conv_mode | opt3001_conf_conv_time | opt3001_conf_range);
 
 	if(config != (opt3001_conf_range_auto | opt3001_conf_conv_time_800 | opt3001_conf_conv_mode_cont))
-		return(i2c_error_device_error_3);
+		return(i2c_error_device_error_1);
 
 	return(i2c_error_ok);
 }
@@ -306,7 +306,7 @@ static i2c_error_t sensor_opt3001_read(i2c_sensor_data_t *data, i2c_sensor_value
 		return(i2c_error_device_error_1);
 
 	if(config & opt3001_conf_flag_ovf)
-		return(i2c_error_ok);
+		return(i2c_error_overflow);
 
 	if((error = i2c_send1_receive(data->basic.address, opt3001_reg_result, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
 	{
@@ -6255,7 +6255,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 			},
 			0x45, 2
 		},
-		"opt3001", "visibile light", "lx",
+		"opt3001", "visible light", "lx",
 		sensor_opt3001_detect,
 		sensor_opt3001_init,
 		sensor_opt3001_read,

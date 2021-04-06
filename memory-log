@@ -8698,3 +8698,7 @@ Tue Apr  6 20:20:34 CEST 2021 6cd08e5 i2c-sensor: make apds9930 autoranging.
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 425064, free: 181144, 29 %
+Tue Apr  6 20:39:12 CEST 2021 abe917b i2c-sensor: remove annoying empty line.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 425016, free: 181192, 29 %
