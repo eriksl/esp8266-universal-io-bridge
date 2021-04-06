@@ -8566,3 +8566,83 @@ Mon Apr  5 16:20:59 CEST 2021 1e72caa i2c-sensor: apds9960 can have one of three
     iram:    available:  32 k, used:  31916, free:    852,  2 %
     dram:    available:  78 k, used:  66613, free:  13652, 17 %
     irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Mon Apr  5 17:36:52 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426504, free: 179704, 29 %
+Mon Apr  5 17:52:29 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426536, free: 179672, 29 %
+Mon Apr  5 17:55:12 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Mon Apr  5 18:00:41 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426504, free: 179704, 29 %
+Mon Apr  5 18:56:34 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Mon Apr  5 18:57:02 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426520, free: 179688, 29 %
+Mon Apr  5 19:47:59 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426536, free: 179672, 29 %
+Mon Apr  5 19:53:25 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426696, free: 179512, 29 %
+Mon Apr  5 19:59:48 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426728, free: 179480, 29 %
+Mon Apr  5 20:16:20 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426776, free: 179432, 29 %
+Mon Apr  5 20:22:06 CEST 2021 fda1f2e i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426744, free: 179464, 29 %
+Mon Apr  5 20:29:44 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426792, free: 179416, 29 %
+Mon Apr  5 20:33:41 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426824, free: 179384, 29 %
+Mon Apr  5 20:37:20 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426728, free: 179480, 29 %
+Tue Apr  6 16:26:48 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426488, free: 179720, 29 %
+Tue Apr  6 16:30:14 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Tue Apr  6 16:32:08 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426568, free: 179640, 29 %
+Tue Apr  6 16:40:58 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426648, free: 179560, 29 %
+Tue Apr  6 16:46:53 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426632, free: 179576, 29 %
+Tue Apr  6 16:55:31 CEST 2021 aef9fab i2c-sensor: improve apds9930 lux calculation.
+    iram:    available:  32 k, used:  31916, free:    852,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 426584, free: 179624, 29 %

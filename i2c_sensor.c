@@ -509,6 +509,8 @@ typedef struct
 
 assert_size(tmd2771_private_data_t, i2c_sensor_data_private_size * sizeof(int));
 
+static const double tmd2771_factor_ga = 1.0;
+
 static i2c_error_t sensor_tmd2771_detect(i2c_sensor_data_t *data)
 {
 	uint8_t i2c_buffer[1];
@@ -577,7 +579,8 @@ static i2c_error_t sensor_tmd2771_read(i2c_sensor_data_t *data, i2c_sensor_value
 	uint8_t i2c_buffer[2];
 	i2c_error_t error;
 	unsigned int ch0, ch1;
-	double cpl, lux1, lux2, lux;
+	double atime, cpl, lux1, lux2, lux;
+	unsigned int again;
 	tmd2771_private_data_t *private_data = (tmd2771_private_data_t *)&data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, tmd2771_reg_status, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
@@ -611,14 +614,20 @@ static i2c_error_t sensor_tmd2771_read(i2c_sensor_data_t *data, i2c_sensor_value
 	if((ch0 == 0xffff) || (ch1 == 0xffff))
 		return(i2c_error_overflow);
 
-	cpl = ((data->high_sensitivity ? 696 : 174) * (data->high_sensitivity ? 16 : 1)) / 84;
-	lux1 = (ch0 - 2 * ch1) / cpl;
-	lux2 = ((0.6 * ch0) - ch1) / cpl;
-	lux = fmax(fmax(lux1, lux2), 0);
+	atime = private_data->high_sensitivity ? 696 : 174;
+	again = private_data->high_sensitivity ? 16 : 1;
+
+	cpl = (atime * again) / (tmd2771_factor_ga * 24);
+	lux1 = (1.0 * ch0) - (2.0 * ch1);
+	lux2 = (0.6 * ch0) - (1.0 * ch1);
+	lux = fmax(fmax(lux1, lux2), 0) / cpl;
 
 	value->ch0 = ch0;
 	value->ch1 = ch1;
-	value->value = lux * tmd2771_device_factor;
+	value->value = lux;
+
+	if(lux > 2500)
+		return(i2c_error_overflow);
 
 	return(i2c_error_ok);
 }
