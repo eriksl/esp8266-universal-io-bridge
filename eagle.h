@@ -54,13 +54,13 @@ enum
 	PERIPHS_IO_MUX_GPIO5_U =	PERIPHS_IO_MUX + 0x40,
 };
 
-enum
+enum PERIPHS_IO_MUX_bits
 {
 	PERIPHS_IO_MUX_SPI_ENABLE =		0x005,
 	PERIPHS_IO_MUX_SPI_SYSCLK =		1UL << 8,
 	PERIPHS_IO_MUX_HSPI_ENABLE =	0x105,
 	PERIPHS_IO_MUX_HSPI_SYSCLK =	1UL << 9,
-} PERIPHS_IO_MUX_bits;
+};
 
 enum
 {
@@ -76,7 +76,7 @@ enum
 	ETS_NMI_INUM =			14,
 };
 
-enum
+enum FUNC
 {
 	FUNC_GPIO0 =		0,
 	FUNC_GPIO1 =		3,
@@ -107,7 +107,7 @@ enum
 	FUNC_I2SO_DATA =	1,
 	FUNC_U0TXD =		0,
 	FUNC_U1TXD_BK =		2,
-} FUNC;
+};
 
 enum
 {
@@ -135,22 +135,22 @@ enum
 	gpio_pdm_target_mask =		0xff,
 };
 
-enum
+enum INT_ENABLE
 {
 	INT_NMI_INT_ENT =	0x3ff00000,
 	INT_ENABLE_REG =	0x3ff00004,
 	INT_ENABLE_WDOG =	1 << 0,
 	INT_ENABLE_TIMER0 =	1 << 1,
 	INT_ENABLE_TIMER1 =	1 << 2,
-} INT_ENABLE;
+};
 
-enum
+enum CLK_PRE_PORT
 {
 	CLK_PRE_PORT_REG =	0x3ff00014,
 	CLK_160 =			1 << 0,
-} CLK_PRE_PORT;
+};
 
-enum
+enum ISR_FLAGS
 {
 	ISR_FLAGS_REG =		0x3ff00020,
 	ISR_FLAGS_UART0 =	1 << 0,
@@ -158,26 +158,26 @@ enum
 	ISR_FLAGS_SPI =		1 << 4,
 	ISR_FLAGS_HSPI =	1 << 7,
 	ISR_FLAGS_I2S =		1 << 9,
-} ISR_FLAGS;
+};
 
-enum
+enum IRAM_BASE
 {
 	IRAM_BASE_REG =			0x3ff00024,
 	IRAM_MAP_0x40108000 =	1 << 7,
 	IRAM_MAP_0x4010c000 =	1 << 8,
-} IRAM_BASE;
+};
 
-enum
+enum TIMER0_LOAD
 {
 	TIMER0_LOAD_REG = 0x60000600,
-} TIMER0_LOAD;
+};
 
-enum
+enum TIMER0_COUNT
 {
 	TIMER0_COUNT_REG = 0x60000604,
-} TIMER0_COUNT;
+};
 
-enum
+enum TIMER0_CTRL
 {
 	TIMER0_CTRL_REG =			0x60000608,
 	TIMER0_CTRL_INT_EDGE =		0 << 0,
@@ -187,25 +187,25 @@ enum
 	TIMER0_CTRL_AUTO_RELOAD =	1 << 6,
 	TIMER0_CTRL_ENABLE_TIMER =	1 << 7,
 	TIMER0_CTRL_INT_STATUS =	1 << 8,
-} TIMER0_CTRL;
+};
 
-enum
+enum TIMER0_INT
 {
 	TIMER0_INT_REG =	0x6000060c,
 	TIMER0_INT_CLEAR =	1 << 0
-} TIMER0_INT;
+};
 
-enum
+enum TIMER1_LOAD
 {
 	TIMER1_LOAD_REG = 0x60000620,
-} TIMER1_LOAD;
+};
 
-enum
+enum TIMER1_COUNT
 {
 	TIMER1_COUNT_REG = 0x60000624,
-} TIMER1_COUNT;
+};
 
-enum
+enum TIMER1_CTRL
 {
 	TIMER1_CTRL_REG = 0x60000628,
 	TIMER1_CTRL_INT_EDGE =		0 << 0,
@@ -215,7 +215,7 @@ enum
 	TIMER1_CTRL_AUTO_RELOAD =	1 << 6,
 	TIMER1_CTRL_ENABLE_TIMER =	1 << 7,
 	TIMER1_CTRL_INT_STATUS =	1 << 8,
-} TIMER1_CTRL;
+};
 
 enum
 {
@@ -373,6 +373,7 @@ enum
 };
 
 attr_inline uint32_t UART_CONF1(uint32_t i)		{ return(REG_UART_BASE(i) + 0x24); }
+
 enum
 {
 	UART_RX_TOUT_EN =						1U << 31,
@@ -435,12 +436,12 @@ attr_inline unsigned int SPI_EXT1(unsigned int i)		{ return(REG_SPI_BASE(i) + 0x
 attr_inline unsigned int SPI_EXT2(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xf8); }
 attr_inline unsigned int SPI_EXT3(unsigned int i)		{ return(REG_SPI_BASE(i) + 0xfc); }
 
-enum
+enum SPI_CMD_bits
 {
 	SPI_USR =			1UL << 18,
-} SPI_CMD_bits;
+};
 
-enum
+enum SPI_CTRL_bits
 {
 	SPI_WR_BIT_ORDER =	1UL << 26,		//	write: 1: LSB first, 0: MSB first
 	SPI_RD_BIT_ORDER =	1UL << 25,		//	read:  1: LSB first, 0: MSB first
@@ -449,9 +450,9 @@ enum
 	SPI_QOUT_MODE =		1UL << 20,
 	SPI_DOUT_MODE =		1UL << 14,
 	SPI_FASTRD_MODE =	1UL << 13,
-} SPI_CTRL_bits;
+};
 
-enum
+enum SPI_RD_STATUS_bits
 {
 	SPI_STATUS_EXT =				0xff,
 	SPI_STATUS_EXT_S =				24,
@@ -464,9 +465,9 @@ enum
 	SPI_FLASH_BP0 =					1UL << 2,
 	SPI_FLASH_WRENABLE_FLAG =		1UL << 1,
 	SPI_FLASH_BUSY_FLAG =			1UL << 0,
-} SPI_RD_STATUS_bits;
+};
 
-enum
+enum SPI_CTRL2_bits
 {
 	SPI_CS_DELAY_NUM =			0xf,
 	SPI_CS_DELAY_NUM_S =		28,
@@ -491,9 +492,9 @@ enum
 	SPI_HOLD_TIME_S =			4,
 	SPI_SETUP_TIME =			0xf,
 	SPI_SETUP_TIME_S =			0,
-} SPI_CTRL2_bits;
+};
 
-enum
+enum SPI_CLOCK_bits
 {
 	SPI_CLK_EQU_SYSCLK =		1UL << 31,
 	SPI_CLKDIV_PRE =			0x1fff,
@@ -504,9 +505,9 @@ enum
 	SPI_CLKCNT_H_S =			6,
 	SPI_CLKCNT_L =				0x3f,			// "in the master mode, it must be equal to SPI_CLKCNT_N. In the slave mode, it must be 0."
 	SPI_CLKCNT_L_S =			0,
-} SPI_CLOCK_bits;
+};
 
-enum
+enum SPI_USER_bits
 {
 	SPI_USR_COMMAND =			1UL << 31,
 	SPI_USR_ADDR =				1UL << 30,
@@ -540,9 +541,9 @@ enum
 	SPI_FLASH_MODE =			1UL << 2,
 	SPI_AHB_USR_COMMAND_4BYTE =	1UL << 1,
 	SPI_DOUTDIN =				1UL << 0,
-} SPI_USER_bits;
+};
 
-enum
+enum SPI_USER1_bits
 {
 	SPI_USR_ADDR_BITLEN =		0x3f,
 	SPI_USR_ADDR_BITLEN_S =		26,
@@ -552,25 +553,25 @@ enum
 	SPI_USR_MISO_BITLEN_S =		8,
 	SPI_USR_DUMMY_CYCLELEN =	0xff,
 	SPI_USR_DUMMY_CYCLELEN_S =	0,
-} SPI_USER1_bits;
+};
 
-enum
+enum SPI_USER2_bits
 {
 	SPI_USR_COMMAND_BITLEN =	0xf,
 	SPI_USR_COMMAND_BITLEN_S =	28,
 	SPI_USR_COMMAND_VALUE =		0xffff,
 	SPI_USR_COMMAND_VALUE_S =	0,
-} SPI_USER2_bits;
+};
 
-enum
+enum SPI_PIN_bits
 {
 	SPI_IDLE_EDGE =				1UL << 29,		//	0: clock polarity normal (CPOL = 0, active high), 1: clock polarity inverted (CPOL = 1, active low)
 	SPI_CS2_DIS =				1UL << 2,
 	SPI_CS1_DIS =				1UL << 1,
 	SPI_CS0_DIS =				1UL << 0,
-} SPI_PIN_bits;
+};
 
-enum
+enum SPI_SLAVE_bits
 {
 	SPI_SYNC_RESET =			1UL << 31,
 	SPI_SLAVE_MODE =			1UL << 30,
@@ -597,9 +598,9 @@ enum
 	SPI_SLV_RD_STA_DONE =		1UL << 2,
 	SPI_SLV_WR_BUF_DONE =		1UL << 1,
 	SPI_SLV_RD_BUF_DONE =		1UL << 0,
-} SPI_SLAVE_bits;
+};
 
-enum
+enum SPI_SLAVE1_bits
 {
 	SPI_SLV_STATUS_BITLEN =		0x1f,
 	SPI_SLV_STATUS_BITLEN_S =	27,
@@ -615,9 +616,9 @@ enum
 	SPI_SLV_RDSTA_DUMMY_EN =	1UL << 2,
 	SPI_SLV_WRBUF_DUMMY_EN =	1UL << 1,
 	SPI_SLV_RDBUF_DUMMY_EN =	1UL << 0,
-} SPI_SLAVE1_bits;
+};
 
-enum
+enum SPI_SLAVE2_bits
 {
 	SPI_SLV_WRBUF_DUMMY_CYCLELEN =		0xff,
 	SPI_SLV_WRBUF_DUMMY_CYCLELEN_S =	24,
@@ -627,9 +628,9 @@ enum
 	SPI_SLV_WRSTR_DUMMY_CYCLELEN_S =	8,
 	SPI_SLV_RDSTR_DUMMY_CYCLELEN =		0xff,
 	SPI_SLV_RDSTR_DUMMY_CYCLELEN_S =	0,
-} SPI_SLAVE2_bits;
+};
 
-enum
+enum SPI_SLAVE3_bits
 {
 	SPI_SLV_WRSTA_CMD_VALUE =	0xff,
 	SPI_SLV_WRSTA_CMD_VALUE_S =	24,
@@ -639,37 +640,37 @@ enum
 	SPI_SLV_WRBUF_CMD_VALUE_S =	8,
 	SPI_SLV_RDBUF_CMD_VALUE =	0xff,
 	SPI_SLV_RDBUF_CMD_VALUE_S =	0,
-} SPI_SLAVE3_bits;
+};
 
-enum
+enum SPI_EXT0_bits
 {
 	SPI_T_PP_ENA =		1UL << 31,
 	SPI_T_PP_SHIFT =	0xf,
 	SPI_T_PP_SHIFT_S =	16,
 	SPI_T_PP_TIME =		0xfff,
 	SPI_T_PP_TIME_S =	0,
-} SPI_EXT0_bits;
+};
 
-enum
+enum SPI_EXT1_bits
 {
 	SPI_T_ERASE_ENA =		1UL << 31,
 	SPI_T_ERASE_SHIFT =		0xf,
 	SPI_T_ERASE_SHIFT_S =	16,
 	SPI_T_ERASE_TIME =		0xfff,
 	SPI_T_ERASE_TIME_S =	0,
-} SPI_EXT1_bits;
+};
 
-enum
+enum SPI_EXT2_bits
 {
 	SPI_ST =	0x7,
 	SPI_ST_S =	0,
-} SPI_EXT2_bits;
+};
 
-enum
+enum SPI_EXT3_bits
 {
 	SPI_INT_HOLD_ENA =		0x3,
 	SPI_INT_HOLD_ENA_S =	0,
-} SPI_EXT3_bits;
+};
 
 attr_inline uint32_t UART_DATE(uint32_t i)		{ return(REG_UART_BASE(i) + 0x78); }
 attr_inline uint32_t UART_ID(uint32_t i)		{ return(REG_UART_BASE(i) + 0x7c); }
