@@ -425,7 +425,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 			time_sntp_start();
 
-			fallthrough;
+			[[fallthrough]];
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
@@ -435,7 +435,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 		case(EVENT_STAMODE_DISCONNECTED):
 		{
-			fallthrough;
+			[[fallthrough]];
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
