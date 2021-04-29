@@ -34,6 +34,7 @@ LWIP_ESPRESSIF_LIB			:= lwip-espressif
 LWIP_ESPRESSIF_LIB_FILE		:= $(LWIP_ESPRESSIF_SYSROOT_LIB)/lib$(LWIP_ESPRESSIF_LIB).a
 
 CTNG						:= $(THIRDPARTY)/crosstool-ng
+CTNG_LX106					:= $(CTNG)/samples/$(ARCH)
 CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
 CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
 CTNG_SYSROOT_LIB			:= $(CTNG_SYSROOT)/$(ARCH)/lib
@@ -297,12 +298,18 @@ showsymbols:	$(ELF_IMAGE)
 
 # crosstool-NG toolchain
 
-$(CTNG)/configure.ac:
+$(CTNG_LX106)/crosstool.config:
 										$(VECHO) "CROSSTOOL-NG SUBMODULE INIT"
 										$(Q) git submodule init $(CTNG)
 										$(Q) git submodule update $(CTNG)
 
-$(CTNG)/configure:						$(CTNG)/configure.ac
+$(CTNG_LX106)/crosstool.config.orig:	$(CTNG_LX106)/crosstool.config
+										$(VECHO) "CROSSTOOL-NG PATCH CONFIG"
+										$(Q) cp $(CTNG_LX106)/crosstool.config $(CTNG_LX106)/crosstool.config.orig
+										$(Q) (cd $(CTNG_LX106); patch -p0 -i ../../../../crosstool-config.patch)
+										$(Q) touch $(CTNG_LX106)/crosstool.config.orig
+
+$(CTNG)/configure:						$(CTNG_LX106)/crosstool.config.orig
 										$(VECHO) "CROSSTOOL-NG BOOTSTRAP"
 										$(Q) (cd $(CTNG); ./bootstrap)
 
@@ -322,13 +329,7 @@ $(CTNG)/.config:						$(CTNG)/bin/ct-ng
 										$(VECHO) "CROSSTOOL-NG CREATE CONFIG"
 										$(Q) $(MAKE) -C $(CTNG) -f ct-ng $(ARCH)
 
-$(CTNG)/.config.orig:					$(CTNG)/.config
-										$(VECHO) "CROSSTOOL-NG PATCH CONFIG"
-										$(Q) cp $(CTNG)/.config $(CTNG)/.config.orig
-										$(Q) (cd $(CTNG); patch -p0 -i ../../ctng-config.patch)
-										$(Q) touch $(CTNG)/.config.orig
-
-$(CC) $(OBJCOPY) $(SIZE):				$(CTNG)/.config.orig
+$(CC) $(OBJCOPY) $(SIZE):				$(CTNG)/.config
 										$(VECHO) "CROSSTOOL-NG BUILD"
 										mkdir -p $(CTNG)/sources
 										$(Q) $(MAKE) -C $(CTNG) -f ct-ng build

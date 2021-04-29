@@ -3,7 +3,7 @@
 	url = https://github.com/espressif/ESP8266_NONOS_SDK
 [submodule "third-party/crosstool-ng"]
 	path = third-party/crosstool-ng
-	url = http://github.com/someburner/crosstool-ng
+	url = https://github.com/eriksl/crosstool-NG.git
 [submodule "third-party/lwip-for-esp8266-nonos-sdk"]
 	path = third-party/lwip-for-esp8266-nonos-sdk
 	url = http://github.com/eriksl/lwip-for-esp8266-nonos-sdk
