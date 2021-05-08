@@ -8706,3 +8706,35 @@ Thu Apr 29 14:05:11 CEST 2021 586a1ec crosstool-ng: switch to own fork.
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66605, free:  13660, 17 %
     irom:    available: 592 k, used: 424872, free: 181336, 29 %
+Thu Apr 29 15:30:21 CEST 2021 fe3064b eagle.h: fixes to enums that where a declaration instead of a definition.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 424904, free: 181304, 29 %
+Fri Apr 30 11:48:24 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 425224, free: 180984, 29 %
+Fri Apr 30 11:49:03 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 424904, free: 181304, 29 %
+Fri Apr 30 11:57:46 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 424488, free: 181720, 29 %
+Fri Apr 30 11:58:53 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31814, free:    954,  2 %
+    dram:    available:  78 k, used:  66621, free:  13644, 16 %
+    irom:    available: 592 k, used: 424904, free: 181304, 29 %
+Fri Apr 30 11:59:23 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31850, free:    918,  2 %
+    dram:    available:  78 k, used:  66629, free:  13636, 16 %
+    irom:    available: 592 k, used: 424296, free: 181912, 30 %
+Fri Apr 30 11:59:37 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 424904, free: 181304, 29 %
+Sat May  8 16:21:49 CEST 2021 389e346 fallthrough attribute: gcc 10 understands C++ syntax for fallthrough.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 424920, free: 181288, 29 %

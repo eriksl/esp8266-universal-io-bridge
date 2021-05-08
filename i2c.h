@@ -7,7 +7,7 @@
 
 enum
 {
-	i2c_busses = 5 // 0 -> 1, 1 -> 2, ... and non-multiplexed bus = 0
+	i2c_busses = 9 // 0 -> 1, 1 -> 2, ... and non-multiplexed bus = 0
 };
 
 typedef enum
