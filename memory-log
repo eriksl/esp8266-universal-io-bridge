@@ -8738,3 +8738,79 @@ Sat May  8 16:21:49 CEST 2021 389e346 fallthrough attribute: gcc 10 understands 
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66605, free:  13660, 17 %
     irom:    available: 592 k, used: 424920, free: 181288, 29 %
+Sat May  8 19:40:34 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 424888, free: 181320, 29 %
+Sat May  8 20:50:43 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66605, free:  13660, 17 %
+    irom:    available: 592 k, used: 425224, free: 180984, 29 %
+Sat May  8 21:02:06 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425224, free: 180984, 29 %
+Sun May  9 11:21:18 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425288, free: 180920, 29 %
+Sun May  9 11:37:40 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425256, free: 180952, 29 %
+Sun May  9 11:39:31 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425272, free: 180936, 29 %
+Sun May  9 12:00:39 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425336, free: 180872, 29 %
+Sun May  9 12:03:52 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425272, free: 180936, 29 %
+Sun May  9 12:23:27 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425256, free: 180952, 29 %
+Sun May  9 12:33:19 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425400, free: 180808, 29 %
+Sun May  9 12:43:51 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425448, free: 180760, 29 %
+Sun May  9 12:50:33 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425592, free: 180616, 29 %
+Sun May  9 12:54:29 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425720, free: 180488, 29 %
+Sun May  9 13:09:51 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425448, free: 180760, 29 %
+Sun May  9 13:11:06 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425352, free: 180856, 29 %
+Sun May  9 13:15:45 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425480, free: 180728, 29 %
+Sun May  9 13:21:10 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425560, free: 180648, 29 %
+Sun May  9 13:21:59 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425480, free: 180728, 29 %
+Sun May  9 13:26:18 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux available.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425448, free: 180760, 29 %
