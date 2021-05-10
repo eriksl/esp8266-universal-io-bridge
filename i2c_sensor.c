@@ -3257,6 +3257,7 @@ static i2c_error_t sensor_lm75_read(i2c_sensor_data_t *data, i2c_sensor_value_t 
 
 enum
 {
+	mpl3115_reg_status =		0x00,
 	mpl3115_reg_out_p =			0x01,
 	mpl3115_reg_out_t =			0x04,
 	mpl3115_reg_drstatus =		0x06,
@@ -3297,6 +3298,12 @@ enum
 	mpl3115_crtl2_load =		(1 << 5),
 };
 
+typedef struct
+{
+	bool valid;
+	uint32_t data;
+} mpl3115a2_private_data_t;
+
 static i2c_error_t sensor_mpl3115a2_detect(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
@@ -3317,6 +3324,18 @@ static i2c_error_t sensor_mpl3115a2_init(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer;
+	i2c_sensor_data_t *secondary_data;
+	mpl3115a2_private_data_t *temperature_private_data;
+	mpl3115a2_private_data_t *humidity_private_data;
+
+	temperature_private_data = (mpl3115a2_private_data_t *)data->private_data;
+	temperature_private_data->valid = false;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	humidity_private_data = (mpl3115a2_private_data_t *)secondary_data->private_data;
+	humidity_private_data->valid = false;
 
 	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) != i2c_error_ok)
 	{
@@ -3339,65 +3358,89 @@ static i2c_error_t sensor_mpl3115a2_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	if((error = i2c_send2(data->basic.address, mpl3115_reg_ctrl_reg2, (0x00 & mpl3115_ctrl2_st))) != i2c_error_ok) // auto acquisition step = 1 sec
-	{
-		i2c_log("mpl3115a2", error);
-		return(error);
-	}
-
-	if((error = i2c_send2(data->basic.address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_os_128 | mpl3115_ctrl1_sbyb)) != i2c_error_ok) // go to "active" auto operation
-	{
-		i2c_log("mpl3115a2", error);
-		return(error);
-	}
-
-	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_ctrl_reg1, 1, &i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("mpl3115a2", error);
-		return(error);
-	}
-
-	if(i2c_buffer != (mpl3115_ctrl1_os_128 | mpl3115_ctrl1_sbyb))
-		return(i2c_error_device_error_1);
-
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_mpl3115a2_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	uint8_t i2c_buffer[2];
-	i2c_error_t error;
-	unsigned int raw_value;
+	mpl3115a2_private_data_t *private_data;
 
-	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_out_t, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("mpl3115a2", error);
-		return(error);
-	}
+	private_data = (mpl3115a2_private_data_t *)data->private_data;
 
-	value->ch0 = i2c_buffer[0];
-	value->ch1 = i2c_buffer[1];
-	raw_value = (i2c_buffer[0] << 8) | (i2c_buffer[1]);
-	value->value = raw_value / 256;
+	if(!private_data->valid)
+		return(i2c_error_device_error_1);
+
+	value->ch0 = private_data->data;
+	value->value = private_data->data / 256.0;
 
 	return(i2c_error_ok);
 }
 
 static i2c_error_t sensor_mpl3115a2_airpressure_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	uint8_t i2c_buffer[3];
-	i2c_error_t error;
-	unsigned int raw_value;
+	mpl3115a2_private_data_t *private_data;
 
-	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_out_p, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	private_data = (mpl3115a2_private_data_t *)data->private_data;
+
+	if(!private_data->valid)
+		return(i2c_error_device_error_1);
+
+	value->ch0 = private_data->data;
+	value->value = private_data->data / 64.0 / 100.0;
+
+	return(i2c_error_ok);
+}
+
+static i2c_error_t sensor_mpl3115a2_periodic(i2c_sensor_data_t *data)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[6];
+	i2c_sensor_data_t *secondary_data;
+	mpl3115a2_private_data_t *temperature_private_data;
+	mpl3115a2_private_data_t *pressure_private_data;
+
+	temperature_private_data = (mpl3115a2_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	pressure_private_data = (mpl3115a2_private_data_t *)secondary_data->private_data;
+
+	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_ctrl_reg1, 1, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("mpl3115a2", error);
 		return(error);
 	}
 
-	raw_value = (i2c_buffer[0] << 16 ) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0);
-	value->ch0 = raw_value;
-	value->value = raw_value / 64 / 100;
+	if(i2c_buffer[0] & mpl3115_ctrl1_ost)
+		return(i2c_error_device_error_1);
+
+	if((error = i2c_send1_receive(data->basic.address, mpl3115_reg_status, 6, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("mpl3115a2", error);
+		return(error);
+	}
+
+	pressure_private_data->valid = false;
+	temperature_private_data->valid = false;
+
+	if(i2c_buffer[0] & mpl3115_drstatus_pdr)
+	{
+		pressure_private_data->data = (i2c_buffer[1] << 16 ) | (i2c_buffer[2] << 8) | (i2c_buffer[3] << 0);
+		pressure_private_data->valid = true;
+	}
+
+	if(i2c_buffer[0] & mpl3115_drstatus_tdr)
+	{
+		temperature_private_data->data = (i2c_buffer[4] << 8) | (i2c_buffer[5]);
+		temperature_private_data->valid = true;
+	}
+
+	if((error = i2c_send2(data->basic.address, mpl3115_reg_ctrl_reg1, mpl3115_ctrl1_os_128 | mpl3115_ctrl1_ost)) != i2c_error_ok)
+	{
+		i2c_log("mpl3115a2", error);
+		return(error);
+	}
 
 	return(i2c_error_ok);
 }
@@ -6916,7 +6959,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_mpl3115a2_detect,
 		sensor_mpl3115a2_init,
 		sensor_mpl3115a2_temperature_read,
-		(void *)0,
+		sensor_mpl3115a2_periodic,
 	},
 	{
 		{

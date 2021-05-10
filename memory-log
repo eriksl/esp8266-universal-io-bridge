@@ -8814,3 +8814,35 @@ Sun May  9 13:26:18 CEST 2021 a3c0469 i2c-sensor: make all 8 buses of the mux av
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66573, free:  13692, 17 %
     irom:    available: 592 k, used: 425448, free: 180760, 29 %
+Mon May 10 20:26:57 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425288, free: 180920, 29 %
+Mon May 10 20:28:44 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425336, free: 180872, 29 %
+Mon May 10 20:32:10 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425368, free: 180840, 29 %
+Mon May 10 20:33:01 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425560, free: 180648, 29 %
+Mon May 10 20:35:17 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425592, free: 180616, 29 %
+Mon May 10 20:36:53 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425736, free: 180472, 29 %
+Mon May 10 20:51:07 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425752, free: 180456, 29 %
+Mon May 10 20:53:09 CEST 2021 eae6245 config: clean up remaining flags for light sensor sensitivity.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425496, free: 180712, 29 %
