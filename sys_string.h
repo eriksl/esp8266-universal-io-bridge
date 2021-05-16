@@ -111,7 +111,7 @@ attr_inline attr_nonnull char *string_buffer_nonconst(string_t *string)
 
 attr_inline attr_nonnull bool string_space(const string_t *dst)
 {
-	return(dst->length < dst->size);
+	return((dst->length + 1) < dst->size);
 }
 
 attr_inline attr_nonnull void string_clear(string_t *dst)

@@ -7913,11 +7913,12 @@ bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, 
 
 		if(verbose)
 		{
-			while((string_length(dst) - start_offset) < 56)
+			while(string_space(dst) && ((string_length(dst) - start_offset) < 56))
 				string_append_cstr(dst, " ");
 
-			string_format(dst, " debug: ch0: %7d, ch1: %6d, ch2: %4d, ch3: %4d, scaling: %1u",
-					value.ch0, value.ch1, value.ch2, value.ch3, value.scaling);
+			if(string_space(dst))
+				string_format(dst, " debug: ch0: %7d, ch1: %6d, ch2: %4d, ch3: %4d, scaling: %1u",
+						value.ch0, value.ch1, value.ch2, value.ch3, value.scaling);
 		}
 	}
 	else
