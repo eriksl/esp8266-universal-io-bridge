@@ -4495,41 +4495,44 @@ enum
 
 typedef struct attr_packed
 {
-	struct attr_packed
-	{
-		uint16_t	t1;
-		int16_t		t2;
-		int8_t		t3;
-	} temperature;
+	uint16_t	t1;
+	int16_t		t2;
+	int8_t		t3;
+} bme680_temperature_private_data_t;
 
-	struct attr_packed
-	{
-		uint16_t	p1;
-		int16_t		p2;
-		int8_t		p3;
-		int16_t		p4;
-		int16_t		p5;
-		int8_t		p6;
-		int8_t		p7;
-		int16_t		p8;
-		int16_t		p9;
-		uint8_t		p10;
-	} pressure;
+assert_size(bme680_temperature_private_data_t, 5); // 2 + 2 + 1
+assert_size_le(bme680_temperature_private_data_t, i2c_sensor_private_data_t);
 
-	struct attr_packed
-	{
-		uint16_t	h1;
-		uint16_t	h2;
-		int8_t		h3;
-		int8_t		h4;
-		int8_t		h5;
-		uint8_t		h6;
-		int8_t		h7;
-	} humidity;
+typedef struct attr_packed
+{
+	uint16_t	p1;
+	int16_t		p2;
+	int8_t		p3;
+	int16_t		p4;
+	int16_t		p5;
+	int8_t		p6;
+	int8_t		p7;
+	int16_t		p8;
+	int16_t		p9;
+	uint8_t		p10;
+} bme680_airpressure_private_data_t;
 
-} bme680_private_data_t;
+assert_size(bme680_airpressure_private_data_t, 16); // 2 + 2 + 1 + 2 + 2 + 1 + 1 + 2 + 2 + 1
+assert_size_le(bme680_airpressure_private_data_t, i2c_sensor_private_data_t);
 
-assert_size_le(bme680_private_data_t, i2c_sensor_private_data_t);
+typedef struct attr_packed
+{
+	uint16_t	h1;
+	uint16_t	h2;
+	int8_t		h3;
+	int8_t		h4;
+	int8_t		h5;
+	uint8_t		h6;
+	int8_t		h7;
+} bme680_humidity_private_data_t;
+
+assert_size(bme680_humidity_private_data_t, 9); // 2 * 2 + 5 * 1
+assert_size_le(bme680_humidity_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t sensor_bme680_detect(i2c_sensor_data_t *data)
 {
@@ -4553,9 +4556,22 @@ static i2c_error_t sensor_bme680_init(i2c_sensor_data_t *data)
 	i2c_error_t error;
 	uint8_t i2c_buffer[1];
 	uint8_t calibration[bme680_calibration_1_size + bme680_calibration_2_size];
-	bme680_private_data_t *private_data;
+	bme680_temperature_private_data_t *temperature_private_data;
+	bme680_airpressure_private_data_t *airpressure_private_data;
+	bme680_humidity_private_data_t *humidity_private_data;
+	i2c_sensor_data_t *secondary_data;
 
-	private_data = (bme680_private_data_t *)data->private_data;
+	temperature_private_data = (bme680_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	airpressure_private_data = (bme680_airpressure_private_data_t *)secondary_data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[1], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	humidity_private_data = (bme680_humidity_private_data_t *)secondary_data->private_data;
 
 	if((error = i2c_send2(data->basic.address, bme680_reg_ctrl_meas, bme680_reg_ctrl_meas_sleep)) != i2c_error_ok)
 	{
@@ -4587,28 +4603,28 @@ static i2c_error_t sensor_bme680_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->temperature.t1 =	unsigned_16(calibration[bme680_calibration_offset_t1_msb], calibration[bme680_calibration_offset_t1_lsb]);
-	private_data->temperature.t2 =	signed_16(calibration[bme680_calibration_offset_t2_msb], calibration[bme680_calibration_offset_t2_lsb]);
-	private_data->temperature.t3 =	signed_8(calibration[bme680_calibration_offset_t3]);
+	temperature_private_data->t1 =	unsigned_16(calibration[bme680_calibration_offset_t1_msb], calibration[bme680_calibration_offset_t1_lsb]);
+	temperature_private_data->t2 =	signed_16(calibration[bme680_calibration_offset_t2_msb], calibration[bme680_calibration_offset_t2_lsb]);
+	temperature_private_data->t3 =	signed_8(calibration[bme680_calibration_offset_t3]);
 
-	private_data->pressure.p1 =		unsigned_16(calibration[bme680_calibration_offset_p1_msb], calibration[bme680_calibration_offset_p1_lsb]);
-	private_data->pressure.p2 =		signed_16(calibration[bme680_calibration_offset_p2_msb], calibration[bme680_calibration_offset_p2_lsb]);
-	private_data->pressure.p3 =		signed_8(calibration[bme680_calibration_offset_p3]);
-	private_data->pressure.p4 =		signed_16(calibration[bme680_calibration_offset_p4_msb], calibration[bme680_calibration_offset_p4_lsb]);
-	private_data->pressure.p5 =		signed_16(calibration[bme680_calibration_offset_p5_msb], calibration[bme680_calibration_offset_p5_lsb]);
-	private_data->pressure.p6 =		signed_8(calibration[bme680_calibration_offset_p6]);
-	private_data->pressure.p7 =		signed_8(calibration[bme680_calibration_offset_p7]);
-	private_data->pressure.p8 =		signed_16(calibration[bme680_calibration_offset_p8_msb], calibration[bme680_calibration_offset_p8_lsb]);
-	private_data->pressure.p9 =		signed_16(calibration[bme680_calibration_offset_p9_msb], calibration[bme680_calibration_offset_p9_lsb]);
-	private_data->pressure.p10 =	unsigned_8(calibration[bme680_calibration_offset_p10]);
+	airpressure_private_data->p1 =	unsigned_16(calibration[bme680_calibration_offset_p1_msb], calibration[bme680_calibration_offset_p1_lsb]);
+	airpressure_private_data->p2 =	signed_16(calibration[bme680_calibration_offset_p2_msb], calibration[bme680_calibration_offset_p2_lsb]);
+	airpressure_private_data->p3 =	signed_8(calibration[bme680_calibration_offset_p3]);
+	airpressure_private_data->p4 =	signed_16(calibration[bme680_calibration_offset_p4_msb], calibration[bme680_calibration_offset_p4_lsb]);
+	airpressure_private_data->p5 =	signed_16(calibration[bme680_calibration_offset_p5_msb], calibration[bme680_calibration_offset_p5_lsb]);
+	airpressure_private_data->p6 =	signed_8(calibration[bme680_calibration_offset_p6]);
+	airpressure_private_data->p7 =	signed_8(calibration[bme680_calibration_offset_p7]);
+	airpressure_private_data->p8 =	signed_16(calibration[bme680_calibration_offset_p8_msb], calibration[bme680_calibration_offset_p8_lsb]);
+	airpressure_private_data->p9 =	signed_16(calibration[bme680_calibration_offset_p9_msb], calibration[bme680_calibration_offset_p9_lsb]);
+	airpressure_private_data->p10 =	unsigned_8(calibration[bme680_calibration_offset_p10]);
 
-	private_data->humidity.h1 =		unsigned_12(calibration[bme680_calibration_offset_h1_msb], (calibration[bme680_calibration_offset_h1_lsb] & 0x0f) >> 0);
-	private_data->humidity.h2 =		unsigned_12(calibration[bme680_calibration_offset_h2_msb], (calibration[bme680_calibration_offset_h2_lsb] & 0xf0) >> 4);
-	private_data->humidity.h3 =		signed_8(calibration[bme680_calibration_offset_h3]);
-	private_data->humidity.h4 =		signed_8(calibration[bme680_calibration_offset_h4]);
-	private_data->humidity.h5 =		signed_8(calibration[bme680_calibration_offset_h5]);
-	private_data->humidity.h6 =		unsigned_8(calibration[bme680_calibration_offset_h6]);
-	private_data->humidity.h7 =		signed_8(calibration[bme680_calibration_offset_h7]);
+	humidity_private_data->h1 =	unsigned_12(calibration[bme680_calibration_offset_h1_msb], (calibration[bme680_calibration_offset_h1_lsb] & 0x0f) >> 0);
+	humidity_private_data->h2 =	unsigned_12(calibration[bme680_calibration_offset_h2_msb], (calibration[bme680_calibration_offset_h2_lsb] & 0xf0) >> 4);
+	humidity_private_data->h3 =	signed_8(calibration[bme680_calibration_offset_h3]);
+	humidity_private_data->h4 =	signed_8(calibration[bme680_calibration_offset_h4]);
+	humidity_private_data->h5 =	signed_8(calibration[bme680_calibration_offset_h5]);
+	humidity_private_data->h6 =	unsigned_8(calibration[bme680_calibration_offset_h6]);
+	humidity_private_data->h7 =	signed_8(calibration[bme680_calibration_offset_h7]);
 
 	if((error = i2c_send2(data->basic.address, bme680_reg_config, bme680_reg_config_filter_127)) != i2c_error_ok)
 	{
@@ -4663,9 +4679,9 @@ static i2c_error_t sensor_bme680_temperature_read(i2c_sensor_data_t *data, i2c_s
 	uint8_t i2c_buffer[4];
 	unsigned int adc_temperature;
 	double t_fine, t1_scaled;
-	bme680_private_data_t *private_data;
+	bme680_temperature_private_data_t *temperature_private_data;
 
-	private_data = (bme680_private_data_t *)data->private_data;
+	temperature_private_data = (bme680_temperature_private_data_t *)data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
 	{
@@ -4681,70 +4697,11 @@ static i2c_error_t sensor_bme680_temperature_read(i2c_sensor_data_t *data, i2c_s
 
 	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
 
-	t1_scaled	= (adc_temperature / 131072.0) - (private_data->temperature.t1 / 8192.0);
-	t_fine		= ((adc_temperature / 16384.0) - (private_data->temperature.t1 / 1024.0)) * private_data->temperature.t2 + (t1_scaled * t1_scaled * private_data->temperature.t3 * 16.0);
+	t1_scaled	= (adc_temperature / 131072.0) - (temperature_private_data->t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (temperature_private_data->t1 / 1024.0)) * temperature_private_data->t2 + (t1_scaled * t1_scaled * temperature_private_data->t3 * 16.0);
 
 	value->ch0		= t_fine;
 	value->value	= t_fine / 5120.0;
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_bme680_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	i2c_error_t error;
-	uint8_t i2c_buffer[4];
-	unsigned int adc_humidity, adc_temperature;
-	double var1, var2, var3, var4;
-	double t_fine, t1_scaled, temperature, humidity;
-	bme680_private_data_t *private_data;
-	i2c_sensor_data_t *primary_data;
-
-	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
-		return(i2c_error_device_error_1);
-
-	private_data = (bme680_private_data_t *)primary_data->private_data;
-
-	if((error = i2c_send1_receive(data->basic.address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme680", error);
-		return(error);
-	}
-
-	if((error = i2c_send1_receive(data->basic.address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme680", error);
-		return(error);
-	}
-
-	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
-
-	if((error = i2c_send1_receive(data->basic.address, bme680_reg_hum_msb, 2, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme680", error);
-		return(error);
-	}
-
-	adc_humidity = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
-
-	t1_scaled	= (adc_temperature / 131072.0) - (private_data->temperature.t1 / 8192.0);
-	t_fine		= ((adc_temperature / 16384.0) - (private_data->temperature.t1 / 1024.0)) * private_data->temperature.t2 + (t1_scaled * t1_scaled * private_data->temperature.t3 * 16.0);
-	temperature	= t_fine / 5120.0;
-
-	var1 = adc_humidity - ((private_data->humidity.h1 * 16) + ((private_data->humidity.h3 / 2.0) * temperature));
-	var2 = var1 * ((private_data->humidity.h2 / 262144.0) * (1 + ((private_data->humidity.h4 / 16384.0) * temperature) + ((private_data->humidity.h5 / 1048576.0) * temperature * temperature)));
-	var3 = private_data->humidity.h6 / 16384.0;
-	var4 = private_data->humidity.h7 / 2097152.0;
-
-	humidity = var2 + ((var3 + (var4 * temperature)) * var2 * var2);
-
-	if(humidity > 100.0)
-		humidity = 100.0;
-	if(humidity < 0.0)
-		humidity = 0.0;
-
-	value->ch0 = adc_humidity;
-	value->value = humidity;
 
 	return(i2c_error_ok);
 }
@@ -4757,13 +4714,19 @@ static i2c_error_t sensor_bme680_airpressure_read(i2c_sensor_data_t *data, i2c_s
 	double var1, var2, var3;
 	double pressure, pressure_256;
 	double t_fine, t1_scaled;
-	bme680_private_data_t *private_data;
+	bme680_airpressure_private_data_t *airpressure_private_data;
+	bme680_temperature_private_data_t *temperature_private_data;
 	i2c_sensor_data_t *primary_data;
+
+	airpressure_private_data = (bme680_airpressure_private_data_t *)data->private_data;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 		return(i2c_error_device_error_1);
 
-	private_data = (bme680_private_data_t *)primary_data->private_data;
+	temperature_private_data = (bme680_temperature_private_data_t *)primary_data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
+		return(i2c_error_device_error_1);
 
 	if((error = i2c_send1_receive(data->basic.address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
 	{
@@ -4787,15 +4750,15 @@ static i2c_error_t sensor_bme680_airpressure_read(i2c_sensor_data_t *data, i2c_s
 
 	adc_pressure = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
 
-	t1_scaled	= (adc_temperature / 131072.0) - (private_data->temperature.t1 / 8192.0);
-	t_fine		= ((adc_temperature / 16384.0) - (private_data->temperature.t1 / 1024.0)) * private_data->temperature.t2 + (t1_scaled * t1_scaled * private_data->temperature.t3 * 16.0);
+	t1_scaled	= (adc_temperature / 131072.0) - (temperature_private_data->t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (temperature_private_data->t1 / 1024.0)) * temperature_private_data->t2 + (t1_scaled * t1_scaled * temperature_private_data->t3 * 16.0);
 
 	var1 = (t_fine / 2.0) - 64000;
-	var2 = var1 * var1 * private_data->pressure.p6 / 131072.0;
-	var2 = var2 + (var1 * private_data->pressure.p5 * 2);
-	var2 = (var2 / 4) + (private_data->pressure.p4 * 65536);
-	var1 = (((private_data->pressure.p3 * var1 * var1) / 16384.0) + (private_data->pressure.p2 * var1)) / 524288.0;
-	var1 = (1 + (var1 / 32768.0)) * private_data->pressure.p1;
+	var2 = var1 * var1 * airpressure_private_data->p6 / 131072.0;
+	var2 = var2 + (var1 * airpressure_private_data->p5 * 2);
+	var2 = (var2 / 4) + (airpressure_private_data->p4 * 65536);
+	var1 = (((airpressure_private_data->p3 * var1 * var1) / 16384.0) + (airpressure_private_data->p2 * var1)) / 524288.0;
+	var1 = (1 + (var1 / 32768.0)) * airpressure_private_data->p1;
 	pressure = 1048576 - adc_pressure;
 
 	value->ch0		= adc_pressure;
@@ -4805,13 +4768,76 @@ static i2c_error_t sensor_bme680_airpressure_read(i2c_sensor_data_t *data, i2c_s
 	{
 		pressure = ((pressure - (var2 / 4096.0)) * 6250) / var1;
 		pressure_256 = pressure / 256.0;
-		var1 = (private_data->pressure.p9 * pressure * pressure) / 2147483648.0;
-		var2 = pressure * (private_data->pressure.p8 / 32768.0);
-		var3 = pressure_256 * pressure_256 * pressure_256 * (private_data->pressure.p10 / 131072.0);
-		value->value = (pressure + (var1 + var2 + var3 + (private_data->pressure.p7 * 128)) / 16.0) / 100.0;
+		var1 = (airpressure_private_data->p9 * pressure * pressure) / 2147483648.0;
+		var2 = pressure * (airpressure_private_data->p8 / 32768.0);
+		var3 = pressure_256 * pressure_256 * pressure_256 * (airpressure_private_data->p10 / 131072.0);
+		value->value = (pressure + (var1 + var2 + var3 + (airpressure_private_data->p7 * 128)) / 16.0) / 100.0;
 	}
 	else
 		return(i2c_error_overflow);
+
+	return(i2c_error_ok);
+}
+
+
+static i2c_error_t sensor_bme680_humidity_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
+{
+	i2c_error_t error;
+	uint8_t i2c_buffer[4];
+	unsigned int adc_humidity, adc_temperature;
+	double var1, var2, var3, var4;
+	double t_fine, t1_scaled, temperature, humidity;
+	bme680_humidity_private_data_t *humidity_private_data;
+	bme680_temperature_private_data_t *temperature_private_data;
+	i2c_sensor_data_t *primary_data;
+
+	humidity_private_data = (bme680_humidity_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
+		return(i2c_error_device_error_1);
+
+	temperature_private_data = (bme680_temperature_private_data_t *)primary_data->private_data;
+
+	if((error = i2c_send1_receive(data->basic.address, bme680_reg_eas_status_0, 1, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("bme680", error);
+		return(error);
+	}
+
+	if((error = i2c_send1_receive(data->basic.address, bme680_reg_temp_msb, 3, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("bme680", error);
+		return(error);
+	}
+
+	adc_temperature = unsigned_20(i2c_buffer[0], i2c_buffer[1], i2c_buffer[2]);
+
+	if((error = i2c_send1_receive(data->basic.address, bme680_reg_hum_msb, 2, i2c_buffer)) != i2c_error_ok)
+	{
+		i2c_log("bme680", error);
+		return(error);
+	}
+
+	adc_humidity = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+
+	t1_scaled	= (adc_temperature / 131072.0) - (temperature_private_data->t1 / 8192.0);
+	t_fine		= ((adc_temperature / 16384.0) - (temperature_private_data->t1 / 1024.0)) * temperature_private_data->t2 + (t1_scaled * t1_scaled * temperature_private_data->t3 * 16.0);
+	temperature	= t_fine / 5120.0;
+
+	var1 = adc_humidity - ((humidity_private_data->h1 * 16) + ((humidity_private_data->h3 / 2.0) * temperature));
+	var2 = var1 * ((humidity_private_data->h2 / 262144.0) * (1 + ((humidity_private_data->h4 / 16384.0) * temperature) + ((humidity_private_data->h5 / 1048576.0) * temperature * temperature)));
+	var3 = humidity_private_data->h6 / 16384.0;
+	var4 = humidity_private_data->h7 / 2097152.0;
+
+	humidity = var2 + ((var3 + (var4 * temperature)) * var2 * var2);
+
+	if(humidity > 100.0)
+		humidity = 100.0;
+	if(humidity < 0.0)
+		humidity = 0.0;
+
+	value->ch0 = adc_humidity;
+	value->value = humidity;
 
 	return(i2c_error_ok);
 }
@@ -7223,7 +7249,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		{
 			i2c_sensor_bme680_temperature, i2c_sensor_none,
 			{
-				i2c_sensor_bme680_humidity, i2c_sensor_bme680_airpressure, i2c_sensor_none, i2c_sensor_none,
+				i2c_sensor_bme680_airpressure, i2c_sensor_bme680_humidity, i2c_sensor_none, i2c_sensor_none,
 			},
 			0x76, 2,
 		},
@@ -7232,20 +7258,6 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bme680_init,
 		sensor_bme680_temperature_read,
 		sensor_bme680_periodic,
-	},
-	{
-		{
-			i2c_sensor_bme680_humidity, i2c_sensor_bme680_temperature,
-			{
-				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
-			},
-			0x76, 0,
-		},
-		"bme680", "humidity", "%",
-		(void *)0,
-		(void *)0,
-		sensor_bme680_humidity_read,
-		(void *)0,
 	},
 	{
 		{
@@ -7259,6 +7271,20 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 		(void *)0,
 		sensor_bme680_airpressure_read,
+		(void *)0,
+	},
+	{
+		{
+			i2c_sensor_bme680_humidity, i2c_sensor_bme680_temperature,
+			{
+				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
+			},
+			0x76, 0,
+		},
+		"bme680", "humidity", "%",
+		(void *)0,
+		(void *)0,
+		sensor_bme680_humidity_read,
 		(void *)0,
 	},
 	{

@@ -8946,3 +8946,15 @@ Sun May 16 14:21:38 CEST 2021 7710b90 i2c-sensor: split private data of bme280|b
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  67237, free:  13028, 16 %
     irom:    available: 592 k, used: 426696, free: 179512, 29 %
+Sun May 16 15:01:34 CEST 2021 43658df i2c-sensor: split private data of bmp085|bmp180 so private data allocation can be shrunk.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426792, free: 179416, 29 %
+Sun May 16 15:08:53 CEST 2021 43658df i2c-sensor: split private data of bmp085|bmp180 so private data allocation can be shrunk.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426840, free: 179368, 29 %
+Sun May 16 15:14:14 CEST 2021 43658df i2c-sensor: split private data of bmp085|bmp180 so private data allocation can be shrunk.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426904, free: 179304, 29 %
