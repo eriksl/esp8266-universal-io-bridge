@@ -15,8 +15,8 @@ enum
 	i2c_sensor_device_table_name_size = 13,
 	i2c_sensor_device_table_type_size = 14,
 	i2c_sensor_device_table_unity_size = 3,
-	i2c_sensor_data_entries = 24,
-	i2c_sensor_data_private_size = 2,
+	i2c_sensor_data_entries = 28,
+	i2c_sensor_data_private_size = 9,
 };
 
 typedef struct
@@ -28,20 +28,20 @@ typedef struct
 	uint8_t precision;
 } i2c_sensor_flash_basic_t;
 
-assert_size(i2c_sensor_flash_basic_t, 8);
+assert_size(i2c_sensor_flash_basic_t, 8); // 1 + 1 + (4 * 1) + 1 + 1
 
 typedef uint32_t i2c_sensor_private_data_t[i2c_sensor_data_private_size];
 
-assert_size(i2c_sensor_private_data_t, 8);
+assert_size(i2c_sensor_private_data_t, 36); // 9 * 4
 
 typedef struct
 {
 	uint8_t						bus;
 	i2c_sensor_flash_basic_t	basic;
-	uint32_t					private_data[i2c_sensor_data_private_size];
+	i2c_sensor_private_data_t	private_data;
 } i2c_sensor_data_t;
 
-assert_size(i2c_sensor_data_t, 20);
+assert_size(i2c_sensor_data_t, 48); // 4 + 8 + 36
 
 typedef struct
 {
@@ -52,6 +52,8 @@ typedef struct
 	int				ch3;
 	unsigned int	scaling;
 } i2c_sensor_value_t;
+
+assert_size(i2c_sensor_value_t, 32); // 8 + (4 * 4) + 4 + 4
 
 typedef struct
 {
@@ -65,12 +67,12 @@ typedef struct
 	attr_flash_align	i2c_error_t (* const background_fn)(i2c_sensor_data_t *);
 } i2c_sensor_device_table_entry_t;
 
-assert_size(i2c_sensor_device_table_entry_t, 60);
+assert_size(i2c_sensor_device_table_entry_t, 60); // 8 + 7 * 4
 
 static unsigned int i2c_sensors;
 static i2c_sensor_data_t i2c_sensor_data[i2c_sensor_data_entries];
 
-assert_size(i2c_sensor_data, 480);
+assert_size(i2c_sensor_data, 1344); // 48 * 28
 
 typedef struct
 {
@@ -528,7 +530,7 @@ typedef struct
 	uint16_t data_valid;
 } apds9930_private_data_t;
 
-assert_size(apds9930_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(apds9930_private_data_t, i2c_sensor_private_data_t);
 
 enum
 {
@@ -846,10 +848,9 @@ typedef struct attr_packed
 	uint8_t data_g;
 	uint8_t data_b;
 	uint8_t data_valid;
-	uint8_t dummy;
 } apds9960_private_data_t;
 
-assert_size(apds9960_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(apds9960_private_data_t, i2c_sensor_private_data_t);
 
 enum
 {
@@ -1832,10 +1833,9 @@ typedef struct
 	uint16_t	ch0;
 	uint16_t	ch1;
 	uint16_t	current_scaling;
-	uint16_t	dummy;
 } tsl2561_private_data_t;
 
-assert_size(tsl2561_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(tsl2561_private_data_t, i2c_sensor_private_data_t);
 
 roflash static const device_autoranging_data_t tsl2561_autoranging_data[tsl2561_autoranging_data_size] =
 {
@@ -2532,10 +2532,9 @@ typedef struct
 {
 	uint16_t	raw_data;
 	uint16_t	current_scaling;
-	uint32_t	dummy;
 } bh1750_private_data_t;
 
-assert_size(bh1750_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(bh1750_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t bh1750_start_measurement(bh1750_private_data_t *private_data, unsigned int address)
 {
@@ -3653,18 +3652,16 @@ enum
 typedef struct
 {
 	uint32_t raw_humidity_data;
-	uint32_t dummy[1];
 } sht30_humidity_private_data_t;
 
-assert_size(sht30_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(sht30_humidity_private_data_t, i2c_sensor_private_data_t);
 
 typedef struct
 {
 	uint32_t raw_temperature_data;
-	uint32_t dummy[1];
 } sht30_temperature_private_data_t;
 
-assert_size(sht30_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(sht30_temperature_private_data_t, i2c_sensor_private_data_t);
 
 attr_pure static uint8_t sht30_crc8(int length, const uint8_t *data)
 {
@@ -3976,7 +3973,7 @@ typedef struct
 	bool		raw_temperature_data_valid;
 } hdc1080_temperature_private_data_t;
 
-assert_size(hdc1080_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(hdc1080_temperature_private_data_t, i2c_sensor_private_data_t);
 
 typedef struct
 {
@@ -3984,7 +3981,7 @@ typedef struct
 	bool		raw_humidity_data_valid;
 } hdc1080_humidity_private_data_t;
 
-assert_size(hdc1080_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(hdc1080_humidity_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t sensor_hdc1080_detect(i2c_sensor_data_t *data)
 {
@@ -4173,7 +4170,7 @@ typedef struct
 	bool		raw_temperature_data_valid;
 } htu21_temperature_private_data_t;
 
-assert_size(htu21_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(htu21_temperature_private_data_t, i2c_sensor_private_data_t);
 
 typedef struct
 {
@@ -4181,7 +4178,7 @@ typedef struct
 	bool		raw_humidity_data_valid;
 } htu21_humidity_private_data_t;
 
-assert_size(htu21_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(htu21_humidity_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t sensor_htu21_detect(i2c_sensor_data_t *data)
 {
@@ -4495,41 +4492,45 @@ enum
 	bme680_calibration_offset_t1_lsb =		33,
 	bme680_calibration_offset_t1_msb =		34,
 };
-typedef struct
+
+typedef struct attr_packed
 {
-	struct
+	struct attr_packed
 	{
-		unsigned int	t1;
-		int				t2;
-		int				t3;
+		uint16_t	t1;
+		int16_t		t2;
+		int8_t		t3;
 	} temperature;
 
-	struct
+	struct attr_packed
 	{
-		unsigned int	p1;
-		int				p2;
-		int				p3;
-		int				p4;
-		int				p5;
-		int				p6;
-		int				p7;
-		int				p8;
-		int				p9;
-		unsigned int	p10;
+		uint16_t	p1;
+		int16_t		p2;
+		int8_t		p3;
+		int16_t		p4;
+		int16_t		p5;
+		int8_t		p6;
+		int8_t		p7;
+		int16_t		p8;
+		int16_t		p9;
+		uint8_t		p10;
 	} pressure;
 
-	struct
+	struct attr_packed
 	{
-		unsigned int	h1;
-		unsigned int	h2;
-		int				h3;
-		int				h4;
-		int				h5;
-		unsigned int	h6;
-		int				h7;
+		uint16_t	h1;
+		uint16_t	h2;
+		int8_t		h3;
+		int8_t		h4;
+		int8_t		h5;
+		uint8_t		h6;
+		int8_t		h7;
 	} humidity;
 
 } bme680_calibration_parameters_t;
+
+assert_size(bme680_calibration_parameters_t, 30);
+assert_size_le(bme680_calibration_parameters_t, i2c_sensor_private_data_t);
 
 static bme680_calibration_parameters_t bme680_calibration_parameters;
 
@@ -4864,27 +4865,32 @@ enum
 	bmx280_reg_config_spi3w_en =		0b00000001,
 };
 
-static struct
+typedef struct attr_packed
 {
-	unsigned	int	dig_T1;		//	88/89
-				int	dig_T2;		//	8a/8b
-				int	dig_T3;		//	8c/8d
-	unsigned	int	dig_P1;		//	8e/8f
-				int	dig_P2;		//	90/91
-				int	dig_P3;		//	92/93
-				int	dig_P4;		//	94/95
-				int	dig_P5;		//	96/97
-				int	dig_P6;		//	98/99
-				int	dig_P7;		//	9a/9b
-				int dig_P8;		//	9c/9d
-				int	dig_P9;		//	9e/9f
-	unsigned	int	dig_H1;		//	a1
-				int	dig_H2;		//	e1/e2
-	unsigned	int	dig_H3;		//	e3
-				int	dig_H4;		//	e4/e5[3:0]
-				int	dig_H5;		//	e5[7:4]/e6
-				int	dig_H6;		//	e7
-} bmx280;
+	uint16_t	dig_T1;		//	88/89
+	int16_t		dig_T2;		//	8a/8b
+	int16_t		dig_T3;		//	8c/8d
+	uint16_t	dig_P1;		//	8e/8f
+	int16_t		dig_P2;		//	90/91
+	int16_t		dig_P3;		//	92/93
+	int16_t		dig_P4;		//	94/95
+	int16_t		dig_P5;		//	96/97
+	int16_t		dig_P6;		//	98/99
+	int16_t		dig_P7;		//	9a/9b
+	int16_t		dig_P8;		//	9c/9d
+	int16_t		dig_P9;		//	9e/9f
+	uint8_t		dig_H1;		//	a1
+	int16_t		dig_H2;		//	e1/e2
+	uint8_t		dig_H3;		//	e3
+	int16_t		dig_H4;		//	e4/e5[3:0]
+	int16_t		dig_H5;		//	e5[7:4]/e6
+	uint8_t		dig_H6;		//	e7
+} bmx280_t;
+
+assert_size(bmx280_t, 33);
+assert_size_le(bmx280_t, i2c_sensor_private_data_t);
+
+static bmx280_t bmx280;
 
 static i2c_error_t bmx280_detect(i2c_sensor_data_t *data, uint8_t device_id)
 {
@@ -5282,21 +5288,26 @@ enum
 	bmp085_oversampling = 3,	// (1 << 3) == 8, use bmp085_reg_ctrl_meas_os_8
 };
 
-static struct
+typedef struct attr_packed
 {
-	int				ac1;
-	int				ac2;
-	int				ac3;
-	unsigned int	ac4;
-	unsigned int	ac5;
-	unsigned int	ac6;
-	int				b1;
-	int				b2;
-	int				mc;
-	int				md;
-	unsigned int	adc_temperature;
-	unsigned int	adc_pressure;
-} bmp085_calibration_parameters;
+	int16_t		ac1;
+	int16_t		ac2;
+	int16_t		ac3;
+	uint16_t	ac4;
+	uint16_t	ac5;
+	uint16_t	ac6;
+	int16_t		b1;
+	int16_t		b2;
+	int16_t		mc;
+	int16_t		md;
+	uint16_t	adc_temperature;
+	uint32_t	adc_pressure;
+} bmp085_calibration_parameters_t;
+
+assert_size(bmp085_calibration_parameters_t, 26);
+assert_size_le(bmp085_calibration_parameters_t, i2c_sensor_private_data_t);
+
+static bmp085_calibration_parameters_t bmp085_calibration_parameters;
 
 static i2c_error_t sensor_bmp085_detect(i2c_sensor_data_t *data)
 {
@@ -5536,7 +5547,7 @@ typedef struct
 	uint32_t dummy[1];
 } am2320_humidity_private_data_t;
 
-assert_size(am2320_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(am2320_humidity_private_data_t, i2c_sensor_private_data_t);
 
 typedef struct
 {
@@ -5544,7 +5555,7 @@ typedef struct
 	uint32_t dummy[1];
 } am2320_temperature_private_data_t;
 
-assert_size(am2320_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(am2320_temperature_private_data_t, i2c_sensor_private_data_t);
 
 attr_pure static uint16_t am2320_crc16(int length, const uint8_t *data)
 {
@@ -5864,7 +5875,7 @@ typedef struct
 	uint32_t		raw_temperature_data;
 } aht10_temperature_private_data_t;
 
-assert_size(aht10_temperature_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(aht10_temperature_private_data_t, i2c_sensor_private_data_t);
 
 typedef struct
 {
@@ -5872,7 +5883,7 @@ typedef struct
 	uint32_t		raw_humidity_data;
 } aht10_humidity_private_data_t;
 
-assert_size(aht10_humidity_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(aht10_humidity_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t sensor_aht10_detect(i2c_sensor_data_t *data)
 {
@@ -6098,10 +6109,9 @@ typedef struct
 	uint16_t current_scaling;
 	uint16_t raw_data_green;
 	uint16_t raw_data_white;
-	uint16_t dummy;
 } veml6040_private_data_t;
 
-assert_size(veml6040_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(veml6040_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t veml6040_start_measuring(const veml6040_private_data_t *private_data, unsigned int address)
 {
@@ -6280,7 +6290,7 @@ typedef struct
 	uint16_t skip_next;
 } veml7700_private_data_t;
 
-assert_size(veml7700_private_data_t, i2c_sensor_data_private_size * sizeof(int));
+assert_size_le(veml7700_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t veml7700_start_measuring(const veml7700_private_data_t *private_data, unsigned int address)
 {

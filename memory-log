@@ -8846,3 +8846,51 @@ Mon May 10 20:53:09 CEST 2021 eae6245 config: clean up remaining flags for light
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66573, free:  13692, 17 %
     irom:    available: 592 k, used: 425496, free: 180712, 29 %
+Fri May 14 16:43:14 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425528, free: 180680, 29 %
+Fri May 14 19:11:12 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425544, free: 180664, 29 %
+Fri May 14 19:17:27 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425112, free: 181096, 29 %
+Fri May 14 19:21:23 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 425112, free: 181096, 29 %
+Sat May 15 14:45:32 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66613, free:  13652, 17 %
+    irom:    available: 592 k, used: 425240, free: 180968, 29 %
+Sat May 15 15:54:32 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66573, free:  13692, 17 %
+    irom:    available: 592 k, used: 425576, free: 180632, 29 %
+Sat May 15 15:54:57 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66565, free:  13700, 17 %
+    irom:    available: 592 k, used: 425576, free: 180632, 29 %
+Sat May 15 20:25:29 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66549, free:  13716, 17 %
+    irom:    available: 592 k, used: 426072, free: 180136, 29 %
+Sat May 15 20:32:46 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66509, free:  13756, 17 %
+    irom:    available: 592 k, used: 426520, free: 179688, 29 %
+Sun May 16 12:18:09 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 426520, free: 179688, 29 %
+Sun May 16 12:20:58 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67133, free:  13132, 16 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Sun May 16 12:23:05 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for background polling.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426520, free: 179688, 29 %
