@@ -5363,21 +5363,29 @@ enum
 
 typedef struct attr_packed
 {
+	uint16_t	ac5;
+	uint16_t	ac6;
+	int16_t		mc;
+	int16_t		md;
+	uint16_t	data;
+} bmp085_temperature_private_data_t;
+
+assert_size(bmp085_temperature_private_data_t, 10); // 5 * 2
+assert_size_le(bmp085_temperature_private_data_t, i2c_sensor_private_data_t);
+
+typedef struct attr_packed
+{
 	int16_t		ac1;
 	int16_t		ac2;
 	int16_t		ac3;
 	uint16_t	ac4;
-	uint16_t	ac5;
-	uint16_t	ac6;
 	int16_t		b1;
 	int16_t		b2;
-	int16_t		mc;
-	int16_t		md;
-	uint16_t	adc_temperature;
-	uint32_t	adc_pressure;
-} bmp085_private_data_t;
+	uint32_t	data;
+} bmp085_airpressure_private_data_t;
 
-assert_size_le(bmp085_private_data_t, i2c_sensor_private_data_t);
+assert_size(bmp085_airpressure_private_data_t, 16); // 6 * 2 + 4
+assert_size_le(bmp085_airpressure_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t sensor_bmp085_detect(i2c_sensor_data_t *data)
 {
@@ -5400,9 +5408,16 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
 	uint8_t i2c_buffer[2];
-	bmp085_private_data_t *private_data;
+	bmp085_temperature_private_data_t *temperature_private_data;
+	bmp085_airpressure_private_data_t *airpressure_private_data;
+	i2c_sensor_data_t *secondary_data;
 
-	private_data = (bmp085_private_data_t *)data;
+	temperature_private_data = (bmp085_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	airpressure_private_data = (bmp085_airpressure_private_data_t *)secondary_data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, 0xaa, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5410,7 +5425,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->ac1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xac, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5418,7 +5433,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->ac2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xae, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5426,7 +5441,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac3 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->ac3 = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xb0, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5434,7 +5449,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac4 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->ac4 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xb2, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5442,7 +5457,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac5 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+	temperature_private_data->ac5 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xb4, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5450,7 +5465,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->ac6 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+	temperature_private_data->ac6 = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xb6, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5458,7 +5473,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->b1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->b1 = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xb8, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5466,7 +5481,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->b2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	airpressure_private_data->b2 = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xbc, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5474,7 +5489,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->mc = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	temperature_private_data->mc = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0xbe, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5482,7 +5497,7 @@ static i2c_error_t sensor_bmp085_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->md = signed_16(i2c_buffer[0], i2c_buffer[1]);
+	temperature_private_data->md = signed_16(i2c_buffer[0], i2c_buffer[1]);
 
 	return(i2c_error_ok);
 }
@@ -5492,9 +5507,16 @@ static i2c_error_t sensor_bmp085_periodic(i2c_sensor_data_t *data)
 	i2c_error_t error;
 	uint8_t i2c_buffer[4];
 	uint8_t mode, meas_value;
-	bmp085_private_data_t *private_data;
+	bmp085_temperature_private_data_t *temperature_private_data;
+	bmp085_airpressure_private_data_t *airpressure_private_data;
+	i2c_sensor_data_t *secondary_data;
 
-	private_data = (bmp085_private_data_t *)data;
+	temperature_private_data = (bmp085_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	airpressure_private_data = (bmp085_airpressure_private_data_t *)secondary_data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, bmp085_reg_ctrl_meas, 1, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5515,12 +5537,12 @@ static i2c_error_t sensor_bmp085_periodic(i2c_sensor_data_t *data)
 
 	if(mode == bmp085_reg_ctrl_meas_mode_temperature)
 	{
-		private_data->adc_temperature = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
+		temperature_private_data->data = unsigned_16(i2c_buffer[0], i2c_buffer[1]);
 		meas_value = bmp085_reg_ctrl_meas_pressure | bmp085_reg_ctrl_meas_os_8;
 	}
 	else
 	{
-		private_data->adc_pressure = (i2c_buffer[0] << 16) | (i2c_buffer[1] << 8) | i2c_buffer[2];
+		airpressure_private_data->data = (i2c_buffer[0] << 16) | (i2c_buffer[1] << 8) | i2c_buffer[2];
 		meas_value = bmp085_reg_ctrl_meas_temperature;
 	}
 
@@ -5537,21 +5559,21 @@ static i2c_error_t sensor_bmp085_read_temperature(i2c_sensor_data_t *data, i2c_s
 {
 	int	x1, x2, b5;
 	unsigned ut;
-	bmp085_private_data_t *private_data;
+	bmp085_temperature_private_data_t *temperature_private_data;
 
-	private_data = (bmp085_private_data_t *)data;
+	temperature_private_data = (bmp085_temperature_private_data_t *)data->private_data;
 
-	ut = private_data->adc_temperature;
+	ut = temperature_private_data->data;
 
-	if((private_data->adc_temperature == 0) || (private_data->adc_pressure == 0))
+	if(temperature_private_data->data == 0)
 		return(i2c_error_device_error_1);
 
-	x1 = ((ut - private_data->ac6) * private_data->ac5) / (1 << 15);
+	x1 = ((ut - temperature_private_data->ac6) * temperature_private_data->ac5) / (1 << 15);
 
-	if((x1 + private_data->md) == 0)
+	if((x1 + temperature_private_data->md) == 0)
 		return(i2c_error_device_error_1);
 
-	x2 = (private_data->mc * (1 << 11)) / (x1 + private_data->md);
+	x2 = (temperature_private_data->mc * (1 << 11)) / (x1 + temperature_private_data->md);
 
 	b5 = x1 + x2;
 
@@ -5568,40 +5590,43 @@ static i2c_error_t sensor_bmp085_read_airpressure(i2c_sensor_data_t *data, i2c_s
 	int	p, x1, x2, x3, b3, b5, b6;
 	unsigned int ut;
 	int	up;
-	bmp085_private_data_t *private_data;
+	bmp085_temperature_private_data_t *temperature_private_data;
+	bmp085_airpressure_private_data_t *airpressure_private_data;
 	i2c_sensor_data_t *primary_data;
+
+	temperature_private_data = (bmp085_temperature_private_data_t *)data->private_data;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 		return(i2c_error_device_error_1);
 
-	private_data = (bmp085_private_data_t *)primary_data->private_data;
+	airpressure_private_data = (bmp085_airpressure_private_data_t *)primary_data->private_data;
 
-	ut = private_data->adc_temperature;
-	up = private_data->adc_pressure;
+	ut = temperature_private_data->data;
+	up = airpressure_private_data->data;
 
-	if((private_data->adc_temperature == 0) || (private_data->adc_pressure == 0))
+	if((ut == 0) || (up == 0))
 		return(i2c_error_device_error_1);
 
-	x1 = ((ut - private_data->ac6) * private_data->ac5) / (1 << 15);
+	x1 = ((ut - temperature_private_data->ac6) * temperature_private_data->ac5) / (1 << 15);
 
-	if((x1 + private_data->md) == 0)
+	if((x1 + temperature_private_data->md) == 0)
 		return(i2c_error_device_error_1);
 
-	x2 = (private_data->mc * (1 << 11)) / (x1 + private_data->md);
+	x2 = (temperature_private_data->mc * (1 << 11)) / (x1 + temperature_private_data->md);
 
 	b5 = x1 + x2;
 
 	up = up >> (8 - bmp085_oversampling);
 
 	b6	= b5 - 4000;
-	x1	= (private_data->b2 * ((b6 * b6) / (1 << 12))) / (1 << 11);
-	x2	= (private_data->ac2 * b6) / (1 << 11);
+	x1	= (airpressure_private_data->b2 * ((b6 * b6) / (1 << 12))) / (1 << 11);
+	x2	= (airpressure_private_data->ac2 * b6) / (1 << 11);
 	x3	= x1 + x2;
-	b3	= (((private_data->ac1 * 4 + x3) << bmp085_oversampling) + 2) / 4;
-	x1	= (private_data->ac3 * b6) / (1 << 13);
-	x2	= (private_data->b1 * ((b6 * b6) / (1 << 12))) / (1 << 16);
+	b3	= (((airpressure_private_data->ac1 * 4 + x3) << bmp085_oversampling) + 2) / 4;
+	x1	= (airpressure_private_data->ac3 * b6) / (1 << 13);
+	x2	= (airpressure_private_data->b1 * ((b6 * b6) / (1 << 12))) / (1 << 16);
 	x3	= (x1 + x2 + 2) / (1 << 2);
-	b4	= (private_data->ac4 * (x3 + 32768)) / (1 << 15);
+	b4	= (airpressure_private_data->ac4 * (x3 + 32768)) / (1 << 15);
 	b7	= (up - b3) * (50000 >> bmp085_oversampling);
 
 	if(b4 == 0)

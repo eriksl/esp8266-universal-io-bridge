@@ -8938,3 +8938,11 @@ Sun May 16 13:52:50 CEST 2021 a7c9d69 i2c-sensor: move last static private data 
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  67237, free:  13028, 16 %
     irom:    available: 592 k, used: 426568, free: 179640, 29 %
+Sun May 16 14:07:28 CEST 2021 7710b90 i2c-sensor: split private data of bme280|bmp280 so private data allocation can be shrunk.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426584, free: 179624, 29 %
+Sun May 16 14:21:38 CEST 2021 7710b90 i2c-sensor: split private data of bme280|bmp280 so private data allocation can be shrunk.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426696, free: 179512, 29 %
