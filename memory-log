@@ -8894,3 +8894,39 @@ Sun May 16 12:23:05 CEST 2021 f658139 i2c-sensor: mpl3115a2: rewrite for backgro
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  67237, free:  13028, 16 %
     irom:    available: 592 k, used: 426520, free: 179688, 29 %
+Sun May 16 12:36:12 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426536, free: 179672, 29 %
+Sun May 16 12:41:42 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67205, free:  13060, 16 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Sun May 16 12:48:56 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67173, free:  13092, 16 %
+    irom:    available: 592 k, used: 426504, free: 179704, 29 %
+Sun May 16 12:56:35 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67141, free:  13124, 16 %
+    irom:    available: 592 k, used: 426392, free: 179816, 29 %
+Sun May 16 13:11:36 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67141, free:  13124, 16 %
+    irom:    available: 592 k, used: 426408, free: 179800, 29 %
+Sun May 16 13:12:08 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67141, free:  13124, 16 %
+    irom:    available: 592 k, used: 426424, free: 179784, 29 %
+Sun May 16 13:14:22 CEST 2021 b0d2cb4 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426424, free: 179784, 29 %
+Sun May 16 13:20:18 CEST 2021 0cadd45 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426440, free: 179768, 29 %
+Sun May 16 13:21:37 CEST 2021 0cadd45 i2c-sensor: prepare for calibration parameters to be moved to private data.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426424, free: 179784, 29 %
