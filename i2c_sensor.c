@@ -16,10 +16,10 @@ enum
 	i2c_sensor_device_table_type_size = 14,
 	i2c_sensor_device_table_unity_size = 3,
 	i2c_sensor_data_entries = 28,
-	i2c_sensor_data_private_size = 9,
+	i2c_sensor_data_private_size = 5,
 };
 
-typedef struct
+typedef struct attr_packed
 {
 	uint8_t id;
 	uint8_t primary;
@@ -32,7 +32,7 @@ assert_size(i2c_sensor_flash_basic_t, 8); // 1 + 1 + (4 * 1) + 1 + 1
 
 typedef uint32_t i2c_sensor_private_data_t[i2c_sensor_data_private_size];
 
-assert_size(i2c_sensor_private_data_t, 36); // 9 * 4
+assert_size(i2c_sensor_private_data_t, 20); // 5 * 4
 
 typedef struct
 {
@@ -41,7 +41,7 @@ typedef struct
 	i2c_sensor_private_data_t	private_data;
 } i2c_sensor_data_t;
 
-assert_size(i2c_sensor_data_t, 48); // 4 + 8 + 36
+assert_size(i2c_sensor_data_t, 32); // 4 + 8 + 20
 
 typedef struct
 {
@@ -72,7 +72,7 @@ assert_size(i2c_sensor_device_table_entry_t, 60); // 8 + 7 * 4
 static unsigned int i2c_sensors;
 static i2c_sensor_data_t i2c_sensor_data[i2c_sensor_data_entries];
 
-assert_size(i2c_sensor_data, 1344); // 48 * 28
+assert_size(i2c_sensor_data, 896); // 32 * 28
 
 typedef struct
 {
