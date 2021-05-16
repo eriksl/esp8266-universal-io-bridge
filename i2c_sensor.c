@@ -4887,6 +4887,13 @@ typedef struct attr_packed
 	uint16_t	dig_T1;		//	88/89
 	int16_t		dig_T2;		//	8a/8b
 	int16_t		dig_T3;		//	8c/8d
+} bmx280_temperature_private_data_t;
+
+assert_size(bmx280_temperature_private_data_t, 6); // 3 * 2
+assert_size_le(bmx280_temperature_private_data_t, i2c_sensor_private_data_t);
+
+typedef struct attr_packed
+{
 	uint16_t	dig_P1;		//	8e/8f
 	int16_t		dig_P2;		//	90/91
 	int16_t		dig_P3;		//	92/93
@@ -4896,15 +4903,23 @@ typedef struct attr_packed
 	int16_t		dig_P7;		//	9a/9b
 	int16_t		dig_P8;		//	9c/9d
 	int16_t		dig_P9;		//	9e/9f
+} bmx280_airpressure_private_data_t;
+
+assert_size(bmx280_airpressure_private_data_t, 18); // 9 * 2
+assert_size_le(bmx280_airpressure_private_data_t, i2c_sensor_private_data_t);
+
+typedef struct attr_packed
+{
 	uint8_t		dig_H1;		//	a1
 	int16_t		dig_H2;		//	e1/e2
 	uint8_t		dig_H3;		//	e3
 	int16_t		dig_H4;		//	e4/e5[3:0]
 	int16_t		dig_H5;		//	e5[7:4]/e6
 	uint8_t		dig_H6;		//	e7
-} bmx280_private_data_t;
+} bmx280_humidity_private_data_t;
 
-assert_size_le(bmx280_private_data_t, i2c_sensor_private_data_t);
+assert_size(bmx280_humidity_private_data_t, 9); // 1 + 2 + 1 + 2 + 2 + 1
+assert_size_le(bmx280_humidity_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t bmx280_detect(i2c_sensor_data_t *data, uint8_t device_id)
 {
@@ -4928,9 +4943,22 @@ static i2c_error_t bmx280_init(i2c_sensor_data_t *data)
 	i2c_error_t	error;
 	uint8_t i2c_buffer[4];
 	unsigned int e4, e5, e6;
-	bmx280_private_data_t *private_data;
+	bmx280_temperature_private_data_t *temperature_private_data;
+	bmx280_airpressure_private_data_t *airpressure_private_data;
+	bmx280_humidity_private_data_t *humidity_private_data;
+	i2c_sensor_data_t *secondary_data;
 
-	private_data = (bmx280_private_data_t *)data->private_data;
+	temperature_private_data = (bmx280_temperature_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	airpressure_private_data = (bmx280_airpressure_private_data_t *)secondary_data->private_data;
+
+	if(sensor_data_get_entry(data->bus, data->basic.secondary[1], &secondary_data))
+		humidity_private_data = (bmx280_humidity_private_data_t *)secondary_data->private_data;
+	else
+		humidity_private_data = (bmx280_humidity_private_data_t *)0;
 
 	if((error = i2c_send1_receive(data->basic.address, bmx280_reg_reset, 1, i2c_buffer)) != i2c_error_ok)
 		return(error);
@@ -4945,7 +4973,7 @@ static i2c_error_t bmx280_init(i2c_sensor_data_t *data)
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_T1 = unsigned_16(i2c_buffer[1], i2c_buffer[0]);
+	temperature_private_data->dig_T1 = unsigned_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x8a, 2, i2c_buffer)) != i2c_error_ok)
 	{
@@ -4953,129 +4981,133 @@ static i2c_error_t bmx280_init(i2c_sensor_data_t *data)
 		return(error);
 	}
 
-	private_data->dig_T2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	temperature_private_data->dig_T2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x8c, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_T3 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	temperature_private_data->dig_T3 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x8e, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P1 = unsigned_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P1 = unsigned_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x90, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x92, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P3 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P3 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x94, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P4 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P4 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x96, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P5 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P5 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x98, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P6 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P6 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x9a, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P7 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P7 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x9c, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P8 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P8 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
 	if((error = i2c_send1_receive(data->basic.address, 0x9e, 2, i2c_buffer)) != i2c_error_ok)
 	{
 		i2c_log("bme280", error);
 		return(error);
 	}
-	private_data->dig_P9 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+	airpressure_private_data->dig_P9 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xa1, 1, i2c_buffer)) != i2c_error_ok)
+	if(humidity_private_data)
 	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	private_data->dig_H1 = unsigned_8(i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xa1, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		humidity_private_data->dig_H1 = unsigned_8(i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe1, 2, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	private_data->dig_H2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xe1, 2, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		humidity_private_data->dig_H2 = signed_16(i2c_buffer[1], i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe3, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	private_data->dig_H3 = unsigned_8(i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xe3, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		humidity_private_data->dig_H3 = unsigned_8(i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe4, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	e4 = unsigned_8(i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xe4, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		e4 = unsigned_8(i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe5, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	e5 = unsigned_8(i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xe5, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		e5 = unsigned_8(i2c_buffer[0]);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe6, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
-	}
-	e6 = unsigned_8(i2c_buffer[0]);
+		if((error = i2c_send1_receive(data->basic.address, 0xe6, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		e6 = unsigned_8(i2c_buffer[0]);
 
-	private_data->dig_H4 = ((e4 & 0xff) << 4) | ((e5 & 0x0f) >> 0);
-	private_data->dig_H5 = ((e6 & 0xff) << 4) | ((e5 & 0xf0) >> 4);
+		humidity_private_data->dig_H4 = ((e4 & 0xff) << 4) | ((e5 & 0x0f) >> 0);
+		humidity_private_data->dig_H5 = ((e6 & 0xff) << 4) | ((e5 & 0xf0) >> 4);
 
-	if((error = i2c_send1_receive(data->basic.address, 0xe7, 1, i2c_buffer)) != i2c_error_ok)
-	{
-		i2c_log("bme280", error);
-		return(error);
+		if((error = i2c_send1_receive(data->basic.address, 0xe7, 1, i2c_buffer)) != i2c_error_ok)
+		{
+			i2c_log("bme280", error);
+			return(error);
+		}
+		humidity_private_data->dig_H6 = unsigned_8(i2c_buffer[0]);
+
 	}
-	private_data->dig_H6 = unsigned_8(i2c_buffer[0]);
 
 	return(i2c_error_ok);
 }
@@ -5124,9 +5156,9 @@ static i2c_error_t bmx280_read_temperature(i2c_sensor_data_t *data, i2c_sensor_v
 	uint8_t i2c_buffer[8];
 	int adc_T;
 	double var1, var2;
-	bmx280_private_data_t *private_data;
+	bmx280_temperature_private_data_t *temperature_private_data;
 
-	private_data = (bmx280_private_data_t *)data->private_data;
+	temperature_private_data = (bmx280_temperature_private_data_t *)data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, bmx280_reg_adc, 8, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5136,8 +5168,8 @@ static i2c_error_t bmx280_read_temperature(i2c_sensor_data_t *data, i2c_sensor_v
 
 	adc_T = ((i2c_buffer[3] << 16) | (i2c_buffer[4] << 8) | (i2c_buffer[5] << 0)) >> 4;
 
-	var1 = (adc_T / 16384.0 - private_data->dig_T1 / 1024.0) * private_data->dig_T2;
-	var2 = (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * private_data->dig_T3;
+	var1 = (adc_T / 16384.0 - temperature_private_data->dig_T1 / 1024.0) * temperature_private_data->dig_T2;
+	var2 = (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * temperature_private_data->dig_T3;
 
 	value->ch0 = adc_T;
 	value->ch1 = var1;
@@ -5153,13 +5185,16 @@ static i2c_error_t bmx280_read_airpressure(i2c_sensor_data_t *data, i2c_sensor_v
 	uint8_t i2c_buffer[8];
 	int adc_T, adc_P, t_fine;
 	double var1, var2, pressure;
-	bmx280_private_data_t *private_data;
+	bmx280_airpressure_private_data_t *airpressure_private_data;
+	bmx280_temperature_private_data_t *temperature_private_data;
 	i2c_sensor_data_t *primary_data;
+
+	airpressure_private_data = (bmx280_airpressure_private_data_t *)data->private_data;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 		return(i2c_error_device_error_1);
 
-	private_data = (bmx280_private_data_t *)primary_data->private_data;
+	temperature_private_data = (bmx280_temperature_private_data_t *)primary_data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, bmx280_reg_adc, 8, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5170,16 +5205,16 @@ static i2c_error_t bmx280_read_airpressure(i2c_sensor_data_t *data, i2c_sensor_v
 	adc_P	= ((i2c_buffer[0] << 16) | (i2c_buffer[1] << 8) | (i2c_buffer[2] << 0)) >> 4;
 	adc_T	= ((i2c_buffer[3] << 16) | (i2c_buffer[4] << 8) | (i2c_buffer[5] << 0)) >> 4;
 
-	var1 = (adc_T / 16384.0 - private_data->dig_T1 / 1024.0) * private_data->dig_T2;
-	var2 = (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * private_data->dig_T3;
+	var1 = (adc_T / 16384.0 - temperature_private_data->dig_T1 / 1024.0) * temperature_private_data->dig_T2;
+	var2 = (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * temperature_private_data->dig_T3;
 	t_fine = var1 + var2;
 
 	var1 = (t_fine / 2.0) - 64000.0;
-	var2 = var1 * var1 * private_data->dig_P6 / 32768.0;
-	var2 = var2 + var1 * private_data->dig_P5 * 2.0;
-	var2 = (var2 / 4.0) + (private_data->dig_P4 * 65536.0);
-	var1 = (private_data->dig_P3 * var1 * var1 / 524288.0 + private_data->dig_P2 * var1) / 524288.0;
-	var1 = (1.0 + var1 / 32768.0) * private_data->dig_P1;
+	var2 = var1 * var1 * airpressure_private_data->dig_P6 / 32768.0;
+	var2 = var2 + var1 * airpressure_private_data->dig_P5 * 2.0;
+	var2 = (var2 / 4.0) + (airpressure_private_data->dig_P4 * 65536.0);
+	var1 = (airpressure_private_data->dig_P3 * var1 * var1 / 524288.0 + airpressure_private_data->dig_P2 * var1) / 524288.0;
+	var1 = (1.0 + var1 / 32768.0) * airpressure_private_data->dig_P1;
 
 	if((int)var1 == 0)
 		pressure = 0;
@@ -5187,9 +5222,9 @@ static i2c_error_t bmx280_read_airpressure(i2c_sensor_data_t *data, i2c_sensor_v
 	{
 		pressure = 1048576.0 - adc_P;
 		pressure = (pressure - (var2 / 4096.0)) * 6250.0 / var1;
-		var1 = private_data->dig_P9 * pressure * pressure / 2147483648.0;
-		var2 = pressure * private_data->dig_P8 / 32768.0;
-		pressure = pressure + (var1 + var2 + private_data->dig_P7) / 16.0;
+		var1 = airpressure_private_data->dig_P9 * pressure * pressure / 2147483648.0;
+		var2 = pressure * airpressure_private_data->dig_P8 / 32768.0;
+		pressure = pressure + (var1 + var2 + airpressure_private_data->dig_P7) / 16.0;
 	}
 
 	value->ch0 = adc_P;
@@ -5202,17 +5237,20 @@ static i2c_error_t bmx280_read_airpressure(i2c_sensor_data_t *data, i2c_sensor_v
 
 static i2c_error_t bmx280_read_humidity(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
-	i2c_error_t		error;
-	uint8_t			i2c_buffer[8];
-	int				adc_T, adc_H;
-	double			t_fine, var1, var2, humidity;
-	bmx280_private_data_t *private_data;
+	i2c_error_t error;
+	uint8_t i2c_buffer[8];
+	int adc_T, adc_H;
+	double t_fine, var1, var2, humidity;
+	bmx280_humidity_private_data_t *humidity_private_data;
+	bmx280_temperature_private_data_t *temperature_private_data;
 	i2c_sensor_data_t *primary_data;
+
+	humidity_private_data = (bmx280_humidity_private_data_t *)data->private_data;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 		return(i2c_error_device_error_1);
 
-	private_data = (bmx280_private_data_t *)primary_data->private_data;
+	temperature_private_data = (bmx280_temperature_private_data_t *)primary_data->private_data;
 
 	if((error = i2c_send1_receive(data->basic.address, bmx280_reg_adc, 8, i2c_buffer)) != i2c_error_ok)
 	{
@@ -5223,12 +5261,12 @@ static i2c_error_t bmx280_read_humidity(i2c_sensor_data_t *data, i2c_sensor_valu
 	adc_T	= ((i2c_buffer[3] << 16) |	(i2c_buffer[4] << 8) | (i2c_buffer[5] << 0)) >> 4;
 	adc_H	= (							(i2c_buffer[6] << 8) | (i2c_buffer[7] << 0)) >> 0;
 
-	var1 = (adc_T / 16384.0 - private_data->dig_T1 / 1024.0) * private_data->dig_T2;
-	var2 = (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - private_data->dig_T1 / 8192.0) * private_data->dig_T3;
+	var1 = (adc_T / 16384.0 - temperature_private_data->dig_T1 / 1024.0) * temperature_private_data->dig_T2;
+	var2 = (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * (adc_T / 131072.0 - temperature_private_data->dig_T1 / 8192.0) * temperature_private_data->dig_T3;
 	t_fine = var1 + var2 - 76800;
 
-	humidity = (adc_H - (private_data->dig_H4 * 64.0 + private_data->dig_H5 / 16384.0 * t_fine)) * (private_data->dig_H2 / 65536.0 * (1.0 + private_data->dig_H6 / 67108864.0 * t_fine * (1.0 + private_data->dig_H3 / 67108864.0 * t_fine)));
-	humidity = humidity * (1.0 - private_data->dig_H1 * humidity / 524288.0);
+	humidity = (adc_H - (humidity_private_data->dig_H4 * 64.0 + humidity_private_data->dig_H5 / 16384.0 * t_fine)) * (humidity_private_data->dig_H2 / 65536.0 * (1.0 + humidity_private_data->dig_H6 / 67108864.0 * t_fine * (1.0 + humidity_private_data->dig_H3 / 67108864.0 * t_fine)));
+	humidity = humidity * (1.0 - humidity_private_data->dig_H1 * humidity / 524288.0);
 
 	if(humidity > 100.0)
 		humidity = 100.0;
@@ -7202,7 +7240,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		{
 			i2c_sensor_bme280_temperature, i2c_sensor_none,
 			{
-				i2c_sensor_bme280_humidity, i2c_sensor_bme280_airpressure, i2c_sensor_none, i2c_sensor_none,
+				i2c_sensor_bme280_airpressure, i2c_sensor_bme280_humidity, i2c_sensor_none, i2c_sensor_none,
 			},
 			0x76, 2,
 		},
@@ -7211,20 +7249,6 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		sensor_bme280_init,
 		sensor_bme280_read_temperature,
 		sensor_bme280_periodic,
-	},
-	{
-		{
-			i2c_sensor_bme280_humidity, i2c_sensor_bme280_temperature,
-			{
-				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
-			},
-			0x76, 1,
-		},
-		"bme280", "humidity", "%",
-		(void *)0,
-		(void *)0,
-		sensor_bme280_read_humidity,
-		(void *)0,
 	},
 	{
 		{
@@ -7238,6 +7262,20 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 		(void *)0,
 		sensor_bme280_read_airpressure,
+		(void *)0,
+	},
+	{
+		{
+			i2c_sensor_bme280_humidity, i2c_sensor_bme280_temperature,
+			{
+				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
+			},
+			0x76, 1,
+		},
+		"bme280", "humidity", "%",
+		(void *)0,
+		(void *)0,
+		sensor_bme280_read_humidity,
 		(void *)0,
 	},
 	{

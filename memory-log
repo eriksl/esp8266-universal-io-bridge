@@ -8930,3 +8930,11 @@ Sun May 16 13:21:37 CEST 2021 0cadd45 i2c-sensor: prepare for calibration parame
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  67237, free:  13028, 16 %
     irom:    available: 592 k, used: 426424, free: 179784, 29 %
+Sun May 16 13:49:52 CEST 2021 a7c9d69 i2c-sensor: move last static private data blocks into private data structs.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426552, free: 179656, 29 %
+Sun May 16 13:52:50 CEST 2021 a7c9d69 i2c-sensor: move last static private data blocks into private data structs.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  67237, free:  13028, 16 %
+    irom:    available: 592 k, used: 426568, free: 179640, 29 %
