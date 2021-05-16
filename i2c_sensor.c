@@ -6674,7 +6674,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 			},
 			0x10, 1
 		},
-		 "veml6075", "uv light index", "",
+		 "veml6075", "uv index", "",
 		sensor_veml6075_uvindex_detect,
 		sensor_veml6075_uvindex_init,
 		sensor_veml6075_uvindex_read,
