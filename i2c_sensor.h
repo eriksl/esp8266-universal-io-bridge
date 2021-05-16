@@ -17,8 +17,6 @@ typedef enum
 	i2c_sensor_apds9960,
 	i2c_sensor_si114x_ultraviolet,
 	i2c_sensor_si114x_visible_light,
-	i2c_sensor_si114x_infrared,
-	i2c_sensor_si114x_temperature,
 	i2c_sensor_max44009,
 	i2c_sensor_veml6070_38,
 	i2c_sensor_veml6070_39,

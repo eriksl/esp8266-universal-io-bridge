@@ -1039,7 +1039,10 @@ typedef enum
 	si114x_reg_reserved_05 =	0x05,
 	si114x_reg_reserved_06 =	0x06,
 	si114x_reg_hw_key =			0x07,
-	si114x_reg_meas_rate =		0x08,
+	si114x_reg_meas_rate_0_l =	0x0a,
+	si114x_reg_meas_rate_0_h =	0x08,
+	si114x_reg_meas_rate_1_l =	0x08,
+	si114x_reg_meas_rate_1_h =	0x09,
 	si114x_reg_reserved_0a =	0x0a,
 	si114x_reg_reserved_0b =	0x0b,
 	si114x_reg_reserved_0c =	0x0c,
@@ -1075,6 +1078,24 @@ typedef enum
 	si114x_reg_ana_in_key2 =	0x3d,
 	si114x_reg_ana_in_key3 =	0x3e,
 } si114x_register_t;
+
+enum
+{
+	si114x_reg_part_id_si1145 =	0x45,
+	si114x_reg_part_id_si1146 =	0x46,
+	si114x_reg_part_id_si1147 =	0x47,
+	si114x_reg_hw_key_key =		0x17,
+	si114x_reg_int_cfg_en =		0 << 0,
+	si114x_reg_irq_enable_ps3_ie = 1 << 4,
+	si114x_reg_irq_enable_ps2_ie = 1 << 3,
+	si114x_reg_irq_enable_ps1_ie = 1 << 2,
+	si114x_reg_irq_enable_als_ie = 1 << 0,
+	si114x_reg_irq_enable_none_en = 0 << 0,
+	si114x_reg_ucoef_default_0 =	0x7b,
+	si114x_reg_ucoef_default_1 =	0x6b,
+	si114x_reg_ucoef_default_2 =	0x01,
+	si114x_reg_ucoef_default_3 =	0x00,
+};
 
 typedef enum
 {
@@ -1112,27 +1133,53 @@ typedef enum
 	si114x_param_als_ir_adc_misc =		0x1f,
 } si114x_parameter_t;
 
+enum
+{
+	si114x_param_als_encoding_vis_report_lsb =		1 << 4,
+	si114x_param_als_encoding_vis_report_msb =		0 << 4,
+	si114x_param_als_encoding_ir_report_lsb =		1 << 5,
+	si114x_param_als_encoding_ir_report_msb =		0 << 5,
+
+	si141x_param_ps12_select_ps2_led_off =			0 << 4,
+	si141x_param_ps12_select_ps1_led_off =			0 << 0,
+	si141x_param_ps3_select_ps3_led_off =			0 << 0,
+
+	si114x_param_ps_encoding_align_all_msb =		0,
+
+	si114x_param_ps_adc_misc_ps_range_low =			0 << 5,
+	si114x_param_ps_adc_misc_ps_range_high =		1 << 5,
+	si114x_param_ps_adc_misc_ps_adc_mode_raw =		0 << 2,
+	si114x_param_ps_adc_misc_ps_adc_mode_normal =	1 << 2,
+
+	si114x_param_als_ir_adc_misc_ir_range_normal =	0 << 5,
+	si114x_param_als_ir_adc_misc_ir_range_high =	1 << 5,
+	si114x_param_als_ir_adc_misc_ir_preserve =		0b00011111,
+
+	si114x_param_als_vis_adc_misc_vis_range_normal=	0 << 5,
+	si114x_param_als_vis_adc_misc_vis_range_high=	1 << 5,
+};
+
 typedef enum
 {
-	si114x_cmd_nop =			0b00000000,	//	00
-	si114x_cmd_reset =			0b00000001,	//	01
-	si114x_cmd_busaddr =		0b00000010,	//	02
-	si114x_cmd_reserved_03 =	0b00000011,	//	03
-	si114x_cmd_reserved_04 =	0b00000100,	//	04
-	si114x_cmd_psforce =		0b00000101,	//	05
-	si114x_cmd_alsforce =		0b00000110,	//	06
-	si114x_cmd_psalsforce =		0b00000111,	//	07
-	si114x_cmd_reserved_08 =	0b00001000,	//	08
-	si114x_cmd_pspause =		0b00001001,	//	09
-	si114x_cmd_alspause =		0b00001010,	//	0a
-	si114x_cmd_psalspause =		0b00001011,	//	0b
-	si114x_cmd_reserved_0c =	0b00001100,	//	0c
-	si114x_cmd_psauto =			0b00001101,	//	0d
-	si114x_cmd_alsauto =		0b00001110,	//	0e
-	si114x_cmd_psalsauto =		0b00001111,	//	0f
-	si114x_cmd_get_cal =		0b00010010,	//	12
-	si114x_cmd_param_query =	0b10000000,	//	80
-	si114x_cmd_param_set =		0b10100000,	//	a0
+	si114x_cmd_nop =			0b00000000,	//	0x00
+	si114x_cmd_reset =			0b00000001,	//	0x01
+	si114x_cmd_busaddr =		0b00000010,	//	0x02
+	si114x_cmd_reserved_03 =	0b00000011,	//	0x03
+	si114x_cmd_reserved_04 =	0b00000100,	//	0x04
+	si114x_cmd_psforce =		0b00000101,	//	0x05
+	si114x_cmd_alsforce =		0b00000110,	//	0x06
+	si114x_cmd_psalsforce =		0b00000111,	//	0x07
+	si114x_cmd_reserved_08 =	0b00001000,	//	0x08
+	si114x_cmd_pspause =		0b00001001,	//	0x09
+	si114x_cmd_alspause =		0b00001010,	//	0x0a
+	si114x_cmd_psalspause =		0b00001011,	//	0x0b
+	si114x_cmd_reserved_0c =	0b00001100,	//	0x0c
+	si114x_cmd_psauto =			0b00001101,	//	0x0d
+	si114x_cmd_alsauto =		0b00001110,	//	0x0e
+	si114x_cmd_psalsauto =		0b00001111,	//	0x0f
+	si114x_cmd_get_cal =		0b00010010,	//	0x12
+	si114x_cmd_param_query =	0b10000000,	//	0x80
+	si114x_cmd_param_set =		0b10100000,	//	0xa0
 } si114x_command_t;
 
 typedef enum
@@ -1184,18 +1231,20 @@ typedef enum
 	si114x_irq_als_int =	0b00000001,
 } si114_irq_t;
 
-typedef struct
-{
-	si114x_chlist_bit_t	chlist;
-	si114x_register_t	reg;
-	double				offset;
-	double				factor;
-} si114x_sensor_entry_t;
-
 enum
 {
 	si114x_attempt_count = 16,
+	si114x_private_data_entries = 9,
 };
+
+typedef struct attr_packed
+{
+	uint16_t entries;
+	uint16_t queue[si114x_private_data_entries];
+} si114x_private_data_t;
+
+assert_size(si114x_private_data_t, 20); // 2 + 9 * 2
+assert_size_le(si114x_private_data_t, i2c_sensor_private_data_t);
 
 static i2c_error_t si114x_read_register(si114x_register_t reg, unsigned int length, uint8_t *bytes)
 {
@@ -1383,6 +1432,24 @@ static i2c_error_t si114x_set_param(si114x_parameter_t param, unsigned int value
 	return(i2c_error_ok);
 }
 
+static double si114x_lux(double vis, double ir)
+{
+	static const double vis_dark = 256;
+	static const double ir_dark = 250;
+	static const double gainFactor = 1.0;
+	static const double visCoeff = 5.41;
+	static const double irCoeff = 0.08;
+	static const double visCountPerLux = 0.319;
+	static const double irCountPerLux = 8.46; // for incandescent bulb (datasheet)
+	static const double corrFactor = 0.18; // my empirical correction factor
+
+	double lux;
+
+	lux = (((vis - vis_dark) / visCountPerLux) * visCoeff - ((ir - ir_dark) / irCountPerLux) * irCoeff) * gainFactor * corrFactor;
+
+	return(lux);
+}
+
 static i2c_error_t sensor_si114x_detect(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
@@ -1395,10 +1462,19 @@ static i2c_error_t sensor_si114x_detect(i2c_sensor_data_t *data)
 	if((error = si114x_read_register_1(si114x_reg_part_id, &value)) != i2c_error_ok)
 		return(error);
 
-	if((value != 0x45) && (value != 0x46) && (value != 0x47))
+	if((value != si114x_reg_part_id_si1145) && (value != si114x_reg_part_id_si1146) && (value != si114x_reg_part_id_si1147))
 		return(i2c_error_device_error_2);
 
-	if((error = si114x_write_register_2(si114x_reg_meas_rate, 0)) != i2c_error_ok)
+	if((error = si114x_write_register_1(si114x_reg_meas_rate_0_l, 0)) != i2c_error_ok)
+		return(error);
+
+	if((error = si114x_write_register_1(si114x_reg_meas_rate_0_h, 0)) != i2c_error_ok)
+		return(error);
+
+	if((error = si114x_write_register_1(si114x_reg_meas_rate_1_l, 0)) != i2c_error_ok)
+		return(error);
+
+	if((error = si114x_write_register_1(si114x_reg_meas_rate_1_h, 0)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_write_register_1(si114x_reg_command, si114x_cmd_reset)) != i2c_error_ok)
@@ -1410,36 +1486,60 @@ static i2c_error_t sensor_si114x_detect(i2c_sensor_data_t *data)
 static i2c_error_t sensor_si114x_init(i2c_sensor_data_t *data)
 {
 	i2c_error_t error;
+	unsigned int ix, response;
+	si114x_private_data_t *uv_ir_private_data;
+	si114x_private_data_t *vis_vis_private_data;
+	i2c_sensor_data_t *secondary_data;
 
-	if((error = si114x_write_register_1(si114x_reg_hw_key, 0x17)) != i2c_error_ok)
+	uv_ir_private_data = (si114x_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
+		return(i2c_error_device_error_1);
+
+	vis_vis_private_data = (si114x_private_data_t *)secondary_data->private_data;
+
+	for(ix = 0; ix < si114x_private_data_entries; ix++)
+	{
+		uv_ir_private_data->queue[ix] = 0;
+		vis_vis_private_data->queue[ix] = 0;
+	}
+
+	uv_ir_private_data->entries = 0;
+	vis_vis_private_data->entries = 0;
+
+	if((error = si114x_write_register_1(si114x_reg_hw_key, si114x_reg_hw_key_key)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_sendcmd(si114x_cmd_psalspause, (unsigned int *)0)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_write_register_1(si114x_reg_int_cfg, 0x00)) != i2c_error_ok)
+	if((error = si114x_write_register_1(si114x_reg_int_cfg, si114x_reg_int_cfg_en)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_write_register_1(si114x_reg_irq_enable, 0)) != i2c_error_ok)
+	if((error = si114x_write_register_1(si114x_reg_irq_enable, si114x_reg_irq_enable_none_en)) != i2c_error_ok)
 		return(error);
 
 	// default UCOEF values for UV measurements
 
-	if((error = si114x_write_register_4(si114x_reg_ucoef, 0x7b, 0x6b, 0x01, 0x00)) != i2c_error_ok)
+	if((error = si114x_write_register_4(si114x_reg_ucoef,
+			si114x_reg_ucoef_default_0,
+			si114x_reg_ucoef_default_1,
+			si114x_reg_ucoef_default_2,
+			si114x_reg_ucoef_default_3)) != i2c_error_ok)
 		return(error);
 
 	// sequencer parameters
 
-	if((error = si114x_set_param(si114x_param_psled12_select, 0x00)) != i2c_error_ok) // leds PS1 and PS2 OFF
+	if((error = si114x_set_param(si114x_param_psled12_select, si141x_param_ps12_select_ps1_led_off | si141x_param_ps12_select_ps2_led_off)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_psled3_select, 0x00)) != i2c_error_ok) // leds PS3 OFF
+	if((error = si114x_set_param(si114x_param_psled3_select, si141x_param_ps3_select_ps3_led_off)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_ps_encoding, 0b00000000)) != i2c_error_ok)
+	if((error = si114x_set_param(si114x_param_ps_encoding, si114x_param_ps_encoding_align_all_msb)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_ps_adc_misc, 0b00000000)) != i2c_error_ok)
+	if((error = si114x_set_param(si114x_param_ps_adc_misc, si114x_param_ps_adc_misc_ps_range_low | si114x_param_ps_adc_misc_ps_adc_mode_normal)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_set_param(si114x_param_ps1_adcmux, si114x_mux_gnd)) != i2c_error_ok)
@@ -1451,13 +1551,19 @@ static i2c_error_t sensor_si114x_init(i2c_sensor_data_t *data)
 	if((error = si114x_set_param(si114x_param_ps3_adcmux, si114x_mux_gnd)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_als_encoding, 0b00110000)) != i2c_error_ok) // report LSB
+	if((error = si114x_set_param(si114x_param_als_encoding, si114x_param_als_encoding_vis_report_msb | si114x_param_als_encoding_ir_report_msb)) != i2c_error_ok) // FIXME
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_als_ir_adc_misc, 0b00100000)) != i2c_error_ok) // reduce sensitivity, IR_RANGE(5) = 1, gain /= 14.5
+	if((error = si114x_get_param(si114x_param_als_ir_adc_misc, &response)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_set_param(si114x_param_als_vis_adc_misc, 0b00100000)) != i2c_error_ok) // reduce sensitivity, VIS_RANGE(5) = 1, gain /= 14.5
+	response &= si114x_param_als_ir_adc_misc_ir_preserve;
+	response |= si114x_param_als_ir_adc_misc_ir_range_normal;
+
+	if((error = si114x_set_param(si114x_param_als_ir_adc_misc, response)) != i2c_error_ok)
+		return(error);
+
+	if((error = si114x_set_param(si114x_param_als_vis_adc_misc, si114x_param_als_vis_adc_misc_vis_range_normal)) != i2c_error_ok)
 		return(error);
 
 	if((error = si114x_set_param(si114x_param_als_ir_adcmux, si114x_mux_ir_small)) != i2c_error_ok)
@@ -1495,7 +1601,18 @@ static i2c_error_t sensor_si114x_ultraviolet_read(i2c_sensor_data_t *data, i2c_s
 static i2c_error_t sensor_si114x_visible_light_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
 {
 	i2c_error_t error;
-	int visible;
+	int reg_visible, reg_ir, ix;
+	double visible, ir;
+	si114x_private_data_t *uv_ir_private_data;
+	si114x_private_data_t *vis_vis_private_data;
+	i2c_sensor_data_t *primary_data;
+
+	vis_vis_private_data = (si114x_private_data_t *)data->private_data;
+
+	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
+		return(i2c_error_device_error_1);
+
+	uv_ir_private_data = (si114x_private_data_t *)primary_data->private_data;
 
 	if((error = si114x_write_register_2(si114x_reg_als_vis_data, 0)) != i2c_error_ok)
 		return(error);
@@ -1506,78 +1623,39 @@ static i2c_error_t sensor_si114x_visible_light_read(i2c_sensor_data_t *data, i2c
 	if((error = si114x_sendcmd(si114x_cmd_alsforce, (unsigned int *)0)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_read_register_2(si114x_reg_als_vis_data, (unsigned int *)&visible)) != i2c_error_ok)
+	if((error = si114x_read_register_2(si114x_reg_als_vis_data, (unsigned int *)&reg_visible)) != i2c_error_ok)
 		return(error);
 
-	visible -= 256;
-
-	value->ch0 = visible;
-	value->value = visible * 28.0;
-
-	if(value->value < 2000)
-		return(i2c_error_overflow);
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_si114x_infrared_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	i2c_error_t error;
-	int visible, ir;
-
-	if((error = si114x_write_register_2(si114x_reg_als_ir_data, 0)) != i2c_error_ok)
+	if((error = si114x_read_register_2(si114x_reg_als_ir_data, (unsigned int *)&reg_ir)) != i2c_error_ok)
 		return(error);
 
-	if((error = si114x_write_register_2(si114x_reg_als_vis_data, 0)) != i2c_error_ok)
-		return(error);
+	if(uv_ir_private_data->entries < si114x_private_data_entries)
+		uv_ir_private_data->entries++;
 
-	if((error = si114x_set_param(si114x_param_chlist, si114x_chlist_bit_vis | si114x_chlist_bit_ir)) != i2c_error_ok)
-		return(error);
+	if(vis_vis_private_data->entries < si114x_private_data_entries)
+		vis_vis_private_data->entries++;
 
-	if((error = si114x_sendcmd(si114x_cmd_alsforce, (unsigned int *)0)) != i2c_error_ok)
-		return(error);
+	for(ix = (uv_ir_private_data->entries - 2); ix >= 0; ix--)
+		uv_ir_private_data->queue[ix + 1] = uv_ir_private_data->queue[ix];
 
-	if((error = si114x_read_register_2(si114x_reg_als_ir_data, (unsigned int *)&ir)) != i2c_error_ok)
-		return(error);
+	for(ix = (vis_vis_private_data->entries - 2); ix >= 0; ix--)
+		vis_vis_private_data->queue[ix + 1] = vis_vis_private_data->queue[ix];
 
-	if((error = si114x_read_register_2(si114x_reg_als_vis_data, (unsigned int *)&visible)) != i2c_error_ok)
-		return(error);
+	uv_ir_private_data->queue[0] = reg_ir;
+	vis_vis_private_data->queue[0] = reg_visible;
 
-	ir -= 256;
-	visible -= 256;
+	ir = 0;
+	visible = 0;
 
-	if(ir < 0)
-		ir = 0;
+	for(ix = 0; ix < uv_ir_private_data->entries; ix++)
+		ir += uv_ir_private_data->queue[ix];
 
-	if(visible < 1)
-		visible = 1;
+	for(ix = 0; ix < vis_vis_private_data->entries; ix++)
+		visible += vis_vis_private_data->queue[ix];
 
-	value->ch0 = ir;
-	value->ch1 = visible;
-	value->value = (ir * 8.3) / visible;
-
-	return(i2c_error_ok);
-}
-
-static i2c_error_t sensor_si114x_temperature_read(i2c_sensor_data_t *data, i2c_sensor_value_t *value)
-{
-	i2c_error_t error;
-	unsigned int regval;
-
-	if((error = si114x_write_register_2(si114x_reg_aux_data, 0)) != i2c_error_ok)
-		return(error);
-
-	if((error = si114x_set_param(si114x_param_chlist, si114x_chlist_bit_aux)) != i2c_error_ok)
-		return(error);
-
-	if((error = si114x_sendcmd(si114x_cmd_alsforce, (unsigned int *)0)) != i2c_error_ok)
-		return(error);
-
-	if((error = si114x_read_register_2(si114x_reg_aux_data, &regval)) != i2c_error_ok)
-		return(error);
-
-	value->ch0 = regval;
-	value->value = (regval / 35.0) - 299;
+	value->ch0 = reg_visible;
+	value->ch1 = reg_ir;
+	value->value = si114x_lux(visible / vis_vis_private_data->entries, ir / uv_ir_private_data->entries);
 
 	return(i2c_error_ok);
 }
@@ -6647,7 +6725,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		{
 			i2c_sensor_si114x_ultraviolet, i2c_sensor_none,
 			{
-				i2c_sensor_si114x_visible_light, i2c_sensor_si114x_infrared, i2c_sensor_si114x_temperature, i2c_sensor_none
+				i2c_sensor_si114x_visible_light, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none
 			},
 			0x60, 1,
 		},
@@ -6669,34 +6747,6 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 		(void *)0,
 		(void *)0,
 		sensor_si114x_visible_light_read,
-		(void *)0,
-	},
-	{
-		{
-			i2c_sensor_si114x_infrared, i2c_sensor_si114x_ultraviolet,
-			{
-				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
-			},
-			0x60, 0,
-		},
-		"si114x", "ir light", "%",
-		(void *)0,
-		(void *)0,
-		sensor_si114x_infrared_read,
-		(void *)0,
-	},
-	{
-		{
-			i2c_sensor_si114x_temperature, i2c_sensor_si114x_ultraviolet,
-			{
-				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
-			},
-			0x60, 1,
-		},
-		"si114x", "temperature", "C",
-		(void *)0,
-		(void *)0,
-		sensor_si114x_temperature_read,
 		(void *)0,
 	},
 	{
