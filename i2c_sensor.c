@@ -5694,27 +5694,27 @@ static i2c_error_t sensor_bmp085_read_airpressure(i2c_sensor_data_t *data, i2c_s
 	int	p, x1, x2, x3, b3, b5, b6;
 	unsigned int ut;
 	int	up;
-	bmp085_temperature_private_data_t *temperature_private_data;
 	bmp085_airpressure_private_data_t *airpressure_private_data;
+	bmp085_temperature_private_data_t *temperature_private_data;
 	i2c_sensor_data_t *primary_data;
 
-	temperature_private_data = (bmp085_temperature_private_data_t *)data->private_data;
+	airpressure_private_data = (bmp085_airpressure_private_data_t *)data->private_data;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.primary, &primary_data))
 		return(i2c_error_device_error_1);
 
-	airpressure_private_data = (bmp085_airpressure_private_data_t *)primary_data->private_data;
+	temperature_private_data = (bmp085_temperature_private_data_t *)primary_data->private_data;
 
 	ut = temperature_private_data->data;
 	up = airpressure_private_data->data;
 
 	if((ut == 0) || (up == 0))
-		return(i2c_error_device_error_1);
+		return(i2c_error_device_error_2);
 
 	x1 = ((ut - temperature_private_data->ac6) * temperature_private_data->ac5) / (1 << 15);
 
 	if((x1 + temperature_private_data->md) == 0)
-		return(i2c_error_device_error_1);
+		return(i2c_error_device_error_3);
 
 	x2 = (temperature_private_data->mc * (1 << 11)) / (x1 + temperature_private_data->md);
 
@@ -5734,7 +5734,7 @@ static i2c_error_t sensor_bmp085_read_airpressure(i2c_sensor_data_t *data, i2c_s
 	b7	= (up - b3) * (50000 >> bmp085_oversampling);
 
 	if(b4 == 0)
-		return(i2c_error_device_error_2);
+		return(i2c_error_device_error_4);
 
 	if(b7 & 0x80000000)
 		p = ((b7 * 2) / b4) << 1;
