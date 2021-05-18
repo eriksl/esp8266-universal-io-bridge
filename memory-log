@@ -9126,3 +9126,23 @@ Tue May 18 18:07:31 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog time
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427688, free: 178520, 29 %
+Tue May 18 19:19:35 CEST 2021 53138d7 io: fix crash when gss or gas was set to an unconnected io.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427832, free: 178376, 29 %
+Tue May 18 19:20:40 CEST 2021 53138d7 io: fix crash when gss or gas was set to an unconnected io.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427848, free: 178360, 29 %
+Tue May 18 19:27:23 CEST 2021 53138d7 io: fix crash when gss or gas was set to an unconnected io.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427928, free: 178280, 29 %
+Tue May 18 20:39:57 CEST 2021 53138d7 io: fix crash when gss or gas was set to an unconnected io.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427784, free: 178424, 29 %
+Tue May 18 20:40:40 CEST 2021 53138d7 io: fix crash when gss or gas was set to an unconnected io.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427736, free: 178472, 29 %
