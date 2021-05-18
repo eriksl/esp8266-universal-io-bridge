@@ -904,7 +904,9 @@ static app_action_t application_function_i2c_bus(string_t *src, string_t *dst)
 	{
 		if((error = i2c_select_bus(intin)) != i2c_error_ok)
 		{
+			string_append(dst, "i2c-bus");
 			i2c_error_format_string(dst, error);
+			string_append(dst, "\n");
 			return(app_action_error);
 		}
 
