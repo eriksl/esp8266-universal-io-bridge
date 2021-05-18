@@ -4349,7 +4349,7 @@ static i2c_error_t sensor_htu21_temperature_read(i2c_sensor_data_t *data, i2c_se
 
 	private_data = (htu21_temperature_private_data_t *)data->private_data;
 
-	if(private_data->raw_temperature_data_valid)
+	if(!private_data->raw_temperature_data_valid)
 		return(i2c_error_device_error_2);
 
 	value->ch0 = private_data->raw_temperature_data;
