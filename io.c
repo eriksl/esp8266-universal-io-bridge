@@ -1015,6 +1015,9 @@ unsigned int io_pin_max_value(unsigned int io, unsigned int pin)
 	info = &io_info[io];
 	data = &io_data[io];
 
+	if(!data->detected)
+		return(io_error);
+
 	if(pin >= info->pins)
 		return(0);
 
@@ -1041,6 +1044,13 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 
 	info = &io_info[io];
 	data = &io_data[io];
+
+	if(!data->detected)
+	{
+		if(error_msg)
+			string_append(error_msg, "io not available\n");
+		return(io_error);
+	}
 
 	if(pin >= info->pins)
 	{
@@ -1079,6 +1089,13 @@ io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, unsi
 	info = &io_info[io];
 	data = &io_data[io];
 
+	if(!data->detected)
+	{
+		if(error)
+			string_append(error, "io not available\n");
+		return(io_error);
+	}
+
 	if(pin >= info->pins)
 	{
 		if(error)
@@ -1095,6 +1112,7 @@ io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, unsi
 io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int pins)
 {
 	const io_info_entry_t *info;
+	io_data_entry_t *data;
 
 	if(io >= io_id_size)
 	{
@@ -1104,6 +1122,14 @@ io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int 
 	}
 
 	info = &io_info[io];
+	data = &io_data[io];
+
+	if(!data->detected)
+	{
+		if(error)
+			string_append(error, "io not available\n");
+		return(io_error);
+	}
 
 	return(io_set_mask_x(error, info, mask, pins));
 }
@@ -1124,6 +1150,13 @@ io_error_t io_trigger_pin(string_t *error, unsigned int io, unsigned int pin, io
 
 	info = &io_info[io];
 	data = &io_data[io];
+
+	if(!data->detected)
+	{
+		if(error)
+			string_append(error, "io not available\n");
+		return(io_error);
+	}
 
 	if(pin >= info->pins)
 	{

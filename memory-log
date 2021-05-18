@@ -9058,3 +9058,71 @@ Sun May 16 18:02:35 CEST 2021 f0ab3e0 i2c-sensor: shrink veml6075 long title, it
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427416, free: 178792, 29 %
+Tue May 18 17:46:08 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427448, free: 178760, 29 %
+Tue May 18 17:53:13 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 426488, free: 179720, 29 %
+Tue May 18 17:53:43 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 426232, free: 179976, 29 %
+Tue May 18 17:54:14 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 425944, free: 180264, 29 %
+Tue May 18 17:54:37 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66773, free:  13492, 16 %
+    irom:    available: 592 k, used: 425512, free: 180696, 29 %
+Tue May 18 17:55:17 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66741, free:  13524, 16 %
+    irom:    available: 592 k, used: 424136, free: 182072, 30 %
+Tue May 18 17:56:01 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66757, free:  13508, 16 %
+    irom:    available: 592 k, used: 424568, free: 181640, 29 %
+Tue May 18 17:56:30 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66757, free:  13508, 16 %
+    irom:    available: 592 k, used: 424712, free: 181496, 29 %
+Tue May 18 17:56:51 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66765, free:  13500, 16 %
+    irom:    available: 592 k, used: 425464, free: 180744, 29 %
+Tue May 18 17:57:22 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66765, free:  13500, 16 %
+    irom:    available: 592 k, used: 425720, free: 180488, 29 %
+Tue May 18 17:57:40 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66765, free:  13500, 16 %
+    irom:    available: 592 k, used: 426008, free: 180200, 29 %
+Tue May 18 17:58:07 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66781, free:  13484, 16 %
+    irom:    available: 592 k, used: 426440, free: 179768, 29 %
+Tue May 18 17:59:33 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66781, free:  13484, 16 %
+    irom:    available: 592 k, used: 427416, free: 178792, 29 %
+Tue May 18 18:00:10 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427448, free: 178760, 29 %
+Tue May 18 18:05:55 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427576, free: 178632, 29 %
+Tue May 18 18:06:53 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427672, free: 178536, 29 %
+Tue May 18 18:07:31 CEST 2021 439c401 i2c-sensor: sensor dump: fix watchdog timeout when large amount of sensors is present.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427688, free: 178520, 29 %
