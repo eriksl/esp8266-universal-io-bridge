@@ -3872,7 +3872,7 @@ static i2c_error_t sensor_sht30_temperature_read(i2c_sensor_data_t *data, i2c_se
 	raw = temperature_private_data->data;
 
 	value->ch0 = raw;
-	value->value = ((raw * 175) / ((1 << 16) - 1)) - 45;
+	value->value = (((double)raw * 175) / ((1 << 16) - 1)) - 45;
 
 	return(i2c_error_ok);
 }
@@ -3890,7 +3890,7 @@ static i2c_error_t sensor_sht30_humidity_read(i2c_sensor_data_t *data, i2c_senso
 	raw = humidity_private_data->data;
 
 	value->ch0 = raw;
-	value->value = (raw * 100) / ((1 << 16) - 1);
+	value->value = ((double)raw * 100) / ((1 << 16) - 1);
 
 	return(i2c_error_ok);
 }
