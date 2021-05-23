@@ -9146,3 +9146,7 @@ Tue May 18 20:40:40 CEST 2021 53138d7 io: fix crash when gss or gas was set to a
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427736, free: 178472, 29 %
+Sun May 23 15:51:06 CEST 2021 b2d9d1c i2c-sensor: fix some strings that had become too long.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427864, free: 178344, 29 %
