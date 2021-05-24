@@ -3731,6 +3731,8 @@ typedef struct
 {
 	unsigned int data;
 	bool data_valid;
+	uint32_t last_periodic_high;
+	uint32_t last_periodic_low;
 } sht30_private_data_t;
 
 assert_size_le(sht30_private_data_t, i2c_sensor_private_data_t);
@@ -3808,6 +3810,9 @@ static i2c_error_t sensor_sht30_detect(i2c_sensor_data_t *data)
 	if((error = sht30_register_access(data->basic.address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
 		return(error);
 
+	if((error = sht30_register_access(data->basic.address, sht30_cmd_reset, 0, 0)) != i2c_error_ok)
+		return(error);
+
 	return(i2c_error_ok);
 }
 
@@ -3816,12 +3821,6 @@ static i2c_error_t sensor_sht30_temperature_init(i2c_sensor_data_t *data)
 	unsigned int result;
 	i2c_error_t error;
 	sht30_private_data_t *temperature_private_data;
-
-	if((error = sht30_register_access(data->basic.address, sht30_cmd_break, 0, 0)) != i2c_error_ok)
-		return(error);
-
-	if((error = sht30_register_access(data->basic.address, sht30_cmd_reset, 0, 0)) != i2c_error_ok)
-		return(error);
 
 	if((error = sht30_register_access(data->basic.address, sht30_cmd_read_status, &result, 0)) != i2c_error_ok)
 		return(error);
@@ -3841,6 +3840,8 @@ static i2c_error_t sensor_sht30_temperature_init(i2c_sensor_data_t *data)
 	temperature_private_data = (sht30_private_data_t *)data->private_data;
 	temperature_private_data->data = 0;
 	temperature_private_data->data_valid = false;
+	temperature_private_data->last_periodic_high = 0;
+	temperature_private_data->last_periodic_low = 0;
 
 	if((error = sht30_register_access(data->basic.address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
 		return(error);
@@ -3855,6 +3856,8 @@ static i2c_error_t sensor_sht30_humidity_init(i2c_sensor_data_t *data)
 	humidity_private_data = (sht30_private_data_t *)data->private_data;
 	humidity_private_data->data = 0;
 	humidity_private_data->data_valid = false;
+	humidity_private_data->last_periodic_high = 0;
+	humidity_private_data->last_periodic_low = 0;
 
 	return(i2c_error_ok);
 }
@@ -3902,8 +3905,18 @@ static i2c_error_t sensor_sht30_temperature_periodic(i2c_sensor_data_t *data)
 	i2c_sensor_data_t *secondary_data;
 	sht30_private_data_t *humidity_private_data;
 	sht30_private_data_t *temperature_private_data;
+	uint64_t last_periodic, now;
 
 	temperature_private_data = (sht30_private_data_t *)data->private_data;
+
+	last_periodic = ((uint64_t)temperature_private_data->last_periodic_high << 32) | ((uint64_t)temperature_private_data->last_periodic_low << 0);
+	now = time_get_us();
+
+	if((now - last_periodic) < 1000000)
+		return(i2c_error_ok);
+
+	temperature_private_data->last_periodic_high =	(now & 0xffffffff00000000ULL) >> 32;
+	temperature_private_data->last_periodic_low =	(now & 0x00000000ffffffffULL) >> 0;
 
 	if(!sensor_data_get_entry(data->bus, data->basic.secondary[0], &secondary_data))
 		return(i2c_error_device_error_1);
@@ -3911,15 +3924,14 @@ static i2c_error_t sensor_sht30_temperature_periodic(i2c_sensor_data_t *data)
 	humidity_private_data = (sht30_private_data_t *)secondary_data->private_data;
 
 	if((error = sht30_register_access(data->basic.address, sht30_cmd_fetch_data, &result[0], &result[1])) != i2c_error_ok)
-	{
 		i2c_log("sht30", error);
-		return(error);
+	else
+	{
+		temperature_private_data->data = result[0];
+		temperature_private_data->data_valid = true;
+		humidity_private_data->data = result[1];
+		humidity_private_data->data_valid = true;
 	}
-
-	temperature_private_data->data = result[0];
-	temperature_private_data->data_valid = true;
-	humidity_private_data->data = result[1];
-	humidity_private_data->data_valid = true;
 
 	if((error = sht30_register_access(data->basic.address, sht30_cmd_single_meas_noclock_high, 0, 0)) != i2c_error_ok)
 	{

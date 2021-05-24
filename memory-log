@@ -9150,3 +9150,55 @@ Sun May 23 15:51:06 CEST 2021 b2d9d1c i2c-sensor: fix some strings that had beco
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427864, free: 178344, 29 %
+Mon May 24 10:05:46 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427816, free: 178392, 29 %
+Mon May 24 14:52:12 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427800, free: 178408, 29 %
+Mon May 24 14:56:08 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427848, free: 178360, 29 %
+Mon May 24 15:02:46 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427896, free: 178312, 29 %
+Mon May 24 15:04:26 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428024, free: 178184, 29 %
+Mon May 24 15:06:40 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428040, free: 178168, 29 %
+Mon May 24 15:36:56 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428152, free: 178056, 29 %
+Mon May 24 15:38:36 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428168, free: 178040, 29 %
+Mon May 24 15:40:06 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428024, free: 178184, 29 %
+Mon May 24 15:41:03 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427992, free: 178216, 29 %
+Mon May 24 15:42:07 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427928, free: 178280, 29 %
+Mon May 24 15:42:50 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427944, free: 178264, 29 %
+Mon May 24 15:43:33 CEST 2021 b44717a i2c-sensor: sht30: fix readings always being integer values.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427896, free: 178312, 29 %
