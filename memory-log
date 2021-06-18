@@ -9202,3 +9202,23 @@ Mon May 24 15:43:33 CEST 2021 b44717a i2c-sensor: sht30: fix readings always bei
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427896, free: 178312, 29 %
+Sun Jun  6 15:30:32 CEST 2021 f6bd28a sdk: update.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427848, free: 178360, 29 %
+Fri Jun 18 14:03:00 CEST 2021 f6bd28a sdk: update.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427976, free: 178232, 29 %
+Fri Jun 18 14:04:25 CEST 2021 f6bd28a sdk: update.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428040, free: 178168, 29 %
+Fri Jun 18 14:05:32 CEST 2021 f6bd28a sdk: update.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 428024, free: 178184, 29 %
+Fri Jun 18 14:06:29 CEST 2021 f6bd28a sdk: update.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427848, free: 178360, 29 %

@@ -4286,9 +4286,6 @@ static i2c_error_t sensor_htu21_detect(i2c_sensor_data_t *data)
 
 	msleep(2);
 
-	if((error = i2c_receive(data->basic.address, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
-		return(error);
-
 	if((error = i2c_send1(data->basic.address, htu21_cmd_read_user)) != i2c_error_ok)
 		return(error);
 
