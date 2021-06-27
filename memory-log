@@ -9222,3 +9222,79 @@ Fri Jun 18 14:06:29 CEST 2021 f6bd28a sdk: update.
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  66789, free:  13476, 16 %
     irom:    available: 592 k, used: 427848, free: 178360, 29 %
+Fri Jun 18 14:27:00 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66789, free:  13476, 16 %
+    irom:    available: 592 k, used: 427928, free: 178280, 29 %
+Sun Jun 27 11:58:42 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75053, free:   5212,  6 %
+    irom:    available: 592 k, used: 428072, free: 178136, 29 %
+Sun Jun 27 12:02:00 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  66925, free:  13340, 16 %
+    irom:    available: 592 k, used: 428072, free: 178136, 29 %
+Sun Jun 27 12:03:29 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75053, free:   5212,  6 %
+    irom:    available: 592 k, used: 428072, free: 178136, 29 %
+Sun Jun 27 12:09:58 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75069, free:   5196,  6 %
+    irom:    available: 592 k, used: 428488, free: 177720, 29 %
+Sun Jun 27 12:13:45 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75069, free:   5196,  6 %
+    irom:    available: 592 k, used: 428472, free: 177736, 29 %
+Sun Jun 27 12:15:59 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75069, free:   5196,  6 %
+    irom:    available: 592 k, used: 428392, free: 177816, 29 %
+Sun Jun 27 12:20:06 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75069, free:   5196,  6 %
+    irom:    available: 592 k, used: 428360, free: 177848, 29 %
+Sun Jun 27 12:25:35 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75069, free:   5196,  6 %
+    irom:    available: 592 k, used: 428376, free: 177832, 29 %
+Sun Jun 27 19:02:09 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75085, free:   5180,  6 %
+    irom:    available: 592 k, used: 429272, free: 176936, 29 %
+Sun Jun 27 19:23:47 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75085, free:   5180,  6 %
+    irom:    available: 592 k, used: 428936, free: 177272, 29 %
+Sun Jun 27 19:31:44 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75085, free:   5180,  6 %
+    irom:    available: 592 k, used: 428952, free: 177256, 29 %
+Sun Jun 27 19:39:20 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75461, free:   4804,  5 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:41:48 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75557, free:   4708,  5 %
+    irom:    available: 592 k, used: 428904, free: 177304, 29 %
+Sun Jun 27 19:42:53 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  79653, free:    612,  0 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:49:14 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  79589, free:    676,  0 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:50:56 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  79557, free:    708,  0 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:51:47 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  79189, free:   1076,  1 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:52:23 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too strict to detect sht21 which has the same interface.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77141, free:   3124,  3 %
+    irom:    available: 592 k, used: 428888, free: 177320, 29 %
