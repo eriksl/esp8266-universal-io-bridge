@@ -28,7 +28,6 @@ enum
 	lwip_udp_header_size = 		8,
 	lwip_tcp_header_size =		20,
 	lwip_udp_max_payload =		lwip_ethernet_max_payload - lwip_ip_header_size - lwip_udp_header_size,
-	lwip_tcp_max_payload =		lwip_ethernet_max_payload - lwip_ip_header_size - lwip_tcp_header_size,
 };
 
 enum
@@ -209,17 +208,21 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
 	struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 	unsigned int chunk_size, offset, apiflags;
-	bool sent_one = false;
+	unsigned int max_payload;
+	unsigned int sent;
 	err_t error;
+
+	sent = 0;
+	max_payload = tcp_sndbuf(pcb_tcp);
 
 	while(socket->sending_remaining > 0)
 	{
 		chunk_size = socket->sending_remaining;
 
 		apiflags = TCP_WRITE_FLAG_COPY;
-		if(chunk_size > lwip_tcp_max_payload)
+		if(chunk_size > max_payload)
 		{
-			chunk_size = lwip_tcp_max_payload;
+			chunk_size = max_payload;
 			apiflags |= TCP_WRITE_FLAG_MORE;
 		}
 
@@ -242,7 +245,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		stat_lwip_tcp_sent_packets++;
 		stat_lwip_tcp_sent_bytes += chunk_size;
 
-		sent_one = true;
+		sent++;
 		socket->sending_remaining -= chunk_size;
 		socket->sent_remaining += chunk_size;
 	}
@@ -253,7 +256,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		log_error(error);
 	}
 
-	return(sent_one);
+	return(sent > 0);
 }
 
 static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t len)
