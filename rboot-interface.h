@@ -1,4 +1,3 @@
-#if IMAGE_OTA == 1
 #ifndef rboot_interface_h
 #define rboot_interface_h
 
@@ -59,5 +58,4 @@ bool			rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config);
 bool			rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config);
 void			rboot_if_info(string_t *dst);
 unsigned int	rboot_if_mapped_slot(void);
-#endif
 #endif

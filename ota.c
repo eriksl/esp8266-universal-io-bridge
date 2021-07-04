@@ -21,7 +21,6 @@ app_action_t application_function_flash_info(string_t *src, string_t *dst)
 	int ota_address_2 = 0;
 	int ota_address_3 = 0;
 
-#if IMAGE_OTA == 1
 	rboot_if_config_t		config;
 	rboot_if_rtc_config_t	rtc;
 
@@ -41,7 +40,6 @@ app_action_t application_function_flash_info(string_t *src, string_t *dst)
 
 	if(rboot_if_read_rtc_ram(&rtc))
 		ota_slot = rtc.last_slot;
-#endif
 
 	if(flash_sector_buffer_use == fsb_ota)
 		flash_sector_buffer_use = fsb_free;
@@ -525,11 +523,6 @@ app_action_t application_function_flash_checksum(string_t *src, string_t *dst)
 static app_action_t flash_select(string_t *src, string_t *dst, bool once)
 {
 	const char *cmdname = once ? "flash-select-once" : "flash-select";
-
-#if IMAGE_OTA == 0
-	string_format(dst, "ERROR %s: no OTA image\n", cmdname);
-	return(app_action_error);
-#else
 	unsigned int slot;
 
 	rboot_if_config_t config;
@@ -650,7 +643,6 @@ static app_action_t flash_select(string_t *src, string_t *dst, bool once)
 	string_format(dst, "OK %s: slot %u selected, address %lu\n", cmdname, slot, config.slots[slot]);
 
 	return(app_action_normal);
-#endif
 }
 
 app_action_t application_function_flash_select(string_t *src, string_t *dst)
@@ -687,10 +679,6 @@ void ota_init(unsigned int mailbox_port)
 
 app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 {
-#if IMAGE_OTA != 1 // FIXME
-	string_append(dst, "ERROR: no OTA image\n");
-	return(app_action_error);
-#else
 	rboot_if_config_t		config;
 	rboot_if_rtc_config_t	rtc;
 	unsigned int ota_slot;
@@ -713,7 +701,6 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE);
 
 	return(app_action_normal);
-#endif
 }
 
 app_action_t application_function_mailbox_reset(string_t *src, string_t *dst)

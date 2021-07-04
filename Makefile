@@ -1,10 +1,10 @@
-SPI_FLASH_MODE		?= qio
 IMAGE				?= ota
 ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= 10.1.12.222
 OTA_FLASH			?= espmbf
+SPI_FLASH_MODE		?= qio
 # using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
 USE_LTO				?= 0
@@ -40,55 +40,46 @@ CTNG_SYSROOT				:= $(CTNG)/$(ARCH)
 CTNG_SYSROOT_INCLUDE		:= $(CTNG_SYSROOT)/$(ARCH)/include
 CTNG_SYSROOT_LIB			:= $(CTNG_SYSROOT)/$(ARCH)/lib
 CTNG_SYSROOT_BIN			:= $(CTNG_SYSROOT)/bin
+
 CC							:= $(CTNG_SYSROOT_BIN)/$(ARCH)-gcc
 OBJCOPY						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-objcopy
 SIZE						:= $(CTNG_SYSROOT_BIN)/$(ARCH)-size
-USER_CONFIG_SECTOR_PLAIN	:= 0x7a
-USER_CONFIG_SECTOR_OTA		:= 0xfa
+
+USER_CONFIG_SECTOR			:= 0xfa
 USER_CONFIG_SIZE			:= 0x1000
-SEQUENCER_FLASH_OFFSET_PLAIN:= 0x076000
-SEQUENCER_FLASH_OFFSET_OTA_0:= 0x0f6000
-SEQUENCER_FLASH_OFFSET_OTA_1:= 0x1f6000
+SEQUENCER_FLASH_OFFSET_0	:= 0x0f6000
+SEQUENCER_FLASH_OFFSET_1	:= 0x1f6000
 SEQUENCER_FLASH_SIZE		:= 0x4000
-FONT_FLASH_OFFSET_OTA_0		:= 0x0d6000
-FONT_FLASH_OFFSET_OTA_1		:= 0x1d6000
+FONT_FLASH_OFFSET_0			:= 0x0d6000
+FONT_FLASH_OFFSET_1			:= 0x1d6000
 FONT_FLASH_SIZE				:= 0x20000
-PICTURE_FLASH_OFFSET_OTA_0	:= 0x200000
-PICTURE_FLASH_OFFSET_OTA_1	:= 0x280000
+PICTURE_FLASH_OFFSET_0		:= 0x200000
+PICTURE_FLASH_OFFSET_1		:= 0x280000
 PICTURE_FLASH_SIZE			:= 0x80000
-RFCAL_OFFSET_PLAIN			:= 0x7b000
-RFCAL_OFFSET_OTA			:= 0xfb000
+RFCAL_OFFSET				:= 0xfb000
 RFCAL_SIZE					:= 0x1000
 RFCAL_FILE					:= blank1.bin
-PHYDATA_OFFSET_PLAIN		:= 0x07c000
-PHYDATA_OFFSET_OTA			:= 0x1fc000
+PHYDATA_OFFSET				:= 0x1fc000
 PHYDATA_SIZE				:= 0x1000
 PHYDATA_FILE				:= esp_init_data_default_v08.bin
-SYSTEM_CONFIG_OFFSET_PLAIN	:= 0x07d000
-SYSTEM_CONFIG_OFFSET_OTA	:= 0x1fd000
+SYSTEM_CONFIG_OFFSET		:= 0x1fd000
 SYSTEM_CONFIG_SIZE			:= 0x3000
 SYSTEM_CONFIG_FILE			:= blank3.bin
+
 LDSCRIPT_TEMPLATE			:= loadscript-template
 LDSCRIPT					:= loadscript
-ELF_PLAIN					:= espiobridge-plain.o
-ELF_OTA						:= espiobridge-rboot.o
-OFFSET_IRAM_PLAIN			:= 0x000000
-SIZE_IRAM_PLAIN				:= 0x010000
-OFFSET_IROM_PLAIN			:= 0x010000
-SIZE_IROM_PLAIN				:= 0x066000
-OFFSET_OTA_BOOT				:= 0x000000
-SIZE_OTA_BOOT				:= 0x1000
-OFFSET_OTA_RBOOT_CFG		:= 0x001000
-SIZE_OTA_RBOOT_CFG			:= 0x1000
-OFFSET_OTA_IMG_0			:= 0x002000
-OFFSET_OTA_IMG_1			:= 0x102000
-SIZE_OTA_IMG				:= 0x94000
+ELF_IMAGE					:= espiobridge-rboot.o
+OFFSET_BOOT					:= 0x000000
+SIZE_BOOT					:= 0x1000
+OFFSET_RBOOT_CFG			:= 0x001000
+SIZE_RBOOT_CFG				:= 0x1000
+OFFSET_IMG_0				:= 0x002000
+OFFSET_IMG_1				:= 0x102000
+SIZE_IMG					:= 0x94000
 MISC_FLASH_OFFSET			:= 0x300000
 MISC_FLASH_SIZE				:= 0x100000
-FIRMWARE_PLAIN_IRAM			:= espiobridge-plain-iram-$(OFFSET_IRAM_PLAIN).bin
-FIRMWARE_PLAIN_IROM			:= espiobridge-plain-irom-$(OFFSET_IROM_PLAIN).bin
-FIRMWARE_OTA_RBOOT			:= espiobridge-rboot-boot.bin
-FIRMWARE_OTA_IMG			:= espiobridge-rboot-image.bin
+FIRMWARE_RBOOT				:= espiobridge-rboot-boot.bin
+FIRMWARE_IMG				:= espiobridge-rboot-image.bin
 CONFIG_RBOOT_SRC			:= rboot-config.c
 CONFIG_RBOOT_ELF			:= rboot-config.o
 CONFIG_RBOOT_BIN			:= rboot-config.bin
@@ -97,12 +88,21 @@ CONFIG_BACKUP_BIN			:= backup-config.bin
 LINKMAP						:= linkmap
 MEMORY_USAGE_OUTPUT			:= memory
 MEMORY_USAGE_LOG			:= memory-log
-LIBMAIN_PLAIN				:= main
-LIBMAIN_PLAIN_FILE			:= $(ESPSDK_LIB)/lib$(LIBMAIN_PLAIN).a
+LIBMAIN_ORIGINAL			:= main
+LIBMAIN_ORIGINAL_FILE		:= $(ESPSDK_LIB)/lib$(LIBMAIN_ORIGINAL).a
 LIBMAIN_RBB					:= main_rbb
 LIBMAIN_RBB_FILE			:= lib$(LIBMAIN_RBB).a
 ESPTOOL2_BIN				:= $(ESPTOOL2)/esptool2
 RBOOT_BIN					:= $(RBOOT)/firmware/rboot.bin
+# this must be 4 MB otherwise we can't access the part in flash above 2 MB when using a 4 MB flash
+# only 2 MB is actually used for image
+FLASH_SIZE_ESPTOOL			:= 4MB-c1
+FLASH_SIZE_ESPTOOL2			:= 4096
+FLASH_SIZE_SDK				:= FLASH_SIZE_32M_MAP_1024_1024
+RBOOT_SPI_SIZE				:= 4Mb
+USER_CONFIG_OFFSET			:= $(USER_CONFIG_SECTOR)000
+LD_ADDRESS					:= 0x40202010
+LD_LENGTH					:= 0xf7ff0
 
 V ?= $(VERBOSE)
 ifeq ($(V),1)
@@ -115,59 +115,11 @@ else
 	MAKEMINS := -s
 endif
 
-ifeq ($(IMAGE),plain)
-	IMAGE_OTA := 0
-	FLASH_SIZE_ESPTOOL := 8m
-	FLASH_SIZE_ESPTOOL2 := 512
-	FLASH_SIZE_SDK := FLASH_SIZE_8M_MAP_512_512
-	RBOOT_SPI_SIZE := 512K
-	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_PLAIN)
-	USER_CONFIG_OFFSET := $(USER_CONFIG_SECTOR_PLAIN)000
-	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_PLAIN)
-	SEQUENCER_FLASH_OFFSET_1 := 0x000000
-	FONT_FLASH_OFFSET_0 :=
-	FONT_FLASH_OFFSET_1 :=
-	PICTURE_FLASH_OFFSET_0 :=
-	PICTURE_FLASH_OFFSET_1 :=
-	RFCAL_OFFSET := $(RFCAL_OFFSET_PLAIN)
-	PHYDATA_OFFSET := $(PHYDATA_OFFSET_PLAIN)
-	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_PLAIN)
-	LD_ADDRESS := 0x40210000
-	LD_LENGTH := 0x79000
-	ELF_IMAGE := $(ELF_PLAIN)
-	ALL_IMAGE_TARGETS := $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM)
-	FLASH_TARGET := flash-plain
-endif
-
-ifeq ($(IMAGE),ota)
-	IMAGE_OTA := 1
-# this must be 4 MB otherwise we can't access the part in flash above 2 MB when using a 4 MB flash
-# only 2 MB is actually used for image
-	FLASH_SIZE_ESPTOOL := 4MB-c1
-	FLASH_SIZE_ESPTOOL2 := 4096
-	FLASH_SIZE_SDK := FLASH_SIZE_32M_MAP_1024_1024
-	RBOOT_SPI_SIZE := 4Mb
-	USER_CONFIG_SECTOR := $(USER_CONFIG_SECTOR_OTA)
-	USER_CONFIG_OFFSET := $(USER_CONFIG_SECTOR_OTA)000
-	SEQUENCER_FLASH_OFFSET_0 := $(SEQUENCER_FLASH_OFFSET_OTA_0)
-	SEQUENCER_FLASH_OFFSET_1 := $(SEQUENCER_FLASH_OFFSET_OTA_1)
-	FONT_FLASH_OFFSET_0 := $(FONT_FLASH_OFFSET_OTA_0)
-	FONT_FLASH_OFFSET_1 := $(FONT_FLASH_OFFSET_OTA_1)
-	PICTURE_FLASH_OFFSET_0 := $(PICTURE_FLASH_OFFSET_OTA_0)
-	PICTURE_FLASH_OFFSET_1 := $(PICTURE_FLASH_OFFSET_OTA_1)
-	RFCAL_OFFSET := $(RFCAL_OFFSET_OTA)
-	PHYDATA_OFFSET := $(PHYDATA_OFFSET_OTA)
-	SYSTEM_CONFIG_OFFSET := $(SYSTEM_CONFIG_OFFSET_OTA)
-	LD_ADDRESS := 0x40202010
-	LD_LENGTH := 0xf7ff0
-	ELF_IMAGE := $(ELF_OTA)
-	ALL_IMAGE_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) espflash espmbf
-	FLASH_TARGET := flash-ota
-endif
-
+ALL_IMAGE_TARGETS		:= $(FIRMWARE_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_IMG)
 ALL_BUILD_TARGETS		:= ctng lwip lwip_espressif
-ALL_COMPLETION_TARGETS	:= free resetserial espflash espmbf
-
+ALL_FLASH_TARGETS		:= espflash espmbf
+ALL_TOOL_TARGETS		:= resetserial
+ALL_COMPLETION_TARGETS	:= free
 
 WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
@@ -205,26 +157,23 @@ endif
 
 CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DGIT_COMMIT=$(GIT_COMMIT) \
-						-DIMAGE_TYPE=$(IMAGE) -DIMAGE_OTA=$(IMAGE_OTA) \
 						-DUSER_CONFIG_SECTOR=$(USER_CONFIG_SECTOR) -DUSER_CONFIG_OFFSET=$(USER_CONFIG_OFFSET) -DUSER_CONFIG_SIZE=$(USER_CONFIG_SIZE) \
 						-DRFCAL_OFFSET=$(RFCAL_OFFSET) -DRFCAL_SIZE=$(RFCAL_SIZE) \
 						-DPHYDATA_OFFSET=$(PHYDATA_OFFSET) -DPHYDATA_SIZE=$(PHYDATA_SIZE) \
 						-DSYSTEM_CONFIG_OFFSET=$(SYSTEM_CONFIG_OFFSET) -DSYSTEM_CONFIG_SIZE=$(SYSTEM_CONFIG_SIZE) \
-						-DOFFSET_OTA_IMG_0=$(OFFSET_OTA_IMG_0) -DOFFSET_OTA_IMG_1=$(OFFSET_OTA_IMG_1) -DSIZE_OTA_IMG=$(SIZE_OTA_IMG) \
-						-DOFFSET_IRAM_PLAIN=$(OFFSET_IRAM_PLAIN) -DSIZE_IRAM_PLAIN=$(SIZE_IRAM_PLAIN) \
-						-DOFFSET_IROM_PLAIN=$(OFFSET_IROM_PLAIN) -DSIZE_IROM_PLAIN=$(SIZE_IROM_PLAIN) \
-						-DSEQUENCER_FLASH_OFFSET=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_SIZE=$(SEQUENCER_FLASH_SIZE) \
+						-DOFFSET_IMG_0=$(OFFSET_IMG_0) -DOFFSET_IMG_1=$(OFFSET_IMG_1) -DSIZE_IMG=$(SIZE_IMG) \
+						-DSEQUENCER_FLASH_SIZE=$(SEQUENCER_FLASH_SIZE) \
 						-DSEQUENCER_FLASH_OFFSET_0=$(SEQUENCER_FLASH_OFFSET_0) -DSEQUENCER_FLASH_OFFSET_1=$(SEQUENCER_FLASH_OFFSET_1) \
-						-DFONT_FLASH_OFFSET_0=$(FONT_FLASH_OFFSET_0) -DFONT_FLASH_OFFSET_1=$(FONT_FLASH_OFFSET_1) \
 						-DFONT_FLASH_SIZE=$(FONT_FLASH_SIZE) \
-						-DPICTURE_FLASH_OFFSET_0=$(PICTURE_FLASH_OFFSET_0) -DPICTURE_FLASH_OFFSET_1=$(PICTURE_FLASH_OFFSET_1) \
+						-DFONT_FLASH_OFFSET_0=$(FONT_FLASH_OFFSET_0) -DFONT_FLASH_OFFSET_1=$(FONT_FLASH_OFFSET_1) \
 						-DPICTURE_FLASH_SIZE=$(PICTURE_FLASH_SIZE) \
-						-DMISC_FLASH_OFFSET=$(MISC_FLASH_OFFSET) -DMISC_FLASH_SIZE=$(MISC_FLASH_SIZE) \
-						-DOFFSET_OTA_BOOT=$(OFFSET_OTA_BOOT) -DSIZE_OTA_BOOT=$(SIZE_OTA_BOOT) \
-						-DOFFSET_OTA_RBOOT_CFG=$(OFFSET_OTA_RBOOT_CFG) -DSIZE_OTA_RBOOT_CFG=$(SIZE_OTA_RBOOT_CFG) \
+						-DPICTURE_FLASH_OFFSET_0=$(PICTURE_FLASH_OFFSET_0) -DPICTURE_FLASH_OFFSET_1=$(PICTURE_FLASH_OFFSET_1) \
+						-DMISC_FLASH_SIZE=$(MISC_FLASH_SIZE) -DMISC_FLASH_OFFSET=$(MISC_FLASH_OFFSET) \
+						-DOFFSET_BOOT=$(OFFSET_BOOT) -DSIZE_BOOT=$(SIZE_BOOT) \
+						-DOFFSET_RBOOT_CFG=$(OFFSET_RBOOT_CFG) -DSIZE_RBOOT_CFG=$(SIZE_RBOOT_CFG) \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
-HOSTCFLAGS		:= -O3 -lssl -lcrypto -Wframe-larger-than=65536
+HOSTCFLAGS		:= -O2 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
@@ -235,7 +184,7 @@ OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o displa
 						display_seeed.o display_eastrising.o display_ssd1306.o display_font_6x8.o io_pcf.o http.o \
 						io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o \
 						ota.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
-						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o
+						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o rboot-interface.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
 						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \
@@ -249,10 +198,6 @@ LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/in
 						$(LWIP_SRC)/core/ipv4/ip.o $(LWIP_SRC)/core/ipv4/ip_addr.o \
 						$(LWIP_SRC)/netif/etharp.o
 
-ifeq ($(IMAGE),ota)
-OBJS			+= rboot-interface.o
-endif
-
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
 						display_seeed.h display_eastrising.h display_font_6x8.h display_ssd1306.h \
 						http.h i2c.h i2c_sensor.h io.h io_gpio.h remote_trigger.h spi.h i2s.h \
@@ -263,7 +208,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
 .PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
 
-all:			$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_COMPLETION_TARGETS)
+all:			$(ALL_IMAGE_TARGETS)
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -271,9 +216,8 @@ clean:
 				$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2) clean
 				$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) clean
 				$(Q) rm -f $(OBJS) \
-						$(ELF_PLAIN) $(ELF_OTA) \
-						$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) \
-						$(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) \
+						$(ELF_IMAGE) \
+						$(FIRMWARE_RBOOT) $(FIRMWARE_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
@@ -410,7 +354,7 @@ rboot-interface.o:		$(HEADERS)
 lwip-interface.o:		$(HEADERS)
 sys_time.o:				$(HEADERS)
 sys_string.o:			$(HEADERS)
-$(LINKMAP):				$(ELF_OTA)
+$(LINKMAP):				$(ELF_IMAGE)
 
 $(ESPTOOL2_BIN):
 						$(VECHO) "MAKE ESPTOOL2"
@@ -424,30 +368,18 @@ $(LDSCRIPT):			$(LDSCRIPT_TEMPLATE)
 						$(VECHO) "LINKER SCRIPT $(LD_ADDRESS) $(LD_LENGTH) $@"
 						$(Q) sed -e 's/@IROM0_SEG_ADDRESS@/$(LD_ADDRESS)/' -e 's/@IROM_SEG_LENGTH@/$(LD_LENGTH)/' < $< > $@
 
-$(ELF_PLAIN):			$(OBJS) $(LWIP_LIB_FILE) $(LWIP_ESPRESSIF_LIB_FILE) $(LDSCRIPT)
-						$(VECHO) "LD PLAIN"
-						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_PLAIN) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
-
-$(LIBMAIN_RBB_FILE):	$(LIBMAIN_PLAIN_FILE)
+$(LIBMAIN_RBB_FILE):	$(LIBMAIN_ORIGINAL_FILE)
 						$(VECHO) "TWEAK LIBMAIN $@"
 						$(Q) $(OBJCOPY) -W Cache_Read_Enable_New $< $@
 
-$(ELF_OTA):				$(OBJS) $(LWIP_LIB_FILE) $(LWIP_ESPRESSIF_LIB_FILE) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
-						$(VECHO) "LD OTA"
+$(ELF_IMAGE):			$(OBJS) $(LWIP_LIB_FILE) $(LWIP_ESPRESSIF_LIB_FILE) $(LIBMAIN_RBB_FILE) $(LDSCRIPT)
+						$(VECHO) "LD"
 						$(Q) $(CC) -T./$(LDSCRIPT) $(CFLAGS) $(LDFLAGS) $(OBJS) -Wl,--start-group -l$(LIBMAIN_RBB) $(SDKLIBS) $(STDLIBS) $(LWIPLIBS) -Wl,--end-group -o $@
 
-$(FIRMWARE_PLAIN_IRAM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
-						$(VECHO) "PLAIN FIRMWARE IRAM $@"
-						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) -boot0 $< $@ .text .data .rodata
-
-$(FIRMWARE_PLAIN_IROM):	$(ELF_PLAIN) $(ESPTOOL2_BIN)
-						$(VECHO) "PLAIN FIRMWARE IROM $@"
-						$(Q) $(ESPTOOL2_BIN) -quiet -lib -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) $< $@
-
-$(FIRMWARE_OTA_RBOOT):	$(RBOOT_BIN)
+$(FIRMWARE_RBOOT):		$(RBOOT_BIN)
 						cp $< $@
 
-$(FIRMWARE_OTA_IMG):	$(ELF_OTA) $(ESPTOOL2_BIN)
+$(FIRMWARE_IMG):		$(ELF_IMAGE) $(ESPTOOL2_BIN)
 						$(VECHO) "RBOOT FIRMWARE $@"
 						$(Q) $(ESPTOOL2_BIN) -quiet -bin -$(FLASH_SIZE_ESPTOOL2) -$(SPI_FLASH_MODE) -boot2 $< $@ .text .data .rodata
 
@@ -457,45 +389,34 @@ $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
-flash:					$(ALL_BUILD_TARGETS) $(FLASH_TARGET)
-
-flash-plain:			$(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(ALL_COMPLETION_TARGETS)
-						$(VECHO) "FLASH PLAIN"
+flash:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_COMPLETION_TARGETS) $(ALL_TOOL_TARGETS)
+						$(VECHO) "FLASH"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(OFFSET_IRAM_PLAIN) $(FIRMWARE_PLAIN_IRAM) \
-							$(OFFSET_IROM_PLAIN) $(FIRMWARE_PLAIN_IROM) \
-							$(PHYDATA_OFFSET_PLAIN) $(PHYDATA_FILE) \
-							$(RFCAL_OFFSET_PLAIN) $(RFCAL_FILE) \
-							$(SYSTEM_CONFIG_OFFSET_PLAIN) $(SYSTEM_CONFIG_FILE)
+							$(OFFSET_BOOT) $(FIRMWARE_RBOOT) \
+							$(OFFSET_RBOOT_CFG) $(CONFIG_RBOOT_BIN) \
+							$(OFFSET_IMG_0) $(FIRMWARE_IMG) \
+							$(PHYDATA_OFFSET) $(PHYDATA_FILE) \
+							$(RFCAL_OFFSET) $(RFCAL_FILE) \
+							$(SYSTEM_CONFIG_OFFSET) $(SYSTEM_CONFIG_FILE)
 
-flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
-						$(VECHO) "FLASH RBOOT"
-						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
-							$(OFFSET_OTA_BOOT) $(FIRMWARE_OTA_RBOOT) \
-							$(OFFSET_OTA_RBOOT_CFG) $(CONFIG_RBOOT_BIN) \
-							$(OFFSET_OTA_IMG_0) $(FIRMWARE_OTA_IMG) \
-							$(PHYDATA_OFFSET_OTA) $(PHYDATA_FILE) \
-							$(RFCAL_OFFSET_OTA) $(RFCAL_FILE) \
-							$(SYSTEM_CONFIG_OFFSET_OTA) $(SYSTEM_CONFIG_FILE)
-
-ota:					$(ALL_BUILD_TARGETS) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
-						$(VECHO) "FLASH OTA"
-						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
+ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_COMPLETION_TARGETS)
+						$(VECHO) "OTA"
+						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -W
 
 ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
-						$(VECHO) "FLASH OTA DEFAULTS"
+						$(VECHO) "OTA DEFAULTS"
 						$(VECHO) "* rf config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET) -W
 						$(VECHO) "* system_config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET) -W
 						$(VECHO) "* rf calibiration"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET) -W
 
-ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
+ota-rboot-update:		$(FIRMWARE_RBOOT) ota-default $(FIRMWARE_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH RBOOT"
-						$(Q) $(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
-						$(VECHO) "FLASH OTA"
-						$(Q) $(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W -t
+						$(Q) $(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(FIRMWARE_RBOOT) -s $(OFFSET_BOOT) -W
+						$(VECHO) "FLASH"
+						$(Q) $(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -W -t
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
@@ -544,21 +465,12 @@ tcprxtest:
 						$(OTA_FLASH) -t -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 udptxtest:
-						$(OTA_FLASH) -u -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+						$(OTA_FLASH) -u -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
 
 tcptxtest:
-						$(OTA_FLASH) -t -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+						$(OTA_FLASH) -t -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
 
 test:					udprxtest tcprxtest udptxtest tcptxtest
-
-release:
-						$(Q) rm -f espiobridge-plain.zip espiobridge-ota.zip
-						$(Q) $(MAKE) clean lwip_clean
-						$(Q) $(MAKE) IMAGE=plain
-						$(Q) zip -9 espiobridge-plain.zip $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE)
-						$(Q) $(MAKE) clean
-						$(Q) $(MAKE) IMAGE=ota
-						$(Q) zip -9 espiobridge-ota.zip $(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE) espflash espmbf
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \

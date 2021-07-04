@@ -138,7 +138,7 @@ static bool get_flash_entry(unsigned int index, sequencer_entry_t *entry)
 		return(false);
 
 	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	entries_in_flash = (const sequencer_entry_t *)(sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET);
+	entries_in_flash = (const sequencer_entry_t *)(sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET_0);
 
 	// careful to only read complete 32 bits words from mapped flash
 	entry->word[0] = entries_in_flash[index].word[0];
@@ -249,14 +249,14 @@ void sequencer_get_status(bool *running, unsigned int *start, unsigned int *flas
 	*flash_size_entries = sequencer_flash_entries;
 	*flash_offset_flash0 = SEQUENCER_FLASH_OFFSET_0;
 	*flash_offset_flash1 = SEQUENCER_FLASH_OFFSET_1;
-	*flash_offset_mapped  = sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET;
+	*flash_offset_mapped  = sequencer_flash_memory_map_start + SEQUENCER_FLASH_OFFSET_0;
 }
 
 bool sequencer_clear(void)
 {
-	if(!clear_all_flash_entries(0))		// OTA image #0 or plain image
+	if(!clear_all_flash_entries(0))
 		return(false);
-	if(!clear_all_flash_entries(1))		// OTA image #1
+	if(!clear_all_flash_entries(1))
 		return(false);
 
 	sequencer_init();

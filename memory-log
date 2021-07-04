@@ -9526,3 +9526,7 @@ Sun Jul  4 11:26:57 CEST 2021 8d02e56 Add new flash read/write interface: mailbo
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  75997, free:   4268,  5 %
     irom:    available: 592 k, used: 433880, free: 172328, 28 %
+Sun Jul  4 11:37:00 CEST 2021 5d86741 Remove non-user commands from help.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75997, free:   4268,  5 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %

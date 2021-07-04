@@ -260,11 +260,7 @@ void stats_flash(string_t *dst)
 			"> spi flash id: %08x, manufacturer: %s, speed: %02x MHz, size: %d kib / %d MiB\n",
 				(unsigned int)flash_id, manufacturer_id_to_string(flash_manufacturer_id), flash_speed, 1 << (flash_size - 10), 1 << (flash_size - 17));
 
-#if IMAGE_OTA == 1
 	rboot_if_info(dst);
-#else
-	string_append(dst, ">\n> No OTA image\n");
-#endif
 	string_append(dst, ">\n> flash partition table:\n");
 	string_format(dst, ">   map: %s\n", flash_map[system_get_flash_size_map()]);
 
@@ -291,15 +287,10 @@ void stats_flash(string_t *dst)
 				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CERT_PRIVKEY):	string_append(dst, "EAP privkey      "); break;
 				case(SYSTEM_PARTITION_WPA2_ENTERPRISE_CA):				string_append(dst, "EAP ca           "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+0):				string_append(dst, "USER config      "); break;
-#if IMAGE_OTA == 0
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "PLAIN image IRAM "); break;
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "PLAIN image IROM "); break;
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "sequencer        "); break;
-#else
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "RBOOT OTA boot   "); break;
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "RBOOT OTA config "); break;
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "OTA image slot 0 "); break;
-				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+4):				string_append(dst, "OTA image slot 1 "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+1):				string_append(dst, "RBOOT boot       "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+2):				string_append(dst, "RBOOT config     "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+3):				string_append(dst, "image slot 0     "); break;
+				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+4):				string_append(dst, "image slot 1     "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+5):				string_append(dst, "sequencer slot 0 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+6):				string_append(dst, "sequencer slot 1 "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+7):				string_append(dst, "picture slot 0   "); break;
@@ -307,7 +298,6 @@ void stats_flash(string_t *dst)
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+9):				string_append(dst, "font slot 0      "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+10):				string_append(dst, "font slot 1      "); break;
 				case(SYSTEM_PARTITION_CUSTOMER_BEGIN+11):				string_append(dst, "spare space      "); break;
-#endif
 				default:												string_append(dst, "unknown partition"); break;
 			}
 

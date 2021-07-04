@@ -1979,12 +1979,6 @@ bool display_eastrising_bright(int brightness)
 	return(true);
 }
 
-#if IMAGE_OTA == 0
-bool display_eastrising_periodic(void)
-{
-	return(true);
-}
-#else
 bool display_eastrising_periodic(void)
 {
 	static const char ppm_header[] = "P6\n480 272\n255\n";
@@ -2146,7 +2140,6 @@ error1:
 
 	return(success);
 }
-#endif
 
 bool display_eastrising_layer_select(unsigned int layer)
 {

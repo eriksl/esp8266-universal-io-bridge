@@ -30,7 +30,7 @@ iram attr_used void Cache_Read_Enable_New(void)
 
 	if(cache_map_entry[0] == 0xffff)
 	{
-		SPIRead(OFFSET_OTA_RBOOT_CFG, &config, sizeof(config));
+		SPIRead(OFFSET_RBOOT_CFG, &config, sizeof(config));
 
 		rtc_in_iospace = (const rboot_rtc_data_overlay_t *)(0x60001100 + (rboot_if_rtc_address << 2));
 
@@ -86,15 +86,15 @@ bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buf
 	if(string_size(string_buffer) < SPI_FLASH_SEC_SIZE)
 		return(false);
 
-	if(spi_flash_read(OFFSET_OTA_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		return(false);
 
 	memcpy(buffer, config, sizeof(*config));
 
-	if(spi_flash_erase_sector(OFFSET_OTA_RBOOT_CFG / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_erase_sector(OFFSET_RBOOT_CFG / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		return(false);
 
-	if(spi_flash_write(OFFSET_OTA_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_write(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		return(false);
 
 	return(true);
@@ -102,7 +102,7 @@ bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buf
 
 bool rboot_if_read_config(rboot_if_config_t *config)
 {
-	if(spi_flash_read(OFFSET_OTA_RBOOT_CFG, (uint32_t *)config, sizeof(*config)) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(OFFSET_RBOOT_CFG, (uint32_t *)config, sizeof(*config)) != SPI_FLASH_RESULT_OK)
 		return(false);
 
 	if(config->magic != rboot_if_conf_magic)
@@ -147,7 +147,7 @@ void rboot_if_info(string_t *dst)
 	rboot_if_config_t config;
 	rboot_if_rtc_config_t rrtc;
 
-	string_format(dst, ">\n> OTA image information:\n");
+	string_format(dst, ">\n> image information:\n");
 
 	if(rboot_if_read_config(&config))
 		string_format(dst,
@@ -170,7 +170,7 @@ void rboot_if_info(string_t *dst)
 	else
 		string_format(dst, ">  rboot config unavailable\n");
 
-	string_format(dst, ">\n> OTA RTC RAM boot config information:\n");
+	string_format(dst, ">\n> RTC RAM boot config information:\n");
 
 	if(rboot_if_read_rtc_ram(&rrtc))
 		string_format(dst,
