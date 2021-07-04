@@ -9522,3 +9522,7 @@ Sat Jul  3 15:09:29 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffe
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  75997, free:   4268,  5 %
     irom:    available: 592 k, used: 434168, free: 172040, 28 %
+Sun Jul  4 11:26:57 CEST 2021 8d02e56 Add new flash read/write interface: mailbox.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75997, free:   4268,  5 %
+    irom:    available: 592 k, used: 433880, free: 172328, 28 %

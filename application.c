@@ -255,6 +255,9 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
+		if(!tableptr->description)
+			continue;
+
 		string_format(dst, "> %s/%s: ",
 				tableptr->command_short, tableptr->command_long);
 
@@ -1914,27 +1917,7 @@ roflash static const char help_description_config_query_string[] =	"query config
 roflash static const char help_description_config_query_int[] =		"query config int";
 roflash static const char help_description_config_set[] =			"set config entry";
 roflash static const char help_description_config_delete[] =		"delete config entry";
-roflash static const char help_description_http_get[] =				"get access over http";
 roflash		   const char help_description_display_eastrising[] =	"display eastrising <mode=0=disabled|1=i2c|2=hspi [<use_fontchip 0=no|1=yes>] [<user cs io> <user cs pin>]";
-roflash static const char help_description_flash_info[] =			"flash-info";
-roflash static const char help_description_flash_erase[] =			"flash-erase";
-roflash static const char help_description_flash_send[] =			"flash-send";
-roflash static const char help_description_flash_read[] =			"flash-read";
-roflash static const char help_description_flash_receive[] =		"flash-receive";
-roflash static const char help_description_flash_write[] =			"flash-write";
-roflash static const char help_description_flash_verify[] =			"flash-verify";
-roflash static const char help_description_flash_checksum[] =		"flash-checksum";
-roflash static const char help_description_flash_select[] =			"flash-select";
-roflash static const char help_description_flash_select_once[] =	"flash-select-once";
-roflash static const char help_description_mailbox_info[] =			"mailbox-info";
-roflash static const char help_description_mailbox_reset[] =		"mailbox-reset";
-roflash static const char help_description_mailbox_read[] =			"mailbox-receive";
-roflash static const char help_description_mailbox_checksum[] =		"mailbox-checksum";
-roflash static const char help_description_mailbox_simulate[] =		"mailbox-simulate";
-roflash static const char help_description_mailbox_write[] =		"mailbox-write";
-roflash static const char help_description_mailbox_select[] =		"mailbox-select";
-roflash static const char help_description_peek[] =					"peek at a memory address";
-roflash static const char help_description_poke[] =					"poke to a memory address";
 
 roflash static const application_function_table_t application_function_table[] =
 {
@@ -2286,7 +2269,7 @@ roflash static const application_function_table_t application_function_table[] =
 	{
 		"GET", "http-get",
 		application_function_http_get,
-		help_description_http_get,
+		(void *)0,
 	},
 	{
 		"de", "display-eastrising",
@@ -2296,67 +2279,67 @@ roflash static const application_function_table_t application_function_table[] =
 	{
 		"flash-info", "flash-info",
 		application_function_flash_info,
-		help_description_flash_info,
+		(void *)0,
 	},
 	{
 		"flash-erase", "flash-erase",
 		application_function_flash_erase,
-		help_description_flash_erase,
+		(void *)0,
 	},
 	{
 		"flash-send", "flash-send",
 		application_function_flash_send,
-		help_description_flash_send,
+		(void *)0,
 	},
 	{
 		"flash-read", "flash-read",
 		application_function_flash_read,
-		help_description_flash_read,
+		(void *)0,
 	},
 	{
 		"flash-receive", "flash-receive",
 		application_function_flash_receive,
-		help_description_flash_receive,
+		(void *)0,
 	},
 	{
 		"flash-write", "flash-write",
 		application_function_flash_write,
-		help_description_flash_write,
+		(void *)0,
 	},
 	{
 		"flash-verify", "flash-verify",
 		application_function_flash_verify,
-		help_description_flash_verify,
+		(void *)0,
 	},
 	{
 		"flash-checksum", "flash-checksum",
 		application_function_flash_checksum,
-		help_description_flash_checksum,
+		(void *)0,
 	},
 	{
 		"flash-select", "flash-select",
 		application_function_flash_select,
-		help_description_flash_select,
+		(void *)0,
 	},
 	{
 		"flash-select-once", "flash-select-once",
 		application_function_flash_select_once,
-		help_description_flash_select_once,
+		(void *)0,
 	},
 	{
 		"mailbox-info", "mailbox-info",
 		application_function_mailbox_info,
-		help_description_mailbox_info,
+		(void *)0,
 	},
 	{
 		"mailbox-reset", "mailbox-reset",
 		application_function_mailbox_reset,
-		help_description_mailbox_reset,
+		(void *)0,
 	},
 	{
 		"mailbox-read", "mailbox-read",
 		application_function_mailbox_read,
-		help_description_mailbox_read,
+		(void *)0,
 	},
 	{
 		"mailbox-bench", "mailbox-bench",
@@ -2366,36 +2349,36 @@ roflash static const application_function_table_t application_function_table[] =
 	{
 		"mailbox-checksum", "mailbox-checksum",
 		application_function_mailbox_checksum,
-		help_description_mailbox_checksum,
+		(void *)0,
 	},
 	{
 		"mailbox-simulate", "mailbox-simulate",
 		application_function_mailbox_simulate,
-		help_description_mailbox_simulate,
+		(void *)0,
 	},
 	{
 		"mailbox-write", "mailbox-write",
 		application_function_mailbox_write,
-		help_description_mailbox_write,
+		(void *)0,
 	},
 	{
 		"mailbox-select", "mailbox-select",
 		application_function_mailbox_select,
-		help_description_mailbox_select,
+		(void *)0,
 	},
 	{
 		"pe", "peek",
 		application_function_peek,
-		help_description_peek
+		(void *)0,
 	},
 	{
 		"po", "poke",
 		application_function_poke,
-		help_description_poke,
+		(void *)0,
 	},
 	{
-		"", "",
+		(void *)0, (void *)0,
 		(void *)0,
-		"",
+		(void *)0,
 	},
 };
