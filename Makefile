@@ -3,7 +3,8 @@ IMAGE				?= ota
 ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
-OTA_HOST			?= esp1
+OTA_HOST			?= 10.1.12.222
+OTA_FLASH			?= espmbf
 # using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
 USE_LTO				?= 0
@@ -160,12 +161,12 @@ ifeq ($(IMAGE),ota)
 	LD_ADDRESS := 0x40202010
 	LD_LENGTH := 0xf7ff0
 	ELF_IMAGE := $(ELF_OTA)
-	ALL_IMAGE_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) espflash
+	ALL_IMAGE_TARGETS := $(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) espflash espmbf
 	FLASH_TARGET := flash-ota
 endif
 
 ALL_BUILD_TARGETS		:= ctng lwip lwip_espressif
-ALL_COMPLETION_TARGETS	:= free resetserial espflash
+ALL_COMPLETION_TARGETS	:= free resetserial espflash espmbf
 
 
 WARNINGS		:=	-Wall -Wextra -Werror \
@@ -276,7 +277,7 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						espflash resetserial 2> /dev/null
+						espflash espmbf resetserial 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -479,22 +480,22 @@ flash-ota:				$(FIRMWARE_OTA_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_OTA_IMG) $(AL
 
 ota:					$(ALL_BUILD_TARGETS) $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH OTA"
-						espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
+						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W
 
 ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "FLASH OTA DEFAULTS"
 						$(VECHO) "* rf config"
-						$(Q)espflash -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET_OTA) -W
 						$(VECHO) "* system_config"
-						$(Q)espflash -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET_OTA) -W
 						$(VECHO) "* rf calibiration"
-						$(Q)espflash -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET_OTA) -W
 
 ota-rboot-update:		$(FIRMWARE_OTA_RBOOT) ota-default $(FIRMWARE_OTA_IMG) $(ALL_COMPLETION_TARGETS)
 						$(VECHO) "FLASH RBOOT"
-						$(Q) espflash -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
+						$(Q) $(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(FIRMWARE_OTA_RBOOT) -s $(OFFSET_OTA_BOOT) -W
 						$(VECHO) "FLASH OTA"
-						$(Q) espflash -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W -t
+						$(Q) $(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -W -t
 
 backup-config:
 						$(VECHO) "BACKUP CONFIG"
@@ -528,21 +529,25 @@ espflash:				espflash.cpp
 						$(VECHO) "HOST CPP $<"
 						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
 
+espmbf:					espmbf.cpp
+						$(VECHO) "HOST CPP $<"
+						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
+
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"
 						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
 
 udprxtest:
-						espflash -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
+						$(OTA_FLASH) -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 tcprxtest:
-						espflash -t -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
+						$(OTA_FLASH) -t -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 udptxtest:
-						espflash -u -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+						$(OTA_FLASH) -u -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
 tcptxtest:
-						espflash -t -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
+						$(OTA_FLASH) -t -h $(OTA_HOST) -f $(FIRMWARE_OTA_IMG) -S
 
 test:					udprxtest tcprxtest udptxtest tcptxtest
 
@@ -553,7 +558,7 @@ release:
 						$(Q) zip -9 espiobridge-plain.zip $(FIRMWARE_PLAIN_IRAM) $(FIRMWARE_PLAIN_IROM) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE)
 						$(Q) $(MAKE) clean
 						$(Q) $(MAKE) IMAGE=ota
-						$(Q) zip -9 espiobridge-ota.zip $(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE) espflash
+						$(Q) zip -9 espiobridge-ota.zip $(FIRMWARE_OTA_RBOOT) $(FIRMWARE_OTA_IMG) $(RFCAL_FILE) $(SYSTEM_CONFIG_FILE) $(PHYDATA_FILE) espflash espmbf
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \

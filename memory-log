@@ -9298,3 +9298,227 @@ Sun Jun 27 19:52:23 CEST 2021 20a044c i2c-sensor: fix htu21 detect sensor too st
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  77141, free:   3124,  3 %
     irom:    available: 592 k, used: 428888, free: 177320, 29 %
+Sun Jun 27 19:57:13 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77141, free:   3124,  3 %
+    irom:    available: 592 k, used: 428840, free: 177368, 29 %
+Mon Jun 28 18:41:23 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77157, free:   3108,  3 %
+    irom:    available: 592 k, used: 429544, free: 176664, 29 %
+Mon Jun 28 18:53:27 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77157, free:   3108,  3 %
+    irom:    available: 592 k, used: 429512, free: 176696, 29 %
+Fri Jul  2 16:35:38 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77189, free:   3076,  3 %
+    irom:    available: 592 k, used: 430072, free: 176136, 29 %
+Fri Jul  2 17:35:52 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77189, free:   3076,  3 %
+    irom:    available: 592 k, used: 430088, free: 176120, 29 %
+Fri Jul  2 19:14:10 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77189, free:   3076,  3 %
+    irom:    available: 592 k, used: 430136, free: 176072, 29 %
+Fri Jul  2 20:33:06 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78269, free:   1996,  2 %
+    irom:    available: 592 k, used: 430152, free: 176056, 29 %
+Fri Jul  2 20:33:23 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  79069, free:   1196,  1 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:34:41 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78045, free:   2220,  2 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:35:19 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77021, free:   3244,  4 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:36:07 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77117, free:   3148,  3 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:36:50 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  77021, free:   3244,  4 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:39:48 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  81821, free: 18446744073709550060, 18446744073709551615 %
+    irom:    available: 592 k, used: 430200, free: 176008, 29 %
+Fri Jul  2 20:40:13 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78221, free:   2044,  2 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 20:41:35 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78189, free:   2076,  2 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:24:21 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78253, free:   2012,  2 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:25:13 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76189, free:   4076,  5 %
+    irom:    available: 592 k, used: 430152, free: 176056, 29 %
+Fri Jul  2 21:25:54 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78029, free:   2236,  2 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:27:33 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75109, free:   5156,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:38:13 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75141, free:   5124,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:39:00 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75365, free:   4900,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:41:14 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75301, free:   4964,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:46:50 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  78373, free:   1892,  2 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:48:26 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75301, free:   4964,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:49:59 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76365, free:   3900,  4 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:50:21 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76341, free:   3924,  4 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:51:11 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76365, free:   3900,  4 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Fri Jul  2 21:51:48 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76405, free:   3860,  4 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:52:26 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76485, free:   3780,  4 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:54:09 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76165, free:   4100,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:54:41 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  74117, free:   6148,  7 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:55:21 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  72069, free:   8196, 10 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:55:58 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  74117, free:   6148,  7 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:57:43 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  74053, free:   6212,  7 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:58:30 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  73989, free:   6276,  7 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 21:59:11 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 22:00:59 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75013, free:   5252,  6 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Fri Jul  2 22:01:21 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Sat Jul  3 11:01:07 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430200, free: 176008, 29 %
+Sat Jul  3 11:02:17 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Sat Jul  3 11:07:14 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430184, free: 176024, 29 %
+Sat Jul  3 11:12:23 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430232, free: 175976, 29 %
+Sat Jul  3 11:18:57 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76037, free:   4228,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Sat Jul  3 11:43:20 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75973, free:   4292,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Sat Jul  3 11:49:31 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75989, free:   4276,  5 %
+    irom:    available: 592 k, used: 430776, free: 175432, 28 %
+Sat Jul  3 11:53:54 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75973, free:   4292,  5 %
+    irom:    available: 592 k, used: 430168, free: 176040, 29 %
+Sat Jul  3 11:58:52 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 431464, free: 174744, 28 %
+Sat Jul  3 12:18:05 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75965, free:   4300,  5 %
+    irom:    available: 592 k, used: 431448, free: 174760, 28 %
+Sat Jul  3 12:34:14 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 431928, free: 174280, 28 %
+Sat Jul  3 12:47:22 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 431960, free: 174248, 28 %
+Sat Jul  3 13:12:33 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 432184, free: 174024, 28 %
+Sat Jul  3 13:22:20 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 432312, free: 173896, 28 %
+Sat Jul  3 13:26:47 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 432440, free: 173768, 28 %
+Sat Jul  3 13:30:22 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 432632, free: 173576, 28 %
+Sat Jul  3 13:33:53 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75981, free:   4284,  5 %
+    irom:    available: 592 k, used: 432616, free: 173592, 28 %
+Sat Jul  3 15:09:29 CEST 2021 ad958c0 lwip: we don't do fragmentation, set buffer size to 0.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  75997, free:   4268,  5 %
+    irom:    available: 592 k, used: 434168, free: 172040, 28 %

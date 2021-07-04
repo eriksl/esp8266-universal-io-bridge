@@ -1926,6 +1926,13 @@ roflash static const char help_description_flash_verify[] =			"flash-verify";
 roflash static const char help_description_flash_checksum[] =		"flash-checksum";
 roflash static const char help_description_flash_select[] =			"flash-select";
 roflash static const char help_description_flash_select_once[] =	"flash-select-once";
+roflash static const char help_description_mailbox_info[] =			"mailbox-info";
+roflash static const char help_description_mailbox_reset[] =		"mailbox-reset";
+roflash static const char help_description_mailbox_read[] =			"mailbox-receive";
+roflash static const char help_description_mailbox_checksum[] =		"mailbox-checksum";
+roflash static const char help_description_mailbox_simulate[] =		"mailbox-simulate";
+roflash static const char help_description_mailbox_write[] =		"mailbox-write";
+roflash static const char help_description_mailbox_select[] =		"mailbox-select";
 roflash static const char help_description_peek[] =					"peek at a memory address";
 roflash static const char help_description_poke[] =					"poke to a memory address";
 
@@ -2335,6 +2342,46 @@ roflash static const application_function_table_t application_function_table[] =
 		"flash-select-once", "flash-select-once",
 		application_function_flash_select_once,
 		help_description_flash_select_once,
+	},
+	{
+		"mailbox-info", "mailbox-info",
+		application_function_mailbox_info,
+		help_description_mailbox_info,
+	},
+	{
+		"mailbox-reset", "mailbox-reset",
+		application_function_mailbox_reset,
+		help_description_mailbox_reset,
+	},
+	{
+		"mailbox-read", "mailbox-read",
+		application_function_mailbox_read,
+		help_description_mailbox_read,
+	},
+	{
+		"mailbox-bench", "mailbox-bench",
+		application_function_mailbox_bench,
+		(void *)0,
+	},
+	{
+		"mailbox-checksum", "mailbox-checksum",
+		application_function_mailbox_checksum,
+		help_description_mailbox_checksum,
+	},
+	{
+		"mailbox-simulate", "mailbox-simulate",
+		application_function_mailbox_simulate,
+		help_description_mailbox_simulate,
+	},
+	{
+		"mailbox-write", "mailbox-write",
+		application_function_mailbox_write,
+		help_description_mailbox_write,
+	},
+	{
+		"mailbox-select", "mailbox-select",
+		application_function_mailbox_select,
+		help_description_mailbox_select,
 	},
 	{
 		"pe", "peek",

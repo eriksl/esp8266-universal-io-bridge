@@ -14,6 +14,7 @@
 #include "config.h"
 #include "lwip-interface.h"
 #include "remote_trigger.h"
+#include "ota.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -536,7 +537,7 @@ void dispatch_init1(void)
 void dispatch_init2(void)
 {
 	int io, pin;
-	unsigned int cmd_port, uart_port;
+	unsigned int cmd_port, uart_port, mailbox_port;
 
 	if(config_get_int("trigger.status.io", &io, -1, -1) &&
 			config_get_int("trigger.status.pin", &pin, -1, -1))
@@ -558,6 +559,9 @@ void dispatch_init2(void)
 	if(!config_get_uint("bridge.port", &uart_port, -1, -1))
 		uart_port = 0;
 
+	if(!config_get_uint("mailbox.port", &mailbox_port, -1, -1))
+		mailbox_port = 26;
+
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
@@ -570,6 +574,8 @@ void dispatch_init2(void)
 
 		uart_bridge_active = true;
 	}
+
+	ota_init(mailbox_port);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 0);
