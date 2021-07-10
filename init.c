@@ -8,6 +8,7 @@
 #include "dispatch.h"
 #include "sequencer.h"
 #include "io_gpio.h"
+#include "lwip-interface.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -241,4 +242,28 @@ void wlan_init_start_recovery(void)
 				"      wcc <ssid> <passwd>\n"
 				"      wm client\n"
 				"  after that, issue a reset command to restore temporarily changed flags.\n");
+}
+
+void multicast_init_groups(void)
+{
+	string_new(, ip, 32);
+	unsigned int entry;
+	ip_addr_to_bytes_t addr;
+
+	for(entry = 0; entry < 8; entry++)
+	{
+		string_clear(&ip);
+
+		if(config_get_string("multicast-group.%u", &ip, entry, -1))
+		{
+			addr.ip_addr = ip_addr(string_to_cstr(&ip));
+
+			if((addr.byte[0] > 0) &&
+					(addr.byte[1] > 0) &&
+					(addr.byte[2] > 0) &&
+					(addr.byte[3] > 0))
+				if(!lwip_if_join_mc(addr.ip_addr))
+					log("join mc group failed\n");
+		}
+	}
 }

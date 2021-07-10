@@ -1682,6 +1682,62 @@ static app_action_t application_function_sntp_set(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
+static app_action_t application_function_multicast_group_set(string_t *src, string_t *dst)
+{
+	unsigned int entry, entries;
+	string_new(, ip, 32);
+
+	if((parse_uint(1, src, &entry, 0, ' ') == parse_ok) && (parse_string(2, src, &ip, ' ') == parse_ok))
+	{
+		if(entry > 7)
+		{
+			string_append(dst, "entry must be between 0 and 7\n");
+			return(app_action_error);
+		}
+
+		if(!config_open_write())
+		{
+			string_append(dst, "cannot set config (open)\n");
+			return(app_action_error);
+		}
+
+		config_delete("multicast-group.%u", true, entry, -1);
+
+		if(!string_match_cstr(&ip, "0.0.0.0"))
+		{
+			if(!config_set_string("multicast-group.%u", string_to_cstr(&ip), entry, -1))
+			{
+				config_abort_write();
+				string_append(dst, "cannot set config (set multicast group entry)\n");
+				return(app_action_error);
+			}
+		}
+
+		if(!config_close_write())
+		{
+			string_append(dst, "cannot set config (close)\n");
+			return(app_action_error);
+		}
+
+		multicast_init_groups();
+	}
+
+	for(entry = 0, entries = 0; entry < 8; entry++)
+	{
+		string_clear(&ip);
+
+		if(config_get_string("multicast-group.%u", &ip, entry, -1))
+		{
+			entries++;
+			string_format(dst, "> %u: %s\n", entry, string_to_cstr(&ip));
+		}
+	}
+
+	string_format(dst, "%u entries\n", entries);
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
 {
 	int trigger_io, trigger_pin;
@@ -1895,6 +1951,7 @@ roflash static const char help_description_i2c_sensor_dump[] =		"dump all i2c se
 roflash static const char help_description_log_display[] =			"display log";
 roflash static const char help_description_log_clear[] =			"display and clear the log";
 roflash static const char help_description_log_write[] =			"write to the log";
+roflash static const char help_description_multicast_group_set[] =	"set multicast group, entry 0-7, ip address";
 roflash static const char help_description_sntp_set[] =				"set sntp <ip addr> <timezone GMT+/-x>";
 roflash static const char help_description_time_set[] =				"set time base [h m (s)] or [unix timestamp tz_offset]";
 roflash static const char help_description_sequencer_add[] =		"add sequencer entry";
@@ -2155,6 +2212,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"lw", "log-write",
 		application_function_log_write,
 		help_description_log_write,
+	},
+	{
+		"mgs", "multicast-group-set",
+		application_function_multicast_group_set,
+		help_description_multicast_group_set,
 	},
 	{
 		"sns", "sntp-set",

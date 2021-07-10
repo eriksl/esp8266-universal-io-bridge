@@ -19,5 +19,6 @@ extern int stack_stack_painted;
 void stack_paint_stack(void);
 bool wlan_init_from_config(void);
 void wlan_init_start_recovery(void);
+void multicast_init_groups(void);
 
 #endif

@@ -582,19 +582,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	return(true);
 }
 
-bool attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4)
+bool attr_nonnull lwip_if_join_mc(ip_addr_t mc_ip)
 {
-	struct ip_info info;
-	ip_addr_to_bytes_t local_ip;
-	ip_addr_to_bytes_t mc_ip;
-
-	wifi_get_ip_info(STATION_IF, &info);
-	local_ip.ip_addr = info.ip;
-
-	mc_ip.byte[0] = o1;
-	mc_ip.byte[1] = o2;
-	mc_ip.byte[2] = o3;
-	mc_ip.byte[3] = o4;
-
-	return(igmp_joingroup(&local_ip.ip_addr, &mc_ip.ip_addr) == ERR_OK);
+	return(igmp_joingroup(IP_ADDR_ANY, &mc_ip) == ERR_OK);
 }

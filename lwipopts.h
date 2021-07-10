@@ -9,7 +9,7 @@
 #define MEMP_NUM_REASSDATA			0
 #define MEMP_NUM_FRAG_PBUF			0
 #define MEMP_NUM_ARP_QUEUE			0
-#define MEMP_NUM_IGMP_GROUP			2
+#define MEMP_NUM_IGMP_GROUP			10
 #define ARP_TABLE_SIZE				2
 #define ARP_QUEUEING				0
 #define ETHARP_TRUST_IP_MAC			1

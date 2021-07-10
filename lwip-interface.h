@@ -65,5 +65,5 @@ bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
 			unsigned int port, bool tcp, bool flag_udp_term_empty, callback_data_received_fn_t callback_data_received);
-bool	attr_nonnull lwip_if_join_mc(int o1, int o2, int o3, int o4);
+bool	attr_nonnull lwip_if_join_mc(ip_addr_t);
 #endif

@@ -9530,3 +9530,51 @@ Sun Jul  4 11:37:00 CEST 2021 5d86741 Remove non-user commands from help.
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  75997, free:   4268,  5 %
     irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sat Jul 10 12:54:37 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76013, free:   4252,  5 %
+    irom:    available: 592 k, used: 434248, free: 171960, 28 %
+Sat Jul 10 15:43:02 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76013, free:   4252,  5 %
+    irom:    available: 592 k, used: 434280, free: 171928, 28 %
+Sat Jul 10 17:08:12 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 434984, free: 171224, 28 %
+Sat Jul 10 17:35:52 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Sat Jul 10 18:00:23 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Sat Jul 10 19:38:56 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 435340, free: 170868, 28 %
+Sat Jul 10 19:44:09 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 435420, free: 170788, 28 %
+Sat Jul 10 19:44:48 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76045, free:   4220,  5 %
+    irom:    available: 592 k, used: 435444, free: 170764, 28 %
+Sat Jul 10 19:47:05 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76325, free:   3940,  4 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Sat Jul 10 19:48:19 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76325, free:   3940,  4 %
+    irom:    available: 592 k, used: 435444, free: 170764, 28 %
+Sat Jul 10 19:49:44 CEST 2021 5398ddc Remove support for <plain> (non-OTA, < 1 Mbyte flash) images.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Sat Jul 10 20:13:41 CEST 2021 e1e4804 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435112, free: 171096, 28 %
