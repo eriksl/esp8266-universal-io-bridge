@@ -4160,7 +4160,7 @@ static i2c_error_t sensor_hdc1080_temperature_read(i2c_sensor_data_t *data, i2c_
 		return(i2c_error_device_error_1);
 
 	value->ch0 = private_data->raw_temperature_data;
-	value->value = ((private_data->raw_temperature_data * 165) / (1 << 16)) - 40;
+	value->value = ((private_data->raw_temperature_data * 165) / (double)(1 << 16)) - 40;
 
 	return(i2c_error_ok);
 }
