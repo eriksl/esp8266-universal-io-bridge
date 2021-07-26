@@ -436,7 +436,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 
 				std::cout << std::setfill(' ');
 				std::cout << "sent "		<< std::setw(4) << (file_offset / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(4) << std::setprecision(2) << std::fixed << duration << " seconds";
+				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
 				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
 				std::cout << ", sent "		<< std::setw(3) << (current - start + 1) << " sectors";
 				std::cout << ", written "	<< std::setw(3) << sectors_written << " sectors";
