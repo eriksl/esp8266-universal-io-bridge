@@ -1194,22 +1194,22 @@ int main(int argc, const char **argv)
 	}
 	catch(const po::error &e)
 	{
-		std::cerr << std::endl << "espflash: " << e.what() << std::endl << options;
+		std::cerr << std::endl << "espmbf: " << e.what() << std::endl << options;
 		return(1);
 	}
 	catch(const std::exception &e)
 	{
-		std::cerr << std::endl << "espflash: " << e.what() << std::endl;
+		std::cerr << std::endl << "espmbf: " << e.what() << std::endl;
 		return(1);
 	}
 	catch(const std::string &e)
 	{
-		std::cerr << std::endl << "espflash: " << e << std::endl;
+		std::cerr << std::endl << "espmbf: " << e << std::endl;
 		return(1);
 	}
 	catch(...)
 	{
-		std::cerr << std::endl << "espflash: unknown exception caught" << std::endl;
+		std::cerr << std::endl << "espmbf: unknown exception caught" << std::endl;
 		return(1);
 	}
 
