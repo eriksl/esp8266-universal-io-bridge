@@ -1152,7 +1152,7 @@ int main(int argc, const char **argv)
 
 		if(start == -1)
 		{
-			if(cmd_write || cmd_verify || cmd_checksum || cmd_info)
+			if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
 			{
 				flash_slot++;
 
