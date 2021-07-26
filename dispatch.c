@@ -347,12 +347,17 @@ void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argum
 		stat_task_post_failed[prio]++;
 }
 
+iram static void fast_timer_run(void)
+{
+	stat_fast_timer++;
+	io_periodic_fast();
+}
+
 iram static void fast_timer_callback(void *arg)
 {
 	// timer runs every 10 ms = 100 Hz
 
-	stat_fast_timer++;
-	io_periodic_fast();
+	fast_timer_run();
 	os_timer_arm(&fast_timer, 10, 0);
 }
 
@@ -361,6 +366,9 @@ static void slow_timer_callback(void *arg)
 	// run background task every ~100 ms = ~10 Hz
 
 	stat_slow_timer++;
+
+	if(config_flags_match(flag_wlan_power_save))
+		fast_timer_run();
 
 	dispatch_post_task(1, task_update_time, 0);
 
@@ -578,8 +586,11 @@ void dispatch_init2(void)
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 0);
 
-	os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
-	os_timer_arm(&fast_timer, 10, 0);
+	if(!config_flags_match(flag_wlan_power_save))
+	{
+		os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
+		os_timer_arm(&fast_timer, 10, 0);
+	}
 
 	dispatch_post_task(2, task_init_displays, 0);
 }

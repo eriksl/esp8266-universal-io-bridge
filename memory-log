@@ -9578,3 +9578,47 @@ Sat Jul 10 20:13:41 CEST 2021 e1e4804 lwip: allow to set up to 8 multicast group
     iram:    available:  32 k, used:  31877, free:    891,  2 %
     dram:    available:  78 k, used:  76205, free:   4060,  5 %
     irom:    available: 592 k, used: 435112, free: 171096, 28 %
+Sun Jul 25 17:08:33 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Sun Jul 25 17:12:02 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435208, free: 171000, 28 %
+Mon Jul 26 16:28:33 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435304, free: 170904, 28 %
+Mon Jul 26 16:31:21 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31877, free:    891,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Mon Jul 26 16:57:49 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31885, free:    883,  2 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 435368, free: 170840, 28 %
+Mon Jul 26 17:05:46 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435352, free: 170856, 28 %
+Mon Jul 26 17:12:36 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Mon Jul 26 17:23:41 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Mon Jul 26 18:10:36 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Mon Jul 26 20:01:34 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Mon Jul 26 20:04:07 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast groups instead of setting the default one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %

@@ -514,14 +514,18 @@ SpiFlashOpResult	spi_flash_write(uint32_t, const void * attr_flash_align, uint32
 SpiFlashOpResult	spi_flash_read(uint32_t, void * attr_flash_align, uint32_t);
 
 uint8_t				wifi_get_channel(void);
+bool				wifi_get_ip_info(uint8_t if_index, struct ip_info *);
+uint8_t				wifi_get_listen_interval(void);
 bool				wifi_get_macaddr(uint8_t if_index, sdk_mac_addr_t);
 uint8_t				wifi_get_opmode(void);
-bool				wifi_get_ip_info(uint8_t if_index, struct ip_info *);
 enum phy_mode		wifi_get_phy_mode(void);
+enum sleep_level	wifi_get_sleep_level(void);
 enum sleep_type		wifi_get_sleep_type(void);
 void				wifi_set_event_handler_cb(wifi_event_handler_cb_t);
+bool				wifi_set_listen_interval(uint8_t interval);
 bool				wifi_set_opmode(uint8_t opmode);
 bool				wifi_set_opmode_current(uint8_t);
+bool				wifi_set_sleep_level(enum sleep_level);
 bool				wifi_set_sleep_type(enum sleep_type);
 enum dhcp_status	wifi_softap_dhcps_status(void);
 uint32_t			wifi_softap_get_dhcps_lease_time(void);

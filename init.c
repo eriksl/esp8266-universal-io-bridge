@@ -86,7 +86,11 @@ void user_init(void)
 	system_set_os_print(1);
 
 	if(config_flags_match(flag_wlan_power_save))
-		wifi_set_sleep_type(MODEM_SLEEP_T);
+	{
+		wifi_set_listen_interval(2);
+		wifi_set_sleep_level(MAX_SLEEP_T);
+		wifi_set_sleep_type(LIGHT_SLEEP_T);
+	}
 	else
 		wifi_set_sleep_type(NONE_SLEEP_T);
 
