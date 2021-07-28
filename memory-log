@@ -9622,3 +9622,131 @@ Mon Jul 26 20:04:07 CEST 2021 022bdb1 lwip: allow to set up to 8 multicast group
     iram:    available:  32 k, used:  31893, free:    875,  2 %
     dram:    available:  78 k, used:  76205, free:   4060,  5 %
     irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Tue Jul 27 19:58:20 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435112, free: 171096, 28 %
+Tue Jul 27 20:10:02 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31961, free:    807,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435112, free: 171096, 28 %
+Tue Jul 27 20:14:01 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32021, free:    747,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:19:53 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32053, free:    715,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:21:45 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31953, free:    815,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:22:29 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31993, free:    775,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:22:59 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32005, free:    763,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:23:14 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32033, free:    735,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:23:27 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32041, free:    727,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:23:46 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32053, free:    715,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:28:32 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32049, free:    719,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:35:26 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32073, free:    695,  2 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:39:06 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32085, free:    683,  2 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:40:01 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32061, free:    707,  2 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Tue Jul 27 20:44:10 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  32097, free:    671,  2 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 435096, free: 171112, 28 %
+Wed Jul 28 14:03:09 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435112, free: 171096, 28 %
+Wed Jul 28 14:14:23 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Wed Jul 28 14:19:32 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435000, free: 171208, 28 %
+Wed Jul 28 14:28:21 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Wed Jul 28 14:31:40 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Wed Jul 28 14:42:17 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Wed Jul 28 14:45:51 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435384, free: 170824, 28 %
+Wed Jul 28 14:47:32 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Wed Jul 28 14:53:15 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435560, free: 170648, 28 %
+Wed Jul 28 15:01:45 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435944, free: 170264, 28 %
+Wed Jul 28 15:04:55 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 436152, free: 170056, 28 %
+Wed Jul 28 15:06:20 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 436200, free: 170008, 28 %
+Wed Jul 28 15:08:59 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 436248, free: 169960, 28 %
+Wed Jul 28 15:14:55 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 436232, free: 169976, 28 %
+Wed Jul 28 16:57:41 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Wed Jul 28 17:00:58 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Wed Jul 28 18:02:51 CEST 2021 6776cca espmbf: fix some padding in output.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 434984, free: 171224, 28 %
