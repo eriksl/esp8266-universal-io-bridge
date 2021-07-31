@@ -354,10 +354,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 						std::cout << ", offset: " << file_offset << ", try #" << (max_attempts - sector_attempt) << std::endl;
 					}
 
-					if(!mailbox_channel.send(100, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
+					if(!mailbox_channel.send(1000, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
 						throw(std::string("send failed"));
 
-					if(!mailbox_channel.receive(100, reply, -1, true))
+					if(!mailbox_channel.receive(1000, reply, -1, true))
 						throw(std::string("receive failed"));
 
 					if(verbose)
