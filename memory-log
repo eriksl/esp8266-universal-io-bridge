@@ -9750,3 +9750,23 @@ Wed Jul 28 18:02:51 CEST 2021 6776cca espmbf: fix some padding in output.
     iram:    available:  32 k, used:  31997, free:    771,  2 %
     dram:    available:  78 k, used:  76205, free:   4060,  5 %
     irom:    available: 592 k, used: 434984, free: 171224, 28 %
+Wed Jul 28 19:50:44 CEST 2021 1458456 io_gpio: merge pin init functions into one.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435000, free: 171208, 28 %
+Wed Jul 28 20:13:35 CEST 2021 1458456 io_gpio: merge pin init functions into one.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 434984, free: 171224, 28 %
+Wed Jul 28 20:14:34 CEST 2021 1458456 io_gpio: merge pin init functions into one.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 434952, free: 171256, 28 %
+Fri Jul 30 13:39:56 CEST 2021 1458456 io_gpio: merge pin init functions into one.
+    iram:    available:  32 k, used:  31997, free:    771,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435000, free: 171208, 28 %
+Sat Jul 31 14:33:47 CEST 2021 1458456 io_gpio: merge pin init functions into one.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435032, free: 171176, 28 %

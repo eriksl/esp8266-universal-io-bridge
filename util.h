@@ -68,6 +68,8 @@ attr_inline void csleep(volatile uint32_t target)
 		for(start = ccount(); (ccount() - start) < target; );
 }
 
+void power_save_enable(bool enable);
+
 ip_addr_t ip_addr(const char *);
 
 extern string_t logbuffer;
