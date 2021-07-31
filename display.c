@@ -202,7 +202,7 @@ attr_pure bool display_detected(void)
 static void display_update(bool advance)
 {
 	const char *display_text, *tag_text, *current_text;
-	unsigned int slot;
+	unsigned int slot, attempt;
 	unsigned int utf8, unicode;
 	uint64_t start, spent;
 	utf8_parser_state_t state;
@@ -217,65 +217,82 @@ static void display_update(bool advance)
 
 	display_info_entry = &display_info[display_data.detected];
 
-	if(config_flags_match(flag_display_clock) && display_info_entry->show_time_start_fn && display_info_entry->show_time_stop_fn)
+	for(attempt = display_slot_amount; attempt > 0; attempt--)
 	{
-		static bool time_shown = false;
-
-		if(time_shown)
+		if(config_flags_match(flag_display_clock) && display_info_entry->show_time_start_fn && display_info_entry->show_time_stop_fn)
 		{
-			if(!display_info_entry->show_time_stop_fn())
+			static bool time_shown = false;
+
+			if(time_shown)
 			{
-				log("display update: time show stop failed\n");
-				display_data.detected = -1;
+				if(!display_info_entry->show_time_stop_fn())
+				{
+					log("display update: time show stop failed\n");
+					display_data.detected = -1;
+					return;
+				}
+
+				time_shown = false;
+			}
+			else
+			{
+				unsigned int h, m;
+
+				time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
+
+				if(!display_info_entry->show_time_start_fn(h, m))
+				{
+					log("display update: show time start failed\n");
+					display_data.detected = -1;
+					return;
+				}
+
+				time_shown = true;
 				return;
 			}
-
-			time_shown = false;
 		}
-		else
-		{
-			unsigned int h, m;
 
-			time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
-
-			if(!display_info_entry->show_time_start_fn(h, m))
-			{
-				log("display update: show time start failed\n");
-				display_data.detected = -1;
-				return;
-			}
-
-			time_shown = true;
-			return;
-		}
-	}
-
-	for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
-		if(display_slot[slot].content[0])
-			break;
-
-	if(slot >= display_slot_amount)
-		for(slot = 0; slot < display_slot_amount; slot++)
+		for(slot = display_data.current_slot + (advance ? 1 : 0); slot < display_slot_amount; slot++)
 			if(display_slot[slot].content[0])
 				break;
 
-	if(slot >= display_slot_amount)
-		slot = 0;
+		if(slot >= display_slot_amount)
+			for(slot = 0; slot < display_slot_amount; slot++)
+				if(display_slot[slot].content[0])
+					break;
 
-	display_text = display_slot[slot].content;
+		if(slot >= display_slot_amount)
+			slot = 0;
 
-	if(!strcmp(display_slot[slot].tag, "picture") && !strcmp(display_text, "picture"))
-	{
-		if(display_info_entry->layer_select_fn)
+		display_text = display_slot[slot].content;
+
+		if(!strcmp(display_slot[slot].tag, "picture") && !strcmp(display_text, "picture"))
 		{
-			display_data.current_slot = slot;
+			if(display_info_entry->layer_select_fn)
+			{
+				display_data.current_slot = slot;
 
-			if(display_info_entry->layer_select_fn(1))
-				goto skip;
+				if(display_info_entry->layer_select_fn(1))
+					goto quit;
+				else
+				{
+					for(slot++; slot < display_slot_amount; slot++)
+						if(display_slot[slot].content[0])
+							break;
+
+					if(slot >= display_slot_amount)
+						for(slot = 0; slot < display_slot_amount; slot++)
+							if(display_slot[slot].content[0])
+								break;
+
+					if(slot >= display_slot_amount)
+						slot = 0;
+
+					continue;
+				}
+			}
 			else
 			{
-				log("display update: display layer select (1) failed\n");
-
 				for(slot++; slot < display_slot_amount; slot++)
 					if(display_slot[slot].content[0])
 						break;
@@ -287,189 +304,182 @@ static void display_update(bool advance)
 
 				if(slot >= display_slot_amount)
 					slot = 0;
+
+				continue;
+			}
+		}
+
+		if(display_info_entry->layer_select_fn && !display_info_entry->layer_select_fn(0))
+		{
+			log("display update: display layer select (2) failed\n");
+			display_data.detected = -1;
+			return;
+		}
+
+		display_data.current_slot = slot;
+
+		if(!strcmp(display_text, "%%%%"))
+		{
+			config_get_string("identification", &info_text, -1, -1);
+			string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
+			display_text = string_to_cstr(&info_text);
+		}
+
+		string_clear(&tag_string);
+
+		if(strcmp(display_slot[slot].tag, "-"))
+		{
+			unsigned int hour, minute, month, day;
+
+			time_get(&hour, &minute, 0, 0, &month, &day);
+			string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
+			string_append_cstr_flash(&tag_string, display_slot[slot].tag);
+		}
+
+		if(!display_info_entry->begin_fn(slot, false))
+		{
+			log("display update: display begin failed\n");
+			display_data.detected = -1;
+			return;
+		}
+
+		tag_text = string_to_cstr(&tag_string);
+
+		if(tag_text && *tag_text)
+		{
+			current_text = tag_text;
+
+			if(display_info_entry->standout_fn && !display_info_entry->standout_fn(1))
+			{
+				log("display update: display standout (1) failed\n");
+				display_data.detected = -1;
+				return;
 			}
 		}
 		else
 		{
-			for(slot++; slot < display_slot_amount; slot++)
-				if(display_slot[slot].content[0])
-					break;
-
-			if(slot >= display_slot_amount)
-				for(slot = 0; slot < display_slot_amount; slot++)
-					if(display_slot[slot].content[0])
-						break;
-
-			if(slot >= display_slot_amount)
-				slot = 0;
-		}
-	}
-
-	if(display_info_entry->layer_select_fn && !display_info_entry->layer_select_fn(0))
-	{
-		log("display update: display layer select (2) failed\n");
-		display_data.detected = -1;
-		return;
-	}
-
-	display_data.current_slot = slot;
-
-	if(!strcmp(display_text, "%%%%"))
-	{
-		config_get_string("identification", &info_text, -1, -1);
-		string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
-		display_text = string_to_cstr(&info_text);
-	}
-
-	string_clear(&tag_string);
-
-	if(strcmp(display_slot[slot].tag, "-"))
-	{
-		unsigned int hour, minute, month, day;
-
-		time_get(&hour, &minute, 0, 0, &month, &day);
-		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_append_cstr_flash(&tag_string, display_slot[slot].tag);
-	}
-
-	if(!display_info_entry->begin_fn(slot, false))
-	{
-		log("display update: display begin failed\n");
-		display_data.detected = -1;
-		return;
-	}
-
-	tag_text = string_to_cstr(&tag_string);
-
-	if(tag_text && *tag_text)
-	{
-		current_text = tag_text;
-
-		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(1))
-		{
-			log("display update: display standout (1) failed\n");
-			display_data.detected = -1;
-			return;
-		}
-	}
-	else
-	{
-		current_text = display_text;
-
-		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
-		{
-			log("display update: display standout (2) failed\n");
-			display_data.detected = -1;
-			return;
-		}
-	}
-
-	state = u8p_state_base;
-	unicode = 0;
-
-	while(current_text)
-	{
-		utf8 = *current_text++;
-
-		if(!utf8)
-		{
 			current_text = display_text;
-			display_text = (const char *)0;
-
-			if(!display_info_entry->output_fn('\n'))
-			{
-				log("display update: display output (1) failed\n");
-				display_data.detected = -1;
-				return;
-			}
 
 			if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
 			{
-				log("display update: display standout (3) failed\n");
+				log("display update: display standout (2) failed\n");
 				display_data.detected = -1;
 				return;
 			}
-
-			state = u8p_state_base;
-			continue;
 		}
 
-		switch(state)
+		state = u8p_state_base;
+		unicode = 0;
+
+		while(current_text)
 		{
-			case u8p_state_base:
+			utf8 = *current_text++;
+
+			if(!utf8)
 			{
-				if((utf8 & 0xe0) == 0xc0) // first of two bytes (11 bits)
+				current_text = display_text;
+				display_text = (const char *)0;
+
+				if(!display_info_entry->output_fn('\n'))
 				{
-					unicode = utf8 & 0x1f;
-					state = u8p_state_utf8_byte_1;
+					log("display update: display output (1) failed\n");
+					display_data.detected = -1;
+					return;
 				}
-				else
-					if((utf8 & 0xf0) == 0xe0) // first of three bytes (16 bits)
+
+				if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+				{
+					log("display update: display standout (3) failed\n");
+					display_data.detected = -1;
+					return;
+				}
+
+				state = u8p_state_base;
+				continue;
+			}
+
+			switch(state)
+			{
+				case u8p_state_base:
+				{
+					if((utf8 & 0xe0) == 0xc0) // first of two bytes (11 bits)
 					{
-						unicode = utf8 & 0x0f;
-						state = u8p_state_utf8_byte_2;
+						unicode = utf8 & 0x1f;
+						state = u8p_state_utf8_byte_1;
 					}
 					else
-						if((utf8 & 0xf8) == 0xf0) // first of four bytes (21 bits)
+						if((utf8 & 0xf0) == 0xe0) // first of three bytes (16 bits)
 						{
-							unicode = utf8 & 0x07;
-							state = u8p_state_utf8_byte_3;
+							unicode = utf8 & 0x0f;
+							state = u8p_state_utf8_byte_2;
 						}
 						else
-							if((utf8 & 0x80) == 0x80)
-								logf("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
-							else
+							if((utf8 & 0xf8) == 0xf0) // first of four bytes (21 bits)
 							{
-								unicode = utf8 & 0x7f;
-								state = u8p_state_output;
+								unicode = utf8 & 0x07;
+								state = u8p_state_utf8_byte_3;
 							}
+							else
+								if((utf8 & 0x80) == 0x80)
+									logf("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
+								else
+								{
+									unicode = utf8 & 0x7f;
+									state = u8p_state_output;
+								}
 
-				break;
-			}
-
-			case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
-			{
-				if((utf8 & 0xc0) == 0x80) // following bytes
-				{
-					unicode = (unicode << 6) | (utf8 & 0x3f);
-					state++;
-				}
-				else
-				{
-					logf("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
-					state = u8p_state_base;
+					break;
 				}
 
-				break;
+				case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
+				{
+					if((utf8 & 0xc0) == 0x80) // following bytes
+					{
+						unicode = (unicode << 6) | (utf8 & 0x3f);
+						state++;
+					}
+					else
+					{
+						logf("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
+						state = u8p_state_base;
+					}
+
+					break;
+				}
+
+				case u8p_state_output:
+				{
+					break;
+				}
 			}
 
-			case u8p_state_output:
+			if(state == u8p_state_output)
 			{
-				break;
+				if(!display_info_entry->output_fn(unicode))
+				{
+					log("display update: display output (2) failed\n");
+					display_data.detected = -1;
+					return;
+				}
+
+				state = u8p_state_base;
 			}
 		}
 
-		if(state == u8p_state_output)
+		if(!display_info_entry->end_fn())
 		{
-			if(!display_info_entry->output_fn(unicode))
-			{
-				log("display update: display output (2) failed\n");
-				display_data.detected = -1;
-				return;
-			}
-
-			state = u8p_state_base;
+			log("display update: display end failed\n");
+			display_data.detected = -1;
+			return;
 		}
+
+		break;
 	}
 
-	if(!display_info_entry->end_fn())
-	{
-		log("display update: display end failed\n");
-		display_data.detected = -1;
-		return;
-	}
+	if(attempt == 0)
+		log("display update: no more attempts left\n");
 
-skip:
+quit:
 	spent = time_get_us() - start;
 
 	stat_display_update_max_us = umax(stat_display_update_max_us, spent);

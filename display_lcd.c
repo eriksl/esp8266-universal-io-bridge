@@ -834,14 +834,7 @@ bool display_lcd_layer_select(unsigned int layer)
 	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
 
 	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
-	{
-		logf("display lcd: show picture: invalid image header: %02x %02x %02x %02x\n",
-				((uint8_t *)&flash_sector_buffer)[0],
-				((uint8_t *)&flash_sector_buffer)[1],
-				((uint8_t *)&flash_sector_buffer)[2],
-				((uint8_t *)&flash_sector_buffer)[3]);
 		goto error;
-	}
 
 	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);

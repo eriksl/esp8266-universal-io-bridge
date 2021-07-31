@@ -9770,3 +9770,15 @@ Sat Jul 31 14:33:47 CEST 2021 1458456 io_gpio: merge pin init functions into one
     iram:    available:  32 k, used:  31893, free:    875,  2 %
     dram:    available:  78 k, used:  76205, free:   4060,  5 %
     irom:    available: 592 k, used: 435032, free: 171176, 28 %
+Sat Jul 31 14:49:10 CEST 2021 9c535c0 core: allow for power save mode to be enabled selectively.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 435064, free: 171144, 28 %
+Sat Jul 31 15:01:27 CEST 2021 9c535c0 core: allow for power save mode to be enabled selectively.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 434888, free: 171320, 28 %
+Sat Jul 31 15:13:51 CEST 2021 9c535c0 core: allow for power save mode to be enabled selectively.
+    iram:    available:  32 k, used:  31893, free:    875,  2 %
+    dram:    available:  78 k, used:  76205, free:   4060,  5 %
+    irom:    available: 592 k, used: 434824, free: 171384, 28 %
