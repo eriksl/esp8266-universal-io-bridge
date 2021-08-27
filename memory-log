@@ -9786,3 +9786,19 @@ Fri Aug 27 14:14:18 CEST 2021 7ff4bf3 display: fix empty or incorrect content sh
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75645, free:   4620,  5 %
     irom:    available: 592 k, used: 434776, free: 171432, 28 %
+Fri Aug 27 14:31:27 CEST 2021 b37e2cb gitignore: add a few entries.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76077, free:   4188,  5 %
+    irom:    available: 592 k, used: 434696, free: 171512, 28 %
+Fri Aug 27 14:50:59 CEST 2021 b37e2cb gitignore: add a few entries.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75645, free:   4620,  5 %
+    irom:    available: 592 k, used: 434696, free: 171512, 28 %
+Fri Aug 27 14:52:23 CEST 2021 b37e2cb gitignore: add a few entries.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  77773, free:   2492,  3 %
+    irom:    available: 592 k, used: 434696, free: 171512, 28 %
+Fri Aug 27 14:55:06 CEST 2021 b37e2cb gitignore: add a few entries.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75645, free:   4620,  5 %
+    irom:    available: 592 k, used: 434696, free: 171512, 28 %

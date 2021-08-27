@@ -156,7 +156,12 @@ bool GenericSocket::receive(int timeout, std::string &reply, int expected, bool 
 			return(false);
 
 		if(length == 0)
+		{
+			if(reply.length() == 0)
+				continue;
+
 			break;
+		}
 
 		reply.append(buffer, (size_t)length);
 
