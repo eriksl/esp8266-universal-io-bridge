@@ -9782,3 +9782,7 @@ Sat Jul 31 15:13:51 CEST 2021 9c535c0 core: allow for power save mode to be enab
     iram:    available:  32 k, used:  31893, free:    875,  2 %
     dram:    available:  78 k, used:  76205, free:   4060,  5 %
     irom:    available: 592 k, used: 434824, free: 171384, 28 %
+Fri Aug 27 14:14:18 CEST 2021 7ff4bf3 display: fix empty or incorrect content shown when *picture* tag is selected and no picture is written to flash.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75645, free:   4620,  5 %
+    irom:    available: 592 k, used: 434776, free: 171432, 28 %
