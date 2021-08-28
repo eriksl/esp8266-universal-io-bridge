@@ -44,7 +44,7 @@ class GenericSocket
 		~GenericSocket();
 
 		bool send(int timeout_msec, std::string buffer, bool raw = false);
-		bool receive(int timeout_msec, std::string &buffer, int expected, bool raw);
+		bool receive(int initial_timeout_msec, int timeout_msec, std::string &buffer, int expected, bool raw);
 		void reconnect();
 };
 
@@ -53,7 +53,6 @@ void GenericSocket::reconnect()
     struct addrinfo hints;
     struct addrinfo *res;
 	struct sockaddr_in6 saddr;
-	//int val;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET6;
@@ -135,22 +134,30 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 	return(true);
 }
 
-bool GenericSocket::receive(int timeout, std::string &reply, int expected, bool raw)
+bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string &reply, int expected, bool raw)
 {
-	int length;
-	int run;
+	int length, run;
+	bool first_run;
 	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 	char buffer[flash_sector_size];
 
 	reply.clear();
 
-	for(run = 8; run > 0; run--)
+	for(first_run = true, run = 8; run > 0; first_run = false, run--)
 	{
-		if(poll(&pfd, 1, timeout) != 1)
+		if(poll(&pfd, 1, (first_run ? initial_timeout : other_timeout)) != 1)
+		{
+			if(first_run)
+				return(false);
+
+			break;
+		}
+
+		if(pfd.revents & POLLERR)
 			return(false);
 
-		if(pfd.revents & (POLLERR | POLLHUP))
-			return(false);
+		if(pfd.revents & POLLHUP)
+			break;
 
 		if((length = read(fd, buffer, sizeof(buffer) - 1)) < 0)
 			return(false);
@@ -229,7 +236,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		send_status = channel.send(timeout, send_string);
 
 		if(send_status)
-			receive_status = channel.receive(timeout, reply_string, -1, false);
+			receive_status = channel.receive(timeout, timeout, reply_string, -1, false);
 		else
 			receive_status = false;
 
@@ -362,7 +369,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 					if(!mailbox_channel.send(1000, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
 						throw(std::string("send failed"));
 
-					if(!mailbox_channel.receive(1000, reply, -1, true))
+					if(!mailbox_channel.receive(1000, 1000, reply, -1, true))
 						throw(std::string("receive failed"));
 
 					if(verbose)
@@ -622,7 +629,7 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				reply.clear();
 
-				if(mailbox_channel.receive(100, reply, flash_sector_size, true /* raw */))
+				if(mailbox_channel.receive(100, 100, reply, flash_sector_size, true /* raw */))
 					break;
 
 				if(!verbose)
@@ -768,7 +775,7 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 
 				reply.clear();
 
-				if(mailbox_channel.receive(100, reply, flash_sector_size, true /* raw */))
+				if(mailbox_channel.receive(100, 100, reply, flash_sector_size, true /* raw */))
 					break;
 
 				if(!verbose)
@@ -865,7 +872,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 		if(!mailbox_channel.send(100, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
 			throw(std::string("send failed"));
 
-		if(!mailbox_channel.receive(100, reply, 1, true /* raw */))
+		if(!mailbox_channel.receive(100, 100, reply, 1, true /* raw */))
 			throw(std::string("receive failed"));
 
 		send_string = std::string("mailbox-bench 1");
@@ -914,7 +921,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 
 		reply.clear();
 
-		if(!mailbox_channel.receive(1000, reply, flash_sector_size, true /* raw */))
+		if(!mailbox_channel.receive(1000, 1000, reply, flash_sector_size, true /* raw */))
 			goto error;
 
 		int seconds, useconds;
@@ -954,6 +961,53 @@ report:
 	}
 
 	std::cout << std::endl << "read benchmark completed" << std::endl;
+}
+
+void command_connect(const std::string &host, const std::string &port, bool udp, bool verbose, const std::vector<std::string> args)
+{
+	std::string argument_string;
+	std::string reply;
+	unsigned int attempt;
+	GenericSocket connect_socket(host, port, udp, verbose);
+
+	for(auto it = args.begin(); it != args.end(); it++)
+	{
+		if(it != args.begin())
+			argument_string.append(" ");
+
+		argument_string.append(*it);
+	}
+
+	for(attempt = 0; attempt < 3; attempt++)
+	{
+		if(!connect_socket.send(100, argument_string, false))
+		{
+			if(verbose)
+				std::cout << "send failed, attempt #" << attempt << std::endl;
+
+			goto retry;
+		}
+
+		if(!connect_socket.receive(500, 100, reply, flash_sector_size, false))
+		{
+			if(verbose)
+				std::cout << "receive failed, attempt #" << attempt << std::endl;
+
+			goto retry;
+		}
+
+		attempt = 0;
+		break;
+
+retry:
+		connect_socket.reconnect();
+		usleep(200000);
+	}
+
+	if(attempt != 0)
+		throw(std::string("send/receive failed"));
+
+	std::cout << reply << std::endl;
 }
 
 void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash_slot, bool reset, bool permanent)
@@ -1018,7 +1072,9 @@ int main(int argc, const char **argv)
 
 	try
 	{
+		std::vector<std::string> host_args;
 		std::string host;
+		std::vector<std::string> args;
 		std::string command_port;
 		std::string mailbox_port;
 		std::string filename;
@@ -1051,7 +1107,7 @@ int main(int argc, const char **argv)
 			("simulate,S",		po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
 			("write,W",			po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
 			("benchmark,B",		po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
-			("host,h",			po::value<std::string>(&host)->required(),							"host to connect to")
+			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or multicast group to use")
 			("udp,u",			po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
 			("filename,f",		po::value<std::string>(&filename),									"file name")
 			("start,s",			po::value<std::string>(&start_string)->default_value("-1"),			"send/receive start address (OTA is default)")
@@ -1063,10 +1119,16 @@ int main(int argc, const char **argv)
 			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash");
 
 		po::positional_options_description positional_options;
+		positional_options.add("host", -1);
 
 		po::variables_map varmap;
-		po::store(po::parse_command_line(argc, argv, options), varmap);
+		auto parsed = po::command_line_parser(argc, argv).options(options).positional(positional_options).run();
+		po::store(parsed, varmap);
 		po::notify(varmap);
+
+		host = host_args.front();
+		args = host_args;
+		args.erase(args.begin());
 
 		selected = 0;
 
@@ -1088,114 +1150,119 @@ int main(int argc, const char **argv)
 		if(cmd_read)
 			selected++;
 
+		if(cmd_info)
+			selected++;
+
 		if(selected > 1)
-			throw(std::string("specify one of write/simulate/verify/checksum/read"));
+			throw(std::string("specify one of write/simulate/verify/checksum/read/info"));
 
 		if(selected == 0)
-			cmd_info = true;
-
-		start = -1;
-		chunk_size = use_udp ? 1024 : flash_sector_size;
-
-		try
-		{
-			start = std::stoi(start_string, 0, 0);
-		}
-		catch(...)
-		{
-			throw(std::string("invalid value for start argument"));
-		}
-
-		if(start != -1)
-		{
-			if(((start % flash_sector_size) != 0) || (start < 0))
-				throw(std::string("invalid start address"));
-			start /= flash_sector_size;
-		}
-
-		try
-		{
-			length = std::stoi(length_string, 0, 0);
-		}
-		catch(...)
-		{
-			throw(std::string("invalid value for length argument"));
-		}
-
-		if((length % flash_sector_size) != 0)
-			length = length / flash_sector_size + 1;
+			command_connect(host, command_port, use_udp, verbose, args);
 		else
-			length = length / flash_sector_size;
-
-		std::string reply;
-		std::vector<int> int_value;
-		std::vector<std::string> string_value;
-		unsigned int flash_slot, flash_address[2];
-
-		GenericSocket command_channel(host, command_port, use_udp, verbose);
-		GenericSocket mailbox_channel(host, mailbox_port, use_udp, verbose);
-		mailbox_channel.send(1000, std::string(" "), true);
-
-		try
 		{
-			process(command_channel, "mailbox-info", reply, "OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\]",
-					string_value, int_value, verbose);
-		}
-		catch(std::string &e)
-		{
-			throw(std::string("MAILBOX incompatible image: ") + e);
-		}
+			start = -1;
+			chunk_size = use_udp ? 1024 : flash_sector_size;
 
-		flash_slot = int_value[0];
-		flash_address[0] = int_value[1];
-		flash_address[1] = int_value[2];
-
-		std::cout << "MAILBOX update available, current slot: " << flash_slot;
-		std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
-		std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
-		std::cout << std::endl;
-
-		if(start == -1)
-		{
-			if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
+			try
 			{
-				flash_slot++;
-
-				if(flash_slot >= 2)
-					flash_slot = 0;
-
-				start = flash_address[flash_slot];
-				otawrite = true;
+				start = std::stoi(start_string, 0, 0);
 			}
-			else
-				if(!cmd_benchmark)
-					throw(std::string("start address not set"));
-		}
+			catch(...)
+			{
+				throw(std::string("invalid value for start argument"));
+			}
 
-		if(cmd_read)
-			command_read(command_channel, mailbox_channel, filename, start, length, verbose);
-		else
-			if(cmd_verify)
-				command_verify(command_channel, mailbox_channel, filename, start, verbose);
+			if(start != -1)
+			{
+				if(((start % flash_sector_size) != 0) || (start < 0))
+					throw(std::string("invalid start address"));
+				start /= flash_sector_size;
+			}
+
+			try
+			{
+				length = std::stoi(length_string, 0, 0);
+			}
+			catch(...)
+			{
+				throw(std::string("invalid value for length argument"));
+			}
+
+			if((length % flash_sector_size) != 0)
+				length = length / flash_sector_size + 1;
 			else
-				if(cmd_checksum)
-					command_checksum(command_channel, filename, start, verbose);
+				length = length / flash_sector_size;
+
+			std::string reply;
+			std::vector<int> int_value;
+			std::vector<std::string> string_value;
+			unsigned int flash_slot, flash_address[2];
+
+			GenericSocket command_channel(host, command_port, use_udp, verbose);
+			GenericSocket mailbox_channel(host, mailbox_port, use_udp, verbose);
+			mailbox_channel.send(1000, std::string(" "), true);
+
+			try
+			{
+				process(command_channel, "mailbox-info", reply, "OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\]",
+						string_value, int_value, verbose);
+			}
+			catch(std::string &e)
+			{
+				throw(std::string("MAILBOX incompatible image: ") + e);
+			}
+
+			flash_slot = int_value[0];
+			flash_address[0] = int_value[1];
+			flash_address[1] = int_value[2];
+
+			std::cout << "MAILBOX update available, current slot: " << flash_slot;
+			std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
+			std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
+			std::cout << std::endl;
+
+			if(start == -1)
+			{
+				if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
+				{
+					flash_slot++;
+
+					if(flash_slot >= 2)
+						flash_slot = 0;
+
+					start = flash_address[flash_slot];
+					otawrite = true;
+				}
 				else
-					if(cmd_simulate)
-						command_write(command_channel, mailbox_channel, filename, start,
-								chunk_size, verbose, true, false);
-					else
-						if(cmd_write)
-						{
-							command_write(command_channel, mailbox_channel, filename, start,
-									chunk_size, verbose, false, otawrite);
+					if(!cmd_benchmark)
+						throw(std::string("start address not set"));
+			}
 
-							if(otawrite && !nocommit)
-								commit_ota(command_channel, verbose, flash_slot, !noreset, notemp);
-						}
+			if(cmd_read)
+				command_read(command_channel, mailbox_channel, filename, start, length, verbose);
+			else
+				if(cmd_verify)
+					command_verify(command_channel, mailbox_channel, filename, start, verbose);
+				else
+					if(cmd_checksum)
+						command_checksum(command_channel, filename, start, verbose);
+					else
+						if(cmd_simulate)
+							command_write(command_channel, mailbox_channel, filename, start,
+									chunk_size, verbose, true, false);
 						else
-							if(cmd_benchmark)
-								command_benchmark(command_channel, mailbox_channel, verbose);
+							if(cmd_write)
+							{
+								command_write(command_channel, mailbox_channel, filename, start,
+										chunk_size, verbose, false, otawrite);
+
+								if(otawrite && !nocommit)
+									commit_ota(command_channel, verbose, flash_slot, !noreset, notemp);
+							}
+							else
+								if(cmd_benchmark)
+									command_benchmark(command_channel, mailbox_channel, verbose);
+		}
 	}
 	catch(const po::error &e)
 	{

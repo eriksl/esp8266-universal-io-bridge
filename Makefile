@@ -3,7 +3,7 @@ ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= 10.1.12.222
-OTA_FLASH			?= espif
+OTA_FLASH			?= ./espif
 SPI_FLASH_MODE		?= qio
 # using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
