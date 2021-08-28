@@ -1199,22 +1199,22 @@ int main(int argc, const char **argv)
 	}
 	catch(const po::error &e)
 	{
-		std::cerr << std::endl << "espmbf: " << e.what() << std::endl << options;
+		std::cerr << std::endl << "espif: " << e.what() << std::endl << options;
 		return(1);
 	}
 	catch(const std::exception &e)
 	{
-		std::cerr << std::endl << "espmbf: " << e.what() << std::endl;
+		std::cerr << std::endl << "espif: " << e.what() << std::endl;
 		return(1);
 	}
 	catch(const std::string &e)
 	{
-		std::cerr << std::endl << "espmbf: " << e << std::endl;
+		std::cerr << std::endl << "espif: " << e << std::endl;
 		return(1);
 	}
 	catch(...)
 	{
-		std::cerr << std::endl << "espmbf: unknown exception caught" << std::endl;
+		std::cerr << std::endl << "espif: unknown exception caught" << std::endl;
 		return(1);
 	}
 

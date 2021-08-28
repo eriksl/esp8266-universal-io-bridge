@@ -11,6 +11,7 @@
 /loadscript
 /otapush
 /espflash
+/espif
 /universalbridge.odt
 /demo
 /dump
@@ -26,4 +27,3 @@
 /t.c
 /t.pl
 /tmp
-/espmbf

@@ -3,7 +3,7 @@ ESPTOOL				?= ~/bin/esptool
 HOSTCC				?= gcc
 HOSTCPP				?= g++
 OTA_HOST			?= 10.1.12.222
-OTA_FLASH			?= espmbf
+OTA_FLASH			?= espif
 SPI_FLASH_MODE		?= qio
 # using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
@@ -115,11 +115,11 @@ else
 	MAKEMINS := -s
 endif
 
-ALL_IMAGE_TARGETS		:= $(FIRMWARE_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_IMG)
-ALL_BUILD_TARGETS		:= ctng lwip lwip_espressif
-ALL_FLASH_TARGETS		:= espflash espmbf
-ALL_TOOL_TARGETS		:= resetserial
-ALL_COMPLETION_TARGETS	:= free
+ALL_IMAGE_TARGETS	:= $(FIRMWARE_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_IMG)
+ALL_BUILD_TARGET	:= ctng lwip lwip_espressif
+ALL_FLASH_TARGETS	:= espflash espif
+ALL_TOOL_TARGETS	:= resetserial
+ALL_EXTRA_TARGETS	:= free
 
 WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
@@ -208,7 +208,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
 .PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
 
-all:			$(ALL_IMAGE_TARGETS)
+all:			$(ALL_TOOL_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS)
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -221,7 +221,7 @@ clean:
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						espflash espmbf resetserial 2> /dev/null
+						espflash espif resetserial 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -389,7 +389,7 @@ $(CONFIG_RBOOT_BIN):	$(CONFIG_RBOOT_ELF)
 						$(VECHO) "RBOOT CONFIG $@"
 						$(Q) $(OBJCOPY) --output-target binary $< $@
 
-flash:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_COMPLETION_TARGETS) $(ALL_TOOL_TARGETS)
+flash:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS) $(ALL_TOOL_TARGETS)
 						$(VECHO) "FLASH"
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(OFFSET_BOOT) $(FIRMWARE_RBOOT) \
@@ -399,7 +399,7 @@ flash:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_COMPLETION_TARGETS) $
 							$(RFCAL_OFFSET) $(RFCAL_FILE) \
 							$(SYSTEM_CONFIG_OFFSET) $(SYSTEM_CONFIG_FILE)
 
-ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_COMPLETION_TARGETS)
+ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_EXTRA_TARGETS)
 						$(VECHO) "OTA"
 						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -W
 
@@ -412,7 +412,7 @@ ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "* rf calibiration"
 						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET) -W
 
-ota-rboot-update:		$(FIRMWARE_RBOOT) ota-default $(FIRMWARE_IMG) $(ALL_COMPLETION_TARGETS)
+ota-rboot-update:		$(FIRMWARE_RBOOT) ota-default $(FIRMWARE_IMG) $(ALL_EXTRA_TARGETS)
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(FIRMWARE_RBOOT) -s $(OFFSET_BOOT) -W
 						$(VECHO) "FLASH"
@@ -450,7 +450,7 @@ espflash:				espflash.cpp
 						$(VECHO) "HOST CPP $<"
 						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
 
-espmbf:					espmbf.cpp
+espif:					espif.cpp
 						$(VECHO) "HOST CPP $<"
 						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
 
