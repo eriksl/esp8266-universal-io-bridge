@@ -53,6 +53,7 @@ void GenericSocket::reconnect()
     struct addrinfo hints;
     struct addrinfo *res;
 	struct sockaddr_in6 saddr;
+	struct linger l = { .l_onoff = 1, .l_linger = 0 };
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET6;
@@ -73,6 +74,12 @@ void GenericSocket::reconnect()
 
 	if((fd = socket(AF_INET6, use_udp ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 		throw(std::string("socket failed"));
+
+	if(!use_udp)
+	{
+		if(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l)))
+			throw(std::string("linger failed"));
+	}
 
 	if(connect(fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 		throw(std::string("connect failed"));
