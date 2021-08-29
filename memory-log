@@ -9814,3 +9814,7 @@ Sat Aug 28 17:14:59 CEST 2021 51efed1 espif: add simple cli client using tcp or 
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75645, free:   4620,  5 %
     irom:    available: 592 k, used: 434712, free: 171496, 28 %
+Sat Aug 28 17:23:30 CEST 2021 fce729b espif: don't linger (TCP).
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75645, free:   4620,  5 %
+    irom:    available: 592 k, used: 434680, free: 171528, 28 %
