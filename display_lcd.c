@@ -787,7 +787,7 @@ bool display_lcd_picture_load(unsigned int picture_load_index)
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
-		logf("display lcd: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		log("display lcd: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -819,7 +819,7 @@ bool display_lcd_layer_select(unsigned int layer)
 
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
 	{
-		logf("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		log("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -827,7 +827,7 @@ bool display_lcd_layer_select(unsigned int layer)
 
 	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 	{
-		logf("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
 		goto error;
 	}
 

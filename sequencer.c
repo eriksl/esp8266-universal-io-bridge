@@ -80,7 +80,7 @@ static bool clear_all_flash_entries(unsigned int mirror)
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
 			(flash_sector_buffer_use != fsb_display_picture))
 	{
-		logf("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
+		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -109,7 +109,7 @@ static bool clear_all_flash_entries(unsigned int mirror)
 			entry->value = current++;
 		}
 
-		logf("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %d\n",
+		log("sequencer clear: offset: %x, sector %u, entries written to flash: %u, entryp = %d\n",
 				offset + (sector * SPI_FLASH_SEC_SIZE),
 				sector,
 				current,
@@ -168,7 +168,7 @@ static bool update_flash_entry(unsigned int index, unsigned int mirror, const se
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) &&
 			(flash_sector_buffer_use != fsb_display_picture))
 	{
-		logf("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
+		log("clear_all_flash_entries: flash sector in use: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -186,7 +186,7 @@ static bool update_flash_entry(unsigned int index, unsigned int mirror, const se
 
 	sector = (index * sizeof(sequencer_entry_t)) / SPI_FLASH_SEC_SIZE;
 
-	logf("update flash entry: update entry: %u, sector: %u, offset index: %u, flash start offset: %x\n",
+	log("update flash entry: update entry: %u, sector: %u, offset index: %u, flash start offset: %x\n",
 			index,
 			sector,
 			index - (sector * sequencer_flash_entries_per_sector),
@@ -198,12 +198,12 @@ static bool update_flash_entry(unsigned int index, unsigned int mirror, const se
 	entries_in_buffer = (sequencer_entry_t *)(void *)buffer;
 	entry_in_buffer = &entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)];
 
-	logf("* buffer offset: %d\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
-	logf("* entry1: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* buffer offset: %d\n", (char *)&entries_in_buffer[index - (sector * sequencer_flash_entries_per_sector)] - buffer);
+	log("* entry1: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	*entry_in_buffer = *entry;
 
-	logf("* entry2: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
+	log("* entry2: io: %d, pin: %d, duration: %d, value: %u\n", entry_in_buffer->io, entry_in_buffer->pin, entry_in_buffer->duration, entry_in_buffer->value);
 
 	if(spi_flash_erase_sector((flash_start_offset + (sector * SPI_FLASH_SEC_SIZE)) / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto error;

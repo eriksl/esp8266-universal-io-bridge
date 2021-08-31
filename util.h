@@ -76,19 +76,41 @@ extern string_t logbuffer;
 extern unsigned int logbuffer_display_current;
 void logbuffer_clear(void);
 
-unsigned int attr_nonnull log_from_flash(const char *data);
-unsigned int attr_nonnull log_from_flash_format(const char *fmt_in_flash, ...) __attribute__ ((format (printf, 1, 2)));
+void attr_nonnull log_from_flash_0(const char *f);
+void attr_nonnull log_from_flash_n(const char *f, ...) __attribute__ ((format (printf, 1, 2)));
 
-#define log(str) \
+// ugly workaround to get #define argument number overloading
+#define _GET_MACRO_(_1, _2, _3, _4, _5, _NAME_, ...) _NAME_
+#define log(...) _GET_MACRO_(__VA_ARGS__, _log_4_, _log_3_, _log_2_, _log_1_, _log_0_)(__VA_ARGS__)
+
+#define _log_0_(f) \
 do { \
-	static roflash const char log_str_flash[] = str; \
-	log_from_flash(log_str_flash); \
+	static roflash const char log_fmt_flash[] = f; \
+	log_from_flash_0(log_fmt_flash); \
 } while(0)
 
-#define logf(fmt, ...) \
+#define _log_1_(f, p1) \
 do { \
-	static roflash const char log_fmt_flash[] = fmt; \
-	log_from_flash_format(log_fmt_flash, __VA_ARGS__); \
+	static roflash const char log_fmt_flash[] = f; \
+	log_from_flash_n(log_fmt_flash, p1); \
+} while(0)
+
+#define _log_2_(f, p1, p2) \
+do { \
+	static roflash const char log_fmt_flash[] = f; \
+	log_from_flash_n(log_fmt_flash, p1, p2); \
+} while(0)
+
+#define _log_3_(f, p1, p2, p3) \
+do { \
+	static roflash const char log_fmt_flash[] = f; \
+	log_from_flash_n(log_fmt_flash, p1, p2, p3); \
+} while(0)
+
+#define _log_4_(f, p1, p2, p3, p4) \
+do { \
+	static roflash const char log_fmt_flash[] = f; \
+	log_from_flash_n(log_fmt_flash, p1, p2, p3, p4); \
 } while(0)
 
 void logchar(char c);

@@ -1,5 +1,6 @@
 #include "util.h"
 #include "sys_string.h"
+#include "sys_time.h"
 #include "uart.h"
 #include "ota.h"
 #include "config.h"
@@ -10,6 +11,7 @@
 #include <stdbool.h>
 
 unsigned int logbuffer_display_current = 0;
+static bool newline_logged = true;
 
 string_t logbuffer =
 {
@@ -52,32 +54,59 @@ void logbuffer_clear(void)
 	string_clear(&logbuffer);
 }
 
-unsigned int log_from_flash(const char *data)
+static void log_date_time(void)
 {
-	unsigned int length;
+	unsigned int month, day, hour, minute;
 
-	length = flash_to_dram(true, data, string_buffer_nonconst(&flash_dram), string_size(&flash_dram));
-	string_setlength(&flash_dram, length);
+	if(config_flags_match(flag_log_date | flag_log_time))
+	{
+		time_get(&hour, &minute, (unsigned int *)0, (unsigned int *)0, &month, &day);
 
+		if(config_flags_match(flag_log_date))
+			string_format(&logbuffer, "%02u/%02u ", month, day);
+
+		if(config_flags_match(flag_log_time))
+			string_format(&logbuffer, "%02u:%02u ", hour, minute);
+	}
+}
+
+static void log_finish(const string_t *from, string_t *to)
+{
 	if(config_flags_match(flag_log_to_uart))
-		uart_send_string(0, &flash_dram);
+		uart_send_string(0, from);
 
 	if(config_flags_match(flag_log_to_buffer))
 	{
-		if((unsigned int)(string_length(&logbuffer) + length) >= (unsigned int)string_size(&logbuffer))
+		if((string_length(to) + string_length(from)) >= string_size(to))
 			logbuffer_clear();
 
-		string_append_string(&logbuffer, &flash_dram);
+		string_append_string(to, from);
 	}
 
-	return(length);
+	newline_logged = string_at(from, string_length(from) - 1);
 }
 
-unsigned int log_from_flash_format(const char *fmt_in_flash, ...)
+void log_from_flash_0(const char *data_in_flash)
 {
-	va_list ap;
 	int length;
+
+	if(config_flags_match(flag_log_to_buffer) && newline_logged)
+		log_date_time();
+
+	length = flash_to_dram(true, data_in_flash, string_buffer_nonconst(&flash_dram), string_size(&flash_dram));
+	string_setlength(&flash_dram, length);
+
+	log_finish(&flash_dram, &logbuffer);
+}
+
+void log_from_flash_n(const char *fmt_in_flash, ...)
+{
+	int length;
+	va_list ap;
 	char fmt_in_dram[128];
+
+	if(config_flags_match(flag_log_to_buffer) && newline_logged)
+		log_date_time();
 
 	flash_to_dram(true, fmt_in_flash, fmt_in_dram, sizeof(fmt_in_dram));
 
@@ -86,22 +115,11 @@ unsigned int log_from_flash_format(const char *fmt_in_flash, ...)
 	va_end(ap);
 
 	if(length < 0)
-		return(0);
+		return;
 
 	string_setlength(&flash_dram, length);
 
-	if(config_flags_match(flag_log_to_uart))
-		uart_send_string(0, &flash_dram);
-
-	if(config_flags_match(flag_log_to_buffer))
-	{
-		if((string_length(&logbuffer) + length) >= string_size(&logbuffer))
-			logbuffer_clear();
-
-		string_append_string(&logbuffer, &flash_dram);
-	}
-
-	return(length);
+	log_finish(&flash_dram, &logbuffer);
 }
 
 iram void logchar(char c)
@@ -114,10 +132,15 @@ iram void logchar(char c)
 
 	if(config_flags_match(flag_log_to_buffer))
 	{
+		if(newline_logged)
+			log_date_time();
+
 		if((logbuffer.length + 1) >= logbuffer.size)
 			logbuffer_clear();
 
 		string_append_char(&logbuffer, c);
+
+		newline_logged = (c == '\n');
 	}
 }
 

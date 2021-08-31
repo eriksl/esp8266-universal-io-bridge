@@ -130,7 +130,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 	if(stat_task_current_queue[prio] > 0)
 		stat_task_current_queue[prio]--;
 	else
-		logf("task queue %u underrun\n", prio);
+		log("task queue %u underrun\n", prio);
 
 	switch(command)
 	{
@@ -397,7 +397,7 @@ static void slow_timer_callback(void *arg)
 			command_left_to_read.timeout--;
 		else
 		{
-			logf("dispatch: static length command timeout at %u bytes, cleared command buffer\n", command_left_to_read.length);
+			log("dispatch: static length command timeout at %u bytes, cleared command buffer\n", command_left_to_read.length);
 			command_left_to_read.length = 0;
 			command_left_to_read.timeout = 0;
 			string_clear(&command_socket_receive_buffer);

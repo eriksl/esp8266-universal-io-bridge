@@ -1336,11 +1336,14 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 		"UNKNOWN",
 	};
 
-	logf("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
-	logf("> %-16s %-4s %-4s %-18s %-13s %-13s %-6s %s\n", "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
+	roflash static const char fmt_string_1[] = "> %-18s %-4s %-4s %-18s %-13s %-13s %-6s %s\n";
+	roflash static const char fmt_string_2[] = "> %-18s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n";
+
+	log("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
+	log_from_flash_n(fmt_string_1, "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
-		logf("> %-16s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n",
+		log_from_flash_n(fmt_string_2,
 				bss->ssid,
 				bss->channel,
 				bss->rssi,

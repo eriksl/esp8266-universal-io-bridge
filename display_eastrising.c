@@ -858,7 +858,7 @@ static bool attr_result_used display_write_command(uint8_t cmd)
 						true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
 				return(true);
 
-			logf("eastrising write command: %s\n", string_to_cstr(&error));
+			log("eastrising write command: %s\n", string_to_cstr(&error));
 		}
 	}
 
@@ -884,7 +884,7 @@ static bool display_write_data(uint8_t data)
 						1, &data, 0, 0, (uint8_t *)0, &error))
 				return(true);
 
-			logf("eastrising write data: %s\n", string_to_cstr(&error));
+			log("eastrising write data: %s\n", string_to_cstr(&error));
 		}
 	}
 
@@ -944,7 +944,7 @@ static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned 
 							0,
 							0, (uint8_t *)0, &error))
 				{
-					logf("eastrising write string: %s\n", string_to_cstr(&error));
+					log("eastrising write string: %s\n", string_to_cstr(&error));
 					return(false);
 				}
 
@@ -982,7 +982,7 @@ static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 
 				return(true);
 
-			logf("eastrising read: %s\n", string_to_cstr(&error));
+			log("eastrising read: %s\n", string_to_cstr(&error));
 		}
 	}
 
@@ -1996,7 +1996,7 @@ bool display_eastrising_periodic(void)
 		{
 			if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 			{
-				logf("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+				log("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
 				goto error1;
 			}
 
@@ -2008,7 +2008,7 @@ bool display_eastrising_periodic(void)
 
 			if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 			{
-				logf("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
+				log("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
 				goto error2;
 			}
 
@@ -2016,7 +2016,7 @@ bool display_eastrising_periodic(void)
 
 			if(!string_match_cstr(&flash_sector_buffer, ppm_header))
 			{
-				logf("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+				log("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
 				success = true;
 				goto error2;
 			}
@@ -2066,7 +2066,7 @@ bool display_eastrising_periodic(void)
 
 				if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 				{
-					logf("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
+					log("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
 					goto error2;
 				}
 			}
@@ -2084,7 +2084,7 @@ bool display_eastrising_periodic(void)
 
 						if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 						{
-							logf("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
+							log("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
 							goto error2;
 						}
 

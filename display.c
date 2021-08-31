@@ -421,7 +421,7 @@ static void display_update(bool advance)
 							}
 							else
 								if((utf8 & 0x80) == 0x80)
-									logf("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
+									log("utf8 parser: invalid utf8, bit 7 set: %x %c\n", utf8, (int)utf8);
 								else
 								{
 									unicode = utf8 & 0x7f;
@@ -440,7 +440,7 @@ static void display_update(bool advance)
 					}
 					else
 					{
-						logf("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
+						log("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, utf8, (int)utf8);
 						state = u8p_state_base;
 					}
 

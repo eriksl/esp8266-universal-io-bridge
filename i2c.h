@@ -81,7 +81,7 @@ do { \
 	string_append_cstr_flash(&string_error, prefix_flash); \
 	i2c_error_format_string(&string_error, __error__); \
 	string_append_cstr(&string_error, "\n"); \
-	log_from_flash(string_to_cstr(&string_error)); \
+	log_from_flash_0(string_to_cstr(&string_error)); \
 } while(0)
 
 void		i2c_init(unsigned int sda_index, unsigned int scl_index);

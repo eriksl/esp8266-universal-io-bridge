@@ -504,7 +504,7 @@ bool display_seeed_picture_load(unsigned int picture_load_index)
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
-		logf("display seeed: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
+		log("display seeed: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -528,7 +528,7 @@ bool display_seeed_layer_select(unsigned int layer)
 
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
 	{
-		logf("display seeed: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		log("display seeed: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
 		return(false);
 	}
 
@@ -536,7 +536,7 @@ bool display_seeed_layer_select(unsigned int layer)
 
 	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 	{
-		logf("display seeed: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		log("display seeed: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
 		goto error;
 	}
 
@@ -544,7 +544,7 @@ bool display_seeed_layer_select(unsigned int layer)
 
 	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
 	{
-		logf("display seeed: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		log("display seeed: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
 		goto error;
 	}
 
