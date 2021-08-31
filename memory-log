@@ -9970,3 +9970,7 @@ Tue Aug 31 20:35:32 CEST 2021 30c7443 espif: add multicast option.
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75649, free:   4616,  5 %
     irom:    available: 592 k, used: 434280, free: 171928, 28 %
+Tue Aug 31 20:48:21 CEST 2021 b7d80d7 lwip-interface: improve logging here too.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75649, free:   4616,  5 %
+    irom:    available: 592 k, used: 434344, free: 171864, 28 %

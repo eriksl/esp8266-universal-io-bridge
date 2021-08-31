@@ -575,7 +575,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 					sha_remote_hash_text = string_value[3];
 
 					if(sha_local_hash_text != sha_remote_hash_text)
-						throw(std::string("local hash (") + sha_local_hash_text + ") != remote hash (" + sha_remote_hash_text + ")");
+						throw(std::string("local hash (") + sha_local_hash_text + ") != remote hash (" + sha_remote_hash_text + ") (2)");
 
 					if(verbose)
 					{
@@ -807,39 +807,41 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				reply.clear();
 
-				if(mailbox_channel.receive(100, 100, reply, flash_sector_size, true /* raw */))
-					break;
+				if(mailbox_channel.receive(500, 500, reply, flash_sector_size, true /* raw */))
+				{
+					SHA1((const unsigned char *)reply.data(), flash_sector_size, sector_hash);
+					sha_local_hash_text = sha_hash_to_text(sector_hash);
+
+					if(verbose)
+					{
+						std::cout << "+ sector #" << (current - start) << ", " << current << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " read";
+						std::cout << ", try #" << (max_attempts - sector_attempt);
+						std::cout << ", local hash: " << sha_local_hash_text;
+						std::cout << ", remote hash: " << sha_remote_hash_text;
+						std::cout << std::endl;
+					}
+
+					if(sha_local_hash_text == sha_remote_hash_text)
+						break;
+
+					if(!verbose)
+						std::cout << std::endl;
+					std::cout << "! local hash (" << sha_local_hash_text << ") != remote hash (" << sha_remote_hash_text << ") (1)" << std::endl;
+				}
 
 				if(!verbose)
 					std::cout << std::endl;
 
-				std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
+				std::cout << "! read receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
 				std::cout << std::endl;
+				usleep(50000);
 				mailbox_channel.disconnect();
-				usleep(100000);
+				usleep(50000);
 				mailbox_channel.connect();
 			}
 
 			if(sector_attempt <= 0)
 				throw(std::string("! receiving sector failed too many times"));
-
-			SHA1((const unsigned char *)reply.data(), flash_sector_size, sector_hash);
-			sha_local_hash_text = sha_hash_to_text(sector_hash);
-
-			if(verbose)
-			{
-				std::cout << "+ sector #" << (current - start) << ", " << current << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " read";
-				std::cout << ", try #" << (max_attempts - sector_attempt);
-				std::cout << ", local hash: " << sha_local_hash_text;
-				std::cout << ", remote hash: " << sha_remote_hash_text;
-				std::cout << std::endl;
-			}
-
-			if(sha_local_hash_text != sha_remote_hash_text)
-			{
-				std::cout << "! local hash (" << sha_local_hash_text << ") != remote hash (" << sha_remote_hash_text << ")" << std::endl;
-				continue;
-			}
 
 			if((file_offset = lseek(fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
