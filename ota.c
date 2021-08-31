@@ -114,7 +114,7 @@ app_action_t application_function_flash_erase(string_t *src, string_t *dst)
 
 	time_finish = system_get_time();
 
-	string_format(dst, "OK flash-erase: erased %d sectors from sector %d, in %lu milliseconds\n", erased - 1, sector_offset, (time_finish - time_start) / 1000);
+	string_format(dst, "OK flash-erase: erased %d sectors from sector %d, in %u milliseconds\n", erased - 1, sector_offset, (time_finish - time_start) / 1000);
 
 	return(app_action_normal);
 }
@@ -640,7 +640,7 @@ static app_action_t flash_select(string_t *src, string_t *dst, bool once)
 		slot = config.slot_current;
 	}
 
-	string_format(dst, "OK %s: slot %u selected, address %lu\n", cmdname, slot, config.slots[slot]);
+	string_format(dst, "OK %s: slot %u selected, address %u\n", cmdname, slot, config.slots[slot]);
 
 	return(app_action_normal);
 }
@@ -696,7 +696,7 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 
 	string_format(dst, "OK mailbox function available, "
 				"slots: %u, current: %u, "
-				"sectors: [ %lu, %lu ]\n",
+				"sectors: [ %u, %u ]\n",
 			config.slot_count, ota_slot,
 			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE);
 

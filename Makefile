@@ -146,7 +146,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-unused-parameter \
 
 CFLAGS			:=	-pipe -Os -g -std=gnu11 -fdiagnostics-color=always \
-						-ffreestanding -fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
+						-fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
 						-ftree-vrp \
 						-ffunction-sections -fdata-sections

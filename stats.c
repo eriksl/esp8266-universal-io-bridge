@@ -150,7 +150,7 @@ static void explain_exception(string_t *dst)
 				default:	exception = "<unknown>";					break;
 			}
 
-			string_format(dst, "exception: %s (%lu), epc1: %lx, epc2: %lx, epc3: %lx, excvaddr: %lx, depc: %lx\n",
+			string_format(dst, "exception: %s (%u), epc1: %x, epc2: %x, epc3: %x, excvaddr: %x, depc: %x\n",
 					exception, rst_info->exccause, rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc);
 
 			break;
@@ -217,12 +217,12 @@ void stats_firmware(string_t *dst)
 			">   free: current: %u, min: %u, max: %u\n"
 			">\n"
 			"> stack:\n"
-			">   bottom: %p (%d kiB), top: %p (%d kiB), initial: %p (%ld), current: %p (%ld)\n"
-			">   size: %ld, painted: %d, not painted: %ld\n"
-			">   currently used: %ld/%ld%%, max used: %ld/%ld%%, unused: %ld/%ld%%\n"
+			">   bottom: %p (%d kiB), top: %p (%d kiB), initial: %p (%d), current: %p (%d)\n"
+			">   size: %d, painted: %d, not painted: %d\n"
+			">   currently used: %d/%d%%, max used: %d/%d%%, unused: %d/%d%%\n"
 			">\n"
 			"> system\n"
-			">   id: %02lx:%02lx:%02lx\n"
+			">   id: %02x:%02x:%02x\n"
 			">   cpu frequency: %u MHz\n"
 			">   SDK version: %s\n",
 				__DATE__, __TIME__,
@@ -301,9 +301,9 @@ void stats_flash(string_t *dst)
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06lx, end: 0x%06lx, size: %4lu kB\n",
-					(unsigned long int)partition_item.addr,
-					(unsigned long int)(partition_item.addr + partition_item.size - 1),
+			string_format(dst, " start: 0x%06x, end: 0x%06x, size: %4u kB\n",
+					(uint32_t)partition_item.addr,
+					(uint32_t)(partition_item.addr + partition_item.size - 1),
 					partition_item.size / 1024);
 		}
 	}
@@ -476,7 +476,7 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors detect current sensor id: %u\n"
 			"> i2c sensors detect started: %s\n"
 			"> i2c sensors detect finished: %s\n"
-			"> i2c sensors detect duration: %lu ms\n",
+			"> i2c sensors detect duration: %u ms\n",
 				i2c_sensor_info.detect_called,
 				i2c_sensor_info.detect_succeeded,
 				i2c_sensor_info.detect_bus_select_failed,
@@ -501,7 +501,7 @@ void stats_i2c(string_t *dst)
 			"> i2c sensors init current sensor id: %u\n"
 			"> i2c sensors init started: %s\n"
 			"> i2c sensors init finished: %s\n"
-			"> i2c sensors init duration: %lu ms\n",
+			"> i2c sensors init duration: %u ms\n",
 				i2c_sensor_info.init_called,
 				i2c_sensor_info.init_succeeded,
 				i2c_sensor_info.init_skipped,
