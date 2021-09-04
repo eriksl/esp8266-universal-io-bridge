@@ -9990,3 +9990,11 @@ Sat Sep  4 11:21:21 CEST 2021 9a887e9 lwiptoptions: increase amount of udp pcb b
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75797, free:   4468,  5 %
     irom:    available: 592 k, used: 434440, free: 171768, 28 %
+Sat Sep  4 14:08:21 CEST 2021 2fcfc1e espif: fix segmentation fault when host cannot be resolved
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75797, free:   4468,  5 %
+    irom:    available: 592 k, used: 434456, free: 171752, 28 %
+Sat Sep  4 14:14:05 CEST 2021 2fcfc1e espif: fix segmentation fault when host cannot be resolved
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76173, free:   4092,  5 %
+    irom:    available: 592 k, used: 434456, free: 171752, 28 %
