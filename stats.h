@@ -63,9 +63,6 @@ extern unsigned int stat_display_update_max_us;
 extern unsigned int stat_spi_slave_interrupts;
 extern unsigned int stat_spi_slave_i2s_interrupts;
 
-extern unsigned int stat_sntp_received;
-extern unsigned int stat_sntp_poll;
-
 extern int stat_debug_1;
 extern int stat_debug_2;
 extern int stat_debug_3;

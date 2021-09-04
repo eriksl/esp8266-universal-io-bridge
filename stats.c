@@ -68,9 +68,6 @@ unsigned int stat_i2c_hard_resets;
 unsigned int stat_display_update_min_us = ~0UL;
 unsigned int stat_display_update_max_us;
 
-unsigned int stat_sntp_received;
-unsigned int stat_sntp_poll;
-
 unsigned int stat_spi_slave_interrupts;
 unsigned int stat_spi_slave_i2s_interrupts;
 
@@ -311,24 +308,7 @@ void stats_flash(string_t *dst)
 
 void stats_time(string_t *dst)
 {
-	unsigned int Y, M, D, h, m, s;
-	const char *time_source;
-
-	time_source = time_get(&h, &m, &s, &Y, &M, &D);
-
-	string_append(dst,   "> uptime: ");
-	time_uptime_stats(dst);
-	string_append(dst, "\n> system: ");
-	time_system_stats(dst);
-	string_append(dst, "\n> rtc:    ");
-	time_rtc_stats(dst);
-	string_append(dst, "\n> timer:  ");
-	time_timer_stats(dst);
-	string_append(dst, "\n> ntp:    ");
-	time_sntp_stats(dst);
-	string_append(dst, "\n");
-	string_format(dst, "> time:   %04u/%02u/%02u %02u:%02u:%02u, source: %s\n", Y, M, D, h, m, s, time_source);
-	string_format(dst, "> sntp:   poll: %u, received: %u\n", stat_sntp_poll, stat_sntp_received);
+	time_stats(dst);
 }
 
 void stats_counters(string_t *dst)

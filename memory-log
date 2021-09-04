@@ -9998,3 +9998,103 @@ Sat Sep  4 14:14:05 CEST 2021 2fcfc1e espif: fix segmentation fault when host ca
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76173, free:   4092,  5 %
     irom:    available: 592 k, used: 434456, free: 171752, 28 %
+Sat Sep  4 14:18:46 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76173, free:   4092,  5 %
+    irom:    available: 592 k, used: 434440, free: 171768, 28 %
+Sat Sep  4 14:19:53 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76173, free:   4092,  5 %
+    irom:    available: 592 k, used: 434456, free: 171752, 28 %
+Sat Sep  4 14:36:11 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76173, free:   4092,  5 %
+    irom:    available: 592 k, used: 434568, free: 171640, 28 %
+Sat Sep  4 14:41:23 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 434568, free: 171640, 28 %
+Sat Sep  4 14:48:42 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 434584, free: 171624, 28 %
+Sat Sep  4 15:01:34 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76173, free:   4092,  5 %
+    irom:    available: 592 k, used: 433288, free: 172920, 28 %
+Sat Sep  4 15:07:13 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 433496, free: 172712, 28 %
+Sat Sep  4 15:10:10 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 433608, free: 172600, 28 %
+Sat Sep  4 15:16:38 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 433816, free: 172392, 28 %
+Sat Sep  4 15:25:27 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76181, free:   4084,  5 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sat Sep  4 15:32:00 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76213, free:   4052,  5 %
+    irom:    available: 592 k, used: 434104, free: 172104, 28 %
+Sat Sep  4 15:36:04 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76229, free:   4036,  5 %
+    irom:    available: 592 k, used: 434104, free: 172104, 28 %
+Sat Sep  4 15:36:53 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76229, free:   4036,  5 %
+    irom:    available: 592 k, used: 434088, free: 172120, 28 %
+Sat Sep  4 15:37:36 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434072, free: 172136, 28 %
+Sat Sep  4 15:38:25 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434040, free: 172168, 28 %
+Sat Sep  4 15:40:11 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434072, free: 172136, 28 %
+Sat Sep  4 15:44:45 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434184, free: 172024, 28 %
+Sat Sep  4 15:52:18 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434296, free: 171912, 28 %
+Sat Sep  4 15:59:34 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76245, free:   4020,  5 %
+    irom:    available: 592 k, used: 434568, free: 171640, 28 %
+Sat Sep  4 16:03:54 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76261, free:   4004,  4 %
+    irom:    available: 592 k, used: 434584, free: 171624, 28 %
+Sat Sep  4 16:05:41 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76261, free:   4004,  4 %
+    irom:    available: 592 k, used: 434600, free: 171608, 28 %
+Sat Sep  4 16:22:41 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76285, free:   3980,  4 %
+    irom:    available: 592 k, used: 434904, free: 171304, 28 %
+Sat Sep  4 16:33:38 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76285, free:   3980,  4 %
+    irom:    available: 592 k, used: 434920, free: 171288, 28 %
+Sat Sep  4 16:38:42 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76293, free:   3972,  4 %
+    irom:    available: 592 k, used: 434968, free: 171240, 28 %
+Sat Sep  4 16:41:28 CEST 2021 e5eff42 lwip-options: also increase number of tcp pcbs.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76309, free:   3956,  4 %
+    irom:    available: 592 k, used: 434984, free: 171224, 28 %

@@ -50,15 +50,17 @@ string_new(static, sntp_socket_receive_buffer, sizeof(sntp_network_t));
 string_new(static, sntp_socket_send_buffer, sizeof(sntp_network_t));
 static lwip_if_socket_t sntp_socket;
 
-static void sms_to_date(string_t *dst, unsigned int s, unsigned int ms, unsigned int r1, unsigned int r2, unsigned int b, unsigned int w);
-
 static time_flags_t time_flags;
+static uint64_t time_base_s;
+static unsigned int sntp_sent;
+static unsigned int sntp_received;
+static unsigned int sntp_wait;
 
 // uptime
 
-static unsigned int uptime_last_us;
-static unsigned int uptime_base_us;
-static unsigned int uptime_wraps;
+static uint32_t uptime_last_us;
+static uint32_t uptime_base_us;
+static uint32_t uptime_wraps;
 
 static void uptime_init(void)
 {
@@ -70,7 +72,7 @@ static void uptime_init(void)
 
 attr_inline void uptime_periodic(void)
 {
-	unsigned int uptime_now = system_get_time();
+	uint32_t uptime_now = system_get_time();
 
 	if(uptime_now < uptime_last_us)
 		uptime_wraps++;
@@ -83,44 +85,11 @@ iram uint64_t time_get_us(void)
 	return((((uint64_t)system_get_time()) | ((uint64_t)uptime_wraps << 32)) - uptime_base_us);
 }
 
-static void uptime_get(unsigned int *s, unsigned int *ms,
-		unsigned int *raw1, unsigned int *raw2,
-		unsigned int *base, unsigned int *wraps)
-{
-	uint64_t uptime_us = time_get_us();
-
-	if(s)
-		*s = uptime_us / 1000000;
-
-	if(ms)
-		*ms = (uptime_us % 1000000) / 1000;
-
-	if(raw1)
-		*raw1 = uptime_us >> 32;
-
-	if(raw2)
-		*raw2 = uptime_us & 0xffffffff;
-
-	if(base)
-		*base = uptime_base_us;
-
-	if(wraps)
-		*wraps = uptime_wraps;
-}
-
-void time_uptime_stats(string_t *dst)
-{
-	unsigned int secs, msecs, raw1, raw2, base, wraps;
-
-	uptime_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
-}
-
 // system
 
-static unsigned int system_last_us;
-static unsigned int system_base_us;
-static unsigned int system_wraps;
+static uint32_t system_last_us;
+static uint32_t system_base_us;
+static uint32_t system_wraps;
 
 static void system_init(void)
 {
@@ -132,7 +101,9 @@ static void system_init(void)
 
 attr_inline void system_periodic(void)
 {
-	unsigned int system_now = system_get_time();
+	uint32_t system_now;
+
+	system_now =system_get_time();
 
 	if(system_now < system_last_us)
 		system_wraps++;
@@ -140,51 +111,16 @@ attr_inline void system_periodic(void)
 	system_last_us = system_now;
 }
 
-static void system_get(unsigned int *s, unsigned int *ms,
-		unsigned int *raw1, unsigned int *raw2,
-		unsigned int *base, unsigned int *wraps)
-{
-	uint64_t system_us;
-
-	system_us = (((uint64_t)system_get_time()) | ((uint64_t)system_wraps << 32)) - system_base_us;
-
-	if(s)
-		*s = system_us / 1000000;
-
-	if(ms)
-		*ms = (system_us % 1000000) / 1000;
-
-	if(raw1)
-		*raw1 = system_us >> 32;
-
-	if(raw2)
-		*raw2 = system_us & 0xffffffff;
-
-	if(base)
-		*base = system_base_us;
-
-	if(wraps)
-		*wraps = system_wraps;
-}
-
-void time_system_stats(string_t *dst)
-{
-	unsigned int secs, msecs, raw1, raw2, base, wraps;
-
-	system_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
-}
-
 // rtc
 
 static uint64_t rtc_current_ns;
-static unsigned int rtc_base_s;
-static unsigned int rtc_last_value;
-static unsigned int rtc_wraps;
+static uint64_t rtc_base_s;
+static uint64_t rtc_last_value;
+static uint32_t rtc_wraps;
 
 static void rtc_init(void)
 {
-	unsigned int rtc_current_value;
+	uint64_t rtc_current_value;
 	uint64_t calvalue_ns;
 
 	rtc_current_value = system_get_rtc_time();
@@ -199,17 +135,16 @@ static void rtc_init(void)
 
 attr_inline void rtc_periodic(void)
 {
-	unsigned int rtc_current_value;
-	uint64_t calvalue_ns, diff;
+	uint64_t rtc_current_value, calvalue_ns, diff;
 
 	rtc_current_value = system_get_rtc_time();
 
 	if(rtc_current_value >= rtc_last_value)
-		diff = (uint64_t)rtc_current_value - (uint64_t)rtc_last_value;
+		diff = rtc_current_value - rtc_last_value;
 	else
 	{
 		rtc_wraps++;
-		diff = ((uint64_t)1 << 32) - ((uint64_t)rtc_last_value - (uint64_t)rtc_current_value);
+		diff = ((uint64_t)1 << 32) - (rtc_last_value - rtc_current_value);
 	}
 
 	calvalue_ns = ((uint64_t)system_rtc_clock_cali_proc() * 1000) >> 12;
@@ -220,46 +155,11 @@ attr_inline void rtc_periodic(void)
 	rtc_last_value = rtc_current_value;
 }
 
-static void rtc_get(unsigned int *s, unsigned int *ms,
-		unsigned int *raw1, unsigned int *raw2,
-		unsigned int *base, unsigned int *wraps)
-{
-	uint64_t current;
-
-	current = rtc_current_ns;
-
-	if(s)
-		*s = (current / 1000000000);
-
-	if(ms)
-		*ms = (current % 1000000000) / 1000000;
-
-	if(raw1)
-		*raw1 = current & 0xffffffff;
-
-	if(raw2)
-		*raw2 = current >> 32;
-
-	if(base)
-		*base = rtc_base_s;
-
-	if(wraps)
-		*wraps = rtc_wraps;
-}
-
-void time_rtc_stats(string_t *dst)
-{
-	unsigned int secs, msecs, raw1, raw2, base, wraps;
-
-	rtc_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
-}
-
 // timer
 
-static unsigned int timer_s;
-static unsigned int timer_ms;
-static unsigned int timer_wraps;
+static uint64_t timer_s;
+static uint32_t timer_ms;
+static uint32_t timer_wraps;
 
 static void timer_init(void)
 {
@@ -281,43 +181,12 @@ attr_inline void timer_periodic(void)
 	}
 }
 
-static void timer_get(unsigned int *s, unsigned int *ms,
-		unsigned int *raw1, unsigned int *raw2,
-		unsigned int *base, unsigned int *wraps)
-{
-	if(s)
-		*s = timer_s;
-
-	if(ms)
-		*ms = timer_ms;
-
-	if(raw1)
-		*raw1 = timer_s;
-
-	if(raw2)
-		*raw2 = timer_ms;
-
-	if(base)
-		*base = 0;
-
-	if(wraps)
-		*wraps = timer_wraps;
-}
-
-void time_timer_stats(string_t *dst)
-{
-	unsigned int secs, msecs, raw1, raw2, base, wraps;
-
-	timer_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
-}
-
 // SNTP
 
-static unsigned int	sntp_base_s = 0;
-static unsigned int	sntp_current_ds = 0;
+static uint64_t		sntp_base_s = 0;
+static uint64_t		sntp_current_ds = 0;
 static ip_addr_t	sntp_server;
-static int			sntp_timezone;
+static int32_t		sntp_timezone;
 
 static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
@@ -325,7 +194,7 @@ static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigne
 
 	if(length == sizeof(sntp_network_t))
 	{
-		stat_sntp_received++;
+		sntp_received++;
 		time_flags.sntp_regular_mode = 1;
 
 		sntp_base_s =
@@ -362,8 +231,9 @@ void time_sntp_start(void)
 	if(!config_get_int("sntp.tz", &sntp_timezone, -1, -1))
 		sntp_timezone = 0;
 
-	stat_sntp_poll = 0;
-	stat_sntp_received = 0;
+	sntp_wait = 0;
+	sntp_sent = 0;
+	sntp_received = 0;
 }
 
 static void time_sntp_init(void)
@@ -387,89 +257,30 @@ static void time_sntp_periodic(void)
 
 	sntp_current_ds++;
 
-	if(stat_sntp_poll == 0)
+	if(sntp_wait == 0)
 	{
 		if(!lwip_if_sendto(&sntp_socket, &sntp_server, 123))
 			log("sntp send failed\n");
 
-		stat_sntp_poll = time_flags.sntp_regular_mode ? 6000 : 50;
+		sntp_sent++;
+		sntp_wait = time_flags.sntp_regular_mode ? 6000 : 50;
 	}
 	else
-		stat_sntp_poll--;
+		sntp_wait--;
 }
-
-static void sntp_get(unsigned int *s, unsigned int *ms,
-		unsigned int *raw1, unsigned int *raw2,
-		unsigned int *base, unsigned int *wraps)
-{
-	if(!time_flags.sntp_server_valid)
-	{
-		if(s)
-			*s = 0;
-
-		if(ms)
-			*ms = 0;
-
-		if(raw1)
-			*raw1 = 0;
-
-		if(raw2)
-			*raw2 = 0;
-
-		if(base)
-			*base = 0;
-
-		if(wraps)
-			*wraps = 0;
-	}
-	else
-	{
-		if(s)
-			*s = sntp_current_ds / 10;
-
-		if(ms)
-			*ms = (sntp_current_ds % 10) * 100;
-
-		if(raw1)
-			*raw1 = sntp_base_s + (sntp_current_ds / 10) + (sntp_timezone * 3600);
-
-		if(raw2)
-			*raw2 = 0;
-
-		if(base)
-			*base = sntp_base_s;
-
-		if(wraps)
-			*wraps = 0;
-	}
-}
-
-void time_sntp_stats(string_t *dst)
-{
-	unsigned int secs, msecs, raw1, raw2, base, wraps;
-
-	sntp_get(&secs, &msecs, &raw1, &raw2, &base, &wraps);
-	sms_to_date(dst, secs, msecs, raw1, raw2, base, wraps);
-}
-
 
 // generic interface
 
-static void sms_to_date(string_t *dst, unsigned int s, unsigned int ms, unsigned int r1, unsigned int r2, unsigned int b, unsigned int w)
+static void stampms_to_dhm(uint64_t stamp, unsigned int ms, unsigned int *d, unsigned *h, unsigned int *m, unsigned int *s)
 {
-	unsigned int d, h, m;
-
-	d = s / (24 * 60 * 60);
-	s -= d * 24 * 60 * 60;
-	h = s / (60 * 60);
-	s -= h * 60 * 60;
-	m = s / 60;
-	s -= m * 60;
-
-	string_format(dst, "%2u %02u:%02u:%02u.%03u (r1=%u,r2=%u,b=%u,w=%u)", d, h, m, s, ms, r1, r2, b, w);
+	*d =		stamp / (24 * 60 * 60);
+	stamp -=	*d * 24 * 60 * 60;
+	*h =		stamp / (60 * 60);
+	stamp -=	*h * 60 * 60;
+	*m =		stamp / 60;
+	stamp -=	*m * 60;
+	*s =		stamp;
 }
-
-static unsigned int time_base_s;
 
 void time_init(void)
 {
@@ -491,7 +302,7 @@ void time_periodic(void)
 	time_sntp_periodic();
 }
 
-void time_set_stamp(unsigned int stamp)
+void time_set_stamp(uint64_t stamp)
 {
 	time_base_s = stamp;
 	system_init();
@@ -504,28 +315,15 @@ void time_set_hms(unsigned int h, unsigned int m, unsigned int s)
 	time_set_stamp((h * 3600) + (m * 60) + s);
 }
 
-const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
+static void time_stamp_to_components(uint64_t stamp,
+			unsigned int *h, unsigned int *m, unsigned int *s,
 			unsigned int *Y, unsigned int *M, unsigned int *D)
 {
-	unsigned int time_s = 0;
-	time_t ticks_s;
-	const char *source;
 	struct tm *tm;
+	time_t ticks;
 
-	if(time_flags.sntp_init_succeeded && time_flags.sntp_server_valid && (sntp_base_s > 0)) // we have sntp sync
-	{
-		source = "sntp";
-		sntp_get(0, 0, &time_s, 0, 0, 0);
-	}
-	else
-	{
-		source = "rtc";
-		rtc_get(&time_s, 0, 0, 0, 0, 0);
-		time_s = (unsigned int)(time_s + time_base_s);
-	}
-
-	ticks_s  = time_s;
-	tm = localtime(&ticks_s);
+	ticks = stamp;
+	tm = localtime(&ticks);
 
 	if(Y)
 		*Y = tm->tm_year + 1900;
@@ -544,6 +342,97 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 
 	if(s)
 		*s = tm->tm_sec;
+}
+
+const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
+			unsigned int *Y, unsigned int *M, unsigned int *D)
+{
+	uint64_t stamp;
+	const char *source;
+
+	if(time_flags.sntp_init_succeeded && time_flags.sntp_server_valid && (sntp_base_s > 0)) // we have sntp sync
+	{
+		source = "sntp";
+		stamp = sntp_base_s + (sntp_current_ds / 10) + (sntp_timezone * 3600);
+	}
+	else
+	{
+		source = "rtc";
+		stamp = time_base_s + (rtc_current_ns / 1000000000);
+	}
+
+	time_stamp_to_components(stamp, h, m, s, Y, M, D);
 
 	return(source);
+}
+
+void time_stats(string_t *dst)
+{
+	unsigned int Y, M, D, h, m, s;
+	unsigned int msecs, base, wraps, lsw, msw;
+	uint64_t stamp_us, secs, sntp_secs, rtc_secs;
+
+	string_format(dst, "> %-6s %-3s %-2s:%-2s:%-2s.%-3s %-8s %-8s %-8s %-5s\n", "subsys", "day", "HH", "MM", "SS", "ms", "msw", "lsw", "base", "wraps");
+
+	stamp_us =	time_get_us();
+	secs =		stamp_us / 1000000;
+	msecs =		(stamp_us % 1000000) / 1000;
+	msw =		stamp_us >> 32;
+	lsw =		stamp_us & 0xffffffff;
+	base =		uptime_base_us;
+	wraps =		uptime_wraps;
+	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
+	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "uptime", D, h, m, s, msecs, msw, lsw, base, wraps);
+
+	stamp_us =	(((uint64_t)system_get_time()) | ((uint64_t)system_wraps << 32)) - system_base_us;
+	secs =		stamp_us / 1000000;
+	msecs =		(stamp_us % 1000000) / 1000;
+	msw =		stamp_us >> 32;
+	lsw =		stamp_us & 0xffffffff;
+	base =		system_base_us;
+	wraps =		system_wraps;
+	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
+	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "system", D, h, m, s, msecs, msw, lsw, base, wraps);
+
+	secs =	timer_s;
+	msecs =	timer_ms;
+	wraps =	timer_wraps;
+	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
+	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "timer", D, h, m, s, msecs, 0U, 0U, 0U, wraps);
+
+	secs =	(rtc_current_ns / 1000000000);
+	msecs =	(rtc_current_ns % 1000000000) / 1000000;
+	msw =	rtc_current_ns >> 32;
+	lsw =	rtc_current_ns & 0xffffffff;
+	base =	rtc_base_s;
+	wraps =	rtc_wraps;
+	rtc_secs = secs;
+	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
+	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "rtc", D, h, m, s, msecs, msw, lsw, base, wraps);
+
+	secs =	sntp_current_ds / 10;
+	msecs =	(sntp_current_ds % 10) * 100;
+	base =	sntp_base_s;
+	sntp_secs = secs;
+	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
+	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "sntp", D, h, m, s, msecs, 0U, 0U, base, wraps);
+
+	string_format(dst, "> sntp: server set: %s, socket create succeeded: %s, mode: %s, timezone: %d, next update in %u seconds, sent: %u, received: %u\n",
+		yesno(time_flags.sntp_server_valid),
+		yesno(time_flags.sntp_init_succeeded),
+		time_flags.sntp_regular_mode ? "normal/background" : "initial/burst",
+		sntp_timezone, sntp_wait, sntp_sent, sntp_received);
+
+	time_stamp_to_components(time_base_s, &h, &m, &s, &Y, &M, &D);
+	string_format(dst, "> time base: %04u/%02u/%02u %02u:%02u:%02u\n", Y, M, D, h, m, s);
+	time_stamp_to_components(rtc_secs + time_base_s, &h, &m, &s, &Y, &M, &D);
+	string_format(dst, "> rtc time:  %04u/%02u/%02u %02u:%02u:%02u\n", Y, M, D, h, m, s);
+	if(time_flags.sntp_init_succeeded && time_flags.sntp_server_valid && (sntp_base_s > 0))
+	{
+		time_stamp_to_components(sntp_secs + sntp_base_s, &h, &m, &s, &Y, &M, &D);
+		string_format(dst, "> sntp time: %04u/%02u/%02u %02u:%02u:%02u\n", Y, M, D, h, m, s);
+		string_append(dst, "> source: sntp\n");
+	}
+	else
+		string_append(dst, "> source: rtc\n");
 }
