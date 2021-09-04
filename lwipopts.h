@@ -2,7 +2,7 @@
 
 #define MEM_SIZE					(6 * 1024)
 #define MEMP_NUM_PBUF				16
-#define MEMP_NUM_UDP_PCB			4
+#define MEMP_NUM_UDP_PCB			8 // do not decrease!
 #define MEMP_NUM_TCP_PCB			2
 #define MEMP_NUM_TCP_PCB_LISTEN		2
 #define MEMP_NUM_TCP_SEG			TCP_SND_QUEUELEN

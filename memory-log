@@ -9978,3 +9978,11 @@ Sat Sep  4 10:09:14 CEST 2021 adf782d espif: fixed an error where a sector with 
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75649, free:   4616,  5 %
     irom:    available: 592 k, used: 434376, free: 171832, 28 %
+Sat Sep  4 10:19:57 CEST 2021 dc4c993 espif: tweak multicast timing.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75649, free:   4616,  5 %
+    irom:    available: 592 k, used: 434328, free: 171880, 28 %
+Sat Sep  4 11:08:54 CEST 2021 dc4c993 espif: tweak multicast timing.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75797, free:   4468,  5 %
+    irom:    available: 592 k, used: 434424, free: 171784, 28 %
