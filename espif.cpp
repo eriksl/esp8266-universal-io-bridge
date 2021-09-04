@@ -177,7 +177,7 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 				if(sendto(fd, buffer.data(), chunk, MSG_DONTWAIT, (const sockaddr *)&saddr, sizeof(saddr)) != chunk)
 					return(false);
 
-				usleep(100000);
+				usleep(200000);
 			}
 
 			break;
