@@ -75,7 +75,7 @@ void GenericSocket::connect()
 {
 	struct linger l = { .l_onoff = 1, .l_linger = 0 };
 	struct addrinfo hints;
-	struct addrinfo *res;
+	struct addrinfo *res = nullptr;
 
 	if((fd = socket(AF_INET, (use_udp || (multicast > 0)) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 		throw(std::string("socket failed"));
@@ -87,9 +87,13 @@ void GenericSocket::connect()
 
 	if(getaddrinfo(host.c_str(), service.c_str(), &hints, &res))
 	{
-		freeaddrinfo(res);
+		if(res)
+			freeaddrinfo(res);
 		throw(std::string("unknown host"));
 	}
+
+	if(!res || !res->ai_addr)
+		throw(std::string("unknown host"));
 
 	saddr = *(struct sockaddr_in *)res->ai_addr;
 	freeaddrinfo(res);

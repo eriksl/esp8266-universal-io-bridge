@@ -9986,3 +9986,7 @@ Sat Sep  4 11:08:54 CEST 2021 dc4c993 espif: tweak multicast timing.
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  75797, free:   4468,  5 %
     irom:    available: 592 k, used: 434424, free: 171784, 28 %
+Sat Sep  4 11:21:21 CEST 2021 9a887e9 lwiptoptions: increase amount of udp pcb buffers.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  75797, free:   4468,  5 %
+    irom:    available: 592 k, used: 434440, free: 171768, 28 %
