@@ -304,8 +304,6 @@ static void display_update(bool advance)
 
 				if(slot >= display_slot_amount)
 					slot = 0;
-
-				continue;
 			}
 		}
 

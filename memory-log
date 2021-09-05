@@ -10098,3 +10098,11 @@ Sat Sep  4 16:41:28 CEST 2021 e5eff42 lwip-options: also increase number of tcp 
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76309, free:   3956,  4 %
     irom:    available: 592 k, used: 434984, free: 171224, 28 %
+Sun Sep  5 12:40:05 CEST 2021 528be89 sys_time: overhaul
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76309, free:   3956,  4 %
+    irom:    available: 592 k, used: 434952, free: 171256, 28 %
+Sun Sep  5 13:18:41 CEST 2021 528be89 sys_time: overhaul
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76309, free:   3956,  4 %
+    irom:    available: 592 k, used: 435016, free: 171192, 28 %
