@@ -10106,3 +10106,11 @@ Sun Sep  5 13:18:41 CEST 2021 528be89 sys_time: overhaul
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76309, free:   3956,  4 %
     irom:    available: 592 k, used: 435016, free: 171192, 28 %
+Sun Sep  5 13:27:11 CEST 2021 910454b display: fix for display not advancing when no picture is loaded.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76309, free:   3956,  4 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Sun Sep  5 13:30:19 CEST 2021 910454b display: fix for display not advancing when no picture is loaded.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435144, free: 171064, 28 %

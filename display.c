@@ -516,20 +516,37 @@ void display_periodic(void) // gets called 10 times per second
 
 	if(log_to_display)
 	{
+		static unsigned int skip = 0;
+		static bool newline_seen = true;
 		uint8_t current;
+
+		if(newline_seen)
+		{
+			skip = (config_flags_match(flag_log_date) ? 6 : 0) + (config_flags_match(flag_log_time) ? 6 : 0);
+			newline_seen = false;
+		}
 
 		while(logbuffer_display_current < (unsigned int)string_length(&logbuffer))
 		{
 			current = string_at(&logbuffer, logbuffer_display_current++);
-			if(!display_info_entry->output_fn(current))
+
+			if(skip == 0)
 			{
-				log("display update: display output (3) failed\n");
-				display_data.detected = -1;
-				return;
+				if(!display_info_entry->output_fn(current))
+				{
+					log("display update: display output (3) failed\n");
+					display_data.detected = -1;
+					return;
+				}
 			}
+			else
+				skip--;
 
 			if(current == '\n')
+			{
+				newline_seen = true;
 				break;
+			}
 		}
 
 		return;
