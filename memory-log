@@ -10114,3 +10114,63 @@ Sun Sep  5 13:30:19 CEST 2021 910454b display: fix for display not advancing whe
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76313, free:   3952,  4 %
     irom:    available: 592 k, used: 435144, free: 171064, 28 %
+Sun Sep  5 13:32:05 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Sun Sep  5 13:36:14 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sun Sep  5 14:02:19 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Sun Sep  5 14:07:58 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sun Sep  5 14:09:06 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435192, free: 171016, 28 %
+Sun Sep  5 14:10:36 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435208, free: 171000, 28 %
+Sun Sep  5 14:14:49 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76313, free:   3952,  4 %
+    irom:    available: 592 k, used: 435256, free: 170952, 28 %
+Sun Sep  5 14:19:00 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435256, free: 170952, 28 %
+Sun Sep  5 14:26:15 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435288, free: 170920, 28 %
+Sun Sep  5 14:35:41 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sun Sep  5 14:57:05 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435128, free: 171080, 28 %
+Sun Sep  5 14:58:02 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sun Sep  5 15:11:35 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sun Sep  5 15:24:15 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435240, free: 170968, 28 %
+Sun Sep  5 15:28:58 CEST 2021 6c15b18 display: strip date/time from log messages on display
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435256, free: 170952, 28 %

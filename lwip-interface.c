@@ -219,6 +219,12 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 	unsigned int sent;
 	err_t error;
 
+	if(socket->sending_remaining == 0)
+	{
+		log("lwip tcp try send buffer: no more data left in send buffer\n");
+		return(true);
+	}
+
 	sent = 0;
 	max_payload = tcp_sndbuf(pcb_tcp);
 
@@ -238,7 +244,12 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
 		{
 			if(error == ERR_MEM)
+			{
 				stat_lwip_tcp_send_segmentation++;
+
+				if(sent == 0)
+					log("lwip tcp write: out of memory\n");
+			}
 			else
 			{
 				stat_lwip_tcp_send_error++;
