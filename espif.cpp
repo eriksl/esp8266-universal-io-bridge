@@ -199,9 +199,8 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string &reply, int expected, bool raw)
 {
 	int length, run;
-	bool first_run;
 	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
-	char buffer[flash_sector_size];
+	char buffer[flash_sector_size + 1];
 	enum { max_attempts = 8 };
 
 	reply.clear();
@@ -322,11 +321,11 @@ bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string 
 	}
 	else
 	{
-		for(first_run = true, run = 8; run > 0; first_run = false, run--)
+		for(run = 8; run > 0; run--)
 		{
-			if(poll(&pfd, 1, (first_run ? initial_timeout : other_timeout)) != 1)
+			if(poll(&pfd, 1, ((reply.length() == 0) ? initial_timeout : other_timeout)) != 1)
 			{
-				if(first_run)
+				if(reply.length() == 0)
 					return(false);
 
 				break;
@@ -811,7 +810,7 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				reply.clear();
 
-				if(mailbox_channel.receive(500, 500, reply, flash_sector_size, true /* raw */))
+				if(mailbox_channel.receive(1000, 500, reply, flash_sector_size, true /* raw */))
 				{
 					SHA1((const unsigned char *)reply.data(), flash_sector_size, sector_hash);
 					sha_local_hash_text = sha_hash_to_text(sector_hash);
