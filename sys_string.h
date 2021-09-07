@@ -220,12 +220,12 @@ attr_inline attr_nonnull void string_append_byte(string_t *dst, uint8_t c)
 		dst->buffer[dst->length++] = c;
 }
 
-attr_inline attr_nonnull void string_append_bytes(string_t *dst, const char *src, int length)
+attr_inline attr_nonnull void string_append_bytes(string_t *dst, const uint8_t *src, int length)
 {
 	if((dst->length + length) > dst->size)
 		length = dst->size - dst->length;
 
-	memcpy(dst->buffer + dst->length, src, length);
+	memcpy(dst->buffer + dst->length, (const void *)src, length);
 
 	dst->length += length;
 }
@@ -242,7 +242,7 @@ attr_inline attr_nonnull void string_append_cstr_flash(string_t *dst, const char
 
 attr_inline attr_nonnull void string_append_string(string_t *dst, const string_t *src)
 {
-	string_append_bytes(dst, src->buffer, src->length);
+	string_append_bytes(dst, (const void *)src->buffer, src->length);
 }
 
 attr_inline attr_nonnull void string_copy_string(string_t *dst, const string_t *src)
