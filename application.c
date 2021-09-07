@@ -252,16 +252,71 @@ static app_action_t application_function_config_delete(string_t *src, string_t *
 static app_action_t application_function_help(string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
+	int previous;
+	unsigned int x;
+	string_new(, topic, 32);
 
-	for(tableptr = application_function_table; tableptr->function; tableptr++)
+	if(parse_string(1, src, &topic, ' ') == parse_ok)
 	{
-		if(!tableptr->description)
-			continue;
+		for(tableptr = application_function_table; tableptr->function; tableptr++)
+		{
+			if( 	(!tableptr->command_short || !string_match_cstr_flash(&topic, tableptr->command_short)) &&
+					(!tableptr->command_long  || !string_match_cstr_flash(&topic, tableptr->command_long)))
+				continue;
 
-		string_format(dst, "> %s/%s: ",
-				tableptr->command_short, tableptr->command_long);
+			if(tableptr->command_short)
+			{
+				string_append_cstr_flash(dst, tableptr->command_short);
 
-		string_append_cstr_flash(dst, tableptr->description);
+				if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
+					string_append(dst, "/");
+			}
+
+			if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
+				string_append_cstr_flash(dst, tableptr->command_long);
+
+			if(tableptr->description)
+			{
+				string_append(dst, ": ");
+				string_append_cstr_flash(dst, tableptr->description);
+			}
+
+			string_append(dst, "\n");
+		}
+
+		if(string_length(dst) == 0)
+			string_append(dst, "help: no match\n");
+	}
+	else
+	{
+		x = 0;
+
+		for(tableptr = application_function_table; tableptr->function; tableptr++)
+		{
+			previous = string_length(dst);
+
+			if(tableptr->command_short)
+			{
+				string_append_cstr_flash(dst, tableptr->command_short);
+
+				if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
+					string_append(dst, "/");
+			}
+
+			if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
+				string_append_cstr_flash(dst, tableptr->command_long);
+
+			x += string_length(dst) - previous;
+
+			if(x < 80)
+				string_append(dst, " ");
+			else
+			{
+				string_append(dst, "\n");
+				x = 0;
+			}
+		}
+
 		string_append(dst, "\n");
 	}
 

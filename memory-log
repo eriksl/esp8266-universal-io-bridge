@@ -10250,3 +10250,35 @@ Mon Sep  6 21:14:26 CEST 2021 078c413 lwip-interface: small changes for debuggin
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76629, free:   3636,  4 %
     irom:    available: 592 k, used: 435800, free: 170408, 28 %
+Tue Sep  7 19:33:10 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Tue Sep  7 19:52:50 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435656, free: 170552, 28 %
+Tue Sep  7 19:54:36 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435672, free: 170536, 28 %
+Tue Sep  7 20:03:04 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435752, free: 170456, 28 %
+Tue Sep  7 20:08:20 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435736, free: 170472, 28 %
+Tue Sep  7 20:09:26 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435752, free: 170456, 28 %
+Tue Sep  7 20:16:47 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435688, free: 170520, 28 %
+Tue Sep  7 20:18:26 CEST 2021 063e134 sys_string: fixes so string_append_bytes() takes unsigned bytes.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435720, free: 170488, 28 %
