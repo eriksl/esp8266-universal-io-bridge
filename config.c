@@ -417,8 +417,7 @@ bool config_set_uint_flashptr(const char *match_name_flash, unsigned int value, 
 
 bool config_dump(string_t *dst)
 {
-	int int_value, amount;
-	unsigned int uint_value;
+	int amount;
 	string_new(, name, 64);
 	string_new(, value, 64);
 
@@ -429,13 +428,7 @@ bool config_dump(string_t *dst)
 
 	while(config_walk(&name, &value))
 	{
-		string_format(dst, "%s=%s", string_to_cstr(&name), string_to_cstr(&value));
-
-		if((parse_int(0, &value, &int_value, 0, 0) == parse_ok) && parse_uint(0, &value, &uint_value, 0, 0) == parse_ok)
-			string_format(dst, " (%d/%u/%#x)", int_value, uint_value, uint_value);
-
-		string_append(dst, "\n");
-
+		string_format(dst, "%s=%s\n", string_to_cstr(&name), string_to_cstr(&value));
 		amount++;
 	}
 
