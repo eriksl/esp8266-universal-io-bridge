@@ -10286,3 +10286,27 @@ Tue Sep  7 20:23:38 CEST 2021 bbf8576 help: split into short generic help or det
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76633, free:   3632,  4 %
     irom:    available: 592 k, used: 435608, free: 170600, 28 %
+Tue Sep  7 20:27:19 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435672, free: 170536, 28 %
+Tue Sep  7 20:31:16 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435656, free: 170552, 28 %
+Tue Sep  7 20:33:17 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435704, free: 170504, 28 %
+Tue Sep  7 20:38:02 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435624, free: 170584, 28 %
+Tue Sep  7 20:39:42 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27833, free:   4935, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435656, free: 170552, 28 %
+Tue Sep  7 20:41:01 CEST 2021 dea8cc2 config: make config-dump less verbose, saves considerately on output memory.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435672, free: 170536, 28 %

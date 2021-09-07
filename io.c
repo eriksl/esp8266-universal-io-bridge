@@ -3096,6 +3096,9 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			if((pin_id >= 0) && (pin_id != (int)pin))
 				continue;
 
+			if((io == 0) && !io_gpio_pin_usable(pin))
+				continue;
+
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 

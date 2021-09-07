@@ -1467,3 +1467,11 @@ attr_const gpio_i2s_pin_t io_gpio_get_i2s_from_pin(unsigned int pin)
 
 	return(gpio_info_table[pin].i2s_pin);
 }
+
+attr_const bool io_gpio_pin_usable(unsigned int pin)
+{
+	if(pin >= max_pins_per_io)
+		return(false);
+
+	return(gpio_info_table[pin].flags == gi_valid);
+}
