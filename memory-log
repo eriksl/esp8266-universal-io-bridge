@@ -10310,3 +10310,23 @@ Tue Sep  7 20:41:01 CEST 2021 dea8cc2 config: make config-dump less verbose, sav
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76633, free:   3632,  4 %
     irom:    available: 592 k, used: 435672, free: 170536, 28 %
+Tue Sep  7 20:49:55 CEST 2021 0032532 application/io-mode: shrink output, don't show unusable I/O pins (I/0 0, flash pins)
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435688, free: 170520, 28 %
+Tue Sep  7 20:50:32 CEST 2021 0032532 application/io-mode: shrink output, don't show unusable I/O pins (I/0 0, flash pins)
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435672, free: 170536, 28 %
+Tue Sep  7 20:52:21 CEST 2021 0032532 application/io-mode: shrink output, don't show unusable I/O pins (I/0 0, flash pins)
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435608, free: 170600, 28 %
+Tue Sep  7 20:55:01 CEST 2021 0032532 application/io-mode: shrink output, don't show unusable I/O pins (I/0 0, flash pins)
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435688, free: 170520, 28 %
+Tue Sep  7 20:57:33 CEST 2021 0032532 application/io-mode: shrink output, don't show unusable I/O pins (I/0 0, flash pins)
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435704, free: 170504, 28 %

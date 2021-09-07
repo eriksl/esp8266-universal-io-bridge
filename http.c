@@ -243,14 +243,21 @@ static app_action_t handler_root(const string_t *src, string_t *dst)
 static app_action_t handler_controls(const string_t *src, string_t *dst)
 {
 	int				io, pin, step;
-	unsigned int	low, high, current;
+	unsigned int	low, high, current, amount;
 	io_pin_mode_t	mode;
+
+	amount = 0;
 
 	for(io = 0; io < io_id_size; io++)
 		for(pin = 0; pin < max_pins_per_io; pin++)
 			if(io_traits(0, io, pin, &mode, &low, &high, &step, &current) == io_ok)
 				if(high > 0)
+				{
 					http_range_form(dst, io, pin, low, high, step, current);
+
+					if(++amount > 2)
+						break;
+				}
 
 	return(app_action_http_ok);
 }
