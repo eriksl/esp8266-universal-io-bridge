@@ -53,7 +53,7 @@ assert_size(rboot_if_rtc_config_t, 12);
 
 const char *	rboot_if_boot_mode(unsigned int index);
 bool			rboot_if_read_config(rboot_if_config_t *config);
-bool			rboot_if_write_config(const rboot_if_config_t *config, string_t *buffer);
+bool			rboot_if_write_config(const rboot_if_config_t *config);
 bool			rboot_if_read_rtc_ram(rboot_if_rtc_config_t *config);
 bool			rboot_if_write_rtc_ram(rboot_if_rtc_config_t *config);
 void			rboot_if_info(string_t *dst);

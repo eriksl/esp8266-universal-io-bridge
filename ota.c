@@ -616,7 +616,7 @@ static app_action_t flash_select(string_t *src, string_t *dst, bool once)
 		config.slot_current = slot;
 
 		string_clear(dst);
-		success = rboot_if_write_config(&config, dst);
+		success = rboot_if_write_config(&config);
 		string_clear(dst);
 
 		if(!success)
@@ -1106,7 +1106,7 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 		config.slot_current = slot;
 
 		string_clear(dst);
-		success = rboot_if_write_config(&config, dst);
+		success = rboot_if_write_config(&config);
 		string_clear(dst);
 
 		if(!success)

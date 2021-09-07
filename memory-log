@@ -10330,3 +10330,11 @@ Tue Sep  7 20:57:33 CEST 2021 0032532 application/io-mode: shrink output, don't 
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76633, free:   3632,  4 %
     irom:    available: 592 k, used: 435704, free: 170504, 28 %
+Tue Sep  7 21:01:50 CEST 2021 0c52552 http: shrink output of <controls> page, only display first two controls.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70489, free:   9776, 12 %
+    irom:    available: 592 k, used: 435688, free: 170520, 28 %
+Tue Sep  7 21:13:50 CEST 2021 0c52552 http: shrink output of <controls> page, only display first two controls.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70489, free:   9776, 12 %
+    irom:    available: 592 k, used: 435768, free: 170440, 28 %

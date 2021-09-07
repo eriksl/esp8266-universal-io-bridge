@@ -2,6 +2,7 @@
 #include "util.h"
 #include "sys_string.h"
 #include "sdk.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -79,25 +80,36 @@ attr_const const char *rboot_if_boot_mode(unsigned int index)
 	return("unknown");
 }
 
-bool rboot_if_write_config(const rboot_if_config_t *config, string_t *string_buffer)
+bool rboot_if_write_config(const rboot_if_config_t *config)
 {
-	uint32_t *buffer = (uint32_t *)(void *)string_buffer_nonconst(string_buffer);
+	bool rv = false;
 
-	if(string_size(string_buffer) < SPI_FLASH_SEC_SIZE)
+	uint32_t *buffer = (uint32_t *)(void *)string_buffer_nonconst(&flash_sector_buffer);
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("rboot_if_write_config: flash buffer busy (%u)\n", flash_sector_buffer_use);
 		return(false);
+	}
+
+	flash_sector_buffer_use = fsb_ota;
 
 	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(false);
+		goto exit;
 
 	memcpy(buffer, config, sizeof(*config));
 
 	if(spi_flash_erase_sector(OFFSET_RBOOT_CFG / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(false);
+		goto exit;
 
 	if(spi_flash_write(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		return(false);
+		goto exit;
 
-	return(true);
+	rv = true;
+
+exit:
+	flash_sector_buffer_use = fsb_free;
+	return(rv);
 }
 
 bool rboot_if_read_config(rboot_if_config_t *config)

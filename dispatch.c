@@ -39,8 +39,8 @@ static os_event_t task_queue[3][task_queue_length];
 flash_sector_buffer_use_t flash_sector_buffer_use;
 string_new(attr_flash_align, flash_sector_buffer, 4096);
 
-string_new(static attr_flash_align, command_socket_receive_buffer, 4096 + 64);
-string_new(static attr_flash_align, command_socket_send_buffer, 4096 + 64);
+string_new(static attr_flash_align, command_socket_receive_buffer, 128);
+string_new(static attr_flash_align, command_socket_send_buffer, 2048);
 static lwip_if_socket_t command_socket;
 
 string_new(static, uart_socket_receive_buffer, 128);
