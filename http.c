@@ -321,17 +321,6 @@ static app_action_t handler_favicon(const string_t *src, string_t *dst)
 	return(app_action_http_ok);
 }
 
-static app_action_t handler_info_fw(const string_t *src, string_t *dst)
-{
-	string_append_cstr_flash(dst, roflash_html_table_start);
-	string_append(dst, "<tr><td><pre>");
-	stats_firmware(dst);
-	string_append(dst, "</pre></td></tr>");
-	string_append_cstr_flash(dst, roflash_html_table_end);
-
-	return(app_action_http_ok);
-}
-
 static app_action_t handler_info_i2c(const string_t *src, string_t *dst)
 {
 	string_append_cstr_flash(dst, roflash_html_table_start);
@@ -508,11 +497,6 @@ static const http_handler_t http_handlers[] =
 		"Home",
 		"",
 		handler_root
-	},
-	{
-		"Information about the firmware",
-		"info_fw",
-		handler_info_fw
 	},
 	{
 		"Information about the i2c bus",

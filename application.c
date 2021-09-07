@@ -252,18 +252,27 @@ static app_action_t application_function_config_delete(string_t *src, string_t *
 static app_action_t application_function_help(string_t *src, string_t *dst)
 {
 	const application_function_table_t *tableptr;
+	string_new(, help_line, 256);
+
+	string_append(dst, "* help ok, see mailbox output");
+
+	mailbox_data_start();
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
 	{
 		if(!tableptr->description)
 			continue;
 
-		string_format(dst, "> %s/%s: ",
+		string_clear(&help_line);
+		string_format(&help_line, "> %s/%s: ",
 				tableptr->command_short, tableptr->command_long);
 
-		string_append_cstr_flash(dst, tableptr->description);
-		string_append(dst, "\n");
+		string_append_cstr_flash(&help_line, tableptr->description);
+		string_append(&help_line, "\n");
+		mailbox_data_add(&help_line);
 	}
+
+	mailbox_data_send();
 
 	return(app_action_normal);
 }
@@ -1579,13 +1588,18 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 
 static app_action_t application_function_log_display(string_t *src, string_t *dst)
 {
+	string_init(static, log_empty, "<log empty>");
+	string_t *log_data;
+
 	if(string_length(&logbuffer) == 0)
-		string_append(dst, "<log empty>\n");
+		log_data = &log_empty;
 	else
-	{
-		string_clear(dst);
-		string_append_string(dst, &logbuffer);
-	}
+		log_data = &logbuffer;
+
+	string_append(dst, "* log display ok, see mailbox output\n");
+	mailbox_data_start();
+	mailbox_data_add(log_data);
+	mailbox_data_send();
 
 	return(app_action_normal);
 }

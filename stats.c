@@ -9,6 +9,7 @@
 #include "i2c_sensor.h"
 #include "rboot-interface.h"
 #include "sdk.h"
+#include "ota.h"
 
 stat_flags_t stat_flags;
 
@@ -177,6 +178,7 @@ attr_pure static const char *manufacturer_id_to_string(unsigned int id)
 void stats_firmware(string_t *dst)
 {
 	roflash static const char git_commit[] = GIT_COMMIT;
+	string_new(, output_line, 128);
 
 	int32_t stack_size = stack_bottom - stack_top;
 	int32_t stack_used = -1;
@@ -205,43 +207,81 @@ void stats_firmware(string_t *dst)
 	if(heap > stat_heap_max)
 		stat_heap_max = heap;
 
-	string_format(dst,
-			"> firmware\n"
-			">   date: %s %s\n"
-			">   git commit: %s\n"
-			">\n"
-			"> heap:\n"
-			">   free: current: %u, min: %u, max: %u\n"
-			">\n"
-			"> stack:\n"
-			">   bottom: %p (%d kiB), top: %p (%d kiB), initial: %p (%d), current: %p (%d)\n"
-			">   size: %d, painted: %d, not painted: %d\n"
-			">   currently used: %d/%d%%, max used: %d/%d%%, unused: %d/%d%%\n"
-			">\n"
-			"> system\n"
-			">   id: %02x:%02x:%02x\n"
-			">   cpu frequency: %u MHz\n"
-			">   SDK version: %s\n",
-				__DATE__, __TIME__,
-				git_commit,
-				heap, stat_heap_min, stat_heap_max,
-					(void *)stack_bottom, stack_bottom >> 10,
-					(void *)stack_top, stack_top >> 10,
-					stack_stack_sp_initial, stack_bottom - (int32_t)stack_stack_sp_initial,
-					&sp, stack_bottom - (int32_t)&sp,
-				stack_size, stack_stack_painted, stack_size - stack_stack_painted,
-					stack_bottom - (int32_t)&sp, ((stack_bottom - (int32_t)&sp) * 100) / stack_size,
-					stack_used, (stack_used * 100) / stack_size,
-					stack_free, (stack_free * 100) / stack_size,
-				(system_get_chip_id() & 0x00ff0000) >> 16,
-				(system_get_chip_id() & 0x0000ff00) >>  8,
-				(system_get_chip_id() & 0x000000ff) >>  0,
-				system_get_cpu_freq(),
-				system_get_sdk_version());
+	string_format(dst, "* firmware\n"
+								">   date: %s %s\n",
+								__DATE__, __TIME__);
 
-	string_append(dst, ">   reset cause: ");
-	explain_exception(dst);
-	string_append(dst, "\n");
+	string_append(dst, "stats output ok, see mailbox output\n");
+
+	mailbox_data_start();
+
+	string_clear(&output_line);
+	string_format(&output_line, "> firmware\n"
+								">   date: %s %s\n",
+								__DATE__, __TIME__);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	">   git commit: %s\n"
+								">\n",
+								git_commit);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	"> heap:\n"
+								">   free: current: %u, min: %u, max: %u\n"
+								">\n",
+								heap, stat_heap_min, stat_heap_max);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	"> stack:\n"
+								">   bottom: %p (%d kiB), top: %p (%d kiB), ",
+								(void *)stack_bottom, stack_bottom >> 10,
+								(void *)stack_top, stack_top >> 10);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	"initial: %p (%d), current: %p (%d)\n",
+								stack_stack_sp_initial, stack_bottom - (int32_t)stack_stack_sp_initial,
+								&sp, stack_bottom - (int32_t)&sp);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	">   size: %d, painted: %d, not painted: %d\n",
+								stack_size, stack_stack_painted, stack_size - stack_stack_painted);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	">   currently used: %d/%d%%, max used: %d/%d%%, unused: %d/%d%%\n"
+								">\n",
+								stack_bottom - (int32_t)&sp, ((stack_bottom - (int32_t)&sp) * 100) / stack_size,
+								stack_used, (stack_used * 100) / stack_size,
+								stack_free, (stack_free * 100) / stack_size);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line,	"> system\n"
+								">   id: %02x:%02x:%02x\n",
+								(system_get_chip_id() & 0x00ff0000) >> 16,
+								(system_get_chip_id() & 0x0000ff00) >>  8,
+								(system_get_chip_id() & 0x000000ff) >>  0);
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_format(&output_line, ">   cpu frequency: %u MHz\n"
+								">   SDK version: %s\n",
+								system_get_cpu_freq(),
+								system_get_sdk_version());
+	mailbox_data_add(&output_line);
+
+	string_clear(&output_line);
+	string_append(&output_line, ">   reset cause: ");
+	explain_exception(&output_line);
+	string_append(&output_line, "\n");
+	mailbox_data_add(&output_line);
+
+	mailbox_data_send();
 }
 
 void stats_flash(string_t *dst)

@@ -1134,3 +1134,32 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 
 	return(app_action_normal);
 }
+
+static const uint8_t mailbox_header[4] = { 0x4a, 0xfb, 0x00, 0x01 };
+
+void mailbox_data_start(void)
+{
+	string_clear(&mailbox_socket_send_buffer);
+	string_append_bytes(&mailbox_socket_send_buffer, mailbox_header, sizeof(mailbox_header));
+	string_append_byte(&mailbox_socket_send_buffer, 0);
+	string_append_byte(&mailbox_socket_send_buffer, 0);
+}
+
+void mailbox_data_add(const string_t *data)
+{
+	string_append_string(&mailbox_socket_send_buffer, data);
+}
+
+void mailbox_data_send(void)
+{
+	int length;
+	uint8_t *length_bytes;
+
+	length = string_length(&mailbox_socket_send_buffer);
+	length_bytes = (uint8_t *)(string_buffer_nonconst(&mailbox_socket_send_buffer)) + sizeof(mailbox_header);
+	length_bytes[0] = (length & 0x0000ff00) >> 8;
+	length_bytes[1] = (length & 0x000000ff) >> 0;
+
+	if(!lwip_if_send(&mailbox_socket))
+		log("mailbox_data_send: lwip_if_send failed\n");
+}

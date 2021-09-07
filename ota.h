@@ -25,4 +25,8 @@ app_action_t application_function_mailbox_checksum(string_t *, string_t *);
 app_action_t application_function_mailbox_simulate(string_t *, string_t *);
 app_action_t application_function_mailbox_write(string_t *, string_t *);
 app_action_t application_function_mailbox_select(string_t *, string_t *);
+
+void mailbox_data_start(void);
+void mailbox_data_add(const string_t *data);
+void mailbox_data_send(void);
 #endif
