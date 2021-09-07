@@ -73,7 +73,6 @@ GenericSocket::~GenericSocket()
 
 void GenericSocket::connect()
 {
-	struct linger l = { .l_onoff = 1, .l_linger = 0 };
 	struct addrinfo hints;
 	struct addrinfo *res = nullptr;
 
@@ -121,12 +120,6 @@ void GenericSocket::connect()
 	}
 	else
 	{
-		if(!use_udp)
-		{
-			if(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l)))
-				throw(std::string("linger failed"));
-		}
-
 		if(::connect(fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 			throw(std::string("connect failed"));
 	}

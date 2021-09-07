@@ -10174,3 +10174,79 @@ Sun Sep  5 15:28:58 CEST 2021 6c15b18 display: strip date/time from log messages
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  76633, free:   3632,  4 %
     irom:    available: 592 k, used: 435256, free: 170952, 28 %
+Sun Sep  5 15:56:08 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Sun Sep  5 16:48:53 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76633, free:   3632,  4 %
+    irom:    available: 592 k, used: 435416, free: 170792, 28 %
+Sun Sep  5 17:01:59 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435384, free: 170824, 28 %
+Sun Sep  5 18:10:22 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435432, free: 170776, 28 %
+Sun Sep  5 19:05:35 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435448, free: 170760, 28 %
+Sun Sep  5 19:07:51 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435432, free: 170776, 28 %
+Sun Sep  5 19:12:51 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435448, free: 170760, 28 %
+Sun Sep  5 19:22:07 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435480, free: 170728, 28 %
+Mon Sep  6 19:58:56 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435512, free: 170696, 28 %
+Mon Sep  6 20:11:25 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435880, free: 170328, 28 %
+Mon Sep  6 20:28:42 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435624, free: 170584, 28 %
+Mon Sep  6 20:32:02 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435784, free: 170424, 28 %
+Mon Sep  6 20:38:15 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435768, free: 170440, 28 %
+Mon Sep  6 20:39:05 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435784, free: 170424, 28 %
+Mon Sep  6 20:43:04 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76661, free:   3604,  4 %
+    irom:    available: 592 k, used: 435640, free: 170568, 28 %
+Mon Sep  6 20:58:11 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76629, free:   3636,  4 %
+    irom:    available: 592 k, used: 435704, free: 170504, 28 %
+Mon Sep  6 21:02:18 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76629, free:   3636,  4 %
+    irom:    available: 592 k, used: 435752, free: 170456, 28 %
+Mon Sep  6 21:09:23 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76629, free:   3636,  4 %
+    irom:    available: 592 k, used: 435768, free: 170440, 28 %
+Mon Sep  6 21:14:26 CEST 2021 078c413 lwip-interface: small changes for debugging certain tcp issues.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  76629, free:   3636,  4 %
+    irom:    available: 592 k, used: 435800, free: 170408, 28 %

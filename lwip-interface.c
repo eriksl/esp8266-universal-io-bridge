@@ -297,7 +297,7 @@ static void tcp_error_callback(void *callback_arg, err_t error)
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
 
-	if((error != ERR_ISCONN) && (error != ERR_RST))
+	if(error != ERR_ISCONN)
 		log_error("tcp error callback", error);
 
 	if(socket->reboot_pending)
