@@ -14,7 +14,7 @@
 #include "config.h"
 #include "lwip-interface.h"
 #include "remote_trigger.h"
-#include "ota.h"
+#include "mailbox.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -581,7 +581,7 @@ void dispatch_init2(void)
 		uart_bridge_active = true;
 	}
 
-	ota_init(mailbox_port);
+	mailbox_init(mailbox_port);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 0);

@@ -11,7 +11,7 @@
 #include "io.h"
 #include "io_gpio.h"
 #include "sys_time.h"
-#include "ota.h"
+#include "mailbox.h"
 #include "sequencer.h"
 #include "init.h"
 #include "dispatch.h"

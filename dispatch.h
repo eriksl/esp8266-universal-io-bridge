@@ -30,7 +30,7 @@ typedef enum
 	fsb_config_write,
 	fsb_config_write_dirty,
 	fsb_config_cache,
-	fsb_ota,
+	fsb_mailbox,
 	fsb_sequencer,
 	fsb_display_picture,
 } flash_sector_buffer_use_t;

@@ -2,7 +2,7 @@
 #include "sys_string.h"
 #include "sys_time.h"
 #include "uart.h"
-#include "ota.h"
+#include "mailbox.h"
 #include "config.h"
 
 #include <stdlib.h>

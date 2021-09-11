@@ -4,7 +4,7 @@
 #include "sys_string.h"
 #include "io.h"
 #include "i2c_sensor.h"
-#include "ota.h"
+#include "mailbox.h"
 #include "dispatch.h"
 #include "sdk.h"
 

@@ -92,7 +92,7 @@ bool rboot_if_write_config(const rboot_if_config_t *config)
 		return(false);
 	}
 
-	flash_sector_buffer_use = fsb_ota;
+	flash_sector_buffer_use = fsb_mailbox;
 
 	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 		goto exit;

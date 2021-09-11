@@ -1,4 +1,4 @@
-#include "ota.h"
+#include "mailbox.h"
 #include "util.h"
 #include "sys_string.h"
 #include "config.h"
@@ -27,7 +27,7 @@ static void socket_mailbox_callback_data_received(lwip_if_socket_t *socket, unsi
 	}
 }
 
-void ota_init(unsigned int mailbox_port)
+void mailbox_init(unsigned int mailbox_port)
 {
 	lwip_if_socket_create(&mailbox_socket, &mailbox_socket_receive_buffer, &mailbox_socket_send_buffer, mailbox_port,
 			true, false, socket_mailbox_callback_data_received);
@@ -37,7 +37,7 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 {
 	rboot_if_config_t		config;
 	rboot_if_rtc_config_t	rtc;
-	unsigned int ota_slot;
+	unsigned int mailbox_slot;
 
 	if(!rboot_if_read_config(&config))
 	{
@@ -46,14 +46,14 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 	}
 
 	if(rboot_if_read_rtc_ram(&rtc))
-		ota_slot = rtc.last_slot;
+		mailbox_slot = rtc.last_slot;
 	else
-		ota_slot = config.slot_current;
+		mailbox_slot = config.slot_current;
 
 	string_format(dst, "OK mailbox function available, "
 				"slots: %u, current: %u, "
 				"sectors: [ %u, %u ]\n",
-			config.slot_count, ota_slot,
+			config.slot_count, mailbox_slot,
 			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE);
 
 	return(app_action_normal);
