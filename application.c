@@ -2397,56 +2397,6 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_display_eastrising,
 	},
 	{
-		"flash-info", "flash-info",
-		application_function_flash_info,
-		(void *)0,
-	},
-	{
-		"flash-erase", "flash-erase",
-		application_function_flash_erase,
-		(void *)0,
-	},
-	{
-		"flash-send", "flash-send",
-		application_function_flash_send,
-		(void *)0,
-	},
-	{
-		"flash-read", "flash-read",
-		application_function_flash_read,
-		(void *)0,
-	},
-	{
-		"flash-receive", "flash-receive",
-		application_function_flash_receive,
-		(void *)0,
-	},
-	{
-		"flash-write", "flash-write",
-		application_function_flash_write,
-		(void *)0,
-	},
-	{
-		"flash-verify", "flash-verify",
-		application_function_flash_verify,
-		(void *)0,
-	},
-	{
-		"flash-checksum", "flash-checksum",
-		application_function_flash_checksum,
-		(void *)0,
-	},
-	{
-		"flash-select", "flash-select",
-		application_function_flash_select,
-		(void *)0,
-	},
-	{
-		"flash-select-once", "flash-select-once",
-		application_function_flash_select_once,
-		(void *)0,
-	},
-	{
 		"mailbox-info", "mailbox-info",
 		application_function_mailbox_info,
 		(void *)0,
