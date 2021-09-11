@@ -10354,3 +10354,7 @@ Sat Sep 11 19:32:52 CEST 2021 4d38bd2 ota: rename to mailbox (better suited).
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  70361, free:   9904, 12 %
     irom:    available: 592 k, used: 428744, free: 177464, 29 %
+Sat Sep 11 20:05:52 CEST 2021 2c4185e ota: rename to mailbox (better suited).
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70361, free:   9904, 12 %
+    irom:    available: 592 k, used: 429368, free: 176840, 29 %

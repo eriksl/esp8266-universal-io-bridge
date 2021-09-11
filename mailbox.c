@@ -29,6 +29,15 @@ static void socket_mailbox_callback_data_received(lwip_if_socket_t *socket, unsi
 
 void mailbox_init(unsigned int mailbox_port)
 {
+	if(string_size(&mailbox_socket_receive_buffer) != SPI_FLASH_SEC_SIZE)
+		log("ALERT: mailbox socket receive buffer (%d) != SPI_FLASH_SEC_SIZE (%d)\n", string_size(&mailbox_socket_receive_buffer), SPI_FLASH_SEC_SIZE);
+
+	if(string_size(&mailbox_socket_send_buffer) != SPI_FLASH_SEC_SIZE)
+		log("ALERT: mailbox socket send buffer (%d) != SPI_FLASH_SEC_SIZE (%d)\n", string_size(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE);
+
+	if(string_size(&flash_sector_buffer) != SPI_FLASH_SEC_SIZE)
+		log("ALERT: flash sector buffer (%d) != SPI_FLASH_SEC_SIZE (%d)\n", string_size(&flash_sector_buffer), SPI_FLASH_SEC_SIZE);
+
 	lwip_if_socket_create(&mailbox_socket, &mailbox_socket_receive_buffer, &mailbox_socket_send_buffer, mailbox_port,
 			true, false, socket_mailbox_callback_data_received);
 }
@@ -110,7 +119,7 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 	string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_string));
 
 	if(!lwip_if_send(&mailbox_socket))
-		log("mailbox read failed\n");
+		log("mailbox read failed: lwip_if_send failed\n");
 
 	return(app_action_normal);
 }
@@ -151,20 +160,31 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 {
 	unsigned int current, sector, sectors;
 	SpiFlashOpResult flash_result;
-
 	SHA_CTX sha_context;
 	unsigned char sha_result[SHA_DIGEST_LENGTH];
 	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	char *flash_buffer;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		string_format(dst, "mailbox_checksum: flash buffer busy (%u)\n", flash_sector_buffer_use);
+		return(app_action_error);
+	}
+
+	flash_sector_buffer_use = fsb_mailbox;
+	flash_buffer = string_buffer_nonconst(&flash_sector_buffer);
 
 	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR mailbox-checksum: start sector required\n");
+		flash_sector_buffer_use = fsb_free;
 		return(app_action_error);
 	}
 
 	if(parse_uint(2, src, &sectors, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "ERROR mailbox-checksum: amount of sectors required\n");
+		flash_sector_buffer_use = fsb_free;
 		return(app_action_error);
 	}
 
@@ -172,27 +192,30 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 
 	for(current = sector; (current - sector) < sectors; current++)
 	{
-		flash_result = spi_flash_read(current * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+		flash_result = spi_flash_read(current * SPI_FLASH_SEC_SIZE, flash_buffer, SPI_FLASH_SEC_SIZE);
 
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
 			string_append(dst, "ERROR: mailbox-checksum: read error\n");
+			flash_sector_buffer_use = fsb_free;
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
 			string_append(dst, "ERROR: mailbox-checksum: read timeout\n");
+			flash_sector_buffer_use = fsb_free;
 			return(app_action_error);
 		}
 
-		SHA1Update(&sha_context, string_buffer(dst), SPI_FLASH_SEC_SIZE);
+		SHA1Update(&sha_context, flash_buffer, SPI_FLASH_SEC_SIZE);
 	}
+
+	flash_sector_buffer_use = fsb_free;
 
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	string_clear(dst);
 	string_format(dst, "OK mailbox-checksum: checksummed sectors: %u, from sector: %u, checksum: ", sectors, sector);
 	string_append_string(dst, &sha_string);
 	string_append(dst, "\n");
@@ -241,38 +264,48 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 	unsigned int skip, erase;
 	SpiFlashOpResult flash_result;
 	const uint8_t *received_buffer;
-	const uint8_t *flash_buffer;
+	char *flash_buffer;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		string_format(dst, "mailbox_write: flash buffer busy (%u)\n", flash_sector_buffer_use);
+		return(app_action_error);
+	}
+
+	flash_sector_buffer_use = fsb_mailbox;
+	flash_buffer = string_buffer_nonconst(&flash_sector_buffer);
+	received_buffer = (const uint8_t *)string_buffer(&mailbox_socket_receive_buffer);
 
 	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
 	{
+		flash_sector_buffer_use = fsb_free;
 		string_append(dst, "ERROR: mailbox-write: invalid sector\n");
 		return(app_action_error);
 	}
 
 	if(string_length(&mailbox_socket_receive_buffer) != SPI_FLASH_SEC_SIZE)
 	{
+		flash_sector_buffer_use = fsb_free;
 		string_format(dst, "ERROR: mailbox-write: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
 		return(app_action_error);
 	}
 
-	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, flash_buffer, SPI_FLASH_SEC_SIZE);
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
-		string_clear(dst);
+		flash_sector_buffer_use = fsb_free;
 		string_append(dst, "ERROR: mailbox-write: read error (check)\n");
 		return(app_action_error);
 	}
 
 	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 	{
-		string_clear(dst);
+		flash_sector_buffer_use = fsb_free;
 		string_append(dst, "ERROR: mailbox-write: read timeout (check)\n");
 		return(app_action_error);
 	}
 
-	received_buffer = (const uint8_t *)string_buffer(&mailbox_socket_receive_buffer);
-	flash_buffer = (const uint8_t *)string_buffer(dst);
 
 	erase = 0;
 	skip = 1;
@@ -298,14 +331,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
-			string_clear(dst);
+			flash_sector_buffer_use = fsb_free;
 			string_append(dst, "ERROR: mailbox-write: erase error\n");
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
-			string_clear(dst);
+			flash_sector_buffer_use = fsb_free;
 			string_append(dst, "ERROR: mailbox-write: erase timeout\n");
 			return(app_action_error);
 		}
@@ -317,41 +350,41 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
-			string_clear(dst);
+			flash_sector_buffer_use = fsb_free;
 			string_append(dst, "ERROR: mailbox-write: read error\n");
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
-			string_clear(dst);
+			flash_sector_buffer_use = fsb_free;
 			string_append(dst, "ERROR: mailbox-write: read timeout\n");
 			return(app_action_error);
 		}
 	}
 
-	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(dst), SPI_FLASH_SEC_SIZE);
+	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, flash_buffer, SPI_FLASH_SEC_SIZE);
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
-		string_clear(dst);
+		flash_sector_buffer_use = fsb_free;
 		string_append(dst, "ERROR: mailbox-write: read error (verify)\n");
 		return(app_action_error);
 	}
 
 	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 	{
-		string_clear(dst);
+		flash_sector_buffer_use = fsb_free;
 		string_append(dst, "ERROR: mailbox-write: read timeout (verify)\n");
 		return(app_action_error);
 	}
 
 	SHA1Init(&sha_context);
-	SHA1Update(&sha_context, string_buffer(dst), SPI_FLASH_SEC_SIZE);
+	SHA1Update(&sha_context, flash_buffer, SPI_FLASH_SEC_SIZE);
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	string_clear(dst);
+	flash_sector_buffer_use = fsb_free;
 	string_format(dst, "OK mailbox-write: written sector %u, erased: %u, skipped %u, checksum: %s\n", sector, skip, erase, string_to_cstr(&sha_string));
 
 	string_clear(&mailbox_socket_receive_buffer);
@@ -460,10 +493,7 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 		}
 
 		config.slot_current = slot;
-
-		string_clear(dst);
 		success = rboot_if_write_config(&config);
-		string_clear(dst);
 
 		if(!success)
 		{
