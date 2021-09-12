@@ -65,7 +65,7 @@ attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data)
+iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int period)
 {
 	unsigned int pin;
 
@@ -80,8 +80,8 @@ iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_da
 			// debouncing on input requested && debouncing period active
 			if((pin_config->speed != 0) && (io_aux_data_pin->counter.debounce != 0))
 			{
-				if(io_aux_data_pin->counter.debounce > ms_per_fast_tick)
-					io_aux_data_pin->counter.debounce -= ms_per_fast_tick;
+				if(io_aux_data_pin->counter.debounce > (1000 / period))
+					io_aux_data_pin->counter.debounce -= 1000 / period;
 				else
 					io_aux_data_pin->counter.debounce = 0;
 			}

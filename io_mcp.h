@@ -16,7 +16,7 @@ typedef enum
 	io_mcp_instance_size
 } io_mcp_instance_t;
 
-void			io_mcp_periodic_slow(int io, const struct io_info_entry_T *, io_data_entry_t *);
+void			io_mcp_periodic_slow(int io, const struct io_info_entry_T *, io_data_entry_t *, unsigned int period);
 unsigned int	io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin);
 io_error_t		io_mcp_init(const struct io_info_entry_T *);
 io_error_t		io_mcp_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);

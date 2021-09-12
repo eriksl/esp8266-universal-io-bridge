@@ -883,7 +883,7 @@ attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info,
 	return(value);
 }
 
-iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data)
+iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int period)
 {
 	int pin;
 
@@ -901,8 +901,8 @@ iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_d
 
 		if(gpio_pin_data->counter.debounce > 0)
 		{
-			if(gpio_pin_data->counter.debounce >= ms_per_fast_tick)
-				gpio_pin_data->counter.debounce -= ms_per_fast_tick;
+			if(gpio_pin_data->counter.debounce >= (1000 / period))
+				gpio_pin_data->counter.debounce -= 1000 / period;
 			else
 			{
 				gpio_pin_data->counter.debounce = 0;

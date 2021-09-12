@@ -346,17 +346,17 @@ void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argum
 		stat_task_post_failed[prio]++;
 }
 
-iram static void fast_timer_run(void)
+iram static void fast_timer_run(unsigned int period)
 {
 	stat_fast_timer++;
-	io_periodic_fast();
+	io_periodic_fast(period);
 }
 
 iram static void fast_timer_callback(void *arg)
 {
 	// timer runs every 10 ms = 100 Hz
 
-	fast_timer_run();
+	fast_timer_run(100);
 	os_timer_arm(&fast_timer, 10, 0);
 }
 
@@ -367,7 +367,7 @@ static void slow_timer_callback(void *arg)
 	stat_slow_timer++;
 
 	if(config_flags_match(flag_wlan_power_save))
-		fast_timer_run();
+		fast_timer_run(10);
 
 	dispatch_post_task(1, task_update_time, 0);
 
@@ -384,7 +384,7 @@ static void slow_timer_callback(void *arg)
 	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_task(1, task_fallback_wlan, 0);
 
-	io_periodic_slow();
+	io_periodic_slow(10);
 
 	if(stack_stack_painted <= 0)
 		stack_paint_stack();

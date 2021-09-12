@@ -1702,7 +1702,7 @@ void io_init(void)
 	stat_init_io_time_us = time_get_us() - start;
 }
 
-iram void io_periodic_fast(void)
+iram void io_periodic_fast(unsigned int period)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1722,7 +1722,7 @@ iram void io_periodic_fast(void)
 			continue;
 
 		if(info->periodic_fast_fn)
-			info->periodic_fast_fn(io, info, data);
+			info->periodic_fast_fn(io, info, data, period);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
@@ -1731,8 +1731,8 @@ iram void io_periodic_fast(void)
 
 			if((pin_config->mode == io_pin_timer) && (pin_data->direction != io_dir_none))
 			{
-				if(pin_data->speed > ms_per_fast_tick)
-					pin_data->speed -= ms_per_fast_tick;
+				if(pin_data->speed > (1000 / period))
+					pin_data->speed -= 1000 / period;
 				else
 				{
 					pin_data->speed = 0;
@@ -1829,7 +1829,7 @@ iram void io_periodic_fast(void)
 		dispatch_post_task(1, task_run_sequencer, 0);
 }
 
-void io_periodic_slow(void)
+void io_periodic_slow(unsigned int period)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1848,7 +1848,7 @@ void io_periodic_slow(void)
 			info->post_init_fn(info);
 
 		if(info->periodic_slow_fn)
-			info->periodic_slow_fn(io, info, data);
+			info->periodic_slow_fn(io, info, data, period);
 	}
 
 	post_init_run = true;
@@ -2228,10 +2228,10 @@ skip:
 				return(app_action_error);
 			}
 
-			if(speed < ms_per_slow_tick)
+			if(speed < 100)
 			{
 				config_abort_write();
-				string_format(dst, "timer: speed too small: must be >= %d ms\n", ms_per_slow_tick);
+				string_format(dst, "timer: speed too small: must be >= %d ms\n", 100);
 				return(app_action_error);
 			}
 

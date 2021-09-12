@@ -67,7 +67,7 @@ bool remote_trigger_init(void)
 
 	if(remote_trigger_active)
 		lwip_if_socket_create(&trigger_socket, &remote_trigger_socket_receive_buffer, &remote_trigger_socket_send_buffer, remote_trigger_local_udp_port,
-				false, true, socket_remote_trigger_callback_data_received);
+				false, socket_remote_trigger_callback_data_received);
 
 	return(true);
 }
