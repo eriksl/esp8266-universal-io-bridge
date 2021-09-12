@@ -10486,3 +10486,27 @@ Sun Sep 12 16:49:06 CEST 2021 ff3a75d mailbox: try fix mailbox-read sometimes st
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  70041, free:  10224, 12 %
     irom:    available: 592 k, used: 429128, free: 177080, 29 %
+Sun Sep 12 16:54:51 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  67993, free:  12272, 15 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %
+Sun Sep 12 16:57:06 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  69017, free:  11248, 14 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %
+Sun Sep 12 16:58:23 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %
+Sun Sep 12 17:01:25 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  69505, free:  10760, 13 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %
+Sun Sep 12 17:02:58 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  68873, free:  11392, 14 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %
+Sun Sep 12 17:05:53 CEST 2021 b74bcf2 dispatch: remove workaround for reception of binary data on command socket.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  68857, free:  11408, 14 %
+    irom:    available: 592 k, used: 429144, free: 177064, 29 %

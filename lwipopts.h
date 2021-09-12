@@ -28,14 +28,13 @@
 #define TCP_QUEUE_OOSEQ				1
 #define TCP_MSS						1460
 #define TCP_WND						(2 * TCP_MSS)
-#define TCP_SND_BUF					(2 * TCP_MSS)
+#define TCP_SND_BUF					TCP_WND
 #define TCP_SND_QUEUELEN			4
 #define TCP_SNDLOWAT				1
 #define TCP_SNDQUEUELOWAT			(TCP_SND_QUEUELEN - 1)
 #define TCP_OVERSIZE				TCP_MSS
-#define TCP_MAXRTX					12
-#define PBUF_POOL_SIZE				8
-#define PBUF_POOL_BUFSIZE			512
+#define TCP_MAXRTX					2
+#define PBUF_POOL_SIZE				(TCP_WND / TCP_MSS)
 #define LWIP_NETIF_HOSTNAME			1
 #define LWIP_NETCONN				0
 #define LWIP_SOCKET					0
