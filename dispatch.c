@@ -61,19 +61,6 @@ typedef struct
 static trigger_t trigger_alert = { -1, -1 };
 static trigger_t assoc_alert = { -1, -1 };
 
-enum
-{
-	command_left_to_read_guard = 2 /* seconds */
-};
-
-typedef struct
-{
-	unsigned int length;
-	unsigned int timeout;
-} command_left_to_read_t;
-
-static command_left_to_read_t command_left_to_read = { 0, 0 };
-
 static void background_task_bridge_uart(void)
 {
 	unsigned int byte;
@@ -397,26 +384,6 @@ static void slow_timer_callback(void *arg)
 	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_task(1, task_fallback_wlan, 0);
 
-	/* Workaround for "pre-announced length commands" (like flash-send <length>) not being
-	 * received completely (for any reason) and thereby completely locking any further command
-	 * processing. This releases the buffer if the command doesn't get completely received within
-	 * two seconds. This could be done at tcp close level as well, but it needs to work for udp
-	 * as well and this is more robust. */
-
-	if(command_left_to_read.length > 0)
-	{
-		if(command_left_to_read.timeout > 0)
-			command_left_to_read.timeout--;
-		else
-		{
-			log("dispatch: static length command timeout at %u bytes, cleared command buffer\n", command_left_to_read.length);
-			command_left_to_read.length = 0;
-			command_left_to_read.timeout = 0;
-			string_clear(&command_socket_receive_buffer);
-			lwip_if_receive_buffer_unlock(&command_socket);
-		}
-	}
-
 	io_periodic_slow();
 
 	if(stack_stack_painted <= 0)
@@ -466,28 +433,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
-	static const char command_string[] = "flash-send ";
-	unsigned int chunk_length;
-	int chunk_offset;
-
-	if((command_left_to_read.length == 0) &&
-			string_nmatch_cstr(&command_socket_receive_buffer, command_string, sizeof(command_string) - 1) &&
-			(parse_uint(2, &command_socket_receive_buffer, &chunk_length, 10, ' ') == parse_ok) &&
-			((chunk_offset = string_sep(&command_socket_receive_buffer, 0, 3, ' ')) >= 0))
-	{
-		command_left_to_read.timeout = command_left_to_read_guard;
-		command_left_to_read.length = chunk_offset + chunk_length;
-	}
-
-	if(command_left_to_read.length > 0)
-	{
-		if(length > command_left_to_read.length)
-			command_left_to_read.length = 0;
-		else
-			command_left_to_read.length -= length;
-	}
-
-	if((command_left_to_read.length == 0) && (string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket)))
+	if(string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket))
 		dispatch_post_task(1, task_received_command, 0);
 	else
 		lwip_if_receive_buffer_unlock(&command_socket);

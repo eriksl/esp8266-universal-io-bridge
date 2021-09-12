@@ -10482,3 +10482,7 @@ Sun Sep 12 14:10:31 CEST 2021 377040a mailbox: try fix mailbox-read sometimes st
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  70065, free:  10200, 12 %
     irom:    available: 592 k, used: 429368, free: 176840, 29 %
+Sun Sep 12 16:49:06 CEST 2021 ff3a75d mailbox: try fix mailbox-read sometimes stalling.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429128, free: 177080, 29 %
