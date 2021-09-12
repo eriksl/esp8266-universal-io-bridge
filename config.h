@@ -32,7 +32,7 @@ enum
 	flag_dummy6 =				1 << 12,
 	flag_dummy7 =				1 << 13,
 	flag_dummy2 =				1 << 14,
-	flag_udp_term_empty =		1 << 15,
+	flag_terminate_output =		1 << 15,
 	flag_enable_orbital =		1 << 16,
 	flag_cmd_from_uart =		1 << 17,
 	flag_log_to_display =		1 << 18,

@@ -393,20 +393,6 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 		}
 	}
 
-	if(socket->udp_term_empty)
-	{
-		pbuf->len = pbuf->tot_len = 0;
-		pbuf->payload = string_buffer(socket->send_buffer);
-		pbuf->eb = 0;
-
-		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
-		{
-			stat_lwip_udp_send_error++;
-			log_error("lwip if sendto: udp terminate failed", error);
-			return(false);
-		}
-	}
-
 	return(true);
 }
 
@@ -457,21 +443,6 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 			stat_lwip_udp_sent_packets++;
 			stat_lwip_udp_sent_bytes += length;
 		}
-
-		if(socket->udp_term_empty)
-		{
-			pbuf->len = pbuf->tot_len = 0;
-			pbuf->payload = string_buffer(socket->send_buffer);
-			pbuf->eb = 0;
-
-			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
-			{
-				stat_lwip_udp_send_error++;
-				log_error("lwip if send: udp terminate failed", error);
-			}
-
-			stat_lwip_udp_sent_packets++;
-		}
 	}
 	else // received packet from TCP, reply using TCP
 	{
@@ -514,7 +485,7 @@ attr_nonnull bool lwip_if_reboot(lwip_if_socket_t *socket)
 }
 
 attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-		unsigned int port, bool tcp, bool udp_term_empty, callback_data_received_fn_t callback_data_received)
+		unsigned int port, bool tcp, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
 
@@ -529,7 +500,6 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	socket->sent_remaining = 0;
 	socket->receive_buffer_locked = 0;
 	socket->reboot_pending = 0;
-	socket->udp_term_empty = udp_term_empty ? 1 : 0;
 	socket->callback_data_received = callback_data_received;
 
 	if(!(socket->udp.pbuf_send = pbuf_alloc(PBUF_TRANSPORT, 0, PBUF_ROM)))

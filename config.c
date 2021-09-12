@@ -38,7 +38,7 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_dummy6,				"dummy6",					},
 	{	flag_dummy7,				"dummy7",					},
 	{	flag_dummy2,				"dummy2",					},
-	{	flag_udp_term_empty,		"udp-term-empty",			},
+	{	flag_terminate_output,		"terminate-output",			},
 	{	flag_enable_orbital,		"enable-orbital",			},
 	{	flag_cmd_from_uart,			"cmd-from-uart",			},
 	{	flag_log_to_display,		"log-to-display",			},

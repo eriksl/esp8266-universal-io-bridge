@@ -35,7 +35,6 @@ typedef struct _lwip_if_socket_t
 	{
 		unsigned int receive_buffer_locked:1;
 		unsigned int reboot_pending:1;
-		unsigned int udp_term_empty:1;
 	};
 
 	struct
@@ -64,6 +63,6 @@ bool	attr_nonnull lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-			unsigned int port, bool tcp, bool flag_udp_term_empty, callback_data_received_fn_t callback_data_received);
+			unsigned int port, bool tcp, callback_data_received_fn_t callback_data_received);
 bool	attr_nonnull lwip_if_join_mc(ip_addr_t);
 #endif

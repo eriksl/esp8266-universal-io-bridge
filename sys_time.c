@@ -242,7 +242,7 @@ static void time_sntp_init(void)
 
 	time_flags.sntp_init_succeeded = 0;
 
-	if(lwip_if_socket_create(&sntp_socket, &sntp_socket_receive_buffer, &sntp_socket_send_buffer, 0, false, false, socket_sntp_callback_data_received))
+	if(lwip_if_socket_create(&sntp_socket, &sntp_socket_receive_buffer, &sntp_socket_send_buffer, 0, false, socket_sntp_callback_data_received))
 	{
 		send_packet->misc = sntp_misc_mode_client | (4 << sntp_misc_vn_shift);
 		string_setlength(&sntp_socket_send_buffer, sizeof(sntp_network_t));

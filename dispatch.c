@@ -235,8 +235,20 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			if(argument) // commands from uart enabled
 				uart_send_string(0, &command_socket_send_buffer);
 
+			if(config_flags_match(flag_terminate_output) && lwip_if_received_tcp(&command_socket))
+				string_append(&command_socket_send_buffer, "\x04");
+
 			if(!lwip_if_send(&command_socket))
-				log("lwip send failed\n");
+				log("dispatch: lwip send failed\n");
+
+			if(config_flags_match(flag_terminate_output) && lwip_if_received_udp(&command_socket))
+			{
+				string_clear(&command_socket_send_buffer);
+				string_append(&command_socket_send_buffer, "\x04");
+
+				if(!lwip_if_send(&command_socket))
+					log("dispatch terminate output: lwip send failed\n");
+			}
 
 			if(action == app_action_disconnect)
 				lwip_if_close(&command_socket);
@@ -571,12 +583,12 @@ void dispatch_init2(void)
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
-			true, config_flags_match(flag_udp_term_empty), socket_command_callback_data_received);
+			true, socket_command_callback_data_received);
 
 	if(uart_port > 0)
 	{
 		lwip_if_socket_create(&uart_socket, &uart_socket_receive_buffer, &uart_socket_send_buffer, uart_port,
-			true, config_flags_match(flag_udp_term_empty), socket_uart_callback_data_received);
+			true, socket_uart_callback_data_received);
 
 		uart_bridge_active = true;
 	}
