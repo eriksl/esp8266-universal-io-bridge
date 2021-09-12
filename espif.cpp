@@ -44,11 +44,17 @@ class GenericSocket
 		struct sockaddr_in saddr;
 
 	public:
+		typedef enum
+		{
+			cooked,
+			raw
+		} process_t;
+
 		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, int multicast = 0);
 		~GenericSocket();
 
-		bool send(int timeout_msec, std::string buffer, bool raw = false);
-		bool receive(int initial_timeout_msec, int timeout_msec, std::string &buffer, int expected, bool raw);
+		bool send(std::string buffer, process_t how);
+		bool receive(std::string &buffer, process_t how, int expected = -1);
 		void disconnect();
 		void connect();
 };
@@ -133,13 +139,13 @@ void GenericSocket::disconnect()
 	fd = -1;
 }
 
-bool GenericSocket::send(int timeout, std::string buffer, bool raw)
+bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 {
 	struct pollfd pfd;
 	ssize_t chunk;
 	int run;
 
-	if(raw)
+	if(how == raw)
 	{
 		if(buffer.length() == 0)
 		{
@@ -148,7 +154,25 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 		}
 	}
 	else
-		buffer += "\r\n";
+		buffer += "\n";
+
+	if(multicast > 0)
+	{
+		chunk = (ssize_t)buffer.length();
+
+		if(use_udp && (chunk > max_udp_packet_size))
+			chunk = max_udp_packet_size;
+
+		for(run = multicast; run > 0; run--)
+		{
+			if(sendto(fd, buffer.data(), chunk, MSG_DONTWAIT, (const sockaddr *)&saddr, sizeof(saddr)) != chunk)
+				return(false);
+
+			usleep(200000);
+		}
+
+		return(true);
+	}
 
 	while(buffer.length() > 0)
 	{
@@ -156,7 +180,7 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 		pfd.events = POLLOUT | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
-		if(poll(&pfd, 1, timeout) != 1)
+		if(poll(&pfd, 1, 2000) != 1)
 			return(false);
 
 		if(pfd.revents & (POLLERR | POLLHUP))
@@ -167,21 +191,8 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 		if(use_udp && (chunk > max_udp_packet_size))
 			chunk = max_udp_packet_size;
 
-		if(multicast > 0)
-		{
-			for(run = multicast; run > 0; run--)
-			{
-				if(sendto(fd, buffer.data(), chunk, MSG_DONTWAIT, (const sockaddr *)&saddr, sizeof(saddr)) != chunk)
-					return(false);
-
-				usleep(200000);
-			}
-
-			break;
-		}
-		else
-			if(write(fd, buffer.data(), chunk) != chunk)
-				return(false);
+		if(write(fd, buffer.data(), chunk) != chunk)
+			return(false);
 
 		buffer.erase(0, chunk);
 	}
@@ -189,18 +200,18 @@ bool GenericSocket::send(int timeout, std::string buffer, bool raw)
 	return(true);
 }
 
-bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string &reply, int expected, bool raw)
+bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, int expected)
 {
-	int length, run;
+	int attempt;
+	int length;
 	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 	char buffer[flash_sector_size + 1];
-	enum { max_attempts = 8 };
+	enum { max_attempts = 4 };
 
 	reply.clear();
 
 	if(multicast > 0)
 	{
-		int attempt;
 		struct timeval tv_start, tv_now;
 		uint64_t start, now;
 		struct sockaddr_in remote_addr;
@@ -227,10 +238,10 @@ bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string 
 			gettimeofday(&tv_now, nullptr);
 			now = (tv_now.tv_sec * 1000000) + tv_now.tv_usec;
 
-			if(((now - start) / 1000ULL) > (uint64_t)initial_timeout)
+			if(((now - start) / 1000ULL) > 2000)
 				break;
 
-			if(poll(&pfd, 1, other_timeout) != 1)
+			if(poll(&pfd, 1, 100) != 1)
 				continue;
 
 			if(pfd.revents & POLLERR)
@@ -314,9 +325,9 @@ bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string 
 	}
 	else
 	{
-		for(run = 8; run > 0; run--)
+		for(attempt = max_attempts; attempt > 0; attempt--)
 		{
-			if(poll(&pfd, 1, ((reply.length() == 0) ? initial_timeout : other_timeout)) != 1)
+			if(poll(&pfd, 1, 2000) != 1)
 			{
 				if(reply.length() == 0)
 					return(false);
@@ -333,7 +344,7 @@ bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string 
 			if((length = read(fd, buffer, sizeof(buffer) - 1)) < 0)
 				return(false);
 
-			if(length == 0)
+			if((how == cooked) && (length == 0))
 			{
 				if(reply.length() == 0)
 					continue;
@@ -343,16 +354,26 @@ bool GenericSocket::receive(int initial_timeout, int other_timeout, std::string 
 
 			reply.append(buffer, (size_t)length);
 
+			if((how == cooked) && (reply.back() == 0x04))
+			{
+				reply.pop_back();
+
+				if(reply.length() == 0)
+					continue;
+
+				break;
+			}
+
 			if((expected > 0) && (expected > length))
 				expected -= length;
 			else
 				break;
 		}
 
-		if(!raw && (reply.back() == '\n'))
+		if((how == cooked) && (reply.back() == '\n'))
 			reply.pop_back();
 
-		if(!raw && (reply.back() == '\r'))
+		if((how == cooked) && (reply.back() == '\r'))
 			reply.pop_back();
 	}
 
@@ -371,13 +392,14 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 }
 
 static void process(GenericSocket &channel, const std::string &send_string, std::string &reply_string, const std::string &match,
-		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose,
-		int timeout = 2000, unsigned int attempts = 4)
+		std::vector<std::string> &string_value, std::vector<int> &int_value, bool verbose)
 {
 	boost::regex re(match);
 	boost::smatch capture;
 	unsigned int captures;
 	unsigned int attempt;
+
+	enum { max_attempts  = 5 };
 
 	reply_string.clear();
 
@@ -401,14 +423,14 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		std::cout << std::endl;
 	}
 
-	for(attempt = attempts; attempt > 0; attempt--)
+	for(attempt = max_attempts; attempt > 0; attempt--)
 	{
 		bool send_status, receive_status;
 
-		send_status = channel.send(timeout, send_string);
+		send_status = channel.send(send_string, GenericSocket::cooked);
 
 		if(send_status)
-			receive_status = channel.receive(timeout, timeout, reply_string, -1, false);
+			receive_status = channel.receive(reply_string, GenericSocket::cooked);
 		else
 			receive_status = false;
 
@@ -418,9 +440,10 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		if(send_status && receive_status)
 			break;
 
-		std::cout << std::endl << (!send_status ? "send" : "receive") << " failed, retry #" << (attempts - attempt) << std::endl;
+		std::cout << std::endl << (!send_status ? "send" : "receive") << " failed, retry #" << (max_attempts - attempt) << std::endl;
 
 		channel.disconnect();
+		usleep(500000);
 		channel.connect();
 	}
 
@@ -455,6 +478,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string filename, unsigned int start,
 	int chunk_size, bool verbose, bool simulate, bool otawrite)
 {
+	static const char *ack = "ACK";
 	int fd;
 	int64_t file_offset;
 	struct stat stat;
@@ -539,10 +563,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 						std::cout << ", offset: " << file_offset << ", try #" << (max_attempts - sector_attempt) << std::endl;
 					}
 
-					if(!mailbox_channel.send(1000, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
+					if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
 						throw(std::string("send failed"));
 
-					if(!mailbox_channel.receive(1000, 1000, reply, -1, true))
+					if(!mailbox_channel.receive(reply, GenericSocket::raw, strlen(ack)))
 						throw(std::string("receive failed"));
 
 					if(verbose)
@@ -794,7 +818,18 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
 			{
 				send_string = std::string("mailbox-read ") + std::to_string(current);
-				process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+
+				try
+				{
+					process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+				}
+				catch(const std::string &error)
+				{
+					if(verbose)
+						std::cout << "mailbox read failed: " << error << std::endl;
+
+					goto error;
+				}
 
 				if(int_value[0] != current)
 					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
@@ -803,7 +838,7 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				reply.clear();
 
-				if(mailbox_channel.receive(1000, 500, reply, flash_sector_size, true /* raw */))
+				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
 				{
 					SHA1((const unsigned char *)reply.data(), flash_sector_size, sector_hash);
 					sha_local_hash_text = sha_hash_to_text(sector_hash);
@@ -824,16 +859,12 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 						std::cout << std::endl;
 					std::cout << "! local hash (" << sha_local_hash_text << ") != remote hash (" << sha_remote_hash_text << ") (1)" << std::endl;
 				}
-
-				if(!verbose)
+error:
+				if(verbose)
+				{
+					std::cout << "! read receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
 					std::cout << std::endl;
-
-				std::cout << "! read receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
-				std::cout << std::endl;
-				usleep(50000);
-				mailbox_channel.disconnect();
-				usleep(50000);
-				mailbox_channel.connect();
+				}
 			}
 
 			if(sector_attempt <= 0)
@@ -952,7 +983,7 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 
 				reply.clear();
 
-				if(mailbox_channel.receive(100, 100, reply, flash_sector_size, true /* raw */))
+				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
 					break;
 
 				if(!verbose)
@@ -1027,6 +1058,7 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 
 void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_channel, bool verbose)
 {
+	static const char *ack = "ACK";
 	unsigned int length, current, retries;
 	unsigned char sector_buffer[flash_sector_size];
 	std::string send_string;
@@ -1047,10 +1079,10 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 	{
 		memset(sector_buffer, 0x00, flash_sector_size);
 
-		if(!mailbox_channel.send(100, std::string((const char *)sector_buffer, flash_sector_size), true /* raw */))
+		if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
 			throw(std::string("send failed"));
 
-		if(!mailbox_channel.receive(100, 100, reply, 1, true /* raw */))
+		if(!mailbox_channel.receive(reply, GenericSocket::cooked, strlen(ack)))
 			throw(std::string("receive failed"));
 
 		send_string = std::string("mailbox-bench 1");
@@ -1090,7 +1122,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 		try
 		{
 			send_string = std::string("mailbox-bench 0");
-			process(command_channel, send_string, reply, "OK mailbox-bench: sending one sector", string_value, int_value, verbose, 100, 1);
+			process(command_channel, send_string, reply, "OK mailbox-bench: sending one sector", string_value, int_value, verbose);
 		}
 		catch(const std::string &e)
 		{
@@ -1099,7 +1131,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 
 		reply.clear();
 
-		if(!mailbox_channel.receive(1000, 1000, reply, flash_sector_size, true /* raw */))
+		if(!mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
 			goto error;
 
 		int seconds, useconds;
@@ -1120,7 +1152,7 @@ error:
 
 		mailbox_channel.disconnect();
 		mailbox_channel.connect();
-		mailbox_channel.send(1000, std::string(" "), true);
+		mailbox_channel.send(std::string(" "), GenericSocket::raw);
 
 		retries++;
 		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
@@ -1150,7 +1182,7 @@ void command_connect(const std::string &host, const std::string &port, bool udp,
 
 	for(attempt = 0; attempt < 3; attempt++)
 	{
-		if(!connect_socket.send(100, args, false))
+		if(!connect_socket.send(args, GenericSocket::cooked))
 		{
 			if(verbose)
 				std::cout << "send failed, attempt #" << attempt << std::endl;
@@ -1158,7 +1190,7 @@ void command_connect(const std::string &host, const std::string &port, bool udp,
 			goto retry;
 		}
 
-		if(!connect_socket.receive(500, 100, reply, flash_sector_size, false))
+		if(!connect_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
 		{
 			if(verbose)
 				std::cout << "receive failed, attempt #" << attempt << std::endl;
@@ -1186,12 +1218,12 @@ void command_multicast(const std::string &host, const std::string &port, bool ve
 	std::string reply;
 	GenericSocket multicast_socket(host, port, true, verbose, multicast_repeats);
 
-	if(!multicast_socket.send(100, args, false))
+	if(!multicast_socket.send(args, GenericSocket::cooked))
 		throw(std::string("mulicast send failed"));
 
 	if(!dontwait)
 	{
-		if(!multicast_socket.receive(10000, 100, reply, flash_sector_size, false))
+		if(!multicast_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
 			throw(std::string("multicast receive failed"));
 
 		std::cout << reply << std::endl;
@@ -1225,7 +1257,7 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 		return;
 
 	std::cout << "rebooting" << std::endl;
-	command_channel.send(1000, std::string("reset"));
+	command_channel.send(std::string("reset"), GenericSocket::cooked);
 	usleep(200000);
 	command_channel.disconnect();
 	usleep(1000000);
@@ -1252,7 +1284,7 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 			throw(std::string("mailbox-select failed, local permanent != remote permanent"));
 	}
 
-	process(command_channel, "stats", reply, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", string_value, int_value, verbose, 500);
+	process(command_channel, "stats", reply, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", string_value, int_value, verbose);
 	std::cout << "firmware version: " << string_value[0] << std::endl;
 }
 
@@ -1409,7 +1441,7 @@ int main(int argc, const char **argv)
 
 				GenericSocket command_channel(host, command_port, use_udp, verbose);
 				GenericSocket mailbox_channel(host, mailbox_port, use_udp, verbose);
-				mailbox_channel.send(1000, std::string(" "), true);
+				mailbox_channel.send(std::string(" "), GenericSocket::raw);
 
 				try
 				{

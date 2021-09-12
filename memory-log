@@ -10422,3 +10422,63 @@ Sun Sep 12 12:32:45 CEST 2021 ec680e8 mailbox: fix buffer overflow.
     iram:    available:  32 k, used:  27813, free:   4955, 15 %
     dram:    available:  78 k, used:  70041, free:  10224, 12 %
     irom:    available: 592 k, used: 429288, free: 176920, 29 %
+Sun Sep 12 12:48:05 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429336, free: 176872, 29 %
+Sun Sep 12 13:08:37 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429352, free: 176856, 29 %
+Sun Sep 12 13:10:21 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429384, free: 176824, 29 %
+Sun Sep 12 13:15:09 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429368, free: 176840, 29 %
+Sun Sep 12 13:22:52 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429448, free: 176760, 29 %
+Sun Sep 12 13:24:59 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429576, free: 176632, 29 %
+Sun Sep 12 13:27:21 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429464, free: 176744, 29 %
+Sun Sep 12 13:30:03 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429496, free: 176712, 29 %
+Sun Sep 12 13:32:29 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70041, free:  10224, 12 %
+    irom:    available: 592 k, used: 429464, free: 176744, 29 %
+Sun Sep 12 13:37:02 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429448, free: 176760, 29 %
+Sun Sep 12 13:37:35 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429464, free: 176744, 29 %
+Sun Sep 12 13:40:20 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429480, free: 176728, 29 %
+Sun Sep 12 13:57:07 CEST 2021 d966289 dispatch/lwip_interface: implement output termination on application level.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429496, free: 176712, 29 %
+Sun Sep 12 14:09:14 CEST 2021 330799f mailbox: try fix mailbox-read sometimes stalling.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429400, free: 176808, 29 %
+Sun Sep 12 14:10:31 CEST 2021 377040a mailbox: try fix mailbox-read sometimes stalling.
+    iram:    available:  32 k, used:  27813, free:   4955, 15 %
+    dram:    available:  78 k, used:  70065, free:  10200, 12 %
+    irom:    available: 592 k, used: 429368, free: 176840, 29 %

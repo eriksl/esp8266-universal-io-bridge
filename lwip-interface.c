@@ -286,8 +286,13 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 		socket->sent_remaining -= len;
 
 	if(socket->sending_remaining > 0)
+	{
 		if(!tcp_try_send_buffer(socket))
+		{
+			log("tcp send callback: tcp_try_send_buffer returns error\n");
 			socket->sending_remaining = 0;
+		}
+	}
 
 	return(ERR_OK);
 }
@@ -547,6 +552,8 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	}
 	else
 		socket->tcp.listen_pcb = (struct tcp_pcb *)0;
+
+	socket->local.port = port;
 
 	return(true);
 }

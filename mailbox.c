@@ -116,10 +116,10 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_string));
-
-	if(!lwip_if_send(&mailbox_socket))
-		log("mailbox read failed: lwip_if_send failed\n");
+	if(lwip_if_send(&mailbox_socket))
+		string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_string));
+	else
+		string_append(dst, "ERROR mailbox-read: send failed\n");
 
 	return(app_action_normal);
 }

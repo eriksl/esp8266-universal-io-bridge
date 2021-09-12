@@ -39,6 +39,11 @@ typedef struct _lwip_if_socket_t
 
 	struct
 	{
+		unsigned int	port;
+	} local;
+
+	struct
+	{
 		ip_addr_t		address;
 		unsigned int	port;
 	} peer;
@@ -52,7 +57,7 @@ typedef struct _lwip_if_socket_t
 
 } lwip_if_socket_t;
 
-assert_size(lwip_if_socket_t, 48);
+assert_size(lwip_if_socket_t, 52);
 
 bool	attr_nonnull lwip_if_received_tcp(lwip_if_socket_t *);
 bool	attr_nonnull lwip_if_received_udp(lwip_if_socket_t *);
