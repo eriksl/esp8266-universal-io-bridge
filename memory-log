@@ -10578,3 +10578,7 @@ Sun Sep 19 10:51:03 CEST 2021 34f0ee6 sdk: add two more functions from the sdk.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71457, free:   8808, 10 %
     irom:    available: 592 k, used: 429080, free: 177128, 29 %
+Wed Sep 22 19:50:23 CEST 2021 43ea239 dispatch: fix for input data too large for buffer so lacking end-of-line marker
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71457, free:   8808, 10 %
+    irom:    available: 592 k, used: 429112, free: 177096, 29 %
