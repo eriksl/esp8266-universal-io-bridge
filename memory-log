@@ -10546,3 +10546,19 @@ Sun Sep 12 19:59:32 CEST 2021 e985629 lwip: a few tweaks in the config
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  68857, free:  11408, 14 %
     irom:    available: 592 k, used: 429128, free: 177080, 29 %
+Sun Sep 12 20:01:38 CEST 2021 52d406a io: get rid of hardcoded period for fast/slow timer periodic timers.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68857, free:  11408, 14 %
+    irom:    available: 592 k, used: 429160, free: 177048, 29 %
+Mon Sep 13 13:05:02 CEST 2021 52d406a io: get rid of hardcoded period for fast/slow timer periodic timers.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68857, free:  11408, 14 %
+    irom:    available: 592 k, used: 429208, free: 177000, 29 %
+Mon Sep 13 13:11:56 CEST 2021 52d406a io: get rid of hardcoded period for fast/slow timer periodic timers.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  70425, free:   9840, 12 %
+    irom:    available: 592 k, used: 429208, free: 177000, 29 %
+Mon Sep 13 13:12:44 CEST 2021 52d406a io: get rid of hardcoded period for fast/slow timer periodic timers.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71449, free:   8816, 10 %
+    irom:    available: 592 k, used: 429208, free: 177000, 29 %
