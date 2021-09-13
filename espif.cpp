@@ -976,7 +976,18 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
 			{
 				send_string = std::string("mailbox-read ") + std::to_string(current);
-				process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+
+				try
+				{
+					process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+				}
+				catch(const std::string &error)
+				{
+					if(verbose)
+						std::cout << "mailbox read failed: " << error << std::endl;
+
+					goto error;
+				}
 
 				if(int_value[0] != (int)current)
 					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
@@ -984,41 +995,42 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 				reply.clear();
 
 				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
+				{
+					if(verbose)
+					{
+						std::cout << "+ sector #" << (current - start) << ", " << current;
+						std::cout << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " verified";
+						std::cout << ", try #" << (max_attempts - sector_attempt);
+						std::cout << std::endl;
+					}
+
+					if((file_offset = lseek(fd, (current - start) * flash_sector_size, SEEK_SET)) < 0)
+						throw(std::string("i/o error in seek"));
+
+					memset(sector_buffer, 0xff, sizeof(sector_buffer));
+
+					if(read(fd, sector_buffer, sizeof(sector_buffer)) <= 0)
+						throw(std::string("i/o error in read"));
+
+					if(memcmp(reply.data(), sector_buffer, sizeof(sector_buffer)))
+					{
+						if(verbose)
+							std::cout << std::endl << "! data mismatch" << std::endl;
+						goto error;
+					}
+
 					break;
-
-				if(!verbose)
+				}
+error:
+				if(verbose)
+				{
+					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
 					std::cout << std::endl;
-
-				std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
-				std::cout << std::endl;
-				mailbox_channel.disconnect();
-				usleep(100000);
-				mailbox_channel.connect();
+				}
 			}
 
-			if(sector_attempt <= 0)
+			if(sector_attempt == 0)
 				throw(std::string("! receiving sector failed too many times"));
-
-			if(verbose)
-			{
-				std::cout << "+ sector #" << (current - start) << ", " << current;
-				std::cout << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " verified";
-				std::cout << ", try #" << (max_attempts - sector_attempt);
-				std::cout << std::endl;
-			}
-
-			if((file_offset = lseek(fd, 0, SEEK_CUR)) < 0)
-				throw(std::string("i/o error in seek"));
-
-			memset(sector_buffer, 0xff, sizeof(sector_buffer));
-
-			int count;
-
-			if((count = read(fd, sector_buffer, sizeof(sector_buffer))) <= 0)
-				throw(std::string("i/o error in read"));
-
-			if(memcmp(reply.data(), sector_buffer, sizeof(sector_buffer)))
-				throw(std::string("data mismatch"));
 
 			if(!verbose)
 			{
