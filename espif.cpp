@@ -976,7 +976,18 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
 			{
 				send_string = std::string("mailbox-read ") + std::to_string(current);
-				process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+
+				try
+				{
+					process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+				}
+				catch(const std::string &error)
+				{
+					if(verbose)
+						std::cout << "mailbox read failed: " << error << std::endl;
+
+					goto error;
+				}
 
 				if(int_value[0] != (int)current)
 					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
@@ -986,14 +997,12 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
 					break;
 
-				if(!verbose)
+error:
+				if(verbose)
+				{
+					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
 					std::cout << std::endl;
-
-				std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
-				std::cout << std::endl;
-				mailbox_channel.disconnect();
-				usleep(100000);
-				mailbox_channel.connect();
+				}
 			}
 
 			if(sector_attempt <= 0)
