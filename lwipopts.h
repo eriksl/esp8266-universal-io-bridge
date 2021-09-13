@@ -1,6 +1,6 @@
 // lwip core
 
-#define MEM_SIZE					(6 * 1024)
+#define MEM_SIZE					(7 * 1024)
 #define MEMP_NUM_PBUF				16
 #define MEMP_NUM_UDP_PCB			8 // do not decrease!
 #define MEMP_NUM_TCP_PCB			4 // do not decrease!
@@ -27,9 +27,9 @@
 #define DHCP_DOES_ARP_CHECK			0
 #define TCP_QUEUE_OOSEQ				1
 #define TCP_MSS						1460
-#define TCP_WND						(2 * TCP_MSS)
+#define TCP_WND						(3 * TCP_MSS)
 #define TCP_SND_BUF					TCP_WND
-#define TCP_SND_QUEUELEN			4
+#define TCP_SND_QUEUELEN			(2 * TCP_SND_BUF / TCP_MSS)
 #define TCP_SNDLOWAT				1
 #define TCP_SNDQUEUELOWAT			(TCP_SND_QUEUELEN - 1)
 #define TCP_OVERSIZE				TCP_MSS
