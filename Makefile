@@ -174,7 +174,7 @@ CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O2 -lssl -lcrypto -Wframe-larger-than=65536
-CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
+CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include/ipv6 -I$(LWIP_SRC)/include -I$(PWD)
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
@@ -194,8 +194,8 @@ LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/in
 						$(LWIP_SRC)/core/udp.o \
 						$(LWIP_SRC)/core/ipv4/icmp.o \
 						$(LWIP_SRC)/core/ipv4/igmp.o \
-						$(LWIP_SRC)/core/ipv4/inet.o $(LWIP_SRC)/core/ipv4/inet_chksum.o \
-						$(LWIP_SRC)/core/ipv4/ip.o $(LWIP_SRC)/core/ipv4/ip_addr.o \
+						$(LWIP_SRC)/core/inet_chksum.o \
+						$(LWIP_SRC)/core/ipv4/ip4.o $(LWIP_SRC)/core/ipv4/ip4_addr.o \
 						$(LWIP_SRC)/netif/etharp.o
 
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
