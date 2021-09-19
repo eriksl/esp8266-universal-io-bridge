@@ -99,6 +99,17 @@ attr_inline attr_nonnull int string_empty(const string_t *dst)
 	return(dst->length == 0);
 }
 
+attr_inline attr_nonnull bool string_full(const string_t *dst)
+{
+	if(dst->length == dst->size)
+		return(true);
+
+	if(((dst->length + 1) == dst->size) && (dst->buffer[dst->length] == '\0'))
+		return(true);
+
+	return(false);
+}
+
 attr_inline attr_nonnull const char *string_buffer(const string_t *string)
 {
 	return(string->buffer);
