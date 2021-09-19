@@ -433,7 +433,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
-	if(string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket))
+	if(string_full(&command_socket_receive_buffer) || string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket))
 		dispatch_post_task(1, task_received_command, 0);
 	else
 		lwip_if_receive_buffer_unlock(&command_socket);
