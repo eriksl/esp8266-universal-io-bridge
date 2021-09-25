@@ -284,8 +284,8 @@ enum dhcps_offer_option
 struct dhcps_lease
 {
 	bool enable;
-	struct ip_addr start_ip;
-	struct ip_addr end_ip;
+	struct ip4_addr start_ip;
+	struct ip4_addr end_ip;
 };
 
 typedef struct
@@ -367,9 +367,9 @@ typedef struct
 
 struct ip_info
 {
-    struct ip_addr ip;
-    struct ip_addr netmask;
-    struct ip_addr gw;
+    struct ip4_addr ip;
+    struct ip4_addr netmask;
+    struct ip4_addr gw;
 };
 
 typedef struct ip_info Event_StaMode_Got_IP_t;
@@ -383,7 +383,7 @@ typedef struct
 typedef struct
 {
 	sdk_mac_addr_t		mac;
-	struct ip_addr		ip;
+	struct ip4_addr		ip;
 	uint8_t aid;
 } Event_SoftAPMode_Distribute_Sta_IP_t;
 

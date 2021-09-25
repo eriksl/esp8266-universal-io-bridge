@@ -102,7 +102,7 @@ attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 	return((socket->sending_remaining > 0) || (socket->sent_remaining > 0));
 }
 
-static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip4_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
 	unsigned int length;
@@ -149,7 +149,7 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
 }
 
-static void udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, ip_addr_t *address, u16_t port)
+static void udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, const ip4_addr_t *address, u16_t port)
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
@@ -369,7 +369,7 @@ attr_nonnull bool lwip_if_close(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port)
+attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip4_addr_t *address, unsigned int port)
 {
 	err_t error;
 
@@ -558,7 +558,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	return(true);
 }
 
-bool attr_nonnull lwip_if_join_mc(ip_addr_t mc_ip)
+bool attr_nonnull lwip_if_join_mc(ip4_addr_t mc_ip)
 {
 	return(igmp_joingroup(IP_ADDR_ANY, &mc_ip) == ERR_OK);
 }

@@ -126,7 +126,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wformat-signedness -Wformat-truncation=2 \
 						-Wstringop-overflow=4 -Wunused-const-variable=2 -Walloca \
 						-Warray-bounds=2 -Wswitch-bool -Wsizeof-array-argument \
-						-Wduplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
+						-Wno-error=duplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
 						-Wdangling-else \
 						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs \
 						-Wmissing-noreturn -Wbool-compare \
@@ -146,7 +146,7 @@ WARNINGS		:=	-Wall -Wextra -Werror \
 						-Wno-unused-parameter \
 
 CFLAGS			:=	-pipe -Os -g -std=gnu11 -fdiagnostics-color=always \
-						-fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
+						-mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
 						-ftree-vrp \
 						-ffunction-sections -fdata-sections
@@ -174,7 +174,7 @@ CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
 HOSTCFLAGS		:= -O2 -lssl -lcrypto -Wframe-larger-than=65536
-CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include/ipv6 -I$(LWIP_SRC)/include -I$(PWD)
+CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/lwip -I$(LWIP_SRC)/include -I$(PWD)
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
