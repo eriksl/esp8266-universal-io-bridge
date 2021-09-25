@@ -845,4 +845,6 @@ enum
 	I2S_TX_CHAN_MOD_S =		0
 };
 
+void rom_i2c_writeReg(uint8_t block, uint8_t host_id, uint8_t reg_add, uint8_t data);
+
 #endif
