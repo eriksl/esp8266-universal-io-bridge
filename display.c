@@ -13,6 +13,7 @@
 #include "config.h"
 #include "sys_time.h"
 #include "sys_string.h"
+#include "mailbox.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -63,9 +64,14 @@ typedef const struct
 	bool			(* const layer_select_fn)(unsigned int);
 	bool			(* const show_time_start_fn)(unsigned int, unsigned int);
 	bool			(* const show_time_stop_fn)(void);
+	bool			(* const canvas_start_fn)(unsigned int timeout);
+	bool			(* const canvas_goto_fn)(unsigned int x, unsigned int y);
+	bool			(* const canvas_plot_fn)(const string_t *pixels);
+	bool			(* const canvas_show_fn)(void);
+	bool			(* const canvas_stop_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 52);
+assert_size(display_info_t, 72);
 
 typedef struct
 {
@@ -99,6 +105,11 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD",
@@ -113,6 +124,11 @@ roflash static display_info_t display_info[display_size] =
 		display_lcd_layer_select,
 		display_lcd_start_show_time,
 		display_lcd_stop_show_time,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"matrix orbital", "4x20 character VFD",
@@ -127,6 +143,11 @@ roflash static display_info_t display_info[display_size] =
 		display_orbital_layer_select,
 		display_orbital_start_show_time,
 		display_orbital_stop_show_time,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"cfa634", "4x20 character LCD",
@@ -135,6 +156,11 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -155,6 +181,11 @@ roflash static display_info_t display_info[display_size] =
 		display_seeed_layer_select,
 		(void *)0,
 		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 	},
 	{
 		"eastrising TFT", "480x272 LCD",
@@ -169,6 +200,11 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_layer_select,
 		(void *)0,
 		(void *)0,
+		display_eastrising_canvas_start,
+		display_eastrising_canvas_goto,
+		display_eastrising_canvas_plot,
+		display_eastrising_canvas_show,
+		display_eastrising_canvas_stop,
 	},
 	{
 		"SSD1306 / SH1106", "128x32 / 128x64 OLED",
@@ -181,6 +217,11 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_ssd1306_picture_load,
 		display_ssd1306_layer_select,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 	},
@@ -1005,5 +1046,175 @@ app_action_t application_function_display_picture_autoload(string_t *src, string
 	}
 
 	string_format(dst, "picture set autoload: active for entry %d\n", entry);
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_canvas_start(string_t *src, string_t *dst)
+{
+	display_info_t *display_info_entry;
+	bool rv;
+	unsigned int timeout;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display canvas start: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(parse_uint(1, src, &timeout, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "usage: display canvas start <timeout_ms>");
+		return(app_action_error);
+	}
+
+	if(!display_info_entry->canvas_start_fn)
+	{
+		string_append(dst, "display canvas start: not supported\n");
+		return(app_action_error);
+	}
+
+	string_clear(&mailbox_socket_receive_buffer);
+
+	rv = display_info_entry->canvas_start_fn(timeout);
+
+	string_format(dst, "display canvas start success: %s\n", yesno(rv));
+
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_canvas_goto(string_t *src, string_t *dst)
+{
+	display_info_t *display_info_entry;
+	bool rv;
+	unsigned int x, y;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display canvas start: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if((parse_uint(1, src, &x, 0, ' ') != parse_ok) || (parse_uint(1, src, &y, 0, ' ') != parse_ok))
+	{
+		string_append(dst, "usage: display canvas goto <x> <y>");
+		return(app_action_error);
+	}
+
+	if(!display_info_entry->canvas_goto_fn)
+	{
+		string_append(dst, "display canvas goto: not supported\n");
+		return(app_action_error);
+	}
+
+	rv = display_info_entry->canvas_goto_fn(x, y);
+
+	string_format(dst, "display canvas goto success: %s\n", yesno(rv));
+
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_canvas_plot(string_t *src, string_t *dst)
+{
+	display_info_t *display_info_entry;
+	bool rv;
+	unsigned int x, y, pixels;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display canvas plot: no display detected\n");
+		goto error;
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if((parse_uint(1, src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, src, &x, 0, ' ') != parse_ok) || (parse_uint(3, src, &y, 0, ' ') != parse_ok))
+	{
+		string_append(dst, "usage: display canvas plot <pixels> <x> <y>");
+		goto error;
+	}
+
+	if(!display_info_entry->canvas_plot_fn || !display_info_entry->canvas_goto_fn)
+	{
+		string_append(dst, "display canvas plot: not supported\n");
+		goto error;
+	}
+
+	if((unsigned int)string_length(&mailbox_socket_receive_buffer) < (pixels * 2))
+	{
+		string_format(dst, "display canvas plot: incorrect pixel amount: %u/%d\n", pixels, string_length(&mailbox_socket_receive_buffer) / 2);
+		goto error;
+	}
+
+	string_setlength(&mailbox_socket_receive_buffer, pixels * 2);
+
+	if(!display_info_entry->canvas_goto_fn(x, y))
+	{
+		string_append(dst, "display canvas plot: goto failed\n");
+		goto error;
+	}
+
+	rv = display_info_entry->canvas_plot_fn(&mailbox_socket_receive_buffer);
+
+	string_clear(&mailbox_socket_receive_buffer);
+	string_format(dst, "display canvas plot success: %s\n", yesno(rv));
+
+	return(app_action_normal);
+
+error:
+	string_clear(&mailbox_socket_receive_buffer);
+	return(app_action_error);
+}
+
+app_action_t application_function_display_canvas_show(string_t *src, string_t *dst)
+{
+	display_info_t *display_info_entry;
+	bool rv;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display canvas show: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(!display_info_entry->canvas_show_fn)
+	{
+		string_append(dst, "display canvas show: not supported\n");
+		return(app_action_error);
+	}
+
+	rv = display_info_entry->canvas_show_fn();
+
+	string_format(dst, "display canvas show success: %s\n", yesno(rv));
+	return(app_action_normal);
+}
+
+app_action_t application_function_display_canvas_stop(string_t *src, string_t *dst)
+{
+	display_info_t *display_info_entry;
+	bool rv;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display canvas stop: no display detected\n");
+		return(app_action_error);
+	}
+
+	display_info_entry = &display_info[display_data.detected];
+
+	if(!display_info_entry->canvas_stop_fn)
+	{
+		string_append(dst, "display canvas stop: not supported\n");
+		return(app_action_error);
+	}
+
+	rv = display_info_entry->canvas_stop_fn();
+
+	string_format(dst, "display canvas stop success: %s\n", yesno(rv));
 	return(app_action_normal);
 }

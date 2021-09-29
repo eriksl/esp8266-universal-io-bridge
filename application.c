@@ -2397,6 +2397,31 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_display_eastrising,
 	},
 	{
+		"dcs", "display-canvas-start",
+		application_function_display_canvas_start,
+		(void *)0,
+	},
+	{
+		"dcg", "display-canvas-goto",
+		application_function_display_canvas_goto,
+		(void *)0,
+	},
+	{
+		"dcp", "display-canvas-plot",
+		application_function_display_canvas_plot,
+		(void *)0,
+	},
+	{
+		"dcsh", "display-canvas-show",
+		application_function_display_canvas_show,
+		(void *)0,
+	},
+	{
+		"dcst", "display-canvas-stop",
+		application_function_display_canvas_stop,
+		(void *)0,
+	},
+	{
 		"mailbox-info", "mailbox-info",
 		application_function_mailbox_info,
 		(void *)0,

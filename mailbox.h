@@ -4,6 +4,9 @@
 #include "util.h"
 #include "application.h"
 
+extern string_t mailbox_socket_receive_buffer;
+extern string_t mailbox_socket_send_buffer;
+
 void mailbox_init(unsigned int mailbox_port);
 
 app_action_t application_function_mailbox_info(string_t *, string_t *);

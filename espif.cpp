@@ -10,6 +10,8 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include <Magick++.h>
+
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/poll.h>
@@ -31,6 +33,8 @@ enum
 };
 
 typedef std::vector<std::string> StringVector;
+
+static const char *ack = "ACK";
 
 class GenericSocket
 {
@@ -478,7 +482,6 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string filename, unsigned int start,
 	int chunk_size, bool verbose, bool simulate, bool otawrite)
 {
-	static const char *ack = "ACK";
 	int fd;
 	int64_t file_offset;
 	struct stat stat;
@@ -1186,6 +1189,137 @@ report:
 	std::cout << std::endl << "read benchmark completed" << std::endl;
 }
 
+static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel, const unsigned char *buffer, unsigned int length,
+		unsigned int current_x, unsigned int current_y, bool verbose)
+{
+	enum { attempts =  8 };
+	unsigned int attempt;
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+	std::string reply;
+
+	for(attempt = 0; attempt < attempts; attempt++)
+	{
+		try
+		{
+			if(!mailbox_channel.send(std::string((const char *)buffer, flash_sector_size), GenericSocket::raw))
+			{
+				if(verbose)
+					std::cout << "send failed, attempt: " << attempt << std::endl;
+
+				goto error;
+			}
+
+			if(!mailbox_channel.receive(reply, GenericSocket::raw, strlen(ack)))
+			{
+				if(verbose)
+					std::cout << "receive ack failed, attempt: " << attempt << std::endl;
+
+				goto error;
+			}
+
+			process(command_channel, std::string("display-canvas-plot ") +
+					std::to_string(length / 2) + " " +
+					std::to_string(current_x) + " " +
+					std::to_string(current_y),
+					reply,
+					"display canvas plot success: yes",
+					string_value, int_value, verbose);
+		}
+		catch(const std::string &e)
+		{
+			if(verbose)
+				std::cout << "send failed, attempt: " << attempt << ", reason: " << e << std::endl;
+
+			goto error;
+		}
+
+		break;
+
+error:
+		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
+	}
+
+	if(attempt >= attempts)
+		throw(std::string("send failed, max attempts reached"));
+}
+
+static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, unsigned chunk_size, bool verbose)
+{
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+	std::string reply;
+	unsigned char sector_buffer[flash_sector_size];
+	unsigned int start_x, start_y;
+	unsigned int current_buffer, x, y, r, g, b, r1, g1, g2, b1;
+	enum { display_width = 480, display_height = 272 };
+
+	try
+	{
+		Magick::Image image;
+		Magick::Geometry newsize(display_width, display_height);
+		Magick::Color colour;
+		newsize.aspect(true);
+
+		image.read(filename);
+
+		if(verbose)
+			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
+
+		image.resize(newsize);
+
+		if((image.columns() != display_width) || (image.rows() != display_height))
+			throw(std::string("image magic resize failed"));
+
+		current_buffer = 0;
+		start_x = 0;
+		start_y = 0;
+
+		process(command_channel, "display-canvas-start 20000", reply, "display canvas start success: yes", string_value, int_value, verbose);
+
+		for(y = 0; y < display_height; y++)
+		{
+			for(x = 0; x < display_width; x++)
+			{
+				colour = image.pixelColor(x, y);
+				r = colour.redQuantum() >> 11;
+				g = colour.greenQuantum() >> 10;
+				b = colour.blueQuantum() >> 11;
+
+				if((current_buffer + 2) > chunk_size)
+				{
+					command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+					current_buffer = 0;
+					start_x = x;
+					start_y = y;
+				}
+
+				r1 = (r & 0b00011111) >> 0;
+				g1 = (g & 0b00111000) >> 3;
+				g2 = (g & 0b00000111) >> 0;
+				b1 = (b & 0b00011111) >> 0;
+
+				sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
+				sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
+			}
+		}
+
+		if(current_buffer > 0)
+			command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+
+		process(command_channel, "display-canvas-show", reply, "display canvas show success: yes", string_value, int_value, verbose);
+		process(command_channel, "display-canvas-stop", reply, "display canvas stop success: yes", string_value, int_value, verbose);
+	}
+	catch(const Magick::Error &error)
+	{
+		throw(std::string("image: load failed: ") + error.what());
+	}
+	catch(const Magick::Warning &warning)
+	{
+		std::cout << "image: " << warning.what();
+	}
+}
+
 void command_connect(const std::string &host, const std::string &port, bool udp, bool verbose, const std::string &args)
 {
 	std::string reply;
@@ -1329,19 +1463,21 @@ int main(int argc, const char **argv)
 		bool cmd_verify = false;
 		bool cmd_checksum = false;
 		bool cmd_benchmark = false;
+		bool cmd_image = false;
 		int cmd_multicast = 0;
 		bool cmd_read = false;
 		bool cmd_info = false;
 		unsigned int selected;
 
 		options.add_options()
-			("info,I",			po::bool_switch(&cmd_info)->implicit_value(true),					"INFO")
+			("info,i",			po::bool_switch(&cmd_info)->implicit_value(true),					"INFO")
 			("read,R",			po::bool_switch(&cmd_read)->implicit_value(true),					"READ")
 			("checksum,C",		po::bool_switch(&cmd_checksum)->implicit_value(true),				"CHECKSUM")
 			("verify,V",		po::bool_switch(&cmd_verify)->implicit_value(true),					"VERIFY")
 			("simulate,S",		po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
 			("write,W",			po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
 			("benchmark,B",		po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
+			("image,I",			po::bool_switch(&cmd_image)->implicit_value(true),					"SEND IMAGE")
 			("multicast,M",		po::value<int>(&cmd_multicast)->implicit_value(3),					"MULTICAST SENDER send multicast message (arg is repeat count)")
 			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or multicast group to use")
 			("verbose,v",		po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
@@ -1393,6 +1529,9 @@ int main(int argc, const char **argv)
 		if(cmd_benchmark)
 			selected++;
 
+		if(cmd_image)
+			selected++;
+
 		if(cmd_read)
 			selected++;
 
@@ -1403,7 +1542,7 @@ int main(int argc, const char **argv)
 			selected++;
 
 		if(selected > 1)
-			throw(std::string("specify one of write/simulate/verify/checksum/read/info"));
+			throw(std::string("specify one of write/simulate/verify/checksum/image/read/info"));
 
 		if(selected == 0)
 			command_connect(host, command_port, use_udp, verbose, args);
@@ -1487,7 +1626,7 @@ int main(int argc, const char **argv)
 						otawrite = true;
 					}
 					else
-						if(!cmd_benchmark)
+						if(!cmd_benchmark && !cmd_image)
 							throw(std::string("start address not set"));
 				}
 
@@ -1515,6 +1654,9 @@ int main(int argc, const char **argv)
 								else
 									if(cmd_benchmark)
 										command_benchmark(command_channel, mailbox_channel, verbose);
+									else
+										if(cmd_image)
+											command_image(command_channel, mailbox_channel, filename, chunk_size, verbose);
 			}
 		}
 	}

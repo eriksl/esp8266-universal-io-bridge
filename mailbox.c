@@ -11,8 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-string_new(static, mailbox_socket_receive_buffer, 4096);
-string_new(static, mailbox_socket_send_buffer, 4096);
+string_new(, mailbox_socket_receive_buffer, 4096);
+string_new(, mailbox_socket_send_buffer, 4096);
 static lwip_if_socket_t mailbox_socket;
 
 static void socket_mailbox_callback_data_received(lwip_if_socket_t *socket, unsigned int length)

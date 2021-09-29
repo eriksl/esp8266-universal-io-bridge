@@ -452,7 +452,9 @@ espflash:				espflash.cpp
 
 espif:					espif.cpp
 						$(VECHO) "HOST CPP $<"
-						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
+						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror -Wno-error=ignored-qualifiers \
+								-DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/usr/include/ImageMagick-6 $< \
+								-lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -lMagick++-6.Q16 -o $@
 
 resetserial:			resetserial.c
 						$(VECHO) "HOST CC $<"

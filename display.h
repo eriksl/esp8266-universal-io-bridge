@@ -26,4 +26,9 @@ app_action_t application_function_display_set(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst);
+app_action_t application_function_display_canvas_start(string_t *src, string_t *dst);
+app_action_t application_function_display_canvas_goto(string_t *src, string_t *dst);
+app_action_t application_function_display_canvas_plot(string_t *src, string_t *dst);
+app_action_t application_function_display_canvas_show(string_t *src, string_t *dst);
+app_action_t application_function_display_canvas_stop(string_t *src, string_t *dst);
 #endif

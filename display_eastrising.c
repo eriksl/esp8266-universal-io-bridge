@@ -751,6 +751,7 @@ static picture_load_state_t picture_load_state = pls_idle;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 static colours_t const *colours = &themes[8].normal_bright;
+static unsigned int display_locked_ms;
 
 static bool attr_result_used display_write_glyphs(unsigned int x, unsigned int y, unsigned int length, const uint8_t *text);
 
@@ -1749,6 +1750,9 @@ bool display_eastrising_begin(unsigned int slot, bool logmode)
 {
 	unsigned int fncr0, fncr1, fncr2, mwcr0;
 
+	if(display_locked_ms > 0)
+		return(true);
+
 	switch(display_mode)
 	{
 		case(display_mode_i2c):
@@ -1877,6 +1881,9 @@ bool display_eastrising_output(unsigned int unicode)
 	const unicode_map_t *unicode_map_ptr = (unicode_map_t *)0;
 	bool mapped = false;
 
+	if(display_locked_ms > 0)
+		return(true);
+
 	if(unicode == '\n')
 		return(display_newline());
 
@@ -1947,6 +1954,9 @@ bool display_eastrising_output(unsigned int unicode)
 
 bool display_eastrising_end(void)
 {
+	if(display_locked_ms > 0)
+		return(true);
+
 	if(!display_logmode)
 	{
 		while(display_y < text_lines())
@@ -1984,6 +1994,17 @@ bool display_eastrising_periodic(void)
 	static const char ppm_header[] = "P6\n480 272\n255\n";
 	bool success = false;
 	uint8_t mwcr0;
+
+	if(display_locked_ms > 0)
+	{
+		if(display_locked_ms > 100)
+		{
+			display_locked_ms -= 100;
+			return(true);
+		}
+		else
+			display_locked_ms = 0;
+	}
 
 	switch(picture_load_state)
 	{
@@ -2143,6 +2164,9 @@ error1:
 
 bool display_eastrising_layer_select(unsigned int layer)
 {
+	if(display_locked_ms > 0)
+		return(true);
+
 	if(layer > 1)
 	{
 		if(!display_set_active_layer(1))
@@ -2168,6 +2192,56 @@ bool display_eastrising_picture_load(unsigned int entry)
 	picture_load_state = pls_start;
 	picture_load_index = entry;
 
+	return(true);
+}
+
+bool display_eastrising_canvas_start(unsigned int timeout)
+{
+	if(!display_set_active_layer(0))
+		return(false);
+
+	if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
+		return(false);
+
+	display_eastrising_canvas_goto(0, 0);
+
+	display_locked_ms = timeout;
+
+	return(true);
+}
+
+bool display_eastrising_canvas_goto(unsigned int x, unsigned int y)
+{
+	if(!display_write(reg_curh1, (x & 0xff00) >> 8))
+		return(false);
+
+	if(!display_write(reg_curh0, (x & 0x00ff) >> 0))
+		return(false);
+
+	if(!display_write(reg_curv1, (y & 0xff00) >> 8))
+		return(false);
+
+	if(!display_write(reg_curv0, (y & 0x00ff) >> 0))
+		return(false);
+
+	return(true);
+}
+
+bool display_eastrising_canvas_plot(const string_t *pixels)
+{
+	if(!display_write_string(true, string_length(pixels), (const unsigned char *)string_buffer(pixels)))
+		return(false);
+
+	return(true);
+}
+
+bool display_eastrising_canvas_show(void)
+{
+	return(display_show_layer(0));
+}
+
+bool display_eastrising_canvas_stop(void)
+{
 	return(true);
 }
 
