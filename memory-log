@@ -10670,3 +10670,7 @@ Sun Sep 26 17:49:49 CEST 2021 38203b9 revert to stable LWIP.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71561, free:   8704, 10 %
     irom:    available: 592 k, used: 431384, free: 174824, 28 %
+Wed Sep 29 16:53:39 CEST 2021 c742872 experimental support for real-time image upload to eastrising displays.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71561, free:   8704, 10 %
+    irom:    available: 592 k, used: 431432, free: 174776, 28 %
