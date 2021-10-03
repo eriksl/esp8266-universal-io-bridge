@@ -114,11 +114,26 @@ exit:
 
 bool rboot_if_read_config(rboot_if_config_t *config)
 {
-	if(spi_flash_read(OFFSET_RBOOT_CFG, (uint32_t *)config, sizeof(*config)) != SPI_FLASH_RESULT_OK)
+	typedef uint32_t flash_read_buffer_t[256];
+	assert_size_le(*config, flash_read_buffer_t);
+
+	flash_read_buffer_t flash_read_buffer;
+
+	memset(flash_read_buffer, 0xff, sizeof(flash_read_buffer));
+
+	if(spi_flash_read(OFFSET_RBOOT_CFG, (uint32_t *)flash_read_buffer, sizeof(flash_read_buffer)) != SPI_FLASH_RESULT_OK)
+	{
+		log("rboot config: flash read failed\n");
 		return(false);
+	}
+
+	memcpy(config, flash_read_buffer, sizeof(*config));
 
 	if(config->magic != rboot_if_conf_magic)
+	{
+		log("rboot config: invalid magic number\n");
 		return(false);
+	}
 
 	return(true);
 }
