@@ -1257,19 +1257,20 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	try
 	{
 		Magick::Image image;
-		Magick::Geometry newsize(display_width, display_height);
+		Magick::Geometry newsize1((display_width + display_height) / 2, display_height);
+		Magick::Geometry newsize2(display_width, display_height);
 		Magick::Color colour;
-		newsize.aspect(false);
+		newsize1.aspect(true);
+		newsize2.aspect(false);
 
 		image.read(filename);
 
 		if(verbose)
 			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
 
-		image.resize(newsize);
-		image.raise(Magick::Geometry("6x6+0+0"));
-		image.extent(newsize, Magick::Color("black"), Magick::CenterGravity);
-		image.equalize();
+		image.resize(newsize1);
+		image.extent(newsize2, Magick::Color("black"), Magick::CenterGravity);
+		image.normalize();
 
 		if((image.columns() != display_width) || (image.rows() != display_height))
 			throw(std::string("image magic resize failed"));
