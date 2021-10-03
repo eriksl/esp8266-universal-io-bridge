@@ -233,6 +233,7 @@ static bool display_inited;
 static bool display_logmode;
 static bool display_disable_text;
 static bool display_scroll_pending;
+static bool display_picture_valid;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
 static unsigned int display_picture_load_flash_sector;
@@ -522,22 +523,51 @@ bool display_orbital_end(void)
 	return(true);
 }
 
+static const char pbm_header[] = "P4\n20 16\n";
+
 bool display_orbital_picture_load(unsigned int picture_load_index)
 {
+	bool success = false;
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
 		log("display orbital: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		return(false);
+		goto error;
 	}
 
-	return(true);
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display orbital: load picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		goto error;
+	}
+
+	success = true;
+
+error:
+	if(flash_sector_buffer_use == fsb_display_picture)
+		flash_sector_buffer_use = fsb_free;
+	display_picture_valid = success;
+	return(success);
+}
+
+bool display_orbital_picture_valid(void)
+{
+	return(display_picture_valid);
 }
 
 bool display_orbital_layer_select(unsigned int layer)
 {
-	static const char pbm_header[] = "P4\n20 16\n";
 	bool success = false;
 	unsigned int row, column;
 	unsigned int udg, udg_line, udg_bit, udg_value;
@@ -553,12 +583,18 @@ bool display_orbital_layer_select(unsigned int layer)
 		return(true);
 	}
 
+	if(!display_picture_valid)
+	{
+		log("display orbital: load picture: invalid image\n");
+		return(false);
+	}
+
 	display_disable_text = true;
 
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
 	{
 		log("display orbital: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		return(false);
+		goto error;
 	}
 
 	flash_sector_buffer_use = fsb_display_picture;
@@ -566,14 +602,6 @@ bool display_orbital_layer_select(unsigned int layer)
 	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
 	{
 		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
-	}
-
-	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
-
-	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
-	{
-		log("display orbital: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
 		goto error;
 	}
 

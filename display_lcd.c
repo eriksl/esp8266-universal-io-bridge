@@ -387,6 +387,7 @@ assert_size(udg_number_pattern, sizeof(unsigned long) * udg_number_pattern_rows 
 _Static_assert(display_buffer_size > (sizeof(int) * io_lcd_size), "display buffer too small");
 
 static bool display_inited = false;
+static bool display_picture_valid = false;
 static bool display_logmode;
 static bool nibble_mode;
 static bool display_disable_text;
@@ -781,22 +782,58 @@ bool display_lcd_bright(int brightness)
 	return(true);
 }
 
+static const char pbm_header[] = "P4\n20 16\n";
+
 bool display_lcd_picture_load(unsigned int picture_load_index)
 {
+	bool success = false;
+
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
 		log("display lcd: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		return(false);
+		goto error;
 	}
 
-	return(true);
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		goto error;
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
+	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+
+	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	{
+		log("display lcd: load picture: picture invalid\n");
+		goto error;
+	}
+
+	success = true;
+
+error:
+	if(flash_sector_buffer_use == fsb_display_picture)
+		flash_sector_buffer_use = fsb_free;
+	display_picture_valid = success;
+	return(success);
+}
+
+bool display_lcd_picture_valid(void)
+{
+	return(display_picture_valid);
 }
 
 bool display_lcd_layer_select(unsigned int layer)
 {
-	static const char pbm_header[] = "P4\n20 16\n";
 	bool success = false;
 	unsigned int row, column;
 	unsigned int udg, udg_line, udg_bit, udg_value;
@@ -815,6 +852,12 @@ bool display_lcd_layer_select(unsigned int layer)
 		return(true);
 	}
 
+	if(!display_picture_valid)
+	{
+		log("display lcd: load picture: invalid image\n");
+		return(false);
+	}
+
 	display_disable_text = true;
 
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
@@ -830,11 +873,6 @@ bool display_lcd_layer_select(unsigned int layer)
 		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
 		goto error;
 	}
-
-	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
-
-	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
-		goto error;
 
 	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);

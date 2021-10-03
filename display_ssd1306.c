@@ -207,6 +207,7 @@ static bool display_inited = false;
 static bool display_logmode = false;
 static bool display_standout = false;
 static bool display_disable_text = false;
+static bool display_picture_valid = false;
 static unsigned int display_height;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
@@ -581,38 +582,24 @@ bool display_ssd1306_standout(bool onoff)
 	return(true);
 }
 
+static const char pbm_header[] = "P4\n128 64\n";
+
 bool display_ssd1306_picture_load(unsigned int picture_load_index)
 {
+	bool success = false;
+
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
 	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
 	{
 		log("display ssd1306: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		return(false);
+		goto error;
 	}
-
-	return(true);
-}
-
-bool display_ssd1306_layer_select(unsigned int layer)
-{
-	static const char pbm_header[] = "P4\n128 64\n";
-	bool success = false;
-	unsigned int row, column, output, bit, offset, bitoffset;
-	const uint8_t *bitmap;
-
-	if(layer == 0)
-	{
-		display_disable_text = false;
-		return(true);
-	}
-
-	display_disable_text = true;
 
 	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
 	{
 		log("display ssd1306: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		return(false);
+		goto error;
 	}
 
 	flash_sector_buffer_use = fsb_display_picture;
@@ -631,13 +618,61 @@ bool display_ssd1306_layer_select(unsigned int layer)
 		goto error;
 	}
 
+	success = true;
+
+error:
+	if(flash_sector_buffer_use == fsb_display_picture)
+		flash_sector_buffer_use = fsb_free;
+	display_picture_valid = success;
+	return(success);
+}
+
+bool display_ssd1306_picture_valid(void)
+{
+	return(display_picture_valid);
+}
+
+bool display_ssd1306_layer_select(unsigned int layer)
+{
+	bool success = false;
+	unsigned int row, column, output, bit, offset, bitoffset;
+	const uint8_t *bitmap;
+
+	if(layer == 0)
+	{
+		display_disable_text = false;
+		return(true);
+	}
+
+	if(!display_picture_valid)
+	{
+		log("display ssd1306: load picture: invalid image\n");
+		goto error;
+	}
+
+	display_disable_text = true;
+
+	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	{
+		log("display ssd1306: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
+		goto error;
+	}
+
+	flash_sector_buffer_use = fsb_display_picture;
+
+	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	{
+		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
+		goto error;
+	}
+
 	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
 	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
 
 	for(row = 0; row < (display_height / 8); row++)
 	{
 		if(!display_cursor_row_column(row, 0))
-			return(false);
+			goto error;
 
 		for(column = 0; column < display_width; column++)
 		{
@@ -655,14 +690,14 @@ bool display_ssd1306_layer_select(unsigned int layer)
 			}
 
 			if(!display_data_output(output))
-				return(false);
+				goto error;
 		}
 	}
 
 	success = true;
-
 error:
-	flash_sector_buffer_use = fsb_free;
+	if(flash_sector_buffer_use == fsb_display_picture)
+		flash_sector_buffer_use = fsb_free;
 	if(!display_data_flush())
 		return(false);
 	return(success);

@@ -33,9 +33,10 @@ typedef enum
 
 typedef enum
 {
-	pls_idle = 0,
+	pls_init = 0,
 	pls_start,
 	pls_in_progress,
+	pls_done,
 } picture_load_state_t;
 
 typedef struct
@@ -747,7 +748,7 @@ static bool display_font_valid = false;
 static unsigned int display_text_current;
 static unsigned int display_x, display_y;
 static unsigned int display_current_slot;
-static picture_load_state_t picture_load_state = pls_idle;
+static picture_load_state_t picture_load_state = pls_init;
 static unsigned int picture_load_index = 0;
 static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 static colours_t const *colours = &themes[8].normal_bright;
@@ -2008,7 +2009,8 @@ bool display_eastrising_periodic(void)
 
 	switch(picture_load_state)
 	{
-		case(pls_idle):
+		case(pls_init):
+		case(pls_done):
 		{
 			return(true);
 		}
@@ -2157,7 +2159,7 @@ error3:
 error2:
 	flash_sector_buffer_use = fsb_free;
 error1:
-	picture_load_state = pls_idle;
+	picture_load_state = pls_done;
 
 	return(success);
 }
@@ -2186,13 +2188,18 @@ bool display_eastrising_picture_load(unsigned int entry)
 	if(entry > 1)
 		return(false);
 
-	if(picture_load_state != pls_idle)
+	if((picture_load_state != pls_init) && (picture_load_state != pls_done))
 		return(false);
 
 	picture_load_state = pls_start;
 	picture_load_index = entry;
 
 	return(true);
+}
+
+bool display_eastrising_picture_valid(void)
+{
+	return(picture_load_state == pls_done);
 }
 
 bool display_eastrising_canvas_start(unsigned int timeout)

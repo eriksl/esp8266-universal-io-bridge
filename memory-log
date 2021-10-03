@@ -10686,3 +10686,59 @@ Sun Oct  3 15:07:49 CEST 2021 ad5c88d small changes on previous commit.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71561, free:   8704, 10 %
     irom:    available: 592 k, used: 431448, free: 174760, 28 %
+Sun Oct  3 15:14:44 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71561, free:   8704, 10 %
+    irom:    available: 592 k, used: 431608, free: 174600, 28 %
+Sun Oct  3 15:26:59 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71561, free:   8704, 10 %
+    irom:    available: 592 k, used: 431544, free: 174664, 28 %
+Sun Oct  3 15:31:04 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 431560, free: 174648, 28 %
+Sun Oct  3 15:31:40 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 431576, free: 174632, 28 %
+Sun Oct  3 15:38:36 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 431688, free: 174520, 28 %
+Sun Oct  3 15:39:46 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 431704, free: 174504, 28 %
+Sun Oct  3 15:42:55 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 431960, free: 174248, 28 %
+Sun Oct  3 17:40:56 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432296, free: 173912, 28 %
+Sun Oct  3 18:00:20 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432360, free: 173848, 28 %
+Sun Oct  3 18:04:20 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432424, free: 173784, 28 %
+Sun Oct  3 18:15:18 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432520, free: 173688, 28 %
+Sun Oct  3 18:16:21 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432536, free: 173672, 28 %
+Sun Oct  3 18:21:55 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432552, free: 173656, 28 %
+Sun Oct  3 19:51:43 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspect ratio of the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432856, free: 173352, 28 %

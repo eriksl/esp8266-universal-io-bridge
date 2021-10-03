@@ -69,9 +69,10 @@ typedef const struct
 	bool			(* const canvas_plot_fn)(const string_t *pixels);
 	bool			(* const canvas_show_fn)(void);
 	bool			(* const canvas_stop_fn)(void);
+	bool			(* const picture_valid_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 72);
+assert_size(display_info_t, 76);
 
 typedef struct
 {
@@ -110,6 +111,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	},
 	{
 		"hd44780", "4x20 character LCD",
@@ -129,6 +131,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		display_lcd_picture_valid,
 	},
 	{
 		"matrix orbital", "4x20 character VFD",
@@ -148,6 +151,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		display_orbital_picture_valid,
 	},
 	{
 		"cfa634", "4x20 character LCD",
@@ -156,6 +160,7 @@ roflash static display_info_t display_info[display_size] =
 		display_cfa634_output,
 		display_cfa634_end,
 		display_cfa634_bright,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -186,6 +191,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		display_seeed_picture_valid,
 	},
 	{
 		"eastrising TFT", "480x272 LCD",
@@ -205,6 +211,7 @@ roflash static display_info_t display_info[display_size] =
 		display_eastrising_canvas_plot,
 		display_eastrising_canvas_show,
 		display_eastrising_canvas_stop,
+		display_eastrising_picture_valid,
 	},
 	{
 		"SSD1306 / SH1106", "128x32 / 128x64 OLED",
@@ -217,6 +224,7 @@ roflash static display_info_t display_info[display_size] =
 		(void *)0,
 		display_ssd1306_picture_load,
 		display_ssd1306_layer_select,
+		(void *)0,
 		(void *)0,
 		(void *)0,
 		(void *)0,
@@ -307,45 +315,22 @@ static void display_update(bool advance)
 
 		display_text = display_slot[slot].content;
 
-		if(!strcmp(display_slot[slot].tag, "picture") && !strcmp(display_text, "picture"))
+		if(!strcmp(display_slot[slot].tag, "picture") &&
+				!strcmp(display_text, "picture") &&
+				display_info_entry->layer_select_fn &&
+				display_info_entry->picture_valid_fn &&
+				display_info_entry->picture_valid_fn())
 		{
-			if(display_info_entry->layer_select_fn)
+			display_data.current_slot = slot;
+
+			if(!display_info_entry->layer_select_fn(1))
 			{
-				display_data.current_slot = slot;
-
-				if(display_info_entry->layer_select_fn(1))
-					goto quit;
-				else
-				{
-					for(slot++; slot < display_slot_amount; slot++)
-						if(display_slot[slot].content[0])
-							break;
-
-					if(slot >= display_slot_amount)
-						for(slot = 0; slot < display_slot_amount; slot++)
-							if(display_slot[slot].content[0])
-								break;
-
-					if(slot >= display_slot_amount)
-						slot = 0;
-
-					continue;
-				}
+				log("display update: display layer select (1) failed\n");
+				display_data.detected = -1;
+				return;
 			}
-			else
-			{
-				for(slot++; slot < display_slot_amount; slot++)
-					if(display_slot[slot].content[0])
-						break;
 
-				if(slot >= display_slot_amount)
-					for(slot = 0; slot < display_slot_amount; slot++)
-						if(display_slot[slot].content[0])
-							break;
-
-				if(slot >= display_slot_amount)
-					slot = 0;
-			}
+			goto done;
 		}
 
 		if(display_info_entry->layer_select_fn && !display_info_entry->layer_select_fn(0))
@@ -518,7 +503,7 @@ static void display_update(bool advance)
 	if(attempt == 0)
 		log("display update: no more attempts left\n");
 
-quit:
+done:
 	spent = time_get_us() - start;
 
 	stat_display_update_max_us = umax(stat_display_update_max_us, spent);
