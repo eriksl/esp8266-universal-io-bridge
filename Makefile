@@ -205,8 +205,8 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 						queue.h stats.h uart.h user_config.h dispatch.h util.h sequencer.h init.h \
 						rboot-interface.h lwip-interface.h eagle.h sdk.h
 
-.PRECIOUS:		*.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
-.PHONY:			all flash flash-plain flash-ota clean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
+.PRECIOUS:		*.cpp *.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
+.PHONY:			all flash flash-plain flash-ota clean realclean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
 
 all:			$(ALL_TOOL_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS)
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
@@ -450,19 +450,13 @@ wipe-config:
 						$(VECHO) "CC -S $<"
 						$(Q) $(CC) -S $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
-espflash:				espflash.cpp
+%:						%.cpp
 						$(VECHO) "HOST CPP $<"
-						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror $< -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -o $@
+						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) $< -o $@
 
 espif:					espif.cpp
-						$(VECHO) "HOST CPP $<"
-						$(Q) $(HOSTCPP) $(HOSTCFLAGS) -Wall -Wextra -Werror -Wno-error=ignored-qualifiers \
-								-DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/usr/include/ImageMagick-6 $< \
-								-lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -lMagick++-6.Q16 -o $@
-
-resetserial:			resetserial.c
-						$(VECHO) "HOST CC $<"
-						$(Q) $(HOSTCC) $(WARNINGS) $(HOSTCFLAGS) $< -o $@
+espflash:				espflash.cpp
+resetserial:			resetserial.cpp
 
 udprxtest:
 						$(OTA_FLASH) -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
