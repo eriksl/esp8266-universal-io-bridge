@@ -3,12 +3,7 @@
 
 #include "util.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpacked"
-
 #include <lwip/ip_addr.h>
-
-#pragma GCC diagnostic pop
 
 #include <stdint.h>
 #include <stdbool.h>

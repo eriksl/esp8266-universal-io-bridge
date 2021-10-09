@@ -10742,3 +10742,31 @@ Sun Oct  3 19:51:43 CEST 2021 80ef7b5 espif: scale images (somewhat) to the aspe
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71569, free:   8696, 10 %
     irom:    available: 592 k, used: 432856, free: 173352, 28 %
+Sun Oct  3 19:56:03 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432824, free: 173384, 28 %
+Sun Oct  3 19:59:03 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432888, free: 173320, 28 %
+Sun Oct  3 20:03:58 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432952, free: 173256, 28 %
+Sat Oct  9 12:21:01 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71577, free:   8688, 10 %
+    irom:    available: 592 k, used: 432952, free: 173256, 28 %
+Sat Oct  9 12:26:21 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432936, free: 173272, 28 %
+Sat Oct  9 12:29:35 CEST 2021 a177338 improve showing image on displays
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433016, free: 173192, 28 %
+Sat Oct  9 12:39:04 CEST 2021 930e84f lwip: better workaround for missing <<const>> qualifiers in lwip header files.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433064, free: 173144, 28 %

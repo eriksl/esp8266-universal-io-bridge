@@ -1,10 +1,7 @@
 #ifndef util_h
 #define util_h
 
-#pragma GCC diagnostic ignored "-Wpacked"
-#pragma GCC diagnostic push
 #include <lwip/ip_addr.h>
-#pragma GCC diagnostic pop
 
 #include "attribute.h"
 #include "sys_string.h"

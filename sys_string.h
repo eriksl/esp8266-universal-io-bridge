@@ -1,10 +1,7 @@
 #ifndef sys_string_h
 #define sys_string_h
 
-#pragma GCC diagnostic ignored "-Wpacked"
-#pragma GCC diagnostic push
 #include <lwip/ip_addr.h>
-#pragma GCC diagnostic pop
 
 #include "attribute.h"
 

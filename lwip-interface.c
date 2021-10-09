@@ -6,18 +6,9 @@
 #include "stats.h"
 #include "sdk.h"
 
-/* don't bail on wrongly declared functions in old version of lwip, some parameters should be const really */
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#pragma GCC diagnostic ignored "-Wpacked"
-#pragma GCC diagnostic push
-
 #include <lwip/udp.h>
 #include <lwip/tcp.h>
 #include <lwip/igmp.h>
-
-#pragma GCC diagnostic pop
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -106,6 +97,7 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 {
 	struct pbuf *pbuf;
 	unsigned int length;
+	ip_addr_t _ip_addr_any = { IPADDR_ANY };
 
 	if(socket->receive_buffer_locked)
 	{
@@ -121,7 +113,9 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	}
 	else
 	{
-		socket->peer.address = *IP_ADDR_ANY;
+		if(address != (const ip_addr_t *)0)
+			log("lwip-interface: received callback address invalid: %p\n", address);
+		socket->peer.address = _ip_addr_any;
 		socket->peer.port = 0;
 	}
 
@@ -369,13 +363,14 @@ attr_nonnull bool lwip_if_close(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port)
+attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address_in, unsigned int port)
 {
 	err_t error;
 
 	struct pbuf *pbuf = (struct pbuf *)socket->udp.pbuf_send;
 	struct udp_pcb *pcb_udp = (struct udp_pcb *)socket->udp.pcb;
 	unsigned int offset, length, total_length;
+	ip_addr_t address = *address_in;
 
 	total_length = string_length(socket->send_buffer);
 
@@ -387,10 +382,10 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 			length = lwip_udp_max_payload;
 
 		pbuf->len = pbuf->tot_len = length;
-		pbuf->payload = string_buffer(socket->send_buffer) + offset;
+		pbuf->payload = string_buffer_nonconst(socket->send_buffer) + offset;
 		pbuf->eb = 0;
 
-		if((error = udp_sendto(pcb_udp, pbuf, address, port)) != ERR_OK)
+		if((error = udp_sendto(pcb_udp, pbuf, &address, port)) != ERR_OK)
 		{
 			stat_lwip_udp_send_error++;
 			log_error("lwip if sendto: udp send failed", error);
@@ -436,7 +431,7 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 				length = lwip_udp_max_payload;
 
 			pbuf->len = pbuf->tot_len = length;
-			pbuf->payload = string_buffer(socket->send_buffer) + offset;
+			pbuf->payload = string_buffer_nonconst(socket->send_buffer) + offset;
 			pbuf->eb = 0;
 
 			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
@@ -493,11 +488,12 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 		unsigned int port, bool tcp, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
+	ip_addr_t _ip_addr_any = { IPADDR_ANY };
 
 	socket->udp.pcb = (struct udp_pcb *)0;
 	socket->tcp.listen_pcb = (struct tcp_pcb *)0;
 	socket->tcp.pcb = (struct tcp_pcb *)0;
-	socket->peer.address = ip_addr_any;
+	socket->peer.address = _ip_addr_any;
 	socket->peer.port = 0;
 	socket->receive_buffer = receive_buffer;
 	socket->send_buffer = send_buffer;
@@ -521,7 +517,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 
 	udp_recv(socket->udp.pcb, udp_received_callback, socket);
 
-	if((error = udp_bind(socket->udp.pcb, IP_ADDR_ANY, port)) != ERR_OK)
+	if((error = udp_bind(socket->udp.pcb, &_ip_addr_any, port)) != ERR_OK)
 	{
 		log_error("lwip if socket create: udp_bind failed", error);
 		return(false);
@@ -535,7 +531,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 			return(false);
 		}
 
-		if((error = tcp_bind(socket->tcp.listen_pcb, IP_ADDR_ANY, port)) != ERR_OK)
+		if((error = tcp_bind(socket->tcp.listen_pcb, &_ip_addr_any, port)) != ERR_OK)
 		{
 			log_error("lwip if socket create: tcp_bind failed", error);
 			return(false);
@@ -560,5 +556,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 
 bool attr_nonnull lwip_if_join_mc(ip_addr_t mc_ip)
 {
-	return(igmp_joingroup(IP_ADDR_ANY, &mc_ip) == ERR_OK);
+	ip_addr_t _ip_addr_any = { IPADDR_ANY };
+
+	return(igmp_joingroup(&_ip_addr_any, &mc_ip) == ERR_OK);
 }
