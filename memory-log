@@ -10770,3 +10770,11 @@ Sat Oct  9 12:39:04 CEST 2021 930e84f lwip: better workaround for missing <<cons
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71569, free:   8696, 10 %
     irom:    available: 592 k, used: 433064, free: 173144, 28 %
+Sat Oct  9 13:06:58 CEST 2021 633e3a0 Makefile: rename WARNINGS to CCWARNINGS
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433016, free: 173192, 28 %
+Sat Oct  9 13:14:31 CEST 2021 8aa3b98 espif: precompiled headers for a little speedup in compilation.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433048, free: 173160, 28 %

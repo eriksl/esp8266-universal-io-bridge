@@ -121,7 +121,7 @@ ALL_FLASH_TARGETS	:= espflash espif
 ALL_TOOL_TARGETS	:= resetserial
 ALL_EXTRA_TARGETS	:= free
 
-WARNINGS		:=	-Wall -Wextra -Werror \
+CCWARNINGS			:=	-Wall -Wextra -Werror \
 						-Wformat-overflow=2 -Wshift-overflow=2 -Wimplicit-fallthrough=5 \
 						-Wformat-signedness -Wformat-truncation=2 \
 						-Wstringop-overflow=4 -Wunused-const-variable=2 -Walloca \
@@ -173,12 +173,14 @@ CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DOFFSET_RBOOT_CFG=$(OFFSET_RBOOT_CFG) -DSIZE_RBOOT_CFG=$(SIZE_RBOOT_CFG) \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
-HOSTCFLAGS		:= -O2 -lssl -lcrypto -Wframe-larger-than=65536
 CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
+HOSTCPPFLAGS	:= -O3 -Wall -Wextra -Werror -Wframe-larger-than=65536 -Wno-error=ignored-qualifiers \
+					-DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/usr/include/ImageMagick-6 \
+					-lssl -lcrypto -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -lMagick++-6.Q16
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
 						display_seeed.o display_eastrising.o display_ssd1306.o display_font_6x8.o io_pcf.o http.o \
@@ -225,7 +227,7 @@ clean:
 
 realclean:		clean
 				$(VECHO) "REALCLEAN"
-				-$(Q) rm -f resetserial espflash 2> /dev/null
+				-$(Q) rm -f espif.h.gch resetserial espflash 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -440,21 +442,25 @@ wipe-config:
 
 %.o:					%.c
 						$(VECHO) "CC $<"
-						$(Q) $(CC) $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
+						$(Q) $(CC) $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.i:					%.c
-						$(VECHO) "CC -E $<"
-						$(Q) $(CC) -E $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
+						$(VECHO) "CC cpp $<"
+						$(Q) $(CC) -E $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %.s:					%.c
-						$(VECHO) "CC -S $<"
-						$(Q) $(CC) -S $(WARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
+						$(VECHO) "CC as $<"
+						$(Q) $(CC) -S $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
 %:						%.cpp
 						$(VECHO) "HOST CPP $<"
 						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) $< -o $@
 
-espif:					espif.cpp
+%.h.gch:				%.h
+						$(VECHO) "HOST CPP PCH $<"
+						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) -c -x c++-header $< -o $@
+
+espif:					espif.cpp espif.h.gch
 espflash:				espflash.cpp
 resetserial:			resetserial.cpp
 

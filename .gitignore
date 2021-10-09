@@ -1,4 +1,5 @@
 *.o
+*.h.gch
 *.bin
 *.elf
 *.a

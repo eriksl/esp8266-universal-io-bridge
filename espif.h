@@ -1,0 +1,22 @@
+#include <string>
+#include <vector>
+#include <ios>
+#include <map>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <boost/regex.hpp>
+#include <boost/program_options.hpp>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/poll.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <netinet/tcp.h>
+#include <openssl/sha.h>
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#include <Magick++.h>

@@ -1,29 +1,6 @@
-#include <string>
-#include <vector>
-#include <ios>
-#include <map>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
+#include "espif.h"
 
-#include <boost/regex.hpp>
-#include <boost/program_options.hpp>
 namespace po = boost::program_options;
-
-#include <Magick++.h>
-
-#include <netinet/in.h>
-#include <netdb.h>
-#include <sys/poll.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <netinet/tcp.h>
-
-#include <openssl/sha.h>
 
 enum
 {
