@@ -215,13 +215,17 @@ clean:
 				$(VECHO) "CLEAN"
 				$(Q) $(MAKE) $(MAKEMINS) -C $(ESPTOOL2) clean
 				$(Q) $(MAKE) $(MAKEMINS) -C $(RBOOT) clean
-				$(Q) rm -f $(OBJS) \
+				-$(Q) rm -f $(OBJS) \
 						$(ELF_IMAGE) \
 						$(FIRMWARE_RBOOT) $(FIRMWARE_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
 						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						espflash espif resetserial 2> /dev/null
+						espif 2> /dev/null
+
+realclean:		clean
+				$(VECHO) "REALCLEAN"
+				-$(Q) rm -f resetserial espflash 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
