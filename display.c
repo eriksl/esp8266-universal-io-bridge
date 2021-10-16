@@ -162,7 +162,13 @@ active_slot_found:
 		if(!strcmp(slot_content, "%%%%"))
 		{
 			config_get_string("identification", &info_text, -1, -1);
-			string_format(&info_text, "\n%s\n%s", display_info_active->name, display_info_active->description);
+			string_format(&info_text, "\n%s\n%u x %u, %u x %u [%u]",
+					display_info_active->name,
+					display_info_active->graphic_dimensions.x,
+					display_info_active->graphic_dimensions.y,
+					display_info_active->text_dimensions.columns,
+					display_info_active->text_dimensions.rows,
+					display_info_active->colour_depth);
 			slot_content = string_to_cstr(&info_text);
 		}
 
@@ -435,8 +441,15 @@ static void display_dump(string_t *dst)
 		return;
 	}
 
-	string_format(dst, "> display type %s: %s\n",
-			display_info_active->name, display_info_active->description);
+	string_format(dst, "> display type: %s\n",
+			display_info_active->name);
+
+	string_format(dst, "> capabilities: graphical dimensions: %u x %u, text dimensions: %u x %u, colour depth: %u\n",
+			display_info_active->graphic_dimensions.x,
+			display_info_active->graphic_dimensions.y,
+			display_info_active->text_dimensions.columns,
+			display_info_active->text_dimensions.rows,
+			display_info_active->colour_depth);
 
 	if(config_flags_match(flag_log_to_display))
 	{

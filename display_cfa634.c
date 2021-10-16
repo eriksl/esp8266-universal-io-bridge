@@ -460,7 +460,10 @@ static bool end(void)
 
 roflash const display_info_t display_info_cfa =
 {
-	"cfa634", "4x20 character LCD",
+	"CFA634 serial LCD",
+	{ 0, 0 },
+	{ 20, 4 },
+	1,
 	init,
 	begin,
 	output,

@@ -716,7 +716,10 @@ error:
 
 roflash const display_info_t display_info_ssd1306 =
 {
-	"SSD1306 / SH1106", "128x32 / 128x64 OLED",
+	"SSD1306 / SH1106 OLED",
+	{ 21, 4 },
+	{ 128, 64 },
+	1,
 	init,
 	begin,
 	output,

@@ -2391,7 +2391,10 @@ config_error:
 
 roflash const display_info_t display_info_eastrising =
 {
-	"eastrising TFT", "480x272 LCD",
+	"Eastrising TFT LCD",
+	{ 25, 8 },
+	{ 480, 272 },
+	12,
 	init,
 	begin,
 	output,

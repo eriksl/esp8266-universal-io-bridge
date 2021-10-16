@@ -10866,3 +10866,27 @@ Sat Oct 16 14:45:42 CEST 2021 ecea730 display: move jump tables from display.c t
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71585, free:   8680, 10 %
     irom:    available: 592 k, used: 433256, free: 172952, 28 %
+Sat Oct 16 15:05:39 CEST 2021 d5cc19e display: change <<output>> function api so whole unicode strings can be sent.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433416, free: 172792, 28 %
+Sat Oct 16 15:08:35 CEST 2021 d5cc19e display: change <<output>> function api so whole unicode strings can be sent.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433544, free: 172664, 28 %
+Sat Oct 16 15:16:57 CEST 2021 d5cc19e display: change <<output>> function api so whole unicode strings can be sent.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433496, free: 172712, 28 %
+Sat Oct 16 15:19:29 CEST 2021 d5cc19e display: change <<output>> function api so whole unicode strings can be sent.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433560, free: 172648, 28 %
+Sat Oct 16 15:23:52 CEST 2021 8d860ae display: improve display information struct.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433528, free: 172680, 28 %
+Sat Oct 16 15:25:14 CEST 2021 8d860ae display: improve display information struct.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433544, free: 172664, 28 %

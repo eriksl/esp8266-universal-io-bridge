@@ -650,7 +650,10 @@ error:
 
 roflash const display_info_t display_info_seeed =
 {
-	"seeed LCD", "128x64 LCD",
+	"SEEED LCD",
+	{ 128, 64 },
+	{ 21, 8 },
+	1,
 	init,
 	begin,
 	output,

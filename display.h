@@ -20,28 +20,38 @@ extern uint8_t display_buffer[display_buffer_size];
 
 typedef const struct
 {
-	const char *	const name;
-	const char *	const description;
-	bool			(* const init_fn)(void);
-	bool			(* const begin_fn)(unsigned int slot, bool logmode);
-	bool			(* const output_fn)(unsigned int amount, const unsigned int unicode[]);
-	bool			(* const end_fn)(void);
-	bool			(* const bright_fn)(int brightness);
-	bool			(* const standout_fn)(bool);
-	bool			(* const periodic_fn)(void);
-	bool			(* const picture_load_fn)(unsigned int);
-	bool			(* const layer_select_fn)(unsigned int);
-	bool			(* const show_time_start_fn)(unsigned int, unsigned int);
-	bool			(* const show_time_stop_fn)(void);
-	bool			(* const canvas_start_fn)(unsigned int timeout);
-	bool			(* const canvas_goto_fn)(unsigned int x, unsigned int y);
-	bool			(* const canvas_plot_fn)(const string_t *pixels);
-	bool			(* const canvas_show_fn)(void);
-	bool			(* const canvas_stop_fn)(void);
-	bool			(* const picture_valid_fn)(void);
+	const char 			*const name;
+	const struct
+	{
+		unsigned int	x;
+		unsigned int 	y;
+	} graphic_dimensions;
+	const struct
+	{
+		unsigned int	columns;
+		unsigned int	rows;
+	} text_dimensions;
+	const unsigned int	colour_depth;
+	bool				(* const init_fn)(void);
+	bool				(* const begin_fn)(unsigned int slot, bool logmode);
+	bool				(* const output_fn)(unsigned int amount, const unsigned int unicode[]);
+	bool				(* const end_fn)(void);
+	bool				(* const bright_fn)(int brightness);
+	bool				(* const standout_fn)(bool);
+	bool				(* const periodic_fn)(void);
+	bool				(* const picture_load_fn)(unsigned int);
+	bool				(* const layer_select_fn)(unsigned int);
+	bool				(* const show_time_start_fn)(unsigned int, unsigned int);
+	bool				(* const show_time_stop_fn)(void);
+	bool				(* const canvas_start_fn)(unsigned int timeout);
+	bool				(* const canvas_goto_fn)(unsigned int x, unsigned int y);
+	bool				(* const canvas_plot_fn)(const string_t *pixels);
+	bool				(* const canvas_show_fn)(void);
+	bool				(* const canvas_stop_fn)(void);
+	bool				(* const picture_valid_fn)(void);
 } display_info_t;
 
-assert_size(display_info_t, 76);
+assert_size(display_info_t, 92);
 
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);
 app_action_t application_function_display_dump(string_t *src, string_t *dst);

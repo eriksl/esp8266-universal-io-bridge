@@ -230,7 +230,10 @@ static bool end(void)
 
 roflash const display_info_t display_info_saa1064 =
 {
-	"saa1064", "4 digit led display",
+	"SAA1064 4 digit LED",
+	{ 0, 0 },
+	{ 4, 1 },
+	1,
 	init,
 	begin,
 	output,

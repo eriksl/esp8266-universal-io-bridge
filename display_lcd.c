@@ -1058,7 +1058,10 @@ static bool stop_show_time(void)
 
 roflash const display_info_t display_info_lcd =
 {
-	"hd44780", "4x20 character LCD",
+	"HD44780 based LCD",
+	{ 0, 0 },
+	{ 20, 4 },
+	1,
 	init,
 	begin,
 	output,

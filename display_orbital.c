@@ -740,7 +740,10 @@ static bool stop_show_time(void)
 
 roflash const display_info_t display_info_orbital =
 {
-	"matrix orbital", "4x20 character VFD",
+	"MATRIX Orbital VFD",
+	{ 0, 0 },
+	{ 20, 4 },
+	1,
 	init,
 	begin,
 	output,
