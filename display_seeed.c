@@ -490,42 +490,52 @@ static bool begin(unsigned int select_slot, bool logmode)
 	return(true);
 }
 
-static bool output(unsigned int unicode)
+static bool output(unsigned int length, const unsigned int unicode[])
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
+	unsigned int current_index, current;
 
 	if(display_disable_text)
 		return(true);
 
-	if(unicode == '\n')
-		return(text_newline());
-
-	if((display_y >= text_height()) || (display_x >= display_text_width))
-		return(true);
-
-	for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-		if(unicode_map_ptr->unicode == unicode)
+	for(current_index = 0; current_index < length; current_index++)
+	{
+		if(current == '\n')
 		{
-			unicode = unicode_map_ptr->internal;
-			if(!text_send(unicode))
+			if(!text_newline())
 				return(false);
-			return(true);
+
+			continue;
 		}
 
-	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-		if((udg_map_ptr->unicode == unicode))
-		{
-			if(!udg_send(udg_map_ptr->internal))
-				return(false);
+		if((display_y >= text_height()) || (display_x >= display_text_width))
 			return(true);
-		}
 
-	if((unicode < ' ') || (unicode > '}'))
-		unicode = ' ';
+		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+			if(unicode_map_ptr->unicode == current)
+			{
+				if(!text_send(unicode_map_ptr->internal))
+					return(false);
 
-	if(!text_send(unicode))
-		return(false);
+				continue;
+			}
+
+		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+			if((udg_map_ptr->unicode == current))
+			{
+				if(!udg_send(udg_map_ptr->internal))
+					return(false);
+
+				continue;
+			}
+
+		if((current < ' ') || (current > '}'))
+			current = ' ';
+
+		if(!text_send(current))
+			return(false);
+	}
 
 	return(true);
 }

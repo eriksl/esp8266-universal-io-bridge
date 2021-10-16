@@ -399,38 +399,49 @@ static bool begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-static bool output(unsigned int unicode)
+static bool output(unsigned int length, const unsigned int unicode[])
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
+	unsigned int current_index, current;
 
-	if(unicode == '\n')
-		return(text_newline());
-
-	if((display_y < display_text_height) && (display_x < display_text_width))
+	for(current_index = 0; current_index < length; current_index++)
 	{
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				if(!text_send(unicode))
-					return(false);
-				return(true);
-			}
+		current = unicode[current_index];
 
-		for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-			if((udg_map_ptr->unicode == unicode))
-			{
-				unicode = udg_map_ptr->internal;
-				if(!text_send(unicode))
-					return(false);
-				return(true);
-			}
+		if(current == '\n')
+		{
+			if(!text_newline())
+				return(false);
 
-		if((unicode < ' ') || (unicode > '}'))
-			unicode = ' ';
+			continue;
+		}
 
-		uart_send(display_uart, unicode);
+		if((display_y < display_text_height) && (display_x < display_text_width))
+		{
+			for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+				if(unicode_map_ptr->unicode == current)
+				{
+					if(!text_send(unicode_map_ptr->internal))
+						return(false);
+
+					continue;
+				}
+
+			for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+				if((udg_map_ptr->unicode == current))
+				{
+					if(!text_send(udg_map_ptr->internal))
+						return(false);
+
+					continue;
+				}
+
+			if((current < ' ') || (current > '}'))
+				current = ' ';
+
+			uart_send(display_uart, current);
+		}
 	}
 
 	return(true);

@@ -720,50 +720,59 @@ static bool begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-static bool output(unsigned int unicode)
+static bool output(unsigned int length, const unsigned int unicode[])
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
+	unsigned int current_index, current;
 
 	if(display_disable_text)
 		return(true);
 
-	if(unicode == '\n')
-		return(text_newline());
-
-	if((display_y < display_text_height) && (display_x < display_text_width))
+	for(current_index = 0; current_index < length; current_index++)
 	{
-		for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				if(!text_send(unicode))
-					return(false);
-				return(true);
-			}
-
-		for(udg_map_ptr = udg_generic_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-			if((udg_map_ptr->unicode == unicode))
-			{
-				unicode = udg_map_ptr->internal;
-				if(!text_send(unicode))
-					return(false);
-				return(true);
-			}
-
-		if((unicode < ' ') || (unicode > '}'))
-			unicode = ' ';
-
-		if(!text_send(unicode))
-			return(false);
-
-		if((display_y == (display_text_height - 1)) && (display_x == display_text_width)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
+		if(current == '\n')
 		{
-			if(!text_goto(display_x - 1, -1))
+			if(!text_newline())
 				return(false);
 
-			if(!text_send(unicode))
+			continue;
+		}
+
+		if((display_y < display_text_height) && (display_x < display_text_width))
+		{
+			for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+				if(unicode_map_ptr->unicode == current)
+				{
+					if(!text_send(unicode_map_ptr->internal))
+						return(false);
+
+					continue;
+				}
+
+			for(udg_map_ptr = udg_generic_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+				if((udg_map_ptr->unicode == current))
+				{
+					if(!text_send(udg_map_ptr->internal))
+						return(false);
+
+					continue;
+				}
+
+			if((current < ' ') || (current > '}'))
+				current = ' ';
+
+			if(!text_send(current))
 				return(false);
+
+			if((display_y == (display_text_height - 1)) && (display_x == display_text_width)) // workaround for bug in some LCD controllers that need last row/column to be sent twice
+			{
+				if(!text_goto(display_x - 1, -1))
+					return(false);
+
+				if(!text_send(current))
+					return(false);
+			}
 		}
 	}
 

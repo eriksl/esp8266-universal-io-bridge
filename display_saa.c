@@ -188,13 +188,20 @@ static bool begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-static bool output(unsigned int unicode)
+static bool output(unsigned int length, const unsigned int unicode[])
 {
-	if((unicode == '.') && (display_buffer_index > 0))
-		display_buffer[display_buffer_index - 1] |= 0x80;
-	else
-		if(display_buffer_index < 4)
-			display_buffer[display_buffer_index++] = unicode & 0x7f;
+	unsigned int current_index, current;
+
+	for(current_index = 0; current_index < length; current_index++)
+	{
+		current = unicode[current_index];
+
+		if((current == '.') && (display_buffer_index > 0))
+			display_buffer[display_buffer_index - 1] |= 0x80;
+		else
+			if(display_buffer_index < 4)
+				display_buffer[display_buffer_index++] = current & 0x7f;
+	}
 
 	return(true);
 }

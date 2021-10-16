@@ -1897,77 +1897,88 @@ typedef enum
 	map_font_external
 } map_t;
 
-static bool output(unsigned int unicode)
+static bool output(unsigned int length, const unsigned int unicode[])
 {
 	const unicode_map_t *unicode_map_ptr = (unicode_map_t *)0;
 	bool mapped = false;
+	unsigned int current_index, current;
 
 	if(display_locked_ms > 0)
 		return(true);
 
-	if(unicode == '\n')
-		return(display_newline());
-
-	if((display_y < text_lines()) && (display_x < text_width()))
+	for(current_index = 0; current_index < length; current_index++)
 	{
-		switch(display_render_mode())
+		current = unicode[current_index];
+
+		if(current == '\n')
 		{
-			case(render_mode_internal):	unicode_map_ptr = unicode_map_internal_font; break;
-			case(render_mode_fontchip):	unicode_map_ptr = unicode_map_external_font_chip; break;
-			case(render_mode_graphic):	unicode_map_ptr = (unicode_map_t *)0; break;
+			if(!display_newline())
+				return(false);
+
+			continue;
 		}
 
-		for(; unicode_map_ptr && (unicode_map_ptr->unicode != mapeof); unicode_map_ptr++)
-			if(unicode_map_ptr->unicode == unicode)
-			{
-				unicode = unicode_map_ptr->internal;
-				mapped = true;
-				break;
-			}
-
-		switch(display_render_mode())
+		if((display_y < text_lines()) && (display_x < text_width()))
 		{
-			case(render_mode_internal):
+			switch(display_render_mode())
 			{
-				if(mapped)
-					display_data_output(unicode);
-				else
-					if((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff))
-						display_data_output(' ');
-					else
-						display_data_output(unicode);
-
-				break;
+				case(render_mode_internal):	unicode_map_ptr = unicode_map_internal_font; break;
+				case(render_mode_fontchip):	unicode_map_ptr = unicode_map_external_font_chip; break;
+				case(render_mode_graphic):	unicode_map_ptr = (unicode_map_t *)0; break;
 			}
 
-			case(render_mode_fontchip):
-			{
-				if(mapped)
+			for(; unicode_map_ptr && (unicode_map_ptr->unicode != mapeof); unicode_map_ptr++)
+				if(unicode_map_ptr->unicode == current)
 				{
-					if((unicode & 0xff00) != 0x0000)
-						display_data_output((unicode & 0xff00) >> 8);
-
-					display_data_output((unicode & 0x00ff) >> 0);
+					current = unicode_map_ptr->internal;
+					mapped = true;
+					break;
 				}
-				else
-					if((unicode < ' ') || ((unicode > '}') && (unicode < 0xa1)) || (unicode > 0xff))
-						display_data_output(' ');
-					else
-						display_data_output((unicode & 0x00ff) >> 0);
 
-				break;
-			}
-
-			case(render_mode_graphic):
+			switch(display_render_mode())
 			{
-				display_data_output((unicode & 0xff00) >> 8);
-				display_data_output((unicode & 0x00ff) >> 0);
+				case(render_mode_internal):
+				{
+					if(mapped)
+						display_data_output(current);
+					else
+						if((current < ' ') || ((current > '}') && (current < 0xa1)) || (current > 0xff))
+							display_data_output(' ');
+						else
+							display_data_output(current);
 
-				break;
+					break;
+				}
+
+				case(render_mode_fontchip):
+				{
+					if(mapped)
+					{
+						if((current & 0xff00) != 0x0000)
+							display_data_output((current & 0xff00) >> 8);
+
+						display_data_output((current & 0x00ff) >> 0);
+					}
+					else
+						if((current < ' ') || ((current > '}') && (current < 0xa1)) || (current > 0xff))
+							display_data_output(' ');
+						else
+							display_data_output((current & 0x00ff) >> 0);
+
+					break;
+				}
+
+				case(render_mode_graphic):
+				{
+					display_data_output((current & 0xff00) >> 8);
+					display_data_output((current & 0x00ff) >> 0);
+
+					break;
+				}
 			}
-		}
 
-		display_x++;
+			display_x++;
+		}
 	}
 
 	return(true);

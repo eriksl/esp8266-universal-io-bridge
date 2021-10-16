@@ -51,11 +51,11 @@ roflash static display_info_t const *const display_info[] =
 };
 
 static const display_info_t *display_info_active = (const display_info_t *)0;
-
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static unsigned int flip_timeout;
 static display_slot_t display_slot[display_slot_amount];
 static unsigned int display_layer = 0;
+static roflash const unsigned int unicode_newline[1] = { '\n' };
 
 assert_size(display_slot, 832);
 
@@ -187,16 +187,13 @@ active_slot_found:
 
 		length = utf8_to_unicode(string_to_cstr(&tag_string), sizeof(unicode) / sizeof(*unicode), unicode);
 
-		for(unsigned int ix = 0; ix < length; ix++)
+		if(!display_info_active->output_fn(length, unicode))
 		{
-			if(!display_info_active->output_fn(unicode[ix]))
-			{
-				log("display update: display output (0) failed\n");
-				goto error;
-			}
+			log("display update: display output (0) failed\n");
+			goto error;
 		}
 
-		if(!display_info_active->output_fn('\n'))
+		if(!display_info_active->output_fn(1, unicode_newline))
 		{
 			log("display update: display output (1) failed\n");
 			goto error;
@@ -210,13 +207,10 @@ active_slot_found:
 
 		length = utf8_to_unicode(slot_content, sizeof(unicode) / sizeof(*unicode), unicode);
 
-		for(unsigned int ix = 0; ix < length; ix++)
+		if(!display_info_active->output_fn(length, unicode))
 		{
-			if(!display_info_active->output_fn(unicode[ix]))
-			{
-				log("display update: display output (2) failed\n");
-				goto error;
-			}
+			log("display update: display output (2) failed\n");
+			goto error;
 		}
 
 		if(!display_info_active->end_fn())
@@ -251,6 +245,7 @@ void display_periodic(void) // gets called 10 times per second
 	static bool display_initial_log_active = true;
 	static unsigned int display_initial_log_counter = 0;
 	bool log_to_display;
+	unsigned int unicode;
 
 	if(!display_detected())
 		return;
@@ -287,7 +282,23 @@ void display_periodic(void) // gets called 10 times per second
 
 			if(skip == 0)
 			{
-				if(!display_info_active->output_fn(current))
+				switch(current)
+				{
+					case '\n':
+					case ' ' ... '}':
+					{
+						unicode = current;
+						break;
+					}
+
+					default:
+					{
+						unicode = '*';
+						break;
+					}
+				}
+
+				if(!display_info_active->output_fn(1, &unicode))
 				{
 					log("display update: display output (3) failed\n");
 					goto error;

@@ -24,7 +24,7 @@ typedef const struct
 	const char *	const description;
 	bool			(* const init_fn)(void);
 	bool			(* const begin_fn)(unsigned int slot, bool logmode);
-	bool			(* const output_fn)(unsigned int);
+	bool			(* const output_fn)(unsigned int amount, const unsigned int unicode[]);
 	bool			(* const end_fn)(void);
 	bool			(* const bright_fn)(int brightness);
 	bool			(* const standout_fn)(bool);
