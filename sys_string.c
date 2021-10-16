@@ -314,7 +314,7 @@ parse_error_t parse_string(int index, const string_t *src, string_t *dst, char d
 		if(current == delimiter)
 			break;
 
-		if((current > ' ') && (current <= '~'))
+		if((current != '\r') && (current != '\n'))
 			string_append_char(dst, current);
 	}
 

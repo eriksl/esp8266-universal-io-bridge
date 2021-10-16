@@ -73,6 +73,8 @@ extern string_t logbuffer;
 extern unsigned int logbuffer_display_current;
 void logbuffer_clear(void);
 
+attr_result_used unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned int *dst);
+
 void attr_nonnull log_from_flash_0(const char *f);
 void attr_nonnull log_from_flash_n(const char *f, ...) __attribute__ ((format (printf, 1, 2)));
 

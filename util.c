@@ -214,6 +214,95 @@ void power_save_enable(bool enable)
 		wifi_set_sleep_type(NONE_SLEEP_T);
 }
 
+unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned int *dst)
+{
+	enum
+	{
+		u8p_state_base = 0,
+		u8p_state_utf8_byte_3 = 1,
+		u8p_state_utf8_byte_2 = 2,
+		u8p_state_utf8_byte_1 = 3,
+		u8p_state_done = 4
+	} state;
+
+	unsigned int src_current;
+	unsigned int src_index;
+	unsigned int dst_index;
+	unsigned int unicode;
+
+	for(src_index = 0, dst_index = 0, state = u8p_state_base, unicode = 0; src && dst && (dst_index < dst_size) && src[src_index]; src_index++)
+	{
+		src_current = (unsigned int)src[src_index];
+
+		switch(state)
+		{
+			case u8p_state_base:
+			{
+				if((src_current & 0xe0) == 0xc0) // first of two bytes (11 bits)
+				{
+					unicode = src_current & 0x1f;
+					state = u8p_state_utf8_byte_1;
+					continue;
+				}
+				else
+					if((src_current & 0xf0) == 0xe0) // first of three bytes (16 bits)
+					{
+						unicode = src_current & 0x0f;
+						state = u8p_state_utf8_byte_2;
+						continue;
+					}
+					else
+						if((src_current & 0xf8) == 0xf0) // first of four bytes (21 bits)
+						{
+							unicode = src_current & 0x07;
+							state = u8p_state_utf8_byte_3;
+							continue;
+						}
+						else
+							if((src_current & 0x80) == 0x80)
+							{
+								log("utf8 parser: invalid utf8, bit 7 set: %x %c\n", src_current, (int)src_current);
+								unicode = '*';
+							}
+							else
+								unicode = src_current & 0x7f;
+
+				break;
+			}
+
+			case u8p_state_utf8_byte_3 ... u8p_state_utf8_byte_1:
+			{
+				if((src_current & 0xc0) == 0x80) // following bytes
+				{
+					unicode = (unicode << 6) | (src_current & 0x3f);
+
+					if(++state != u8p_state_done)
+						continue;
+				}
+				else
+				{
+					log("utf8 parser: invalid utf8, no prefix on following byte, state: %u: %x %c\n", state, src_current, (int)src_current);
+					unicode = '*';
+				}
+
+				break;
+			}
+
+			default:
+			{
+				log("utf8 parser: invalid state %u\n", state);
+				unicode = '*';
+			}
+		}
+
+		dst[dst_index++] = unicode;
+		unicode = 0;
+		state = u8p_state_base;
+	}
+
+	return(dst_index);
+}
+
 // missing from libc
 
 void *_malloc_r(struct _reent *r, size_t sz)
