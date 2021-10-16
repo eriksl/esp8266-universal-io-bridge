@@ -229,6 +229,8 @@ static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
 static unsigned int display_picture_load_flash_sector;
 
+static const char pbm_header[] = "P4\n128 64\n";
+
 attr_inline unsigned int text_height(void)
 {
 	if(display_logmode)
@@ -364,112 +366,14 @@ static bool attr_result_used udg_send(unsigned int udg)
 	return(true);
 }
 
-bool display_seeed_init(void)
+static bool standout(bool onoff)
 {
-	if(!display_data_flush()) // init data buffer
-		return(false);
+	unsigned int value = render_manualnl_autoincr | font_6x8 | (onoff ? charmode_white_inc_background : charmode_black_inc_background);
 
-	if(!display_seeed_standout(0))
-		return(false);
-
-	if(i2c_send2(display_address, reg_CursorConfigRegAddr, cursor_off | 0) != i2c_error_ok)
-		return(false);
-
-	if(i2c_send2(display_address, reg_DisplayConfigRegAddr, display_mode_normal) != i2c_error_ok)
-		return(false);
-
-	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
-		return(false);
-
-	if(!display_seeed_picture_load(0))
-		return(false);
-
-	if(!display_seeed_bright(1))
-		return(false);
-
-	display_inited = true;
-
-	return(true);
+	return(i2c_send2(display_address, reg_FontModeRegAddr, value) == i2c_error_ok);
 }
 
-bool display_seeed_begin(unsigned int select_slot, bool logmode)
-{
-	static unsigned int counter = 0;
-
-	if(!display_inited)
-	{
-		log("! display seeed not inited\n");
-		return(false);
-	}
-
-	if(display_disable_text)
-		return(true);
-
-	display_logmode = logmode;
-	display_slot_offset = (counter++) & 0x01 ? 1 : 0;
-
-	if(!text_goto(0, 0))
-		return(false);
-
-	return(true);
-}
-
-bool display_seeed_output(unsigned int unicode)
-{
-	const unicode_map_t *unicode_map_ptr;
-	const udg_map_t *udg_map_ptr;
-
-	if(display_disable_text)
-		return(true);
-
-	if(unicode == '\n')
-		return(text_newline());
-
-	if((display_y >= text_height()) || (display_x >= display_text_width))
-		return(true);
-
-	for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
-		if(unicode_map_ptr->unicode == unicode)
-		{
-			unicode = unicode_map_ptr->internal;
-			if(!text_send(unicode))
-				return(false);
-			return(true);
-		}
-
-	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
-		if((udg_map_ptr->unicode == unicode))
-		{
-			if(!udg_send(udg_map_ptr->internal))
-				return(false);
-			return(true);
-		}
-
-	if((unicode < ' ') || (unicode > '}'))
-		unicode = ' ';
-
-	if(!text_send(unicode))
-		return(false);
-
-	return(true);
-}
-
-bool display_seeed_end(void)
-{
-	if(display_disable_text)
-		return(true);
-
-	while(display_y < text_height())
-		if(!text_newline())
-			break;
-
-	if(!display_data_flush())
-		return(false);
-
-	return(true);
-}
-
-bool display_seeed_bright(int brightness)
+static bool bright(int brightness)
 {
 	roflash static const unsigned int bright_to_internal[5][2] =
 	{
@@ -492,16 +396,7 @@ bool display_seeed_bright(int brightness)
 	return(true);
 }
 
-bool display_seeed_standout(bool onoff)
-{
-	unsigned int value = render_manualnl_autoincr | font_6x8 | (onoff ? charmode_white_inc_background : charmode_black_inc_background);
-
-	return(i2c_send2(display_address, reg_FontModeRegAddr, value) == i2c_error_ok);
-}
-
-static const char pbm_header[] = "P4\n128 64\n";
-
-bool display_seeed_picture_load(unsigned int picture_load_index)
+static bool picture_load(unsigned int picture_load_index)
 {
 	bool success = false;
 
@@ -544,12 +439,118 @@ error:
 	return(success);
 }
 
-bool display_seeed_picture_valid(void)
+
+static bool init(void)
+{
+	if(!display_data_flush()) // init data buffer
+		return(false);
+
+	if(!standout(0))
+		return(false);
+
+	if(i2c_send2(display_address, reg_CursorConfigRegAddr, cursor_off | 0) != i2c_error_ok)
+		return(false);
+
+	if(i2c_send2(display_address, reg_DisplayConfigRegAddr, display_mode_normal) != i2c_error_ok)
+		return(false);
+
+	if(i2c_send2(display_address, reg_WorkingModeRegAddr, workmode_extra | workmode_char | workmode_backlight_on | workmode_logo_off) != i2c_error_ok)
+		return(false);
+
+	if(!picture_load(0))
+		return(false);
+
+	if(!bright(1))
+		return(false);
+
+	display_inited = true;
+
+	return(true);
+}
+
+static bool begin(unsigned int select_slot, bool logmode)
+{
+	static unsigned int counter = 0;
+
+	if(!display_inited)
+	{
+		log("! display seeed not inited\n");
+		return(false);
+	}
+
+	if(display_disable_text)
+		return(true);
+
+	display_logmode = logmode;
+	display_slot_offset = (counter++) & 0x01 ? 1 : 0;
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	return(true);
+}
+
+static bool output(unsigned int unicode)
+{
+	const unicode_map_t *unicode_map_ptr;
+	const udg_map_t *udg_map_ptr;
+
+	if(display_disable_text)
+		return(true);
+
+	if(unicode == '\n')
+		return(text_newline());
+
+	if((display_y >= text_height()) || (display_x >= display_text_width))
+		return(true);
+
+	for(unicode_map_ptr = unicode_map; unicode_map_ptr->unicode != mapeof; unicode_map_ptr++)
+		if(unicode_map_ptr->unicode == unicode)
+		{
+			unicode = unicode_map_ptr->internal;
+			if(!text_send(unicode))
+				return(false);
+			return(true);
+		}
+
+	for(udg_map_ptr = udg_map; udg_map_ptr->unicode != mapeof; udg_map_ptr++)
+		if((udg_map_ptr->unicode == unicode))
+		{
+			if(!udg_send(udg_map_ptr->internal))
+				return(false);
+			return(true);
+		}
+
+	if((unicode < ' ') || (unicode > '}'))
+		unicode = ' ';
+
+	if(!text_send(unicode))
+		return(false);
+
+	return(true);
+}
+
+static bool end(void)
+{
+	if(display_disable_text)
+		return(true);
+
+	while(display_y < text_height())
+		if(!text_newline())
+			break;
+
+	if(!display_data_flush())
+		return(false);
+
+	return(true);
+}
+
+static bool picture_valid(void)
 {
 	return(display_picture_valid);
 }
 
-bool display_seeed_layer_select(unsigned int layer)
+static bool layer_select(unsigned int layer)
 {
 	bool success = false;
 	unsigned int row, column, output, bit, offset, bitoffset;
@@ -636,3 +637,25 @@ error:
 		return(false);
 	return(success);
 }
+
+roflash const display_info_t display_info_seeed =
+{
+	"seeed LCD", "128x64 LCD",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	standout,
+	(void *)0,
+	picture_load,
+	layer_select,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	picture_valid
+};

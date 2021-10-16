@@ -27,51 +27,7 @@ enum
 	display_slot_content_size = (display_slot_content_lines * (display_slot_content_line_length + 1)),
 };
 
-enum
-{
-	display_saa1064 = 0,
-	display_lcd = 1,
-	display_orbital = 2,
-	display_cfa634 = 3,
-	display_seeed = 4,
-	display_eastrising = 5,
-	display_ssd1306 = 6,
-	display_error,
-	display_size = display_error
-};
-
-typedef const struct
-{
-	const char *	const name;
-	const char *	const description;
-	bool			(* const init_fn)(void);
-	bool			(* const begin_fn)(unsigned int slot, bool logmode);
-	bool			(* const output_fn)(unsigned int);
-	bool			(* const end_fn)(void);
-	bool			(* const bright_fn)(int brightness);
-	bool			(* const standout_fn)(bool);
-	bool			(* const periodic_fn)(void);
-	bool			(* const picture_load_fn)(unsigned int);
-	bool			(* const layer_select_fn)(unsigned int);
-	bool			(* const show_time_start_fn)(unsigned int, unsigned int);
-	bool			(* const show_time_stop_fn)(void);
-	bool			(* const canvas_start_fn)(unsigned int timeout);
-	bool			(* const canvas_goto_fn)(unsigned int x, unsigned int y);
-	bool			(* const canvas_plot_fn)(const string_t *pixels);
-	bool			(* const canvas_show_fn)(void);
-	bool			(* const canvas_stop_fn)(void);
-	bool			(* const picture_valid_fn)(void);
-} display_info_t;
-
-assert_size(display_info_t, 76);
-
-typedef struct
-{
-	int				detected;
-	unsigned int	current_slot;
-} display_data_t;
-
-assert_size(display_data_t, 8);
+static unsigned int display_current_slot;
 
 typedef struct
 {
@@ -82,153 +38,22 @@ typedef struct
 
 assert_size(display_slot_t, 104);
 
-roflash static display_info_t display_info[display_size] =
+roflash static display_info_t const *const display_info[] =
 {
-	{
-		"saa1064", "4 digit led display",
-		display_saa1064_init,
-		display_saa1064_begin,
-		display_saa1064_output,
-		display_saa1064_end,
-		display_saa1064_bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	},
-	{
-		"hd44780", "4x20 character LCD",
-		display_lcd_init,
-		display_lcd_begin,
-		display_lcd_output,
-		display_lcd_end,
-		display_lcd_bright,
-		(void *)0,
-		(void *)0,
-		display_lcd_picture_load,
-		display_lcd_layer_select,
-		display_lcd_start_show_time,
-		display_lcd_stop_show_time,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		display_lcd_picture_valid,
-	},
-	{
-		"matrix orbital", "4x20 character VFD",
-		display_orbital_init,
-		display_orbital_begin,
-		display_orbital_output,
-		display_orbital_end,
-		display_orbital_bright,
-		(void *)0,
-		(void *)0,
-		display_orbital_picture_load,
-		display_orbital_layer_select,
-		display_orbital_start_show_time,
-		display_orbital_stop_show_time,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		display_orbital_picture_valid,
-	},
-	{
-		"cfa634", "4x20 character LCD",
-		display_cfa634_init,
-		display_cfa634_begin,
-		display_cfa634_output,
-		display_cfa634_end,
-		display_cfa634_bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	},
-	{
-		"seeed LCD", "128x64 LCD",
-		display_seeed_init,
-		display_seeed_begin,
-		display_seeed_output,
-		display_seeed_end,
-		display_seeed_bright,
-		display_seeed_standout,
-		(void *)0,
-		display_seeed_picture_load,
-		display_seeed_layer_select,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		display_seeed_picture_valid,
-	},
-	{
-		"eastrising TFT", "480x272 LCD",
-		display_eastrising_init,
-		display_eastrising_begin,
-		display_eastrising_output,
-		display_eastrising_end,
-		display_eastrising_bright,
-		(void *)0,
-		display_eastrising_periodic,
-		display_eastrising_picture_load,
-		display_eastrising_layer_select,
-		(void *)0,
-		(void *)0,
-		display_eastrising_canvas_start,
-		display_eastrising_canvas_goto,
-		display_eastrising_canvas_plot,
-		display_eastrising_canvas_show,
-		display_eastrising_canvas_stop,
-		display_eastrising_picture_valid,
-	},
-	{
-		"SSD1306 / SH1106", "128x32 / 128x64 OLED",
-		display_ssd1306_init,
-		display_ssd1306_begin,
-		display_ssd1306_output,
-		display_ssd1306_end,
-		display_ssd1306_bright,
-		display_ssd1306_standout,
-		(void *)0,
-		display_ssd1306_picture_load,
-		display_ssd1306_layer_select,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	},
+	&display_info_saa1064,
+	&display_info_lcd,
+	&display_info_orbital,
+	&display_info_cfa,
+	&display_info_seeed,
+	&display_info_eastrising,
+	&display_info_ssd1306,
+	(const display_info_t *)0
 };
+
+static const display_info_t *display_info_active = (const display_info_t *)0;
 
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static unsigned int flip_timeout;
-static display_data_t display_data;
 static display_slot_t display_slot[display_slot_amount];
 static unsigned int display_layer = 0;
 
@@ -236,7 +61,7 @@ assert_size(display_slot, 832);
 
 attr_pure bool display_detected(void)
 {
-	return(display_data.detected >= 0);
+	return(!!display_info_active);
 }
 
 static void display_update(bool dont_advance)
@@ -244,7 +69,6 @@ static void display_update(bool dont_advance)
 	const char *slot_content;
 	unsigned int attempt;
 	uint64_t start, spent;
-	display_info_t *display_info_entry;
 	string_new(, tag_string, display_slot_content_line_length * 2);
 	string_new(, info_text, display_slot_content_size * 2);
 	unsigned int unicode[display_slot_content_size];
@@ -256,9 +80,7 @@ static void display_update(bool dont_advance)
 
 	start = time_get_us();
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(config_flags_match(flag_display_clock) && display_info_entry->show_time_start_fn && display_info_entry->show_time_stop_fn)
+	if(config_flags_match(flag_display_clock) && display_info_active->show_time_start_fn && display_info_active->show_time_stop_fn)
 	{
 		static bool time_shown = false;
 
@@ -268,7 +90,7 @@ static void display_update(bool dont_advance)
 
 			time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
 
-			if(!display_info_entry->show_time_start_fn(h, m))
+			if(!display_info_active->show_time_start_fn(h, m))
 			{
 				log("display update: show time start failed\n");
 				goto error;
@@ -279,7 +101,7 @@ static void display_update(bool dont_advance)
 		}
 		else
 		{
-			if(!display_info_entry->show_time_stop_fn())
+			if(!display_info_active->show_time_stop_fn())
 			{
 				log("display update: time show stop failed\n");
 				goto error;
@@ -293,33 +115,33 @@ static void display_update(bool dont_advance)
 	{
 		if(!dont_advance)
 		{
-			display_data.current_slot++;
+			display_current_slot++;
 			dont_advance = false;
 		}
 
 		for(run = 0; run < 2; run++)
 		{
-			for(; display_data.current_slot < display_slot_amount; display_data.current_slot++)
-				if(display_slot[display_data.current_slot].content[0])
+			for(; display_current_slot < display_slot_amount; display_current_slot++)
+				if(display_slot[display_current_slot].content[0])
 					goto active_slot_found;
 
-			display_data.current_slot = 0;
+			display_current_slot = 0;
 		}
 
-		display_data.current_slot = 0;
+		display_current_slot = 0;
 
 active_slot_found:
-		slot_content = display_slot[display_data.current_slot].content;
+		slot_content = display_slot[display_current_slot].content;
 
 		if(!strcmp(slot_content, "picture") &&
-			!strcmp(display_slot[display_data.current_slot].tag, "picture"))
+			!strcmp(display_slot[display_current_slot].tag, "picture"))
 
 		{
-			if(display_info_entry->layer_select_fn &&
-				display_info_entry->picture_valid_fn &&
-				display_info_entry->picture_valid_fn())
+			if(display_info_active->layer_select_fn &&
+				display_info_active->picture_valid_fn &&
+				display_info_active->picture_valid_fn())
 			{
-				if(!display_info_entry->layer_select_fn(1))
+				if(!display_info_active->layer_select_fn(1))
 				{
 					log("display update: display layer select (1) failed\n");
 					goto error;
@@ -331,7 +153,7 @@ active_slot_found:
 			continue;
 		}
 
-		if(display_info_entry->layer_select_fn && !display_info_entry->layer_select_fn(0))
+		if(display_info_active->layer_select_fn && !display_info_active->layer_select_fn(0))
 		{
 			log("display update: display layer select (2) failed\n");
 			goto error;
@@ -340,7 +162,7 @@ active_slot_found:
 		if(!strcmp(slot_content, "%%%%"))
 		{
 			config_get_string("identification", &info_text, -1, -1);
-			string_format(&info_text, "\n%s\n%s", display_info_entry->name, display_info_entry->description);
+			string_format(&info_text, "\n%s\n%s", display_info_active->name, display_info_active->description);
 			slot_content = string_to_cstr(&info_text);
 		}
 
@@ -349,15 +171,15 @@ active_slot_found:
 		string_clear(&tag_string);
 		time_get(&hour, &minute, 0, 0, &month, &day);
 		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_append_cstr_flash(&tag_string, display_slot[display_data.current_slot].tag);
+		string_append_cstr_flash(&tag_string, display_slot[display_current_slot].tag);
 
-		if(!display_info_entry->begin_fn(display_data.current_slot, false))
+		if(!display_info_active->begin_fn(display_current_slot, false))
 		{
 			log("display update: display begin failed\n");
 			goto error;
 		}
 
-		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(1))
+		if(display_info_active->standout_fn && !display_info_active->standout_fn(1))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -367,20 +189,20 @@ active_slot_found:
 
 		for(unsigned int ix = 0; ix < length; ix++)
 		{
-			if(!display_info_entry->output_fn(unicode[ix]))
+			if(!display_info_active->output_fn(unicode[ix]))
 			{
 				log("display update: display output (0) failed\n");
 				goto error;
 			}
 		}
 
-		if(!display_info_entry->output_fn('\n'))
+		if(!display_info_active->output_fn('\n'))
 		{
 			log("display update: display output (1) failed\n");
 			goto error;
 		}
 
-		if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+		if(display_info_active->standout_fn && !display_info_active->standout_fn(0))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -390,14 +212,14 @@ active_slot_found:
 
 		for(unsigned int ix = 0; ix < length; ix++)
 		{
-			if(!display_info_entry->output_fn(unicode[ix]))
+			if(!display_info_active->output_fn(unicode[ix]))
 			{
 				log("display update: display output (2) failed\n");
 				goto error;
 			}
 		}
 
-		if(!display_info_entry->end_fn())
+		if(!display_info_active->end_fn())
 		{
 			log("display update: display end failed\n");
 			goto error;
@@ -406,7 +228,7 @@ active_slot_found:
 		goto done;
 	}
 
-	display_data.current_slot = 0;
+	display_current_slot = 0;
 	log("display update: no more attempts left\n");
 
 done:
@@ -418,7 +240,7 @@ done:
 	return;
 
 error:
-	display_data.detected = -1;
+	display_info_active = (const display_info_t *)0;
 }
 
 void display_periodic(void) // gets called 10 times per second
@@ -426,7 +248,6 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
-	display_info_t *display_info_entry;
 	static bool display_initial_log_active = true;
 	static unsigned int display_initial_log_counter = 0;
 	bool log_to_display;
@@ -434,13 +255,10 @@ void display_periodic(void) // gets called 10 times per second
 	if(!display_detected())
 		return;
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(display_info_entry->periodic_fn && !display_info_entry->periodic_fn())
+	if(display_info_active->periodic_fn && !display_info_active->periodic_fn())
 	{
 		log("display update: display periodic failed\n");
-		display_data.detected = -1;
-		return;
+		goto error;
 	}
 
 	if(config_flags_match(flag_log_to_display))
@@ -469,11 +287,10 @@ void display_periodic(void) // gets called 10 times per second
 
 			if(skip == 0)
 			{
-				if(!display_info_entry->output_fn(current))
+				if(!display_info_active->output_fn(current))
 				{
 					log("display update: display output (3) failed\n");
-					display_data.detected = -1;
-					return;
+					goto error;
 				}
 			}
 			else
@@ -524,32 +341,35 @@ void display_periodic(void) // gets called 10 times per second
 			display_update(false);
 		}
 	}
+
+	return;
+
+error:
+	display_info_active = (const display_info_t *)0;
+	return;
 }
 
 void display_init(void)
 {
-	display_info_t *display_info_entry;
-	int current;
+	unsigned int current;
 	unsigned int slot;
 	unsigned int picture_autoload_index;
 
-	display_data.detected = -1;
-
-	for(current = 0; current < display_size; current++)
+	for(current = 0; display_info[current]; current++)
 	{
-		display_info_entry = &display_info[current];
+		display_info_active = display_info[current];
 
-		if(display_info_entry->init_fn && display_info_entry->init_fn())
-		{
-			display_data.detected = current;
+		if(display_info_active->init_fn && display_info_active->init_fn())
 			break;
-		}
 	}
 
-	if(display_data.detected < 0)
+	if(!display_info[current])
+	{
+		display_info_active = (const display_info_t *)0;
 		goto error;
+	}
 
-	display_data.current_slot = 0;
+	display_current_slot = 0;
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
@@ -563,22 +383,22 @@ void display_init(void)
 
 	// for log to display
 
-	if(!display_info_entry->begin_fn(0, true))
+	if(!display_info_active->begin_fn(0, true))
 	{
 		log("display init: display begin failed\n");
 		goto error;
 	}
 
-	if(display_info_entry->standout_fn && !display_info_entry->standout_fn(0))
+	if(display_info_active->standout_fn && !display_info_active->standout_fn(0))
 	{
 		log("display init: display standout failed\n");
 		goto error;
 	}
 
-	if(display_info_entry->picture_load_fn &&
+	if(display_info_active->picture_load_fn &&
 			config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
 			(picture_autoload_index < 2) &&
-			!display_info_entry->picture_load_fn(picture_autoload_index))
+			!display_info_active->picture_load_fn(picture_autoload_index))
 	{
 		log("display update: display picture autoload failed\n");
 		goto error;
@@ -587,13 +407,12 @@ void display_init(void)
 	return;
 
 error:
-	display_data.detected = -1;
+	display_info_active = (const display_info_t *)0;
 	return;
 }
 
 static void display_dump(string_t *dst)
 {
-	display_info_t *display_info_entry;
 	unsigned int slot;
 	int ix;
 	char current;
@@ -605,10 +424,8 @@ static void display_dump(string_t *dst)
 		return;
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
-	string_format(dst, "> display type #%d (%s: %s)\n", display_data.detected,
-			display_info_entry->name, display_info_entry->description);
+	string_format(dst, "> display type %s: %s\n",
+			display_info_active->name, display_info_active->description);
 
 	if(config_flags_match(flag_log_to_display))
 	{
@@ -623,7 +440,7 @@ static void display_dump(string_t *dst)
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
 		string_format(dst, "\n> %c slot %u: timeout %d, tag: \"%s\", length: %u",
-				slot == display_data.current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag, strlen(display_slot[slot].content));
+				slot == display_current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag, strlen(display_slot[slot].content));
 
 		for(ix = 0, newlines_pending = 1; ix < display_slot_content_size; ix++)
 		{
@@ -715,7 +532,6 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 app_action_t application_function_display_brightness(string_t *src, string_t *dst)
 {
 	unsigned int value;
-	display_info_t *display_info_entry;
 
 	if(!display_detected())
 	{
@@ -723,15 +539,13 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
 	if(parse_uint(1, src, &value, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);
 	}
 
-	if(!display_info_entry->bright_fn || !display_info_entry->bright_fn(value))
+	if(!display_info_active->bright_fn || !display_info_active->bright_fn(value))
 	{
 		string_format(dst, "display-brightness: invalid brightness value: %u\n", value);
 		return(app_action_error);
@@ -827,7 +641,6 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst)
 {
 	unsigned int layer;
-	display_info_t *display_info_entry;
 
 	if(!display_detected())
 	{
@@ -835,9 +648,7 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(!display_info_entry->layer_select_fn)
+	if(!display_info_active->layer_select_fn)
 	{
 		string_append(dst, "display layer: no layer support\n");
 		return(app_action_error);
@@ -846,7 +657,7 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 	if(parse_uint(1, src, &layer, 0, ' ') != parse_ok)
 		layer = display_layer ? 0 : 1;
 
-	if(!display_info_entry->layer_select_fn(layer))
+	if(!display_info_active->layer_select_fn(layer))
 	{
 		string_append(dst, "display-layer: select layer failed\n");
 		return(app_action_error);
@@ -861,7 +672,6 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst)
 {
 	unsigned int entry;
-	display_info_t *display_info_entry;
 	bool rv;
 
 	if(!display_detected())
@@ -870,9 +680,7 @@ app_action_t application_function_display_picture_load(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(!display_info_entry->picture_load_fn)
+	if(!display_info_active->picture_load_fn)
 	{
 		string_append(dst, "picture load: not supported\n");
 		return(app_action_error);
@@ -888,7 +696,7 @@ app_action_t application_function_display_picture_load(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	rv = display_info_entry->picture_load_fn(entry);
+	rv = display_info_active->picture_load_fn(entry);
 
 	string_format(dst, "picture load success: %s\n", yesno(rv));
 
@@ -947,7 +755,6 @@ app_action_t application_function_display_picture_autoload(string_t *src, string
 
 app_action_t application_function_display_canvas_start(string_t *src, string_t *dst)
 {
-	display_info_t *display_info_entry;
 	bool rv;
 	unsigned int timeout;
 
@@ -957,15 +764,13 @@ app_action_t application_function_display_canvas_start(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
 	if(parse_uint(1, src, &timeout, 0, ' ') != parse_ok)
 	{
 		string_append(dst, "usage: display canvas start <timeout_ms>");
 		return(app_action_error);
 	}
 
-	if(!display_info_entry->canvas_start_fn)
+	if(!display_info_active->canvas_start_fn)
 	{
 		string_append(dst, "display canvas start: not supported\n");
 		return(app_action_error);
@@ -973,7 +778,7 @@ app_action_t application_function_display_canvas_start(string_t *src, string_t *
 
 	string_clear(&mailbox_socket_receive_buffer);
 
-	rv = display_info_entry->canvas_start_fn(timeout);
+	rv = display_info_active->canvas_start_fn(timeout);
 
 	string_format(dst, "display canvas start success: %s\n", yesno(rv));
 
@@ -982,7 +787,6 @@ app_action_t application_function_display_canvas_start(string_t *src, string_t *
 
 app_action_t application_function_display_canvas_goto(string_t *src, string_t *dst)
 {
-	display_info_t *display_info_entry;
 	bool rv;
 	unsigned int x, y;
 
@@ -992,21 +796,19 @@ app_action_t application_function_display_canvas_goto(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
 	if((parse_uint(1, src, &x, 0, ' ') != parse_ok) || (parse_uint(1, src, &y, 0, ' ') != parse_ok))
 	{
 		string_append(dst, "usage: display canvas goto <x> <y>");
 		return(app_action_error);
 	}
 
-	if(!display_info_entry->canvas_goto_fn)
+	if(!display_info_active->canvas_goto_fn)
 	{
 		string_append(dst, "display canvas goto: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_entry->canvas_goto_fn(x, y);
+	rv = display_info_active->canvas_goto_fn(x, y);
 
 	string_format(dst, "display canvas goto success: %s\n", yesno(rv));
 
@@ -1015,7 +817,6 @@ app_action_t application_function_display_canvas_goto(string_t *src, string_t *d
 
 app_action_t application_function_display_canvas_plot(string_t *src, string_t *dst)
 {
-	display_info_t *display_info_entry;
 	bool rv;
 	unsigned int x, y, pixels;
 
@@ -1025,15 +826,13 @@ app_action_t application_function_display_canvas_plot(string_t *src, string_t *d
 		goto error;
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
 	if((parse_uint(1, src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, src, &x, 0, ' ') != parse_ok) || (parse_uint(3, src, &y, 0, ' ') != parse_ok))
 	{
 		string_append(dst, "usage: display canvas plot <pixels> <x> <y>");
 		goto error;
 	}
 
-	if(!display_info_entry->canvas_plot_fn || !display_info_entry->canvas_goto_fn)
+	if(!display_info_active->canvas_plot_fn || !display_info_active->canvas_goto_fn)
 	{
 		string_append(dst, "display canvas plot: not supported\n");
 		goto error;
@@ -1047,13 +846,13 @@ app_action_t application_function_display_canvas_plot(string_t *src, string_t *d
 
 	string_setlength(&mailbox_socket_receive_buffer, pixels * 2);
 
-	if(!display_info_entry->canvas_goto_fn(x, y))
+	if(!display_info_active->canvas_goto_fn(x, y))
 	{
 		string_append(dst, "display canvas plot: goto failed\n");
 		goto error;
 	}
 
-	rv = display_info_entry->canvas_plot_fn(&mailbox_socket_receive_buffer);
+	rv = display_info_active->canvas_plot_fn(&mailbox_socket_receive_buffer);
 
 	string_clear(&mailbox_socket_receive_buffer);
 	string_format(dst, "display canvas plot success: %s\n", yesno(rv));
@@ -1067,7 +866,6 @@ error:
 
 app_action_t application_function_display_canvas_show(string_t *src, string_t *dst)
 {
-	display_info_t *display_info_entry;
 	bool rv;
 
 	if(!display_detected())
@@ -1076,15 +874,13 @@ app_action_t application_function_display_canvas_show(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(!display_info_entry->canvas_show_fn)
+	if(!display_info_active->canvas_show_fn)
 	{
 		string_append(dst, "display canvas show: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_entry->canvas_show_fn();
+	rv = display_info_active->canvas_show_fn();
 
 	string_format(dst, "display canvas show success: %s\n", yesno(rv));
 	return(app_action_normal);
@@ -1092,7 +888,6 @@ app_action_t application_function_display_canvas_show(string_t *src, string_t *d
 
 app_action_t application_function_display_canvas_stop(string_t *src, string_t *dst)
 {
-	display_info_t *display_info_entry;
 	bool rv;
 
 	if(!display_detected())
@@ -1101,15 +896,13 @@ app_action_t application_function_display_canvas_stop(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	display_info_entry = &display_info[display_data.detected];
-
-	if(!display_info_entry->canvas_stop_fn)
+	if(!display_info_active->canvas_stop_fn)
 	{
 		string_append(dst, "display canvas stop: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_entry->canvas_stop_fn();
+	rv = display_info_active->canvas_stop_fn();
 
 	string_format(dst, "display canvas stop success: %s\n", yesno(rv));
 	return(app_action_normal);

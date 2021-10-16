@@ -434,7 +434,30 @@ static attr_result_used bool clear_screen(void)
 	return(true);
 }
 
-bool display_ssd1306_init(void)
+static bool bright(int brightness)
+{
+	roflash static const unsigned int bright_to_internal[5][2] =
+	{
+		{	reg_display_off,	0,	},
+		{	reg_display_on,		20,	},
+		{	reg_display_on,		40,	},
+		{	reg_display_on,		80	},
+		{	reg_display_on,		255	},
+	};
+
+	if(brightness > 4)
+		return(false);
+
+	if(!send_command1(bright_to_internal[brightness][0]))
+		return(false);
+
+	if(!send_command2(reg_contrast, bright_to_internal[brightness][1]))
+		return(false);
+
+	return(true);
+}
+
+static bool init(void)
 {
 	display_height = config_flags_match(flag_ssd_height_32) ? display_height_32 : display_height_64;
 
@@ -485,10 +508,10 @@ bool display_ssd1306_init(void)
 
 	display_inited = true;
 
-	return(display_ssd1306_bright(1));
+	return(bright(1));
 }
 
-bool display_ssd1306_begin(unsigned int select_slot, bool logmode)
+static bool begin(unsigned int select_slot, bool logmode)
 {
 	if(!display_inited)
 	{
@@ -506,7 +529,7 @@ bool display_ssd1306_begin(unsigned int select_slot, bool logmode)
 	return(true);
 }
 
-bool display_ssd1306_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 
@@ -537,7 +560,7 @@ bool display_ssd1306_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_ssd1306_end(void)
+static bool end(void)
 {
 	if(display_disable_text)
 		return(true);
@@ -552,30 +575,7 @@ bool display_ssd1306_end(void)
 	return(true);
 }
 
-bool display_ssd1306_bright(int brightness)
-{
-	roflash static const unsigned int bright_to_internal[5][2] =
-	{
-		{	reg_display_off,	0,	},
-		{	reg_display_on,		20,	},
-		{	reg_display_on,		40,	},
-		{	reg_display_on,		80	},
-		{	reg_display_on,		255	},
-	};
-
-	if(brightness > 4)
-		return(false);
-
-	if(!send_command1(bright_to_internal[brightness][0]))
-		return(false);
-
-	if(!send_command2(reg_contrast, bright_to_internal[brightness][1]))
-		return(false);
-
-	return(true);
-}
-
-bool display_ssd1306_standout(bool onoff)
+static bool standout(bool onoff)
 {
 	display_standout = onoff;
 
@@ -584,7 +584,7 @@ bool display_ssd1306_standout(bool onoff)
 
 static const char pbm_header[] = "P4\n128 64\n";
 
-bool display_ssd1306_picture_load(unsigned int picture_load_index)
+static bool picture_load(unsigned int picture_load_index)
 {
 	bool success = false;
 
@@ -627,12 +627,12 @@ error:
 	return(success);
 }
 
-bool display_ssd1306_picture_valid(void)
+static bool picture_valid(void)
 {
 	return(display_picture_valid);
 }
 
-bool display_ssd1306_layer_select(unsigned int layer)
+static bool layer_select(unsigned int layer)
 {
 	bool success = false;
 	unsigned int row, column, output, bit, offset, bitoffset;
@@ -702,3 +702,25 @@ error:
 		return(false);
 	return(success);
 }
+
+roflash const display_info_t display_info_ssd1306 =
+{
+	"SSD1306 / SH1106", "128x32 / 128x64 OLED",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	standout,
+	(void *)0,
+	picture_load,
+	layer_select,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	picture_valid
+};

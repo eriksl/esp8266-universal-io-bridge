@@ -334,7 +334,24 @@ bool display_cfa634_setup(unsigned int io, unsigned int pin)
 	return(true);
 }
 
-bool display_cfa634_init(void)
+static attr_const bool bright(int brightness)
+{
+	roflash static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
+
+	if(!display_inited)
+		return(false);
+
+	if((brightness < 0) || (brightness > 4))
+		return(false);
+
+	uart_send(display_uart, command_contrast);
+	uart_send(display_uart, values[brightness]);
+	uart_flush(display_uart);
+
+	return(true);
+}
+
+static bool init(void)
 {
 	const udg_map_t *map;
 	unsigned int ix, byte;
@@ -363,10 +380,10 @@ bool display_cfa634_init(void)
 		}
 	}
 
-	return(display_cfa634_bright(1));
+	return(bright(1));
 }
 
-bool display_cfa634_begin(unsigned int slot, bool logmode)
+static bool begin(unsigned int slot, bool logmode)
 {
 	uart_send(display_uart, command_restore);
 	uart_send(display_uart, command_scroll_off);
@@ -382,7 +399,7 @@ bool display_cfa634_begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-bool display_cfa634_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
@@ -419,7 +436,7 @@ bool display_cfa634_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_cfa634_end(void)
+static bool end(void)
 {
 	while(display_y < display_text_height)
 		if(!text_newline())
@@ -430,19 +447,24 @@ bool display_cfa634_end(void)
 	return(true);
 }
 
-attr_const bool display_cfa634_bright(int brightness)
+roflash const display_info_t display_info_cfa =
 {
-	roflash static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
-
-	if(!display_inited)
-		return(false);
-
-	if((brightness < 0) || (brightness > 4))
-		return(false);
-
-	uart_send(display_uart, command_contrast);
-	uart_send(display_uart, values[brightness]);
-	uart_flush(display_uart);
-
-	return(true);
-}
+	"cfa634", "4x20 character LCD",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+};

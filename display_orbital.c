@@ -369,38 +369,7 @@ static attr_result_used bool udg_init(void)
 	return(true);
 }
 
-bool display_orbital_init(void)
-{
-	unsigned int ix;
-
-	if(!config_flags_match(flag_enable_orbital))
-		return(false);
-
-	for(ix = 10; ix > 0; ix--)
-	{
-		if(i2c_send1(display_address, '!') == i2c_error_ok)
-			break;
-		msleep(20);
-	}
-
-	if(ix == 0)
-		return(false);
-
-	if(!udg_init())
-		return(false);
-
-	if(!display_command1(command_clear_display))
-		return(false);
-
-	if(!text_goto(0, 0))
-		return(false);
-
-	display_inited = true;
-
-	return(display_orbital_bright(1));
-}
-
-bool display_orbital_bright(int brightness)
+static bool bright(int brightness)
 {
 	roflash static const unsigned int brightness_map[5][2] =
 	{
@@ -431,6 +400,37 @@ bool display_orbital_bright(int brightness)
 	return(true);
 }
 
+static bool init(void)
+{
+	unsigned int ix;
+
+	if(!config_flags_match(flag_enable_orbital))
+		return(false);
+
+	for(ix = 10; ix > 0; ix--)
+	{
+		if(i2c_send1(display_address, '!') == i2c_error_ok)
+			break;
+		msleep(20);
+	}
+
+	if(ix == 0)
+		return(false);
+
+	if(!udg_init())
+		return(false);
+
+	if(!display_command1(command_clear_display))
+		return(false);
+
+	if(!text_goto(0, 0))
+		return(false);
+
+	display_inited = true;
+
+	return(bright(1));
+}
+
 static bool attr_result_used display_setup(void)
 {
 	if(!display_command1(command_cursor_off))
@@ -445,7 +445,7 @@ static bool attr_result_used display_setup(void)
 	return(true);
 }
 
-bool display_orbital_begin(unsigned int slot, bool logmode)
+static bool begin(unsigned int slot, bool logmode)
 {
 	if(display_disable_text)
 		return(true);
@@ -467,7 +467,7 @@ bool display_orbital_begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-bool display_orbital_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
@@ -508,7 +508,7 @@ bool display_orbital_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_orbital_end(void)
+static bool end(void)
 {
 	if(display_disable_text)
 		return(true);
@@ -525,7 +525,7 @@ bool display_orbital_end(void)
 
 static const char pbm_header[] = "P4\n20 16\n";
 
-bool display_orbital_picture_load(unsigned int picture_load_index)
+static bool picture_load(unsigned int picture_load_index)
 {
 	bool success = false;
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
@@ -561,12 +561,12 @@ error:
 	return(success);
 }
 
-bool display_orbital_picture_valid(void)
+static bool picture_valid(void)
 {
 	return(display_picture_valid);
 }
 
-bool display_orbital_layer_select(unsigned int layer)
+static bool layer_select(unsigned int layer)
 {
 	bool success = false;
 	unsigned int row, column;
@@ -660,7 +660,7 @@ error:
 	return(success);
 }
 
-bool display_orbital_start_show_time(unsigned int hour, unsigned int minute)
+static bool start_show_time(unsigned int hour, unsigned int minute)
 {
 	bool success;
 
@@ -711,7 +711,7 @@ error:
 	return(success);
 }
 
-bool display_orbital_stop_show_time(void)
+static bool stop_show_time(void)
 {
 	display_disable_text = false;
 
@@ -726,3 +726,25 @@ bool display_orbital_stop_show_time(void)
 
 	return(true);
 }
+
+roflash const display_info_t display_info_orbital =
+{
+	"matrix orbital", "4x20 character VFD",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	picture_load,
+	layer_select,
+	start_show_time,
+	stop_show_time,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	picture_valid,
+};

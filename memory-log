@@ -10818,3 +10818,47 @@ Sat Oct 16 12:38:56 CEST 2021 10c4068 display: simplify/refactor display update.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71569, free:   8696, 10 %
     irom:    available: 592 k, used: 433064, free: 173144, 28 %
+Sat Oct 16 12:47:19 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433144, free: 173064, 28 %
+Sat Oct 16 13:10:58 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71181, free:   9084, 11 %
+    irom:    available: 592 k, used: 405160, free: 201048, 33 %
+Sat Oct 16 13:19:46 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71269, free:   8996, 11 %
+    irom:    available: 592 k, used: 409944, free: 196264, 32 %
+Sat Oct 16 13:26:36 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 592 k, used: 416008, free: 190200, 31 %
+Sat Oct 16 13:34:27 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71333, free:   8932, 11 %
+    irom:    available: 592 k, used: 418248, free: 187960, 31 %
+Sat Oct 16 13:40:26 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71389, free:   8876, 11 %
+    irom:    available: 592 k, used: 421192, free: 185016, 30 %
+Sat Oct 16 13:46:28 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71497, free:   8768, 10 %
+    irom:    available: 592 k, used: 426872, free: 179336, 29 %
+Sat Oct 16 13:53:17 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432744, free: 173464, 28 %
+Sat Oct 16 13:57:15 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432808, free: 173400, 28 %
+Sat Oct 16 13:58:10 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432856, free: 173352, 28 %
+Sat Oct 16 13:59:48 CEST 2021 7bf157f display: simplify/refactor display update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 432760, free: 173448, 28 %

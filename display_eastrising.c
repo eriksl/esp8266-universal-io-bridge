@@ -1573,7 +1573,27 @@ static bool display_newline(void)
 	return(true);
 }
 
-bool display_eastrising_init(void)
+static bool bright(int brightness)
+{
+	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
+	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
+	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
+
+	if(brightness > 4)
+		return(false);
+
+	if(!display_write(reg_p1dcr, bright_level[brightness]))
+		return(false);
+
+	if(!display_write(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
+		return(false);
+
+	display_low_brightness = bright_low[brightness] ? true : false;
+
+	return(true);
+}
+
+static bool init(void)
 {
 	const font_bitmap_t *font_bitmap;
 	uint8_t cmd = reg_mrwc;
@@ -1735,7 +1755,7 @@ bool display_eastrising_init(void)
 	if(!display_fill_rectangle(0, 0, display_width - 1, display_height - 1, 0x00, 0x00, 0x00))
 		goto error;
 
-	if(!display_eastrising_bright(1))
+	if(!bright(1))
 		goto error;
 
 	return(true);
@@ -1747,7 +1767,7 @@ error:
 	return(false);
 }
 
-bool display_eastrising_begin(unsigned int slot, bool logmode)
+static bool begin(unsigned int slot, bool logmode)
 {
 	unsigned int fncr0, fncr1, fncr2, mwcr0;
 
@@ -1877,7 +1897,7 @@ typedef enum
 	map_font_external
 } map_t;
 
-bool display_eastrising_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr = (unicode_map_t *)0;
 	bool mapped = false;
@@ -1953,7 +1973,7 @@ bool display_eastrising_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_eastrising_end(void)
+static bool end(void)
 {
 	if(display_locked_ms > 0)
 		return(true);
@@ -1970,27 +1990,7 @@ bool display_eastrising_end(void)
 	return(true);
 }
 
-bool display_eastrising_bright(int brightness)
-{
-	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
-	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
-	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
-
-	if(brightness > 4)
-		return(false);
-
-	if(!display_write(reg_p1dcr, bright_level[brightness]))
-		return(false);
-
-	if(!display_write(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
-		return(false);
-
-	display_low_brightness = bright_low[brightness] ? true : false;
-
-	return(true);
-}
-
-bool display_eastrising_periodic(void)
+static bool periodic(void)
 {
 	static const char ppm_header[] = "P6\n480 272\n255\n";
 	bool success = false;
@@ -2164,7 +2164,7 @@ error1:
 	return(success);
 }
 
-bool display_eastrising_layer_select(unsigned int layer)
+static bool layer_select(unsigned int layer)
 {
 	if(display_locked_ms > 0)
 		return(true);
@@ -2183,7 +2183,7 @@ bool display_eastrising_layer_select(unsigned int layer)
 	return(display_show_layer(layer));
 }
 
-bool display_eastrising_picture_load(unsigned int entry)
+static bool picture_load(unsigned int entry)
 {
 	if(entry > 1)
 		return(false);
@@ -2197,27 +2197,12 @@ bool display_eastrising_picture_load(unsigned int entry)
 	return(true);
 }
 
-bool display_eastrising_picture_valid(void)
+static bool picture_valid(void)
 {
 	return(picture_load_state == pls_done);
 }
 
-bool display_eastrising_canvas_start(unsigned int timeout)
-{
-	if(!display_set_active_layer(0))
-		return(false);
-
-	if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
-		return(false);
-
-	display_eastrising_canvas_goto(0, 0);
-
-	display_locked_ms = timeout;
-
-	return(true);
-}
-
-bool display_eastrising_canvas_goto(unsigned int x, unsigned int y)
+static bool canvas_goto(unsigned int x, unsigned int y)
 {
 	if(!display_write(reg_curh1, (x & 0xff00) >> 8))
 		return(false);
@@ -2234,7 +2219,22 @@ bool display_eastrising_canvas_goto(unsigned int x, unsigned int y)
 	return(true);
 }
 
-bool display_eastrising_canvas_plot(const string_t *pixels)
+static bool canvas_start(unsigned int timeout)
+{
+	if(!display_set_active_layer(0))
+		return(false);
+
+	if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
+		return(false);
+
+	canvas_goto(0, 0);
+
+	display_locked_ms = timeout;
+
+	return(true);
+}
+
+static bool canvas_plot(const string_t *pixels)
 {
 	if(!display_write_string(true, string_length(pixels), (const unsigned char *)string_buffer(pixels)))
 		return(false);
@@ -2242,12 +2242,12 @@ bool display_eastrising_canvas_plot(const string_t *pixels)
 	return(true);
 }
 
-bool display_eastrising_canvas_show(void)
+static bool canvas_show(void)
 {
 	return(display_show_layer(0));
 }
 
-bool display_eastrising_canvas_stop(void)
+static bool canvas_stop(void)
 {
 	return(true);
 }
@@ -2377,3 +2377,25 @@ config_error:
 	string_append(dst, "> cannot set config\n");
 	return(app_action_error);
 }
+
+roflash const display_info_t display_info_eastrising =
+{
+	"eastrising TFT", "480x272 LCD",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	periodic,
+	picture_load,
+	layer_select,
+	(void *)0,
+	(void *)0,
+	canvas_start,
+	canvas_goto,
+	canvas_plot,
+	canvas_show,
+	canvas_stop,
+	picture_valid
+};

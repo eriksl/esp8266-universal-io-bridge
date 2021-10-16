@@ -546,7 +546,41 @@ static bool attr_result_used udg_number_init(void)
 	return(true);
 }
 
-bool display_lcd_init(void)
+static bool bright(int brightness)
+{
+	roflash static const unsigned int bright_data[5][2] =
+	{
+		{	cmd_off_off_off,	0		},
+		{	cmd_on_off_off,		0		},
+		{	cmd_on_off_off,		512		},
+		{	cmd_on_off_off,		16384	},
+		{	cmd_on_off_off,		65535	}
+	};
+
+	unsigned int max_value, value;
+
+	if((brightness < 0) || (brightness > 4))
+		return(false);
+
+	if(!send_byte(bright_data[brightness][0], false))
+		return(false);
+
+	if((bl_io >= 0) && (bl_pin >= 0))
+	{
+		max_value = io_pin_max_value(bl_io, bl_pin);
+
+		value = bright_data[brightness][1] / (65536 / max_value);
+
+		if((value + 8) > max_value)
+			value = max_value;
+
+		io_write_pin((string_t *)0, bl_io, bl_pin, value);
+	}
+
+	return(true);
+}
+
+static bool init(void)
 {
 	io_config_pin_entry_t *pin_config;
 	int io, pin;
@@ -664,10 +698,10 @@ bool display_lcd_init(void)
 
 	display_inited = true;
 
-	return(display_lcd_bright(1));
+	return(bright(1));
 }
 
-bool display_lcd_begin(unsigned int slot, bool logmode)
+static bool begin(unsigned int slot, bool logmode)
 {
 	if(display_disable_text)
 		return(true);
@@ -686,7 +720,7 @@ bool display_lcd_begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-bool display_lcd_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	const unicode_map_t *unicode_map_ptr;
 	const udg_map_t *udg_map_ptr;
@@ -736,7 +770,7 @@ bool display_lcd_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_lcd_end(void)
+static bool end(void)
 {
 	if(display_disable_text)
 		return(false);
@@ -748,43 +782,9 @@ bool display_lcd_end(void)
 	return(true);
 }
 
-bool display_lcd_bright(int brightness)
-{
-	roflash static const unsigned int bright_data[5][2] =
-	{
-		{	cmd_off_off_off,	0		},
-		{	cmd_on_off_off,		0		},
-		{	cmd_on_off_off,		512		},
-		{	cmd_on_off_off,		16384	},
-		{	cmd_on_off_off,		65535	}
-	};
-
-	unsigned int max_value, value;
-
-	if((brightness < 0) || (brightness > 4))
-		return(false);
-
-	if(!send_byte(bright_data[brightness][0], false))
-		return(false);
-
-	if((bl_io >= 0) && (bl_pin >= 0))
-	{
-		max_value = io_pin_max_value(bl_io, bl_pin);
-
-		value = bright_data[brightness][1] / (65536 / max_value);
-
-		if((value + 8) > max_value)
-			value = max_value;
-
-		io_write_pin((string_t *)0, bl_io, bl_pin, value);
-	}
-
-	return(true);
-}
-
 static const char pbm_header[] = "P4\n20 16\n";
 
-bool display_lcd_picture_load(unsigned int picture_load_index)
+static bool picture_load(unsigned int picture_load_index)
 {
 	bool success = false;
 
@@ -827,12 +827,12 @@ error:
 	return(success);
 }
 
-bool display_lcd_picture_valid(void)
+static bool picture_valid(void)
 {
 	return(display_picture_valid);
 }
 
-bool display_lcd_layer_select(unsigned int layer)
+static bool layer_select(unsigned int layer)
 {
 	bool success = false;
 	unsigned int row, column;
@@ -975,7 +975,7 @@ static bool large_digit(unsigned int digit, unsigned int position)
 	return(true);
 }
 
-bool display_lcd_start_show_time(unsigned int hour, unsigned int minute)
+static bool start_show_time(unsigned int hour, unsigned int minute)
 {
 	bool success;
 
@@ -1031,7 +1031,7 @@ error:
 	return(success);
 }
 
-bool display_lcd_stop_show_time(void)
+static bool stop_show_time(void)
 {
 	display_disable_text = false;
 
@@ -1046,3 +1046,25 @@ bool display_lcd_stop_show_time(void)
 
 	return(true);
 }
+
+roflash const display_info_t display_info_lcd =
+{
+	"hd44780", "4x20 character LCD",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	picture_load,
+	layer_select,
+	start_show_time,
+	stop_show_time,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	picture_valid,
+};

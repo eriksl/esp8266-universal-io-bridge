@@ -126,7 +126,7 @@ static int led_render_char(int character)
 	return(led_charrom[character] | add_dot);
 }
 
-bool display_saa1064_init(void)
+static bool init(void)
 {
 	uint8_t i2cdata;
 	int bus;
@@ -159,7 +159,7 @@ bool display_saa1064_init(void)
 	return(false);
 }
 
-bool display_saa1064_bright(int bright_in)
+static bool bright(int bright_in)
 {
 	if(i2c_bus < 0)
 		return(false);
@@ -176,7 +176,7 @@ static unsigned int display_buffer_index;
 
 _Static_assert(sizeof(display_buffer_size) >= 4, "display buffer too small");
 
-bool display_saa1064_begin(unsigned int slot, bool logmode)
+static bool begin(unsigned int slot, bool logmode)
 {
 	if(i2c_bus < 0)
 		return(false);
@@ -188,7 +188,7 @@ bool display_saa1064_begin(unsigned int slot, bool logmode)
 	return(true);
 }
 
-bool display_saa1064_output(unsigned int unicode)
+static bool output(unsigned int unicode)
 {
 	if((unicode == '.') && (display_buffer_index > 0))
 		display_buffer[display_buffer_index - 1] |= 0x80;
@@ -199,7 +199,7 @@ bool display_saa1064_output(unsigned int unicode)
 	return(true);
 }
 
-bool display_saa1064_end(void)
+static bool end(void)
 {
 	static const uint8_t bright_to_saa[5] =
 	{
@@ -220,3 +220,25 @@ bool display_saa1064_end(void)
 
 	return(true);
 }
+
+roflash const display_info_t display_info_saa1064 =
+{
+	"saa1064", "4 digit led display",
+	init,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+};
