@@ -80,7 +80,7 @@ static void display_update(bool dont_advance)
 
 	start = time_get_us();
 
-	if(config_flags_match(flag_display_clock) && display_info_active->show_time_start_fn && display_info_active->show_time_stop_fn)
+	if(config_flags_match(flag_display_clock) && display_info_active->hooks.show_time_start_fn && display_info_active->hooks.show_time_stop_fn)
 	{
 		static bool time_shown = false;
 
@@ -90,7 +90,7 @@ static void display_update(bool dont_advance)
 
 			time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
 
-			if(!display_info_active->show_time_start_fn(h, m))
+			if(!display_info_active->hooks.show_time_start_fn(h, m))
 			{
 				log("display update: show time start failed\n");
 				goto error;
@@ -101,7 +101,7 @@ static void display_update(bool dont_advance)
 		}
 		else
 		{
-			if(!display_info_active->show_time_stop_fn())
+			if(!display_info_active->hooks.show_time_stop_fn())
 			{
 				log("display update: time show stop failed\n");
 				goto error;
@@ -137,11 +137,11 @@ active_slot_found:
 			!strcmp(display_slot[display_current_slot].tag, "picture"))
 
 		{
-			if(display_info_active->layer_select_fn &&
-				display_info_active->picture_valid_fn &&
-				display_info_active->picture_valid_fn())
+			if(display_info_active->hooks.layer_select_fn &&
+				display_info_active->hooks.picture_valid_fn &&
+				display_info_active->hooks.picture_valid_fn())
 			{
-				if(!display_info_active->layer_select_fn(1))
+				if(!display_info_active->hooks.layer_select_fn(1))
 				{
 					log("display update: display layer select (1) failed\n");
 					goto error;
@@ -153,7 +153,7 @@ active_slot_found:
 			continue;
 		}
 
-		if(display_info_active->layer_select_fn && !display_info_active->layer_select_fn(0))
+		if(display_info_active->hooks.layer_select_fn && !display_info_active->hooks.layer_select_fn(0))
 		{
 			log("display update: display layer select (2) failed\n");
 			goto error;
@@ -163,12 +163,12 @@ active_slot_found:
 		{
 			config_get_string("identification", &info_text, -1, -1);
 			string_format(&info_text, "\n%s\n%u x %u, %u x %u [%u]",
-					display_info_active->name,
-					display_info_active->graphic_dimensions.x,
-					display_info_active->graphic_dimensions.y,
-					display_info_active->text_dimensions.columns,
-					display_info_active->text_dimensions.rows,
-					display_info_active->colour_depth);
+					display_info_active->properties.name,
+					display_info_active->properties.graphic_dimensions.x,
+					display_info_active->properties.graphic_dimensions.y,
+					display_info_active->properties.text_dimensions.columns,
+					display_info_active->properties.text_dimensions.rows,
+					display_info_active->properties.colour_depth);
 			slot_content = string_to_cstr(&info_text);
 		}
 
@@ -179,13 +179,13 @@ active_slot_found:
 		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
 		string_append_cstr_flash(&tag_string, display_slot[display_current_slot].tag);
 
-		if(!display_info_active->begin_fn(display_current_slot, false))
+		if(!display_info_active->hooks.begin_fn(display_current_slot, false))
 		{
 			log("display update: display begin failed\n");
 			goto error;
 		}
 
-		if(display_info_active->standout_fn && !display_info_active->standout_fn(1))
+		if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(1))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -193,19 +193,19 @@ active_slot_found:
 
 		length = utf8_to_unicode(string_to_cstr(&tag_string), sizeof(unicode) / sizeof(*unicode), unicode);
 
-		if(!display_info_active->output_fn(length, unicode))
+		if(!display_info_active->hooks.output_fn(length, unicode))
 		{
 			log("display update: display output (0) failed\n");
 			goto error;
 		}
 
-		if(!display_info_active->output_fn(1, unicode_newline))
+		if(!display_info_active->hooks.output_fn(1, unicode_newline))
 		{
 			log("display update: display output (1) failed\n");
 			goto error;
 		}
 
-		if(display_info_active->standout_fn && !display_info_active->standout_fn(0))
+		if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(0))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -213,13 +213,13 @@ active_slot_found:
 
 		length = utf8_to_unicode(slot_content, sizeof(unicode) / sizeof(*unicode), unicode);
 
-		if(!display_info_active->output_fn(length, unicode))
+		if(!display_info_active->hooks.output_fn(length, unicode))
 		{
 			log("display update: display output (2) failed\n");
 			goto error;
 		}
 
-		if(!display_info_active->end_fn())
+		if(!display_info_active->hooks.end_fn())
 		{
 			log("display update: display end failed\n");
 			goto error;
@@ -256,7 +256,7 @@ void display_periodic(void) // gets called 10 times per second
 	if(!display_detected())
 		return;
 
-	if(display_info_active->periodic_fn && !display_info_active->periodic_fn())
+	if(display_info_active->hooks.periodic_fn && !display_info_active->hooks.periodic_fn())
 	{
 		log("display update: display periodic failed\n");
 		goto error;
@@ -304,7 +304,7 @@ void display_periodic(void) // gets called 10 times per second
 					}
 				}
 
-				if(!display_info_active->output_fn(1, &unicode))
+				if(!display_info_active->hooks.output_fn(1, &unicode))
 				{
 					log("display update: display output (3) failed\n");
 					goto error;
@@ -376,7 +376,7 @@ void display_init(void)
 	{
 		display_info_active = display_info[current];
 
-		if(display_info_active->init_fn && display_info_active->init_fn())
+		if(display_info_active->hooks.init_fn && display_info_active->hooks.init_fn())
 			break;
 	}
 
@@ -400,22 +400,22 @@ void display_init(void)
 
 	// for log to display
 
-	if(!display_info_active->begin_fn(0, true))
+	if(!display_info_active->hooks.begin_fn(0, true))
 	{
 		log("display init: display begin failed\n");
 		goto error;
 	}
 
-	if(display_info_active->standout_fn && !display_info_active->standout_fn(0))
+	if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(0))
 	{
 		log("display init: display standout failed\n");
 		goto error;
 	}
 
-	if(display_info_active->picture_load_fn &&
+	if(display_info_active->hooks.picture_load_fn &&
 			config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
 			(picture_autoload_index < 2) &&
-			!display_info_active->picture_load_fn(picture_autoload_index))
+			!display_info_active->hooks.picture_load_fn(picture_autoload_index))
 	{
 		log("display update: display picture autoload failed\n");
 		goto error;
@@ -442,14 +442,14 @@ static void display_dump(string_t *dst)
 	}
 
 	string_format(dst, "> display type: %s\n",
-			display_info_active->name);
+			display_info_active->properties.name);
 
 	string_format(dst, "> capabilities: graphical dimensions: %u x %u, text dimensions: %u x %u, colour depth: %u\n",
-			display_info_active->graphic_dimensions.x,
-			display_info_active->graphic_dimensions.y,
-			display_info_active->text_dimensions.columns,
-			display_info_active->text_dimensions.rows,
-			display_info_active->colour_depth);
+			display_info_active->properties.graphic_dimensions.x,
+			display_info_active->properties.graphic_dimensions.y,
+			display_info_active->properties.text_dimensions.columns,
+			display_info_active->properties.text_dimensions.rows,
+			display_info_active->properties.colour_depth);
 
 	if(config_flags_match(flag_log_to_display))
 	{
@@ -569,7 +569,7 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	if(!display_info_active->bright_fn || !display_info_active->bright_fn(value))
+	if(!display_info_active->hooks.bright_fn || !display_info_active->hooks.bright_fn(value))
 	{
 		string_format(dst, "display-brightness: invalid brightness value: %u\n", value);
 		return(app_action_error);
@@ -672,7 +672,7 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 		return(app_action_error);
 	}
 
-	if(!display_info_active->layer_select_fn)
+	if(!display_info_active->hooks.layer_select_fn)
 	{
 		string_append(dst, "display layer: no layer support\n");
 		return(app_action_error);
@@ -681,7 +681,7 @@ app_action_t application_function_display_picture_switch_layer(string_t *src, st
 	if(parse_uint(1, src, &layer, 0, ' ') != parse_ok)
 		layer = display_layer ? 0 : 1;
 
-	if(!display_info_active->layer_select_fn(layer))
+	if(!display_info_active->hooks.layer_select_fn(layer))
 	{
 		string_append(dst, "display-layer: select layer failed\n");
 		return(app_action_error);
@@ -704,7 +704,7 @@ app_action_t application_function_display_picture_load(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	if(!display_info_active->picture_load_fn)
+	if(!display_info_active->hooks.picture_load_fn)
 	{
 		string_append(dst, "picture load: not supported\n");
 		return(app_action_error);
@@ -720,7 +720,7 @@ app_action_t application_function_display_picture_load(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	rv = display_info_active->picture_load_fn(entry);
+	rv = display_info_active->hooks.picture_load_fn(entry);
 
 	string_format(dst, "picture load success: %s\n", yesno(rv));
 
@@ -794,7 +794,7 @@ app_action_t application_function_display_canvas_start(string_t *src, string_t *
 		return(app_action_error);
 	}
 
-	if(!display_info_active->canvas_start_fn)
+	if(!display_info_active->hooks.canvas_start_fn)
 	{
 		string_append(dst, "display canvas start: not supported\n");
 		return(app_action_error);
@@ -802,7 +802,7 @@ app_action_t application_function_display_canvas_start(string_t *src, string_t *
 
 	string_clear(&mailbox_socket_receive_buffer);
 
-	rv = display_info_active->canvas_start_fn(timeout);
+	rv = display_info_active->hooks.canvas_start_fn(timeout);
 
 	string_format(dst, "display canvas start success: %s\n", yesno(rv));
 
@@ -826,13 +826,13 @@ app_action_t application_function_display_canvas_goto(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	if(!display_info_active->canvas_goto_fn)
+	if(!display_info_active->hooks.canvas_goto_fn)
 	{
 		string_append(dst, "display canvas goto: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_active->canvas_goto_fn(x, y);
+	rv = display_info_active->hooks.canvas_goto_fn(x, y);
 
 	string_format(dst, "display canvas goto success: %s\n", yesno(rv));
 
@@ -856,7 +856,7 @@ app_action_t application_function_display_canvas_plot(string_t *src, string_t *d
 		goto error;
 	}
 
-	if(!display_info_active->canvas_plot_fn || !display_info_active->canvas_goto_fn)
+	if(!display_info_active->hooks.canvas_plot_fn || !display_info_active->hooks.canvas_goto_fn)
 	{
 		string_append(dst, "display canvas plot: not supported\n");
 		goto error;
@@ -870,13 +870,13 @@ app_action_t application_function_display_canvas_plot(string_t *src, string_t *d
 
 	string_setlength(&mailbox_socket_receive_buffer, pixels * 2);
 
-	if(!display_info_active->canvas_goto_fn(x, y))
+	if(!display_info_active->hooks.canvas_goto_fn(x, y))
 	{
 		string_append(dst, "display canvas plot: goto failed\n");
 		goto error;
 	}
 
-	rv = display_info_active->canvas_plot_fn(&mailbox_socket_receive_buffer);
+	rv = display_info_active->hooks.canvas_plot_fn(&mailbox_socket_receive_buffer);
 
 	string_clear(&mailbox_socket_receive_buffer);
 	string_format(dst, "display canvas plot success: %s\n", yesno(rv));
@@ -898,13 +898,13 @@ app_action_t application_function_display_canvas_show(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	if(!display_info_active->canvas_show_fn)
+	if(!display_info_active->hooks.canvas_show_fn)
 	{
 		string_append(dst, "display canvas show: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_active->canvas_show_fn();
+	rv = display_info_active->hooks.canvas_show_fn();
 
 	string_format(dst, "display canvas show success: %s\n", yesno(rv));
 	return(app_action_normal);
@@ -920,13 +920,13 @@ app_action_t application_function_display_canvas_stop(string_t *src, string_t *d
 		return(app_action_error);
 	}
 
-	if(!display_info_active->canvas_stop_fn)
+	if(!display_info_active->hooks.canvas_stop_fn)
 	{
 		string_append(dst, "display canvas stop: not supported\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_active->canvas_stop_fn();
+	rv = display_info_active->hooks.canvas_stop_fn();
 
 	string_format(dst, "display canvas stop success: %s\n", yesno(rv));
 	return(app_action_normal);
