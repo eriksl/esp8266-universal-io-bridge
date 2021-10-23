@@ -23,14 +23,14 @@ typedef const struct
 	const char *const name;
 	const struct
 	{
-		unsigned int x;
-		unsigned int y;
-	} graphic_dimensions;
-	const struct
-	{
 		unsigned int columns;
 		unsigned int rows;
 	} text_dimensions;
+	const struct
+	{
+		unsigned int x;
+		unsigned int y;
+	} graphic_dimensions;
 	const unsigned int colour_depth;
 } display_properties_t;
 
