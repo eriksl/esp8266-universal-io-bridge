@@ -731,6 +731,8 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 	for(current_index = 0; current_index < length; current_index++)
 	{
+		current = unicode[current_index];
+
 		if(current == '\n')
 		{
 			if(!text_newline())
