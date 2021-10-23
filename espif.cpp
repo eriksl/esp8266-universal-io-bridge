@@ -12,6 +12,8 @@ enum
 typedef std::vector<std::string> StringVector;
 
 static const char *ack = "ACK";
+static const char *mailbox_info_reply =
+	"OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px)?.*";
 
 class GenericSocket
 {
@@ -1391,8 +1393,7 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 	command_channel.connect();
 	std::cout << "reboot finished" << std::endl;
 
-	process(command_channel, "mailbox-info", reply, "OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\]",
-			string_value, int_value, verbose);
+	process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
 
 	if(int_value[0] != (int)flash_slot)
 		throw(std::string("boot failed, requested slot: ") + std::to_string(flash_slot) + ", active slot: " + std::to_string(int_value[0]));
@@ -1430,6 +1431,7 @@ int main(int argc, const char **argv)
 		std::string start_string;
 		std::string length_string;
 		int start;
+		int dim_x, dim_y;
 		unsigned int length;
 		unsigned int chunk_size;
 		bool use_udp = false;
@@ -1577,8 +1579,7 @@ int main(int argc, const char **argv)
 
 				try
 				{
-					process(command_channel, "mailbox-info", reply, "OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\]",
-							string_value, int_value, verbose);
+					process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
 				}
 				catch(std::string &e)
 				{
@@ -1588,10 +1589,13 @@ int main(int argc, const char **argv)
 				flash_slot = int_value[0];
 				flash_address[0] = int_value[1];
 				flash_address[1] = int_value[2];
+				dim_x = int_value[3];
+				dim_y = int_value[4];
 
 				std::cout << "MAILBOX update available, current slot: " << flash_slot;
 				std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
 				std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
+				std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px";
 				std::cout << std::endl;
 
 				if(start == -1)

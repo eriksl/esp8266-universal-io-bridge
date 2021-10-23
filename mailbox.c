@@ -6,6 +6,7 @@
 #include "rboot-interface.h"
 #include "sdk.h"
 #include "lwip-interface.h"
+#include "display.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -44,9 +45,11 @@ void mailbox_init(unsigned int mailbox_port)
 
 app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 {
-	rboot_if_config_t		config;
-	rboot_if_rtc_config_t	rtc;
+	rboot_if_config_t config;
+	rboot_if_rtc_config_t rtc;
 	unsigned int mailbox_slot;
+	display_properties_t *properties;
+	unsigned x, y;
 
 	if(!rboot_if_read_config(&config))
 	{
@@ -59,11 +62,23 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 	else
 		mailbox_slot = config.slot_current;
 
+	if((properties = display_get_properties()))
+	{
+		x = properties->graphic_dimensions.x;
+		y = properties->graphic_dimensions.y;
+	}
+	else
+	{
+		x = 0;
+		y = 0;
+	}
+
 	string_format(dst, "OK mailbox function available, "
 				"slots: %u, current: %u, "
-				"sectors: [ %u, %u ]\n",
+				"sectors: [ %u, %u ], display: %ux%upx\n",
 			config.slot_count, mailbox_slot,
-			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE);
+			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE,
+			x, y);
 
 	return(app_action_normal);
 }

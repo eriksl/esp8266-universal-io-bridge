@@ -64,6 +64,14 @@ attr_pure bool display_detected(void)
 	return(!!display_info_active);
 }
 
+const display_properties_t *display_get_properties(void)
+{
+	if(!display_info_active)
+		return((display_properties_t *)0);
+
+	return(&display_info_active->properties);
+}
+
 static void display_update(bool dont_advance)
 {
 	const char *slot_content;

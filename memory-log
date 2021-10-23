@@ -10890,3 +10890,19 @@ Sat Oct 16 15:25:14 CEST 2021 8d860ae display: improve display information struc
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71537, free:   8728, 10 %
     irom:    available: 592 k, used: 433544, free: 172664, 28 %
+Sun Oct 17 11:06:54 CEST 2021 c0263cb display: split display info struct into properties (global) and hooks (local).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433576, free: 172632, 28 %
+Sun Oct 17 11:10:13 CEST 2021 c0263cb display: split display info struct into properties (global) and hooks (local).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433624, free: 172584, 28 %
+Sat Oct 23 16:50:46 CEST 2021 c0263cb display: split display info struct into properties (global) and hooks (local).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433608, free: 172600, 28 %
+Sat Oct 23 16:55:49 CEST 2021 c0263cb display: split display info struct into properties (global) and hooks (local).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433640, free: 172568, 28 %

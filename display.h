@@ -67,6 +67,8 @@ typedef const struct
 
 assert_size(display_info_t, 92);
 
+const display_properties_t *display_get_properties(void);
+
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);
 app_action_t application_function_display_dump(string_t *src, string_t *dst);
 app_action_t application_function_display_default_message(string_t *src, string_t *dst);
