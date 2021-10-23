@@ -344,7 +344,7 @@ io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 			olat = tv & (1 << bankpin);
 			cached = pin_output_cache[instance_index(info)][bank] & (1 << bankpin);
 
-			string_format(dst, "current latch: %s, io: %s, cache: %s", onoff(io), onoff(olat), onoff(cached));
+			string_format(dst, "latch: %s, io: %s, cache: %s", onoff(io), onoff(olat), onoff(cached));
 
 			break;
 		}
