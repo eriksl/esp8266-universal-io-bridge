@@ -538,36 +538,38 @@ static const char pbm_header[] = "P4\n20 16\n";
 
 static bool picture_load(unsigned int picture_load_index)
 {
-	bool success = false;
+	bool success;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
+
+	success = false;
+
+	flash_buffer_request(fsb_display_picture, false, "orbital picture load", &buffer_string, &buffer_cstr, &size);
+
+	if(!buffer_string)
+		return(true);
+
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
-	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-	{
-		log("display orbital: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
-
-	flash_sector_buffer_use = fsb_display_picture;
-
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
 		goto error;
 	}
 
-	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, sizeof(pbm_header) - 1);
 
-	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	if(!string_match_cstr(buffer_string, pbm_header))
 	{
-		log("display orbital: load picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+		log("display orbital: load picture: invalid image header\n");
 		goto error;
 	}
 
 	success = true;
 
 error:
-	if(flash_sector_buffer_use == fsb_display_picture)
-		flash_sector_buffer_use = fsb_free;
+	flash_buffer_release(fsb_display_picture, "orbital picture load");
 	display_picture_valid = success;
 	return(success);
 }
@@ -579,11 +581,16 @@ static bool picture_valid(void)
 
 static bool layer_select(unsigned int layer)
 {
-	bool success = false;
+	bool success;
 	unsigned int row, column;
 	unsigned int udg, udg_line, udg_bit, udg_value;
 	unsigned int byte_offset, bit_offset;
 	const uint8_t *bitmap;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
+
+	success = false;
 
 	if(layer == 0)
 	{
@@ -591,38 +598,36 @@ static bool layer_select(unsigned int layer)
 			return(false);
 
 		display_disable_text = false;
-		return(true);
+		success = true;
+		goto error2;
 	}
 
 	if(!display_picture_valid)
 	{
 		log("display orbital: load picture: invalid image\n");
-		return(false);
+		goto error2;
 	}
 
 	display_disable_text = true;
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("display orbital: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
+	flash_buffer_request(fsb_display_picture, false, "orbital layer select", &buffer_string, &buffer_cstr, &size);
 
-	flash_sector_buffer_use = fsb_display_picture;
+	if(!buffer_string)
+		goto error2;
 
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
+		goto error1;
 	}
 
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, size);
+	bitmap = (const uint8_t *)buffer_cstr + (sizeof(pbm_header) - 1);
 
 	for(udg = 0; udg < 8; udg++)
 	{
 		if(!display_command2(command_udg, udg))
-			goto error;
+			goto error1;
 
 		for(udg_line = 0; udg_line < 8; udg_line++)
 		{
@@ -642,32 +647,32 @@ static bool layer_select(unsigned int layer)
 			}
 
 			if(!display_data_output(udg_value))
-				goto error;
+				goto error1;
 		}
 	}
 
 	if(!display_command1(command_clear_display))
-		goto error;
+		goto error1;
 
 	for(row = 0; row < 2; row++)
 	{
 		if(!display_command3(command_goto, 9, row + 1 + 1))
-			goto error;
+			goto error1;
 
 		for(column = 0; column < 4; column++)
 			if(!display_data_output((row * 4) + column))
-				goto error;
+				goto error1;
 	}
 
 	success = true;
 
-error:
-	flash_sector_buffer_use = fsb_free;
+error1:
+	flash_buffer_release(fsb_display_picture, "orbital layer select");
 	if(!display_data_flush())
 		return(false);
 	if(!text_goto(-1, -1))
 		return(false);
-
+error2:
 	return(success);
 }
 

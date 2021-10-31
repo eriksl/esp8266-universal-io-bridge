@@ -82,60 +82,102 @@ attr_const const char *rboot_if_boot_mode(unsigned int index)
 
 bool rboot_if_write_config(const rboot_if_config_t *config)
 {
-	bool rv = false;
+	bool success;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
 
-	uint32_t *buffer = (uint32_t *)(void *)string_buffer_nonconst(&flash_sector_buffer);
+	success = false;
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+	flash_buffer_request(fsb_rboot, true, "rboot if write config", &buffer_string, &buffer_cstr, &size);
+
+	if(!buffer_string)
+		goto exit2;
+
+	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
-		log("rboot_if_write_config: flash buffer busy (%u)\n", flash_sector_buffer_use);
-		return(false);
+		log("rboot_if_write_config: cannot read config sector (1)\n");
+		goto exit1;
 	}
 
-	flash_sector_buffer_use = fsb_mailbox;
+	if(!memcmp(buffer_cstr, config, sizeof(*config)))
+	{
+		log("rboot_if_write_config: skip write\n");
+		success = true;
+		goto exit1;
+	}
 
-	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto exit;
+	if(spi_flash_erase_sector(OFFSET_RBOOT_CFG / size) != SPI_FLASH_RESULT_OK)
+	{
+		log("rboot_if_write_config: cannot erase config sector\n");
+		goto exit1;
+	}
 
-	memcpy(buffer, config, sizeof(*config));
+	memset(buffer_cstr, 0xff, size);
+	memcpy(buffer_cstr, config, sizeof(*config));
 
-	if(spi_flash_erase_sector(OFFSET_RBOOT_CFG / SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto exit;
+	if(spi_flash_write(OFFSET_RBOOT_CFG, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
+	{
+		log("rboot_if_write_config: cannot write config sector\n");
+		goto exit1;
+	}
 
-	if(spi_flash_write(OFFSET_RBOOT_CFG, buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
-		goto exit;
+	memset(buffer_cstr, 0x00, size);
 
-	rv = true;
+	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
+	{
+		log("rboot_if_write_config: cannot read config sector (2)\n");
+		goto exit1;
+	}
 
-exit:
-	flash_sector_buffer_use = fsb_free;
-	return(rv);
+	if(memcmp(buffer_cstr, config, sizeof(*config)))
+	{
+		log("rboot_if_write_config: verify failed\n");
+		goto exit1;
+	}
+
+	success = true;
+
+exit1:
+	flash_buffer_release(fsb_rboot, "rboot if write config");
+exit2:
+	return(success);
 }
 
 bool rboot_if_read_config(rboot_if_config_t *config)
 {
-	typedef uint32_t flash_read_buffer_t[256];
-	assert_size_le(*config, flash_read_buffer_t);
+	bool success;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
 
-	flash_read_buffer_t flash_read_buffer;
+	success = false;
 
-	memset(flash_read_buffer, 0xff, sizeof(flash_read_buffer));
+	flash_buffer_request(fsb_rboot, true, "rboot if read config", &buffer_string, &buffer_cstr, &size);
 
-	if(spi_flash_read(OFFSET_RBOOT_CFG, (uint32_t *)flash_read_buffer, sizeof(flash_read_buffer)) != SPI_FLASH_RESULT_OK)
+	if(!buffer_string)
+		goto exit2;
+
+	if(spi_flash_read(OFFSET_RBOOT_CFG, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
-		log("rboot config: flash read failed\n");
-		return(false);
+		log("rboot_if_read_config: cannot read config sector\n");
+		goto exit1;
 	}
 
-	memcpy(config, flash_read_buffer, sizeof(*config));
+	memcpy(config, buffer_cstr, sizeof(*config));
 
 	if(config->magic != rboot_if_conf_magic)
 	{
-		log("rboot config: invalid magic number\n");
-		return(false);
+		log("rboot_if_read_config: invalid magic number\n");
+		goto exit1;
 	}
 
-	return(true);
+	success = true;
+
+exit1:
+	flash_buffer_release(fsb_rboot, "rboot if read config");
+exit2:
+	return(success);
 }
 
 static uint8_t checksum(const uint8_t *start, const uint8_t *end)

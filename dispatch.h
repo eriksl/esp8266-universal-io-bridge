@@ -23,22 +23,7 @@ typedef enum
 	task_remote_trigger,
 } task_id_t;
 
-typedef enum
-{
-	fsb_free,
-	fsb_config_read,
-	fsb_config_write,
-	fsb_config_write_dirty,
-	fsb_config_cache,
-	fsb_mailbox,
-	fsb_sequencer,
-	fsb_display_picture,
-} flash_sector_buffer_use_t;
-
 extern	bool uart_bridge_active;
-
-extern	string_t					flash_sector_buffer;
-extern	flash_sector_buffer_use_t	flash_sector_buffer_use;
 
 void	dispatch_init1(void);
 void	dispatch_init2(void);

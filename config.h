@@ -46,17 +46,14 @@ bool			config_flag_change_from_string(const string_t *, bool set);
 
 bool			config_init(void);
 bool			config_dump(string_t *);
-bool			config_open_read(void);
-bool			config_walk(string_t *id, string_t *value);
-bool			config_close_read(void);
-
 bool			config_open_write(void);
+bool			config_close_write(void);
+void			config_abort_write(void);
+
 unsigned int	config_delete_flashptr(const char *match_name, bool wildcard, int index1, int index2);
 bool			config_set_string_flashptr(const char *id, const char *value, int param1, int param2);
 bool			config_set_int_flashptr(const char *match_name, int value, int index1, int index2);
 bool			config_set_uint_flashptr(const char *match_name, unsigned int value, int index1, int index2);
-bool			config_close_write(void);
-void			config_abort_write(void);
 
 bool			config_get_string_flashptr(const char *id, string_t *value, int param1, int param2);
 bool			config_get_int_flashptr(const char *match_name, int *return_value, int param1, int param2);

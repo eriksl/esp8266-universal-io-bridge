@@ -2006,6 +2006,9 @@ static bool periodic(void)
 	static const char ppm_header[] = "P6\n480 272\n255\n";
 	bool success = false;
 	uint8_t mwcr0;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
 
 	if(display_locked_ms > 0)
 	{
@@ -2028,34 +2031,29 @@ static bool periodic(void)
 
 		case(pls_start):
 		{
-			if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-			{
-				log("display eastrising: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-				goto error1;
-			}
+			flash_buffer_request(fsb_display_picture, false, "eastrising layer select", &buffer_string, &buffer_cstr, &size);
 
-			if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
+			if(!buffer_string)
 				return(true); // buffer currently in use, try again later
 
 			picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
-			flash_sector_buffer_use = fsb_display_picture;
 
-			if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+			if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 			{
 				log("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
 				goto error2;
 			}
 
-			string_setlength(&flash_sector_buffer, sizeof(ppm_header) - 1);
+			string_setlength(buffer_string, sizeof(ppm_header) - 1);
 
-			if(!string_match_cstr(&flash_sector_buffer, ppm_header))
+			if(!string_match_cstr(buffer_string, ppm_header))
 			{
-				log("display eastrising: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
+				log("display eastrising: show picture: invalid image header\n");
 				success = true;
 				goto error2;
 			}
 
-			string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+			string_setlength(buffer_string, size);
 
 			picture_load_sector_offset = sizeof(ppm_header) - 1;
 			picture_load_current = 0;
@@ -2083,7 +2081,7 @@ static bool periodic(void)
 			unsigned int output_buffer_offset;
 			unsigned int rgb_offset;
 			unsigned int rgb[3];
-			uint8_t *sector_buffer = (uint8_t *)string_buffer_nonconst(&flash_sector_buffer);
+			flash_sector_buffer_use_t use;
 
 			if(picture_load_current >= picture_ppm_data_length)
 			{
@@ -2091,14 +2089,16 @@ static bool periodic(void)
 				goto error2;
 			}
 
-			if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache) && (flash_sector_buffer_use != fsb_display_picture))
+			use = flash_buffer_using();
+
+			flash_buffer_request(fsb_display_picture, false, "eastrising layer select", &buffer_string, &buffer_cstr, &size);
+
+			if(!buffer_string)
 				return(true); // buffer currently in use, try again later
 
-			if(flash_sector_buffer_use != fsb_display_picture)
+			if(use != fsb_display_picture)
 			{
-				flash_sector_buffer_use = fsb_display_picture;
-
-				if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+				if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 				{
 					log("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
 					goto error2;
@@ -2116,7 +2116,7 @@ static bool periodic(void)
 					{
 						picture_load_flash_sector++;
 
-						if(spi_flash_read(picture_load_flash_sector * SPI_FLASH_SEC_SIZE, sector_buffer, SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+						if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 						{
 							log("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
 							goto error2;
@@ -2125,7 +2125,7 @@ static bool periodic(void)
 						picture_load_sector_offset = 0;
 					}
 
-					rgb[rgb_offset] = sector_buffer[picture_load_sector_offset++];
+					rgb[rgb_offset] = (unsigned int)buffer_cstr[picture_load_sector_offset++];
 					picture_load_current++;
 				}
 
@@ -2143,13 +2143,13 @@ static bool periodic(void)
 				goto error2;
 
 			if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
-				goto error3;
+				goto error1;
 
 			if(!display_set_active_layer(1))
-				goto error3;
+				goto error1;
 
 			if(!display_write_string(true, output_buffer_offset, (uint8_t *)flash_dram_buffer))
-				goto error3;
+				goto error1;
 
 			if(!display_write(reg_mwcr0, mwcr0))
 				goto error2;
@@ -2165,11 +2165,10 @@ static bool periodic(void)
 
 	return(true);
 
-error3:
+error1:
 	display_write(reg_mwcr0, mwcr0);
 error2:
-	flash_sector_buffer_use = fsb_free;
-error1:
+	flash_buffer_release(fsb_display_picture, "eastrising periodic");
 	picture_load_state = pls_done;
 
 	return(success);

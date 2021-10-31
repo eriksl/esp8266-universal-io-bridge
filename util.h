@@ -21,6 +21,40 @@ enum
 
 _Static_assert(sizeof(bool) == 1, "sizeof(bool) != 1");
 
+typedef enum
+{
+	fsb_free,
+	fsb_config_read,
+	fsb_config_write,
+	fsb_config_write_dirty,
+	fsb_config_cache,
+	fsb_mailbox,
+	fsb_sequencer,
+	fsb_display_picture,
+	fsb_rboot,
+} flash_sector_buffer_use_t;
+
+#define flash_buffer_request(use, pvt, descr, str, cstr, size) \
+do { \
+    static roflash const char descr_flash[] = descr; \
+	_flash_buffer_request(use, pvt, descr_flash, str, cstr, size); \
+} while(0)
+
+#define flash_buffer_release(use, descr) \
+do { \
+    static roflash const char descr_flash[] = descr; \
+	_flash_buffer_release(use, descr_flash); \
+} while(0)
+
+void _flash_buffer_request(flash_sector_buffer_use_t use, bool pvt, const char *description,
+		string_t **str, char **cstr, unsigned int *size);
+void _flash_buffer_release(flash_sector_buffer_use_t use, const char *description);
+
+flash_sector_buffer_use_t flash_buffer_using(void);
+bool flash_buffer_using_1(flash_sector_buffer_use_t one);
+bool flash_buffer_using_2(flash_sector_buffer_use_t one, flash_sector_buffer_use_t two);
+bool flash_buffer_using_3(flash_sector_buffer_use_t one, flash_sector_buffer_use_t two, flash_sector_buffer_use_t three);
+
 double pow(double, double);
 double fmax(double, double);
 

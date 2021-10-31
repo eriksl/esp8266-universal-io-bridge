@@ -797,43 +797,39 @@ static const char pbm_header[] = "P4\n20 16\n";
 
 static bool picture_load(unsigned int picture_load_index)
 {
-	bool success = false;
+	bool success;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
+
+	success = false;
+
+	flash_buffer_request(fsb_display_picture, false, "lcd picture load", &buffer_string, &buffer_cstr, &size);
+
+	if(!buffer_string)
+		goto error2;
 
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
-	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-	{
-		log("display lcd: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
-
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
-
-	flash_sector_buffer_use = fsb_display_picture;
-
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
+		goto error1;
 	}
 
-	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, sizeof(pbm_header) - 1);
 
-	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	if(!string_match_cstr(buffer_string, pbm_header))
 	{
 		log("display lcd: load picture: picture invalid\n");
-		goto error;
+		goto error1;
 	}
 
 	success = true;
 
-error:
-	if(flash_sector_buffer_use == fsb_display_picture)
-		flash_sector_buffer_use = fsb_free;
+error1:
+	flash_buffer_release(fsb_display_picture, "lcd picture load");
+error2:
 	display_picture_valid = success;
 	return(success);
 }
@@ -850,46 +846,47 @@ static bool layer_select(unsigned int layer)
 	unsigned int udg, udg_line, udg_bit, udg_value;
 	unsigned int byte_offset, bit_offset;
 	const uint8_t *bitmap;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
 
 	if(layer == 0)
 	{
 		if(!send_byte(cmd_clear_screen, false))
-			return(false);
+			goto error2;
 
 		if(!udg_generic_init())
-			return(false);
+			goto error2;
 
 		display_disable_text = false;
-		return(true);
+		success = true;
+		goto error2;
 	}
 
 	if(!display_picture_valid)
 	{
 		log("display lcd: load picture: invalid image\n");
-		return(false);
+		goto error2;
 	}
 
 	display_disable_text = true;
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("display lcd: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		return(false);
-	}
+	flash_buffer_request(fsb_display_picture, false, "lcd layer select", &buffer_string, &buffer_cstr, &size);
 
-	flash_sector_buffer_use = fsb_display_picture;
+	if(!buffer_string)
+		goto error2;
 
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display lcd: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
+		goto error1;
 	}
 
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, size);
+	bitmap = (const uint8_t *)buffer_cstr + (sizeof(pbm_header) - 1);
 
 	if(!send_byte(cmd_set_udg_ptr, false))
-		goto error;
+		goto error1;
 
 	msleep(2);
 
@@ -915,34 +912,35 @@ static bool layer_select(unsigned int layer)
 			msleep(1);
 
 			if(!send_byte(udg_value, true))
-				goto error;
+				goto error1;
 		}
 	}
 
 	if(!send_byte(cmd_clear_screen, false))
-		return(false);
+		goto error1;
 
 	for(row = 0; row < 2; row++)
 	{
 		if(!send_byte(cmd_set_ram_ptr | (ram_offsets[row + 1] + 8), false))
-			return(false);
+			goto error1;
 
 		msleep(2);
 
 		for(column = 0; column < 4; column++)
 			if(!send_byte((row * 4) + column, true))
-				goto error;
+				goto error1;
 	}
 
 	if(!text_goto(0, 0))
-		goto error;
+		goto error1;
 
 	success = true;
 
-error:
-	flash_sector_buffer_use = fsb_free;
+error1:
+	flash_buffer_release(fsb_display_picture, "lcd layer select");
+error2:
 	if(!text_goto(-1, -1))
-		return(false);
+		success = false;
 
 	return(success);
 }

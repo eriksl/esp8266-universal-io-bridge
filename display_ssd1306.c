@@ -597,43 +597,39 @@ static const char pbm_header[] = "P4\n128 64\n";
 
 static bool picture_load(unsigned int picture_load_index)
 {
-	bool success = false;
+	bool success;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
+
+	success = false;
+
+	flash_buffer_request(fsb_display_picture, false, "lcd picture load", &buffer_string, &buffer_cstr, &size);
+
+	if(!buffer_string)
+		goto error2;
 
 	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
 
-	if(string_size(&flash_sector_buffer) < SPI_FLASH_SEC_SIZE)
-	{
-		log("display ssd1306: load picture: sector buffer too small: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
-
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("display ssd1306: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
-
-	flash_sector_buffer_use = fsb_display_picture;
-
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
+		goto error1;
 	}
 
-	string_setlength(&flash_sector_buffer, sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, sizeof(pbm_header) - 1);
 
-	if(!string_match_cstr(&flash_sector_buffer, pbm_header))
+	if(!string_match_cstr(buffer_string, pbm_header))
 	{
-		log("display ssd1306: show picture: invalid image header: %s\n", string_to_cstr(&flash_sector_buffer));
-		goto error;
+		log("display ssd1306: show picture: invalid image header\n");
+		goto error1;
 	}
 
 	success = true;
 
-error:
-	if(flash_sector_buffer_use == fsb_display_picture)
-		flash_sector_buffer_use = fsb_free;
+error1:
+	flash_buffer_release(fsb_display_picture, "seeed picture load");
+error2:
 	display_picture_valid = success;
 	return(success);
 }
@@ -648,6 +644,9 @@ static bool layer_select(unsigned int layer)
 	bool success = false;
 	unsigned int row, column, output, bit, offset, bitoffset;
 	const uint8_t *bitmap;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int size;
 
 	if(layer == 0)
 	{
@@ -658,32 +657,29 @@ static bool layer_select(unsigned int layer)
 	if(!display_picture_valid)
 	{
 		log("display ssd1306: load picture: invalid image\n");
-		goto error;
+		goto error2;
 	}
 
 	display_disable_text = true;
 
-	if((flash_sector_buffer_use != fsb_free) && (flash_sector_buffer_use != fsb_config_cache))
-	{
-		log("display ssd1306: load picture: flash buffer not free, used by: %u\n", flash_sector_buffer_use);
-		goto error;
-	}
+	flash_buffer_request(fsb_display_picture, false, "ssd layer select", &buffer_string, &buffer_cstr, &size);
 
-	flash_sector_buffer_use = fsb_display_picture;
+	if(!buffer_string)
+		goto error2;
 
-	if(spi_flash_read(display_picture_load_flash_sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&flash_sector_buffer), SPI_FLASH_SEC_SIZE) != SPI_FLASH_RESULT_OK)
+	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
 	{
 		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
+		goto error1;
 	}
 
-	string_setlength(&flash_sector_buffer, SPI_FLASH_SEC_SIZE);
-	bitmap = (const uint8_t *)string_buffer(&flash_sector_buffer) + (sizeof(pbm_header) - 1);
+	string_setlength(buffer_string, size);
+	bitmap = (const uint8_t *)buffer_cstr + (sizeof(pbm_header) - 1);
 
 	for(row = 0; row < (display_height / 8); row++)
 	{
 		if(!display_cursor_row_column(row, 0))
-			goto error;
+			goto error1;
 
 		for(column = 0; column < display_width; column++)
 		{
@@ -701,16 +697,16 @@ static bool layer_select(unsigned int layer)
 			}
 
 			if(!display_data_output(output))
-				goto error;
+				goto error1;
 		}
 	}
 
 	success = true;
-error:
-	if(flash_sector_buffer_use == fsb_display_picture)
-		flash_sector_buffer_use = fsb_free;
+error1:
+	flash_buffer_release(fsb_display_picture, "ssd layer select");
+error2:
 	if(!display_data_flush())
-		return(false);
+		success = false;
 	return(success);
 }
 

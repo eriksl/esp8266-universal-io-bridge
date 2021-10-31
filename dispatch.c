@@ -36,9 +36,6 @@ enum
 
 static os_event_t task_queue[3][task_queue_length];
 
-flash_sector_buffer_use_t flash_sector_buffer_use;
-string_new(attr_flash_align, flash_sector_buffer, 4096);
-
 string_new(static attr_flash_align, command_socket_receive_buffer, 128);
 string_new(static attr_flash_align, command_socket_send_buffer, 2048);
 static lwip_if_socket_t command_socket;
@@ -491,7 +488,7 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 
 void dispatch_init1(void)
 {
-	flash_sector_buffer_use = fsb_free;
+	flash_buffer_release(fsb_free, "init");
 
 	system_os_task(user_task_prio_0_handler, USER_TASK_PRIO_0, task_queue[0], task_queue_length);
 	system_os_task(user_task_prio_1_handler, USER_TASK_PRIO_1, task_queue[1], task_queue_length);

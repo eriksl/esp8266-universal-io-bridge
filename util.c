@@ -10,6 +10,114 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+static flash_sector_buffer_use_t flash_sector_buffer_use = fsb_free;
+static bool flash_sector_buffer_private = false;
+static string_new(attr_flash_align, flash_sector_buffer, SPI_FLASH_SEC_SIZE);
+
+void _flash_buffer_request(flash_sector_buffer_use_t use, bool pvt, const char *description,
+		string_t **string, char **cstr, unsigned int *size)
+{
+	if(string_size(&flash_sector_buffer) != SPI_FLASH_SEC_SIZE)
+	{
+		log("request flash buffer: ");
+		log_from_flash_0(description);
+		log(": sector buffer size wrong: %d: ", string_size(&flash_sector_buffer));
+		goto error;
+	}
+
+	if((flash_sector_buffer_use != fsb_free) && ((flash_sector_buffer_use != use) && flash_sector_buffer_private))
+	{
+		log("request flash buffer: ");
+		log_from_flash_0(description);
+		log(": in use by %u: ", flash_sector_buffer_use);
+		goto error;
+	}
+
+	flash_sector_buffer_use = use;
+	flash_sector_buffer_private = pvt;
+
+	if(string)
+		*string = &flash_sector_buffer;
+
+	if(cstr)
+		*cstr = string_buffer_nonconst(&flash_sector_buffer);
+
+	if(size)
+		*size = string_size(&flash_sector_buffer);
+
+	return;
+
+error:
+	if(string)
+		*string = (string_t *)0;
+
+	if(cstr)
+		*cstr = (char *)0;
+
+	if(size)
+		*size = 0;
+
+	return;
+}
+
+void _flash_buffer_release(flash_sector_buffer_use_t use, const char *description)
+{
+	if(flash_sector_buffer_use == fsb_free)
+	{
+		log("release flash buffer: double free: ");
+		log_from_flash_0(description);
+		log("\n");
+	}
+
+	if((flash_sector_buffer_use != use) && flash_sector_buffer_private)
+	{
+		log("release flash buffer: conflicting free: from %u to %u: ", flash_sector_buffer_use, use);
+		log_from_flash_0(description);
+		log("\n");
+	}
+
+	flash_sector_buffer_use = fsb_free;
+	flash_sector_buffer_private = false;
+}
+
+flash_sector_buffer_use_t flash_buffer_using(void)
+{
+	return(flash_sector_buffer_use);
+}
+
+bool flash_buffer_using_1(flash_sector_buffer_use_t one)
+{
+	if(flash_sector_buffer_use == one)
+		return(true);
+
+	return(false);
+}
+
+bool flash_buffer_using_2(flash_sector_buffer_use_t one, flash_sector_buffer_use_t two)
+{
+	if(flash_sector_buffer_use == one)
+		return(true);
+
+	if(flash_sector_buffer_use == two)
+		return(true);
+
+	return(false);
+}
+
+bool flash_buffer_using_3(flash_sector_buffer_use_t one, flash_sector_buffer_use_t two, flash_sector_buffer_use_t three)
+{
+	if(flash_sector_buffer_use == one)
+		return(true);
+
+	if(flash_sector_buffer_use == two)
+		return(true);
+
+	if(flash_sector_buffer_use == three)
+		return(true);
+
+	return(false);
+}
+
 unsigned int logbuffer_display_current = 0;
 static bool newline_logged = true;
 

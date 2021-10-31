@@ -10906,3 +10906,227 @@ Sat Oct 23 16:55:49 CEST 2021 c0263cb display: split display info struct into pr
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71537, free:   8728, 10 %
     irom:    available: 592 k, used: 433640, free: 172568, 28 %
+Fri Oct 29 11:02:19 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433736, free: 172472, 28 %
+Fri Oct 29 11:37:45 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434408, free: 171800, 28 %
+Fri Oct 29 11:38:33 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434424, free: 171784, 28 %
+Fri Oct 29 11:40:52 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434472, free: 171736, 28 %
+Fri Oct 29 11:41:28 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434424, free: 171784, 28 %
+Fri Oct 29 11:49:26 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434744, free: 171464, 28 %
+Sat Oct 30 17:40:18 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434600, free: 171608, 28 %
+Sat Oct 30 18:05:41 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434584, free: 171624, 28 %
+Sat Oct 30 18:10:37 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434648, free: 171560, 28 %
+Sat Oct 30 19:33:21 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434664, free: 171544, 28 %
+Sat Oct 30 19:41:30 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434680, free: 171528, 28 %
+Sat Oct 30 19:48:13 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71521, free:   8744, 10 %
+    irom:    available: 592 k, used: 433640, free: 172568, 28 %
+Sat Oct 30 19:50:12 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71521, free:   8744, 10 %
+    irom:    available: 592 k, used: 433672, free: 172536, 28 %
+Sat Oct 30 19:52:30 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433720, free: 172488, 28 %
+Sat Oct 30 19:56:29 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sat Oct 30 19:58:06 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433864, free: 172344, 28 %
+Sat Oct 30 20:01:27 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sat Oct 30 20:02:30 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 434008, free: 172200, 28 %
+Sat Oct 30 20:03:08 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sat Oct 30 20:04:27 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sat Oct 30 20:05:08 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433800, free: 172408, 28 %
+Sat Oct 30 20:05:49 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67461, free:  12804, 15 %
+    irom:    available: 592 k, used: 433736, free: 172472, 28 %
+Sat Oct 30 20:08:00 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433768, free: 172440, 28 %
+Sat Oct 30 20:09:16 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67461, free:  12804, 15 %
+    irom:    available: 592 k, used: 433736, free: 172472, 28 %
+Sat Oct 30 20:09:41 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433800, free: 172408, 28 %
+Sat Oct 30 20:10:45 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433784, free: 172424, 28 %
+Sat Oct 30 20:11:08 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433800, free: 172408, 28 %
+Sat Oct 30 20:11:38 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433816, free: 172392, 28 %
+Sat Oct 30 20:11:56 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sat Oct 30 20:18:30 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433848, free: 172360, 28 %
+Sat Oct 30 20:20:16 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71569, free:   8696, 10 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sat Oct 30 20:22:26 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71553, free:   8712, 10 %
+    irom:    available: 592 k, used: 433656, free: 172552, 28 %
+Sat Oct 30 20:23:52 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71553, free:   8712, 10 %
+    irom:    available: 592 k, used: 433704, free: 172504, 28 %
+Sat Oct 30 20:24:53 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71553, free:   8712, 10 %
+    irom:    available: 592 k, used: 433784, free: 172424, 28 %
+Sat Oct 30 20:25:21 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433864, free: 172344, 28 %
+Sat Oct 30 20:25:52 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sat Oct 30 20:26:14 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433944, free: 172264, 28 %
+Sat Oct 30 20:26:35 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71585, free:   8680, 10 %
+    irom:    available: 592 k, used: 433864, free: 172344, 28 %
+Sat Oct 30 20:29:44 CEST 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433832, free: 172376, 28 %
+Sun Oct 31 09:40:21 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433848, free: 172360, 28 %
+Sun Oct 31 09:41:07 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433944, free: 172264, 28 %
+Sun Oct 31 09:43:00 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Oct 31 09:44:00 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 433848, free: 172360, 28 %
+Sun Oct 31 09:45:19 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434152, free: 172056, 28 %
+Sun Oct 31 09:47:10 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434376, free: 171832, 28 %
+Sun Oct 31 09:50:08 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434456, free: 171752, 28 %
+Sun Oct 31 09:52:29 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434472, free: 171736, 28 %
+Sun Oct 31 09:53:33 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434664, free: 171544, 28 %
+Sun Oct 31 09:54:13 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434680, free: 171528, 28 %
+Sun Oct 31 09:55:28 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434648, free: 171560, 28 %
+Sun Oct 31 10:05:53 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 434712, free: 171496, 28 %
+Sun Oct 31 10:33:17 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Sun Oct 31 10:49:38 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71505, free:   8760, 10 %
+    irom:    available: 592 k, used: 434168, free: 172040, 28 %
+Sun Oct 31 10:50:58 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71521, free:   8744, 10 %
+    irom:    available: 592 k, used: 434840, free: 171368, 28 %
+Sun Oct 31 10:52:17 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 435160, free: 171048, 28 %
+Sun Oct 31 10:55:41 CET 2021 6c61b28 add generic api for getting display information
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
