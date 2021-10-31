@@ -11130,3 +11130,11 @@ Sun Oct 31 10:55:41 CET 2021 6c61b28 add generic api for getting display informa
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71537, free:   8728, 10 %
     irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Sun Oct 31 12:40:34 CET 2021 dc4370c improve memory management
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 435160, free: 171048, 28 %
+Sun Oct 31 12:48:31 CET 2021 d28c33a espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71537, free:   8728, 10 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %

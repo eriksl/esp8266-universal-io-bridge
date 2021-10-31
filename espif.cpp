@@ -13,7 +13,7 @@ typedef std::vector<std::string> StringVector;
 
 static const char *ack = "ACK";
 static const char *mailbox_info_reply =
-	"OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px)?.*";
+	"OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px@([0-9]+))?.*";
 
 class GenericSocket
 {
@@ -1223,7 +1223,8 @@ error:
 		throw(std::string("send failed, max attempts reached"));
 }
 
-static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, unsigned chunk_size, bool verbose)
+static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, unsigned chunk_size,
+		unsigned int dim_x, unsigned int dim_y, unsigned int depth, bool verbose)
 {
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
@@ -1231,27 +1232,22 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	unsigned char sector_buffer[flash_sector_size];
 	unsigned int start_x, start_y;
 	unsigned int current_buffer, x, y, r, g, b, r1, g1, g2, b1;
-	enum { display_width = 480, display_height = 272 };
 
 	try
 	{
 		Magick::Image image;
-		Magick::Geometry newsize1((display_width + display_height) / 2, display_height);
-		Magick::Geometry newsize2(display_width, display_height);
+		Magick::Geometry newsize(dim_x, dim_y);
 		Magick::Color colour;
-		newsize1.aspect(true);
-		newsize2.aspect(false);
+		newsize.aspect(true);
 
 		image.read(filename);
 
 		if(verbose)
 			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
 
-		image.resize(newsize1);
-		image.extent(newsize2, Magick::Color("black"), Magick::CenterGravity);
-		image.normalize();
+		image.resize(newsize);
 
-		if((image.columns() != display_width) || (image.rows() != display_height))
+		if((image.columns() != dim_x) || (image.rows() != dim_y))
 			throw(std::string("image magic resize failed"));
 
 		current_buffer = 0;
@@ -1260,35 +1256,38 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 
 		process(command_channel, "display-canvas-start 20000", reply, "display canvas start success: yes", string_value, int_value, verbose);
 
-		for(y = 0; y < display_height; y++)
+		if(depth == 12)
 		{
-			for(x = 0; x < display_width; x++)
+			for(y = 0; y < dim_y; y++)
 			{
-				colour = image.pixelColor(x, y);
-				r = colour.redQuantum() >> 11;
-				g = colour.greenQuantum() >> 10;
-				b = colour.blueQuantum() >> 11;
-
-				if((current_buffer + 2) > chunk_size)
+				for(x = 0; x < dim_x; x++)
 				{
-					command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
-					current_buffer = 0;
-					start_x = x;
-					start_y = y;
+					colour = image.pixelColor(x, y);
+					r = colour.redQuantum() >> 11;
+					g = colour.greenQuantum() >> 10;
+					b = colour.blueQuantum() >> 11;
+
+					if((current_buffer + 2) > chunk_size)
+					{
+						command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+						current_buffer = 0;
+						start_x = x;
+						start_y = y;
+					}
+
+					r1 = (r & 0b00011111) >> 0;
+					g1 = (g & 0b00111000) >> 3;
+					g2 = (g & 0b00000111) >> 0;
+					b1 = (b & 0b00011111) >> 0;
+
+					sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
+					sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
 				}
-
-				r1 = (r & 0b00011111) >> 0;
-				g1 = (g & 0b00111000) >> 3;
-				g2 = (g & 0b00000111) >> 0;
-				b1 = (b & 0b00011111) >> 0;
-
-				sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
-				sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
 			}
-		}
 
-		if(current_buffer > 0)
-			command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+			if(current_buffer > 0)
+				command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+		}
 
 		process(command_channel, "display-canvas-show", reply, "display canvas show success: yes", string_value, int_value, verbose);
 		process(command_channel, "display-canvas-stop", reply, "display canvas stop success: yes", string_value, int_value, verbose);
@@ -1431,7 +1430,7 @@ int main(int argc, const char **argv)
 		std::string start_string;
 		std::string length_string;
 		int start;
-		int dim_x, dim_y;
+		int dim_x, dim_y, depth;
 		unsigned int length;
 		unsigned int chunk_size;
 		bool use_udp = false;
@@ -1591,11 +1590,12 @@ int main(int argc, const char **argv)
 				flash_address[1] = int_value[2];
 				dim_x = int_value[3];
 				dim_y = int_value[4];
+				depth = int_value[5];
 
 				std::cout << "MAILBOX update available, current slot: " << flash_slot;
 				std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
 				std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
-				std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px";
+				std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px @" << depth;
 				std::cout << std::endl;
 
 				if(start == -1)
@@ -1641,7 +1641,7 @@ int main(int argc, const char **argv)
 										command_benchmark(command_channel, mailbox_channel, verbose);
 									else
 										if(cmd_image)
-											command_image(command_channel, mailbox_channel, filename, chunk_size, verbose);
+											command_image(command_channel, mailbox_channel, filename, chunk_size, dim_x, dim_y, depth, verbose);
 			}
 		}
 	}
