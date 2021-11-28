@@ -471,8 +471,17 @@ rxtest:
 txtest:
 						$(OTA_FLASH) --simulate --host $(OTA_HOST) --file $(FIRMWARE_IMG)
 
+benchmark:
+						$(OTA_FLASH) --benchmark --host $(OTA_HOST)
 
-test:					rxtest txtest
+wvtest:
+						$(OTA_FLASH) --write   --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm
+						$(OTA_FLASH) --verify  --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm
+
+vtest:
+						$(OTA_FLASH) --verify  --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm
+
+test:					rxtest txtest benchmark
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \
