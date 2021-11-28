@@ -208,8 +208,8 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
 	struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 	unsigned int chunk_size, offset, apiflags;
-	unsigned int sent;
 	unsigned int tcp_send_buffer_size;
+	bool success = false;
 	err_t error;
 
 	if(socket->sending_remaining == 0)
@@ -224,49 +224,43 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		return(false);
 	}
 
-	while(socket->sending_remaining > 0)
+	chunk_size = socket->sending_remaining;
+	apiflags = TCP_WRITE_FLAG_COPY;
+
+	if(chunk_size > tcp_send_buffer_size)
 	{
-		chunk_size = socket->sending_remaining;
+		chunk_size = tcp_send_buffer_size;
+		apiflags |= TCP_WRITE_FLAG_MORE;
+	}
 
-		apiflags = TCP_WRITE_FLAG_COPY;
-		if(chunk_size > max_payload)
+	offset = string_length(socket->send_buffer) - socket->sending_remaining;
+
+	if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
+	{
+		if(error == ERR_MEM)
 		{
-			chunk_size = max_payload;
-			apiflags |= TCP_WRITE_FLAG_MORE;
+			stat_lwip_tcp_send_segmentation++;
+			log("lwip tcp write: out of memory\n");
 		}
-
-		offset = string_length(socket->send_buffer) - socket->sending_remaining;
-
-		if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
+		else
 		{
-			if(error == ERR_MEM)
-			{
-				stat_lwip_tcp_send_segmentation++;
-
-				if(sent == 0)
-					log("lwip tcp write: out of memory\n");
-			}
-			else
-			{
-				stat_lwip_tcp_send_error++;
-				log_error("lwip tcp write: error", error);
-			}
-
-			break;
+			stat_lwip_tcp_send_error++;
+			log_error("lwip tcp write: error", error);
 		}
-
+	}
+	else
+	{
 		stat_lwip_tcp_sent_packets++;
 		stat_lwip_tcp_sent_bytes += chunk_size;
-
-		sent++;
 		socket->sending_remaining -= chunk_size;
 		socket->sent_unacked += chunk_size;
+		success = true;
 	}
 
 	if((error = tcp_output(pcb_tcp)) != ERR_OK)
 		log_error("lwip: tcp send: tcp_output: error", error);
 
-	return(sent > 0);
+	return(success);
 }
 
 static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t len)
