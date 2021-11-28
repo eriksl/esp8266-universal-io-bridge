@@ -175,7 +175,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 
 		*pcb_tcp = (struct tcp_pcb *)0;
 		socket->sending_remaining = 0;
-		socket->sent_remaining = 0;
+		socket->sent_unacked = 0;
 		return(ERR_OK);
 	}
 
@@ -257,7 +257,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 
 		sent++;
 		socket->sending_remaining -= chunk_size;
-		socket->sent_remaining += chunk_size;
+		socket->sent_unacked += chunk_size;
 	}
 
 	if((error = tcp_output(pcb_tcp)) != ERR_OK)
@@ -270,13 +270,13 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 
-	if(len > socket->sent_remaining)
+	if(len > socket->sent_unacked)
 	{
-		log("tcp sent callback: acked (%u) > sent_remaining (%d)\n", len, socket->sent_remaining);
-		socket->sent_remaining = 0;
+		log("tcp sent callback: acked (%u) > sent_unacked (%d)\n", len, socket->sent_unacked);
+		socket->sent_unacked = 0;
 	}
 	else
-		socket->sent_remaining -= len;
+		socket->sent_unacked -= len;
 
 	if(socket->sending_remaining > 0)
 	{
@@ -443,7 +443,7 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 		{
 			log("lwip if send: tcp send: disconnected\n");
 			socket->sending_remaining = 0;
-			socket->sent_remaining = 0;
+			socket->sent_unacked = 0;
 			return(false);
 		}
 
@@ -488,7 +488,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	socket->receive_buffer = receive_buffer;
 	socket->send_buffer = send_buffer;
 	socket->sending_remaining = 0;
-	socket->sent_remaining = 0;
+	socket->sent_unacked = 0;
 	socket->receive_buffer_locked = 0;
 	socket->reboot_pending = 0;
 	socket->callback_data_received = callback_data_received;

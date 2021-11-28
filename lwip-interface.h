@@ -46,7 +46,7 @@ typedef struct _lwip_if_socket_t
 	string_t	*receive_buffer;
 	string_t	*send_buffer;
 	int			sending_remaining;
-	int			sent_remaining;
+	int			sent_unacked;
 
 	callback_data_received_fn_t callback_data_received;
 
