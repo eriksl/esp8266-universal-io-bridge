@@ -581,6 +581,8 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 					if(verbose)
 						std::cout << "mailbox replied: \"" << reply << "\"" << std::endl;
 
+					if(reply != ack_string)
+						throw(std::string("ack failed"));
 
 					process(command_channel,
 							std::string(simulate ? "mailbox-simulate " : "mailbox-write ") + std::to_string(current), reply,
@@ -1211,7 +1213,7 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 				goto error;
 			}
 
-			if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()))
+			if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()) || (reply != ack_string))
 			{
 				if(verbose)
 					std::cout << "receive ack failed, attempt: " << attempt << std::endl;
