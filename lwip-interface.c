@@ -208,8 +208,8 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 {
 	struct tcp_pcb *pcb_tcp = (struct tcp_pcb *)socket->tcp.pcb;
 	unsigned int chunk_size, offset, apiflags;
-	unsigned int max_payload;
 	unsigned int sent;
+	unsigned int tcp_send_buffer_size;
 	err_t error;
 
 	if(socket->sending_remaining == 0)
@@ -218,8 +218,11 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		return(true);
 	}
 
-	sent = 0;
-	max_payload = tcp_sndbuf(pcb_tcp);
+	if((tcp_send_buffer_size = tcp_sndbuf(pcb_tcp)) == 0)
+	{
+		log("lwip tcp try send buffer: no more data left in tcp send buffer\n");
+		return(false);
+	}
 
 	while(socket->sending_remaining > 0)
 	{
