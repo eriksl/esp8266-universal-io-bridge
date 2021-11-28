@@ -11,9 +11,13 @@ enum
 
 typedef std::vector<std::string> StringVector;
 
-static const char *ack = "ACK";
-static const char *mailbox_info_reply =
-	"OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px@([0-9]+))?.*";
+static const std::string ack_string("ACK");
+static const std::string mailbox_info_reply
+		("OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px@([0-9]+))?.*");
+static const std::string mailbox_simulate_reply("OK mailbox-simulate: received sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)");
+static const std::string mailbox_write_reply("OK mailbox-write: written sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)");
+static const std::string mailbox_checksum_reply("OK mailbox-checksum: checksummed sectors: ([0-9]+), from sector: ([0-9]+), checksum: ([0-9a-f]+)");
+static const std::string mailbox_read_reply("OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)");
 
 class GenericSocket
 {
@@ -475,7 +479,6 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	std::string sha_remote_hash_text;
 	std::string send_string;
 	std::string reply;
-	std::string operation;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
 	SHA_CTX sha_file_ctx;
@@ -548,20 +551,16 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 					if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
 						throw(std::string("send failed"));
 
-					if(!mailbox_channel.receive(reply, GenericSocket::raw, strlen(ack)))
+					if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()))
 						throw(std::string("receive failed"));
 
 					if(verbose)
 						std::cout << "mailbox replied: \"" << reply << "\"" << std::endl;
 
-					if(simulate)
-						process(command_channel, std::string("mailbox-simulate ") + std::to_string(current), reply,
-								"OK mailbox-simulate: received sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)",
-								string_value, int_value, verbose);
-					else
-						process(command_channel, std::string("mailbox-write ") + std::to_string(current), reply,
-								"OK mailbox-write: written sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)",
-								string_value, int_value, verbose);
+
+					process(command_channel,
+							std::string(simulate ? "mailbox-simulate " : "mailbox-write ") + std::to_string(current), reply,
+							simulate ? mailbox_simulate_reply : mailbox_write_reply, string_value, int_value, verbose);
 
 					if(int_value[0] != (int)current)
 						throw(std::string("local sector (") + std::to_string(current) + ") != remote sector (" + std::to_string(int_value[0]) + ")");
@@ -658,8 +657,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 		sha_local_hash_text = sha_hash_to_text(file_hash);
 
 		send_string = std::string("mailbox-checksum ") + std::to_string(start) + " " + std::to_string(length);
-		process(command_channel, send_string, reply, "OK mailbox-checksum: checksummed sectors: ([0-9]+), from sector: ([0-9]+), checksum: ([0-9a-f]+)",
-				string_value, int_value, verbose);
+		process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
 
 		if(verbose)
 		{
@@ -740,7 +738,7 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
-	process(command_channel, send_string, reply, "OK mailbox-checksum: checksummed sectors: ([0-9]+), from sector: ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+	process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
 
 	if(verbose)
 	{
@@ -803,7 +801,7 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				try
 				{
-					process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+					process(command_channel, send_string, reply, mailbox_read_reply, string_value, int_value, verbose);
 				}
 				catch(const std::string &error)
 				{
@@ -899,7 +897,7 @@ error:
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
-	process(command_channel, send_string, reply, "OK mailbox-checksum: checksummed sectors: ([0-9]+), from sector: ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+	process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
 
 	if(verbose)
 	{
@@ -961,7 +959,7 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 
 				try
 				{
-					process(command_channel, send_string, reply, "OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value, verbose);
+					process(command_channel, send_string, reply, mailbox_read_reply, string_value, int_value, verbose);
 				}
 				catch(const std::string &error)
 				{
@@ -1189,7 +1187,7 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 				goto error;
 			}
 
-			if(!mailbox_channel.receive(reply, GenericSocket::raw, strlen(ack)))
+			if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()))
 			{
 				if(verbose)
 					std::cout << "receive ack failed, attempt: " << attempt << std::endl;
