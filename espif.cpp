@@ -42,6 +42,7 @@ class GenericSocket
 
 		bool send(std::string buffer, process_t how);
 		bool receive(std::string &buffer, process_t how, int expected = -1);
+		void drain();
 		void disconnect();
 		void connect();
 };
@@ -383,6 +384,29 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 	return(true);
 }
 
+void GenericSocket::drain()
+{
+	struct pollfd pfd;
+	char buffer[flash_sector_size];
+	unsigned int attempt;
+
+	for(attempt = max_attempts; attempt > 0; attempt--)
+	{
+		pfd.fd = fd;
+		pfd.events = POLLIN | POLLERR | POLLHUP;
+		pfd.revents = 0;
+
+		if(poll(&pfd, 1, 200) != 1)
+			return;
+
+		if(pfd.revents & (POLLERR | POLLHUP))
+			return;
+
+		if(read(fd, buffer, sizeof(buffer)) < 0)
+			return;
+	}
+}
+
 static std::string sha_hash_to_text(const unsigned char *hash)
 {
 	unsigned int current;
@@ -450,9 +474,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 		if(verbose)
 			std::cout << std::endl << "process: " << (!send_status ? "send" : "receive") << " failed, retry #" << (max_attempts - attempt) << std::endl;
 
-		channel.disconnect();
-		usleep(500000);
-		channel.connect();
+		channel.drain();
 	}
 
 	if(attempt == 0)
@@ -622,9 +644,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 					std::cout << ", sector #" << (current - start) << "/" << length;
 					std::cout << std::endl;
 
-					mailbox_channel.disconnect();
-					usleep(100000);
-					mailbox_channel.connect();
+					command_channel.drain();
 					process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 				}
 			}
@@ -873,6 +893,8 @@ error:
 					std::cout << "! read receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
 					std::cout << std::endl;
 				}
+
+				command_channel.drain();
 			}
 
 			if(sector_attempt <= 0)
@@ -1047,6 +1069,7 @@ error:
 				if(verbose)
 					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt << std::endl;
 
+				command_channel.drain();
 			}
 
 			if(sector_attempt == 0)
@@ -1254,6 +1277,7 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 		break;
 
 error:
+		command_channel.drain();
 		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 	}
 
@@ -1368,9 +1392,7 @@ void command_connect(const std::string &host, const std::string &port, bool udp,
 		break;
 
 retry:
-		connect_socket.disconnect();
-		usleep(200000);
-		connect_socket.connect();
+		connect_socket.drain();
 	}
 
 	if(attempt != 0)
@@ -1425,6 +1447,7 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 	std::cout << "rebooting" << std::endl;
 	command_channel.send(std::string("reset"), GenericSocket::cooked);
 	usleep(200000);
+	command_channel.drain();
 	command_channel.disconnect();
 	usleep(1000000);
 	command_channel.connect();
