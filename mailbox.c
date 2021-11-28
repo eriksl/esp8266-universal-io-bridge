@@ -107,6 +107,12 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
+	if(lwip_if_send_buffer_locked(&mailbox_socket))
+	{
+		string_append(dst, "ERROR: mailbox-read: send buffer busy\n");
+		return(app_action_error);
+	}
+
 	string_clear(&mailbox_socket_send_buffer);
 
 	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE);
