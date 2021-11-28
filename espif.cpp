@@ -957,6 +957,10 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 	std::vector<std::string> string_value;
 	uint8_t sector_buffer[flash_sector_size];
 
+	unsigned char hash[SHA_DIGEST_LENGTH];
+	std::string sha_local_hash_text;
+	std::string sha_remote_hash_text;
+
 	if(filename.empty())
 		throw(std::string("file name required"));
 
@@ -998,6 +1002,8 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 				if(int_value[0] != (int)current)
 					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
 
+				sha_remote_hash_text = string_value[1];
+
 				reply.clear();
 
 				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
@@ -1010,6 +1016,15 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 						std::cout << std::endl;
 					}
 
+					SHA1((const unsigned char *)reply.data(), flash_sector_size, hash);
+					sha_local_hash_text = sha_hash_to_text(hash);
+
+					if(sha_remote_hash_text != sha_local_hash_text)
+					{
+						std::cout << std::endl << "! checksum mismatch, local: " << sha_local_hash_text << ", remote: " << sha_remote_hash_text << std::endl;
+						goto error;
+					}
+
 					if((file_offset = lseek(fd, (current - start) * flash_sector_size, SEEK_SET)) < 0)
 						throw(std::string("i/o error in seek"));
 
@@ -1020,8 +1035,7 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 
 					if(memcmp(reply.data(), sector_buffer, sizeof(sector_buffer)))
 					{
-						if(verbose)
-							std::cout << std::endl << "! data mismatch" << std::endl;
+						std::cout << std::endl << "! data mismatch" << std::endl;
 						goto error;
 					}
 
@@ -1029,14 +1043,12 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 				}
 error:
 				if(verbose)
-				{
-					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
-					std::cout << std::endl;
-				}
+					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt << std::endl;
+
 			}
 
 			if(sector_attempt == 0)
-				throw(std::string("! receiving sector failed too many times"));
+				throw(std::string("! verify: receiving sector failed too many times"));
 
 			if(!verbose)
 			{
