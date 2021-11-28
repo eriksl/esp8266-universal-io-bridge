@@ -468,13 +468,13 @@ udprxtest:
 						$(OTA_FLASH) -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 tcprxtest:
-						$(OTA_FLASH) -t -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
+						$(OTA_FLASH) -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
 udptxtest:
 						$(OTA_FLASH) -u -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
 
 tcptxtest:
-						$(OTA_FLASH) -t -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
+						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
 
 test:					udprxtest tcprxtest udptxtest tcptxtest
 
