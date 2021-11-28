@@ -191,7 +191,6 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 
 		*pcb_tcp = (struct tcp_pcb *)0;
 		socket->sending_remaining = 0;
-		socket->sent_remaining = 0;
 		return(ERR_ABRT);
 	}
 
@@ -304,7 +303,6 @@ static void tcp_error_callback(void *callback_arg, err_t error)
 
 	*pcb_tcp = (struct tcp_pcb *)0;
 	socket->sending_remaining = 0;
-	socket->sent_remaining = 0;
 }
 
 static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_t error)
@@ -400,18 +398,11 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 {
 	err_t error;
 
-	/* this means the output buffer been changed+sent while it still was sending
-	 * very bad! */
+	/* this means the output buffer been changed+sent while it still was sending! */
 
 	if(socket->sending_remaining > 0)
 	{
 		log("lwip if send: still sending %d bytes\n", socket->sending_remaining);
-		return(false);
-	}
-
-	if(socket->sent_remaining > 0)
-	{
-		log("lwip if send: still waiting for %d bytes to be sent\n", socket->sent_remaining);
 		return(false);
 	}
 
@@ -457,7 +448,6 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 		}
 
 		socket->sending_remaining = string_length(socket->send_buffer);
-		socket->sent_remaining = 0;
 
 		if(!tcp_try_send_buffer(socket))
 		{
