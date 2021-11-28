@@ -482,6 +482,7 @@ vtest:
 						$(OTA_FLASH) --verify  --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm
 
 test:					rxtest txtest benchmark
+						$(OTA_FLASH) --host $(OTA_HOST) lc
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \

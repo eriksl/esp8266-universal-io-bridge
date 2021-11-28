@@ -11358,3 +11358,11 @@ Sun Nov 28 13:26:27 CET 2021 fa8f166 dispatch: stop creating a tcp socket for th
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65929, free:  14336, 17 %
     irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 16:24:31 CET 2021 33559f7 espif: reimplement benchmark feature.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65929, free:  14336, 17 %
+    irom:    available: 592 k, used: 433944, free: 172264, 28 %
+Sun Nov 28 16:26:30 CET 2021 8cb3fc4 Makefile: show log after test.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65929, free:  14336, 17 %
+    irom:    available: 592 k, used: 433928, free: 172280, 28 %
