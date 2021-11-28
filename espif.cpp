@@ -317,19 +317,35 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 			if(poll(&pfd, 1, 2000) != 1)
 			{
 				if(reply.length() == 0)
+				{
+					if(verbose)
+						std::cout << std::endl << "receive: timeout" << std::endl;
 					return(false);
+				}
 
 				break;
 			}
 
 			if(pfd.revents & POLLERR)
+			{
+				if(verbose)
+					std::cout << "receive: POLLERR" << std::endl;
 				return(false);
+			}
 
 			if(pfd.revents & POLLHUP)
+			{
+				if(verbose)
+					std::cout << "receive: POLLHUP" << std::endl;
 				break;
+			}
 
 			if((length = read(fd, buffer, sizeof(buffer) - 1)) < 0)
+			{
+				if(verbose)
+					std::cout << "receive: length < 0" << std::endl;
 				return(false);
+			}
 
 			if((how == cooked) && (length == 0))
 			{
