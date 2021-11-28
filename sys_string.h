@@ -49,8 +49,8 @@ attr_nonnull int string_sep(const string_t *, int offset, int occurrence, char c
 attr_nonnull int string_find(const string_t *, int offset, char c);
 attr_nonnull void string_replace(string_t *, int index, char c);
 attr_nonnull void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_offset, int length);
+attr_nonnull int string_trim(string_t *dst, int amount);
 attr_nonnull bool string_trim_nl(string_t *dst);
-attr_nonnull void string_trim_string(string_t *haystack_string, const string_t *needle_string);
 attr_nonnull void string_bin_to_hex(string_t *dst, const unsigned char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, mac_addr_t);

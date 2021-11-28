@@ -220,7 +220,12 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 				uart_send_string(0, &command_socket_send_buffer);
 
 			if(config_flags_match(flag_terminate_output) && lwip_if_received_tcp(&command_socket))
+			{
+				if(!string_space(&command_socket_send_buffer))
+					string_trim(&command_socket_send_buffer, 2); // final character and space for trailing zero
+
 				string_append(&command_socket_send_buffer, "\x04");
+			}
 
 			if(!lwip_if_send(&command_socket))
 				log("dispatch: lwip send failed\n");

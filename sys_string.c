@@ -177,6 +177,22 @@ void string_splice(string_t *dst, int dst_offset, const string_t *src, int src_o
 	string_setlength(dst, dst_offset + length);
 }
 
+int string_trim(string_t *dst, int amount)
+{
+	if(amount < 0)
+		amount = dst->length;
+
+	if(amount > dst->size)
+		amount = dst->size;
+
+	if(amount > dst->length)
+		amount = dst->length;
+
+	dst->length -= amount;
+
+	return(dst->length);
+}
+
 bool string_trim_nl(string_t *dst)
 {
 	bool trimmed = false;
