@@ -675,7 +675,9 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	if(!verbose)
 		std::cout << std::endl;
 
-	if(!simulate)
+	if(simulate)
+		std::cout << "simulate finished" << std::endl;
+	else
 	{
 		std::cout << "checksumming " << length << " sectors..." << std::endl;
 
