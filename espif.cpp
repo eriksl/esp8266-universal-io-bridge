@@ -314,7 +314,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 	{
 		for(attempt = max_attempts; attempt > 0; attempt--)
 		{
-			if(poll(&pfd, 1, 2000) != 1)
+			if(poll(&pfd, 1, 500) != 1)
 			{
 				if(reply.length() == 0)
 				{
