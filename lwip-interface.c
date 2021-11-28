@@ -472,7 +472,7 @@ attr_nonnull bool lwip_if_reboot(lwip_if_socket_t *socket)
 }
 
 attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
-		unsigned int port, bool tcp, callback_data_received_fn_t callback_data_received)
+		unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
 	ip_addr_t _ip_addr_any = { IPADDR_ANY };
@@ -510,7 +510,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 		return(false);
 	}
 
-	if(tcp)
+	if(create_tcp_socket)
 	{
 		if(!(socket->tcp.listen_pcb = tcp_new()))
 		{
