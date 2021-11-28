@@ -90,7 +90,7 @@ attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket)
 
 attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 {
-	return((socket->sending_remaining > 0) || (socket->sent_remaining > 0));
+	return(socket->sending_remaining > 0);
 }
 
 static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
