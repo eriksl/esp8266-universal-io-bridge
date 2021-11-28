@@ -37,7 +37,7 @@ void mailbox_init(unsigned int mailbox_port)
 		log("ALERT: mailbox socket send buffer (%d) != SPI_FLASH_SEC_SIZE (%d)\n", string_size(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE);
 
 	lwip_if_socket_create(&mailbox_socket, &mailbox_socket_receive_buffer, &mailbox_socket_send_buffer, mailbox_port,
-			true, socket_mailbox_callback_data_received);
+			false, socket_mailbox_callback_data_received);
 }
 
 app_action_t application_function_mailbox_info(string_t *src, string_t *dst)

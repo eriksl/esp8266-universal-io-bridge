@@ -1573,7 +1573,7 @@ int main(int argc, const char **argv)
 				unsigned int flash_slot, flash_address[2];
 
 				GenericSocket command_channel(host, command_port, use_udp, verbose);
-				GenericSocket mailbox_channel(host, mailbox_port, use_udp, verbose);
+				GenericSocket mailbox_channel(host, mailbox_port, true, verbose);
 				mailbox_channel.send(std::string(" "), GenericSocket::raw);
 
 				try

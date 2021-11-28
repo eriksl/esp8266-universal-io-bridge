@@ -464,19 +464,15 @@ espif:					espif.cpp espif.h.gch
 espflash:				espflash.cpp
 resetserial:			resetserial.cpp
 
-udprxtest:
-						$(OTA_FLASH) -u -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
 
-tcprxtest:
-						$(OTA_FLASH) -h $(OTA_HOST) -f test --length 390352 --start 0x002000 -R
+rxtest:
+						$(OTA_FLASH) --read --host $(OTA_HOST) --file test --length 390352 --start 0x002000
 
-udptxtest:
-						$(OTA_FLASH) -u -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
+txtest:
+						$(OTA_FLASH) --simulate --host $(OTA_HOST) --file $(FIRMWARE_IMG)
 
-tcptxtest:
-						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -S
 
-test:					udprxtest tcprxtest udptxtest tcptxtest
+test:					rxtest txtest
 
 section_free	= $(Q) perl -e '\
 						open($$fd, "$(SIZE) -A $(1) |"); \

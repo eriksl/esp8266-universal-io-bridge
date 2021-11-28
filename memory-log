@@ -11138,3 +11138,223 @@ Sun Oct 31 12:48:31 CET 2021 d28c33a espif: adjust the picture's sent dimensions
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  71537, free:   8728, 10 %
     irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Mon Nov 15 19:43:56 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  72561, free:   7704,  9 %
+    irom:    available: 592 k, used: 435208, free: 171000, 28 %
+Mon Nov 15 19:52:52 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  77169, free:   3096,  3 %
+    irom:    available: 592 k, used: 435208, free: 171000, 28 %
+Mon Nov 15 19:53:13 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  76145, free:   4120,  5 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 13:30:04 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  69969, free:  10296, 12 %
+    irom:    available: 592 k, used: 435192, free: 171016, 28 %
+Sat Nov 27 13:47:56 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  69969, free:  10296, 12 %
+    irom:    available: 592 k, used: 435176, free: 171032, 28 %
+Sat Nov 27 14:02:21 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  69969, free:  10296, 12 %
+    irom:    available: 592 k, used: 435192, free: 171016, 28 %
+Sat Nov 27 14:05:58 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  69969, free:  10296, 12 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:35:20 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68433, free:  11832, 14 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:36:46 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:38:21 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68945, free:  11320, 14 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:38:54 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  72017, free:   8248, 10 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:39:30 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67729, free:  12536, 15 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 14:40:11 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68433, free:  11832, 14 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 16:07:10 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71505, free:   8760, 10 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 16:08:46 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435224, free: 170984, 28 %
+Sat Nov 27 16:13:14 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435304, free: 170904, 28 %
+Sat Nov 27 16:15:29 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435416, free: 170792, 28 %
+Sat Nov 27 16:17:15 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435432, free: 170776, 28 %
+Sat Nov 27 16:30:21 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435288, free: 170920, 28 %
+Sat Nov 27 16:34:22 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435368, free: 170840, 28 %
+Sat Nov 27 17:33:28 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435384, free: 170824, 28 %
+Sat Nov 27 17:56:11 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  75601, free:   4664,  5 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 19:44:49 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 19:50:26 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67249, free:  13016, 16 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 19:50:52 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 19:52:36 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  66385, free:  13880, 17 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 19:53:22 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435336, free: 170872, 28 %
+Sat Nov 27 20:48:29 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435256, free: 170952, 28 %
+Sat Nov 27 20:51:25 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435240, free: 170968, 28 %
+Sat Nov 27 20:53:12 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67409, free:  12856, 16 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Sat Nov 27 20:56:43 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  73553, free:   6712,  8 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Sat Nov 27 20:58:37 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  73617, free:   6648,  8 %
+    irom:    available: 592 k, used: 435272, free: 170936, 28 %
+Sat Nov 27 20:59:42 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  73745, free:   6520,  8 %
+    irom:    available: 592 k, used: 435288, free: 170920, 28 %
+Sat Nov 27 21:01:35 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  73729, free:   6536,  8 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:02:51 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67585, free:  12680, 15 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:03:57 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:04:31 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  69633, free:  10632, 13 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:05:03 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  70657, free:   9608, 11 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:09:01 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  71681, free:   8584, 10 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:10:33 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  72705, free:   7560,  9 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sat Nov 27 21:11:21 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  73729, free:   6536,  8 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sun Nov 28 10:10:05 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sun Nov 28 10:17:09 CET 2021 9c91415 espif: adjust the picture's sent dimensions to the display receiving it.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68241, free:  12024, 14 %
+    irom:    available: 592 k, used: 433992, free: 172216, 28 %
+Sun Nov 28 12:53:09 CET 2021 69e6f20 lwip-interface: rename sent_remaining member to sent_unacked.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68241, free:  12024, 14 %
+    irom:    available: 592 k, used: 433976, free: 172232, 28 %
+Sun Nov 28 13:11:43 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67217, free:  13048, 16 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:13:15 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  68241, free:  12024, 14 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:14:17 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  67513, free:  12752, 15 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:15:00 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  66489, free:  13776, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:15:44 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  66121, free:  14144, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:20:43 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65993, free:  14272, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:21:19 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65929, free:  14336, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:23:43 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  64905, free:  15360, 19 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:25:02 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65929, free:  14336, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:26:06 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  64905, free:  15360, 19 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
+Sun Nov 28 13:26:27 CET 2021 fa8f166 dispatch: stop creating a tcp socket for the mailbox.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65929, free:  14336, 17 %
+    irom:    available: 592 k, used: 433960, free: 172248, 28 %
