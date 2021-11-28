@@ -430,25 +430,33 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 	{
 		bool send_status, receive_status;
 
-		send_status = channel.send(send_string, GenericSocket::cooked);
-
-		if(send_status)
+		if((send_status = channel.send(send_string, GenericSocket::cooked)))
+		{
 			receive_status = channel.receive(reply_string, GenericSocket::cooked);
-		else
-			receive_status = false;
 
-		if(reply_string.length() == 0)
+			if(reply_string.length() == 0)
+			{
+				if(verbose)
+					std::cout << std::endl << "process: empty string received" << std::endl;
+				receive_status = false;
+			}
+		}
+		else
 			receive_status = false;
 
 		if(send_status && receive_status)
 			break;
 
-		std::cout << std::endl << (!send_status ? "send" : "receive") << " failed, retry #" << (max_attempts - attempt) << std::endl;
+		if(verbose)
+			std::cout << std::endl << "process: " << (!send_status ? "send" : "receive") << " failed, retry #" << (max_attempts - attempt) << std::endl;
 
 		channel.disconnect();
 		usleep(500000);
 		channel.connect();
 	}
+
+	if(attempt == 0)
+		throw(std::string("process: no more tries\n"));
 
 	if(verbose)
 		std::cout << "< receive: " << reply_string << std::endl;
