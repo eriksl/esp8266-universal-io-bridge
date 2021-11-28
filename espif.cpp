@@ -1113,120 +1113,94 @@ error:
 
 void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_channel, bool verbose)
 {
-	static const char *ack = "ACK";
-	unsigned int length, current, retries;
+	unsigned int phase, retries, attempt, length, current;
 	unsigned char sector_buffer[flash_sector_size];
-	std::string send_string;
 	std::string reply;
 	struct timeval time_start, time_now;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-
-	gettimeofday(&time_start, 0);
-
-	std::cout << "start write benchmark" << std::endl;
+	int seconds, useconds;
+	double duration, rate;
 
 	length = 1024;
+	memset(sector_buffer, 0x00, flash_sector_size);
 
-	process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
-
-	for(current = 0; current < length; current++)
+	for(phase = 0; phase < 2; phase++)
 	{
-		memset(sector_buffer, 0x00, flash_sector_size);
+		retries = 0;
+		gettimeofday(&time_start, 0);
 
-		if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
-			throw(std::string("send failed"));
-
-		if(!mailbox_channel.receive(reply, GenericSocket::cooked, strlen(ack)))
-			throw(std::string("receive failed"));
-
-		send_string = std::string("mailbox-bench 1");
-		process(command_channel, send_string, reply, "OK mailbox-bench: received one sector", string_value, int_value, verbose);
-
-		int seconds, useconds;
-		double duration, rate;
-
-		gettimeofday(&time_now, 0);
-
-		seconds = time_now.tv_sec - time_start.tv_sec;
-		useconds = time_now.tv_usec - time_start.tv_usec;
-		duration = seconds + (useconds / 1000000.0);
-		rate = current * 4.0 / duration;
-
-		if(!verbose)
-		{
-			std::cout << std::setfill(' ');
-			std::cout << "sent     "		<< std::setw(4) << (current * flash_sector_size / 1024) << " kbytes";
-			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-			std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-			std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
-			std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / length) << "%       \r";
-			std::cout.flush();
-		}
-	}
-
-	std::cout << std::endl << "write benchmark completed" << std::endl;
-
-	usleep(500000);
-
-	process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
-	retries = 0;
-
-	for(current = 0; current < length; current++)
-	{
-		try
-		{
-			send_string = std::string("mailbox-bench 0");
-			process(command_channel, send_string, reply, "OK mailbox-bench: sending one sector", string_value, int_value, verbose);
-		}
-		catch(const std::string &e)
-		{
-			goto error;
-		}
-
-		reply.clear();
-
-		if(!mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
-			goto error;
-
-		int seconds, useconds;
-		double duration, rate;
-
-		gettimeofday(&time_now, 0);
-
-		seconds = time_now.tv_sec - time_start.tv_sec;
-		useconds = time_now.tv_usec - time_start.tv_usec;
-		duration = seconds + (useconds / 1000000.0);
-		rate = current * 4.0 / duration;
-
-		goto report;
-
-error:
-		if(current > 0)
-			current--;
-
-		mailbox_channel.disconnect();
-		mailbox_channel.connect();
-		mailbox_channel.send(std::string(" "), GenericSocket::raw);
-
-		retries++;
 		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 
-report:
-		if(!verbose)
+		for(current = 0; current < length; current++)
 		{
-			std::cout << std::setfill(' ');
-			std::cout << "received "	<< std::setw(4) << (current * flash_sector_size / 1024) << " kbytes";
-			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-			std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-			std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
-			std::cout << ", retries "	<< std::setw(2) << retries;
-			std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / length) << "%       \r";
-			std::cout.flush();
-		}
-	}
+			for(attempt = max_attempts; attempt > 0; attempt--)
+			{
+				try
+				{
+					if(phase == 0)
+					{
+						if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
+							throw(std::string("send failed"));
 
-	std::cout << std::endl << "read benchmark completed" << std::endl;
+						if(!mailbox_channel.receive(reply, GenericSocket::cooked, ack_string.length()))
+							throw(std::string("receive failed"));
+
+						if(reply != ack_string)
+							throw(std::string("ack failed"));
+
+						process(command_channel, "mailbox-bench 1", reply, "OK mailbox-bench: received one sector", string_value, int_value, verbose);
+					}
+					else
+					{
+						process(command_channel, "mailbox-bench 0", reply, "OK mailbox-bench: sending one sector", string_value, int_value, verbose);
+
+						if(!mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
+							throw(std::string("receive failed"));
+					}
+
+					gettimeofday(&time_now, 0);
+
+					seconds = time_now.tv_sec - time_start.tv_sec;
+					useconds = time_now.tv_usec - time_start.tv_usec;
+					duration = seconds + (useconds / 1000000.0);
+					rate = current * 4.0 / duration;
+
+					if(!verbose)
+					{
+						std::cout << std::setfill(' ');
+						std::cout << ((phase == 0) ? "sent     " : "received ");
+						std::cout << std::setw(4) << (current * flash_sector_size / 1024) << " kbytes";
+						std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+						std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+						std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
+						std::cout << ", retries "	<< std::setw(2) << retries;
+						std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / length) << "%       \r";
+						std::cout.flush();
+					}
+				}
+				catch(const std::string &e)
+				{
+					if(verbose)
+						std::cout << e << std::endl;
+
+					command_channel.drain();
+					process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
+
+					retries++;
+					continue;
+				}
+
+				break;
+			}
+
+			if(attempt == 0)
+				throw(std::string("benchmark: no more attempts left"));
+		}
+
+		usleep(200000);
+		std::cout << std::endl;
+	}
 }
 
 static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel, const unsigned char *buffer, unsigned int length,
