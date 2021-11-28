@@ -4,7 +4,7 @@ namespace po = boost::program_options;
 
 enum
 {
-	max_attempts = 4,
+	max_attempts = 16,
 	max_udp_packet_size = 1472,
 	flash_sector_size = 4096,
 };
