@@ -11366,7 +11366,3 @@ Sun Nov 28 16:26:30 CET 2021 8cb3fc4 Makefile: show log after test.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65929, free:  14336, 17 %
     irom:    available: 592 k, used: 433928, free: 172280, 28 %
-Thu Dec  9 12:33:03 CET 2021 066d0df Makefile: show log after test.
-    iram:    available:  32 k, used:  29977, free:   2791,  8 %
-    dram:    available:  78 k, used:  65017, free:  15248, 18 %
-    irom:    available: 592 k, used: 424440, free: 181768, 29 %
