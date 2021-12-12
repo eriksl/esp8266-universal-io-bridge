@@ -45,7 +45,6 @@ typedef enum attr_packed
 {
 	pls_idle,
 	pls_run,
-	pls_wait,
 } picture_load_state_t;
 
 static picture_load_state_t picture_load_state = pls_idle;
@@ -222,7 +221,7 @@ retry:
 	os_timer_arm(&picture_load_timer, 10, 0);
 	goto no_error;
 error:
-	picture_load_state = pls_idle; // FIXME
+	picture_load_state = pls_idle;
 no_error:
 	flash_buffer_release(fsb_display_picture, "display load picture worker");
 	return;
