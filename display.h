@@ -47,9 +47,10 @@ typedef const struct
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
 	bool (* const plot_fn)(int x, int y, const string_t *pixels);
+	bool (* const freeze_fn)(bool active);
 } display_hooks_t;
 
-assert_size(display_hooks_t, 36);
+assert_size(display_hooks_t, 40);
 
 typedef const struct
 {
@@ -69,4 +70,5 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 app_action_t application_function_display_set(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst);
 app_action_t application_function_display_plot(string_t *src, string_t *dst);
+app_action_t application_function_display_freeze(string_t *src, string_t *dst);
 #endif

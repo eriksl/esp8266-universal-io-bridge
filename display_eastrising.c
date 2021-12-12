@@ -1298,6 +1298,81 @@ error:
 	return(success);
 }
 
+static bool attr_result_used display_copy_layer(unsigned int source_layer, unsigned int destination_layer)
+{
+	uint8_t data;
+	unsigned int timeout;
+	bool success = false;
+
+	if(!display_write(reg_hsbe0, 0))
+		goto error;
+
+	if(!display_write(reg_hsbe1, 0))
+		goto error;
+
+	if(!display_write(reg_vsbe0, 0))
+		goto error;
+
+	if(!display_write(reg_vsbe1, 0 | (source_layer ? reg_vsbe1_source_layer_1 : reg_vsbe1_source_layer_0)))
+		goto error;
+
+	if(!display_write(reg_hdbe0, 0))
+		goto error;
+
+	if(!display_write(reg_hdbe1, 0))
+		goto error;
+
+	if(!display_write(reg_vdbe0, 0))
+		goto error;
+
+	if(!display_write(reg_vdbe1, 0 | (destination_layer ? reg_vdbe1_destination_layer_1 : reg_vdbe1_destination_layer_0)))
+		goto error;
+
+	if(!display_write(reg_bewr0, (display_width >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_bewr1, (display_width >> 8) & 0x03))
+		goto error;
+
+	if(!display_write(reg_behr0, (display_height >> 0) & 0xff))
+		goto error;
+
+	if(!display_write(reg_behr1, (display_height >> 8) & 0x03))
+		goto error;
+
+	// config BTE
+
+	if(!display_write(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
+		goto error;
+
+	// start BTE
+
+	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
+		goto error;
+
+	for(timeout = 0; timeout < 10; timeout++)
+	{
+		if(!display_read(reg_becr0, &data))
+			goto error;
+
+		if(!(data & reg_becr0_busy))
+			break;
+
+		msleep(10);
+	}
+
+	if(timeout >= 10)
+		log("copy: BTE scroll timeout\n");
+	else
+		success = true;
+
+error:
+	if(!display_write(reg_becr0, 0))
+		success = false;
+
+	return(success);
+}
+
 static bool attr_result_used display_blit(unsigned int layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint8_t *data)
 {
 	bool success = false;
@@ -2042,6 +2117,24 @@ static bool plot(int x, int y, const string_t *pixels)
 	return(true);
 }
 
+static bool freeze(bool active)
+{
+	log("display eastrising: freeze: %s\n", yesno(active));
+
+	if(active)
+	{
+		if(!display_copy_layer(0, 1))
+			return(false);
+		if(!display_show_layer(1))
+			return(false);
+	}
+	else
+		if(!display_show_layer(0))
+			return(false);
+
+	return(true);
+}
+
 extern roflash const char help_description_display_eastrising[];
 
 app_action_t application_function_display_eastrising(string_t *src, string_t *dst)
@@ -2186,5 +2279,6 @@ roflash const display_info_t display_info_eastrising =
 		(void *)0,
 		(void *)0,
 		plot,
+		freeze,
 	}
 };

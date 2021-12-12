@@ -609,5 +609,6 @@ roflash const display_info_t display_info_ssd1306 =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	}
 };

@@ -11618,3 +11618,47 @@ Sun Dec 12 12:14:35 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65681, free:  14584, 18 %
     irom:    available: 592 k, used: 426328, free: 179880, 29 %
+Sun Dec 12 13:05:00 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426344, free: 179864, 29 %
+Sun Dec 12 13:06:12 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426360, free: 179848, 29 %
+Sun Dec 12 13:09:52 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426408, free: 179800, 29 %
+Sun Dec 12 13:30:05 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426664, free: 179544, 29 %
+Sun Dec 12 13:31:07 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426696, free: 179512, 29 %
+Sun Dec 12 13:32:23 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426712, free: 179496, 29 %
+Sun Dec 12 13:34:13 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426728, free: 179480, 29 %
+Sun Dec 12 13:34:45 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426712, free: 179496, 29 %
+Sun Dec 12 13:36:16 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426776, free: 179432, 29 %
+Sun Dec 12 13:54:59 CET 2021 283fc7b Unify picture loading (from network and from flash image slot).
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 427064, free: 179144, 29 %
+Sun Dec 12 14:06:01 CET 2021 5fd8410 display_eastrising: fix small cosmetic errors.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 427048, free: 179160, 29 %

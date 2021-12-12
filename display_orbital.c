@@ -617,5 +617,6 @@ roflash const display_info_t display_info_orbital =
 		start_show_time,
 		stop_show_time,
 		(void *)0,
+		(void *)0,
 	}
 };

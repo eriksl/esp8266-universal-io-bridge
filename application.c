@@ -1980,7 +1980,8 @@ roflash static const char help_description_display_brightness[] =	"set or show d
 roflash static const char help_description_display_dump[] =			"shows display and contents";
 roflash static const char help_description_display_flip[] =			"set the time between flipping of the slots";
 roflash static const char help_description_display_set[] =			"put content on display <slot> <timeout> <tag> <text>";
-roflash static const char help_description_display_load[] =			"load picture [<entry> (0|1)]";
+roflash static const char help_description_display_picture_load[] =	"load picture [<entry> (0|1)]";
+roflash static const char help_description_display_freeze[] =		"freeze display <timeout_ms>";
 roflash static const char help_description_set_flag[] =				"set a flag";
 roflash static const char help_description_unset_flag[] =			"unset a flag";
 roflash static const char help_description_gpio_assoc[] =			"set gpio to trigger on wlan association";
@@ -2127,7 +2128,12 @@ roflash static const application_function_table_t application_function_table[] =
 	{
 		"dpl", "display-picture-load",
 		application_function_display_picture_load,
-		help_description_display_load,
+		help_description_display_picture_load,
+	},
+	{
+		"df", "display-freeze",
+		application_function_display_freeze,
+		help_description_display_freeze,
 	},
 	{
 		"fs", "flag-set",

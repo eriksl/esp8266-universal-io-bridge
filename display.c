@@ -59,6 +59,9 @@ assert_size(picture_load_sector, 1);
 static os_timer_t picture_load_timer;
 assert_size(picture_load_timer, 20);
 
+static unsigned int freeze_timer;
+assert_size(freeze_timer, 4);
+
 roflash static display_info_t const *const display_info[] =
 {
 	&display_info_saa1064,
@@ -100,6 +103,21 @@ static const display_hooks_t *display_get_hooks(void)
 	return(&display_info_active->hooks);
 }
 
+static bool freeze(unsigned int timeout_ms)
+{
+	const display_hooks_t *hooks = (display_hooks_t *)0;
+
+	if(!(hooks = display_get_hooks()))
+		return(false);
+
+	freeze_timer = timeout_ms;
+
+	if(hooks->freeze_fn)
+		hooks->freeze_fn(freeze_timer ? true : false);
+
+	return(true);
+}
+
 bool display_load_picture_slot(unsigned int slot)
 {
 	const display_hooks_t		*hooks;
@@ -129,6 +147,7 @@ bool display_load_picture_slot(unsigned int slot)
 	picture_load_sector = 0;
 	picture_load_slot = slot;
 	os_timer_arm(&picture_load_timer, 10, 0);
+	freeze(10000);
 
 	return(true);
 }
@@ -222,6 +241,7 @@ retry:
 	goto no_error;
 error:
 	picture_load_state = pls_idle;
+	freeze(0);
 no_error:
 	flash_buffer_release(fsb_display_picture, "display load picture worker");
 	return;
@@ -401,6 +421,14 @@ void display_periodic(void) // gets called 10 times per second
 	if(!display_detected())
 		return;
 
+	if(freeze_timer > 0)
+		if(freeze_timer <= 100)
+			freeze(0);
+		else
+			freeze_timer -= 100;
+	else
+		(void)0;
+
 	if(picture_load_state != pls_idle)
 		return;
 
@@ -497,7 +525,8 @@ void display_periodic(void) // gets called 10 times per second
 		if((last_update > now) || ((last_update + flip_timeout) < now))
 		{
 			last_update = now;
-			display_update(false);
+			if(freeze_timer == 0)
+				display_update(false);
 		}
 	}
 
@@ -857,4 +886,24 @@ app_action_t application_function_display_plot(string_t *src, string_t *dst)
 error:
 	string_clear(&mailbox_socket_receive_buffer);
 	return(app_action_error);
+}
+
+app_action_t application_function_display_freeze(string_t *src, string_t *dst)
+{
+	unsigned int timeout;
+
+	if(!display_detected())
+	{
+		string_append(dst, "display freeze: no display detected\n");
+		return(app_action_error);
+	}
+
+	if(parse_uint(1, src, &timeout, 0, ' ') != parse_ok)
+	{
+		string_append(dst, "usage: display_freeze <timeout ms>");
+		return(app_action_error);
+	}
+
+	string_format(dst, "display freeze success: %s", yesno(freeze(timeout)));
+	return(app_action_normal);
 }

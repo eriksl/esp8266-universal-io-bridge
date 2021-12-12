@@ -246,5 +246,6 @@ roflash const display_info_t display_info_saa1064 =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	}
 };

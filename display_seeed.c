@@ -522,5 +522,6 @@ roflash const display_info_t display_info_seeed =
 		(void *)0,
 		(void *)0,
 		(void *)0,
+		(void *)0,
 	}
 };

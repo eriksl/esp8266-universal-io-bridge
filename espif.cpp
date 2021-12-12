@@ -1289,7 +1289,7 @@ error:
 }
 
 static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, int image_slot, const std::string &filename, unsigned chunk_size,
-		unsigned int dim_x, unsigned int dim_y, unsigned int depth, bool verbose)
+		unsigned int dim_x, unsigned int dim_y, unsigned int depth, int image_timeout, bool verbose)
 {
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
@@ -1328,6 +1328,9 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 
 		if((image.columns() != dim_x) || (image.rows() != dim_y))
 			throw(std::string("image magic resize failed"));
+
+		if(image_slot < 0)
+			process(command_channel, std::string("display-freeze ") + std::to_string(10000), reply, "display freeze success: yes", string_value, int_value, verbose);
 
 		current_buffer = 0;
 		start_x = 0;
@@ -1395,6 +1398,12 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 				command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
 						current_buffer, start_x, start_y, verbose);
 		}
+
+		if(image_slot < 0)
+			process(command_channel, std::string("display-freeze ") + std::to_string(0), reply, "display freeze success: yes", string_value, int_value, verbose);
+
+		if((image_slot < 0) && (image_timeout > 0))
+			process(command_channel, std::string("display-freeze ") + std::to_string(image_timeout), reply, "display freeze success: yes", string_value, int_value, verbose);
 	}
 	catch(const Magick::Error &error)
 	{
@@ -1534,6 +1543,7 @@ int main(int argc, const char **argv)
 		std::string length_string;
 		int start;
 		int image_slot;
+		int image_timeout;
 		int dim_x, dim_y, depth;
 		unsigned int length;
 		unsigned int chunk_size;
@@ -1577,7 +1587,8 @@ int main(int argc, const char **argv)
 			("noreset,N",		po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
 			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
 			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on multicast message")
-			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer");
+			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer")
+			("image_timeout,y",	po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending");
 
 		po::positional_options_description positional_options;
 		positional_options.add("host", -1);
@@ -1746,7 +1757,7 @@ int main(int argc, const char **argv)
 										command_benchmark(command_channel, mailbox_channel, verbose);
 									else
 										if(cmd_image)
-											command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, verbose);
+											command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, image_timeout, verbose);
 			}
 		}
 	}
