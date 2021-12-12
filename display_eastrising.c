@@ -359,8 +359,8 @@ enum
 	reg_vsbe1_source_layer_0 =				0b00000000,
 	reg_vsbe1_source_layer_1 =				0b10000000,
 
-	reg_vdbe1_destination_layer0 =			0b00000000,
-	reg_vdbe1_destination_layer1 =			0b10000000,
+	reg_vdbe1_destination_layer_0 =			0b00000000,
+	reg_vdbe1_destination_layer_1 =			0b10000000,
 
 	reg_dpcr_one_layer =					0b00000000,
 	reg_dpcr_two_layer =					0b10000000,
@@ -1250,7 +1250,7 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 	if(!display_write(reg_vdbe0, (y1 >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_vdbe1, ((y1 >> 8) & 0x01) | reg_vsbe1_source_layer_0))
+	if(!display_write(reg_vdbe1, ((y1 >> 8) & 0x01) | reg_vdbe1_destination_layer_0))
 		goto error;
 
 	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
@@ -1318,7 +1318,7 @@ static bool attr_result_used display_blit(unsigned int layer, unsigned int x, un
 	if(!display_write(reg_vdbe0, (y >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_vdbe1, ((y >> 8) & 0x01) | ((layer > 0) ? reg_vdbe1_destination_layer1 : reg_vdbe1_destination_layer0)))
+	if(!display_write(reg_vdbe1, ((y >> 8) & 0x01) | ((layer > 0) ? reg_vdbe1_destination_layer_1 : reg_vdbe1_destination_layer_0)))
 		goto error;
 
 	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
