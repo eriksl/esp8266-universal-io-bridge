@@ -1203,7 +1203,8 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 	}
 }
 
-static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel, const unsigned char *buffer, unsigned int length,
+static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel,
+		int current_sector, const unsigned char *buffer, unsigned int size, unsigned int length,
 		unsigned int current_x, unsigned int current_y, bool verbose)
 {
 	enum { attempts =  8 };
@@ -1211,6 +1212,11 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
 	std::string reply;
+	unsigned char sector_hash[SHA_DIGEST_LENGTH];
+	std::string sha_local_hash_text;
+
+	SHA1(buffer, size, sector_hash);
+	sha_local_hash_text = sha_hash_to_text(sector_hash);
 
 	for(attempt = 0; attempt < attempts; attempt++)
 	{
@@ -1232,13 +1238,36 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 				goto error;
 			}
 
-			process(command_channel, std::string("display-canvas-plot ") +
-					std::to_string(length / 2) + " " +
-					std::to_string(current_x) + " " +
-					std::to_string(current_y),
-					reply,
-					"display canvas plot success: yes",
-					string_value, int_value, verbose);
+			if(current_sector < 0)
+				process(command_channel, std::string("display-plot ") +
+						std::to_string(length / 2) + " " +
+						std::to_string(current_x) + " " +
+						std::to_string(current_y),
+						reply,
+						"display plot success: yes",
+						string_value, int_value, verbose);
+			else
+			{
+				process(command_channel,
+							std::string("mailbox-write ") + std::to_string(current_sector), reply,
+							mailbox_write_reply, string_value, int_value, verbose);
+
+				if(int_value[0] != current_sector)
+				{
+					if(verbose)
+						std::cout << "invalid sector: " << int_value[0] << "/" << current_sector << std::endl;
+
+					goto error;
+				}
+
+				if(string_value[3] != sha_local_hash_text)
+				{
+					if(verbose)
+						std::cout << "invalid checksum: " << string_value[3] << "/" << sha_local_hash_text << std::endl;
+
+					goto error;
+				}
+			}
 		}
 		catch(const std::string &e)
 		{
@@ -1259,7 +1288,7 @@ error:
 		throw(std::string("send failed, max attempts reached"));
 }
 
-static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, unsigned chunk_size,
+static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, int image_slot, const std::string &filename, unsigned chunk_size,
 		unsigned int dim_x, unsigned int dim_y, unsigned int depth, bool verbose)
 {
 	std::vector<int> int_value;
@@ -1268,6 +1297,20 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	unsigned char sector_buffer[flash_sector_size];
 	unsigned int start_x, start_y;
 	unsigned int current_buffer, x, y, r, g, b, r1, g1, g2, b1;
+	int current_sector;
+	struct timeval time_start, time_now;
+	int seconds, useconds;
+	double duration, rate;
+
+	gettimeofday(&time_start, 0);
+
+	if(image_slot == 0)
+		current_sector = 0x200000 / flash_sector_size;
+	else
+		if(image_slot == 1)
+			current_sector = 0x280000 / flash_sector_size;
+		else
+			current_sector = -1;
 
 	try
 	{
@@ -1290,7 +1333,8 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 		start_x = 0;
 		start_y = 0;
 
-		process(command_channel, "display-canvas-start 20000", reply, "display canvas start success: yes", string_value, int_value, verbose);
+		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
+		memset(sector_buffer, 0xff, flash_sector_size);
 
 		if(depth == 16)
 		{
@@ -1305,10 +1349,18 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 
 					if((current_buffer + 2) > chunk_size)
 					{
-						command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
+						command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer,
+								start_x, start_y, verbose);
+						memset(sector_buffer, 0xff, flash_sector_size);
+
+						if(current_sector >= 0)
+							current_sector++;
+
 						current_buffer = 0;
 						start_x = x;
 						start_y = y;
+
+
 					}
 
 					r1 = (r & 0b00011111) >> 0;
@@ -1319,14 +1371,30 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 					sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
 					sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
 				}
+
+				gettimeofday(&time_now, 0);
+
+				seconds = time_now.tv_sec - time_start.tv_sec;
+				useconds = time_now.tv_usec - time_start.tv_usec;
+				duration = seconds + (useconds / 1000000.0);
+				rate = (x * 2 * y) / 1024.0 / duration;
+
+				std::cout << std::setfill(' ');
+				std::cout << "sent "		<< std::setw(4) << ((x * 2 * y) / 1024) << " kbytes";
+				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+				std::cout << ", x "			<< std::setw(3) << x;
+				std::cout << ", y "			<< std::setw(3) << y;
+				std::cout << ", "			<< std::setw(3) << (x * y * 100) / (dim_x * dim_y) << "%       \r";
+				std::cout.flush();
 			}
 
-			if(current_buffer > 0)
-				command_image_send_sector(command_channel, mailbox_channel, sector_buffer, current_buffer, start_x, start_y, verbose);
-		}
+			std::cout << std::endl;
 
-		process(command_channel, "display-canvas-show", reply, "display canvas show success: yes", string_value, int_value, verbose);
-		process(command_channel, "display-canvas-stop", reply, "display canvas stop success: yes", string_value, int_value, verbose);
+			if(current_buffer > 0)
+				command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
+						current_buffer, start_x, start_y, verbose);
+		}
 	}
 	catch(const Magick::Error &error)
 	{
@@ -1465,6 +1533,7 @@ int main(int argc, const char **argv)
 		std::string start_string;
 		std::string length_string;
 		int start;
+		int image_slot;
 		int dim_x, dim_y, depth;
 		unsigned int length;
 		unsigned int chunk_size;
@@ -1507,7 +1576,8 @@ int main(int argc, const char **argv)
 			("nocommit,n",		po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
 			("noreset,N",		po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
 			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
-			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on multicast message");
+			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on multicast message")
+			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer");
 
 		po::positional_options_description positional_options;
 		positional_options.add("host", -1);
@@ -1676,7 +1746,7 @@ int main(int argc, const char **argv)
 										command_benchmark(command_channel, mailbox_channel, verbose);
 									else
 										if(cmd_image)
-											command_image(command_channel, mailbox_channel, filename, chunk_size, dim_x, dim_y, depth, verbose);
+											command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, verbose);
 			}
 		}
 	}

@@ -233,10 +233,8 @@ static bool display_inited;
 static bool display_logmode;
 static bool display_disable_text;
 static bool display_scroll_pending;
-static bool display_picture_valid;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
-static unsigned int display_picture_load_flash_sector;
 
 static bool attr_result_used display_data_flush(void)
 {
@@ -534,148 +532,6 @@ static bool end(void)
 	return(true);
 }
 
-static const char pbm_header[] = "P4\n20 16\n";
-
-static bool picture_load(unsigned int picture_load_index)
-{
-	bool success;
-	string_t *buffer_string;
-	char *buffer_cstr;
-	unsigned int size;
-
-	success = false;
-
-	flash_buffer_request(fsb_display_picture, false, "orbital picture load", &buffer_string, &buffer_cstr, &size);
-
-	if(!buffer_string)
-		return(true);
-
-	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
-
-	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-	{
-		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error;
-	}
-
-	string_setlength(buffer_string, sizeof(pbm_header) - 1);
-
-	if(!string_match_cstr(buffer_string, pbm_header))
-	{
-		log("display orbital: load picture: invalid image header\n");
-		goto error;
-	}
-
-	success = true;
-
-error:
-	flash_buffer_release(fsb_display_picture, "orbital picture load");
-	display_picture_valid = success;
-	return(success);
-}
-
-static bool picture_valid(void)
-{
-	return(display_picture_valid);
-}
-
-static bool layer_select(unsigned int layer)
-{
-	bool success;
-	unsigned int row, column;
-	unsigned int udg, udg_line, udg_bit, udg_value;
-	unsigned int byte_offset, bit_offset;
-	const uint8_t *bitmap;
-	string_t *buffer_string;
-	char *buffer_cstr;
-	unsigned int size;
-
-	success = false;
-
-	if(layer == 0)
-	{
-		if(!udg_init())
-			return(false);
-
-		display_disable_text = false;
-		success = true;
-		goto error2;
-	}
-
-	if(!display_picture_valid)
-	{
-		log("display orbital: load picture: invalid image\n");
-		goto error2;
-	}
-
-	display_disable_text = true;
-
-	flash_buffer_request(fsb_display_picture, false, "orbital layer select", &buffer_string, &buffer_cstr, &size);
-
-	if(!buffer_string)
-		goto error2;
-
-	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-	{
-		log("display orbital: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error1;
-	}
-
-	string_setlength(buffer_string, size);
-	bitmap = (const uint8_t *)buffer_cstr + (sizeof(pbm_header) - 1);
-
-	for(udg = 0; udg < 8; udg++)
-	{
-		if(!display_command2(command_udg, udg))
-			goto error1;
-
-		for(udg_line = 0; udg_line < 8; udg_line++)
-		{
-			udg_value = 0;
-
-			row = ((udg / 4) * 8) + udg_line;
-
-			for(udg_bit = 0; udg_bit < 5; udg_bit++)
-			{
-				column = ((udg % 4) * 5) + udg_bit;
-
-				byte_offset = ((24 / 8) * row) + (column / 8);
-				bit_offset = column % 8;
-
-				if(bitmap[byte_offset] & (1 << (7 - bit_offset)))
-					udg_value |= (1 << (4 - udg_bit));
-			}
-
-			if(!display_data_output(udg_value))
-				goto error1;
-		}
-	}
-
-	if(!display_command1(command_clear_display))
-		goto error1;
-
-	for(row = 0; row < 2; row++)
-	{
-		if(!display_command3(command_goto, 9, row + 1 + 1))
-			goto error1;
-
-		for(column = 0; column < 4; column++)
-			if(!display_data_output((row * 4) + column))
-				goto error1;
-	}
-
-	success = true;
-
-error1:
-	flash_buffer_release(fsb_display_picture, "orbital layer select");
-	if(!display_data_flush())
-		return(false);
-	if(!text_goto(-1, -1))
-		return(false);
-error2:
-	return(success);
-}
-
 static bool start_show_time(unsigned int hour, unsigned int minute)
 {
 	bool success;
@@ -758,16 +614,8 @@ roflash const display_info_t display_info_orbital =
 		end,
 		bright,
 		(void *)0,
-		(void *)0,
-		picture_load,
-		layer_select,
 		start_show_time,
 		stop_show_time,
 		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		picture_valid,
 	}
 };

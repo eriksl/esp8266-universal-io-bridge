@@ -207,11 +207,9 @@ static bool display_inited = false;
 static bool display_logmode = false;
 static bool display_standout = false;
 static bool display_disable_text = false;
-static bool display_picture_valid = false;
 static unsigned int display_height;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
-static unsigned int display_picture_load_flash_sector;
 
 attr_result_used attr_inline unsigned int text_height(void)
 {
@@ -593,123 +591,6 @@ static bool standout(bool onoff)
 	return(true);
 }
 
-static const char pbm_header[] = "P4\n128 64\n";
-
-static bool picture_load(unsigned int picture_load_index)
-{
-	bool success;
-	string_t *buffer_string;
-	char *buffer_cstr;
-	unsigned int size;
-
-	success = false;
-
-	flash_buffer_request(fsb_display_picture, false, "lcd picture load", &buffer_string, &buffer_cstr, &size);
-
-	if(!buffer_string)
-		goto error2;
-
-	display_picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
-
-	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-	{
-		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error1;
-	}
-
-	string_setlength(buffer_string, sizeof(pbm_header) - 1);
-
-	if(!string_match_cstr(buffer_string, pbm_header))
-	{
-		log("display ssd1306: show picture: invalid image header\n");
-		goto error1;
-	}
-
-	success = true;
-
-error1:
-	flash_buffer_release(fsb_display_picture, "seeed picture load");
-error2:
-	display_picture_valid = success;
-	return(success);
-}
-
-static bool picture_valid(void)
-{
-	return(display_picture_valid);
-}
-
-static bool layer_select(unsigned int layer)
-{
-	bool success = false;
-	unsigned int row, column, output, bit, offset, bitoffset;
-	const uint8_t *bitmap;
-	string_t *buffer_string;
-	char *buffer_cstr;
-	unsigned int size;
-
-	if(layer == 0)
-	{
-		display_disable_text = false;
-		return(true);
-	}
-
-	if(!display_picture_valid)
-	{
-		log("display ssd1306: load picture: invalid image\n");
-		goto error2;
-	}
-
-	display_disable_text = true;
-
-	flash_buffer_request(fsb_display_picture, false, "ssd layer select", &buffer_string, &buffer_cstr, &size);
-
-	if(!buffer_string)
-		goto error2;
-
-	if(spi_flash_read(display_picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-	{
-		log("display ssd1306: load picture: failed to read sector: 0x%x\n", display_picture_load_flash_sector);
-		goto error1;
-	}
-
-	string_setlength(buffer_string, size);
-	bitmap = (const uint8_t *)buffer_cstr + (sizeof(pbm_header) - 1);
-
-	for(row = 0; row < (display_height / 8); row++)
-	{
-		if(!display_cursor_row_column(row, 0))
-			goto error1;
-
-		for(column = 0; column < display_width; column++)
-		{
-			output = 0;
-
-			for(bit = 0; bit < 8; bit++)
-			{
-				offset		= (row * 8) * (display_width / 8) * (2 / (display_height / display_height_32));
-				offset		+= bit * (display_width / 8);
-				offset		+= column / 8;
-				bitoffset	= column % 8;
-
-				if(bitmap[offset] & (1 << (7 - bitoffset)))
-					output |= 1 << bit;
-			}
-
-			if(!display_data_output(output))
-				goto error1;
-		}
-	}
-
-	success = true;
-error1:
-	flash_buffer_release(fsb_display_picture, "ssd layer select");
-error2:
-	if(!display_data_flush())
-		success = false;
-	return(success);
-}
-
 roflash const display_info_t display_info_ssd1306 =
 {
 	{
@@ -726,15 +607,7 @@ roflash const display_info_t display_info_ssd1306 =
 		bright,
 		standout,
 		(void *)0,
-		picture_load,
-		layer_select,
 		(void *)0,
 		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		picture_valid,
 	}
 };

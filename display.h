@@ -44,20 +44,12 @@ typedef const struct
 	bool (* const end_fn)(void);
 	bool (* const bright_fn)(int brightness);
 	bool (* const standout_fn)(bool);
-	bool (* const periodic_fn)(void);
-	bool (* const picture_load_fn)(unsigned int);
-	bool (* const layer_select_fn)(unsigned int);
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
-	bool (* const canvas_start_fn)(unsigned int timeout);
-	bool (* const canvas_goto_fn)(unsigned int x, unsigned int y);
-	bool (* const canvas_plot_fn)(const string_t *pixels);
-	bool (* const canvas_show_fn)(void);
-	bool (* const canvas_stop_fn)(void);
-	bool (* const picture_valid_fn)(void);
+	bool (* const plot_fn)(int x, int y, const string_t *pixels);
 } display_hooks_t;
 
-assert_size(display_hooks_t, 68);
+assert_size(display_hooks_t, 36);
 
 typedef const struct
 {
@@ -65,21 +57,16 @@ typedef const struct
 	const display_hooks_t hooks;
 } display_info_t;
 
-assert_size(display_info_t, 92);
+assert_size(display_info_t, 64);
 
 const display_properties_t *display_get_properties(void);
+bool						display_load_picture_slot(unsigned int slot);
 
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);
 app_action_t application_function_display_dump(string_t *src, string_t *dst);
 app_action_t application_function_display_default_message(string_t *src, string_t *dst);
 app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst);
 app_action_t application_function_display_set(string_t *src, string_t *dst);
-app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst);
-app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst);
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst);
-app_action_t application_function_display_canvas_start(string_t *src, string_t *dst);
-app_action_t application_function_display_canvas_goto(string_t *src, string_t *dst);
-app_action_t application_function_display_canvas_plot(string_t *src, string_t *dst);
-app_action_t application_function_display_canvas_show(string_t *src, string_t *dst);
-app_action_t application_function_display_canvas_stop(string_t *src, string_t *dst);
+app_action_t application_function_display_plot(string_t *src, string_t *dst);
 #endif

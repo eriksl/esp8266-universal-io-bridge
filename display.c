@@ -14,6 +14,7 @@
 #include "sys_time.h"
 #include "sys_string.h"
 #include "mailbox.h"
+#include "dispatch.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -40,6 +41,25 @@ typedef struct
 
 assert_size(display_slot_t, 104);
 
+typedef enum attr_packed
+{
+	pls_idle,
+	pls_run,
+	pls_wait,
+} picture_load_state_t;
+
+static picture_load_state_t picture_load_state = pls_idle;
+assert_size(picture_load_state, 1);
+
+static uint8_t picture_load_slot;
+assert_size(picture_load_slot, 1);
+
+static uint8_t picture_load_sector;
+assert_size(picture_load_sector, 1);
+
+static os_timer_t picture_load_timer;
+assert_size(picture_load_timer, 20);
+
 roflash static display_info_t const *const display_info[] =
 {
 	&display_info_saa1064,
@@ -56,7 +76,6 @@ static const display_info_t *display_info_active = (const display_info_t *)0;
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static unsigned int flip_timeout;
 static display_slot_t display_slot[display_slot_amount];
-static unsigned int display_layer = 0;
 static roflash const unsigned int unicode_newline[1] = { '\n' };
 
 assert_size(display_slot, 832);
@@ -72,6 +91,141 @@ const display_properties_t *display_get_properties(void)
 		return((display_properties_t *)0);
 
 	return(&display_info_active->properties);
+}
+
+static const display_hooks_t *display_get_hooks(void)
+{
+	if(!display_info_active)
+		return((display_hooks_t *)0);
+
+	return(&display_info_active->hooks);
+}
+
+bool display_load_picture_slot(unsigned int slot)
+{
+	const display_hooks_t		*hooks;
+	const display_properties_t 	*props;
+
+	if(picture_load_state != pls_idle)
+		return(false);
+
+	if(!(hooks = display_get_hooks()))
+		return(false);
+
+	if(!hooks->plot_fn)
+		return(false);
+
+	if(!(props = display_get_properties()))
+		return(false);
+
+	if((props->graphic_dimensions.x < 1) ||
+			(props->graphic_dimensions.y < 1) ||
+			(props->colour_depth < 1))
+		return(false);
+
+	if(slot > 1)
+		return(false);
+
+	picture_load_state = pls_run;
+	picture_load_sector = 0;
+	picture_load_slot = slot;
+	os_timer_arm(&picture_load_timer, 10, 0);
+
+	return(true);
+}
+
+static void picture_load_worker(void *arg)
+{
+	const display_hooks_t		*hooks = (display_hooks_t *)0;
+	const display_properties_t	*props = (display_properties_t *)0;
+	string_t *buffer_string;
+	char *buffer_cstr;
+	unsigned int flash_buffer_size;
+	unsigned int width, height, depth;
+	unsigned int current_pixel;
+	int current_x, current_y;
+	unsigned int sector_base;
+	bool finish;
+	int length;
+	unsigned int total_pixels;
+
+	stat_display_picture_load_worker_called++;
+
+	if(picture_load_state != pls_run)
+		goto error;
+
+	if(!(hooks = display_get_hooks()))
+		goto error;
+
+	if(!(props = display_get_properties()))
+		goto error;
+
+	width = props->graphic_dimensions.x;
+	height = props->graphic_dimensions.y;
+	depth = props->colour_depth;
+
+	flash_buffer_request(fsb_display_picture, false, "display load picture worker", &buffer_string, &buffer_cstr, &flash_buffer_size);
+
+	if(!buffer_string)
+		goto retry; // buffer currently in use, try again later
+
+	sector_base = (picture_load_slot ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
+
+	if(spi_flash_read((sector_base + picture_load_sector) * flash_buffer_size, buffer_cstr, flash_buffer_size) != SPI_FLASH_RESULT_OK)
+	{
+		log("display load picture: failed to read sector: 0x%x (0x%x)\n", picture_load_sector, sector_base + picture_load_sector);
+		goto error;
+	}
+
+	string_setlength(buffer_string, flash_buffer_size);
+
+	switch(depth)
+	{
+		case(16): // 16 bit RGB 5-6-5 per pixel
+		{
+			total_pixels = (width * height);
+			current_pixel = picture_load_sector * flash_buffer_size / 2;
+			current_y = current_pixel / width;
+			current_x = current_pixel % width;
+
+			finish = false;
+
+			if((current_pixel + (string_length(buffer_string) / 2)) >= total_pixels)
+			{
+				length = (total_pixels - current_pixel) * 2;
+
+				if(length < 0)
+					length = 0;
+
+				string_setlength(buffer_string, length);
+
+				finish = true;
+			}
+
+			if(!hooks->plot_fn(current_x, current_y, buffer_string))
+				goto error;
+
+			if(finish)
+				goto error;
+
+			break;
+		}
+		default: // not yet implemented
+		{
+			goto error;
+		}
+	}
+
+	picture_load_sector++;
+
+retry:
+	os_timer_arm(&picture_load_timer, 10, 0);
+	goto no_error;
+error:
+	picture_load_state = pls_idle; // FIXME
+no_error:
+	flash_buffer_release(fsb_display_picture, "display load picture worker");
+	return;
 }
 
 static void display_update(bool dont_advance)
@@ -143,30 +297,12 @@ static void display_update(bool dont_advance)
 active_slot_found:
 		slot_content = display_slot[display_current_slot].content;
 
-		if(!strcmp(slot_content, "picture") &&
-			!strcmp(display_slot[display_current_slot].tag, "picture"))
-
+		if(!strncmp(display_slot[display_current_slot].tag, "picture-", 8))
 		{
-			if(display_info_active->hooks.layer_select_fn &&
-				display_info_active->hooks.picture_valid_fn &&
-				display_info_active->hooks.picture_valid_fn())
-			{
-				if(!display_info_active->hooks.layer_select_fn(1))
-				{
-					log("display update: display layer select (1) failed\n");
-					goto error;
-				}
+			unsigned int picture_slot = display_slot[display_current_slot].tag[8] == '0' ? 0 : 1;
 
+			if(display_load_picture_slot(picture_slot))
 				goto done;
-			}
-
-			continue;
-		}
-
-		if(display_info_active->hooks.layer_select_fn && !display_info_active->hooks.layer_select_fn(0))
-		{
-			log("display update: display layer select (2) failed\n");
-			goto error;
 		}
 
 		if(!strcmp(slot_content, "%%%%"))
@@ -266,11 +402,8 @@ void display_periodic(void) // gets called 10 times per second
 	if(!display_detected())
 		return;
 
-	if(display_info_active->hooks.periodic_fn && !display_info_active->hooks.periodic_fn())
-	{
-		log("display update: display periodic failed\n");
-		goto error;
-	}
+	if(picture_load_state != pls_idle)
+		return;
 
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
@@ -380,7 +513,6 @@ void display_init(void)
 {
 	unsigned int current;
 	unsigned int slot;
-	unsigned int picture_autoload_index;
 
 	for(current = 0; display_info[current]; current++)
 	{
@@ -422,15 +554,7 @@ void display_init(void)
 		goto error;
 	}
 
-	if(display_info_active->hooks.picture_load_fn &&
-			config_get_uint("picture.autoload", &picture_autoload_index, -1, -1) &&
-			(picture_autoload_index < 2) &&
-			!display_info_active->hooks.picture_load_fn(picture_autoload_index))
-	{
-		log("display update: display picture autoload failed\n");
-		goto error;
-	}
-
+	os_timer_setfn(&picture_load_timer, picture_load_worker, (void *)0);
 	return;
 
 error:
@@ -672,272 +796,66 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_picture_switch_layer(string_t *src, string_t *dst)
-{
-	unsigned int layer;
-
-	if(!display_detected())
-	{
-		string_append(dst, "display layer: no display detected\n");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.layer_select_fn)
-	{
-		string_append(dst, "display layer: no layer support\n");
-		return(app_action_error);
-	}
-
-	if(parse_uint(1, src, &layer, 0, ' ') != parse_ok)
-		layer = display_layer ? 0 : 1;
-
-	if(!display_info_active->hooks.layer_select_fn(layer))
-	{
-		string_append(dst, "display-layer: select layer failed\n");
-		return(app_action_error);
-	}
-
-	display_layer = layer;
-
-	string_format(dst, "display-layer: layer %u selected\n", layer);
-	return(app_action_normal);
-}
-
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst)
 {
 	unsigned int entry;
 	bool rv;
 
-	if(!display_detected())
-	{
-		string_append(dst, "picture load: no display detected\n");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.picture_load_fn)
-	{
-		string_append(dst, "picture load: not supported\n");
-		return(app_action_error);
-	}
-
-	if((!parse_uint(1, src, &entry, 0, ' ') == parse_ok) && (!config_get_uint("picture.autoload", &entry, -1, -1)))
+	if(!parse_uint(1, src, &entry, 0, ' ') == parse_ok)
 		entry = 0;
 
 	if(entry > 1)
 	{
-		string_append(dst, "picture load: usage: [entry (0/1)]\n");
-		config_abort_write();
+		string_append(dst, "picture load: usage: [slot (0/1)]\n");
 		return(app_action_error);
 	}
 
-	rv = display_info_active->hooks.picture_load_fn(entry);
+	rv = display_load_picture_slot(entry);
 
 	string_format(dst, "picture load success: %s\n", yesno(rv));
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_picture_autoload(string_t *src, string_t *dst)
-{
-	int entry;
-
-	if(!config_open_write())
-	{
-		string_append(dst, "picture set autoload: open config failed\n");
-		return(app_action_error);
-	}
-
-	if(parse_int(1, src, &entry, 0, ' ') == parse_ok)
-	{
-		if((entry == 0) || (entry == 1))
-		{
-			if(!config_set_uint("picture.autoload", entry, -1, -1))
-			{
-				string_append(dst, "picture set autoload: config set failed\n");
-				config_abort_write();
-				return(app_action_error);
-			}
-		}
-		else
-		{
-			if(entry < -1)
-			{
-				string_append(dst, "picture set autoload: usage: [entry (-1[off]/0/1)]\n");
-				config_abort_write();
-				return(app_action_error);
-			}
-			else
-				config_delete("picture.autoload", false, -1, -1);
-		}
-	}
-
-	if(!config_close_write())
-	{
-		string_append(dst, "picture set autoload: write config failed\n");
-		return(app_action_error);
-	}
-
-	if(!config_get_int("picture.autoload", &entry, -1, -1))
-	{
-		string_append(dst, "picture set autoload: not set\n");
-		return(app_action_normal);
-	}
-
-	string_format(dst, "picture set autoload: active for entry %d\n", entry);
-	return(app_action_normal);
-}
-
-app_action_t application_function_display_canvas_start(string_t *src, string_t *dst)
-{
-	bool rv;
-	unsigned int timeout;
-
-	if(!display_detected())
-	{
-		string_append(dst, "display canvas start: no display detected\n");
-		return(app_action_error);
-	}
-
-	if(parse_uint(1, src, &timeout, 0, ' ') != parse_ok)
-	{
-		string_append(dst, "usage: display canvas start <timeout_ms>");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.canvas_start_fn)
-	{
-		string_append(dst, "display canvas start: not supported\n");
-		return(app_action_error);
-	}
-
-	string_clear(&mailbox_socket_receive_buffer);
-
-	rv = display_info_active->hooks.canvas_start_fn(timeout);
-
-	string_format(dst, "display canvas start success: %s\n", yesno(rv));
-
-	return(app_action_normal);
-}
-
-app_action_t application_function_display_canvas_goto(string_t *src, string_t *dst)
-{
-	bool rv;
-	unsigned int x, y;
-
-	if(!display_detected())
-	{
-		string_append(dst, "display canvas start: no display detected\n");
-		return(app_action_error);
-	}
-
-	if((parse_uint(1, src, &x, 0, ' ') != parse_ok) || (parse_uint(1, src, &y, 0, ' ') != parse_ok))
-	{
-		string_append(dst, "usage: display canvas goto <x> <y>");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.canvas_goto_fn)
-	{
-		string_append(dst, "display canvas goto: not supported\n");
-		return(app_action_error);
-	}
-
-	rv = display_info_active->hooks.canvas_goto_fn(x, y);
-
-	string_format(dst, "display canvas goto success: %s\n", yesno(rv));
-
-	return(app_action_normal);
-}
-
-app_action_t application_function_display_canvas_plot(string_t *src, string_t *dst)
+app_action_t application_function_display_plot(string_t *src, string_t *dst)
 {
 	bool rv;
 	unsigned int x, y, pixels;
 
 	if(!display_detected())
 	{
-		string_append(dst, "display canvas plot: no display detected\n");
+		string_append(dst, "display plot: no display detected\n");
 		goto error;
 	}
 
 	if((parse_uint(1, src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, src, &x, 0, ' ') != parse_ok) || (parse_uint(3, src, &y, 0, ' ') != parse_ok))
 	{
-		string_append(dst, "usage: display canvas plot <pixels> <x> <y>");
+		string_append(dst, "usage: display plot <pixels> <x> <y>");
 		goto error;
 	}
 
-	if(!display_info_active->hooks.canvas_plot_fn || !display_info_active->hooks.canvas_goto_fn)
+	if(!display_info_active->hooks.plot_fn)
 	{
-		string_append(dst, "display canvas plot: not supported\n");
+		string_append(dst, "display plot: not supported\n");
 		goto error;
 	}
 
 	if((unsigned int)string_length(&mailbox_socket_receive_buffer) < (pixels * 2))
 	{
-		string_format(dst, "display canvas plot: incorrect pixel amount: %u/%d\n", pixels, string_length(&mailbox_socket_receive_buffer) / 2);
+		string_format(dst, "display plot: incorrect pixel amount: %u/%d\n", pixels, string_length(&mailbox_socket_receive_buffer) / 2);
 		goto error;
 	}
 
 	string_setlength(&mailbox_socket_receive_buffer, pixels * 2);
 
-	if(!display_info_active->hooks.canvas_goto_fn(x, y))
-	{
-		string_append(dst, "display canvas plot: goto failed\n");
-		goto error;
-	}
-
-	rv = display_info_active->hooks.canvas_plot_fn(&mailbox_socket_receive_buffer);
+	rv = display_info_active->hooks.plot_fn(x, y, &mailbox_socket_receive_buffer);
 
 	string_clear(&mailbox_socket_receive_buffer);
-	string_format(dst, "display canvas plot success: %s\n", yesno(rv));
+	string_format(dst, "display plot success: %s\n", yesno(rv));
 
 	return(app_action_normal);
 
 error:
 	string_clear(&mailbox_socket_receive_buffer);
 	return(app_action_error);
-}
-
-app_action_t application_function_display_canvas_show(string_t *src, string_t *dst)
-{
-	bool rv;
-
-	if(!display_detected())
-	{
-		string_append(dst, "display canvas show: no display detected\n");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.canvas_show_fn)
-	{
-		string_append(dst, "display canvas show: not supported\n");
-		return(app_action_error);
-	}
-
-	rv = display_info_active->hooks.canvas_show_fn();
-
-	string_format(dst, "display canvas show success: %s\n", yesno(rv));
-	return(app_action_normal);
-}
-
-app_action_t application_function_display_canvas_stop(string_t *src, string_t *dst)
-{
-	bool rv;
-
-	if(!display_detected())
-	{
-		string_append(dst, "display canvas stop: no display detected\n");
-		return(app_action_error);
-	}
-
-	if(!display_info_active->hooks.canvas_stop_fn)
-	{
-		string_append(dst, "display canvas stop: not supported\n");
-		return(app_action_error);
-	}
-
-	rv = display_info_active->hooks.canvas_stop_fn();
-
-	string_format(dst, "display canvas stop success: %s\n", yesno(rv));
-	return(app_action_normal);
 }

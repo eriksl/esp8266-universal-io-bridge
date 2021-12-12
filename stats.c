@@ -32,6 +32,7 @@ unsigned int stat_update_command_udp;
 unsigned int stat_update_command_tcp;
 unsigned int stat_update_command_uart;
 unsigned int stat_update_display;
+unsigned int stat_display_picture_load_worker_called;
 unsigned int stat_task_posted[3];
 unsigned int stat_task_executed[3];
 unsigned int stat_task_post_failed[3];
@@ -394,10 +395,12 @@ void stats_counters(string_t *dst)
 			">\n> MISCELLANUOUS\n"
 			">  pin change counts:   %u\n"
 			">  display updated:     %u\n"
+			">  picture load worker: %u\n"
 			">  primary PWM cycles:  %u\n"
 			">  uart data processed: %u\n",
 				stat_pc_counts,
 				stat_update_display,
+				stat_display_picture_load_worker_called,
 				stat_pwm_cycles,
 				stat_update_uart);
 

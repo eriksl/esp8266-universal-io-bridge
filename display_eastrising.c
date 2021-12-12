@@ -748,11 +748,7 @@ static bool display_font_valid = false;
 static unsigned int display_text_current;
 static unsigned int display_x, display_y;
 static unsigned int display_current_slot;
-static picture_load_state_t picture_load_state = pls_init;
-static unsigned int picture_load_index = 0;
-static unsigned int picture_load_flash_sector = 0, picture_load_sector_offset = 0, picture_load_current = 0;
 static colours_t const *colours = &themes[8].normal_bright;
-static unsigned int display_locked_ms;
 
 static bool attr_result_used display_write_glyphs(unsigned int x, unsigned int y, unsigned int length, const uint8_t *text);
 
@@ -1790,9 +1786,6 @@ static bool begin(unsigned int slot, bool logmode)
 {
 	unsigned int fncr0, fncr1, fncr2, mwcr0;
 
-	if(display_locked_ms > 0)
-		return(true);
-
 	switch(display_mode)
 	{
 		case(display_mode_i2c):
@@ -1922,9 +1915,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 	bool mapped = false;
 	unsigned int current_index, current;
 
-	if(display_locked_ms > 0)
-		return(true);
-
 	for(current_index = 0; current_index < length; current_index++)
 	{
 		current = unicode[current_index];
@@ -2005,9 +1995,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 static bool end(void)
 {
-	if(display_locked_ms > 0)
-		return(true);
-
 	if(!display_logmode)
 	{
 		while(display_y < text_lines())
@@ -2020,264 +2007,38 @@ static bool end(void)
 	return(true);
 }
 
-static bool periodic(void)
+static bool plot(int x, int y, const string_t *pixels)
 {
-	static const char ppm_header[] = "P6\n480 272\n255\n";
-	bool success = false;
-	uint8_t mwcr0;
-	string_t *buffer_string;
-	char *buffer_cstr;
-	unsigned int size;
-
-	if(display_locked_ms > 0)
-	{
-		if(display_locked_ms > 100)
-		{
-			display_locked_ms -= 100;
-			return(true);
-		}
-		else
-			display_locked_ms = 0;
-	}
-
-	switch(picture_load_state)
-	{
-		case(pls_init):
-		case(pls_done):
-		{
-			return(true);
-		}
-
-		case(pls_start):
-		{
-			flash_buffer_request(fsb_display_picture, false, "eastrising layer select", &buffer_string, &buffer_cstr, &size);
-
-			if(!buffer_string)
-				return(true); // buffer currently in use, try again later
-
-			picture_load_flash_sector = (picture_load_index ? PICTURE_FLASH_OFFSET_1 : PICTURE_FLASH_OFFSET_0) / SPI_FLASH_SEC_SIZE;
-
-			if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-			{
-				log("display eastrising: load picture: failed to read first sector: 0x%x\n", picture_load_flash_sector);
-				goto error2;
-			}
-
-			string_setlength(buffer_string, sizeof(ppm_header) - 1);
-
-			if(!string_match_cstr(buffer_string, ppm_header))
-			{
-				log("display eastrising: show picture: invalid image header\n");
-				success = true;
-				goto error2;
-			}
-
-			string_setlength(buffer_string, size);
-
-			picture_load_sector_offset = sizeof(ppm_header) - 1;
-			picture_load_current = 0;
-			picture_load_state = pls_in_progress;
-
-			if(!display_write(reg_curh0, 0))
-				goto error2;
-
-			if(!display_write(reg_curh1, 0))
-				goto error2;
-
-			if(!display_write(reg_curv0, 0))
-				goto error2;
-
-			if(!display_write(reg_curv1, 0))
-				goto error2;
-
-			break;
-		}
-
-		case(pls_in_progress):
-		{
-			static const unsigned int picture_ppm_data_length = display_width * display_height * 3;
-			unsigned int chunk_length, chunk_offset;
-			unsigned int output_buffer_offset;
-			unsigned int rgb_offset;
-			unsigned int rgb[3];
-			flash_sector_buffer_use_t use;
-
-			if(picture_load_current >= picture_ppm_data_length)
-			{
-				success = true;
-				goto error2;
-			}
-
-			use = flash_buffer_using();
-
-			flash_buffer_request(fsb_display_picture, false, "eastrising layer select", &buffer_string, &buffer_cstr, &size);
-
-			if(!buffer_string)
-				return(true); // buffer currently in use, try again later
-
-			if(use != fsb_display_picture)
-			{
-				if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-				{
-					log("display eastrising: show picture: failed to re-read sector: 0x%x\n", picture_load_flash_sector);
-					goto error2;
-				}
-			}
-
-			chunk_length = umin(picture_ppm_data_length - picture_load_current, 1024 /*sizeof(flash_dram_buffer)*/ / 4);
-			output_buffer_offset = 0;
-
-			for(chunk_offset = 0; chunk_offset < chunk_length; chunk_offset++)
-			{
-				for(rgb_offset = 0; rgb_offset < 3; rgb_offset++)
-				{
-					if(picture_load_sector_offset >= SPI_FLASH_SEC_SIZE)
-					{
-						picture_load_flash_sector++;
-
-						if(spi_flash_read(picture_load_flash_sector * size, buffer_cstr, size) != SPI_FLASH_RESULT_OK)
-						{
-							log("display eastrising: show picture: failed to read sector: 0x%x\n", picture_load_flash_sector);
-							goto error2;
-						}
-
-						picture_load_sector_offset = 0;
-					}
-
-					rgb[rgb_offset] = (unsigned int)buffer_cstr[picture_load_sector_offset++];
-					picture_load_current++;
-				}
-
-				if((output_buffer_offset + 2) >= 1024 /*sizeof(flash_dram_buffer)*/)
-				{
-					log("display eastrising: show picture: flash_dram_buffer overflow\n");
-					goto error2;
-				}
-
-				flash_dram_buffer[output_buffer_offset++] = ((rgb[0] & 0xf8) << 0) | ((rgb[1] & 0xe0) >> 5);
-				flash_dram_buffer[output_buffer_offset++] = ((rgb[1] & 0x1c) << 3) | ((rgb[2] & 0xf8) >> 3);
-			}
-
-			if(!display_read(reg_mwcr0, &mwcr0))
-				goto error2;
-
-			if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
-				goto error1;
-
-			if(!display_set_active_layer(1))
-				goto error1;
-
-			if(!display_write_string(true, output_buffer_offset, (uint8_t *)flash_dram_buffer))
-				goto error1;
-
-			if(!display_write(reg_mwcr0, mwcr0))
-				goto error2;
-
-			if(!display_set_active_layer(0))
-				goto error2;
-
-			dispatch_post_task(2, task_display_update, 0);
-
-			break;
-		}
-	}
-
-	return(true);
-
-error1:
-	display_write(reg_mwcr0, mwcr0);
-error2:
-	flash_buffer_release(fsb_display_picture, "eastrising periodic");
-	picture_load_state = pls_done;
-
-	return(success);
-}
-
-static bool layer_select(unsigned int layer)
-{
-	if(display_locked_ms > 0)
+	if(string_length(pixels) == 0)
 		return(true);
 
-	if(layer > 1)
+	if(x > display_width)
+		return(false);
+
+	if(y > display_height)
+		return(false);
+
+	if(!display_write(reg_mwcr0, reg_mwcr0_default | reg_mwcr0_mode_graphic))
+		return(false);
+
+	if((x >= 0) && (y >= 0))
 	{
-		if(!display_set_active_layer(1))
+		if(!display_write(reg_curh1, (x & 0xff00) >> 8))
 			return(false);
 
-		if(!display_fill_rectangle(0, 0, display_width, display_height, (layer >> 16) & 0xff, (layer >> 8) & 0xff, (layer >> 0) & 0xff))
+		if(!display_write(reg_curh0, (x & 0x00ff) >> 0))
 			return(false);
 
-		return(display_show_layer(1));
+		if(!display_write(reg_curv1, (y & 0xff00) >> 8))
+			return(false);
+
+		if(!display_write(reg_curv0, (y & 0x00ff) >> 0))
+			return(false);
 	}
 
-	return(display_show_layer(layer));
-}
-
-static bool picture_load(unsigned int entry)
-{
-	if(entry > 1)
-		return(false);
-
-	if((picture_load_state != pls_init) && (picture_load_state != pls_done))
-		return(false);
-
-	picture_load_state = pls_start;
-	picture_load_index = entry;
-
-	return(true);
-}
-
-static bool picture_valid(void)
-{
-	return(picture_load_state == pls_done);
-}
-
-static bool canvas_goto(unsigned int x, unsigned int y)
-{
-	if(!display_write(reg_curh1, (x & 0xff00) >> 8))
-		return(false);
-
-	if(!display_write(reg_curh0, (x & 0x00ff) >> 0))
-		return(false);
-
-	if(!display_write(reg_curv1, (y & 0xff00) >> 8))
-		return(false);
-
-	if(!display_write(reg_curv0, (y & 0x00ff) >> 0))
-		return(false);
-
-	return(true);
-}
-
-static bool canvas_start(unsigned int timeout)
-{
-	if(!display_set_active_layer(0))
-		return(false);
-
-	if(!display_write(reg_mwcr0, reg_mwcr0_mode_graphic | reg_mwcr0_default))
-		return(false);
-
-	canvas_goto(0, 0);
-
-	display_locked_ms = timeout;
-
-	return(true);
-}
-
-static bool canvas_plot(const string_t *pixels)
-{
 	if(!display_write_string(true, string_length(pixels), (const unsigned char *)string_buffer(pixels)))
 		return(false);
 
-	return(true);
-}
-
-static bool canvas_show(void)
-{
-	return(display_show_layer(0));
-}
-
-static bool canvas_stop(void)
-{
 	return(true);
 }
 
@@ -2422,16 +2183,8 @@ roflash const display_info_t display_info_eastrising =
 		end,
 		bright,
 		(void *)0,
-		periodic,
-		picture_load,
-		layer_select,
 		(void *)0,
 		(void *)0,
-		canvas_start,
-		canvas_goto,
-		canvas_plot,
-		canvas_show,
-		canvas_stop,
-		picture_valid,
+		plot,
 	}
 };

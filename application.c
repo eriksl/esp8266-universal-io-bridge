@@ -1980,8 +1980,6 @@ roflash static const char help_description_display_brightness[] =	"set or show d
 roflash static const char help_description_display_dump[] =			"shows display and contents";
 roflash static const char help_description_display_flip[] =			"set the time between flipping of the slots";
 roflash static const char help_description_display_set[] =			"put content on display <slot> <timeout> <tag> <text>";
-roflash static const char help_description_display_switch_layer[] =	"show layer [<layer> (0|1)] from display";
-roflash static const char help_description_display_set_autoload[] =	"set autoload picture [<entry> (0|1)]";
 roflash static const char help_description_display_load[] =			"load picture [<entry> (0|1)]";
 roflash static const char help_description_set_flag[] =				"set a flag";
 roflash static const char help_description_unset_flag[] =			"unset a flag";
@@ -2125,16 +2123,6 @@ roflash static const application_function_table_t application_function_table[] =
 		"ds", "display-set",
 		application_function_display_set,
 		help_description_display_set,
-	},
-	{
-		"dps", "display-picture-switch-layer",
-		application_function_display_picture_switch_layer,
-		help_description_display_switch_layer,
-	},
-	{
-		"dpa", "display-picture-autoload",
-		application_function_display_picture_autoload,
-		help_description_display_set_autoload,
 	},
 	{
 		"dpl", "display-picture-load",
@@ -2397,28 +2385,8 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_display_eastrising,
 	},
 	{
-		"dcs", "display-canvas-start",
-		application_function_display_canvas_start,
-		(void *)0,
-	},
-	{
-		"dcg", "display-canvas-goto",
-		application_function_display_canvas_goto,
-		(void *)0,
-	},
-	{
-		"dcp", "display-canvas-plot",
-		application_function_display_canvas_plot,
-		(void *)0,
-	},
-	{
-		"dcsh", "display-canvas-show",
-		application_function_display_canvas_show,
-		(void *)0,
-	},
-	{
-		"dcst", "display-canvas-stop",
-		application_function_display_canvas_stop,
+		"dp", "display-plot",
+		application_function_display_plot,
 		(void *)0,
 	},
 	{

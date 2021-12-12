@@ -11366,3 +11366,255 @@ Sun Nov 28 16:26:30 CET 2021 8cb3fc4 Makefile: show log after test.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65929, free:  14336, 17 %
     irom:    available: 592 k, used: 433928, free: 172280, 28 %
+Thu Dec  9 12:33:03 CET 2021 066d0df Makefile: show log after test.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65017, free:  15248, 18 %
+    irom:    available: 592 k, used: 424440, free: 181768, 29 %
+Thu Dec  9 12:57:17 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65017, free:  15248, 18 %
+    irom:    available: 592 k, used: 424456, free: 181752, 29 %
+Thu Dec  9 14:08:44 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65017, free:  15248, 18 %
+    irom:    available: 592 k, used: 424904, free: 181304, 29 %
+Thu Dec  9 16:22:20 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65017, free:  15248, 18 %
+    irom:    available: 592 k, used: 424968, free: 181240, 29 %
+Thu Dec  9 16:23:17 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65049, free:  15216, 18 %
+    irom:    available: 592 k, used: 425288, free: 180920, 29 %
+Thu Dec  9 16:25:30 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65049, free:  15216, 18 %
+    irom:    available: 592 k, used: 424824, free: 181384, 29 %
+Thu Dec  9 16:29:19 CET 2021 63bea8a ESP-NONOS_SDK: update.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65945, free:  14320, 17 %
+    irom:    available: 592 k, used: 434328, free: 171880, 28 %
+Thu Dec  9 16:34:36 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65953, free:  14312, 17 %
+    irom:    available: 592 k, used: 434792, free: 171416, 28 %
+Thu Dec  9 16:37:00 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434792, free: 171416, 28 %
+Thu Dec  9 16:58:36 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434840, free: 171368, 28 %
+Thu Dec  9 17:27:18 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434856, free: 171352, 28 %
+Thu Dec  9 17:37:59 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65965, free:  14300, 17 %
+    irom:    available: 592 k, used: 434936, free: 171272, 28 %
+Thu Dec  9 18:33:55 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434920, free: 171288, 28 %
+Thu Dec  9 18:39:24 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434904, free: 171304, 28 %
+Fri Dec 10 20:19:20 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434936, free: 171272, 28 %
+Fri Dec 10 20:21:30 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65961, free:  14304, 17 %
+    irom:    available: 592 k, used: 434920, free: 171288, 28 %
+Sat Dec 11 12:07:56 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434568, free: 171640, 28 %
+Sat Dec 11 12:09:26 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434536, free: 171672, 28 %
+Sat Dec 11 12:11:37 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434840, free: 171368, 28 %
+Sat Dec 11 13:09:16 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434872, free: 171336, 28 %
+Sat Dec 11 13:17:36 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434952, free: 171256, 28 %
+Sat Dec 11 13:23:40 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 435032, free: 171176, 28 %
+Sat Dec 11 13:30:30 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434984, free: 171224, 28 %
+Sat Dec 11 13:31:19 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434920, free: 171288, 28 %
+Sat Dec 11 13:34:31 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65969, free:  14296, 17 %
+    irom:    available: 592 k, used: 434936, free: 171272, 28 %
+Sat Dec 11 14:06:52 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65793, free:  14472, 18 %
+    irom:    available: 592 k, used: 428280, free: 177928, 29 %
+Sat Dec 11 17:37:25 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65689, free:  14576, 18 %
+    irom:    available: 592 k, used: 426680, free: 179528, 29 %
+Sat Dec 11 17:39:12 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65689, free:  14576, 18 %
+    irom:    available: 592 k, used: 426648, free: 179560, 29 %
+Sat Dec 11 17:41:54 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65689, free:  14576, 18 %
+    irom:    available: 592 k, used: 426664, free: 179544, 29 %
+Sat Dec 11 17:48:19 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65657, free:  14608, 18 %
+    irom:    available: 592 k, used: 425992, free: 180216, 29 %
+Sat Dec 11 18:04:33 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426056, free: 180152, 29 %
+Sat Dec 11 18:21:43 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426072, free: 180136, 29 %
+Sat Dec 11 19:49:41 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426056, free: 180152, 29 %
+Sat Dec 11 19:55:41 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426088, free: 180120, 29 %
+Sat Dec 11 19:58:46 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426056, free: 180152, 29 %
+Sat Dec 11 20:32:27 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 425784, free: 180424, 29 %
+Sat Dec 11 20:38:11 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426072, free: 180136, 29 %
+Sat Dec 11 20:53:04 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426120, free: 180088, 29 %
+Sat Dec 11 21:02:41 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426088, free: 180120, 29 %
+Sat Dec 11 21:04:22 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426120, free: 180088, 29 %
+Sat Dec 11 21:16:04 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65637, free:  14628, 18 %
+    irom:    available: 592 k, used: 425624, free: 180584, 29 %
+Sat Dec 11 21:24:11 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426056, free: 180152, 29 %
+Sat Dec 11 21:26:16 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426168, free: 180040, 29 %
+Sat Dec 11 21:28:03 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426296, free: 179912, 29 %
+Sat Dec 11 21:32:53 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426280, free: 179928, 29 %
+Sat Dec 11 21:41:03 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426296, free: 179912, 29 %
+Sat Dec 11 21:44:51 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426392, free: 179816, 29 %
+Sat Dec 11 21:46:31 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426456, free: 179752, 29 %
+Sat Dec 11 21:48:52 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426440, free: 179768, 29 %
+Sat Dec 11 21:51:59 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426456, free: 179752, 29 %
+Sun Dec 12 10:36:12 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426328, free: 179880, 29 %
+Sun Dec 12 10:38:52 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426344, free: 179864, 29 %
+Sun Dec 12 10:43:21 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426376, free: 179832, 29 %
+Sun Dec 12 11:06:37 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65673, free:  14592, 18 %
+    irom:    available: 592 k, used: 426344, free: 179864, 29 %
+Sun Dec 12 11:22:59 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426328, free: 179880, 29 %
+Sun Dec 12 11:23:47 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426360, free: 179848, 29 %
+Sun Dec 12 11:27:45 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426408, free: 179800, 29 %
+Sun Dec 12 11:37:23 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426440, free: 179768, 29 %
+Sun Dec 12 11:46:42 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426248, free: 179960, 29 %
+Sun Dec 12 11:52:41 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426392, free: 179816, 29 %
+Sun Dec 12 11:57:41 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426424, free: 179784, 29 %
+Sun Dec 12 12:12:29 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426440, free: 179768, 29 %
+Sun Dec 12 12:14:35 CET 2021 e936aaf Revert <ESP-NONOS_SDK: update.>
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65681, free:  14584, 18 %
+    irom:    available: 592 k, used: 426328, free: 179880, 29 %

@@ -476,13 +476,5 @@ roflash const display_info_t display_info_cfa =
 		(void *)0,
 		(void *)0,
 		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
 	}
 };
