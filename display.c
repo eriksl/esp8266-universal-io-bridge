@@ -27,7 +27,9 @@ enum
 	display_slot_content_size = (display_slot_content_lines * (display_slot_content_line_length + 1)),
 };
 
-static unsigned int display_current_slot;
+static uint8_t display_current_slot;
+
+assert_size(display_current_slot, 1);
 
 typedef struct
 {

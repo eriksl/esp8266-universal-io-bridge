@@ -20,14 +20,14 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-typedef enum
+typedef enum attr_packed
 {
 	ts_copy,
 	ts_dodont,
 	ts_data,
 } telnet_strip_state_t;
 
-_Static_assert(sizeof(telnet_strip_state_t) == 4, "sizeof(telnet_strip_state) != 4");
+assert_size(telnet_strip_state_t, 1);
 
 enum
 {
