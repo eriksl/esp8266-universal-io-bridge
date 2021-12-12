@@ -2413,7 +2413,7 @@ roflash const display_info_t display_info_eastrising =
 		"Eastrising TFT LCD",
 		{ 25, 8 },
 		{ 480, 272 },
-		12,
+		16,
 	},
 	{
 		init,

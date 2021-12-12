@@ -1292,7 +1292,7 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 
 		process(command_channel, "display-canvas-start 20000", reply, "display canvas start success: yes", string_value, int_value, verbose);
 
-		if(depth == 12)
+		if(depth == 16)
 		{
 			for(y = 0; y < dim_y; y++)
 			{
