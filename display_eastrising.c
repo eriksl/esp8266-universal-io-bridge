@@ -1134,7 +1134,7 @@ static bool attr_result_used display_set_active_layer(unsigned int layer)
 
 static bool attr_result_used display_show_layer(unsigned int layer)
 {
-	unsigned int value = reg_ltpr0_scroll_both | reg_ltpr0_floatwin_transparency_dis;
+	unsigned int value = reg_ltpr0_scroll_layer_1 | reg_ltpr0_floatwin_transparency_dis;
 
 	if(!display_write(reg_ltpr1, reg_ltpr1_transparency_layer_2_8_8 | reg_ltpr1_transparency_layer_1_8_8))
 		return(false);
@@ -1305,6 +1305,7 @@ error:
 static bool attr_result_used display_blit(unsigned int layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint8_t *data)
 {
 	bool success = false;
+	uint8_t rdata;
 
 	if((x + width) > display_width)
 		return(true);
@@ -1343,7 +1344,7 @@ static bool attr_result_used display_blit(unsigned int layer, unsigned int x, un
 
 	// start BTE
 
-	if(!display_write(reg_becr0, reg_becr0_busy))
+	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
 	if(!display_write_command(reg_mrwc))
@@ -1385,7 +1386,22 @@ static bool attr_result_used display_blit(unsigned int layer, unsigned int x, un
 
 error:
 	if(!display_write(reg_becr0, 0))
+	{
+		log("display eastrising: can't stop BTE\n");
 		success = false;
+	}
+
+	if(!display_read(reg_becr0, &rdata))
+	{
+		log("display eastrising: can't read BTE status\n");
+		success = false;
+	}
+
+	if(rdata & reg_becr0_busy)
+	{
+		log("display eastrising: BTE still busy\n");
+		success = false;
+	}
 
 	return(success);
 }
@@ -1740,13 +1756,16 @@ static bool init(void)
 	if(!display_write(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
 		goto error;
 
-	if(!display_show_layer(0))
+	if(!display_show_layer(1))
 		goto error;
 
 	if(!display_set_active_layer(1))
 		return(false);
 
-	if(!display_fill_rectangle(0, 0, display_width - 1, display_height - 1, 0x90, 0xa0, 0x90))
+	if(!display_fill_rectangle(0, 0, display_width - 1, display_height - 1, 0xff, 0x00, 0x00))
+		goto error;
+
+	if(!display_show_layer(0))
 		goto error;
 
 	if(!display_set_active_layer(0))
