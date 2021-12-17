@@ -265,12 +265,12 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 {
 	unsigned int sector;
 	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
-	unsigned int skip, erase;
+	unsigned int skip;
 	SpiFlashOpResult flash_result;
 	const uint8_t *received_buffer;
 	string_t *buffer_string;
 	char *buffer_cstr;
-	unsigned int size;
+	unsigned int buffer_size;
 
 	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
 	{
@@ -278,7 +278,7 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	flash_buffer_request(fsb_mailbox, true, "mailbox write", &buffer_string, &buffer_cstr, &size);
+	flash_buffer_request(fsb_mailbox, true, "mailbox write", &buffer_string, &buffer_cstr, &buffer_size);
 
 	if(!buffer_string)
 	{
@@ -286,14 +286,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	if(string_length(&mailbox_socket_receive_buffer) != (int)size)
+	if(string_length(&mailbox_socket_receive_buffer) != (int)buffer_size)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
 		string_format(dst, "ERROR: mailbox-write: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
 		return(app_action_error);
 	}
 
-	flash_result = spi_flash_read(sector * size, buffer_cstr, size);
+	flash_result = spi_flash_read(sector * buffer_size, buffer_cstr, buffer_size);
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
@@ -309,26 +309,11 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	erase = 0;
-	skip = 1;
 	received_buffer = (const uint8_t *)string_buffer(&mailbox_socket_receive_buffer);
 
-	for(unsigned int current = 0; current < SPI_FLASH_SEC_SIZE; current++)
-	{
-		if(received_buffer[current] != 0xff)
-			erase = 1;
+	skip = !memcmp(received_buffer, buffer_cstr, buffer_size);
 
-		if((unsigned int)received_buffer[current] != (unsigned int)buffer_cstr[current])
-			skip = 0;
-
-		if((erase == 1) && (skip == 0))
-			break;
-	}
-
-	if(skip == 1)
-		erase = 0;
-
-	if(erase)
+	if(!skip)
 	{
 		flash_result = spi_flash_erase_sector(sector);
 
@@ -345,11 +330,8 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 			string_append(dst, "ERROR: mailbox-write: erase timeout\n");
 			return(app_action_error);
 		}
-	}
 
-	if(!skip)
-	{
-		flash_result = spi_flash_write(sector * size, received_buffer, size);
+		flash_result = spi_flash_write(sector * buffer_size, received_buffer, buffer_size);
 
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
@@ -366,7 +348,7 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		}
 	}
 
-	flash_result = spi_flash_read(sector * size, buffer_cstr, size);
+	flash_result = spi_flash_read(sector * buffer_size, buffer_cstr, buffer_size);
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
@@ -382,10 +364,10 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	SHA1_text((const unsigned char*)buffer_cstr, size, &sha_text);
+	SHA1_text((const unsigned char*)buffer_cstr, buffer_size, &sha_text);
 
 	flash_buffer_release(fsb_mailbox, "mailbox write");
-	string_format(dst, "OK mailbox-write: written sector %u, erased: %u, skipped %u, checksum: %s\n", sector, skip, erase, string_to_cstr(&sha_text));
+	string_format(dst, "OK mailbox-write: written sector %u, erased: %d, skipped %u, checksum: %s\n", sector, !skip, skip, string_to_cstr(&sha_text));
 
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);

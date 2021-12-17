@@ -11682,3 +11682,11 @@ Fri Dec 17 11:36:58 CET 2021 edf9cfa display: add freeze function and freeze dur
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65697, free:  14568, 18 %
     irom:    available: 592 k, used: 426904, free: 179304, 29 %
+Fri Dec 17 11:43:57 CET 2021 e760364 Refactor some SHA library calls.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426856, free: 179352, 29 %
+Fri Dec 17 12:00:14 CET 2021 e760364 Refactor some SHA library calls.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426792, free: 179416, 29 %
