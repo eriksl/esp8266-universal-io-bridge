@@ -1,4 +1,3 @@
-#include "config.h"
 
 #include "util.h"
 #include "sys_string.h"
@@ -168,8 +167,6 @@ bool config_close_write(void)
 	string_t *config_string;
 	char *config_buffer;
 	unsigned int size;
-
-	SHA_CTX sha_context;
 	uint8_t sha_result1[SHA_DIGEST_LENGTH];
 	uint8_t sha_result2[SHA_DIGEST_LENGTH];
 
@@ -190,9 +187,7 @@ bool config_close_write(void)
 
 		memset(config_buffer + tail + 1, '.', size - tail - 1);
 
-		SHA1Init(&sha_context);
-		SHA1Update(&sha_context, config_buffer, SPI_FLASH_SEC_SIZE);
-		SHA1Final(sha_result1, &sha_context);
+		SHA1((const unsigned char *)config_buffer, SPI_FLASH_SEC_SIZE, sha_result1);
 
 		if(spi_flash_erase_sector(USER_CONFIG_SECTOR) != SPI_FLASH_RESULT_OK)
 		{
@@ -215,9 +210,7 @@ bool config_close_write(void)
 			return(false);
 		}
 
-		SHA1Init(&sha_context);
-		SHA1Update(&sha_context, config_buffer, SPI_FLASH_SEC_SIZE);
-		SHA1Final(sha_result2, &sha_context);
+		SHA1((const unsigned char *)config_buffer, SPI_FLASH_SEC_SIZE, sha_result2);
 
 		if(memcmp(sha_result1, sha_result2, SHA_DIGEST_LENGTH))
 		{

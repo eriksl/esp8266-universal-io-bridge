@@ -411,6 +411,24 @@ unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned in
 	return(dst_index);
 }
 
+unsigned char *SHA1(const unsigned char *src, unsigned int length, unsigned char *digest)
+{
+	SHA_CTX context;
+
+	SHA1Init(&context);
+	SHA1Update(&context, src, length);
+	SHA1Final(digest, &context);
+	return(digest);
+}
+
+void SHA1_text(const unsigned char *src, unsigned int length, string_t *digest_text)
+{
+	unsigned char digest[SHA_DIGEST_LENGTH];
+
+	SHA1(src, length, digest);
+	string_bin_to_hex(digest_text, digest, SHA_DIGEST_LENGTH);
+}
+
 // missing from libc
 
 void *_malloc_r(struct _reent *r, size_t sz)

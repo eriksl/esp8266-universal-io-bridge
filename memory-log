@@ -11662,3 +11662,23 @@ Sun Dec 12 14:06:01 CET 2021 5fd8410 display_eastrising: fix small cosmetic erro
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65697, free:  14568, 18 %
     irom:    available: 592 k, used: 427048, free: 179160, 29 %
+Sun Dec 12 14:26:06 CET 2021 edf9cfa display: add freeze function and freeze during loading of pictures.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 427064, free: 179144, 29 %
+Fri Dec 17 11:25:30 CET 2021 edf9cfa display: add freeze function and freeze during loading of pictures.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 427096, free: 179112, 29 %
+Fri Dec 17 11:30:51 CET 2021 edf9cfa display: add freeze function and freeze during loading of pictures.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 427032, free: 179176, 29 %
+Fri Dec 17 11:34:13 CET 2021 edf9cfa display: add freeze function and freeze during loading of pictures.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426968, free: 179240, 29 %
+Fri Dec 17 11:36:58 CET 2021 edf9cfa display: add freeze function and freeze during loading of pictures.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426904, free: 179304, 29 %

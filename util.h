@@ -109,6 +109,9 @@ void logbuffer_clear(void);
 
 attr_result_used unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned int *dst);
 
+unsigned char *SHA1(const unsigned char *src, unsigned int length, unsigned char *digest);
+void SHA1_text(const unsigned char *src, unsigned int length, string_t *digest_text);
+
 void attr_nonnull log_from_flash_0(const char *f);
 void attr_nonnull log_from_flash_n(const char *f, ...) __attribute__ ((format (printf, 1, 2)));
 

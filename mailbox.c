@@ -96,9 +96,7 @@ app_action_t application_function_mailbox_reset(string_t *src, string_t *dst)
 app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 {
 	unsigned int sector;
-	SHA_CTX sha_context;
-	unsigned char sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
 	SpiFlashOpResult flash_result;
 
 	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
@@ -114,7 +112,6 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 	}
 
 	string_clear(&mailbox_socket_send_buffer);
-
 	flash_result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, string_buffer_nonconst(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE);
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
@@ -130,14 +127,10 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 	}
 
 	string_setlength(&mailbox_socket_send_buffer, SPI_FLASH_SEC_SIZE);
-
-	SHA1Init(&sha_context);
-	SHA1Update(&sha_context, string_buffer(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE);
-	SHA1Final(sha_result, &sha_context);
-	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
+	SHA1_text((const unsigned char *)string_buffer(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE, &sha_text);
 
 	if(lwip_if_send(&mailbox_socket))
-		string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_string));
+		string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_text));
 	else
 		string_append(dst, "ERROR mailbox-read: send failed\n");
 
@@ -245,9 +238,7 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 app_action_t application_function_mailbox_simulate(string_t *src, string_t *dst)
 {
 	unsigned int sector;
-	SHA_CTX sha_context;
-	unsigned char sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
 
 	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
 	{
@@ -261,12 +252,8 @@ app_action_t application_function_mailbox_simulate(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	SHA1Init(&sha_context);
-	SHA1Update(&sha_context, string_buffer(&mailbox_socket_receive_buffer), SPI_FLASH_SEC_SIZE);
-	SHA1Final(sha_result, &sha_context);
-	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
-
-	string_format(dst, "OK mailbox-simulate: received sector %u, erased: %u, skipped %u, checksum: %s\n", sector, 0U, 0U, string_to_cstr(&sha_string));
+	SHA1_text((const unsigned char *)string_buffer(&mailbox_socket_receive_buffer), SPI_FLASH_SEC_SIZE, &sha_text);
+	string_format(dst, "OK mailbox-simulate: received sector %u, erased: %u, skipped %u, checksum: %s\n", sector, 0U, 0U, string_to_cstr(&sha_text));
 
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);
@@ -277,9 +264,7 @@ app_action_t application_function_mailbox_simulate(string_t *src, string_t *dst)
 app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 {
 	unsigned int sector;
-	SHA_CTX sha_context;
-	unsigned char sha_result[SHA_DIGEST_LENGTH];
-	string_new(, sha_string, SHA_DIGEST_LENGTH * 2 + 2);
+	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
 	unsigned int skip, erase;
 	SpiFlashOpResult flash_result;
 	const uint8_t *received_buffer;
@@ -397,13 +382,10 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	SHA1Init(&sha_context);
-	SHA1Update(&sha_context, buffer_cstr, size);
-	SHA1Final(sha_result, &sha_context);
-	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
+	SHA1_text((const unsigned char*)buffer_cstr, size, &sha_text);
 
 	flash_buffer_release(fsb_mailbox, "mailbox write");
-	string_format(dst, "OK mailbox-write: written sector %u, erased: %u, skipped %u, checksum: %s\n", sector, skip, erase, string_to_cstr(&sha_string));
+	string_format(dst, "OK mailbox-write: written sector %u, erased: %u, skipped %u, checksum: %s\n", sector, skip, erase, string_to_cstr(&sha_text));
 
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);
