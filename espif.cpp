@@ -1339,13 +1339,14 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 		memset(sector_buffer, 0xff, flash_sector_size);
 
-		if(depth == 16)
+		for(y = 0; y < dim_y; y++)
 		{
-			for(y = 0; y < dim_y; y++)
+			for(x = 0; x < dim_x; x++)
 			{
-				for(x = 0; x < dim_x; x++)
+				colour = image.pixelColor(x, y);
+
+				if(depth == 16)
 				{
-					colour = image.pixelColor(x, y);
 					r = colour.redQuantum() >> 11;
 					g = colour.greenQuantum() >> 10;
 					b = colour.blueQuantum() >> 11;
@@ -1362,8 +1363,6 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 						current_buffer = 0;
 						start_x = x;
 						start_y = y;
-
-
 					}
 
 					r1 = (r & 0b00011111) >> 0;
@@ -1374,30 +1373,30 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 					sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
 					sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
 				}
-
-				gettimeofday(&time_now, 0);
-
-				seconds = time_now.tv_sec - time_start.tv_sec;
-				useconds = time_now.tv_usec - time_start.tv_usec;
-				duration = seconds + (useconds / 1000000.0);
-				rate = (x * 2 * y) / 1024.0 / duration;
-
-				std::cout << std::setfill(' ');
-				std::cout << "sent "		<< std::setw(4) << ((x * 2 * y) / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", x "			<< std::setw(3) << x;
-				std::cout << ", y "			<< std::setw(3) << y;
-				std::cout << ", "			<< std::setw(3) << (x * y * 100) / (dim_x * dim_y) << "%       \r";
-				std::cout.flush();
 			}
 
-			std::cout << std::endl;
+			gettimeofday(&time_now, 0);
 
-			if(current_buffer > 0)
-				command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
-						current_buffer, start_x, start_y, verbose);
+			seconds = time_now.tv_sec - time_start.tv_sec;
+			useconds = time_now.tv_usec - time_start.tv_usec;
+			duration = seconds + (useconds / 1000000.0);
+			rate = (x * 2 * y) / 1024.0 / duration;
+
+			std::cout << std::setfill(' ');
+			std::cout << "sent "		<< std::setw(4) << ((x * 2 * y) / 1024) << " kbytes";
+			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+			std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+			std::cout << ", x "			<< std::setw(3) << x;
+			std::cout << ", y "			<< std::setw(3) << y;
+			std::cout << ", "			<< std::setw(3) << (x * y * 100) / (dim_x * dim_y) << "%       \r";
+			std::cout.flush();
 		}
+
+		if(current_buffer > 0)
+			command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
+					current_buffer, start_x, start_y, verbose);
+
+		std::cout << std::endl;
 
 		if(image_slot < 0)
 			process(command_channel, std::string("display-freeze ") + std::to_string(0), reply, "display freeze success: yes", string_value, int_value, verbose);
