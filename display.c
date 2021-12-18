@@ -338,12 +338,12 @@ active_slot_found:
 		if(!strcmp(slot_content, "%%%%"))
 		{
 			config_get_string("identification", &info_text, -1, -1);
-			string_format(&info_text, "\n%s\n%u x %u, %u x %u [%u]",
+			string_format(&info_text, "\n%s\n%ux%u, %ux%u@%u",
 					display_info_active->properties.name,
-					display_info_active->properties.graphic_dimensions.x,
-					display_info_active->properties.graphic_dimensions.y,
 					display_info_active->properties.text_dimensions.columns,
 					display_info_active->properties.text_dimensions.rows,
+					display_info_active->properties.graphic_dimensions.x,
+					display_info_active->properties.graphic_dimensions.y,
 					display_info_active->properties.colour_depth);
 			slot_content = string_to_cstr(&info_text);
 		}
