@@ -206,11 +206,41 @@ static void picture_load_worker(void *arg)
 
 	string_setlength(buffer_string, flash_buffer_size);
 
+	total_pixels = (width * height);
+
 	switch(depth)
 	{
+		case(1): // monochrome, 1 bit per pixel
+		{
+			current_pixel = picture_load_sector * flash_buffer_size * 8;
+			current_y = current_pixel / width;
+			current_x = current_pixel % width;
+
+			finish = false;
+
+			if((current_pixel + (string_length(buffer_string) * 8)) >= total_pixels)
+			{
+				length = (total_pixels - current_pixel) / 8;
+
+				if(length < 0)
+					length = 0;
+
+				string_setlength(buffer_string, length);
+
+				finish = true;
+			}
+
+			if(!display_plot(string_length(buffer_string) * 8, current_x, current_y, buffer_string))
+				goto error;
+
+			if(finish)
+				goto error;
+
+			break;
+		}
+
 		case(16): // 16 bit RGB 5-6-5 per pixel
 		{
-			total_pixels = (width * height);
 			current_pixel = picture_load_sector * flash_buffer_size / 2;
 			current_y = current_pixel / width;
 			current_x = current_pixel % width;
@@ -238,9 +268,9 @@ static void picture_load_worker(void *arg)
 			break;
 		}
 
-		default: // not yet implemented
+		default: // unknown
 		{
-			log("plot depth %u not implemented\n", depth);
+			log("picture load: depth of %u not implemented\n", depth);
 			goto error;
 		}
 	}

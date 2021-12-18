@@ -1243,6 +1243,12 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 			{
 				switch(depth)
 				{
+					case(1):
+					{
+						pixels = length * 8;
+						break;
+					}
+
 					case(16):
 					{
 						pixels = length / 2;
@@ -1362,33 +1368,62 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 			{
 				colour = image.pixelColor(x, y);
 
-				if(depth == 16)
+				switch(depth)
 				{
-					r = colour.redQuantum() >> 11;
-					g = colour.greenQuantum() >> 10;
-					b = colour.blueQuantum() >> 11;
-
-					if((current_buffer + 2) > chunk_size)
+					case(1):
 					{
-						command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer,
-								start_x, start_y, verbose);
-						memset(sector_buffer, 0xff, flash_sector_size);
+						if((current_buffer / 8) + 1 > chunk_size)
+						{
+							command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer / 8,
+									start_x, start_y, depth, verbose);
+							memset(sector_buffer, 0xff, flash_sector_size);
+							current_buffer -= (current_buffer / 8) * 8;
+						}
 
-						if(current_sector >= 0)
-							current_sector++;
+						l = ((colour.redQuantum() + colour.greenQuantum() + colour.blueQuantum()) / 3) > (1 << 15);
 
-						current_buffer = 0;
-						start_x = x;
-						start_y = y;
+						if(l)
+							sector_buffer[current_buffer / 8] |=  (1 << (7 - (current_buffer % 8)));
+						else
+							sector_buffer[current_buffer / 8] &= ~(1 << (7 - (current_buffer % 8)));
+
+						current_buffer++;
+
+						break;
 					}
 
-					r1 = (r & 0b00011111) >> 0;
-					g1 = (g & 0b00111000) >> 3;
-					g2 = (g & 0b00000111) >> 0;
-					b1 = (b & 0b00011111) >> 0;
+					case(16):
+					{
+						unsigned int r1, g1, g2, b1;
 
-					sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
-					sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
+						r = colour.redQuantum() >> 11;
+						g = colour.greenQuantum() >> 10;
+						b = colour.blueQuantum() >> 11;
+
+						if((current_buffer + 2) > chunk_size)
+						{
+							command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer,
+									start_x, start_y, depth, verbose);
+							memset(sector_buffer, 0xff, flash_sector_size);
+
+							if(current_sector >= 0)
+								current_sector++;
+
+							current_buffer = 0;
+							start_x = x;
+							start_y = y;
+						}
+
+						r1 = (r & 0b00011111) >> 0;
+						g1 = (g & 0b00111000) >> 3;
+						g2 = (g & 0b00000111) >> 0;
+						b1 = (b & 0b00011111) >> 0;
+
+						sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
+						sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
+
+						break;
+					}
 				}
 			}
 
