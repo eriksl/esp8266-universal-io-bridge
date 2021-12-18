@@ -11690,3 +11690,107 @@ Fri Dec 17 12:00:14 CET 2021 e760364 Refactor some SHA library calls.
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65697, free:  14568, 18 %
     irom:    available: 592 k, used: 426792, free: 179416, 29 %
+Fri Dec 17 18:47:08 CET 2021 a8e18d7 Fix issue where upload of files of just 0xff would fail.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65697, free:  14568, 18 %
+    irom:    available: 592 k, used: 426824, free: 179384, 29 %
+Fri Dec 17 18:51:54 CET 2021 a8e18d7 Fix issue where upload of files of just 0xff would fail.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 426936, free: 179272, 29 %
+Fri Dec 17 19:26:31 CET 2021 a8e18d7 Fix issue where upload of files of just 0xff would fail.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427048, free: 179160, 29 %
+Fri Dec 17 19:29:41 CET 2021 a8e18d7 Fix issue where upload of files of just 0xff would fail.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427128, free: 179080, 29 %
+Fri Dec 17 19:31:36 CET 2021 a8e18d7 Fix issue where upload of files of just 0xff would fail.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427160, free: 179048, 29 %
+Fri Dec 17 19:38:42 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427144, free: 179064, 29 %
+Fri Dec 17 19:56:34 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427192, free: 179016, 29 %
+Sat Dec 18 14:09:44 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427016, free: 179192, 29 %
+Sat Dec 18 14:15:56 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427000, free: 179208, 29 %
+Sat Dec 18 14:28:14 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 426984, free: 179224, 29 %
+Sat Dec 18 14:33:44 CET 2021 5819926 espif: refactor some picture uploading code.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427048, free: 179160, 29 %
+Sat Dec 18 14:44:40 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427096, free: 179112, 29 %
+Sat Dec 18 14:47:49 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427176, free: 179032, 29 %
+Sat Dec 18 14:49:10 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427096, free: 179112, 29 %
+Sat Dec 18 14:50:10 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427112, free: 179096, 29 %
+Sat Dec 18 14:53:21 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427144, free: 179064, 29 %
+Sat Dec 18 15:12:10 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427128, free: 179080, 29 %
+Sat Dec 18 17:14:24 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427080, free: 179128, 29 %
+Sat Dec 18 17:20:44 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 426952, free: 179256, 29 %
+Sat Dec 18 17:23:04 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427080, free: 179128, 29 %
+Sat Dec 18 17:51:35 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427112, free: 179096, 29 %
+Sat Dec 18 17:54:27 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427128, free: 179080, 29 %
+Sat Dec 18 17:56:06 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427192, free: 179016, 29 %
+Sat Dec 18 17:57:29 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427144, free: 179064, 29 %
+Sat Dec 18 17:59:37 CET 2021 9c907f0 display_eastrising: remove redundant log message.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427176, free: 179032, 29 %
+Sat Dec 18 18:11:59 CET 2021 2ec5ff5 display: make sure display identification (<<boot screen>>) fits on the display.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427304, free: 178904, 29 %

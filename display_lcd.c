@@ -40,6 +40,12 @@ enum
 	mapeof = 0xffffffff,
 };
 
+typedef enum attr_packed
+{
+	dm_text,
+	dm_graphic,
+} display_mode_t;
+
 typedef struct
 {
 	unsigned int	unicode;
@@ -54,6 +60,10 @@ typedef struct
 } udg_map_t;
 
 typedef unsigned int udg_number_pattern_t[udg_number_pattern_rows][udg_number_pattern_cols];
+
+static display_mode_t display_mode;
+
+assert_size(display_mode, 1);
 
 roflash static const unicode_map_t unicode_map[] =
 {
@@ -695,19 +705,31 @@ static bool init(void)
 		return(false);
 
 	display_inited = true;
+	display_mode = dm_text;
 
 	return(bright(1));
 }
 
 static bool begin(unsigned int slot, bool logmode)
 {
-	if(display_disable_text)
-		return(true);
-
 	if(!display_inited)
 	{
 		log("! display lcd not display_inited\n");
 		return(false);
+	}
+
+	if(display_disable_text)
+		return(true);
+
+	if(display_mode != dm_text)
+	{
+		if(!send_byte(cmd_clear_screen, false))
+			return(false);
+
+		if(!udg_generic_init())
+			return(false);
+
+		display_mode = dm_text;
 	}
 
 	display_logmode = logmode;
@@ -726,6 +748,19 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 	if(display_disable_text)
 		return(true);
+
+	/* this is required for log mode */
+
+	if(display_mode != dm_text)
+	{
+		if(!send_byte(cmd_clear_screen, false))
+			return(false);
+
+		if(!udg_generic_init())
+			return(false);
+
+		display_mode = dm_text;
+	}
 
 	for(current_index = 0; current_index < length; current_index++)
 	{
@@ -902,12 +937,109 @@ static bool stop_show_time(void)
 	return(true);
 }
 
+enum
+{
+	udg_amount = 8,
+	udg_lines = 8,
+	udg_width = 5,
+};
+
+static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
+{
+	unsigned int pixel_x, pixel_y;
+	unsigned int bit_index_src;
+	unsigned int byte_index_src;
+	unsigned int pixel;
+	unsigned int udg, udg_line, udg_bit;
+	unsigned int row, column;
+	uint8_t udg_buffer[udg_amount][udg_lines];
+
+	if(pixel_amount != (20 * 16))
+		return(false);
+
+	if(string_length(pixels) < ((20 * 16) / 8))
+		return(false);
+
+	string_setlength(pixels, (20 * 16) / 8);
+
+	if(display_mode != dm_graphic)
+		display_mode = dm_graphic;
+
+	if(!send_byte(cmd_clear_screen, false))
+		return(false);
+
+	byte_index_src = 0;
+	bit_index_src = 7;
+
+	for(udg = 0; udg < udg_amount; udg++)
+		for(udg_line = 0; udg_line < udg_lines; udg_line++)
+			udg_buffer[udg][udg_line] = 0;
+
+	for(pixel_y = 0; pixel_y < 16; pixel_y++)
+	{
+		for(pixel_x = 0; pixel_x < 20; pixel_x++)
+		{
+			pixel = !(string_at(pixels, byte_index_src) & (1 << bit_index_src));
+
+			if(bit_index_src > 0)
+				bit_index_src--;
+			else
+			{
+				bit_index_src = 7;
+				byte_index_src++;
+			}
+
+			if(pixel_y < udg_lines)
+			{
+				udg = (pixel_x / udg_width) + 0;
+				udg_line = pixel_y;
+			}
+			else
+			{
+				udg = (pixel_x / udg_width) + 4;
+				udg_line = pixel_y - udg_lines;
+			}
+
+			udg_bit = 4 - (pixel_x % udg_width);
+
+			udg_buffer[udg][udg_line] |= (pixel << udg_bit);
+		}
+	}
+
+	if(!send_byte(cmd_set_udg_ptr, false))
+		return(false);
+
+	msleep(2);
+
+	for(udg = 0; udg < udg_amount; udg++)
+		for(udg_line = 0; udg_line < udg_lines; udg_line++)
+			if(!send_byte(udg_buffer[udg][udg_line], true))
+				return(false);
+
+	for(row = 0; row < 2; row++)
+	{
+		if(!send_byte(cmd_set_ram_ptr | (ram_offsets[row + 1] + 8), false))
+			return(false);
+
+		msleep(2);
+
+		for(column = 0; column < 4; column++)
+			if(!send_byte((row * 4) + column, true))
+				return(false);
+
+		if(!send_byte(' ', true)) // workaround for display bug
+			return(false);
+	}
+
+	return(true);
+}
+
 roflash const display_info_t display_info_lcd =
 {
 	{
 		"HD44780 based LCD",
-		{ 0, 0 },
 		{ 20, 4 },
+		{ 20, 16 },
 		1,
 	},
 	{
@@ -919,7 +1051,7 @@ roflash const display_info_t display_info_lcd =
 		(void *)0,
 		start_show_time,
 		stop_show_time,
-		(void *)0,
+		plot,
 		(void *)0,
 	}
 };
