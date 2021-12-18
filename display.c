@@ -118,6 +118,19 @@ static bool freeze(unsigned int timeout_ms)
 	return(true);
 }
 
+static bool display_plot(unsigned int pixels_amount, int x, int y, string_t *pixels)
+{
+	const display_hooks_t *hooks;
+
+	if(!(hooks = display_get_hooks()))
+		return(false);
+
+	if(!hooks->plot_fn)
+		return(false);
+
+	return(hooks->plot_fn(pixels_amount, x, y, pixels));
+}
+
 bool display_load_picture_slot(unsigned int slot)
 {
 	const display_hooks_t		*hooks;
@@ -154,8 +167,7 @@ bool display_load_picture_slot(unsigned int slot)
 
 static void picture_load_worker(void *arg)
 {
-	const display_hooks_t		*hooks = (display_hooks_t *)0;
-	const display_properties_t	*props = (display_properties_t *)0;
+	const display_properties_t *props = (display_properties_t *)0;
 	string_t *buffer_string;
 	char *buffer_cstr;
 	unsigned int flash_buffer_size;
@@ -170,9 +182,6 @@ static void picture_load_worker(void *arg)
 	stat_display_picture_load_worker_called++;
 
 	if(picture_load_state != pls_run)
-		goto error;
-
-	if(!(hooks = display_get_hooks()))
 		goto error;
 
 	if(!(props = display_get_properties()))
@@ -220,7 +229,7 @@ static void picture_load_worker(void *arg)
 				finish = true;
 			}
 
-			if(!hooks->plot_fn(current_x, current_y, buffer_string))
+			if(!display_plot(string_length(buffer_string) / 2, current_x, current_y, buffer_string))
 				goto error;
 
 			if(finish)
@@ -862,21 +871,7 @@ app_action_t application_function_display_plot(string_t *src, string_t *dst)
 		goto error;
 	}
 
-	if(!display_info_active->hooks.plot_fn)
-	{
-		string_append(dst, "display plot: not supported\n");
-		goto error;
-	}
-
-	if((unsigned int)string_length(&mailbox_socket_receive_buffer) < (pixels * 2))
-	{
-		string_format(dst, "display plot: incorrect pixel amount: %u/%d\n", pixels, string_length(&mailbox_socket_receive_buffer) / 2);
-		goto error;
-	}
-
-	string_setlength(&mailbox_socket_receive_buffer, pixels * 2);
-
-	rv = display_info_active->hooks.plot_fn(x, y, &mailbox_socket_receive_buffer);
+	rv = display_plot(pixels, x, y, &mailbox_socket_receive_buffer);
 
 	string_clear(&mailbox_socket_receive_buffer);
 	string_format(dst, "display plot success: %s\n", yesno(rv));
