@@ -11794,3 +11794,11 @@ Sat Dec 18 18:11:59 CET 2021 2ec5ff5 display: make sure display identification (
     iram:    available:  32 k, used:  27897, free:   4871, 14 %
     dram:    available:  78 k, used:  65705, free:  14560, 18 %
     irom:    available: 592 k, used: 427304, free: 178904, 29 %
+Sat Dec 18 18:16:18 CET 2021 deffe4b display_lcd: implement 20x16 graphic display using user defined graphics.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 427288, free: 178920, 29 %
+Sat Dec 18 20:54:53 CET 2021 deffe4b display_lcd: implement 20x16 graphic display using user defined graphics.
+    iram:    available:  32 k, used:  27897, free:   4871, 14 %
+    dram:    available:  78 k, used:  65705, free:  14560, 18 %
+    irom:    available: 592 k, used: 428248, free: 177960, 29 %

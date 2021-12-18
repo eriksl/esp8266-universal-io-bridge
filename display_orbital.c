@@ -20,6 +20,12 @@ typedef struct
 	unsigned int	pattern[8];
 } udg_map_t;
 
+typedef enum attr_packed
+{
+	dm_text,
+	dm_graphic,
+} display_mode_t;
+
 enum
 {
 	display_address = 0x28,
@@ -236,6 +242,9 @@ static bool display_scroll_pending;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
 
+static display_mode_t display_mode;
+assert_size(display_mode, 1);
+
 static bool attr_result_used display_data_flush(void)
 {
 	if((display_buffer_current > 0) && i2c_send(display_address, display_buffer_current, display_buffer) != i2c_error_ok)
@@ -425,6 +434,7 @@ static bool init(void)
 		return(false);
 
 	display_inited = true;
+	display_mode = dm_text;
 
 	return(bright(1));
 }
@@ -445,13 +455,27 @@ static bool attr_result_used display_setup(void)
 
 static bool begin(unsigned int slot, bool logmode)
 {
-	if(display_disable_text)
-		return(true);
-
 	if(!display_inited)
 	{
 		log("! display orbital not inited\n");
 		return(false);
+	}
+
+	if(display_disable_text)
+		return(true);
+
+	if(display_mode != dm_text)
+	{
+		if(!display_command1(command_clear_display))
+			return(false);
+
+		if(!display_data_flush())
+			return(false);
+
+		if(!udg_init())
+			return(false);
+
+		display_mode = dm_text;
 	}
 
 	display_logmode = logmode;
@@ -473,6 +497,22 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 	if(display_disable_text)
 		return(true);
+
+	/* this is required for log mode */
+
+	if(display_mode != dm_text)
+	{
+		if(!display_command1(command_clear_display))
+			return(false);
+
+		if(!display_data_flush())
+			return(false);
+
+		if(!udg_init())
+			return(false);
+
+		display_mode = dm_text;
+	}
 
 	for(current_index = 0; current_index < length; current_index++)
 	{
@@ -599,12 +639,115 @@ static bool stop_show_time(void)
 	return(true);
 }
 
+enum
+{
+	udg_amount = 8,
+	udg_lines = 8,
+	udg_width = 5,
+};
+
+static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
+{
+	unsigned int pixel_x, pixel_y;
+	unsigned int bit_index_src;
+	unsigned int byte_index_src;
+	unsigned int pixel;
+	unsigned int udg, udg_line, udg_bit;
+	unsigned int row, column;
+	uint8_t udg_buffer[udg_amount][udg_lines];
+
+	if(pixel_amount != (20 * 16))
+		return(false);
+
+	if(string_length(pixels) < ((20 * 16) / 8))
+		return(false);
+
+	string_setlength(pixels, (20 * 16) / 8);
+
+	if(display_mode != dm_graphic)
+		display_mode = dm_graphic;
+
+	if(!display_command1(command_clear_display))
+		return(false);
+
+	if(!display_data_flush())
+		return(false);
+
+	byte_index_src = 0;
+	bit_index_src = 7;
+
+	for(udg = 0; udg < udg_amount; udg++)
+		for(udg_line = 0; udg_line < udg_lines; udg_line++)
+			udg_buffer[udg][udg_line] = 0;
+
+	for(pixel_y = 0; pixel_y < 16; pixel_y++)
+	{
+		for(pixel_x = 0; pixel_x < 20; pixel_x++)
+		{
+			pixel = !(string_at(pixels, byte_index_src) & (1 << bit_index_src));
+
+			if(bit_index_src > 0)
+				bit_index_src--;
+			else
+			{
+				bit_index_src = 7;
+				byte_index_src++;
+			}
+
+			if(pixel_y < udg_lines)
+			{
+				udg = (pixel_x / udg_width) + 0;
+				udg_line = pixel_y;
+			}
+			else
+			{
+				udg = (pixel_x / udg_width) + 4;
+				udg_line = pixel_y - udg_lines;
+			}
+
+			udg_bit = 4 - (pixel_x % udg_width);
+
+			udg_buffer[udg][udg_line] |= (pixel << udg_bit);
+		}
+	}
+
+	for(udg = 0; udg < udg_amount; udg++)
+	{
+		if(!display_command2(command_udg, udg))
+			return(false);
+
+		for(udg_line = 0; udg_line < udg_lines; udg_line++)
+			if(!display_data_output(udg_buffer[udg][udg_line]))
+				return(false);
+
+		if(!display_data_flush())
+			return(false);
+	}
+
+	udg = 0;
+
+	for(row = 0; row < 2; row++)
+	{
+		if(!text_goto(8, row + 1))
+			return(false);
+
+		for(column = 0; column < 4; column++)
+			if(!display_data_output(udg++))
+				return(false);
+
+		if(!display_data_flush())
+			return(false);
+	}
+
+	return(true);
+}
+
 roflash const display_info_t display_info_orbital =
 {
 	{
 		"MATRIX Orbital VFD",
-		{ 0, 0 },
 		{ 20, 4 },
+		{ 20, 16 },
 		1,
 	},
 	{
@@ -616,7 +759,7 @@ roflash const display_info_t display_info_orbital =
 		(void *)0,
 		start_show_time,
 		stop_show_time,
-		(void *)0,
+		plot,
 		(void *)0,
 	}
 };
