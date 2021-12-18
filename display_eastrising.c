@@ -2124,8 +2124,6 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 static bool freeze(bool active)
 {
-	log("display eastrising: freeze: %s\n", yesno(active));
-
 	if(active)
 	{
 		if(!display_copy_layer(0, 1))
