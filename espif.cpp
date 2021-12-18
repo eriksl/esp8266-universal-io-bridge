@@ -1205,7 +1205,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 
 static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel,
 		int current_sector, const unsigned char *buffer, unsigned int size, unsigned int length,
-		unsigned int current_x, unsigned int current_y, bool verbose)
+		unsigned int current_x, unsigned int current_y, unsigned int depth, bool verbose)
 {
 	enum { attempts =  8 };
 	unsigned int attempt;
@@ -1214,6 +1214,7 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 	std::string reply;
 	unsigned char sector_hash[SHA_DIGEST_LENGTH];
 	std::string sha_local_hash_text;
+	unsigned int pixels;
 
 	SHA1(buffer, size, sector_hash);
 	sha_local_hash_text = sha_hash_to_text(sector_hash);
@@ -1239,13 +1240,29 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 			}
 
 			if(current_sector < 0)
+			{
+				switch(depth)
+				{
+					case(16):
+					{
+						pixels = length / 2;
+						break;
+					}
+
+					default:
+					{
+						throw(std::string("unknown display colour depth"));
+					}
+				}
+
 				process(command_channel, std::string("display-plot ") +
-						std::to_string(length / 2) + " " +
+						std::to_string(pixels) + " " +
 						std::to_string(current_x) + " " +
 						std::to_string(current_y),
 						reply,
 						"display plot success: yes",
 						string_value, int_value, verbose);
+			}
 			else
 			{
 				process(command_channel,
@@ -1296,7 +1313,7 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	std::string reply;
 	unsigned char sector_buffer[flash_sector_size];
 	unsigned int start_x, start_y;
-	unsigned int current_buffer, x, y, r, g, b, r1, g1, g2, b1;
+	unsigned int current_buffer, x, y, r, g, b, l;
 	int current_sector;
 	struct timeval time_start, time_now;
 	int seconds, useconds;
@@ -1393,8 +1410,18 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 		}
 
 		if(current_buffer > 0)
+		{
+			if(depth == 1)
+			{
+				if(current_buffer % 8)
+					current_buffer += 8;
+
+				current_buffer /= 8;
+			}
+
 			command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
-					current_buffer, start_x, start_y, verbose);
+					current_buffer, start_x, start_y, depth, verbose);
+		}
 
 		std::cout << std::endl;
 

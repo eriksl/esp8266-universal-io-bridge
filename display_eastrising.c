@@ -2082,7 +2082,7 @@ static bool end(void)
 	return(true);
 }
 
-static bool plot(int x, int y, const string_t *pixels)
+static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 {
 	if(string_length(pixels) == 0)
 		return(true);
@@ -2092,6 +2092,11 @@ static bool plot(int x, int y, const string_t *pixels)
 
 	if(y > display_height)
 		return(false);
+
+	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
+		return(false);
+
+	string_setlength(pixels, pixel_amount * 2);
 
 	if(!display_write(reg_mwcr0, reg_mwcr0_default | reg_mwcr0_mode_graphic))
 		return(false);

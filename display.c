@@ -237,8 +237,10 @@ static void picture_load_worker(void *arg)
 
 			break;
 		}
+
 		default: // not yet implemented
 		{
+			log("plot depth %u not implemented\n", depth);
 			goto error;
 		}
 	}

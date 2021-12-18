@@ -46,7 +46,7 @@ typedef const struct
 	bool (* const standout_fn)(bool);
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
-	bool (* const plot_fn)(int x, int y, const string_t *pixels);
+	bool (* const plot_fn)(unsigned int pixel_amount, int x, int y, string_t *pixels);
 	bool (* const freeze_fn)(bool active);
 } display_hooks_t;
 
