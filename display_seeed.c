@@ -508,9 +508,9 @@ roflash const display_info_t display_info_seeed =
 {
 	{
 		"SEEED LCD",
-		{ 128, 64 },
 		{ 21, 8 },
-		1,
+		{ 0, 0 },
+		0,
 	},
 	{
 		init,
