@@ -15,6 +15,12 @@ typedef struct
 	unsigned int	internal;
 } unicode_map_t;
 
+typedef enum attr_packed
+{
+	dm_text,
+	dm_graphic,
+} display_mode_t;
+
 enum
 {
 	display_width = 128,
@@ -206,10 +212,12 @@ roflash static const unicode_map_t unicode_map[] =
 static bool display_inited = false;
 static bool display_logmode = false;
 static bool display_standout = false;
-static bool display_disable_text = false;
 static unsigned int display_height;
 static unsigned int display_x, display_y;
 static unsigned int display_buffer_current;
+
+static display_mode_t display_mode;
+assert_size(display_mode, 1);
 
 attr_result_used attr_inline unsigned int text_height(void)
 {
@@ -504,6 +512,7 @@ static bool init(void)
 	if(!clear_screen())	// this also inits the display buffer
 		return(false);
 
+	display_mode = dm_text;
 	display_inited = true;
 
 	return(bright(1));
@@ -517,8 +526,13 @@ static bool begin(unsigned int select_slot, bool logmode)
 		return(false);
 	}
 
-	if(display_disable_text)
-		return(true);
+	if(display_mode != dm_text)
+	{
+		if(!clear_screen())
+			return(false);
+
+		display_mode = dm_text;
+	}
 
 	display_logmode = logmode;
 	if(!text_goto(0, 0))
@@ -532,8 +546,15 @@ static bool output(unsigned int length, const unsigned int unicode[])
 	const unicode_map_t *unicode_map_ptr;
 	unsigned int current_index, current;
 
-	if(display_disable_text)
-		return(true);
+	/* this is required for log mode */
+
+	if(display_mode != dm_text)
+	{
+		if(!clear_screen())
+			return(false);
+
+		display_mode = dm_text;
+	}
 
 	for(current_index = 0; current_index < length; current_index++)
 	{
@@ -571,9 +592,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 static bool end(void)
 {
-	if(display_disable_text)
-		return(true);
-
 	while(display_y < text_height())
 		if(!text_newline())
 			break;
@@ -587,6 +605,80 @@ static bool end(void)
 static bool standout(bool onoff)
 {
 	display_standout = onoff;
+
+	return(true);
+}
+
+static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
+{
+	if((pixel_amount == 0) || (string_length(pixels) == 0))
+		return(true);
+
+	if(x != 0)
+		return(false);
+
+	if(y != 0)
+		return(false);
+
+	if((unsigned int)string_length(pixels) < (pixel_amount / 8))
+		return(false);
+
+	if(pixel_amount != 8192)
+		return(false);
+
+	if(display_mode != dm_graphic)
+	{
+		if(!clear_screen())
+			return(false);
+		display_mode = dm_graphic;
+	}
+
+	bool half_height = config_flags_match(flag_ssd_height_32);
+	(void)half_height;
+
+	string_setlength(pixels, pixel_amount / 8);
+
+	int max_page, page, segment, bit;
+	int index, byte_index, bit_index;
+	int byte_in, byte_out;
+
+	max_page = half_height ? 4 : 8;
+
+	for(page = 0; page < max_page; page++)
+	{
+		if(!display_cursor_row_column(page, 0))
+			return(false);
+
+		for(segment = 0; segment < 128; segment++)
+		{
+			byte_out = 0;
+
+			for(bit = 0; bit < 8; bit++)
+			{
+				x = segment;
+				y = (page * 8) + bit;
+
+				if(half_height)
+					y *= 2;
+
+				index = x + y * 128;
+				byte_index = index / 8;
+				bit_index = 7 - (index % 8);
+
+				byte_in = string_at(pixels, byte_index);
+				byte_in = byte_in & (1 << bit_index);
+
+				if(byte_in)
+					byte_out |= (1 << bit);
+			}
+
+			if(!display_data_output(byte_out))
+				return(false);
+		}
+
+		if(!display_data_flush())
+			return(false);
+	}
 
 	return(true);
 }
@@ -608,7 +700,7 @@ roflash const display_info_t display_info_ssd1306 =
 		standout,
 		(void *)0,
 		(void *)0,
-		(void *)0,
+		plot,
 		(void *)0,
 	}
 };
