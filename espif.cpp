@@ -1476,10 +1476,12 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	}
 }
 
-void command_send(const std::string &host, const std::string &port, bool udp, bool verbose, bool dont_wait, const std::string &args)
+static void command_send(const std::string &host, const std::string &port, bool udp, bool verbose, bool dont_wait, std::string args)
 {
 	std::string reply;
 	unsigned int attempt;
+	std::string arg;
+	size_t current;
 
 	if(dont_wait)
 	{
@@ -1492,35 +1494,49 @@ void command_send(const std::string &host, const std::string &port, bool udp, bo
 
 	GenericSocket send_socket(host, port, udp, verbose);
 
-	for(attempt = 0; attempt < 3; attempt++)
+	while(args.length() > 0)
 	{
-		if(!send_socket.send(args, GenericSocket::cooked))
+		if((current = args.find('\n')) != std::string::npos)
 		{
-			if(verbose)
-				std::cout << "send failed, attempt #" << attempt << std::endl;
-
-			goto retry;
+			arg = args.substr(0, current);
+			args.erase(0, current + 1);
+		}
+		else
+		{
+			arg = args;
+			args.clear();
 		}
 
-		if(!send_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+		for(attempt = 0; attempt < 3; attempt++)
 		{
-			if(verbose)
-				std::cout << "receive failed, attempt #" << attempt << std::endl;
+			if(!send_socket.send(arg, GenericSocket::cooked))
+			{
+				if(verbose)
+					std::cout << "send failed, attempt #" << attempt << std::endl;
 
-			goto retry;
+				goto retry;
+			}
+
+			if(!send_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+			{
+				if(verbose)
+					std::cout << "receive failed, attempt #" << attempt << std::endl;
+
+				goto retry;
+			}
+
+			attempt = 0;
+			break;
+
+	retry:
+			send_socket.drain();
 		}
 
-		attempt = 0;
-		break;
+		if(attempt != 0)
+			throw(std::string("send/receive failed"));
 
-retry:
-		send_socket.drain();
+		std::cout << reply << std::endl;
 	}
-
-	if(attempt != 0)
-		throw(std::string("send/receive failed"));
-
-	std::cout << reply << std::endl;
 }
 
 void command_multicast(const std::string &host, const std::string &port, bool verbose, int multicast_repeats, bool dontwait, const std::string &args)
