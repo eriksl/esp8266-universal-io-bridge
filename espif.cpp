@@ -1476,15 +1476,25 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	}
 }
 
-void command_connect(const std::string &host, const std::string &port, bool udp, bool verbose, const std::string &args)
+void command_send(const std::string &host, const std::string &port, bool udp, bool verbose, bool dont_wait, const std::string &args)
 {
 	std::string reply;
 	unsigned int attempt;
-	GenericSocket connect_socket(host, port, udp, verbose);
+
+	if(dont_wait)
+	{
+		if(daemon(0, 0))
+		{
+			perror("daemon");
+			return;
+		}
+	}
+
+	GenericSocket send_socket(host, port, udp, verbose);
 
 	for(attempt = 0; attempt < 3; attempt++)
 	{
-		if(!connect_socket.send(args, GenericSocket::cooked))
+		if(!send_socket.send(args, GenericSocket::cooked))
 		{
 			if(verbose)
 				std::cout << "send failed, attempt #" << attempt << std::endl;
@@ -1492,7 +1502,7 @@ void command_connect(const std::string &host, const std::string &port, bool udp,
 			goto retry;
 		}
 
-		if(!connect_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+		if(!send_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
 		{
 			if(verbose)
 				std::cout << "receive failed, attempt #" << attempt << std::endl;
@@ -1504,7 +1514,7 @@ void command_connect(const std::string &host, const std::string &port, bool udp,
 		break;
 
 retry:
-		connect_socket.drain();
+		send_socket.drain();
 	}
 
 	if(attempt != 0)
@@ -1647,7 +1657,7 @@ int main(int argc, const char **argv)
 			("nocommit,n",		po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
 			("noreset,N",		po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
 			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
-			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on multicast message")
+			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on message")
 			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer")
 			("image_timeout,y",	po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending");
 
@@ -1704,7 +1714,7 @@ int main(int argc, const char **argv)
 			throw(std::string("specify one of write/simulate/verify/checksum/image/read/info"));
 
 		if(selected == 0)
-			command_connect(host, command_port, use_udp, verbose, args);
+			command_send(host, command_port, use_udp, verbose, dont_wait, args);
 		else
 		{
 			if(cmd_multicast > 0)
