@@ -7497,7 +7497,7 @@ roflash static const i2c_sensor_device_table_entry_t device_table[] =
 	},
 	{
 		{
-			i2c_sensor_hih6130_temperature, i2c_sensor_hih6130_temperature,
+			i2c_sensor_hih6130_temperature, i2c_sensor_hih6130_humidity,
 			{
 				i2c_sensor_none, i2c_sensor_none, i2c_sensor_none, i2c_sensor_none,
 			},
