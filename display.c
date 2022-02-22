@@ -6,6 +6,7 @@
 #include "display_seeed.h"
 #include "display_eastrising.h"
 #include "display_ssd1306.h"
+#include "display_spitft.h"
 
 #include "util.h"
 #include "sys_string.h"
@@ -71,6 +72,7 @@ roflash static display_info_t const *const display_info[] =
 	&display_info_seeed,
 	&display_info_eastrising,
 	&display_info_ssd1306,
+	&display_info_spitft,
 	(const display_info_t *)0
 };
 

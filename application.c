@@ -19,6 +19,7 @@
 #include "sdk.h"
 #include "spi.h"
 #include "display_eastrising.h"
+#include "display_spitft.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -2032,6 +2033,7 @@ roflash static const char help_description_config_query_int[] =		"query config i
 roflash static const char help_description_config_set[] =			"set config entry";
 roflash static const char help_description_config_delete[] =		"delete config entry";
 roflash		   const char help_description_display_eastrising[] =	"display eastrising <mode=0=disabled|1=i2c|2=hspi [<use_fontchip 0=no|1=yes>] [<user cs io> <user cs pin>]";
+roflash		   const char help_description_display_spitft[] =		"display spitft <mode=0=disabled|1=st7735> <x size> <x offset> <y size> <y offset> <dcx io> <dcx pin> [<user cs io> <user cs pin>]";
 
 roflash static const application_function_table_t application_function_table[] =
 {
@@ -2389,6 +2391,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"de", "display-eastrising",
 		application_function_display_eastrising,
 		help_description_display_eastrising,
+	},
+	{
+		"dt", "display-spitft",
+		application_function_display_spitft,
+		help_description_display_spitft,
 	},
 	{
 		"dp", "display-plot",
