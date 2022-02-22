@@ -145,7 +145,7 @@ CCWARNINGS			:=	-Wall -Wextra -Werror \
 						-Wno-packed \
 						-Wno-unused-parameter \
 
-CFLAGS			:=	-pipe -Os -g -std=gnu11 -fdiagnostics-color=always \
+CFLAGS			:=	-pipe -Os -g -std=gnu11 -fdiagnostics-color=auto \
 						-fno-inline -mlongcalls -mno-serialize-volatile -mno-target-align \
 						-fno-math-errno -fno-printf-return-value \
 						-ftree-vrp \
