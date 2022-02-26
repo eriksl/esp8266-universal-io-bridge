@@ -308,17 +308,11 @@ void power_save_enable(bool enable)
 {
 	if(enable)
 	{
-		if(config_flags_match(flag_wlan_power_save))
-		{
-			wifi_set_listen_interval(2);
-			wifi_set_sleep_level(MAX_SLEEP_T);
-			wifi_set_sleep_type(MODEM_SLEEP_T);
-		}
-		else
-			wifi_set_sleep_type(NONE_SLEEP_T);
+		wifi_set_listen_interval(3);
+		wifi_set_sleep_level(MAX_SLEEP_T);
+		wifi_set_sleep_type(MODEM_SLEEP_T);
 	}
-
-	if(!enable)
+	else
 		wifi_set_sleep_type(NONE_SLEEP_T);
 }
 

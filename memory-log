@@ -12542,3 +12542,23 @@ Sat Feb 26 12:56:33 CET 2022 58dfa85 wlan scan: move some static strings to flas
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  64657, free:  15608, 19 %
     irom:    available: 592 k, used: 424816, free: 181392, 29 %
+Sat Feb 26 13:08:50 CET 2022 24cf30e wlan stats: indicate <<current>> ap.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424800, free: 181408, 29 %
+Sat Feb 26 13:14:04 CET 2022 24cf30e wlan stats: indicate <<current>> ap.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424864, free: 181344, 29 %
+Sat Feb 26 13:15:59 CET 2022 24cf30e wlan stats: indicate <<current>> ap.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424880, free: 181328, 29 %
+Sat Feb 26 13:22:51 CET 2022 24cf30e wlan stats: indicate <<current>> ap.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424912, free: 181296, 29 %
+Sat Feb 26 13:23:56 CET 2022 24cf30e wlan stats: indicate <<current>> ap.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424896, free: 181312, 29 %

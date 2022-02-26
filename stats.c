@@ -543,6 +543,8 @@ void stats_wlan(string_t *dst)
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> channel: %u\n"
+			"> max sleep level: %s\n"
+			"> listen interval: %d\n"
 			"> signal strength: %d dB\n"
 			">\n",
 				onoff(wifi_station_get_auto_connect()),
@@ -550,6 +552,8 @@ void stats_wlan(string_t *dst)
 				slp[wifi_get_sleep_type()],
 				wifi_get_channel(),
 				wifi_station_get_rssi());
+				onoff(wifi_get_sleep_level()),
+				wifi_get_listen_interval(),
 
 	wifi_get_ip_info(SOFTAP_IF, &ip_addr_info);
 

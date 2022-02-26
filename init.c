@@ -84,7 +84,7 @@ void user_init(void)
 	uart_set_initial(1);
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
-	power_save_enable(true);
+	power_save_enable(config_flags_match(flag_wlan_power_save));
 	system_init_done_cb(user_init2);
 }
 
