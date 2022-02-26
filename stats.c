@@ -516,6 +516,17 @@ void stats_wlan(string_t *dst)
 	sdk_mac_addr_t mac_addr;
 	struct ip_info ip_addr_info;
 	struct station_config config;
+	struct station_config sc[5], *scp;
+	unsigned int scn, scni;
+
+	roflash static const char auth_mode[][20] =
+	{
+		"OTHER",
+		"WEP",
+		"WPA PSK",
+		"WPA2 PSK",
+		"WPA PSK + WPA2 PSK"
+	};
 
 	wifi_station_get_config_default(&config);
 
@@ -578,5 +589,28 @@ void stats_wlan(string_t *dst)
 
 	string_append(dst, "> station ip netmask: ");
 	string_ip(dst, ip_addr_info.netmask);
-	string_append(dst, "\n");
+	string_append(dst, "\n\n");
+
+	memset(sc, 0, sizeof(sc));
+
+	if((scn = wifi_station_get_ap_info(sc)) < 1)
+		string_append(dst, "> no ap info\n");
+	else
+		for(scni = 0; scni < scn; scni++)
+		{
+			scp = &sc[scni];
+
+			string_format(dst, "> ap #%u: %d:%s/%s, %02x:%02x:%02x:%02x:%02x:%02x %d, %d, %d, %d, ",
+				scni,
+				scp->channel,
+				scp->ssid, scp->password,
+				scp->bssid[0], scp->bssid[1], scp->bssid[2],
+				scp->bssid[3], scp->bssid[4], scp->bssid[5],
+				scp->threshold.rssi,
+				scp->bssid_set,
+				scp->open_and_wep_mode_disable,
+				scp->all_channel_scan);
+			string_append_cstr_flash(dst, auth_mode[scp->threshold.authmode]);
+			string_format(dst, "\n");
+		}
 }

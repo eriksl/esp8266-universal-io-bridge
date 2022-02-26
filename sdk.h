@@ -214,12 +214,14 @@ typedef struct
 
 struct station_config
 {
-	char						ssid[32];
-	char						password[64];
+	uint8_t						ssid[32];
+	uint8_t						password[64];
+	uint8_t						channel;
 	uint8_t						bssid_set;	// if bssid_set is 1, station will just connect to the router with both ssid[] and bssid[] matched.
 	uint8_t						bssid[6];
 	wifi_fast_scan_threshold_t	threshold;
-	bool						open_and_wep_mode_disable; // can connect to open/wep router by default.
+	uint8_t						open_and_wep_mode_disable; // can connect to open/wep router by default.
+	uint8_t						all_channel_scan;
 };
 
 typedef void (*scan_done_cb_t)(void *arg, STATUS status);
@@ -536,9 +538,11 @@ bool				wifi_softap_set_dhcps_offer_option(uint8_t, void *);
 bool				wifi_softap_set_dhcps_lease_time(uint32_t);
 bool				wifi_softap_set_config_current(struct softap_config *);
 bool				wifi_softap_set_dhcps_lease(struct dhcps_lease *);
+bool				wifi_station_ap_number_set(uint8_t);
 bool				wifi_station_connect(void);
 bool				wifi_station_dhcpc_stop(void);
 bool				wifi_station_disconnect(void);
+int8_t				wifi_station_get_ap_info(struct station_config []);
 uint8_t				wifi_station_get_auto_connect(void);
 bool				wifi_station_get_config_default(struct station_config *);
 bool				wifi_station_get_config(struct station_config *);

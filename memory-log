@@ -12486,3 +12486,43 @@ Tue Feb 22 20:44:51 CET 2022 391ccaa i2c-sensors: fix hih6130 temperature subsen
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  64849, free:  15416, 19 %
     irom:    available: 592 k, used: 423872, free: 182336, 30 %
+Fri Feb 25 17:45:44 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64849, free:  15416, 19 %
+    irom:    available: 592 k, used: 423856, free: 182352, 30 %
+Sat Feb 26 11:28:06 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 423872, free: 182336, 30 %
+Sat Feb 26 11:31:15 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 423888, free: 182320, 30 %
+Sat Feb 26 11:38:00 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 423936, free: 182272, 30 %
+Sat Feb 26 11:56:50 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424320, free: 181888, 30 %
+Sat Feb 26 12:00:01 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424192, free: 182016, 30 %
+Sat Feb 26 12:05:42 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424208, free: 182000, 30 %
+Sat Feb 26 12:17:57 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424224, free: 181984, 30 %
+Sat Feb 26 12:18:38 CET 2022 39eb614 ESP8266_NONOS_SDK: update.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424368, free: 181840, 29 %
+Sat Feb 26 12:22:46 CET 2022 30507ae wlan: show <<cached>> AP's (which appears to be pretty useless).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64865, free:  15400, 19 %
+    irom:    available: 592 k, used: 424400, free: 181808, 29 %

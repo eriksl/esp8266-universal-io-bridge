@@ -116,6 +116,9 @@ static void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const 
 	struct station_config cconf;
 	struct softap_config saconf;
 
+	if(!wifi_station_ap_number_set(1))
+		log("wifi_station_ap_number_set failed\n");
+
 	switch(wlan_mode)
 	{
 		case(config_wlan_mode_client):
@@ -123,12 +126,12 @@ static void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const 
 			if((wifi_get_opmode() != STATION_MODE) ||
 					!wifi_station_get_config(&cconf) ||
 					!wifi_station_get_auto_connect() ||
-					!string_match_cstr(ssid, cconf.ssid) ||
-					!string_match_cstr(password, cconf.password))
+					!string_match_cstr(ssid, (const char *)cconf.ssid) ||
+					!string_match_cstr(password, (const char *)cconf.password))
 			{
 				memset(&cconf, 0, sizeof(cconf));
-				strecpy(cconf.ssid, string_buffer(ssid), sizeof(cconf.ssid));
-				strecpy(cconf.password, string_buffer(password), sizeof(cconf.password));
+				strecpy((char *)cconf.ssid, string_buffer(ssid), sizeof(cconf.ssid));
+				strecpy((char *)cconf.password, string_buffer(password), sizeof(cconf.password));
 				cconf.bssid_set = 0;
 
 				wifi_station_disconnect();
