@@ -54,6 +54,7 @@ attr_nonnull bool string_trim_nl(string_t *dst);
 attr_nonnull void string_bin_to_hex(string_t *dst, const unsigned char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
 attr_nonnull void string_mac(string_t *dst, mac_addr_t);
+attr_nonnull bool string_to_mac(mac_addr_t *addr, const string_t *src);
 //int string_bin(string_t *dst, unsigned int value, int precision, bool add_prefix);
 
 attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);

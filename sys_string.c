@@ -261,6 +261,21 @@ void string_ip(string_t *dst, ip_addr_t addr)
 		ip_addr_to_bytes.byte[3]);
 }
 
+bool string_to_mac(mac_addr_t *addr, const string_t *src)
+{
+	unsigned int ix, octet[6];
+
+	if(sscanf(string_buffer(src), "%x:%x:%x:%x:%x:%x ",
+			&octet[0], &octet[1], &octet[2],
+			&octet[3], &octet[4], &octet[5]) != 6)
+		return(false);
+
+	for(ix = 0; ix < 6; ix++)
+		(*addr)[ix] = octet[ix];
+
+	return(true);
+}
+
 void string_mac(string_t *dst, mac_addr_t addr)
 {
 	int ix;

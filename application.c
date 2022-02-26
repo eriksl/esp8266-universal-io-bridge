@@ -1570,6 +1570,38 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 	return(app_action_normal);
 }
 
+static app_action_t application_function_wlan_ap_switch(string_t *src, string_t *dst)
+{
+	mac_addr_t mac;
+	string_new(, mac_string, 32);
+
+	if(parse_string(1, src, &mac_string, ' ') != parse_ok)
+	{
+		string_append(dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
+		return(app_action_error);
+	}
+
+	if(!string_to_mac(&mac, &mac_string))
+	{
+		string_append(dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
+		return(app_action_error);
+	}
+
+	string_clear(&mac_string);
+
+	string_mac(&mac_string, mac);
+
+	if(!wlan_ap_switch(mac))
+	{
+		string_format(dst, "> wlan-ap-switch to %s failed\n", string_to_cstr(&mac_string));
+		return(app_action_error);
+	}
+
+	string_format(dst, "> wlan-ap-switch to %s OK\n", string_to_cstr(&mac_string));
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 {
 	unsigned int int_mode;
@@ -2059,6 +2091,7 @@ roflash static const char help_description_wlan_ap_config[] =		"configure access
 roflash static const char help_description_wlan_client_config[] =	"configure client mode wlan params, supply ssid and passwd";
 roflash static const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
 roflash static const char help_description_wlan_scan[] =			"scan wlan, use wlan-list to retrieve the results";
+roflash static const char help_description_wlan_ap_switch[] =		"switch client to new access point, supply BSSID";
 roflash static const char help_description_config_query_string[] =	"query config string";
 roflash static const char help_description_config_query_int[] =		"query config int";
 roflash static const char help_description_config_set[] =			"set config entry";
@@ -2382,6 +2415,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"wcc", "wlan-client-configure",
 		application_function_wlan_client_configure,
 		help_description_wlan_client_config,
+	},
+	{
+		"was", "wlan-ap-switch",
+		application_function_wlan_ap_switch,
+		help_description_wlan_ap_switch,
 	},
 	{
 		"wm", "wlan-mode",

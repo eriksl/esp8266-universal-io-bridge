@@ -133,6 +133,7 @@ static void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const 
 				strecpy((char *)cconf.ssid, string_buffer(ssid), sizeof(cconf.ssid));
 				strecpy((char *)cconf.password, string_buffer(password), sizeof(cconf.password));
 				cconf.bssid_set = 0;
+				cconf.channel = 0;
 
 				wifi_station_disconnect();
 				wifi_set_opmode(STATION_MODE);
@@ -240,6 +241,52 @@ void wlan_init_start_recovery(void)
 				"      wcc <ssid> <passwd>\n"
 				"      wm client\n"
 				"  after that, issue a reset command to restore temporarily changed flags.\n");
+}
+
+bool wlan_ap_switch(const mac_addr_t mac)
+{
+	unsigned int mode_int;
+	config_wlan_mode_t mode;
+	string_new(, ssid, 64);
+	string_new(, password, 64);
+	struct station_config cconf;
+
+	if(config_get_uint("wlan.mode", &mode_int, -1, -1))
+		mode = (config_wlan_mode_t)mode_int;
+	else
+		mode = config_wlan_mode_client;
+
+	if(mode != config_wlan_mode_client)
+		return(false);
+
+	if(!config_get_string("wlan.client.ssid", &ssid, -1, -1) ||
+			!config_get_string("wlan.client.passwd", &password, -1, -1))
+		return(false);
+
+	memset(&cconf, 0, sizeof(cconf));
+	strecpy((char *)cconf.ssid, string_buffer(&ssid), sizeof(cconf.ssid));
+	strecpy((char *)cconf.password, string_buffer(&password), sizeof(cconf.password));
+	cconf.bssid[0] = mac[0];
+	cconf.bssid[1] = mac[1];
+	cconf.bssid[2] = mac[2];
+	cconf.bssid[3] = mac[3];
+	cconf.bssid[4] = mac[4];
+	cconf.bssid[5] = mac[5];
+	cconf.bssid_set = 1;
+	cconf.channel = 0;
+	cconf.all_channel_scan = 1;
+
+	wifi_station_disconnect();
+	wifi_set_opmode(STATION_MODE);
+	wifi_station_set_config_current(&cconf);
+
+	if(!wifi_station_connect())
+	{
+		log("wlan_channel_switch: set config current failed\n");
+		return(false);
+	}
+
+	return(true);
 }
 
 void multicast_init_groups(void)

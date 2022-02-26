@@ -1,6 +1,7 @@
 #ifndef init_h
 #define init_h
 
+#include "sys_string.h"
 #include "util.h"
 
 #include <stdint.h>
@@ -19,6 +20,7 @@ extern int stack_stack_painted;
 void stack_paint_stack(void);
 bool wlan_init_from_config(void);
 void wlan_init_start_recovery(void);
+bool wlan_ap_switch(const mac_addr_t);
 void multicast_init_groups(void);
 
 #endif
