@@ -12538,3 +12538,7 @@ Sat Feb 26 12:48:56 CET 2022 120543e wlan: show <<cached>> AP's (which appears t
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  64657, free:  15608, 19 %
     irom:    available: 592 k, used: 424768, free: 181440, 29 %
+Sat Feb 26 12:56:33 CET 2022 58dfa85 wlan scan: move some static strings to flash, make output more compact.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  64657, free:  15608, 19 %
+    irom:    available: 592 k, used: 424816, free: 181392, 29 %

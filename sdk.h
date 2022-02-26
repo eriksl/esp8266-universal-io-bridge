@@ -544,6 +544,7 @@ bool				wifi_station_dhcpc_stop(void);
 bool				wifi_station_disconnect(void);
 int8_t				wifi_station_get_ap_info(struct station_config []);
 uint8_t				wifi_station_get_auto_connect(void);
+uint8_t				wifi_station_get_current_ap_id(void);
 bool				wifi_station_get_config_default(struct station_config *);
 bool				wifi_station_get_config(struct station_config *);
 int8_t				wifi_station_get_rssi(void);

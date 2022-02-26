@@ -517,7 +517,7 @@ void stats_wlan(string_t *dst)
 	struct ip_info ip_addr_info;
 	struct station_config config;
 	struct station_config sc[5], *scp;
-	unsigned int scn, scni;
+	unsigned int scn, scni, scnc;
 
 	roflash static const char auth_mode[][20] =
 	{
@@ -596,11 +596,15 @@ void stats_wlan(string_t *dst)
 	if((scn = wifi_station_get_ap_info(sc)) < 1)
 		string_append(dst, "> no ap info\n");
 	else
+	{
+		scnc = wifi_station_get_current_ap_id();
+
 		for(scni = 0; scni < scn; scni++)
 		{
 			scp = &sc[scni];
 
-			string_format(dst, "> ap #%u: %d:%s/%s, %02x:%02x:%02x:%02x:%02x:%02x %d, %d, %d, %d, ",
+			string_format(dst, "> ap %c#%u: %d:%s/%s, %02x:%02x:%02x:%02x:%02x:%02x %d, %d, %d, %d, ",
+				scnc == scni ? '*' : ' ',
 				scni,
 				scp->channel,
 				scp->ssid, scp->password,
@@ -613,4 +617,5 @@ void stats_wlan(string_t *dst)
 			string_append_cstr_flash(dst, auth_mode[scp->threshold.authmode]);
 			string_format(dst, "\n");
 		}
+	}
 }
