@@ -1361,10 +1361,7 @@ static app_action_t application_function_time_set(string_t *src, string_t *dst)
 
 static void wlan_scan_done_callback(void *arg, STATUS status)
 {
-	struct bss_info *bss;
-	const char *ssid;
-
-	static const char *status_msg[] =
+	roflash static const char status_msg[][16] =
 	{
 		"OK",
 		"FAIL",
@@ -1373,31 +1370,42 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 		"CANCEL"
 	};
 
-	static const char *auth_mode_msg[] =
+	roflash static const char auth_mode_msg[][16] =
 	{
 		"OTHER",
 		"WEP",
-		"WPA PSK",
-		"WPA2 PSK",
-		"WPA PSK + WPA2 PSK"
+		"WPA1-PSK",
+		"WPA2-PSK",
+		"WPA1/2-PSK"
 	};
 
-	static const char *cipher_type[] =
+	roflash static const char cipher_type[][16] =
 	{
 		"NONE",
 		"WEP40",
 		"WEP104",
 		"TKIP",
-		"CCMP/AES",
-		"TKIP_CCMP/AES",
+		"AES",
+		"TKIP/AES",
 		"UNKNOWN",
 	};
 
-	roflash static const char fmt_string_1[] = "> %-18s %-4s %-4s %-18s %-13s %-13s %-6s %s\n";
-	roflash static const char fmt_string_2[] = "> %-18s %4u %4d %-18s %-13s %-13s %6d %02x:%02x:%02x:%02x:%02x:%02x\n";
+	roflash static const char fmt_string_1[] = "> %-16s %-3s %-4s %-10s %-9s %-9s %-4s %s\n";
+	roflash static const char fmt_string_2[] = "> %-16s %3u %4d %-10s %-9s %-9s %4d %02x:%02x:%02x:%02x:%02x:%02x\n";
 
-	log("wlan scan result: %s\n", status <= CANCEL ? status_msg[status] : "<invalid>");
-	log_from_flash_n(fmt_string_1, "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
+	struct bss_info *bss;
+	const char *ssid;
+	char status_string[32];
+	char auth_mode_string[32];
+	char pairwise_cipher_string[32];
+	char groupwise_cipher_string[32];
+
+	flash_to_dram(true, status <= CANCEL ? status_msg[status] : "<invalid>", status_string, sizeof(status_string));
+
+	logbuffer_clear(); // make sure as much room is available as is possible
+
+	log("wlan scan result: %s\n", status_string);
+	log_from_flash_n(fmt_string_1, "SSID", "CHN", "RSSI", "AUTH", "PAIR", "GROUP", "OFFS", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
 	{
@@ -1406,12 +1414,16 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 		else
 			ssid = (const char *)bss->ssid;
 
+		flash_to_dram(true, bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid>", auth_mode_string, sizeof(auth_mode_string));
+		flash_to_dram(true, cipher_type[bss->pairwise_cipher], pairwise_cipher_string, sizeof(pairwise_cipher_string));
+		flash_to_dram(true, cipher_type[bss->group_cipher], groupwise_cipher_string, sizeof(groupwise_cipher_string));
+
 		log_from_flash_n(fmt_string_2,
 				ssid,
 				bss->channel,
 				bss->rssi,
-				bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid auth>",
-				cipher_type[bss->pairwise_cipher], cipher_type[bss->group_cipher],
+				auth_mode_string,
+				pairwise_cipher_string, groupwise_cipher_string,
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 	}
