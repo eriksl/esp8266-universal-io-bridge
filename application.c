@@ -1362,6 +1362,7 @@ static app_action_t application_function_time_set(string_t *src, string_t *dst)
 static void wlan_scan_done_callback(void *arg, STATUS status)
 {
 	struct bss_info *bss;
+	const char *ssid;
 
 	static const char *status_msg[] =
 	{
@@ -1399,14 +1400,21 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 	log_from_flash_n(fmt_string_1, "SSID", "CHAN", "RSSI", "AUTH", "PAIR CIPHER", "GROUP_CIPHER", "OFFSET", "BSSID");
 
 	for(bss = arg; bss; bss = bss->next.stqe_next)
+	{
+		if(!strcmp((const char *)bss->ssid, ""))
+			ssid = "<hidden>";
+		else
+			ssid = (const char *)bss->ssid;
+
 		log_from_flash_n(fmt_string_2,
-				bss->ssid,
+				ssid,
 				bss->channel,
 				bss->rssi,
 				bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid auth>",
 				cipher_type[bss->pairwise_cipher], cipher_type[bss->group_cipher],
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
+	}
 }
 
 static app_action_t application_function_wlan_ap_configure(string_t *src, string_t *dst)
@@ -1680,7 +1688,18 @@ static app_action_t application_function_log_write(string_t *src, string_t *dst)
 
 static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 {
-	wifi_station_scan(0, wlan_scan_done_callback);
+	struct scan_config sc =
+	{
+		.ssid = (char *)0,
+		.bssid = (char *)0,
+		.channel = 0,
+		.show_hidden = 1,
+		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
+		.scan_time.active.min = 100,
+		.scan_time.active.max = 500,
+	};
+
+	wifi_station_scan(&sc, wlan_scan_done_callback);
 	string_append(dst, "wlan scan started, use log-display to retrieve the results\n");
 
 	return(app_action_normal);
