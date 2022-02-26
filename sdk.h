@@ -226,6 +226,13 @@ struct station_config
 
 typedef void (*scan_done_cb_t)(void *arg, STATUS status);
 
+typedef struct {
+    char		cc[3];
+    uint8_t		schan;
+    uint8_t		nchan;
+    uint8_t		policy;
+} wifi_country_t;
+
 enum phy_mode
 {
 	PHY_MODE_11B = 1,
@@ -515,6 +522,7 @@ SpiFlashOpResult	spi_flash_erase_sector(uint16_t);
 SpiFlashOpResult	spi_flash_write(uint32_t, const void * attr_flash_align, uint32_t);
 SpiFlashOpResult	spi_flash_read(uint32_t, void * attr_flash_align, uint32_t);
 
+bool				wifi_get_country(wifi_country_t *);
 uint8_t				wifi_get_channel(void);
 bool				wifi_get_ip_info(uint8_t if_index, struct ip_info *);
 uint8_t				wifi_get_listen_interval(void);

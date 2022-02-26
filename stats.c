@@ -518,6 +518,7 @@ void stats_wlan(string_t *dst)
 	struct station_config config;
 	struct station_config sc[5], *scp;
 	unsigned int scn, scni, scnc;
+	wifi_country_t wc;
 
 	roflash static const char auth_mode[][20] =
 	{
@@ -529,31 +530,35 @@ void stats_wlan(string_t *dst)
 	};
 
 	wifi_station_get_config_default(&config);
+	wifi_get_country(&wc);
 
-	string_format(dst, "> default ssid: \"%s\", passwd: \"%s\"\n",
+	string_format(dst, "> ssid flash: \"%s\", passwd: \"%s\"\n",
 			config.ssid, config.password);
 
 	wifi_station_get_config(&config);
+	wc.cc[2] = '\0';
 
 	string_format(dst, "> current ssid: \"%s\", passwd: \"%s\"\n",
 			config.ssid, config.password);
 
 	string_format(dst,
+			"> channel: %u\n"
 			"> autoconnect: %s\n"
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
-			"> channel: %u\n"
 			"> max sleep level: %s\n"
 			"> listen interval: %d\n"
 			"> signal strength: %d dB\n"
+			"> country: %s [%d - %d]\n"
 			">\n",
+				wifi_get_channel(),
 				onoff(wifi_station_get_auto_connect()),
 				phy[wifi_get_phy_mode()],
 				slp[wifi_get_sleep_type()],
-				wifi_get_channel(),
-				wifi_station_get_rssi());
 				onoff(wifi_get_sleep_level()),
 				wifi_get_listen_interval(),
+				wifi_station_get_rssi(),
+				wc.cc, wc.schan, wc.schan + wc.nchan);
 
 	wifi_get_ip_info(SOFTAP_IF, &ip_addr_info);
 
