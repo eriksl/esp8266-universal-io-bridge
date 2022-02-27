@@ -1429,6 +1429,28 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 	}
 }
 
+static void wlan_scan_terse_done_callback(void *arg, STATUS status)
+{
+	roflash static const char fmt_string_1[] = "> %-16s %-3s %-4s %s\n";
+	roflash static const char fmt_string_2[] = "> %-16s %3u %4d %02x:%02x:%02x:%02x:%02x:%02x\n";
+
+	struct bss_info *bss;
+
+	logbuffer_clear(); // make sure as much room is available as is possible
+
+	log_from_flash_n(fmt_string_1, "SSID", "CHN", "RSSI", "BSSID");
+
+	for(bss = arg; bss; bss = bss->next.stqe_next)
+	{
+		log_from_flash_n(fmt_string_2,
+				bss->ssid,
+				bss->channel,
+				bss->rssi,
+				bss->bssid[0], bss->bssid[1], bss->bssid[2],
+				bss->bssid[3], bss->bssid[4], bss->bssid[5]);
+	}
+}
+
 static app_action_t application_function_wlan_ap_configure(string_t *src, string_t *dst)
 {
 	unsigned int channel;
@@ -1740,11 +1762,30 @@ static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 		.show_hidden = 1,
 		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
 		.scan_time.active.min = 100,
-		.scan_time.active.max = 500,
+		.scan_time.active.max = 1000,
 	};
 
 	wifi_station_scan(&sc, wlan_scan_done_callback);
-	string_append(dst, "wlan scan started, use log-display to retrieve the results\n");
+	string_append(dst, "wlan scan started, see log to retrieve the results\n");
+
+	return(app_action_normal);
+}
+
+static app_action_t application_function_wlan_scan_terse(string_t *src, string_t *dst)
+{
+	struct scan_config sc =
+	{
+		.ssid = (char *)0,
+		.bssid = (char *)0,
+		.channel = 0,
+		.show_hidden = 0,
+		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
+		.scan_time.active.min = 100,
+		.scan_time.active.max = 1000,
+	};
+
+	wifi_station_scan(&sc, wlan_scan_terse_done_callback);
+	string_append(dst, "terse wlan scan started, see log to retrieve the results\n");
 
 	return(app_action_normal);
 }
@@ -2090,7 +2131,8 @@ roflash static const char help_description_uart_write[] =			"write text to uart"
 roflash static const char help_description_wlan_ap_config[] =		"configure access point mode wlan params, supply ssid, passwd and channel";
 roflash static const char help_description_wlan_client_config[] =	"configure client mode wlan params, supply ssid and passwd";
 roflash static const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
-roflash static const char help_description_wlan_scan[] =			"scan wlan, use wlan-list to retrieve the results";
+roflash static const char help_description_wlan_scan[] =			"scan wlan, see log to retrieve the results";
+roflash static const char help_description_wlan_scan_terse[] =		"scan wlan terse, see log to retrieve the results";
 roflash static const char help_description_wlan_ap_switch[] =		"switch client to new access point, supply BSSID";
 roflash static const char help_description_config_query_string[] =	"query config string";
 roflash static const char help_description_config_query_int[] =		"query config int";
@@ -2430,6 +2472,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"ws", "wlan-scan",
 		application_function_wlan_scan,
 		help_description_wlan_scan,
+	},
+	{
+		"wst", "wlan-scan-terse",
+		application_function_wlan_scan_terse,
+		help_description_wlan_scan_terse,
 	},
 	{
 		"cqs", "config-query-string",

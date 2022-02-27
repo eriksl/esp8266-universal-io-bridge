@@ -12650,3 +12650,19 @@ Sat Feb 26 15:04:39 CET 2022 a5e1eee wlan stats: extend information
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65257, free:  15008, 18 %
     irom:    available: 592 k, used: 431360, free: 174848, 28 %
+Sat Feb 26 17:20:18 CET 2022 d88df68 wlan: add function to manually move a client to another access point (BSSID)
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65257, free:  15008, 18 %
+    irom:    available: 592 k, used: 431392, free: 174816, 28 %
+Sat Feb 26 17:29:16 CET 2022 d88df68 wlan: add function to manually move a client to another access point (BSSID)
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65305, free:  14960, 18 %
+    irom:    available: 592 k, used: 431744, free: 174464, 28 %
+Sat Feb 26 17:55:31 CET 2022 d88df68 wlan: add function to manually move a client to another access point (BSSID)
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65305, free:  14960, 18 %
+    irom:    available: 592 k, used: 431360, free: 174848, 28 %
+Sat Feb 26 17:56:32 CET 2022 d88df68 wlan: add function to manually move a client to another access point (BSSID)
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65305, free:  14960, 18 %
+    irom:    available: 592 k, used: 431744, free: 174464, 28 %
