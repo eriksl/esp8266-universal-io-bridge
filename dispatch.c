@@ -420,7 +420,6 @@ static void wlan_event_handler(System_Event_t *event)
 			dispatch_post_task(2, task_alert_association, 0);
 			break;
 		}
-
 		case(EVENT_STAMODE_DISCONNECTED):
 		{
 			[[fallthrough]];
