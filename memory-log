@@ -12666,3 +12666,75 @@ Sat Feb 26 17:56:32 CET 2022 d88df68 wlan: add function to manually move a clien
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65305, free:  14960, 18 %
     irom:    available: 592 k, used: 431744, free: 174464, 28 %
+Wed Mar 30 17:50:25 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 431792, free: 174416, 28 %
+Wed Mar 30 18:20:57 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432064, free: 174144, 28 %
+Wed Mar 30 19:23:39 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 431920, free: 174288, 28 %
+Wed Mar 30 19:30:01 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432048, free: 174160, 28 %
+Wed Mar 30 19:49:34 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432400, free: 173808, 28 %
+Wed Mar 30 20:01:33 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432464, free: 173744, 28 %
+Wed Mar 30 20:14:32 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432592, free: 173616, 28 %
+Wed Mar 30 20:19:49 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432544, free: 173664, 28 %
+Wed Mar 30 20:22:19 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432528, free: 173680, 28 %
+Wed Mar 30 20:36:32 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432560, free: 173648, 28 %
+Wed Mar 30 20:38:31 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432576, free: 173632, 28 %
+Wed Mar 30 20:41:40 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432480, free: 173728, 28 %
+Sat Apr 16 15:38:16 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 432912, free: 173296, 28 %
+Sat Apr 16 15:50:45 CEST 2022 c072e1a wlan-scan: add <<terse>> variant to maximise output of all available SSID's.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 433168, free: 173040, 28 %
+Fri Apr 22 14:48:15 CEST 2022 d6c54ee application: reduce memory footprint of trigger struct.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65301, free:  14964, 18 %
+    irom:    available: 592 k, used: 433152, free: 173056, 28 %
+Fri Apr 22 15:16:58 CEST 2022 d6c54ee application: reduce memory footprint of trigger struct.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65333, free:  14932, 18 %
+    irom:    available: 592 k, used: 432848, free: 173360, 28 %
+Fri Apr 22 15:18:29 CEST 2022 d6c54ee application: reduce memory footprint of trigger struct.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65333, free:  14932, 18 %
+    irom:    available: 592 k, used: 432880, free: 173328, 28 %
+Fri Apr 22 15:25:07 CEST 2022 d6c54ee application: reduce memory footprint of trigger struct.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 592 k, used: 433296, free: 172912, 28 %

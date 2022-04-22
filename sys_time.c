@@ -22,7 +22,7 @@ enum
 	sntp_misc_mode_client =	0b00000011,
 };
 
-typedef struct
+typedef struct attr_packed
 {
 	uint8_t	misc;
 	uint8_t stratum;
@@ -39,12 +39,14 @@ typedef struct
 
 assert_size(sntp_network_t, 48);
 
-typedef struct
+typedef struct attr_packed
 {
 	unsigned int sntp_server_valid:1;
 	unsigned int sntp_init_succeeded:1;
 	unsigned int sntp_regular_mode:1;
 } time_flags_t;
+
+assert_size(time_flags_t, 1);
 
 string_new(static, sntp_socket_receive_buffer, sizeof(sntp_network_t));
 string_new(static, sntp_socket_send_buffer, sizeof(sntp_network_t));
@@ -52,6 +54,11 @@ static lwip_if_socket_t sntp_socket;
 
 static time_flags_t time_flags;
 static uint64_t time_base_s;
+static int time_timezone;
+
+static uint64_t		sntp_base_s = 0;
+static uint64_t		sntp_current_ds = 0;
+static ip_addr_t	sntp_server = { 0 };
 static unsigned int sntp_sent;
 static unsigned int sntp_received;
 static unsigned int sntp_wait;
@@ -181,13 +188,6 @@ attr_inline void timer_periodic(void)
 	}
 }
 
-// SNTP
-
-static uint64_t		sntp_base_s = 0;
-static uint64_t		sntp_current_ds = 0;
-static ip_addr_t	sntp_server;
-static int32_t		sntp_timezone;
-
 static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
 	sntp_network_t *received_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_receive_buffer);
@@ -210,6 +210,20 @@ static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigne
 	lwip_if_receive_buffer_unlock(socket);
 }
 
+static void time_sntp_init(void)
+{
+	sntp_network_t *send_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_send_buffer);
+
+	time_flags.sntp_init_succeeded = 0;
+
+	if(lwip_if_socket_create(&sntp_socket, &sntp_socket_receive_buffer, &sntp_socket_send_buffer, 0, false, socket_sntp_callback_data_received))
+	{
+		send_packet->misc = sntp_misc_mode_client | (4 << sntp_misc_vn_shift);
+		string_setlength(&sntp_socket_send_buffer, sizeof(sntp_network_t));
+		time_flags.sntp_init_succeeded = 1;
+	}
+}
+
 void time_sntp_start(void)
 {
 	string_new(, ip, 32);
@@ -228,26 +242,62 @@ void time_sntp_start(void)
 		time_flags.sntp_server_valid = 1;
 	}
 
-	if(!config_get_int("sntp.tz", &sntp_timezone, -1, -1))
-		sntp_timezone = 0;
-
 	sntp_wait = 0;
 	sntp_sent = 0;
 	sntp_received = 0;
 }
 
-static void time_sntp_init(void)
+bool time_sntp_get_server(ip_addr_t *server)
 {
-	sntp_network_t *send_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_send_buffer);
+	if(!time_flags.sntp_init_succeeded || !time_flags.sntp_server_valid)
+		return(false);
 
-	time_flags.sntp_init_succeeded = 0;
+	server->addr = sntp_server.addr;
 
-	if(lwip_if_socket_create(&sntp_socket, &sntp_socket_receive_buffer, &sntp_socket_send_buffer, 0, false, socket_sntp_callback_data_received))
+	return(true);
+}
+
+bool time_sntp_set_server(string_t *errormsg, ip_addr_t server)
+{
+	string_new(, ip_string, 32);
+
+	string_ip(&ip_string, server);
+
+	if(!config_open_write())
 	{
-		send_packet->misc = sntp_misc_mode_client | (4 << sntp_misc_vn_shift);
-		string_setlength(&sntp_socket_send_buffer, sizeof(sntp_network_t));
-		time_flags.sntp_init_succeeded = 1;
+		if(errormsg)
+			string_append(errormsg, "cannot set config (open, sntp server)\n");
+		return(false);
 	}
+
+	config_delete("sntp.", true, -1, -1);
+
+	if(server.addr == 0)
+		time_flags.sntp_server_valid = 0;
+	else
+	{
+		if(!config_set_string("sntp.server", string_to_cstr(&ip_string), -1, -1))
+		{
+			config_abort_write();
+			if(errormsg)
+				string_append(errormsg, "cannot set config (set, sntp server)\n");
+			return(false);
+		}
+
+		time_flags.sntp_server_valid = 1;
+	}
+
+	if(!config_close_write())
+	{
+		if(errormsg)
+			string_append(errormsg, "cannot set config (close, sntp server)\n");
+		return(false);
+	}
+
+	if(time_flags.sntp_server_valid)
+		sntp_server = server;
+
+	return(true);
 }
 
 static void time_sntp_periodic(void)
@@ -286,6 +336,9 @@ void time_init(void)
 {
 	time_base_s = 0;
 
+	if(!config_get_int("time.timezone", &time_timezone, -1, -1))
+		time_timezone = 0;
+
 	uptime_init();
 	system_init();
 	rtc_init();
@@ -322,7 +375,7 @@ static void time_stamp_to_components(uint64_t stamp,
 	struct tm *tm;
 	time_t ticks;
 
-	ticks = stamp;
+	ticks = stamp + 3600 * time_timezone;
 	tm = localtime(&ticks);
 
 	if(Y)
@@ -353,7 +406,7 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 	if(time_flags.sntp_init_succeeded && time_flags.sntp_server_valid && (sntp_base_s > 0)) // we have sntp sync
 	{
 		source = "sntp";
-		stamp = sntp_base_s + (sntp_current_ds / 10) + (sntp_timezone * 3600);
+		stamp = sntp_base_s + (sntp_current_ds / 10) + (time_timezone * 3600);
 	}
 	else
 	{
@@ -364,6 +417,48 @@ const char *time_get(unsigned int *h, unsigned int *m, unsigned int *s,
 	time_stamp_to_components(stamp, h, m, s, Y, M, D);
 
 	return(source);
+}
+
+bool time_set_timezone(int tz, string_t *errormsg)
+{
+	if(time_timezone == tz)
+		return(true);
+
+	if(!config_open_write())
+	{
+		if(errormsg)
+			string_append(errormsg, "cannot set config (open, timezone)\n");
+		return(false);
+	}
+
+	if(tz == 0)
+		config_delete("time.", true, -1, -1);
+	else
+	{
+		if(!config_set_int("time.timezone", tz, -1, -1))
+		{
+			config_abort_write();
+			if(errormsg)
+				string_append(errormsg, "cannot set config (set, timezone)\n");
+			return(false);
+		}
+	}
+
+	if(!config_close_write())
+	{
+		if(errormsg)
+			string_append(errormsg, "cannot set config (close, timezone)\n");
+		return(false);
+	}
+
+	time_timezone = tz;
+
+	return(true);
+}
+
+int time_get_timezone(void)
+{
+	return(time_timezone);
 }
 
 void time_stats(string_t *dst)
@@ -417,11 +512,11 @@ void time_stats(string_t *dst)
 	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
 	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "sntp", D, h, m, s, msecs, 0U, 0U, base, wraps);
 
-	string_format(dst, "> sntp: server set: %s, socket create succeeded: %s, mode: %s, timezone: %d, next update in %u seconds, sent: %u, received: %u\n",
+	string_format(dst, "> sntp: server set: %s, socket create succeeded: %s, mode: %s, next update in %u seconds, sent: %u, received: %u\n",
 		yesno(time_flags.sntp_server_valid),
 		yesno(time_flags.sntp_init_succeeded),
 		time_flags.sntp_regular_mode ? "normal/background" : "initial/burst",
-		sntp_timezone, sntp_wait, sntp_sent, sntp_received);
+		sntp_wait, sntp_sent, sntp_received);
 
 	time_stamp_to_components(time_base_s, &h, &m, &s, &Y, &M, &D);
 	string_format(dst, "> time base: %04u/%02u/%02u %02u:%02u:%02u\n", Y, M, D, h, m, s);
@@ -435,4 +530,6 @@ void time_stats(string_t *dst)
 	}
 	else
 		string_append(dst, "> source: rtc\n");
+
+	string_format(dst, "> time zone: %d\n", time_get_timezone());
 }

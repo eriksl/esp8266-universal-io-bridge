@@ -1345,18 +1345,49 @@ static app_action_t application_function_time_set(string_t *src, string_t *dst)
 		if(parse_uint(3, src, &s, 0, ' ') != parse_ok)
 			s = 0;
 
-		if((h > 10512000) && (s == 0)) // unix timestamp supplied
-		{
-			h += m * 60 * 60;
-			time_set_stamp(h); // timestamp,timezone_offset
-		}
-		else
-			time_set_hms(h, m, s);
+		time_set_hms(h, m, s);
 	}
 
 	source = time_get(&h, &m, &s, &Y, &M, &D);
 
 	string_format(dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
+
+	return(app_action_normal);
+}
+
+static app_action_t application_function_time_stamp_set(string_t *src, string_t *dst)
+{
+	unsigned int stamp;
+	unsigned int Y, M, D, h, m, s;
+	const char *source;
+
+	if(parse_uint(1, src, &stamp, 0, ' ') == parse_ok)
+		time_set_stamp(stamp);
+
+	source = time_get(&h, &m, &s, &Y, &M, &D);
+
+	string_format(dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
+
+	return(app_action_normal);
+}
+
+static app_action_t application_function_time_zone_set(string_t *src, string_t *dst)
+{
+	int tz;
+
+	if(parse_int(1, src, &tz, 0, ' ') == parse_ok)
+	{
+		string_clear(src);
+
+		if(!time_set_timezone(tz, src))
+		{
+			string_append(dst, "time-zone-set: error: ");
+			string_append_string(dst, src);
+			return(app_action_error);
+		}
+	}
+
+	string_format(dst, "time-zone-set: timezone: %d\n", time_get_timezone());
 
 	return(app_action_normal);
 }
@@ -1794,55 +1825,31 @@ static app_action_t application_function_wlan_scan_terse(string_t *src, string_t
 
 static app_action_t application_function_sntp_set(string_t *src, string_t *dst)
 {
-	int timezone;
-	string_new(, ip, 32);
+	string_new(, ipstring, 32);
+	ip_addr_t ipaddr;
 
-	if((parse_string(1, src, &ip, ' ') == parse_ok) && (parse_int(2, src, &timezone, 0, ' ') == parse_ok))
+	if(parse_string(1, src, &ipstring, ' ') == parse_ok)
 	{
-		if(!config_open_write())
-		{
-			string_append(dst, "cannot set config (open)\n");
+		ipaddr = ip_addr(string_to_cstr(&ipstring));
+
+		if(!time_sntp_set_server(dst, ipaddr))
 			return(app_action_error);
-		}
-
-		config_delete("ntp.", true, -1, -1);
-		config_delete("sntp.", true, -1, -1);
-
-		if(!string_match_cstr(&ip, "0.0.0.0"))
-		{
-			if(!config_set_string("sntp.server", string_to_cstr(&ip), -1, -1))
-			{
-				config_abort_write();
-				string_append(dst, "cannot set config (set sntp server)\n");
-				return(app_action_error);
-			}
-		}
-
-		if(timezone != 0)
-		{
-			if(!config_set_int("sntp.tz", timezone, -1, -1))
-			{
-				config_abort_write();
-				string_append(dst, "cannot set config (set sntp timezone)\n");
-				return(app_action_error);
-			}
-		}
-
-		if(!config_close_write())
-		{
-			string_append(dst, "cannot set config (close)\n");
-			return(app_action_error);
-		}
 
 		time_sntp_start();
+
+		ipaddr.addr = 0;
 	}
 
-	string_clear(&ip);
-	config_get_string("sntp.server", &ip, -1, -1);
-	timezone = 0;
-	config_get_int("sntp.tz", &timezone, -1, -1);
+	if(!time_sntp_get_server(&ipaddr))
+	{
+		string_append(dst, "> server address unavailable\n");
+		return(app_action_error);
+	}
 
-	string_format(dst, "sntp-set: server: %s, timezone: %d\n", string_to_cstr(&ip), timezone);
+	string_clear(&ipstring);
+	string_ip(&ipstring, ipaddr);
+
+	string_format(dst, "sntp-set: server: %s\n", string_to_cstr(&ipstring));
 
 	return(app_action_normal);
 }
@@ -2116,8 +2123,10 @@ roflash static const char help_description_log_display[] =			"display log";
 roflash static const char help_description_log_clear[] =			"display and clear the log";
 roflash static const char help_description_log_write[] =			"write to the log";
 roflash static const char help_description_multicast_group_set[] =	"set multicast group, entry 0-7, ip address";
-roflash static const char help_description_sntp_set[] =				"set sntp <ip addr> <timezone GMT+/-x>";
-roflash static const char help_description_time_set[] =				"set time base [h m (s)] or [unix timestamp tz_offset]";
+roflash static const char help_description_sntp_set[] =				"set sntp <ip addr>";
+roflash static const char help_description_time_set[] =				"set time base using <h> <m> [<s>]";
+roflash static const char help_description_time_stamp_set[] =		"set time base using unix epoch timestamp";
+roflash static const char help_description_time_zone_set[] =		"set time zone <+/- hours>";
 roflash static const char help_description_sequencer_add[] =		"add sequencer entry";
 roflash static const char help_description_sequencer_clear[] =		"clear sequencer";
 roflash static const char help_description_sequencer_list[] =		"list sequencer entries";
@@ -2389,6 +2398,16 @@ roflash static const application_function_table_t application_function_table[] =
 		"ts", "time-set",
 		application_function_time_set,
 		help_description_time_set,
+	},
+	{
+		"tss", "time-stamp-set",
+		application_function_time_stamp_set,
+		help_description_time_stamp_set,
+	},
+	{
+		"tzs", "time-zone-set",
+		application_function_time_zone_set,
+		help_description_time_zone_set,
 	},
 	{
 		"sea", "sequencer-add",
