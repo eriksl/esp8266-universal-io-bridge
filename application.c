@@ -36,13 +36,15 @@ assert_size(application_function_table_t, 16);
 
 roflash static const application_function_table_t application_function_table[];
 
-typedef struct
+typedef struct attr_packed
 {
-	int	io;
-	int	pin;
+	int16_t	io;
+	int16_t	pin;
 } trigger_t;
 
 static trigger_t trigger_alert = { -1, -1 };
+
+assert_size(trigger_alert, 4);
 
 void application_init(void)
 {
