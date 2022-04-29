@@ -12738,3 +12738,11 @@ Fri Apr 22 15:25:07 CEST 2022 d6c54ee application: reduce memory footprint of tr
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65349, free:  14916, 18 %
     irom:    available: 592 k, used: 433296, free: 172912, 28 %
+Fri Apr 22 15:33:18 CEST 2022 0adf9f5 time: rework timezone handling
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 592 k, used: 433280, free: 172928, 28 %
+Fri Apr 22 16:01:18 CEST 2022 0adf9f5 time: rework timezone handling
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 592 k, used: 433520, free: 172688, 28 %

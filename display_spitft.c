@@ -14,6 +14,7 @@ typedef enum
 {
 	display_type_disabled = 0,
 	display_type_st7735 = 1,
+	display_type_ili9341 = 2,
 	display_type_illegal,
 } display_type_t;
 
@@ -27,22 +28,26 @@ enum
 {
 	cmd_nop =		0x00,
 	cmd_swreset =	0x01,
-	cmd_sleepin =	0x10,
 	cmd_sleepout = 	0x11,
-	cmd_ptlon =		0x12,
 	cmd_noron =		0x13,
 	cmd_invoff =	0x20,
 	cmd_invon =		0x21,
-	cmd_dispoff =	0x28,
 	cmd_dispon =	0x29,
 	cmd_caset =		0x2a,
 	cmd_raset =		0x2b,
 	cmd_ramwr =		0x2c,
-	cmd_plar =		0x30,
 	cmd_madctl =	0x36,
 	cmd_idmoff =	0x38,
 	cmd_idmon =		0x39,
 	cmd_colmod =	0x3a,
+	cmd_bright =	0x51,
+
+	madctl_my =		(1 << 7),
+	madctl_mx = 	(1 << 6),
+	madctl_mv =		(1 << 5),
+	madctl_ml =		(1 << 4),
+	madctl_bgr =	(1 << 3),
+	madctl_mh =		(1 << 2),
 };
 
 static struct attr_packed
@@ -61,15 +66,18 @@ static struct attr_packed
 	unsigned int	logmode:1;
 	unsigned int	graphic_mode:1;
 	unsigned int	brightness:3;
-	unsigned int	x_size:8;
-	unsigned int	y_size:8;
+	unsigned int	x_size:10;
+	unsigned int	y_size:10;
 	unsigned int	x_offset:4;
 	unsigned int	y_offset:4;
+	unsigned int	x_mirror:1;
+	unsigned int	y_mirror:1;
+	unsigned int	rotate:1;
 	unsigned int	buffer_size:8;
 	unsigned int	buffer_current:8;
 } display;
 
-assert_size(display, 6);
+assert_size(display, 7);
 
 static struct attr_packed
 {
@@ -414,6 +422,9 @@ static bool init(void)
 	int user_cs_io, user_cs_pin;
 	unsigned int x_size, x_offset;
 	unsigned int y_size, y_offset;
+	unsigned int x_mirror, y_mirror;
+	unsigned int rotate;
+	unsigned int madctl;
 
 	if(!config_get_uint("spitft.type", &display_type, -1, -1))
 	{
@@ -436,10 +447,22 @@ static bool init(void)
 	if(!config_get_uint("spitft.y.offset", &y_offset, -1, -1))
 		goto error;
 
+	if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
+		goto error;
+
+	if(!config_get_uint("spitft.y.mirror", &y_mirror, -1, -1))
+		goto error;
+
+	if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
+		goto error;
+
 	display.x_size = x_size;
 	display.x_offset = x_offset;
 	display.y_size = y_size;
 	display.y_offset = y_offset;
+	display.x_mirror = x_mirror;
+	display.y_mirror = y_mirror;
+	display.rotate = rotate;
 
 	if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
 			!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
@@ -483,8 +506,20 @@ static bool init(void)
 	switch(display.type)
 	{
 		case(display_type_st7735):
+		case(display_type_ili9341):
 		{
-			if(!write_command_data_1(cmd_madctl, 0xa8)) // mirror everything, use BGR
+			madctl = madctl_bgr;
+
+			if(display.rotate)
+				madctl |= madctl_mv;
+
+			if(display.x_mirror)
+				madctl |= madctl_mx;
+
+			if(display.y_mirror)
+				madctl |= madctl_my;
+
+			if(!write_command_data_1(cmd_madctl, madctl))
 				goto error;
 
 			break;
@@ -624,15 +659,14 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	return(true); // FIXME
 }
 
-extern roflash const char help_description_display_spitft[];
-
 app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 {
 	unsigned int param_type;
+	unsigned int x_size, x_offset, x_textscale, x_mirror;
+	unsigned int y_size, y_offset, y_textscale, y_mirror;
+	unsigned int rotate;
 	int dcx_io, dcx_pin;
 	int cs_io, cs_pin;
-	unsigned int x_size, x_offset;
-	unsigned int y_size, y_offset;
 
 	if(parse_uint(1, src, &param_type, 0, ' ') == parse_ok)
 	{
@@ -644,19 +678,32 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 
 		if(param_type != display_type_disabled)
 		{
-			if((parse_uint(2, src, &x_size, 0, ' ') != parse_ok) || (parse_uint(3, src, &x_offset, 0, ' ') != parse_ok))
+			if((parse_uint(2, src, &x_size, 0, ' ') != parse_ok) ||
+				(parse_uint(3, src, &x_offset, 0, ' ') != parse_ok) ||
+				(parse_uint(4, src, &x_textscale, 0, ' ') != parse_ok) ||
+				(parse_uint(5, src, &x_mirror, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 
-			if((parse_uint(4, src, &y_size, 0, ' ') != parse_ok) || (parse_uint(5, src, &y_offset, 0, ' ') != parse_ok))
+			if((parse_uint(6, src, &y_size, 0, ' ') != parse_ok) ||
+					(parse_uint(7, src, &y_offset, 0, ' ') != parse_ok) ||
+					(parse_uint(8, src, &y_textscale, 0, ' ') != parse_ok) ||
+					(parse_uint(9, src, &y_mirror, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 
-			if((parse_int(6, src, &dcx_io, 0, ' ') != parse_ok) || (parse_int(7, src, &dcx_pin, 0, ' ') != parse_ok))
+			if(parse_uint(10, src, &rotate, 0, ' ') != parse_ok)
+			{
+				string_append_cstr_flash(dst, help_description_display_spitft);
+				return(app_action_error);
+			}
+
+			if((parse_int(11, src, &dcx_io, 0, ' ') != parse_ok) ||
+					(parse_int(12, src, &dcx_pin, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
@@ -668,7 +715,8 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 				return(app_action_error);
 			}
 
-			if((parse_int(8, src, &cs_io, 0, ' ') == parse_ok) && (parse_int(9, src, &cs_pin, 0, ' ') == parse_ok))
+			if((parse_int(13, src, &cs_io, 0, ' ') == parse_ok) &&
+					(parse_int(14, src, &cs_pin, 0, ' ') == parse_ok))
 			{
 				if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
 				{
@@ -687,17 +735,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			goto config_error;
 
 		if(param_type == display_type_disabled)
-		{
-			config_delete("spitft.type", false, -1, -1);
-			config_delete("spitft.dcx.io", false, -1, -1);
-			config_delete("spitft.dcx.pin", false, -1, -1);
-			config_delete("spitft.cs.io", false, -1, -1);
-			config_delete("spitft.cs.pin", false, -1, -1);
-			config_delete("spitft.x.size", false, -1, -1);
-			config_delete("spitft.x.offset", false, -1, -1);
-			config_delete("spitft.y.size", false, -1, -1);
-			config_delete("spitft.y.offset", false, -1, -1);
-		}
+			config_delete("spitft.", true, -1, -1);
 		else
 		{
 			if(!config_set_uint("spitft.type", param_type, -1, -1))
@@ -709,10 +747,25 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			if(!config_set_uint("spitft.x.offset", x_offset, -1, -1))
 				goto config_error;
 
+			if(!config_set_uint("spitft.x.textscale", x_textscale, -1, -1))
+				goto config_error;
+
+			if(!config_set_uint("spitft.x.mirror", x_mirror, -1, -1))
+				goto config_error;
+
 			if(!config_set_uint("spitft.y.size", y_size, -1, -1))
 				goto config_error;
 
 			if(!config_set_uint("spitft.y.offset", y_offset, -1, -1))
+				goto config_error;
+
+			if(!config_set_uint("spitft.y.textscale", y_textscale, -1, -1))
+				goto config_error;
+
+			if(!config_set_uint("spitft.y.mirror", y_mirror, -1, -1))
+				goto config_error;
+
+			if(!config_set_uint("spitft.rotate", rotate, -1, -1))
 				goto config_error;
 
 			if(!config_set_uint("spitft.dcx.io", dcx_io, -1, -1))
@@ -754,6 +807,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	{
 		case(display_type_disabled): string_append(dst, "> type 0 (disabled)\n"); break;
 		case(display_type_st7735): string_append(dst, "> type 1 (st7735)\n"); break;
+		case(display_type_ili9341): string_append(dst, "> type 2 (ili9341)\n"); break;
 		default: string_append(dst, "> unknown type\n"); break;
 	}
 
@@ -765,7 +819,14 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if(!config_get_uint("spitft.x.offset", &x_offset, -1, -1))
 			x_offset = 0;
 
-		string_format(dst, "> x size: %u, offset: %u\n", x_size, x_offset);
+		if(!config_get_uint("spitft.x.textscale", &x_textscale, -1, -1))
+			x_textscale = 1;
+
+		if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
+			x_mirror = 0;
+
+		string_format(dst, "> x size: %u, offset: %u, text scale: %u, mirror: %u\n", x_size, x_offset, x_textscale, x_mirror);
+
 
 		if(!config_get_uint("spitft.y.size", &y_size, -1, -1))
 			y_size = 0;
@@ -773,7 +834,18 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if(!config_get_uint("spitft.y.offset", &y_offset, -1, -1))
 			y_offset = 0;
 
-		string_format(dst, "> y size: %u, offset: %u\n", y_size, y_offset);
+		if(!config_get_uint("spitft.y.textscale", &y_textscale, -1, -1))
+			y_textscale = 0;
+
+		if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
+			x_mirror = 0;
+
+		string_format(dst, "> y size: %u, offset: %u, text scale: %u, mirror: %u\n", y_size, y_offset, y_textscale, y_mirror);
+
+		if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
+			rotate = 0;
+
+		string_format(dst, "> rotate: %u\n", rotate);
 
 		if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
 				!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
@@ -808,12 +880,19 @@ static bool bright(int brightness)
 	return(true);
 }
 
+roflash const char help_description_display_spitft[] =	"> usage: display spitft <mode=0=disabled|1=st7735|2=ili9341>\n"
+														"> <x size> <x offset> <x text scale 1|2> <x mirror 0|1>\n"
+														"> <y size> <x offset> <y text scale 1|2> <y mirror 0|1>\n"
+														"> <rotate 0|1>\n"
+														"> <dcx io> <dcx pin>\n"
+														"> [<user cs io> <user cs pin>]\n";
+
 roflash const display_info_t display_info_spitft =
 {
 	{
 		"generic SPI TFT LCD",
-		{ 21, 16 },
-		{ 128, 128 },
+		{ 0, 0 },
+		{ 0, 0 },
 		16,
 	},
 	{
