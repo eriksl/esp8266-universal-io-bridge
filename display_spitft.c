@@ -4,8 +4,9 @@
 #include "config.h"
 #include "sys_time.h"
 #include "util.h"
-#include "display_font_6x8.h"
 #include "io.h"
+#include "font.h"
+#include "stats.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -40,7 +41,7 @@ enum
 	cmd_idmoff =	0x38,
 	cmd_idmon =		0x39,
 	cmd_colmod =	0x3a,
-	cmd_bright =	0x51,
+	cmd_ramwrc =	0x3c,
 
 	madctl_my =		(1 << 7),
 	madctl_mx = 	(1 << 6),
@@ -48,6 +49,8 @@ enum
 	madctl_ml =		(1 << 4),
 	madctl_bgr =	(1 << 3),
 	madctl_mh =		(1 << 2),
+
+	colmod_16bpp = 	0x05,
 };
 
 static struct attr_packed
@@ -93,19 +96,6 @@ static struct attr_packed
 		int8_t pin;
 	} dcx;
 } pin;
-
-attr_result_used attr_inline unsigned int text_columns(void)
-{
-	return(display.x_size / display_font_width);
-}
-
-attr_result_used attr_inline unsigned int text_rows(void)
-{
-	if(display.logmode)
-		return(16);
-	else
-		return(4);
-}
 
 static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned int b)
 {
@@ -253,16 +243,9 @@ attr_inline attr_result_used bool output_data_16(unsigned int word)
 
 static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
 {
-	enum { entries = 16 };
-	unsigned int run;
-	int bytes;
-	uint16_t spibuffer[entries];
 	unsigned int box_colour;
-
-	assert_size(spibuffer, 32);
-
-	if(!flush_data())
-		return(false);
+	uint8_t colour[2];
+	unsigned int x, y;
 
 	if(!write_command_data_2_16(cmd_caset, from_x + display.x_offset, to_x + display.x_offset))
 		return(false);
@@ -274,17 +257,20 @@ static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int fro
 		return(false);
 
 	box_colour = rgb_to_16bit_colour(r, g, b);
-	// swap bytes for host order not correct when using SPI engine
-	box_colour = ((box_colour & 0xff00) >> 8) | ((box_colour & 0x00ff) << 8);
+	colour[0] = (box_colour & 0xff00) >> 8;
+	colour[1] = (box_colour & 0x00ff) >> 0;
 
-	for(run = 0; run < entries; run++)
-		spibuffer[run] = box_colour;
+	for(y = from_y; y <= to_y; y++)
+		for(x = from_x; x <= to_x; x++)
+		{
+			if(!output_data(colour[0]))
+				return(false);
+			if(!output_data(colour[1]))
+				return(false);
+		}
 
-	bytes = (to_x - from_x + 1) * (to_y - from_y + 1) * sizeof(uint16_t) /*16 bpp*/;
-
-	for(; bytes >= 0; bytes -= sizeof(spibuffer))
-		if(!write_data(sizeof(spibuffer), (uint8_t *)spibuffer))
-			return(false);
+	if(!flush_data())
+		return(false);
 
 	return(true);
 }
@@ -294,20 +280,39 @@ static bool clear_screen(void)
 	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size, display.y_size));
 }
 
-static attr_result_used bool text_send(unsigned int byte)
+static attr_result_used bool text_send(unsigned int code)
 {
-	const unsigned int *font_6x8 = (const unsigned int *)(const void *)display_font_6x8;
-	const unsigned int *font_entry;
-	uint8_t font_line[display_font_height];
+	font_info_t font_info;
+	font_cell_t cell;
 	unsigned int x, y, r, g, b;
-	bool set;
+	unsigned int y_offset;
 	unsigned int fg_colour, bg_colour;
-	unsigned int cell_width, cell_height, line_repeat;
-
-	if((text.column >= text_columns()) || (text.row >= text_rows()))
-		goto done;
 
 	if(!flush_data())
+		return(false);
+
+	if(!font_get_info(&font_info))
+		return(false);
+
+	x = text.column * font_info.width;
+	y = text.row * font_info.height;
+
+	if(display.logmode)
+		y_offset = 0;
+	else
+	{
+		y_offset = text.display_slot ? display.y_size / 2 : 0;
+
+		if(text.row > 0)
+			y_offset += 2;
+	}
+
+	y += y_offset;
+
+	if(((x + font_info.width) > display.x_size) || ((y + font_info.height) > display.y_size))
+		goto skip;
+
+	if(!font_render(code, cell))
 		return(false);
 
 	r = 0xff;
@@ -331,60 +336,24 @@ static attr_result_used bool text_send(unsigned int byte)
 
 	bg_colour = rgb_to_16bit_colour(r, g, b);
 
-	x = text.column * display_font_width;
-	y = text.row * display_font_height;
-	cell_width = display_font_width;
-	cell_height = display_font_height;
-	line_repeat = 1;
-
-	if(!display.logmode)
-	{
-		y *= 2;
-		cell_height *= 2;
-		line_repeat *= 2;
-	}
-
-	if(!display.logmode && (text.display_slot != 0))
-		y += display.y_size / 2;
-
-	if(!write_command_data_2_16(cmd_caset, x + 0 + display.x_offset, x + cell_width + display.x_offset - 1))
+	if(!write_command_data_2_16(cmd_caset, x + 0 + display.x_offset, x + font_info.width + display.x_offset - 1))
 		return(false);
 
-	if(!write_command_data_2_16(cmd_raset, y + 0 + display.y_offset, y + cell_height + display.y_offset - 1))
+	if(!write_command_data_2_16(cmd_raset, y + 0 + display.y_offset, y + font_info.height + display.y_offset - 1))
 		return(false);
 
 	if(!write_command(cmd_ramwr))
 		return(false);
 
-	font_entry = &font_6x8[byte * 8 /*sizeof(entry)*/ / 4 /*sizeof(int)*/];
+	for(y = 0; y < font_info.height; y++)
+		for(x = 0; x < font_info.width; x++)
+			if(!output_data_16(cell[y][x] ? fg_colour : bg_colour))
+				return(false);
 
-	font_line[0] = (font_entry[0] & 0x000000ff) >> 0;
-	font_line[1] = (font_entry[0] & 0x0000ff00) >> 8;
-	font_line[2] = (font_entry[0] & 0x00ff0000) >> 16;
-	font_line[3] = (font_entry[0] & 0xff000000) >> 24;
-	font_line[4] = (font_entry[1] & 0x000000ff) >> 0;
-	font_line[5] = (font_entry[1] & 0x0000ff00) >> 8;
-	font_line[6] = (font_entry[1] & 0x00ff0000) >> 16;
-	font_line[7] = (font_entry[1] & 0xff000000) >> 24;
-
-	for(y = 0; y < display_font_height; y++)
-	{
-		for(r = 0; r < line_repeat; r++)
-		{
-			for(x = 0; x < display_font_width; x++)
-			{
-				set = !!(font_line[y] & (1 << (display_font_width - x)));
-
-				if(!output_data_16(set ? fg_colour : bg_colour))
-					return(false);
-			}
-		}
-	}
-
-done:
 	if(!flush_data())
 		return(false);
 
+skip:
 	text.column++;
 
 	return(true);
@@ -394,15 +363,19 @@ static attr_result_used bool text_newline(void)
 {
 	unsigned int x1, x2;
 	unsigned int y1, y2;
+	font_info_t font_info;
+
+	if(!font_get_info(&font_info))
+		return(false);
 
 	if(display.logmode)
 	{
-		text.row = (text.row + 1) % text_rows();
+		text.row = (text.row + 1) % (display.y_size / font_info.height);
 
 		x1 = 0;
 		x2 = x1 + display.x_size;
-		y1 = text.row * display_font_height;
-		y2 = y1 + display_font_height;
+		y1 = text.row * font_info.height;
+		y2 = y1 + font_info.height;
 
 		if(!box(0x00, 0x00, 0x00, x1, y1, x2, y2))
 			return(false);
@@ -491,7 +464,7 @@ static bool init(void)
 
 	msleep(10);
 
-	if(!write_command_data_1(cmd_colmod, 0x05)) // 16 bpp
+	if(!write_command_data_1(cmd_colmod, colmod_16bpp))
 		goto error;
 
 	if(!write_command(cmd_noron))
@@ -535,7 +508,7 @@ static bool init(void)
 	display.logmode = 0;
 	display.buffer_current = 0;
 
-	if(display_buffer_size > 32)
+	if(display_buffer_size > 32) // spi engine can't handle writes > 32 bytes
 		display.buffer_size = 32;
 	else
 		display.buffer_size = display_buffer_size;
@@ -552,8 +525,15 @@ static bool begin(unsigned int slot, bool logmode)
 {
 	unsigned int x1, x2, y1, y2;
 	unsigned int r, g, b;
+	font_info_t font_info;
 
 	if(display.type == display_type_disabled)
+		return(false);
+
+	if(!font_select(logmode))
+		return(false);
+
+	if(!font_get_info(&font_info))
 		return(false);
 
 	text.column = text.row = 0;
@@ -566,17 +546,18 @@ static bool begin(unsigned int slot, bool logmode)
 		background_colour(text.slot, true, &r, &g, &b);
 
 		x1 = 0;
-		y1 = 0;
 		x2 = display.x_size;
-		y2 = display_font_height * 2;
 
-		if(text.display_slot != 0)
+		if(text.display_slot == 0)
 		{
-			y1 += display.y_size / 2;
-			y2 += display.y_size / 2;
+			y1 = 0;
+			y2 = font_info.height + 1;
 		}
-
-		y2--;
+		else
+		{
+			y1 = display.y_size / 2;
+			y2 = y1 + font_info.height + 1;
+		}
 
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
@@ -584,14 +565,17 @@ static bool begin(unsigned int slot, bool logmode)
 		background_colour(text.slot, false, &r, &g, &b);
 
 		x1 = 0;
-		y1 = display_font_height * 1 * 2;
 		x2 = display.x_size;
-		y2 = display_font_height * text_rows() * 2 - 1;
 
-		if(text.display_slot != 0)
+		if(text.display_slot == 0)
 		{
-			y1 = y1 + (display.y_size / 2) - 2;
-			y2 += display.y_size / 2;
+			y1 = font_info.height + 2;
+			y2 = display.y_size / 2 - 1;
+		}
+		else
+		{
+			y1 = (display.y_size / 2) + font_info.height + 2;
+			y2 = display.y_size;
 		}
 
 		if(!box(r, g, b, x1, y1, x2, y2))
@@ -603,7 +587,6 @@ static bool begin(unsigned int slot, bool logmode)
 
 static bool output(unsigned int length, const unsigned int unicode[])
 {
-	const unicode_map_6x8_t *unicode_map_ptr;
 	unsigned int current_index, current;
 
 	/* this is required for log mode */
@@ -628,17 +611,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 			continue;
 		}
 
-		for(unicode_map_ptr = unicode_map_6x8; unicode_map_ptr->unicode != unicode_map_6x8_eof; unicode_map_ptr++)
-		{
-			if(unicode_map_ptr->unicode == current)
-			{
-				if(!text_send(unicode_map_ptr->internal))
-					return(false);
-
-				continue;
-			}
-		}
-
 		if((current < ' ') || (current > '}'))
 			current = ' ';
 
@@ -656,14 +628,55 @@ static bool end(void)
 
 static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 {
-	return(true); // FIXME
+	int ix;
+
+	if(string_length(pixels) == 0)
+		return(true);
+
+	if(x > display.x_size)
+		return(false);
+
+	if(y > display.y_size)
+		return(false);
+
+	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
+		return(false);
+
+	if(!flush_data())
+		return(false);
+
+	string_setlength(pixels, pixel_amount * 2);
+
+	if((x == 0) && (y == 0))
+	{
+		if(!write_command_data_2_16(cmd_caset, display.x_offset, display.x_offset + display.x_size))
+			return(false);
+
+		if(!write_command_data_2_16(cmd_raset, display.y_offset, display.y_offset + display.y_size))
+			return(false);
+
+		if(!write_command(cmd_ramwr))
+			return(false);
+	}
+
+	if(!write_command(cmd_ramwrc)) // may not work on other than ilitek chips
+		return(false);
+
+	for(ix = 0; ix < string_length(pixels); ix++)
+		if(!output_data(string_at(pixels, ix)))
+			return(false);
+
+	if(!flush_data())
+		return(false);
+
+	return(true);
 }
 
 app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 {
 	unsigned int param_type;
-	unsigned int x_size, x_offset, x_textscale, x_mirror;
-	unsigned int y_size, y_offset, y_textscale, y_mirror;
+	unsigned int x_size, x_offset, x_mirror;
+	unsigned int y_size, y_offset, y_mirror;
 	unsigned int rotate;
 	int dcx_io, dcx_pin;
 	int cs_io, cs_pin;
@@ -680,30 +693,28 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		{
 			if((parse_uint(2, src, &x_size, 0, ' ') != parse_ok) ||
 				(parse_uint(3, src, &x_offset, 0, ' ') != parse_ok) ||
-				(parse_uint(4, src, &x_textscale, 0, ' ') != parse_ok) ||
-				(parse_uint(5, src, &x_mirror, 0, ' ') != parse_ok))
+				(parse_uint(4, src, &x_mirror, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 
-			if((parse_uint(6, src, &y_size, 0, ' ') != parse_ok) ||
-					(parse_uint(7, src, &y_offset, 0, ' ') != parse_ok) ||
-					(parse_uint(8, src, &y_textscale, 0, ' ') != parse_ok) ||
-					(parse_uint(9, src, &y_mirror, 0, ' ') != parse_ok))
+			if((parse_uint(5, src, &y_size, 0, ' ') != parse_ok) ||
+					(parse_uint(6, src, &y_offset, 0, ' ') != parse_ok) ||
+					(parse_uint(7, src, &y_mirror, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 
-			if(parse_uint(10, src, &rotate, 0, ' ') != parse_ok)
+			if(parse_uint(8, src, &rotate, 0, ' ') != parse_ok)
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 
-			if((parse_int(11, src, &dcx_io, 0, ' ') != parse_ok) ||
-					(parse_int(12, src, &dcx_pin, 0, ' ') != parse_ok))
+			if((parse_int(9, src, &dcx_io, 0, ' ') != parse_ok) ||
+					(parse_int(10, src, &dcx_pin, 0, ' ') != parse_ok))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
@@ -715,8 +726,8 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 				return(app_action_error);
 			}
 
-			if((parse_int(13, src, &cs_io, 0, ' ') == parse_ok) &&
-					(parse_int(14, src, &cs_pin, 0, ' ') == parse_ok))
+			if((parse_int(11, src, &cs_io, 0, ' ') == parse_ok) &&
+					(parse_int(12, src, &cs_pin, 0, ' ') == parse_ok))
 			{
 				if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
 				{
@@ -747,9 +758,6 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			if(!config_set_uint("spitft.x.offset", x_offset, -1, -1))
 				goto config_error;
 
-			if(!config_set_uint("spitft.x.textscale", x_textscale, -1, -1))
-				goto config_error;
-
 			if(!config_set_uint("spitft.x.mirror", x_mirror, -1, -1))
 				goto config_error;
 
@@ -757,9 +765,6 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 				goto config_error;
 
 			if(!config_set_uint("spitft.y.offset", y_offset, -1, -1))
-				goto config_error;
-
-			if(!config_set_uint("spitft.y.textscale", y_textscale, -1, -1))
 				goto config_error;
 
 			if(!config_set_uint("spitft.y.mirror", y_mirror, -1, -1))
@@ -819,14 +824,10 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if(!config_get_uint("spitft.x.offset", &x_offset, -1, -1))
 			x_offset = 0;
 
-		if(!config_get_uint("spitft.x.textscale", &x_textscale, -1, -1))
-			x_textscale = 1;
-
 		if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
 			x_mirror = 0;
 
-		string_format(dst, "> x size: %u, offset: %u, text scale: %u, mirror: %u\n", x_size, x_offset, x_textscale, x_mirror);
-
+		string_format(dst, "> x size: %u, offset: %u, mirror: %u\n", x_size, x_offset, x_mirror);
 
 		if(!config_get_uint("spitft.y.size", &y_size, -1, -1))
 			y_size = 0;
@@ -834,13 +835,10 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if(!config_get_uint("spitft.y.offset", &y_offset, -1, -1))
 			y_offset = 0;
 
-		if(!config_get_uint("spitft.y.textscale", &y_textscale, -1, -1))
-			y_textscale = 0;
-
-		if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
+		if(!config_get_uint("spitft.y.mirror", &y_mirror, -1, -1))
 			x_mirror = 0;
 
-		string_format(dst, "> y size: %u, offset: %u, text scale: %u, mirror: %u\n", y_size, y_offset, y_textscale, y_mirror);
+		string_format(dst, "> y size: %u, offset: %u, mirror: %u\n", y_size, y_offset, y_mirror);
 
 		if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
 			rotate = 0;
@@ -880,31 +878,66 @@ static bool bright(int brightness)
 	return(true);
 }
 
+
 roflash const char help_description_display_spitft[] =	"> usage: display spitft <mode=0=disabled|1=st7735|2=ili9341>\n"
-														"> <x size> <x offset> <x text scale 1|2> <x mirror 0|1>\n"
-														"> <y size> <x offset> <y text scale 1|2> <y mirror 0|1>\n"
+														"> <x size> <x offset> <x mirror 0|1>\n"
+														"> <y size> <x offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
 														"> <dcx io> <dcx pin>\n"
 														"> [<user cs io> <user cs pin>]\n";
 
-roflash const display_info_t display_info_spitft =
+static bool info(display_info_t *infostruct)
 {
+	font_info_t font_info;
+	unsigned int columns, rows;
+	unsigned int cell_width, cell_height;
+
+	if(font_get_info(&font_info))
 	{
-		"generic SPI TFT LCD",
-		{ 0, 0 },
-		{ 0, 0 },
-		16,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		plot,
-		(void *)0,
+		cell_width = font_info.width;
+		cell_height = font_info.height;
 	}
+	else
+	{
+		cell_width = 0;
+		cell_height = 0;
+	}
+
+	if((cell_width != 0) && (cell_height != 0))
+	{
+		columns = display.x_size / cell_width;
+		rows = display.y_size / cell_height;
+	}
+	else
+	{
+		columns = 0;
+		rows = 0;
+	}
+
+	strncpy(infostruct->name, "SPI TFT", sizeof(infostruct->name));
+
+	infostruct->columns = columns;
+	infostruct->rows = rows;
+	infostruct->cell_width = cell_width;
+	infostruct->cell_height = cell_height;
+	infostruct->width = display.x_size;
+	infostruct->height = display.y_size;
+	infostruct->pixel_mode = display_pixel_mode_16_rgb;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_spitft =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	plot,
+	(void *)0,
 };

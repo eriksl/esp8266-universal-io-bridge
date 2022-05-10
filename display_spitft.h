@@ -3,7 +3,7 @@
 
 #include "display.h"
 
-extern display_info_t display_info_spitft;
+extern display_hooks_t display_hooks_spitft;
 extern const char help_description_display_spitft[];
 
 app_action_t application_function_display_spitft(string_t *src, string_t *dst);
