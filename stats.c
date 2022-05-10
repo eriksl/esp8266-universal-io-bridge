@@ -301,7 +301,7 @@ void stats_flash(string_t *dst)
 				default:												string_append(dst, "unknown partition"); break;
 			}
 
-			string_format(dst, " start: 0x%06x, end: 0x%06x, size: %4u kB\n",
+			string_format(dst, " 0x%06x-0x%06x [%4u kB]\n",
 					(uint32_t)partition_item.addr,
 					(uint32_t)(partition_item.addr + partition_item.size - 1),
 					partition_item.size / 1024);
