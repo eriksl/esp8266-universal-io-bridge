@@ -1342,6 +1342,9 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 		Magick::Color colour;
 		newsize.aspect(true);
 
+		if(!filename.length())
+			throw(std::string("empty file name"));
+
 		image.read(filename);
 
 		if(verbose)
