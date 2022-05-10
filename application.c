@@ -20,6 +20,7 @@
 #include "spi.h"
 #include "display_eastrising.h"
 #include "display_spitft.h"
+#include "font.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -2232,6 +2233,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"dd", "display-dump",
 		application_function_display_dump,
 		help_description_display_dump,
+	},
+	{
+		"dfs", "display-font-select",
+		application_function_display_font_select,
+		help_description_display_font_select,
 	},
 	{
 		"dft", "display-flip-timeout",

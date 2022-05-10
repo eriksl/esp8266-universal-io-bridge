@@ -72,6 +72,8 @@ unsigned int stat_display_update_max_us;
 unsigned int stat_spi_slave_interrupts;
 unsigned int stat_spi_slave_i2s_interrupts;
 
+unsigned int stat_font_render_time;
+
 int stat_debug_1;
 int stat_debug_2;
 int stat_debug_3;
@@ -412,6 +414,10 @@ void stats_counters(string_t *dst)
 				(unsigned int)stat_debug_1, stat_debug_1,
 				(unsigned int)stat_debug_2, stat_debug_2,
 				(unsigned int)stat_debug_3, stat_debug_3);
+
+	string_format(dst,
+			">\n> FONT\n"
+			">  max font render time: %u usec\n", stat_font_render_time);
 
 	system_print_meminfo();
 }

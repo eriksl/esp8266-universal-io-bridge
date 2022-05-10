@@ -15,6 +15,7 @@
 #include "lwip-interface.h"
 #include "remote_trigger.h"
 #include "mailbox.h"
+#include "font.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -539,6 +540,8 @@ void dispatch_init2(void)
 
 		uart_bridge_active = true;
 	}
+
+	font_init();
 
 	mailbox_init(mailbox_port);
 

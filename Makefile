@@ -50,9 +50,9 @@ USER_CONFIG_SIZE			:= 0x1000
 SEQUENCER_FLASH_OFFSET_0	:= 0x0f6000
 SEQUENCER_FLASH_OFFSET_1	:= 0x1f6000
 SEQUENCER_FLASH_SIZE		:= 0x4000
-FONT_FLASH_OFFSET_0			:= 0x0d6000
-FONT_FLASH_OFFSET_1			:= 0x1d6000
-FONT_FLASH_SIZE				:= 0x20000
+FONT_FLASH_OFFSET_0			:= 0x0c6000
+FONT_FLASH_OFFSET_1			:= 0x1c6000
+FONT_FLASH_SIZE				:= 0x30000
 PICTURE_FLASH_OFFSET_0		:= 0x200000
 PICTURE_FLASH_OFFSET_1		:= 0x280000
 PICTURE_FLASH_SIZE			:= 0x80000
@@ -186,7 +186,7 @@ OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o displa
 						display_seeed.o display_eastrising.o display_spitft.o display_ssd1306.o display_font_6x8.o io_pcf.o \
 						http.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o \
 						mailbox.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
-						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o rboot-interface.o
+						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o rboot-interface.o font.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
 						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \
@@ -338,6 +338,7 @@ display_eastrising.o:	$(HEADERS)
 display_ssd1306.o:		$(HEADERS)
 display_font_6x8.o:		$(HEADERS)
 http.o:					$(HEADERS)
+font.o:					$(HEADERS)
 i2c.o:					$(HEADERS)
 i2c_sensor.o:			$(HEADERS)
 i2s.o:					$(HEADERS)

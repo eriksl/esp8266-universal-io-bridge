@@ -261,6 +261,13 @@ void msleep(int msec)
 	}
 }
 
+const void *flash_cache_pointer(uint32_t offset)
+{
+	static void * const flash_window_start = (void *)0x40200000;
+
+	return((void *)((uint8_t *)flash_window_start + offset));
+}
+
 attr_pure ip_addr_t ip_addr(const char *src)
 {
 	ip_addr_to_bytes_t ip_addr_to_bytes;

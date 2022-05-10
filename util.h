@@ -107,6 +107,8 @@ extern string_t logbuffer;
 extern unsigned int logbuffer_display_current;
 void logbuffer_clear(void);
 
+const void *flash_cache_pointer(uint32_t offset);
+
 attr_result_used unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned int *dst);
 
 unsigned char *SHA1(const unsigned char *src, unsigned int length, unsigned char *digest);

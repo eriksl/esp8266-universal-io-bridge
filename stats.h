@@ -76,6 +76,8 @@ extern unsigned int stat_i2c_bus_lock_max_period;
 extern unsigned int stat_i2c_soft_resets;
 extern unsigned int stat_i2c_hard_resets;
 
+extern unsigned int stat_font_render_time;
+
 extern unsigned int stat_heap_min, stat_heap_max;
 
 void stats_firmware(string_t *dst);
