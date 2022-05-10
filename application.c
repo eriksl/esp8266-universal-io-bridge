@@ -1,6 +1,7 @@
 #include "util.h"
 #include "sys_string.h"
 #include "application.h"
+#include "app_action.h"
 #include "stats.h"
 #include "config.h"
 #include "uart.h"
