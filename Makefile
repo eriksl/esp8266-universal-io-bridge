@@ -75,7 +75,7 @@ OFFSET_RBOOT_CFG			:= 0x001000
 SIZE_RBOOT_CFG				:= 0x1000
 OFFSET_IMG_0				:= 0x002000
 OFFSET_IMG_1				:= 0x102000
-SIZE_IMG					:= 0x94000
+SIZE_IMG					:= 0xc4000
 MISC_FLASH_OFFSET			:= 0x300000
 MISC_FLASH_SIZE				:= 0x100000
 FIRMWARE_RBOOT				:= espiobridge-rboot-boot.bin
@@ -102,7 +102,7 @@ FLASH_SIZE_SDK				:= FLASH_SIZE_32M_MAP_1024_1024
 RBOOT_SPI_SIZE				:= 4Mb
 USER_CONFIG_OFFSET			:= $(USER_CONFIG_SECTOR)000
 LD_ADDRESS					:= 0x40202010
-LD_LENGTH					:= 0xf7ff0
+LD_LENGTH					:= $(SIZE_IMG)
 
 V ?= $(VERBOSE)
 ifeq ($(V),1)
@@ -233,11 +233,11 @@ free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768)
 				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265)
-				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,802816)
 				$(Q) export LC_ALL=C; echo "`date` `git log -n 1 --oneline`" > $(MEMORY_USAGE_OUTPUT)
 				$(call section_free,$(ELF_IMAGE),iram,.text,,,32768) >> $(MEMORY_USAGE_OUTPUT)
 				$(call section_free,$(ELF_IMAGE),dram,.bss,.data,.rodata,80265) >> $(MEMORY_USAGE_OUTPUT)
-				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,606208) >> $(MEMORY_USAGE_OUTPUT)
+				$(call section_free,$(ELF_IMAGE),irom,.irom0.text,,,802816) >> $(MEMORY_USAGE_OUTPUT)
 				$(Q) rm -f .diff-a .diff-b
 				$(Q) tail -n 3 $(MEMORY_USAGE_OUTPUT) > .diff-a
 				$(Q) tail -n 3 $(MEMORY_USAGE_LOG) > .diff-b
