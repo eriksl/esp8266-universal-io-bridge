@@ -742,16 +742,25 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	return(true);
 }
 
-roflash const display_info_t display_info_orbital =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"MATRIX Orbital VFD",
-		{ 20, 4 },
-		{ 20, 16 },
-		1,
-	},
-	{
+	strncpy(infostruct->name, "matrix orbital vfd", sizeof(infostruct->name));
+
+	infostruct->columns = 20;
+	infostruct->rows = 4;
+	infostruct->cell_width = 5;
+	infostruct->cell_height = 8;
+	infostruct->width = 20;
+	infostruct->height = 16;
+	infostruct->pixel_mode = display_pixel_mode_1;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_orbital =
+{
 		init,
+		info,
 		begin,
 		output,
 		end,
@@ -761,5 +770,4 @@ roflash const display_info_t display_info_orbital =
 		stop_show_time,
 		plot,
 		(void *)0,
-	}
 };

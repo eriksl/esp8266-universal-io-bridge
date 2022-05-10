@@ -6,7 +6,7 @@
 #include "sys_time.h"
 #include "dispatch.h"
 #include "util.h"
-#include "font/font_32x16.h"
+//#include "font/font_32x16.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -452,7 +452,7 @@ enum
 	display_graphic_character_width_padding = 2,
 	display_graphic_character_height = 32,
 
-	display_flash_memory_map_start = 0x40200000,
+	//display_flash_memory_map_start = 0x40200000,
 };
 
 roflash static const unicode_map_t unicode_map_internal_font[] =
@@ -1373,6 +1373,7 @@ error:
 	return(success);
 }
 
+#if 0
 static bool attr_result_used display_blit(unsigned int layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint8_t *data)
 {
 	bool success = false;
@@ -1476,9 +1477,11 @@ error:
 
 	return(success);
 }
+#endif
 
 static bool attr_result_used display_write_glyph(unsigned int x, unsigned int y, unsigned int column, unsigned int codepoint)
 {
+#if 0
 	const font_bitmap_t			*font_bitmap;
 	const font_bitmap_entry_t	*font_bitmap_entry;
 	unsigned int				row;
@@ -1486,7 +1489,7 @@ static bool attr_result_used display_write_glyph(unsigned int x, unsigned int y,
 	uint8_t						data[display_graphic_character_height * 2];
 
 	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+	//font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
 
 	for(font_bitmap_entry = font_bitmap->entries; font_bitmap_entry->codepoint != (uint32_t)font_codepoint_last_entry; font_bitmap_entry++)
 		if(font_bitmap_entry->codepoint == codepoint)
@@ -1514,6 +1517,8 @@ static bool attr_result_used display_write_glyph(unsigned int x, unsigned int y,
 	x += column * (display_graphic_character_width + display_graphic_character_width_padding);
 
 	return(display_blit(0, x, y, display_graphic_character_width, display_graphic_character_height, data));
+#endif
+	return(true);
 }
 
 static bool attr_result_used display_write_glyphs(unsigned int x, unsigned int y, unsigned int length, const uint8_t *text)
@@ -1682,7 +1687,7 @@ static bool bright(int brightness)
 
 static bool init(void)
 {
-	const font_bitmap_t *font_bitmap;
+	//const font_bitmap_t *font_bitmap;
 	uint8_t cmd = reg_mrwc;
 	unsigned int mode, fontchip;
 	int user_cs_io, user_cs_pin;
@@ -1731,11 +1736,11 @@ static bool init(void)
 		}
 	}
 
-	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+	//// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
+	//font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
 
-	if((font_bitmap->magic == font_magic) && (font_bitmap->version == font_version))
-		display_font_valid = true;
+	//if((font_bitmap->magic == font_magic) && (font_bitmap->version == font_version))
+		//display_font_valid = true;
 
 	// init PLL
 
@@ -2264,24 +2269,32 @@ config_error:
 	return(app_action_error);
 }
 
-roflash const display_info_t display_info_eastrising =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"Eastrising TFT LCD",
-		{ 25, 8 },
-		{ 480, 272 },
-		16,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		plot,
-		freeze,
-	}
+	strncpy(infostruct->name, "eastrising", sizeof(infostruct->name));
+
+	infostruct->columns = 25;
+	infostruct->rows = 8;
+	infostruct->cell_width = 16; // FIXME
+	infostruct->cell_height = 32; // FIXME
+	infostruct->width = 480;
+	infostruct->height = 272;
+	infostruct->pixel_mode = display_pixel_mode_16_rgb;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_eastrising =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	plot,
+	freeze,
 };

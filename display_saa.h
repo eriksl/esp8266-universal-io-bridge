@@ -3,6 +3,6 @@
 
 #include "display.h"
 
-extern display_info_t display_info_saa1064;
+extern display_hooks_t display_hooks_saa1064;
 
 #endif

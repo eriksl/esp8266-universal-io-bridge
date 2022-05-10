@@ -228,24 +228,32 @@ static bool end(void)
 	return(true);
 }
 
-roflash const display_info_t display_info_saa1064 =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"SAA1064 4 digit LED",
-		{ 0, 0 },
-		{ 4, 1 },
-		1,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	}
+	strncpy(infostruct->name, "saa1064", sizeof(infostruct->name));
+
+	infostruct->columns = 4;
+	infostruct->rows = 1;
+	infostruct->cell_width = 1;
+	infostruct->cell_height = 2;
+	infostruct->width = 0;
+	infostruct->height = 0;
+	infostruct->pixel_mode = display_pixel_mode_none;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_saa1064 =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
 };

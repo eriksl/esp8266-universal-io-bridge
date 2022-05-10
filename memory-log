@@ -12746,3 +12746,387 @@ Fri Apr 22 16:01:18 CEST 2022 0adf9f5 time: rework timezone handling
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65349, free:  14916, 18 %
     irom:    available: 592 k, used: 433520, free: 172688, 28 %
+Fri Apr 29 16:06:08 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 592 k, used: 433552, free: 172656, 28 %
+Sat Apr 30 12:07:06 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 848 k, used: 433552, free: 434800, 50 %
+Sat Apr 30 12:21:04 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 433552, free: 369264, 45 %
+Sat Apr 30 12:25:47 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Sat Apr 30 19:45:01 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 432912, free: 369904, 46 %
+Sat Apr 30 20:18:08 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 433280, free: 369536, 46 %
+Sat Apr 30 20:21:22 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 433376, free: 369440, 46 %
+Sat Apr 30 21:19:23 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65349, free:  14916, 18 %
+    irom:    available: 784 k, used: 433808, free: 369008, 45 %
+Sat May  7 12:41:54 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65365, free:  14900, 18 %
+    irom:    available: 784 k, used: 433824, free: 368992, 45 %
+Sat May  7 15:00:59 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65365, free:  14900, 18 %
+    irom:    available: 784 k, used: 433104, free: 369712, 46 %
+Sat May  7 15:11:33 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433232, free: 369584, 46 %
+Sat May  7 15:45:32 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 432960, free: 369856, 46 %
+Sat May  7 15:47:58 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 432976, free: 369840, 46 %
+Sat May  7 15:50:43 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 432992, free: 369824, 46 %
+Sat May  7 16:05:20 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433552, free: 369264, 45 %
+Sat May  7 16:08:48 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433600, free: 369216, 45 %
+Sat May  7 16:12:52 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433632, free: 369184, 45 %
+Sat May  7 16:29:06 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433680, free: 369136, 45 %
+Sat May  7 16:33:34 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433728, free: 369088, 45 %
+Sat May  7 16:35:52 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433376, free: 369440, 46 %
+Sat May  7 16:36:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433088, free: 369728, 46 %
+Sat May  7 16:43:37 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433728, free: 369088, 45 %
+Sat May  7 16:45:14 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433760, free: 369056, 45 %
+Sat May  7 16:46:59 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Sat May  7 16:56:19 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433696, free: 369120, 45 %
+Sat May  7 16:57:10 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433648, free: 369168, 45 %
+Sat May  7 17:00:02 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433568, free: 369248, 45 %
+Sat May  7 17:00:25 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433648, free: 369168, 45 %
+Sat May  7 17:22:43 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433600, free: 369216, 45 %
+Sat May  7 17:25:57 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Sat May  7 17:27:23 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433600, free: 369216, 45 %
+Sat May  7 17:29:50 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433632, free: 369184, 45 %
+Sat May  7 17:44:12 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433600, free: 369216, 45 %
+Sat May  7 17:45:27 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 433568, free: 369248, 45 %
+Sat May  7 20:25:42 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433696, free: 369120, 45 %
+Sat May  7 20:27:19 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433680, free: 369136, 45 %
+Sun May  8 11:19:29 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433840, free: 368976, 45 %
+Sun May  8 11:25:22 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Sun May  8 11:32:03 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433872, free: 368944, 45 %
+Sun May  8 11:32:58 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Sun May  8 11:46:23 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433680, free: 369136, 45 %
+Sun May  8 11:54:04 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433840, free: 368976, 45 %
+Sun May  8 12:11:45 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Sun May  8 12:13:56 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65381, free:  14884, 18 %
+    irom:    available: 784 k, used: 433952, free: 368864, 45 %
+Sun May  8 12:39:05 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65397, free:  14868, 18 %
+    irom:    available: 784 k, used: 434432, free: 368384, 45 %
+Sun May  8 12:42:15 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434208, free: 368608, 45 %
+Sun May  8 12:47:33 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434128, free: 368688, 45 %
+Sun May  8 12:50:10 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434176, free: 368640, 45 %
+Sun May  8 12:51:23 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434160, free: 368656, 45 %
+Sun May  8 12:56:12 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434256, free: 368560, 45 %
+Sun May  8 13:01:45 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65413, free:  14852, 18 %
+    irom:    available: 784 k, used: 434016, free: 368800, 45 %
+Sun May  8 13:16:53 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65429, free:  14836, 18 %
+    irom:    available: 784 k, used: 434080, free: 368736, 45 %
+Sun May  8 13:24:41 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434112, free: 368704, 45 %
+Sun May  8 13:26:25 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434128, free: 368688, 45 %
+Sun May  8 13:32:01 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434144, free: 368672, 45 %
+Sun May  8 13:33:27 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434192, free: 368624, 45 %
+Sun May  8 13:35:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434256, free: 368560, 45 %
+Sun May  8 13:50:48 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434208, free: 368608, 45 %
+Sun May  8 13:57:36 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434256, free: 368560, 45 %
+Sun May  8 14:04:02 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434288, free: 368528, 45 %
+Sun May  8 14:07:32 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434256, free: 368560, 45 %
+Sun May  8 14:12:47 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434192, free: 368624, 45 %
+Sun May  8 14:17:33 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434208, free: 368608, 45 %
+Sun May  8 14:27:47 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434288, free: 368528, 45 %
+Sun May  8 14:37:39 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434336, free: 368480, 45 %
+Sun May  8 14:39:54 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434288, free: 368528, 45 %
+Sun May  8 14:50:42 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434448, free: 368368, 45 %
+Sun May  8 14:52:06 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434464, free: 368352, 45 %
+Sun May  8 14:56:44 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 433904, free: 368912, 45 %
+Sun May  8 14:58:53 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Sun May  8 15:01:07 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65437, free:  14828, 18 %
+    irom:    available: 784 k, used: 434448, free: 368368, 45 %
+Sun May  8 16:14:19 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435168, free: 367648, 45 %
+Sun May  8 16:24:16 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435152, free: 367664, 45 %
+Sun May  8 16:34:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435136, free: 367680, 45 %
+Sun May  8 17:00:16 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435280, free: 367536, 45 %
+Sun May  8 17:26:32 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435984, free: 366832, 45 %
+Sun May  8 17:41:43 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436016, free: 366800, 45 %
+Sun May  8 17:42:17 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436048, free: 366768, 45 %
+Sun May  8 17:43:56 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436096, free: 366720, 45 %
+Sun May  8 17:45:40 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435984, free: 366832, 45 %
+Sun May  8 17:47:37 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436032, free: 366784, 45 %
+Sun May  8 17:49:43 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436048, free: 366768, 45 %
+Sun May  8 17:52:39 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 436016, free: 366800, 45 %
+Sun May  8 17:59:34 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435776, free: 367040, 45 %
+Sun May  8 19:38:56 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435632, free: 367184, 45 %
+Sun May  8 19:43:42 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435616, free: 367200, 45 %
+Mon May  9 10:11:38 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435632, free: 367184, 45 %
+Mon May  9 13:12:56 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435648, free: 367168, 45 %
+Mon May  9 13:14:50 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435600, free: 367216, 45 %
+Mon May  9 13:17:06 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Mon May  9 13:20:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65341, free:  14924, 18 %
+    irom:    available: 784 k, used: 435600, free: 367216, 45 %
+Mon May  9 13:32:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65325, free:  14940, 18 %
+    irom:    available: 784 k, used: 435664, free: 367152, 45 %
+Mon May  9 13:38:46 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65325, free:  14940, 18 %
+    irom:    available: 784 k, used: 435680, free: 367136, 45 %
+Mon May  9 13:40:49 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65325, free:  14940, 18 %
+    irom:    available: 784 k, used: 435728, free: 367088, 45 %
+Tue May 10 13:00:36 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435728, free: 367088, 45 %
+Tue May 10 16:48:26 CEST 2022 51e1619 display: spitft: add preliminary support for il9341 based displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435696, free: 367120, 45 %

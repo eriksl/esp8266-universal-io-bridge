@@ -18,27 +18,29 @@ enum
 
 extern uint8_t display_buffer[display_buffer_size];
 
-typedef const struct
+typedef enum
 {
-	const char *const name;
-	const struct
-	{
-		unsigned int columns;
-		unsigned int rows;
-	} text_dimensions;
-	const struct
-	{
-		unsigned int x;
-		unsigned int y;
-	} graphic_dimensions;
-	const unsigned int colour_depth;
-} display_properties_t;
+	display_pixel_mode_none = 0,
+	display_pixel_mode_1 = 1,
+	display_pixel_mode_16_rgb = 16,
+} display_pixel_mode_t;
 
-assert_size(display_properties_t, 24);
+typedef struct
+{
+	char name[32];
+	unsigned int columns;
+	unsigned int rows;
+	unsigned int cell_width;
+	unsigned int cell_height;
+	unsigned int width;
+	unsigned int height;
+	display_pixel_mode_t pixel_mode;
+} display_info_t;
 
 typedef const struct
 {
 	bool (* const init_fn)(void);
+	bool (* const info_fn)(display_info_t *);
 	bool (* const begin_fn)(unsigned int slot, bool logmode);
 	bool (* const output_fn)(unsigned int amount, const unsigned int unicode[]);
 	bool (* const end_fn)(void);
@@ -50,18 +52,10 @@ typedef const struct
 	bool (* const freeze_fn)(bool active);
 } display_hooks_t;
 
-assert_size(display_hooks_t, 40);
+assert_size(display_hooks_t, 44);
 
-typedef const struct
-{
-	const display_properties_t properties;
-	const display_hooks_t hooks;
-} display_info_t;
-
-assert_size(display_info_t, 64);
-
-const display_properties_t *display_get_properties(void);
-bool						display_load_picture_slot(unsigned int slot);
+bool display_get_info(display_info_t *);
+bool display_load_picture_slot(unsigned int slot);
 
 app_action_t application_function_display_brightness(string_t *src, string_t *dst);
 app_action_t application_function_display_dump(string_t *src, string_t *dst);

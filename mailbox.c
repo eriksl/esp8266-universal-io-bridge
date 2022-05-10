@@ -45,8 +45,9 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 	rboot_if_config_t config;
 	rboot_if_rtc_config_t rtc;
 	unsigned int mailbox_slot;
-	display_properties_t *properties;
-	unsigned int x, y, depth;
+	unsigned int x, y;
+	display_pixel_mode_t pixel_mode;
+	display_info_t info;
 
 	if(!rboot_if_read_config(&config))
 	{
@@ -59,17 +60,17 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 	else
 		mailbox_slot = config.slot_current;
 
-	if((properties = display_get_properties()))
+	if(display_get_info(&info))
 	{
-		x = properties->graphic_dimensions.x;
-		y = properties->graphic_dimensions.y;
-		depth = properties->colour_depth;
+		x = info.width;
+		y = info.height;
+		pixel_mode = info.pixel_mode;
 	}
 	else
 	{
 		x = 0;
 		y = 0;
-		depth = 0;
+		pixel_mode = display_pixel_mode_none;
 	}
 
 	string_format(dst, "OK mailbox function available, "
@@ -77,7 +78,7 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 				"sectors: [ %u, %u ], display: %ux%upx@%u\n",
 			config.slot_count, mailbox_slot,
 			config.slots[0] / SPI_FLASH_SEC_SIZE, config.slots[1] / SPI_FLASH_SEC_SIZE,
-			x, y, depth);
+			x, y, pixel_mode);
 
 	return(app_action_normal);
 }

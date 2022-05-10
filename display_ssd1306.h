@@ -3,6 +3,6 @@
 
 #include "display.h"
 
-extern display_info_t display_info_ssd1306;
+extern display_hooks_t display_hooks_ssd1306;
 
 #endif

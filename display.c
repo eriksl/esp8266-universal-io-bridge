@@ -63,20 +63,20 @@ assert_size(picture_load_timer, 20);
 static unsigned int freeze_timer;
 assert_size(freeze_timer, 4);
 
-roflash static display_info_t const *const display_info[] =
+roflash static display_hooks_t const *const display_hooks[] =
 {
-	&display_info_saa1064,
-	&display_info_lcd,
-	&display_info_orbital,
-	&display_info_cfa,
-	&display_info_seeed,
-	&display_info_eastrising,
-	&display_info_ssd1306,
-	&display_info_spitft,
-	(const display_info_t *)0
+	&display_hooks_saa1064,
+	&display_hooks_lcd,
+	&display_hooks_orbital,
+	&display_hooks_cfa,
+	&display_hooks_seeed,
+	&display_hooks_eastrising,
+	&display_hooks_ssd1306,
+	&display_hooks_spitft,
+	(const display_hooks_t *)0
 };
 
-static const display_info_t *display_info_active = (const display_info_t *)0;
+static const display_hooks_t *display_hooks_active = (const display_hooks_t *)0;
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static unsigned int flip_timeout;
 static display_slot_t display_slot[display_slot_amount];
@@ -86,73 +86,54 @@ assert_size(display_slot, 832);
 
 attr_pure bool display_detected(void)
 {
-	return(!!display_info_active);
+	return(!!display_hooks_active);
 }
 
-const display_properties_t *display_get_properties(void)
+bool display_get_info(display_info_t *info)
 {
-	if(!display_info_active)
-		return((display_properties_t *)0);
+	if(!display_hooks_active || !display_hooks_active->info_fn)
+		return(false);
 
-	return(&display_info_active->properties);
-}
-
-static const display_hooks_t *display_get_hooks(void)
-{
-	if(!display_info_active)
-		return((display_hooks_t *)0);
-
-	return(&display_info_active->hooks);
+	return(display_hooks_active->info_fn(info));
 }
 
 static bool freeze(unsigned int timeout_ms)
 {
-	const display_hooks_t *hooks = (display_hooks_t *)0;
-
-	if(!(hooks = display_get_hooks()))
+	if(!display_hooks_active)
 		return(false);
 
 	freeze_timer = timeout_ms;
 
-	if(hooks->freeze_fn)
-		hooks->freeze_fn(freeze_timer ? true : false);
+	if(display_hooks_active->freeze_fn)
+		return(display_hooks_active->freeze_fn(freeze_timer ? true : false));
 
 	return(true);
 }
 
 static bool display_plot(unsigned int pixels_amount, int x, int y, string_t *pixels)
 {
-	const display_hooks_t *hooks;
-
-	if(!(hooks = display_get_hooks()))
+	if(!display_hooks_active || !display_hooks_active->plot_fn)
 		return(false);
 
-	if(!hooks->plot_fn)
-		return(false);
-
-	return(hooks->plot_fn(pixels_amount, x, y, pixels));
+	return(display_hooks_active->plot_fn(pixels_amount, x, y, pixels));
 }
 
 bool display_load_picture_slot(unsigned int slot)
 {
-	const display_hooks_t		*hooks;
-	const display_properties_t 	*props;
+	display_info_t info;
 
 	if(picture_load_state != pls_idle)
 		return(false);
 
-	if(!(hooks = display_get_hooks()))
+	if(!display_hooks_active || !display_hooks_active->plot_fn || !display_hooks_active->info_fn)
 		return(false);
 
-	if(!hooks->plot_fn)
+	if(!display_hooks_active->info_fn(&info))
 		return(false);
 
-	if(!(props = display_get_properties()))
-		return(false);
-
-	if((props->graphic_dimensions.x < 1) ||
-			(props->graphic_dimensions.y < 1) ||
-			(props->colour_depth < 1))
+	if((info.width < 1) ||
+			(info.height < 1) ||
+			(info.pixel_mode == display_pixel_mode_none))
 		return(false);
 
 	if(slot > 1)
@@ -169,11 +150,12 @@ bool display_load_picture_slot(unsigned int slot)
 
 static void picture_load_worker(void *arg)
 {
-	const display_properties_t *props = (display_properties_t *)0;
+	display_info_t info;
 	string_t *buffer_string;
 	char *buffer_cstr;
 	unsigned int flash_buffer_size;
-	unsigned int width, height, depth;
+	unsigned int width, height;
+	display_pixel_mode_t pixel_mode;
 	unsigned int current_pixel;
 	int current_x, current_y;
 	unsigned int sector_base;
@@ -186,12 +168,15 @@ static void picture_load_worker(void *arg)
 	if(picture_load_state != pls_run)
 		goto error;
 
-	if(!(props = display_get_properties()))
+	if(!display_hooks_active || !display_hooks_active->info_fn)
 		goto error;
 
-	width = props->graphic_dimensions.x;
-	height = props->graphic_dimensions.y;
-	depth = props->colour_depth;
+	if(!display_hooks_active->info_fn(&info))
+		goto error;
+
+	width = info.width;
+	height = info.height;
+	pixel_mode = info.pixel_mode;
 
 	flash_buffer_request(fsb_display_picture, false, "display load picture worker", &buffer_string, &buffer_cstr, &flash_buffer_size);
 
@@ -210,9 +195,9 @@ static void picture_load_worker(void *arg)
 
 	total_pixels = (width * height);
 
-	switch(depth)
+	switch(pixel_mode)
 	{
-		case(1): // monochrome, 1 bit per pixel
+		case(display_pixel_mode_1): // monochrome, 1 bit per pixel
 		{
 			current_pixel = picture_load_sector * flash_buffer_size * 8;
 			current_y = current_pixel / width;
@@ -241,7 +226,7 @@ static void picture_load_worker(void *arg)
 			break;
 		}
 
-		case(16): // 16 bit RGB 5-6-5 per pixel
+		case(display_pixel_mode_16_rgb): // 16 bit RGB 5-6-5 per pixel
 		{
 			current_pixel = picture_load_sector * flash_buffer_size / 2;
 			current_y = current_pixel / width;
@@ -272,7 +257,7 @@ static void picture_load_worker(void *arg)
 
 		default: // unknown
 		{
-			log("picture load: depth of %u not implemented\n", depth);
+			log("picture load: pixel mode of %u not implemented\n", pixel_mode);
 			goto error;
 		}
 	}
@@ -300,13 +285,17 @@ static void display_update(bool dont_advance)
 	unsigned int unicode[display_slot_content_size];
 	unsigned int length;
 	unsigned int run;
+	display_info_t info;
 
-	if(!display_detected())
+	if(!display_hooks_active || !display_hooks_active->info_fn || !display_hooks_active->begin_fn || !display_hooks_active->end_fn)
+		return;
+
+	if(!display_hooks_active->info_fn(&info))
 		return;
 
 	start = time_get_us();
 
-	if(config_flags_match(flag_display_clock) && display_info_active->hooks.show_time_start_fn && display_info_active->hooks.show_time_stop_fn)
+	if(config_flags_match(flag_display_clock) && display_hooks_active->show_time_start_fn && display_hooks_active->show_time_stop_fn)
 	{
 		static bool time_shown = false;
 
@@ -316,7 +305,7 @@ static void display_update(bool dont_advance)
 
 			time_get(&h, &m, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0, (unsigned int *)0);
 
-			if(!display_info_active->hooks.show_time_start_fn(h, m))
+			if(!display_hooks_active->show_time_start_fn(h, m))
 			{
 				log("display update: show time start failed\n");
 				goto error;
@@ -327,7 +316,7 @@ static void display_update(bool dont_advance)
 		}
 		else
 		{
-			if(!display_info_active->hooks.show_time_stop_fn())
+			if(!display_hooks_active->show_time_stop_fn())
 			{
 				log("display update: time show stop failed\n");
 				goto error;
@@ -371,12 +360,12 @@ active_slot_found:
 		{
 			config_get_string("identification", &info_text, -1, -1);
 			string_format(&info_text, "\n%s\n%ux%u, %ux%u@%u",
-					display_info_active->properties.name,
-					display_info_active->properties.text_dimensions.columns,
-					display_info_active->properties.text_dimensions.rows,
-					display_info_active->properties.graphic_dimensions.x,
-					display_info_active->properties.graphic_dimensions.y,
-					display_info_active->properties.colour_depth);
+					info.name,
+					info.columns,
+					info.rows,
+					info.width,
+					info.height,
+					info.pixel_mode);
 			slot_content = string_to_cstr(&info_text);
 		}
 
@@ -387,13 +376,13 @@ active_slot_found:
 		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
 		string_append_cstr_flash(&tag_string, display_slot[display_current_slot].tag);
 
-		if(!display_info_active->hooks.begin_fn(display_current_slot, false))
+		if(!display_hooks_active->begin_fn(display_current_slot, false))
 		{
 			log("display update: display begin failed\n");
 			goto error;
 		}
 
-		if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(1))
+		if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(1))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -401,19 +390,19 @@ active_slot_found:
 
 		length = utf8_to_unicode(string_to_cstr(&tag_string), sizeof(unicode) / sizeof(*unicode), unicode);
 
-		if(!display_info_active->hooks.output_fn(length, unicode))
+		if(!display_hooks_active->output_fn(length, unicode))
 		{
 			log("display update: display output (0) failed\n");
 			goto error;
 		}
 
-		if(!display_info_active->hooks.output_fn(1, unicode_newline))
+		if(!display_hooks_active->output_fn(1, unicode_newline))
 		{
 			log("display update: display output (1) failed\n");
 			goto error;
 		}
 
-		if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(0))
+		if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(0))
 		{
 			log("display update: display standout (1) failed\n");
 			goto error;
@@ -421,13 +410,13 @@ active_slot_found:
 
 		length = utf8_to_unicode(slot_content, sizeof(unicode) / sizeof(*unicode), unicode);
 
-		if(!display_info_active->hooks.output_fn(length, unicode))
+		if(!display_hooks_active->output_fn(length, unicode))
 		{
 			log("display update: display output (2) failed\n");
 			goto error;
 		}
 
-		if(!display_info_active->hooks.end_fn())
+		if(!display_hooks_active->end_fn())
 		{
 			log("display update: display end failed\n");
 			goto error;
@@ -448,7 +437,7 @@ done:
 	return;
 
 error:
-	display_info_active = (const display_info_t *)0;
+	display_hooks_active = (const display_hooks_t *)0;
 }
 
 void display_periodic(void) // gets called 10 times per second
@@ -461,7 +450,7 @@ void display_periodic(void) // gets called 10 times per second
 	bool log_to_display;
 	unsigned int unicode;
 
-	if(!display_detected())
+	if(!display_hooks_active || !display_hooks_active->output_fn)
 		return;
 
 	if(freeze_timer > 0)
@@ -517,7 +506,7 @@ void display_periodic(void) // gets called 10 times per second
 					}
 				}
 
-				if(!display_info_active->hooks.output_fn(1, &unicode))
+				if(!display_hooks_active->output_fn(1, &unicode))
 				{
 					log("display update: display output (3) failed\n");
 					goto error;
@@ -576,7 +565,7 @@ void display_periodic(void) // gets called 10 times per second
 	return;
 
 error:
-	display_info_active = (const display_info_t *)0;
+	display_hooks_active = (const display_hooks_t *)0;
 	return;
 }
 
@@ -585,17 +574,17 @@ void display_init(void)
 	unsigned int current;
 	unsigned int slot;
 
-	for(current = 0; display_info[current]; current++)
+	for(current = 0; display_hooks[current]; current++)
 	{
-		display_info_active = display_info[current];
+		display_hooks_active = display_hooks[current];
 
-		if(display_info_active->hooks.init_fn && display_info_active->hooks.init_fn())
+		if(display_hooks_active->init_fn && display_hooks_active->init_fn())
 			break;
 	}
 
-	if(!display_info[current])
+	if(!display_hooks[current])
 	{
-		display_info_active = (const display_info_t *)0;
+		display_hooks_active = (const display_hooks_t *)0;
 		goto error;
 	}
 
@@ -613,13 +602,13 @@ void display_init(void)
 
 	// for log to display
 
-	if(!display_info_active->hooks.begin_fn(0, true))
+	if(!display_hooks_active->begin_fn(0, true))
 	{
 		log("display init: display begin failed\n");
 		goto error;
 	}
 
-	if(display_info_active->hooks.standout_fn && !display_info_active->hooks.standout_fn(0))
+	if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(0))
 	{
 		log("display init: display standout failed\n");
 		goto error;
@@ -629,7 +618,7 @@ void display_init(void)
 	return;
 
 error:
-	display_info_active = (const display_info_t *)0;
+	display_hooks_active = (const display_hooks_t *)0;
 	return;
 }
 
@@ -639,22 +628,20 @@ static void display_dump(string_t *dst)
 	int ix;
 	char current;
 	unsigned int newlines_pending;
+	display_info_t info;
 
-	if(!display_detected())
+	if(!display_hooks_active || !display_hooks_active->info_fn || !display_hooks_active->info_fn(&info))
 	{
 		string_append(dst, "> no displays detected\n");
 		return;
 	}
 
-	string_format(dst, "> display type: %s\n",
-			display_info_active->properties.name);
+	string_format(dst, "> display type: %s\n", info.name);
 
 	string_format(dst, "> capabilities: graphical dimensions: %u x %u, text dimensions: %u x %u, colour depth: %u\n",
-			display_info_active->properties.graphic_dimensions.x,
-			display_info_active->properties.graphic_dimensions.y,
-			display_info_active->properties.text_dimensions.columns,
-			display_info_active->properties.text_dimensions.rows,
-			display_info_active->properties.colour_depth);
+			info.width, info.height,
+			info.columns, info.rows,
+			info.pixel_mode);
 
 	if(config_flags_match(flag_log_to_display))
 	{
@@ -762,7 +749,7 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 {
 	unsigned int value;
 
-	if(!display_detected())
+	if(!display_hooks_active)
 	{
 		string_append(dst, "display_brightess: no display detected\n");
 		return(app_action_error);
@@ -774,7 +761,7 @@ app_action_t application_function_display_brightness(string_t *src, string_t *ds
 		return(app_action_error);
 	}
 
-	if(!display_info_active->hooks.bright_fn || !display_info_active->hooks.bright_fn(value))
+	if(!display_hooks_active->bright_fn || !display_hooks_active->bright_fn(value))
 	{
 		string_format(dst, "display-brightness: invalid brightness value: %u\n", value);
 		return(app_action_error);
@@ -792,7 +779,7 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	char current;
 	bool cleared = false;
 
-	if(!display_detected())
+	if(!display_hooks_active)
 	{
 		string_append(dst, "display_set: no display detected\n");
 		return(app_action_error);
@@ -893,7 +880,7 @@ app_action_t application_function_display_plot(string_t *src, string_t *dst)
 	bool rv;
 	unsigned int x, y, pixels;
 
-	if(!display_detected())
+	if(!display_hooks_active)
 	{
 		string_append(dst, "display plot: no display detected\n");
 		goto error;
@@ -921,7 +908,7 @@ app_action_t application_function_display_freeze(string_t *src, string_t *dst)
 {
 	unsigned int timeout;
 
-	if(!display_detected())
+	if(!display_hooks_active)
 	{
 		string_append(dst, "display freeze: no display detected\n");
 		return(app_action_error);

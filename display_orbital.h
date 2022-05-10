@@ -3,6 +3,6 @@
 
 #include "display.h"
 
-extern display_info_t display_info_orbital;
+extern display_hooks_t display_hooks_orbital;
 
 #endif

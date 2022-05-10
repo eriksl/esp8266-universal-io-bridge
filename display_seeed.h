@@ -3,6 +3,6 @@
 
 #include "display.h"
 
-extern display_info_t display_info_seeed;
+extern display_hooks_t display_hooks_seeed;
 
 #endif

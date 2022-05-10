@@ -458,24 +458,32 @@ static bool end(void)
 	return(true);
 }
 
-roflash const display_info_t display_info_cfa =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"CFA634 serial LCD",
-		{ 0, 0 },
-		{ 20, 4 },
-		1,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	}
+	strncpy(infostruct->name, "cfa634", sizeof(infostruct->name));
+
+	infostruct->columns = 20;
+	infostruct->rows = 4;
+	infostruct->cell_width = 5;
+	infostruct->cell_height = 8;
+	infostruct->width = 0;
+	infostruct->height = 0;
+	infostruct->pixel_mode = display_pixel_mode_none;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_cfa =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
 };

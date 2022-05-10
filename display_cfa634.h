@@ -5,6 +5,6 @@
 
 bool display_cfa634_setup(unsigned int io, unsigned int pin);
 
-extern display_info_t display_info_cfa;
+extern display_hooks_t display_hooks_cfa;
 
 #endif

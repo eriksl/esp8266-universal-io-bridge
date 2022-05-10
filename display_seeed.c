@@ -504,24 +504,32 @@ static bool end(void)
 	return(true);
 }
 
-roflash const display_info_t display_info_seeed =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"SEEED LCD",
-		{ 21, 8 },
-		{ 0, 0 },
-		0,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		standout,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-		(void *)0,
-	}
+	strncpy(infostruct->name, "seeed studio", sizeof(infostruct->name));
+
+	infostruct->columns = 21;
+	infostruct->rows = 8;
+	infostruct->cell_width = 5;
+	infostruct->cell_height = 8;
+	infostruct->width = 0;
+	infostruct->height = 0;
+	infostruct->pixel_mode = display_pixel_mode_none;
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_seeed =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	standout,
+	(void *)0,
+	(void *)0,
+	(void *)0,
+	(void *)0,
 };

@@ -540,24 +540,32 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	return(true);
 }
 
-roflash const display_info_t display_info_ssd1306 =
+static bool info(display_info_t *infostruct)
 {
-	{
-		"SSD1306 / SH1106 OLED",
-		{ 21, 4 },
-		{ 128, 64 },
-		1,
-	},
-	{
-		init,
-		begin,
-		output,
-		end,
-		bright,
-		standout,
-		(void *)0,
-		(void *)0,
-		plot,
-		(void *)0,
-	}
+	strncpy(infostruct->name, "SSD1306 OLED", sizeof(infostruct->name));
+
+	infostruct->columns = 21; // FIXME
+	infostruct->rows = 4; // FIXME
+	infostruct->cell_width = 5; // FIXME
+	infostruct->cell_height = 8; // FIXME
+	infostruct->width = 128; // FIXME
+	infostruct->height = 64; // FIXME
+	infostruct->pixel_mode = display_pixel_mode_none; // FIXME
+
+	return(true);
+}
+
+roflash const display_hooks_t display_hooks_ssd1306 =
+{
+	init,
+	info,
+	begin,
+	output,
+	end,
+	bright,
+	standout,
+	(void *)0,
+	(void *)0,
+	plot,
+	(void *)0,
 };
