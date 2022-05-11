@@ -11,14 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef enum
-{
-	display_type_disabled = 0,
-	display_type_st7735 = 1,
-	display_type_ili9341 = 2,
-	display_type_illegal,
-} display_type_t;
-
 typedef struct
 {
 	unsigned int	unicode;
@@ -65,7 +57,7 @@ assert_size(text, 3);
 
 static struct attr_packed
 {
-	display_type_t	type:3;
+	unsigned int	enabled:1;
 	unsigned int	logmode:1;
 	unsigned int	graphic_mode:1;
 	unsigned int	brightness:3;
@@ -390,7 +382,6 @@ static attr_result_used bool text_newline(void)
 
 static bool init(void)
 {
-	unsigned int display_type;
 	int dcx_io, dcx_pin;
 	int user_cs_io, user_cs_pin;
 	unsigned int x_size, x_offset;
@@ -399,14 +390,7 @@ static bool init(void)
 	unsigned int rotate;
 	unsigned int madctl;
 
-	if(!config_get_uint("spitft.type", &display_type, -1, -1))
-	{
-		display.type = display_type_disabled;
-		goto error;
-	}
-
-	display.type = display_type;
-	display.brightness = 4;
+	display.enabled = 0;
 
 	if(!config_get_uint("spitft.x.size", &x_size, -1, -1))
 		goto error;
@@ -476,37 +460,27 @@ static bool init(void)
 	if(!write_command(cmd_invoff))
 		goto error;
 
-	switch(display.type)
-	{
-		case(display_type_st7735):
-		case(display_type_ili9341):
-		{
-			madctl = madctl_bgr;
+	madctl = madctl_bgr;
 
-			if(display.rotate)
-				madctl |= madctl_mv;
+	if(display.rotate)
+		madctl |= madctl_mv;
 
-			if(display.x_mirror)
-				madctl |= madctl_mx;
+	if(display.x_mirror)
+		madctl |= madctl_mx;
 
-			if(display.y_mirror)
-				madctl |= madctl_my;
+	if(display.y_mirror)
+		madctl |= madctl_my;
 
-			if(!write_command_data_1(cmd_madctl, madctl))
-				goto error;
-
-			break;
-		}
-
-		default:
-			goto error;
-	}
+	if(!write_command_data_1(cmd_madctl, madctl))
+		goto error;
 
 	text.column = text.row = 0;
 
+	display.brightness = 4;
 	display.graphic_mode = 0;
 	display.logmode = 0;
 	display.buffer_current = 0;
+	display.enabled = 1;
 
 	if(display_buffer_size > 32) // spi engine can't handle writes > 32 bytes
 		display.buffer_size = 32;
@@ -527,7 +501,7 @@ static bool begin(unsigned int slot, bool logmode)
 	unsigned int r, g, b;
 	font_info_t font_info;
 
-	if(display.type == display_type_disabled)
+	if(!display.enabled)
 		return(false);
 
 	if(!font_select(logmode))
@@ -659,7 +633,7 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 			return(false);
 	}
 
-	if(!write_command(cmd_ramwrc)) // may not work on other than ilitek chips
+	if(!write_command(cmd_ramwrc))
 		return(false);
 
 	for(ix = 0; ix < string_length(pixels); ix++)
@@ -674,84 +648,70 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 {
-	unsigned int param_type;
 	unsigned int x_size, x_offset, x_mirror;
 	unsigned int y_size, y_offset, y_mirror;
 	unsigned int rotate;
 	int dcx_io, dcx_pin;
 	int cs_io, cs_pin;
 
-	if(parse_uint(1, src, &param_type, 0, ' ') == parse_ok)
+	if(parse_uint(1, src, &x_size, 0, ' ') == parse_ok)
 	{
-		if(param_type >= display_type_illegal)
+		if((parse_uint(2, src, &x_offset, 0, ' ') != parse_ok) ||
+			(parse_uint(3, src, &x_mirror, 0, ' ') != parse_ok))
 		{
 			string_append_cstr_flash(dst, help_description_display_spitft);
 			return(app_action_error);
 		}
 
-		if(param_type != display_type_disabled)
+		if((parse_uint(4, src, &y_size, 0, ' ') != parse_ok) ||
+				(parse_uint(5, src, &y_offset, 0, ' ') != parse_ok) ||
+				(parse_uint(6, src, &y_mirror, 0, ' ') != parse_ok))
 		{
-			if((parse_uint(2, src, &x_size, 0, ' ') != parse_ok) ||
-				(parse_uint(3, src, &x_offset, 0, ' ') != parse_ok) ||
-				(parse_uint(4, src, &x_mirror, 0, ' ') != parse_ok))
+			string_append_cstr_flash(dst, help_description_display_spitft);
+			return(app_action_error);
+		}
+
+		if(parse_uint(7, src, &rotate, 0, ' ') != parse_ok)
+		{
+			string_append_cstr_flash(dst, help_description_display_spitft);
+			return(app_action_error);
+		}
+
+		if((parse_int(8, src, &dcx_io, 0, ' ') != parse_ok) ||
+				(parse_int(9, src, &dcx_pin, 0, ' ') != parse_ok))
+		{
+			string_append_cstr_flash(dst, help_description_display_spitft);
+			return(app_action_error);
+		}
+
+		if((dcx_io < 0) || (dcx_io >= io_id_size) || (dcx_pin < 0) || (dcx_pin >= max_pins_per_io))
+		{
+			string_append_cstr_flash(dst, help_description_display_spitft);
+			return(app_action_error);
+		}
+
+		if((parse_int(10, src, &cs_io, 0, ' ') == parse_ok) &&
+				(parse_int(11, src, &cs_pin, 0, ' ') == parse_ok))
+		{
+			if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
 			}
-
-			if((parse_uint(5, src, &y_size, 0, ' ') != parse_ok) ||
-					(parse_uint(6, src, &y_offset, 0, ' ') != parse_ok) ||
-					(parse_uint(7, src, &y_mirror, 0, ' ') != parse_ok))
-			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
-				return(app_action_error);
-			}
-
-			if(parse_uint(8, src, &rotate, 0, ' ') != parse_ok)
-			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
-				return(app_action_error);
-			}
-
-			if((parse_int(9, src, &dcx_io, 0, ' ') != parse_ok) ||
-					(parse_int(10, src, &dcx_pin, 0, ' ') != parse_ok))
-			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
-				return(app_action_error);
-			}
-
-			if((dcx_io < 0) || (dcx_io >= io_id_size) || (dcx_pin < 0) || (dcx_pin >= max_pins_per_io))
-			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
-				return(app_action_error);
-			}
-
-			if((parse_int(11, src, &cs_io, 0, ' ') == parse_ok) &&
-					(parse_int(12, src, &cs_pin, 0, ' ') == parse_ok))
-			{
-				if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
-				{
-					string_append_cstr_flash(dst, help_description_display_spitft);
-					return(app_action_error);
-				}
-			}
-			else
-			{
-				cs_io = -1;
-				cs_pin = -1;
-			}
+		}
+		else
+		{
+			cs_io = -1;
+			cs_pin = -1;
 		}
 
 		if(!config_open_write())
 			goto config_error;
 
-		if(param_type == display_type_disabled)
+		if(x_size == 0)
 			config_delete("spitft.", true, -1, -1);
 		else
 		{
-			if(!config_set_uint("spitft.type", param_type, -1, -1))
-				goto config_error;
-
 			if(!config_set_uint("spitft.x.size", x_size, -1, -1))
 				goto config_error;
 
@@ -792,7 +752,6 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 				if(!config_set_uint("spitft.cs.pin", cs_pin, -1, -1))
 					goto config_error;
 			}
-
 		}
 
 		if(!config_close_write())
@@ -805,59 +764,48 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		pin.user_cs.pin = cs_pin;
 	}
 
-	if(!config_get_uint("spitft.type", &param_type, -1, -1))
-		param_type = 0;
-
-	switch(param_type)
+	if(!config_get_uint("spitft.x.size", &x_size, -1, -1))
 	{
-		case(display_type_disabled): string_append(dst, "> type 0 (disabled)\n"); break;
-		case(display_type_st7735): string_append(dst, "> type 1 (st7735)\n"); break;
-		case(display_type_ili9341): string_append(dst, "> type 2 (ili9341)\n"); break;
-		default: string_append(dst, "> unknown type\n"); break;
+		string_format(dst, "no spi tft display configured\n");
+		return(app_action_error);
 	}
 
-	if(param_type != display_type_disabled)
-	{
-		if(!config_get_uint("spitft.x.size", &x_size, -1, -1))
-			x_size = 0;
+	if(!config_get_uint("spitft.x.offset", &x_offset, -1, -1))
+		x_offset = 0;
 
-		if(!config_get_uint("spitft.x.offset", &x_offset, -1, -1))
-			x_offset = 0;
+	if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
+		x_mirror = 0;
 
-		if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
-			x_mirror = 0;
+	string_format(dst, "> x size: %u, offset: %u, mirror: %u\n", x_size, x_offset, x_mirror);
 
-		string_format(dst, "> x size: %u, offset: %u, mirror: %u\n", x_size, x_offset, x_mirror);
+	if(!config_get_uint("spitft.y.size", &y_size, -1, -1))
+		y_size = 0;
 
-		if(!config_get_uint("spitft.y.size", &y_size, -1, -1))
-			y_size = 0;
+	if(!config_get_uint("spitft.y.offset", &y_offset, -1, -1))
+		y_offset = 0;
 
-		if(!config_get_uint("spitft.y.offset", &y_offset, -1, -1))
-			y_offset = 0;
+	if(!config_get_uint("spitft.y.mirror", &y_mirror, -1, -1))
+		x_mirror = 0;
 
-		if(!config_get_uint("spitft.y.mirror", &y_mirror, -1, -1))
-			x_mirror = 0;
+	string_format(dst, "> y size: %u, offset: %u, mirror: %u\n", y_size, y_offset, y_mirror);
 
-		string_format(dst, "> y size: %u, offset: %u, mirror: %u\n", y_size, y_offset, y_mirror);
+	if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
+		rotate = 0;
 
-		if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
-			rotate = 0;
+	string_format(dst, "> rotate: %u\n", rotate);
 
-		string_format(dst, "> rotate: %u\n", rotate);
+	if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
+			!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
+		dcx_io = dcx_pin = -1;
 
-		if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
-				!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
-			dcx_io = dcx_pin = -1;
+	string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
 
-		string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
+	if(!config_get_int("spitft.cs.io", &cs_io, -1, -1) ||
+			!config_get_int("spitft.cs.pin", &cs_pin, -1, -1))
+		cs_io = cs_pin = -1;
 
-		if(!config_get_int("spitft.cs.io", &cs_io, -1, -1) ||
-				!config_get_int("spitft.cs.pin", &cs_pin, -1, -1))
-			cs_io = cs_pin = -1;
-
-		if((cs_io >= 0) && (cs_pin >= 0))
-			string_format(dst, "> cs io: %d, pin: %d\n", cs_io, cs_pin);
-	}
+	if((cs_io >= 0) && (cs_pin >= 0))
+		string_format(dst, "> cs io: %d, pin: %d\n", cs_io, cs_pin);
 
 	return(app_action_normal);
 

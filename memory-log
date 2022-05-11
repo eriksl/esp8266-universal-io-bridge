@@ -13130,3 +13130,7 @@ Tue May 10 16:48:26 CEST 2022 51e1619 display: spitft: add preliminary support f
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65373, free:  14892, 18 %
     irom:    available: 784 k, used: 435696, free: 367120, 45 %
+Wed May 11 10:45:26 CEST 2022 9c6997b fonts: add a medium-small font.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435440, free: 367376, 45 %
