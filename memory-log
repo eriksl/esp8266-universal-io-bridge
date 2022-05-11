@@ -13134,3 +13134,31 @@ Wed May 11 10:45:26 CEST 2022 9c6997b fonts: add a medium-small font.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65373, free:  14892, 18 %
     irom:    available: 784 k, used: 435440, free: 367376, 45 %
+Wed May 11 11:01:47 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Wed May 11 11:03:23 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Wed May 11 11:03:44 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Wed May 11 11:20:39 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435520, free: 367296, 45 %
+Wed May 11 11:21:30 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435536, free: 367280, 45 %
+Wed May 11 11:22:10 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435552, free: 367264, 45 %
+Wed May 11 11:23:48 CEST 2022 74e6fbb display_spitft: remove display type, apparently most types are compatible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435488, free: 367328, 45 %

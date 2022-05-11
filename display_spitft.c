@@ -622,10 +622,10 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 	if((x == 0) && (y == 0))
 	{
-		if(!write_command_data_2_16(cmd_caset, display.x_offset, display.x_offset + display.x_size))
+		if(!write_command_data_2_16(cmd_caset, display.x_offset, display.x_offset + display.x_size - 1))
 			return(false);
 
-		if(!write_command_data_2_16(cmd_raset, display.y_offset, display.y_offset + display.y_size))
+		if(!write_command_data_2_16(cmd_raset, display.y_offset, display.y_offset + display.y_size - 1))
 			return(false);
 
 		if(!write_command(cmd_ramwr))
