@@ -33,7 +33,6 @@ enum
 	cmd_idmoff =	0x38,
 	cmd_idmon =		0x39,
 	cmd_colmod =	0x3a,
-	cmd_ramwrc =	0x3c,
 
 	madctl_my =		(1 << 7),
 	madctl_mx = 	(1 << 6),
@@ -632,9 +631,6 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 		if(!write_command(cmd_ramwr))
 			return(false);
 	}
-
-	if(!write_command(cmd_ramwrc))
-		return(false);
 
 	for(ix = 0; ix < string_length(pixels); ix++)
 		if(!output_data(string_at(pixels, ix)))
