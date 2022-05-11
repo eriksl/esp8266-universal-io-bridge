@@ -94,6 +94,15 @@ bool display_get_info(display_info_t *info)
 	if(!display_hooks_active || !display_hooks_active->info_fn)
 		return(false);
 
+	info->name[0] = '\0';
+	info->columns = 0;
+	info->rows = 0;
+	info->cell_width = 0;
+	info->cell_height = 0;
+	info->width = 0;
+	info->height = 0;
+	info->pixel_mode = display_pixel_mode_none;
+
 	return(display_hooks_active->info_fn(info));
 }
 
