@@ -150,13 +150,13 @@ bool font_render(unsigned int code, font_cell_t cell)
 			return(false);
 		}
 
+		font_code = *current & ~(1U << 31);
+
 		if(font_code == font_codepoint_last_entry)
 		{
 			log("font_render: code not found (1)\n");
 			return(false);
 		}
-
-		font_code = *current & ~(1U << 31);
 
 		if(font_code > code)
 		{
@@ -174,7 +174,7 @@ bool font_render(unsigned int code, font_cell_t cell)
 
 	for(y = 0; y < height; y++)
 		for(x = 0; x < width; x++)
-			cell[y][x] = current[y] & (1 << x) ? ~0 : 0;
+			cell[y][x] = font_code == code ? (current[y] & (1 << x) ? ~0 : 0) : 0;
 
 	spent = time_get_us() - start;
 
