@@ -3,7 +3,6 @@
 #include "display_lcd.h"
 #include "display_orbital.h"
 #include "display_cfa634.h"
-#include "display_seeed.h"
 #include "display_eastrising.h"
 #include "display_ssd1306.h"
 #include "display_spitft.h"
@@ -69,7 +68,6 @@ roflash static display_hooks_t const *const display_hooks[] =
 	&display_hooks_lcd,
 	&display_hooks_orbital,
 	&display_hooks_cfa,
-	&display_hooks_seeed,
 	&display_hooks_eastrising,
 	&display_hooks_ssd1306,
 	&display_hooks_spitft,

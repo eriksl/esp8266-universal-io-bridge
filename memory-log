@@ -13354,3 +13354,7 @@ Thu May 12 18:49:19 CEST 2022 0aa835e display_spitft: correct off-by-one error l
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65345, free:  14920, 18 %
     irom:    available: 784 k, used: 433632, free: 369184, 45 %
+Thu May 12 19:02:27 CEST 2022 03c6f59 display_eastrising: reimplement it much simpler, similar to display_spitft.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 431904, free: 370912, 46 %
