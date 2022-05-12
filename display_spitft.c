@@ -219,6 +219,7 @@ static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int fro
 	colour[1] = (box_colour & 0x00ff) >> 0;
 
 	for(y = from_y; y <= to_y; y++)
+	{
 		for(x = from_x; x <= to_x; x++)
 		{
 			if(!output_data(colour[0]))
@@ -226,6 +227,7 @@ static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int fro
 			if(!output_data(colour[1]))
 				return(false);
 		}
+	}
 
 	if(!flush_data())
 		return(false);
@@ -258,24 +260,13 @@ attr_inline attr_result_used bool output_data(unsigned int byte)
 	return(true);
 }
 
-attr_inline attr_result_used bool output_data_16(unsigned int word)
-{
-	if(!output_data((word & 0xff00) >> 8))
-		return(false);
-
-	if(!output_data((word & 0x00ff) >> 0))
-		return(false);
-
-	return(true);
-}
-
 static attr_result_used bool text_send(unsigned int code)
 {
 	font_info_t font_info;
 	font_cell_t font_cell;
 	unsigned int x, y, r, g, b;
 	unsigned int y_offset;
-	unsigned int fg_colour, bg_colour;
+	unsigned int fg_colour, bg_colour, colour;
 
 	if(!flush_data())
 		return(false);
@@ -335,9 +326,17 @@ static attr_result_used bool text_send(unsigned int code)
 		return(false);
 
 	for(y = 0; y < font_info.height; y++)
+	{
 		for(x = 0; x < font_info.width; x++)
-			if(!output_data_16(font_cell[y][x] ? fg_colour : bg_colour))
+		{
+			colour = font_cell[y][x] ? fg_colour : bg_colour;
+
+			if(!output_data((colour & 0xff00) >> 8))
 				return(false);
+			if(!output_data((colour & 0x00ff) >> 0))
+				return(false);
+		}
+	}
 
 	if(!flush_data())
 		return(false);
