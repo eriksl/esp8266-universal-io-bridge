@@ -13358,3 +13358,7 @@ Thu May 12 19:02:27 CEST 2022 03c6f59 display_eastrising: reimplement it much si
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65321, free:  14944, 18 %
     irom:    available: 784 k, used: 431904, free: 370912, 46 %
+Thu May 12 19:04:08 CEST 2022 e5e7660 display_seeed: remove code, I can't get it working anymore.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 431888, free: 370928, 46 %

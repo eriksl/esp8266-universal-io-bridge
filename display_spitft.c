@@ -11,12 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-} unicode_map_t;
-
 enum
 {
 	cmd_nop =		0x00,
@@ -103,14 +97,15 @@ static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned
 
 static void background_colour(unsigned int slot, bool highlight, unsigned int *r, unsigned int *g, unsigned int *b)
 {
-	roflash static const unsigned int rgb[3][3] =
+	roflash static const unsigned int rgb[4][3] =
 	{
-		{	0xff, 	0x00,	0x00	},
+		{	0x40, 	0x40,	0x40	},
+		{	0xff,	0x00,	0x00	},
 		{	0x00,	0x88,	0x00	},
 		{	0x00,	0x00,	0xff	},
 	};
 
-	slot = slot % 3;
+	slot = slot % 4;
 
 	*r = rgb[slot][0];
 	*g = rgb[slot][1];
@@ -201,36 +196,8 @@ static bool attr_result_used write_command_data_2_16(unsigned int cmd, unsigned 
 	return(true);
 }
 
-static attr_result_used bool flush_data(void)
-{
-	if((display.buffer_current > 1) && !write_data(display.buffer_current, display_buffer))
-		return(false);
-
-	display.buffer_current = 0;
-
-	return(true);
-}
-
-attr_inline attr_result_used bool output_data(unsigned int byte)
-{
-	if(((display.buffer_current + 1) >= display.buffer_size) && !flush_data())
-		return(false);
-
-	display_buffer[display.buffer_current++] = (uint8_t)byte;
-
-	return(true);
-}
-
-attr_inline attr_result_used bool output_data_16(unsigned int word)
-{
-	if(!output_data((word & 0xff00) >> 8))
-		return(false);
-
-	if(!output_data((word & 0x00ff) >> 0))
-		return(false);
-
-	return(true);
-}
+static attr_result_used bool flush_data(void);
+attr_inline attr_result_used bool output_data(unsigned int byte);
 
 static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
 {
@@ -268,13 +235,44 @@ static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int fro
 
 static bool clear_screen(void)
 {
-	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size, display.y_size));
+	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1));
+}
+
+static attr_result_used bool flush_data(void)
+{
+	if((display.buffer_current > 1) && !write_data(display.buffer_current, display_buffer))
+		return(false);
+
+	display.buffer_current = 0;
+
+	return(true);
+}
+
+attr_inline attr_result_used bool output_data(unsigned int byte)
+{
+	if(((display.buffer_current + 1) >= display.buffer_size) && !flush_data())
+		return(false);
+
+	display_buffer[display.buffer_current++] = (uint8_t)byte;
+
+	return(true);
+}
+
+attr_inline attr_result_used bool output_data_16(unsigned int word)
+{
+	if(!output_data((word & 0xff00) >> 8))
+		return(false);
+
+	if(!output_data((word & 0x00ff) >> 0))
+		return(false);
+
+	return(true);
 }
 
 static attr_result_used bool text_send(unsigned int code)
 {
 	font_info_t font_info;
-	font_cell_t cell;
+	font_cell_t font_cell;
 	unsigned int x, y, r, g, b;
 	unsigned int y_offset;
 	unsigned int fg_colour, bg_colour;
@@ -303,7 +301,7 @@ static attr_result_used bool text_send(unsigned int code)
 	if(((x + font_info.width) > display.x_size) || ((y + font_info.height) > display.y_size))
 		goto skip;
 
-	if(!font_render(code, cell))
+	if(!font_render(code, font_cell))
 		return(false);
 
 	r = 0xff;
@@ -338,7 +336,7 @@ static attr_result_used bool text_send(unsigned int code)
 
 	for(y = 0; y < font_info.height; y++)
 		for(x = 0; x < font_info.width; x++)
-			if(!output_data_16(cell[y][x] ? fg_colour : bg_colour))
+			if(!output_data_16(font_cell[y][x] ? fg_colour : bg_colour))
 				return(false);
 
 	if(!flush_data())
@@ -364,7 +362,7 @@ static attr_result_used bool text_newline(void)
 		text.row = (text.row + 1) % (display.y_size / font_info.height);
 
 		x1 = 0;
-		x2 = x1 + display.x_size;
+		x2 = x1 + (display.x_size - 1);
 		y1 = text.row * font_info.height;
 		y2 = y1 + font_info.height;
 
@@ -437,6 +435,14 @@ static bool init(void)
 	pin.user_cs.io = user_cs_io;
 	pin.user_cs.pin = user_cs_pin;
 
+	text.column = text.row = 0;
+
+	display.brightness = 4;
+	display.graphic_mode = 0;
+	display.logmode = 0;
+	display.buffer_current = 0;
+	display.enabled = 1;
+
 	if(!write_command(cmd_swreset))
 		goto error;
 
@@ -473,14 +479,6 @@ static bool init(void)
 	if(!write_command_data_1(cmd_madctl, madctl))
 		goto error;
 
-	text.column = text.row = 0;
-
-	display.brightness = 4;
-	display.graphic_mode = 0;
-	display.logmode = 0;
-	display.buffer_current = 0;
-	display.enabled = 1;
-
 	if(display_buffer_size > 32) // spi engine can't handle writes > 32 bytes
 		display.buffer_size = 32;
 	else
@@ -503,23 +501,23 @@ static bool begin(unsigned int slot, bool logmode)
 	if(!display.enabled)
 		return(false);
 
+	text.column = text.row = 0;
+	text.slot = slot;
+	text.display_slot = slot % 2;
+	display.logmode = logmode;
+
 	if(!font_select(logmode))
 		return(false);
 
 	if(!font_get_info(&font_info))
 		return(false);
 
-	text.column = text.row = 0;
-	text.slot = slot;
-	text.display_slot = slot % 2;
-	display.logmode = logmode;
-
 	if(!display.logmode)
 	{
 		background_colour(text.slot, true, &r, &g, &b);
 
 		x1 = 0;
-		x2 = display.x_size;
+		x2 = display.x_size - 1;
 
 		if(text.display_slot == 0)
 		{
@@ -528,7 +526,7 @@ static bool begin(unsigned int slot, bool logmode)
 		}
 		else
 		{
-			y1 = display.y_size / 2;
+			y1 = (display.y_size - 1) / 2;
 			y2 = y1 + font_info.height + 1;
 		}
 
@@ -538,17 +536,17 @@ static bool begin(unsigned int slot, bool logmode)
 		background_colour(text.slot, false, &r, &g, &b);
 
 		x1 = 0;
-		x2 = display.x_size;
+		x2 = display.x_size - 1;
 
 		if(text.display_slot == 0)
 		{
 			y1 = font_info.height + 2;
-			y2 = display.y_size / 2 - 1;
+			y2 = (display.y_size - 1) / 2 - 1;
 		}
 		else
 		{
-			y1 = (display.y_size / 2) + font_info.height + 2;
-			y2 = display.y_size;
+			y1 = ((display.y_size - 1) / 2) + font_info.height + 2;
+			y2 = display.y_size - 1;
 		}
 
 		if(!box(r, g, b, x1, y1, x2, y2))
@@ -564,7 +562,7 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 	/* this is required for log mode */
 
-	if(display.graphic_mode)
+	if(display.graphic_mode && display.logmode)
 	{
 		if(!clear_screen())
 			return(false);
@@ -583,9 +581,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 			continue;
 		}
-
-		if((current < ' ') || (current > '}'))
-			current = ' ';
 
 		if(!text_send(current))
 			return(false);
@@ -606,10 +601,10 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	if(string_length(pixels) == 0)
 		return(true);
 
-	if(x > display.x_size)
+	if(x >= display.x_size)
 		return(false);
 
-	if(y > display.y_size)
+	if(y >= display.y_size)
 		return(false);
 
 	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
@@ -631,6 +626,8 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 		if(!write_command(cmd_ramwr))
 			return(false);
 	}
+
+	display.graphic_mode = 1;
 
 	for(ix = 0; ix < string_length(pixels); ix++)
 		if(!output_data(string_at(pixels, ix)))
