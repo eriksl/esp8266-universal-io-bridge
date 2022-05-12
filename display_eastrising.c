@@ -6,16 +6,10 @@
 #include "sys_time.h"
 #include "dispatch.h"
 #include "util.h"
-//#include "font/font_32x16.h"
+#include "font.h"
 
 #include <stdint.h>
 #include <stdbool.h>
-
-typedef struct
-{
-	unsigned int	unicode;
-	unsigned int	internal;
-} unicode_map_t;
 
 typedef enum
 {
@@ -24,47 +18,39 @@ typedef enum
 	display_mode_spi,
 } display_mode_t;
 
-typedef enum
+typedef struct attr_packed
 {
-	render_mode_internal,
-	render_mode_fontchip,
-	render_mode_graphic,
-} render_mode_t;
+	unsigned int column:8;
+	unsigned int row:8;
+	unsigned int slot:4;
+	unsigned int display_slot:1;
+} text_t;
 
-typedef enum
-{
-	pls_init = 0,
-	pls_start,
-	pls_in_progress,
-	pls_done,
-} picture_load_state_t;
+assert_size(text_t, 3);
 
-typedef struct
+typedef struct attr_packed
 {
-	unsigned int r, g, b;
-} rgb_t;
+	display_mode_t	mode:2;
+	unsigned int	logmode:1;
+	unsigned int	graphic_mode:1;
+	unsigned int	brightness:3;
+	unsigned int	low_brightness:1;
+	unsigned int	x_size:10;
+	unsigned int	y_size:10;
+} display_t;
 
-typedef struct
-{
-	rgb_t fg, bg;
-} rgb_fg_bg_t;
+assert_size(display_t, 4);
 
-typedef struct
+typedef struct attr_packed
 {
-	rgb_fg_bg_t tag;
-	rgb_fg_bg_t normal;
-} colours_t;
+	struct attr_packed
+	{
+		int8_t io;
+		int8_t pin;
+	} user_cs;
+} pin_t;
 
-typedef struct
-{
-	colours_t low_bright;
-	colours_t normal_bright;
-} theme_t;
-
-enum
-{
-	mapeof = 0xffffffff,
-};
+assert_size(pin_t, 2);
 
 enum
 {
@@ -85,8 +71,6 @@ enum
 	reg_pwrr =		0x01,
 	reg_mrwc =		0x02,
 	reg_pcsr =		0x04,
-	reg_sroc =		0x05,
-	reg_sfclr =		0x06,
 	reg_sysr =		0x10,
 	reg_hdwr =		0x14,
 	reg_hndftr =	0x15,
@@ -101,15 +85,6 @@ enum
 	reg_vstr1 =		0x1e,
 	reg_vpwr =		0x1f,
 	reg_dpcr =		0x20,
-	reg_fncr0 =		0x21,
-	reg_fncr1 =		0x22,
-	reg_fldr =		0x29,
-	reg_curxl =		0x2a,
-	reg_curxh =		0x2b,
-	reg_curyl =		0x2c,
-	reg_curyh =		0x2d,
-	reg_fncr2 =		0x2e,
-	reg_serfont =	0x2f,
 	reg_hsaw0 =		0x30,
 	reg_hsaw1 =		0x31,
 	reg_vsaw0 =		0x32,
@@ -146,17 +121,11 @@ enum
 	reg_fgcr0 =		0x63,
 	reg_fgcr1 =		0x64,
 	reg_fgcr2 =		0x65,
-	reg_bgtr0 =		0x67,
-	reg_bgtr1 =		0x68,
-	reg_bgtr2 =		0x69,
 	reg_pll_c1 =	0x88,
 	reg_pll_c2 =	0x89,
 	reg_p1cr =		0x8a,
 	reg_p1dcr =		0x8b,
 	reg_mclr =		0x8e,
-	reg_sacs_mode =	0xe0,
-	reg_sacs_addr = 0xe1,
-	reg_sacs_data =	0xe2,
 
 	reg_pllc1_plldivm_div_1 =				0b000000,
 	reg_pllc1_plldivm_div_2 =				0b100000,
@@ -179,25 +148,6 @@ enum
 	reg_pcsr_clock_period_system_by_2 =		0b00000001,
 	reg_pcsr_clock_period_system_by_4 =		0b00000010,
 	reg_pcsr_clock_period_system_by_8 =		0b00000011,
-
-	reg_sroc_if_select_0 =					0b00000000,
-	reg_sroc_if_select_1 =					0b10000000,
-	reg_sroc_addr_mode_24 =					0b00000000,
-	reg_sroc_addr_mode_32 =					0b01000000,
-	reg_sroc_spi_mode_0 =					0b00000000,
-	reg_sroc_spi_mode_3 =					0b00100000,
-	reg_sroc_mode_4bus =					0b00000000,
-	reg_sroc_mode_5bus =					0b00001000,
-	reg_sroc_mode_6bus =					0b00010000,
-	reg_sroc_access_font =					0b00000000,
-	reg_sroc_access_dma =					0b00000100,
-	reg_sroc_data_mode_dual_1 =				0b00000011,
-	reg_sroc_data_mode_dual_0 =				0b00000010,
-	reg_sroc_data_mode_single =				0b00000000,
-
-	reg_sfclr_by_1 =						0b00000000,
-	reg_sfclr_by_2 =						0b00000010,
-	reg_sfclr_by_4 =						0b00000011,
 
 	reg_hndftr_de_polarity_active_high =	0b00000000,
 	reg_hndftr_de_polarity_active_low =		0b10000000,
@@ -273,54 +223,6 @@ enum
 	reg_mwcr0_memory_write_autoincr_dis =	0b00000010,
 	reg_mwcr0_memory_read_autoincr_en =		0b00000000,
 	reg_mwcr0_memory_read_autoincr_dis =	0b00000001,
-
-	reg_mwcr0_default =						reg_mwcr0_cursor_invisible | reg_mwcr0_cursor_steady | reg_mwcr0_memory_write_direction_lrtd | reg_mwcr0_memory_write_autoincr_en | reg_mwcr0_memory_read_autoincr_en,
-
-	reg_fncr0_font_cgrom =					0b00000000,
-	reg_fncr0_font_cgram =					0b10000000,
-	reg_fncr0_font_internal =				0b00000000,
-	reg_fncr0_font_external =				0b00100000,
-	reg_fncr0_encoding_8859_1 =				0b00000000,
-	reg_fncr0_encoding_8859_2 =				0b00000001,
-	reg_fncr0_encoding_8859_3 =				0b00000010,
-	reg_fncr0_encoding_8859_4 =				0b00000011,
-
-	reg_fncr1_font_align_disable =			0b00000000,
-	reg_fncr1_font_align_enable =			0b10000000,
-	reg_fncr1_font_transparent =			0b01000000,
-	reg_fncr1_font_opaque =					0b00000000,
-	reg_fncr1_font_straight =				0b00000000,
-	reg_fncr1_font_rotate_90 =				0b00010000,
-	reg_fncr1_font_enlarge_hor_x1 =			0b00000000,
-	reg_fncr1_font_enlarge_hor_x2 =			0b00000100,
-	reg_fncr1_font_enlarge_hor_x3 =			0b00001000,
-	reg_fncr1_font_enlarge_hor_x4 =			0b00001100,
-	reg_fncr1_font_enlarge_ver_x1 =			0b00000000,
-	reg_fncr1_font_enlarge_ver_x2 =			0b00000001,
-	reg_fncr1_font_enlarge_ver_x3 =			0b00000010,
-	reg_fncr1_font_enlarge_ver_x4 =			0b00000011,
-
-	reg_fncr2_font_size_16x16 =				0b00000000,
-	reg_fncr2_font_size_24x24 =				0b01000000,
-	reg_fncr2_font_size_32x32 =				0b10000000,
-
-	reg_serfont_type_gt21l16tw =			0b00000000,
-	reg_serfont_type_gt30l16u2w =			0b00100000,
-	reg_serfont_type_gt30l24t3y =			0b01000000,
-	reg_serfont_type_gt30l24m1z =			0b01100000,
-	reg_serfont_type_gt30l32s4w =			0b10000000,
-	reg_serfont_enc_gb2312 =				0b00000000,
-	reg_serfont_enc_gb12345 =				0b00000100,
-	reg_serfont_enc_big5 =					0b00001000,
-	reg_serfont_enc_unicode =				0b00001100,
-	reg_serfont_enc_ascii =					0b00010000,
-	reg_serfont_enc_unijapanese =			0b00010100,
-	reg_serfont_enc_jis0208 =				0b00011000,
-	reg_serfont_enc_iso =					0b00011100,
-	reg_serfont_font_alternative_1 =		0b00000000,
-	reg_serfont_font_alternative_2 =		0b00000001,
-	reg_serfont_font_alternative_3 =		0b00000010,
-	reg_serfont_font_alternative_4 =		0b00000011,
 
 	reg_ltpr0_scroll_both =					0b00000000,
 	reg_ltpr0_scroll_layer_1 =				0b01000000,
@@ -408,420 +310,20 @@ enum
 	reg_becr1_rop_func_s_or_nd =			0b11010000,
 	reg_becr1_rop_func_s_or_d =				0b11100000,
 
-	reg_sacs_mode_font_dma =				0b00000000,
-	reg_sacs_mode_direct_access =			0b00000001,
-
-	display_width = 480,
-	display_height = 272,
-	display_horizontal_blanking = 38,
-	display_horizontal_blanking_fine = 4,
-	display_horizontal_sync_start = 16,
-	display_horizontal_sync_length = 32,
-	display_vertical_blanking = 14,
-	display_vertical_sync_start = 6,
-	display_vertical_sync_length = 2,
+	horizontal_blanking = 38,
+	horizontal_blanking_fine = 4,
+	horizontal_sync_start = 16,
+	horizontal_sync_length = 32,
+	vertical_blanking = 14,
+	vertical_sync_start = 6,
+	vertical_sync_length = 2,
 
 	display_slot_lines = 4,
-	display_character_slot_padding = 16,
-
-	display_logmode_text_width = 42,
-	display_logmode_text_lines = 17,
-	display_logmode_character_width = 8,
-	display_logmode_character_width_margin = 0,
-	display_logmode_character_width_padding = 2,
-	display_logmode_character_height = 16,
-
-	display_normal_text_width = 25,
-	display_normal_text_lines = display_slot_lines,
-	display_normal_character_width = 16,
-	display_normal_character_width_margin = 4,
-	display_normal_character_width_padding = 3,
-	display_normal_character_height = 32,
-
-	display_fontchip_text_width = 26,
-	display_fontchip_text_lines = display_slot_lines,
-	display_fontchip_character_width = 16,
-	display_fontchip_character_width_margin = 4,
-	display_fontchip_character_width_padding = 3,
-	display_fontchip_character_height = 32,
-
-	display_graphic_text_width = 26,
-	display_graphic_text_lines = display_slot_lines,
-	display_graphic_character_width = 16,
-	display_graphic_character_width_margin = 6,
-	display_graphic_character_width_padding = 2,
-	display_graphic_character_height = 32,
-
-	//display_flash_memory_map_start = 0x40200000,
 };
 
-roflash static const unicode_map_t unicode_map_internal_font[] =
-{
-	{	0x263a, 0x01	},	//	☺ 
-	{	0x263b, 0x02	},	//	☻ 
-	{	0x2665, 0x03	},	//	♥ 
-	{	0x25c6, 0x04	},	//	◆ 
-	{	0x2663, 0x05	},	//	♣ 
-	{	0x2660, 0x06	},	//	♠ 
-	{	0x25cf, 0x07	},	//	● 
-	{	0x25c8, 0x08	},	//	◈
-	{	0x25ef, 0x09	},	//	◯ 
-	{	0x25d9, 0x0a	},	//	◙ 
-	{	0x2642, 0x0b	},	//	♂ 
-	{	0x2640, 0x0c	},	//	♀ 
-	{	0x266a,	0x0d	},	//	♪ 
-	{	0x266b,	0x0e	},	//	♫ 
-	{	0x263c,	0x0f	},	//	☼ 
-	{	0x25b6,	0x10	},	//	▶ 
-	{	0x25c0,	0x11	},	//	◀ 
-	{	0x2195,	0x12	},	//	↕ 
-	{	0x203c,	0x13	},	//	‼ 
-	{	0x00b6,	0x14	},	//	¶ 
-	{	0x00a7,	0x15	},	//	§ 
-	{	0x2580,	0x16	},	//	▀ 
-	{	0x21a8,	0x17	},	//	↨  
-	{	0x2191,	0x18	},	//	↑ 
-	{	0x2193,	0x19	},	//	↓ 
-	{	0x2192,	0x1a	},	//	→ 
-	{	0x2190,	0x1b	},	//	←
-	{	0x250c,	0x1c	},	//	┌ 
-	{	0x2194,	0x1d	},	//	↔  
-	{	0x25b2,	0x1e	},	//	▲ 
-	{	0x25bc,	0x1f	},	//	▼ 
-	{	0x2588,	0x7f	},	//	█ 
-	{	0x20ac,	0x80	},	//	€ 
-	{	0x201a,	0x82	},	//	‚ 
-	{	0x0192,	0x83	},	//	ƒ
-	{	0x201e,	0x84	},	//	„
-	{	0x2026,	0x85	},	//	…
-	{	0x2020,	0x86	},	//	† 
-	{	0x2021,	0x87	},	//	‡ 
-	{	0x02c6,	0x88	},	//	ˆ 
-	{	0x2030,	0x89	},	//	‰ 
-	{	0x0160,	0x8a	},	//	Š
-	{	0x2039,	0x8b	},	//	‹ 
-	{	0x0152,	0x8c	},	//	Œ 
-	{	0x017d,	0x8e	},	//	Ž
-	{	0x2018,	0x91	},	//	‘ 
-	{	0x2019,	0x92	},	//	’
-	{	0x201c,	0x93	},	//	“ 
-	{	0x201d,	0x94	},	//	” 
-	{	0x2022,	0x95	},	//	•
-	{	0x2013,	0x96	},	//	–
-	{	0x2014,	0x97	},	//	—
-	{	0x02dc,	0x98	},	//	˜
-	{	0x2122,	0x99	},	//	™ 
-	{	0x0161,	0x9a	},	//	š 
-	{	0x203a,	0x9b	},	//	›
-	{	0x0153,	0x9c	},	//	œ 
-	{	0x017e,	0x9e	},	//	ž
-	{	0x0178,	0x9f	},	//	Ÿ
-	{	mapeof,	0x00	},	// EOF
-};
-
-roflash static const unicode_map_t unicode_map_external_font_chip[] =
-{
-	{	0x00e0,	0xa8a4	},	//	à
-	{	0x00e1,	0xa8a2	},	//	á
-	{	0x00e8,	0xa8a8	},	//	è
-	{	0x00e9,	0xa8a6	},	//	é
-	{	0x00ea,	0xa8ba	},	//	ê
-	{	0x00ec,	0xa8ac	},	//	ì
-	{	0x00ed,	0xa8aa	},	//	í
-	{	0x00f2,	0xa8b0	},	//	ò
-	{	0x00f3,	0xa8ae	},	//	ó
-	{	0x00f9,	0xa8b4	},	//	ù
-	{	0x00fa,	0xa8b2	},	//	ú
-	{	0x00fc,	0xa8b9	},	//	ü
-	{	mapeof,	0x00	},	// EOF
-};
-
-roflash static const theme_t themes[9] =
-{
-	{ // slot 0	theme grey
-		{ // low_bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x28, 0x28, 0x28	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x18, 0x18, 0x18	},	// bg
-			}
-		},
-		{ // normal_bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xc0, 0xd0, 0xc0	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0xff, 0xff	},	// bg
-			}
-		}
-	},
-	{ // slot 1 theme blue
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x50	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x30	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x40, 0xa9, 0xff	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x90, 0xb4, 0xff	},	// bg
-			}
-		}
-	},
-	{ // slot 2 theme red
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x50, 0x00, 0x00	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x30, 0x00, 0x00	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0xff, 0x50, 0x20	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0x90, 0x60	},	// bg
-			}
-		}
-	},
-	{ // slot 3 theme green
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x30, 0x00	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x20, 0x00	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x40, 0xff, 0x00	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x70, 0xff, 0x40	},	// bg
-			}
-		}
-	},
-	{ // slot 4 theme brown
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x40, 0x30, 0x20	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x30, 0x20, 0x10	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0x80, 0x30	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0xa0, 0x50	},	// bg
-			}
-		}
-	},
-	{ // slot 5 theme cyan
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x30, 0x30	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x20, 0x20	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x00, 0xff, 0xff	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0x90, 0xff, 0xff	},	// bg
-			}
-		}
-	},
-	{ // slot 6 theme yellow
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x40, 0x30, 0x00	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x30, 0x20, 0x00	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0xff, 0x00	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0xff, 0x50	},	// bg
-			}
-		}
-	},
-	{ // slot 7 theme purple
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x50, 0x00, 0x40	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x30, 0x00, 0x20	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0xff, 0x50, 0xff	},	// bg
-			},
-			{ // normal
-				{	0x00, 0x00, 0x00	},	// fg
-				{	0xff, 0xb0, 0xff	},	// bg
-			}
-		}
-	},
-	{ // slot 8 theme black and white, fallback for log mode
-		{ // low bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x00	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x00	},	// bg
-			}
-		},
-		{ // normal bright
-			{ // tag
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x00	},	// bg
-			},
-			{ // normal
-				{	0xff, 0xff, 0xff	},	// fg
-				{	0x00, 0x00, 0x00	},	// bg
-			}
-		}
-	}
-};
-
-static display_mode_t display_mode;
-static unsigned int display_user_cs_io;
-static unsigned int display_user_cs_pin;
-static bool display_use_fontchip;
-static bool display_low_brightness = false;
-static bool display_logmode = false;
-static bool display_font_valid = false;
-static unsigned int display_text_current;
-static unsigned int display_x, display_y;
-static unsigned int display_current_slot;
-static colours_t const *colours = &themes[8].normal_bright;
-
-static bool attr_result_used display_write_glyphs(unsigned int x, unsigned int y, unsigned int length, const uint8_t *text);
-
-static render_mode_t display_render_mode(void)
-{
-	if(display_logmode)
-		return(render_mode_internal);
-
-	if(display_use_fontchip)
-		return(render_mode_fontchip);
-
-	if(display_font_valid)
-		return(render_mode_graphic);
-
-	return(render_mode_internal);
-}
-
-attr_inline unsigned int text_width(void)
-{
-	unsigned int rv = 0;
-
-	if(display_logmode)
-		rv = display_logmode_text_width;
-	else
-	{
-		switch(display_render_mode())
-		{
-			case(render_mode_graphic):	rv = display_graphic_text_width;	break;
-			case(render_mode_internal): rv = display_normal_text_width;		break;
-			case(render_mode_fontchip): rv = display_fontchip_text_width;	break;
-		}
-	}
-
-	return(rv);
-}
-
-attr_inline unsigned int text_lines(void)
-{
-	unsigned int rv = 0;
-
-	if(display_logmode)
-		rv = display_logmode_text_lines;
-	else
-	{
-		switch(display_render_mode())
-		{
-			case(render_mode_graphic):	rv = display_graphic_text_lines;	break;
-			case(render_mode_internal): rv = display_normal_text_lines;		break;
-			case(render_mode_fontchip): rv = display_fontchip_text_lines;	break;
-		}
-	}
-
-	return(rv);
-}
-
-attr_inline unsigned int char_height(void)
-{
-	unsigned int rv = 0;
-
-	if(display_logmode)
-		rv = display_logmode_character_height;
-	else
-	{
-		switch(display_render_mode())
-		{
-			case(render_mode_graphic):	rv = display_graphic_character_height;	break;
-			case(render_mode_internal): rv = display_normal_character_height;	break;
-			case(render_mode_fontchip): rv = display_fontchip_character_height;	break;
-		}
-	}
-
-	return(rv);
-}
+static text_t		text;
+static display_t	display;
+static pin_t		pin;
 
 static void set_i2c_speed(int speed)
 {
@@ -838,9 +340,33 @@ static void set_i2c_speed(int speed)
 	i2c_speed_delay(speed);
 }
 
-static bool attr_result_used display_write_command(uint8_t cmd)
+static void background_colour(unsigned int slot, bool highlight, unsigned int *r, unsigned int *g, unsigned int *b)
 {
-	switch(display_mode)
+	roflash static const unsigned int rgb[4][3] =
+	{
+		{	0x40,	0x40,	0x40	},
+		{	0xff, 	0x00,	0x00	},
+		{	0x00,	0x88,	0x00	},
+		{	0x00,	0x00,	0xff	},
+	};
+
+	slot = slot % 4;
+
+	*r = rgb[slot][0];
+	*g = rgb[slot][1];
+	*b = rgb[slot][2];
+
+	if(!highlight)
+	{
+		*r >>= 1;
+		*g >>= 1;
+		*b >>= 1;
+	}
+}
+
+static bool attr_result_used write_command(uint8_t cmd)
+{
+	switch(display.mode)
 	{
 		case(display_mode_disabled): return(false);
 		case(display_mode_i2c):
@@ -852,7 +378,7 @@ static bool attr_result_used display_write_command(uint8_t cmd)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
+			if(spi_send_receive(spi_clock_20M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin,
 						true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
 				return(true);
 
@@ -863,86 +389,36 @@ static bool attr_result_used display_write_command(uint8_t cmd)
 	return(false);
 }
 
-static bool display_write_data(uint8_t data)
-{
-	switch(display_mode)
-	{
-		case(display_mode_disabled): return(false);
-		case(display_mode_i2c):
-		{
-			return(i2c_send1(i2c_addr_data, data) == i2c_error_ok);
-		}
-
-		case(display_mode_spi):
-		{
-			string_new(, error, 64);
-
-			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-						true, spi_rs_data | spi_rw_write,
-						1, &data, 0, 0, (uint8_t *)0, &error))
-				return(true);
-
-			log("eastrising write data: %s\n", string_to_cstr(&error));
-		}
-	}
-
-	return(false);
-}
-
-static bool display_write(uint8_t cmd, uint8_t data)
-{
-	if(!display_write_command(cmd))
-		return(false);
-
-	return(display_write_data(data));
-}
-
-static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned int amount, const uint8_t *data)
+static bool attr_result_used write_data(unsigned int length, const uint8_t *data)
 {
 	string_new(, error, 64);
 
-	if(!display_write_command(reg_mrwc))
-		return(false);
-
-	switch(display_mode)
+	switch(display.mode)
 	{
 		case(display_mode_disabled): return(false);
 		case(display_mode_i2c):
 		{
-			return(i2c_send(i2c_addr_data, amount, data) == i2c_error_ok);
+			return(i2c_send(i2c_addr_data, length, data) == i2c_error_ok);
 		}
 
 		case(display_mode_spi):
 		{
 			unsigned int offset, left, chunk;
-			spi_clock_t clock;
 
-			if(raw_pixel_data)
-				clock = spi_clock_20M;
-			else
-			{
-				switch(display_render_mode())
-				{
-					case(render_mode_internal):	clock = spi_clock_500k;	break;
-					case(render_mode_fontchip):	clock = spi_clock_50k;	break;
-					default:					clock = spi_clock_100k;	break; // never hit
-				}
-			}
-
-			for(offset = 0, left = amount; (left > 0) && (offset < amount);)
+			for(offset = 0, left = length; (left > 0) && (offset < length);)
 			{
 				chunk = left;
 
 				if(chunk > 32)
 					chunk = 32;
 
-				if(!spi_send_receive(clock, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-							true, spi_rs_data | spi_rw_write,
-							chunk, &data[offset],
-							0,
-							0, (uint8_t *)0, &error))
+				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin, true,
+						spi_rs_data | spi_rw_write,
+						chunk, &data[offset],
+						0,
+						0, (uint8_t *)0, &error))
 				{
-					log("eastrising write string: %s\n", string_to_cstr(&error));
+					log("eastrising write data: %s\n", string_to_cstr(&error));
 					return(false);
 				}
 
@@ -957,12 +433,25 @@ static bool attr_result_used display_write_string(bool raw_pixel_data, unsigned 
 	return(false);
 }
 
-static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
+static bool attr_result_used write_data_1(uint8_t data)
 {
-	if(!display_write_command(cmd))
+	return(write_data(1, &data));
+}
+
+static bool attr_result_used write_command_data_1(uint8_t cmd, uint8_t data)
+{
+	if(!write_command(cmd))
 		return(false);
 
-	switch(display_mode)
+	return(write_data_1(data));
+}
+
+static bool attr_result_used read_data(uint8_t cmd, uint8_t *data)
+{
+	if(!write_command(cmd))
+		return(false);
+
+	switch(display.mode)
 	{
 		case(display_mode_disabled): return(false);
 		case(display_mode_i2c):
@@ -974,8 +463,7 @@ static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-						true, spi_rs_data | spi_rw_read,
+			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin, true, spi_rs_data | spi_rw_read,
 						0, (const uint8_t *)0, 0, 1, data, &error))
 
 				return(true);
@@ -987,222 +475,111 @@ static bool attr_result_used display_read(uint8_t cmd, uint8_t *data)
 	return(false);
 }
 
-static unsigned int attr_result_used display_text_to_graphic_x(unsigned int text_x)
-{
-	unsigned int width = 0;
-	unsigned int margin = 0;
-	unsigned int padding = 0;
-
-	switch(display_render_mode())
-	{
-		case(render_mode_internal):
-		{
-			if(display_logmode)
-			{
-				width	=	display_logmode_character_width;
-				margin	=	display_logmode_character_width_margin;
-				padding =	display_logmode_character_width_padding;
-			}
-			else
-			{
-				width	=	display_normal_character_width;
-				margin =	display_normal_character_width_margin;
-				padding =	display_normal_character_width_padding;
-			}
-
-			break;
-		}
-
-		case(render_mode_fontchip):
-		{
-			width	=	display_fontchip_character_width;
-			margin =	display_fontchip_character_width_margin;
-			padding =	display_fontchip_character_width_padding;
-
-			break;
-		}
-
-		case(render_mode_graphic):
-		{
-			width	=	display_graphic_character_width;
-			margin =	display_graphic_character_width_margin;
-			padding =	display_graphic_character_width_padding;
-
-			break;
-		}
-	}
-
-	return(margin + (text_x * (width + padding)));
-}
-
-static unsigned int attr_result_used display_text_to_graphic_y(bool second_part, unsigned int text_y)
-{
-	unsigned int graphic_y;
-
-	graphic_y = text_y * char_height();
-
-	if(!display_logmode && second_part)
-		graphic_y += (display_slot_lines * char_height()) + display_character_slot_padding;
-
-	return(graphic_y);
-}
-
-static bool attr_result_used display_fgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
-{
-	uint8_t R, G, B;
-
-	if(!display_read(reg_fgcr0, &R))
-		return(false);
-
-	if(!display_read(reg_fgcr1, &G))
-		return(false);
-
-	if(!display_read(reg_fgcr2, &B))
-		return(false);
-
-	*r = (R << 3);
-	*g = (G << 2);
-	*b = (B << 3);
-
-	return(true);
-}
-
-static bool attr_result_used display_bgcolour_get(unsigned int *r, unsigned int *g, unsigned int *b)
-{
-	uint8_t R, G, B;
-
-	if(!display_read(reg_bgcr0, &R))
-		return(false);
-
-	if(!display_read(reg_bgcr1, &G))
-		return(false);
-
-	if(!display_read(reg_bgcr2, &B))
-		return(false);
-
-	*r = (R << 3);
-	*g = (G << 2);
-	*b = (B << 3);
-
-	return(true);
-}
-
-static bool attr_result_used display_fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
 	b = (b >> 3) & 0xff;
 
-	if(!display_write(reg_fgcr0, r))
+	if(!write_command_data_1(reg_fgcr0, r))
 		return(false);
 
-	if(!display_write(reg_fgcr1, g))
+	if(!write_command_data_1(reg_fgcr1, g))
 		return(false);
 
-	if(!display_write(reg_fgcr2, b))
+	if(!write_command_data_1(reg_fgcr2, b))
 		return(false);
 
 	return(true);
 }
 
-static bool attr_result_used display_bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used bgcolour_set(unsigned int r, unsigned int g, unsigned int b)
 {
 	r = (r >> 3) & 0xff;
 	g = (g >> 2) & 0xff;
 	b = (b >> 3) & 0xff;
 
-	if(!display_write(reg_bgcr0, r))
+	if(!write_command_data_1(reg_bgcr0, r))
 		return(false);
 
-	if(!display_write(reg_bgcr1, g))
+	if(!write_command_data_1(reg_bgcr1, g))
 		return(false);
 
-	if(!display_write(reg_bgcr2, b))
+	if(!write_command_data_1(reg_bgcr2, b))
 		return(false);
 
 	return(true);
 }
 
-static bool attr_result_used display_set_active_layer(unsigned int layer)
+static bool attr_result_used set_active_layer(unsigned int layer)
 {
-	return(display_write(reg_mwcr1, reg_mwcr1_graphic_cursor_disable | reg_mwcr1_write_destination_layer | (layer & 0x01)));
+	return(write_command_data_1(reg_mwcr1, reg_mwcr1_graphic_cursor_disable | reg_mwcr1_write_destination_layer | (layer & 0x01)));
 }
 
-static bool attr_result_used display_show_layer(unsigned int layer)
+static bool attr_result_used show_layer(unsigned int layer)
 {
 	unsigned int value = reg_ltpr0_scroll_layer_1 | reg_ltpr0_floatwin_transparency_dis;
 
-	if(!display_write(reg_ltpr1, reg_ltpr1_transparency_layer_2_8_8 | reg_ltpr1_transparency_layer_1_8_8))
+	if(!write_command_data_1(reg_ltpr1, reg_ltpr1_transparency_layer_2_8_8 | reg_ltpr1_transparency_layer_1_8_8))
 		return(false);
 
 	value |= (layer == 0) ? reg_ltpr0_visible_layer_1 : reg_ltpr0_visible_layer_2;
 
-	return(display_write(reg_ltpr0, value));
+	return(write_command_data_1(reg_ltpr0, value));
 }
 
-static bool attr_result_used display_set_active_window(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1)
+static bool attr_result_used set_active_window(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1)
 {
-	x0 = umin(x0, display_width - 1);
-	x1 = umin(x1, display_width - 1);
-	y0 = umin(y0, display_height - 1);
-	y1 = umin(y1, display_height - 1);
+	x0 = umin(x0, display.x_size - 1);
+	x1 = umin(x1, display.x_size - 1);
+	y0 = umin(y0, display.y_size - 1);
+	y1 = umin(y1, display.y_size - 1);
 
-	if(!display_write(reg_hsaw0, (x0 >> 0) & 0xff))
+	if(!write_command_data_1(reg_hsaw0, (x0 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_hsaw1, (x0 >> 8) & 0x03))
+	if(!write_command_data_1(reg_hsaw1, (x0 >> 8) & 0x03))
 		return(false);
 
-	if(!display_write(reg_vsaw0, (y0 >> 0) & 0xff))
+	if(!write_command_data_1(reg_vsaw0, (y0 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_vsaw1, (y0 >> 8) & 0x01))
+	if(!write_command_data_1(reg_vsaw1, (y0 >> 8) & 0x01))
 		return(false);
 
-	if(!display_write(reg_heaw0, (x1 >> 0) & 0xff))
+	if(!write_command_data_1(reg_heaw0, (x1 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_heaw1, (x1 >> 8) & 0x03))
+	if(!write_command_data_1(reg_heaw1, (x1 >> 8) & 0x03))
 		return(false);
 
-	if(!display_write(reg_veaw0, (y1 >> 0) & 0xff))
+	if(!write_command_data_1(reg_veaw0, (y1 >> 0) & 0xff))
 		return(false);
 
-	if(!display_write(reg_veaw1, (y1 >> 8) & 0x01))
+	if(!write_command_data_1(reg_veaw1, (y1 >> 8) & 0x01))
 		return(false);
 
 	return(true);
 }
 
-static bool attr_result_used display_fill_rectangle(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int r, unsigned int g, unsigned int b)
+static bool attr_result_used box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
 {
 	bool success = false;
 	unsigned int timeout;
 	uint8_t data;
-	unsigned int fg_r, fg_g, fg_b;
-	unsigned int bg_r, bg_g, bg_b;
 
-	if(!display_set_active_window(x0, y0, x1, y1))
+	if(!set_active_window(from_x, from_y, to_x, to_y))
 		goto error;
 
-	if(!display_fgcolour_get(&fg_r, &fg_g, &fg_b))
+	if(!bgcolour_set(r, g, b))
 		goto error;
 
-	if(!display_bgcolour_get(&bg_r, &bg_g, &bg_b))
-		goto error;
-
-	if(!display_fgcolour_set(r, g, b))
-		goto error;
-
-	if(!display_bgcolour_set(r, g, b))
-		goto error;
-
-	if(!display_write(reg_mclr, reg_mclr_memory_clear_start | reg_mclr_memory_area_active_window))
+	if(!write_command_data_1(reg_mclr, reg_mclr_memory_clear_start | reg_mclr_memory_area_active_window))
 		goto error;
 
 	for(timeout = 0; timeout < 10; timeout++)
 	{
-		if(!display_read(reg_mclr, &data))
+		if(!read_data(reg_mclr, &data))
 			goto error;
 
 		if(!(data & reg_mclr_memory_clear_start))
@@ -1217,67 +594,72 @@ static bool attr_result_used display_fill_rectangle(unsigned int x0, unsigned in
 		success = true;
 
 error:
-	if(!display_set_active_window(0, 0, display_width, display_height))
+	if(!set_active_window(0, 0, display.x_size - 1, display.y_size - 1))
 		success = false;
 
 	return(success);
 }
 
-static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
+static bool clear_screen(void)
+{
+	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1));
+}
+
+static bool attr_result_used scroll(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int width, unsigned height)
 {
 	uint8_t data;
 	unsigned int timeout;
 	bool success = false;
 
-	if(!display_write(reg_hsbe0, (x0 >> 0) & 0xff))
+	if(!write_command_data_1(reg_hsbe0, (x0 >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_hsbe1, (x0 >> 8) & 0x03))
+	if(!write_command_data_1(reg_hsbe1, (x0 >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_vsbe0, (y0 >> 0) & 0xff))
+	if(!write_command_data_1(reg_vsbe0, (y0 >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_vsbe1, ((y0 >> 8) & 0x01) | reg_vsbe1_source_layer_0))
+	if(!write_command_data_1(reg_vsbe1, ((y0 >> 8) & 0x01) | reg_vsbe1_source_layer_0))
 		goto error;
 
-	if(!display_write(reg_hdbe0, (x1 >> 0) & 0xff))
+	if(!write_command_data_1(reg_hdbe0, (x1 >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_hdbe1, (x1 >> 8) & 0x03))
+	if(!write_command_data_1(reg_hdbe1, (x1 >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_vdbe0, (y1 >> 0) & 0xff))
+	if(!write_command_data_1(reg_vdbe0, (y1 >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_vdbe1, ((y1 >> 8) & 0x01) | reg_vdbe1_destination_layer_0))
+	if(!write_command_data_1(reg_vdbe1, ((y1 >> 8) & 0x01) | reg_vdbe1_destination_layer_0))
 		goto error;
 
-	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
+	if(!write_command_data_1(reg_bewr0, (width >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_bewr1, (width >> 8) & 0x03))
+	if(!write_command_data_1(reg_bewr1, (width >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_behr0, (height >> 0) & 0xff))
+	if(!write_command_data_1(reg_behr0, (height >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_behr1, (height >> 8) & 0x03))
+	if(!write_command_data_1(reg_behr1, (height >> 8) & 0x03))
 		goto error;
 
 	// config BTE
 
-	if(!display_write(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
+	if(!write_command_data_1(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
 		goto error;
 
 	// start BTE
 
-	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
+	if(!write_command_data_1(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
 	for(timeout = 0; timeout < 10; timeout++)
 	{
-		if(!display_read(reg_becr0, &data))
+		if(!read_data(reg_becr0, &data))
 			goto error;
 
 		if(!(data & reg_becr0_busy))
@@ -1287,72 +669,72 @@ static bool attr_result_used display_scroll(unsigned int x0, unsigned int y0, un
 	}
 
 	if(timeout >= 10)
-		log("BTE scroll timeout\n");
+		log("scroll: BTE timeout\n");
 	else
 		success = true;
 
 error:
-	if(!display_write(reg_becr0, 0))
+	if(!write_command_data_1(reg_becr0, 0))
 		success = false;
 
 	return(success);
 }
 
-static bool attr_result_used display_copy_layer(unsigned int source_layer, unsigned int destination_layer)
+static bool attr_result_used copy_layer(unsigned int source_layer, unsigned int destination_layer)
 {
 	uint8_t data;
 	unsigned int timeout;
 	bool success = false;
 
-	if(!display_write(reg_hsbe0, 0))
+	if(!write_command_data_1(reg_hsbe0, 0))
 		goto error;
 
-	if(!display_write(reg_hsbe1, 0))
+	if(!write_command_data_1(reg_hsbe1, 0))
 		goto error;
 
-	if(!display_write(reg_vsbe0, 0))
+	if(!write_command_data_1(reg_vsbe0, 0))
 		goto error;
 
-	if(!display_write(reg_vsbe1, 0 | (source_layer ? reg_vsbe1_source_layer_1 : reg_vsbe1_source_layer_0)))
+	if(!write_command_data_1(reg_vsbe1, 0 | (source_layer ? reg_vsbe1_source_layer_1 : reg_vsbe1_source_layer_0)))
 		goto error;
 
-	if(!display_write(reg_hdbe0, 0))
+	if(!write_command_data_1(reg_hdbe0, 0))
 		goto error;
 
-	if(!display_write(reg_hdbe1, 0))
+	if(!write_command_data_1(reg_hdbe1, 0))
 		goto error;
 
-	if(!display_write(reg_vdbe0, 0))
+	if(!write_command_data_1(reg_vdbe0, 0))
 		goto error;
 
-	if(!display_write(reg_vdbe1, 0 | (destination_layer ? reg_vdbe1_destination_layer_1 : reg_vdbe1_destination_layer_0)))
+	if(!write_command_data_1(reg_vdbe1, 0 | (destination_layer ? reg_vdbe1_destination_layer_1 : reg_vdbe1_destination_layer_0)))
 		goto error;
 
-	if(!display_write(reg_bewr0, (display_width >> 0) & 0xff))
+	if(!write_command_data_1(reg_bewr0, (display.x_size >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_bewr1, (display_width >> 8) & 0x03))
+	if(!write_command_data_1(reg_bewr1, (display.x_size >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_behr0, (display_height >> 0) & 0xff))
+	if(!write_command_data_1(reg_behr0, (display.y_size >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_behr1, (display_height >> 8) & 0x03))
+	if(!write_command_data_1(reg_behr1, (display.y_size >> 8) & 0x03))
 		goto error;
 
 	// config BTE
 
-	if(!display_write(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
+	if(!write_command_data_1(reg_becr1, reg_becr1_rop_code_move_pos | reg_becr1_rop_func_s))
 		goto error;
 
 	// start BTE
 
-	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
+	if(!write_command_data_1(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
 	for(timeout = 0; timeout < 10; timeout++)
 	{
-		if(!display_read(reg_becr0, &data))
+		if(!read_data(reg_becr0, &data))
 			goto error;
 
 		if(!(data & reg_becr0_busy))
@@ -1362,108 +744,79 @@ static bool attr_result_used display_copy_layer(unsigned int source_layer, unsig
 	}
 
 	if(timeout >= 10)
-		log("copy: BTE scroll timeout\n");
+		log("copy_layer: BTE timeout\n");
 	else
 		success = true;
 
 error:
-	if(!display_write(reg_becr0, 0))
+	if(!write_command_data_1(reg_becr0, 0))
 		success = false;
 
 	return(success);
 }
 
-#if 0
-static bool attr_result_used display_blit(unsigned int layer, unsigned int x, unsigned int y, unsigned int width, unsigned int height, uint8_t *data)
+static bool attr_result_used blit(unsigned int x, unsigned int y, unsigned int width, unsigned int height,
+		unsigned int length, uint8_t *data)
 {
 	bool success = false;
 	uint8_t rdata;
 
-	if((x + width) > display_width)
+	if((x + width) >= display.x_size)
 		return(true);
 
-	if((y + height) > display_height)
+	if((y + height) >= display.y_size)
 		return(true);
 
-	if(!display_write(reg_hdbe0, (x >> 0) & 0xff))
+	if(!write_command_data_1(reg_hdbe0, (x >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_hdbe1, (x >> 8) & 0x03))
+	if(!write_command_data_1(reg_hdbe1, (x >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_vdbe0, (y >> 0) & 0xff))
+	if(!write_command_data_1(reg_vdbe0, (y >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_vdbe1, ((y >> 8) & 0x01) | ((layer > 0) ? reg_vdbe1_destination_layer_1 : reg_vdbe1_destination_layer_0)))
+	if(!write_command_data_1(reg_vdbe1, ((y >> 8) & 0x01) | reg_vdbe1_destination_layer_0))
 		goto error;
 
-	if(!display_write(reg_bewr0, (width >> 0) & 0xff))
+	if(!write_command_data_1(reg_bewr0, (width >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_bewr1, (width >> 8) & 0x03))
+	if(!write_command_data_1(reg_bewr1, (width >> 8) & 0x03))
 		goto error;
 
-	if(!display_write(reg_behr0, (height >> 0) & 0xff))
+	if(!write_command_data_1(reg_behr0, (height >> 0) & 0xff))
 		goto error;
 
-	if(!display_write(reg_behr1, (height >> 8) & 0x03))
+	if(!write_command_data_1(reg_behr1, (height >> 8) & 0x03))
 		goto error;
 
 	// config BTE
 
-	if(!display_write(reg_becr1, reg_becr1_rop_code_expand_colour_transp | reg_becr1_rop_expand_col_bit_start_0))
+	if(!write_command_data_1(reg_becr1, reg_becr1_rop_code_expand_colour_transp | reg_becr1_rop_expand_col_bit_start_0))
 		goto error;
 
 	// start BTE
 
-	if(!display_write(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
+	if(!write_command_data_1(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
-	if(!display_write_command(reg_mrwc))
+	if(!write_command(reg_mrwc))
 		goto error;
 
-	for(y = 0; y < 32; y++)
-	{
-		switch(display_mode)
-		{
-			case(display_mode_spi):
-			{
-				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-							true, spi_rs_data | spi_rw_write,
-							width / 8, &data[y * (width / 8)],
-							0,
-							0, (uint8_t *)0,
-							(string_t *)0))
-					goto error;
-
-				break;
-			}
-
-			case(display_mode_i2c):
-			{
-				if(i2c_send(i2c_addr_data, width / 8, &data[y * (width / 8)]) != i2c_error_ok)
-					goto error;
-
-				break;
-			}
-
-			default:
-			{
-				goto error;
-			}
-		}
-	}
+	if(!write_data(length, data))
+		goto error;
 
 	success = true;
 
 error:
-	if(!display_write(reg_becr0, 0))
+	if(!write_command_data_1(reg_becr0, 0))
 	{
 		log("display eastrising: can't stop BTE\n");
 		success = false;
 	}
 
-	if(!display_read(reg_becr0, &rdata))
+	if(!read_data(reg_becr0, &rdata))
 	{
 		log("display eastrising: can't read BTE status\n");
 		success = false;
@@ -1477,523 +830,354 @@ error:
 
 	return(success);
 }
-#endif
 
-static bool attr_result_used display_write_glyph(unsigned int x, unsigned int y, unsigned int column, unsigned int codepoint)
+static attr_used bool text_send(unsigned int code)
 {
-#if 0
-	const font_bitmap_t			*font_bitmap;
-	const font_bitmap_entry_t	*font_bitmap_entry;
-	unsigned int				row;
-	uint32_t					bitmap;
-	uint8_t						data[display_graphic_character_height * 2];
+	font_info_t font_info;
+	font_cell_t font_cell;
+	unsigned int x, y;
+	unsigned int y_offset;
+	unsigned int x2, y2, byte, bit;
+	uint8_t data[(32 / 8) * 32];
 
-	// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	//font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
+	if(!font_get_info(&font_info))
+		return(false);
 
-	for(font_bitmap_entry = font_bitmap->entries; font_bitmap_entry->codepoint != (uint32_t)font_codepoint_last_entry; font_bitmap_entry++)
-		if(font_bitmap_entry->codepoint == codepoint)
-			break;
+	x = text.column * font_info.width;
+	y = text.row * font_info.height;
 
-	if(font_bitmap_entry->codepoint == (uint32_t)font_codepoint_last_entry)
-		font_bitmap_entry = font_bitmap->entries - 1;
-
-	for(row = 0; row < display_graphic_character_height; row++)
+	if(display.logmode)
+		y_offset = 0;
+	else
 	{
-		bitmap = font_bitmap_entry->bitmap[row / 2];
+		y_offset = text.display_slot ? display.y_size / 2 : 0;
 
-		if((row & 0x01) == 0x00)
+		if(text.row > 0)
+			y_offset += 2;
+	}
+
+	y += y_offset;
+
+	if(((x + font_info.width) >= display.x_size) || ((y + font_info.height) >= display.y_size))
+		goto skip;
+
+	if(!font_render(code, font_cell))
+		return(false);
+
+	for(byte = 0; byte < sizeof(data); byte++)
+		data[byte] = 0;
+
+	byte = 0;
+	bit = 7;
+
+	for(y2 = 0; y2 < font_info.height; y2++)
+	{
+		for(x2 = 0; x2 < font_info.width; x2++)
 		{
-			data[(row * 2) + 0] = (bitmap & 0xff000000) >> 24;
-			data[(row * 2) + 1] = (bitmap & 0x00ff0000) >> 16;
+			if(font_cell[y2][x2])
+				data[byte] |= (1 << bit);
+
+			if(bit == 0)
+			{
+				bit = 7;
+				byte++;
+			}
+			else
+				bit--;
+		}
+
+		if(bit != 7)
+		{
+			bit = 7;
+			byte++;
+		}
+	}
+
+	if(bit != 7)
+		byte++;
+
+	if(!blit(x, y, font_info.width, font_info.height, byte, data))
+		return(false);
+
+skip:
+	text.column++;
+
+	return(true);
+}
+
+static attr_result_used bool text_newline(void)
+{
+	unsigned int x1, x2;
+	unsigned int y1, y2;
+	unsigned int rows;
+	font_info_t font_info;
+
+	if(!font_get_info(&font_info))
+		return(false);
+
+	rows = display.y_size / font_info.height;
+
+	if(display.logmode)
+	{
+		if((text.row + 1U) >= rows)
+		{
+			if(!scroll(0, font_info.height, 0, 0, display.x_size, display.y_size - font_info.height))
+				return(false);
 		}
 		else
-		{
-			data[(row * 2) + 0] = (bitmap & 0x0000ff00) >> 8;
-			data[(row * 2) + 1] = (bitmap & 0x000000ff) >> 0;
-		}
-	}
+			text.row++;
 
-	x += column * (display_graphic_character_width + display_graphic_character_width_padding);
+		x1 = 0;
+		x2 = x1 + (display.x_size - 1);
+		y1 = text.row * font_info.height;
+		y2 = y1 + font_info.height;
 
-	return(display_blit(0, x, y, display_graphic_character_width, display_graphic_character_height, data));
-#endif
-	return(true);
-}
-
-static bool attr_result_used display_write_glyphs(unsigned int x, unsigned int y, unsigned int length, const uint8_t *text)
-{
-	unsigned int charlength;
-	unsigned int codepoint;
-	unsigned int column;
-
-	if(display_render_mode() != render_mode_graphic)
-		return(false);
-
-	charlength = length / 2;
-
-	for(column = 0; column < charlength; column++)
-	{
-		codepoint = ((text[(column * 2) + 0] & 0xff) << 8) | ((text[(column * 2) + 1] & 0xff) << 0);
-
-		if(!display_write_glyph(x, y, column, codepoint))
+		if(!box(0x00, 0x00, 0x00, x1, y1, x2, y2))
 			return(false);
 	}
-
-	return(true);
-}
-
-static bool display_write_text(unsigned int x, unsigned int y, unsigned int length, const uint8_t *data)
-{
-	if(!display_write(reg_curxl, (x >> 0) & 0xff))
-		return(false);
-
-	if(!display_write(reg_curxh, (x >> 8) & 0x03))
-		return(false);
-
-	if(!display_write(reg_curyl, (y >> 0) & 0xff))
-		return(false);
-
-	if(!display_write(reg_curyh, (y >> 8) & 0x03))
-		return(false);
-
-	if(!display_write_string(false, length, data))
-		return(false);
-
-	return(true);
-}
-
-static void display_data_clear(void)
-{
-	display_text_current = 0;
-}
-
-static bool attr_result_used display_flush(void)
-{
-	bool				result = false;
-	unsigned int		gx = display_text_to_graphic_x(0);
-	unsigned int		gy = display_text_to_graphic_y(display_current_slot & 0x01, display_y);
-	const rgb_fg_bg_t *	colour;
-
-	if(display_y == 0)
-		colour = &colours->tag;
 	else
-		colour = &colours->normal;
+		text.row++;
 
-	if(!display_fgcolour_set(colour->fg.r, colour->fg.g, colour->fg.b))
-		return(false);
-
-	if(!display_bgcolour_set(colour->bg.r, colour->bg.g, colour->bg.b))
-		return(false);
-
-	switch(display_render_mode())
-	{
-		case(render_mode_internal):
-		case(render_mode_fontchip):
-		{
-			if(!display_write_text(gx, gy, display_text_current, display_buffer))
-				goto error;
-
-			break;
-		}
-
-		case(render_mode_graphic):
-		{
-			if(!display_write_glyphs(gx, gy, display_text_current, display_buffer))
-				goto error;
-
-			break;
-		}
-	}
-
-	result = true;
-error:
-	display_data_clear();
-	return(result);
-}
-
-static void display_data_output(unsigned int text)
-{
-	if((display_text_current + 2) >= display_buffer_size)
-		return;
-
-	display_buffer[display_text_current++] = text & 0xff;
-}
-
-static bool display_newline(void)
-{
-	unsigned int y;
-
-	y = display_y + 1;
-
-	if(!display_flush())
-		return(false);
-
-	if(display_logmode)
-	{
-		if(y >= text_lines())
-		{
-			unsigned int x0, y0, x1, y1;
-			unsigned int width, height;
-
-			x0 = 0;
-			y0 = char_height();
-			x1 = 0;
-			y1 = 0;
-			width = display_width;
-			height = display_height - y0;
-
-			if(!display_scroll(x0, y0, x1, y1, width, height))
-				return(false);
-
-			x0 = 0;
-			y0 = display_text_to_graphic_y(false, text_lines() - 1);
-			x1 = display_width;
-			y1 = display_text_to_graphic_y(false, text_lines()) -1;
-
-
-			if(!display_fill_rectangle(x0, y0, x1, y1, colours->normal.bg.r, colours->normal.bg.g, colours->normal.bg.b))
-				return(false);
-
-			y = text_lines() - 1;
-		}
-	}
-
-	display_x = 0;
-	display_y = y;
+	text.column = 0;
 
 	return(true);
 }
 
-static bool bright(int brightness)
-{
-	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
-	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
-	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
-
-	if(brightness > 4)
-		return(false);
-
-	if(!display_write(reg_p1dcr, bright_level[brightness]))
-		return(false);
-
-	if(!display_write(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
-		return(false);
-
-	display_low_brightness = bright_low[brightness] ? true : false;
-
-	return(true);
-}
+static bool bright(int brightness);
 
 static bool init(void)
 {
-	//const font_bitmap_t *font_bitmap;
-	uint8_t cmd = reg_mrwc;
-	unsigned int mode, fontchip;
+	unsigned int mode;
 	int user_cs_io, user_cs_pin;
+	unsigned int mwcr0;
 
 	if(!config_get_uint("display_eastrising.mode", &mode, -1, -1))
-		display_mode = display_mode_disabled;
+		display.mode = display_mode_disabled;
 	else
-		display_mode = (display_mode_t)mode;
-
-	if(!config_get_uint("display_eastrising.fontchip", &fontchip, -1, -1))
-		display_use_fontchip = false;
-	else
-		display_use_fontchip = fontchip != 0;
+		display.mode = (display_mode_t)mode;
 
 	if(!config_get_int("display_eastrising.io", &user_cs_io, -1, -1) ||
 			!config_get_int("display_eastrising.pin", &user_cs_pin, -1, -1))
 	{
-		display_user_cs_io = -1;
-		display_user_cs_pin = -1;
+		pin.user_cs.io = user_cs_io = -1;
+		pin.user_cs.pin = user_cs_pin = -1;
 	}
 	else
 	{
-		display_user_cs_io = user_cs_io;
-		display_user_cs_pin = user_cs_pin;
+		pin.user_cs.io = user_cs_io;
+		pin.user_cs.pin = user_cs_pin;
 	}
 
-	switch(display_mode)
-	{
-		case(display_mode_i2c):
-		{
-			break;
-		}
-
-		case(display_mode_spi):
-		{
-			if(!spi_send_receive(spi_clock_1M, spi_mode_0, false, display_user_cs_io, display_user_cs_pin,
-					true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, (string_t *)0))
-				goto error;
-
-			break;
-		}
-
-		default:
-		{
-			goto error;
-		}
-	}
-
-	//// note: this will always use either mirror 0 or mirror 1 depending on which image/slot is loaded, due to the flash mapping window
-	//font_bitmap = (const font_bitmap_t *)(display_flash_memory_map_start + FONT_FLASH_OFFSET_0);
-
-	//if((font_bitmap->magic == font_magic) && (font_bitmap->version == font_version))
-		//display_font_valid = true;
+	display.logmode = 1;
+	display.graphic_mode = 1;
+	display.brightness = 4;
+	display.low_brightness = 0;
+	display.x_size = 480;
+	display.y_size = 272;
 
 	// init PLL
 
-	if(display_mode == display_mode_i2c)
+	if(display.mode == display_mode_i2c)
 		set_i2c_speed(10000);
 
-	if(!display_write_command(reg_pll_c1))
+	if(!write_command(reg_pll_c1))
 		goto error;
 
-	display_write_data(reg_pllc1_value);
+	if(!write_data_1(reg_pllc1_value))
+		(void)0;
 
 	msleep(1);
 
-	if(!display_write_command(reg_pll_c2))
+	if(!write_command(reg_pll_c2))
 		goto error;
 
-	display_write_data(reg_pllc2_value);
+	if(!write_data_1(reg_pllc2_value))
+		(void)0;
 
 	msleep(1);
 
-	if(display_mode == display_mode_i2c)
+	if(display.mode == display_mode_i2c)
 		set_i2c_speed(-1);
 
-	if(!display_write(reg_sysr, reg_sysr_color_depth_16 | reg_sysr_if_8bit))
+	if(!write_command_data_1(reg_sysr, reg_sysr_color_depth_16 | reg_sysr_if_8bit))
 		goto error;
 
-	if(!display_write(reg_pcsr, reg_pcsr_sample_falling_edge | reg_pcsr_clock_period_system_by_8))
+	if(!write_command_data_1(reg_pcsr, reg_pcsr_sample_falling_edge | reg_pcsr_clock_period_system_by_8))
 		goto error;
 
 	// horizontal
 
-	if(!display_write(reg_hdwr, (display_width / 8) - 1))
+	if(!write_command_data_1(reg_hdwr, (display.x_size / 8) - 1))
 		goto error;
 
-	if(!display_write(reg_hndftr, reg_hndftr_de_polarity_active_high | (display_horizontal_blanking_fine / 2)))
+	if(!write_command_data_1(reg_hndftr, reg_hndftr_de_polarity_active_high | (horizontal_blanking_fine / 2)))
 		goto error;
 
-	if(!display_write(reg_hndr, (display_horizontal_blanking / 8) - 1))
+	if(!write_command_data_1(reg_hndr, (horizontal_blanking / 8) - 1))
 		goto error;
 
-	if(!display_write(reg_hstr, (display_horizontal_sync_start / 8) - 1))
+	if(!write_command_data_1(reg_hstr, (horizontal_sync_start / 8) - 1))
 		goto error;
 
-	if(!display_write(reg_hpwr, reg_hpwr_hsync_polarity_active_low | ((display_horizontal_sync_length / 8) - 1)))
+	if(!write_command_data_1(reg_hpwr, reg_hpwr_hsync_polarity_active_low | ((horizontal_sync_length / 8) - 1)))
 		goto error;
 
 	// vertical
 
-	if(!display_write(reg_vdhr0, ((display_height >> 0) & 0xff) + 1))
+	if(!write_command_data_1(reg_vdhr0, ((display.y_size >> 0) & 0xff) + 1))
 		goto error;
 
-	if(!display_write(reg_vdhr1, ((display_height >> 8) & 0x01) + 0))
+	if(!write_command_data_1(reg_vdhr1, ((display.y_size >> 8) & 0x01) + 0))
 		goto error;
 
-	if(!display_write(reg_vndr0, ((display_vertical_blanking >> 0) & 0xff) + 1))
+	if(!write_command_data_1(reg_vndr0, ((vertical_blanking >> 0) & 0xff) + 1))
 		goto error;
 
-	if(!display_write(reg_vndr1, ((display_vertical_blanking >> 8) & 0x01) + 0))
+	if(!write_command_data_1(reg_vndr1, ((vertical_blanking >> 8) & 0x01) + 0))
 		goto error;
 
-	if(!display_write(reg_vstr0, ((display_vertical_sync_start >> 0) & 0xff) + 1))
+	if(!write_command_data_1(reg_vstr0, ((vertical_sync_start >> 0) & 0xff) + 1))
 		goto error;
 
-	if(!display_write(reg_vstr1, ((display_vertical_sync_start >> 8) & 0x01) + 0))
+	if(!write_command_data_1(reg_vstr1, ((vertical_sync_start >> 8) & 0x01) + 0))
 		goto error;
 
-	if(!display_write(reg_vpwr, reg_vpwr_vsync_polarity_active_low | (display_vertical_sync_length - 1)))
+	if(!write_command_data_1(reg_vpwr, reg_vpwr_vsync_polarity_active_low | (vertical_sync_length - 1)))
 		goto error;
 
 	// PWM
 
-	if(!display_write(reg_p1cr, reg_p1cr_pwm1_enable | reg_p1cr_function_pwm1 | reg_p1cr_clock_ratio_2048)) // 114 Hz refresh
+	if(!write_command_data_1(reg_p1cr, reg_p1cr_pwm1_enable | reg_p1cr_function_pwm1 | reg_p1cr_clock_ratio_2048)) // 114 Hz refresh
 		goto error;
 
-	if(!display_write(reg_pwrr, reg_pwrr_display_enable | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
+	if(!write_command_data_1(reg_pwrr, reg_pwrr_display_enable | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
 		goto error;
 
 	// MISC
 
-	if(!display_write(reg_sfclr, reg_sfclr_by_1))
+	if(!write_command_data_1(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
 		goto error;
 
-	if(!display_write(reg_sroc, reg_sroc_if_select_1 | reg_sroc_addr_mode_24 | reg_sroc_spi_mode_0 | reg_sroc_mode_6bus | reg_sroc_access_font | reg_sroc_data_mode_dual_0))
-		goto error;
+	mwcr0 =	reg_mwcr0_mode_graphic					|
+			reg_mwcr0_cursor_invisible				|
+			reg_mwcr0_cursor_steady					|
+			reg_mwcr0_memory_write_direction_lrtd	|
+			reg_mwcr0_memory_write_autoincr_en		|
+			reg_mwcr0_memory_read_autoincr_en;
 
-	if(!display_write(reg_serfont, reg_serfont_type_gt30l32s4w | reg_serfont_enc_gb2312 | reg_serfont_font_alternative_2))
-		goto error;
-
-	if(!display_write(reg_dpcr, reg_dpcr_two_layer | reg_dpcr_hor_scan_ltor | reg_dpcr_vert_scan_ltor))
-		goto error;
-
-	if(!display_show_layer(1))
-		goto error;
-
-	if(!display_set_active_layer(1))
+	if(!write_command_data_1(reg_mwcr0, mwcr0))
 		return(false);
 
-	if(!display_fill_rectangle(0, 0, display_width - 1, display_height - 1, 0xff, 0x00, 0x00))
+	if(!show_layer(1))
 		goto error;
 
-	if(!display_show_layer(0))
-		goto error;
-
-	if(!display_set_active_layer(0))
+	if(!set_active_layer(1))
 		return(false);
 
-	if(!display_fill_rectangle(0, 0, display_width - 1, display_height - 1, 0x00, 0x00, 0x00))
+	if(!box(0xff, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1))
 		goto error;
 
-	if(!bright(1))
+	if(!show_layer(0))
+		goto error;
+
+	if(!set_active_layer(0))
+		return(false);
+
+	if(!box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1))
+		goto error;
+
+	if(!fgcolour_set(0xff, 0xff, 0xff))
+		goto error;
+
+	if(!bright(4))
 		goto error;
 
 	return(true);
 
 error:
-	if(display_mode == display_mode_i2c)
+	if(display.mode == display_mode_i2c)
 		set_i2c_speed(-1);
-	display_mode = display_mode_disabled;
+	display.mode = display_mode_disabled;
 	return(false);
 }
 
 static bool begin(unsigned int slot, bool logmode)
 {
-	unsigned int fncr0, fncr1, fncr2, mwcr0;
+	unsigned int x1, x2, y1, y2;
+	unsigned int r, g, b;
+	font_info_t font_info;
 
-	switch(display_mode)
+	if((display.mode != display_mode_i2c) && (display.mode != display_mode_spi))
+		return(false);
+
+	text.column = text.row = 0;
+	text.slot = slot;
+	text.display_slot = slot % 2;
+	display.logmode = logmode;
+
+	if(!font_select(logmode))
+		return(false);
+
+	if(!font_get_info(&font_info))
+		return(false);
+
+	if(!display.logmode)
 	{
-		case(display_mode_i2c):
-		case(display_mode_spi):
-			break;
+		background_colour(text.slot, true, &r, &g, &b);
 
-		default:
+		x1 = 0;
+		x2 = display.x_size - 1;
+
+		if(text.display_slot == 0)
 		{
-			log("display eastrising not inited\n");
-			return(false);
+			y1 = 0;
+			y2 = font_info.height + 1;
 		}
-	}
-
-	display_current_slot = slot;
-	display_logmode = logmode;
-
-	display_data_clear();
-
-	fncr0 = reg_fncr0_font_cgrom;
-	fncr1 = reg_fncr1_font_align_enable | reg_fncr1_font_straight;
-	fncr2 = 0;
-	mwcr0 = reg_mwcr0_default;
-
-	switch(display_render_mode())
-	{
-		case(render_mode_internal):
-		{
-			fncr0 |= reg_fncr0_font_internal | reg_fncr0_encoding_8859_1;
-
-			if(display_logmode)
-				fncr1 |= reg_fncr1_font_opaque | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
-			else
-				fncr1 |= reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x2 | reg_fncr1_font_enlarge_ver_x2;
-
-			fncr2 |= reg_fncr2_font_size_16x16 | display_normal_character_width_padding;
-			mwcr0 |= reg_mwcr0_mode_text;
-
-			break;
-		}
-
-		case(render_mode_fontchip):
-		{
-			fncr0 |= reg_fncr0_font_external;
-			fncr1 |= reg_fncr1_font_transparent | reg_fncr1_font_enlarge_hor_x1 | reg_fncr1_font_enlarge_ver_x1;
-			fncr2 |= reg_fncr2_font_size_24x24 | display_fontchip_character_width_padding;
-			mwcr0 |= reg_mwcr0_mode_text;
-
-
-			break;
-		}
-
-		case(render_mode_graphic):
-		{
-			fncr0 |= 0;
-			fncr1 |= 0;
-			fncr2 |= 0;
-			mwcr0 |= reg_mwcr0_mode_graphic;
-
-			break;
-		}
-	}
-
-	if(!display_write(reg_fncr0, fncr0))
-		return(false);
-
-	if(!display_write(reg_fncr1, fncr1))
-		return(false);
-
-	if(!display_write(reg_fncr2, fncr2))
-		return(false);
-
-	if(!display_write(reg_mwcr0, mwcr0))
-		return(false);
-
-	display_x = 0;
-	display_y = 0;
-
-	if(display_logmode)
-		colours = &themes[8].normal_bright;
-	else
-	{
-		if(display_low_brightness)
-			colours = &themes[display_current_slot].low_bright;
 		else
-			colours = &themes[display_current_slot].normal_bright;
+		{
+			y1 = (display.y_size - 1) / 2;
+			y2 = y1 + font_info.height + 1;
+		}
 
-		bool			second_part = display_current_slot & 0x01;
-		static const	unsigned int x0 = 0;
-						unsigned int y0;
-		static const	unsigned int x1 = display_width - 1;
-						unsigned int y1;
-		const rgb_t *	background = &themes[8].low_bright.normal.bg;
-
-		y0 = display_text_to_graphic_y(second_part, 0) + 0;
-		y1 = display_text_to_graphic_y(second_part, 1) + 2;
-
-		if(!display_fill_rectangle(x0, y0, x1, y1, colours->tag.bg.r, colours->tag.bg.g, colours->tag.bg.b))
+		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
 
-		y0 = display_text_to_graphic_y(second_part, 1) + 2;
-		y1 = display_text_to_graphic_y(second_part, 4) + 0;
+		background_colour(text.slot, false, &r, &g, &b);
 
-		if(!display_fill_rectangle(x0, y0, x1, y1, colours->normal.bg.r, colours->normal.bg.g, colours->normal.bg.b))
-			return(false);
+		x1 = 0;
+		x2 = display.x_size - 1;
 
-		y0 = display_text_to_graphic_y(false, 4) + 0;
-		y1 = display_text_to_graphic_y(false, 4) + display_character_slot_padding - 1;
+		if(text.display_slot == 0)
+		{
+			y1 = font_info.height + 2;
+			y2 = (display.y_size - 1) / 2 - 1;
+		}
+		else
+		{
+			y1 = ((display.y_size - 1) / 2) + font_info.height + 2;
+			y2 = display.y_size - 1;
+		}
 
-		if(!display_fill_rectangle(x0, y0, x1, y1, background->r, background->g, background->b))
+		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
 	}
 
 	return(true);
 }
 
-typedef enum
-{
-	map_none,
-	map_transparent,
-	map_font_internal,
-	map_font_external
-} map_t;
-
 static bool output(unsigned int length, const unsigned int unicode[])
 {
-	const unicode_map_t *unicode_map_ptr = (unicode_map_t *)0;
-	bool mapped = false;
 	unsigned int current_index, current;
+
+	/* this is required for log mode */
+
+	if(display.graphic_mode && display.logmode)
+	{
+		if(!clear_screen())
+			return(false);
+
+		display.graphic_mode = 0;
+	}
 
 	for(current_index = 0; current_index < length; current_index++)
 	{
@@ -2001,73 +1185,14 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 		if(current == '\n')
 		{
-			if(!display_newline())
+			if(!text_newline())
 				return(false);
 
 			continue;
 		}
 
-		if((display_y < text_lines()) && (display_x < text_width()))
-		{
-			switch(display_render_mode())
-			{
-				case(render_mode_internal):	unicode_map_ptr = unicode_map_internal_font; break;
-				case(render_mode_fontchip):	unicode_map_ptr = unicode_map_external_font_chip; break;
-				case(render_mode_graphic):	unicode_map_ptr = (unicode_map_t *)0; break;
-			}
-
-			for(; unicode_map_ptr && (unicode_map_ptr->unicode != mapeof); unicode_map_ptr++)
-				if(unicode_map_ptr->unicode == current)
-				{
-					current = unicode_map_ptr->internal;
-					mapped = true;
-					break;
-				}
-
-			switch(display_render_mode())
-			{
-				case(render_mode_internal):
-				{
-					if(mapped)
-						display_data_output(current);
-					else
-						if((current < ' ') || ((current > '}') && (current < 0xa1)) || (current > 0xff))
-							display_data_output(' ');
-						else
-							display_data_output(current);
-
-					break;
-				}
-
-				case(render_mode_fontchip):
-				{
-					if(mapped)
-					{
-						if((current & 0xff00) != 0x0000)
-							display_data_output((current & 0xff00) >> 8);
-
-						display_data_output((current & 0x00ff) >> 0);
-					}
-					else
-						if((current < ' ') || ((current > '}') && (current < 0xa1)) || (current > 0xff))
-							display_data_output(' ');
-						else
-							display_data_output((current & 0x00ff) >> 0);
-
-					break;
-				}
-
-				case(render_mode_graphic):
-				{
-					display_data_output((current & 0xff00) >> 8);
-					display_data_output((current & 0x00ff) >> 0);
-
-					break;
-				}
-			}
-
-			display_x++;
-		}
+		if(!text_send(current))
+			return(false);
 	}
 
 	return(true);
@@ -2075,15 +1200,6 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 static bool end(void)
 {
-	if(!display_logmode)
-	{
-		while(display_y < text_lines())
-			if(!display_newline())
-				break;
-
-		display_newline();
-	}
-
 	return(true);
 }
 
@@ -2092,10 +1208,10 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	if(string_length(pixels) == 0)
 		return(true);
 
-	if(x > display_width)
+	if(x >= display.x_size)
 		return(false);
 
-	if(y > display_height)
+	if(y >= display.y_size)
 		return(false);
 
 	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
@@ -2103,25 +1219,27 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 	string_setlength(pixels, pixel_amount * 2);
 
-	if(!display_write(reg_mwcr0, reg_mwcr0_default | reg_mwcr0_mode_graphic))
-		return(false);
-
 	if((x >= 0) && (y >= 0))
 	{
-		if(!display_write(reg_curh1, (x & 0xff00) >> 8))
+		if(!write_command_data_1(reg_curh1, (x & 0xff00) >> 8))
 			return(false);
 
-		if(!display_write(reg_curh0, (x & 0x00ff) >> 0))
+		if(!write_command_data_1(reg_curh0, (x & 0x00ff) >> 0))
 			return(false);
 
-		if(!display_write(reg_curv1, (y & 0xff00) >> 8))
+		if(!write_command_data_1(reg_curv1, (y & 0xff00) >> 8))
 			return(false);
 
-		if(!display_write(reg_curv0, (y & 0x00ff) >> 0))
+		if(!write_command_data_1(reg_curv0, (y & 0x00ff) >> 0))
 			return(false);
 	}
 
-	if(!display_write_string(true, string_length(pixels), (const unsigned char *)string_buffer(pixels)))
+	display.graphic_mode = 1;
+
+	if(!write_command(reg_mrwc))
+		return(false);
+
+	if(!write_data(string_length(pixels), (const unsigned char *)string_buffer(pixels)))
 		return(false);
 
 	return(true);
@@ -2131,23 +1249,21 @@ static bool freeze(bool active)
 {
 	if(active)
 	{
-		if(!display_copy_layer(0, 1))
+		if(!copy_layer(0, 1))
 			return(false);
-		if(!display_show_layer(1))
+		if(!show_layer(1))
 			return(false);
 	}
 	else
-		if(!display_show_layer(0))
+		if(!show_layer(0))
 			return(false);
 
 	return(true);
 }
 
-extern roflash const char help_description_display_eastrising[];
-
 app_action_t application_function_display_eastrising(string_t *src, string_t *dst)
 {
-	unsigned int mode, fontchip;
+	display_mode_t mode;
 	int user_cs_io, user_cs_pin;
 
 	if(parse_uint(1, src, &mode, 0, ' ') == parse_ok)
@@ -2158,55 +1274,35 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 			return(app_action_error);
 		}
 
-		if(parse_uint(2, src, &fontchip, 0, ' ') != parse_ok)
+		if((parse_int(2, src, &user_cs_io, 0, ' ') == parse_ok) && (parse_int(3, src, &user_cs_pin, 0, ' ') == parse_ok))
 		{
-			fontchip = 0;
-			user_cs_io = -1;
-			user_cs_pin = -1;
+			if(mode != 2)
+			{
+				string_append_cstr_flash(dst, help_description_display_eastrising);
+				return(app_action_error);
+			}
+
+			if((user_cs_io < 0) || (user_cs_io >= io_id_size) || (user_cs_pin < 0) || (user_cs_pin >= max_pins_per_io))
+			{
+				string_append_cstr_flash(dst, help_description_display_eastrising);
+				return(app_action_error);
+			}
 		}
 		else
 		{
-			if((parse_int(3, src, &user_cs_io, 0, ' ') == parse_ok) && (parse_int(4, src, &user_cs_pin, 0, ' ') == parse_ok))
-			{
-				if(mode != 2)
-				{
-					string_append_cstr_flash(dst, help_description_display_eastrising);
-					return(app_action_error);
-				}
-
-				if((user_cs_io < 0) || (user_cs_io >= io_id_size) || (user_cs_pin < 0) || (user_cs_pin >= max_pins_per_io))
-				{
-					string_append_cstr_flash(dst, help_description_display_eastrising);
-					return(app_action_error);
-				}
-			}
-			else
-			{
-				user_cs_io = -1;
-				user_cs_pin = -1;
-			}
+			user_cs_io = -1;
+			user_cs_pin = -1;
 		}
 
 		if(!config_open_write())
 			goto config_error;
 
 		if(mode == 0)
-		{
-			config_delete("display_eastrising.mode", false, -1, -1);
-			config_delete("display_eastrising.fontchip", false, -1, -1);
-			config_delete("display_eastrising.io", false, -1, -1);
-			config_delete("display_eastrising.pin", false, -1, -1);
-		}
+			config_delete("display_eastrising.", true, -1, -1);
 		else
 		{
 			if(!config_set_uint("display_eastrising.mode", mode, -1, -1))
 				goto config_error;
-
-			if(fontchip == 0)
-				config_delete("display_eastrising.fontchip", false, -1, -1);
-			else
-				if(!config_set_uint("display_eastrising.fontchip", fontchip, -1, -1))
-					goto config_error;
 
 			if((user_cs_io < 0) || (user_cs_pin < 0))
 			{
@@ -2229,11 +1325,6 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 
 	if(!config_get_uint("display_eastrising.mode", &mode, -1, -1))
 		mode = 0;
-
-	if(!config_get_uint("display_eastrising.fontchip", &fontchip, -1, -1))
-		fontchip = 0;
-
-	display_use_fontchip = fontchip != 0;
 
 	if(!config_get_int("display_eastrising.io", &user_cs_io, -1, -1) ||
 			!config_get_int("display_eastrising.pin", &user_cs_pin, -1, -1))
@@ -2258,8 +1349,6 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 		default: string_append(dst, "> unknown mode"); break;
 	}
 
-	string_format(dst, "\n> font chip is enabled: %s\n", yesno(fontchip));
-
 	return(app_action_normal);
 
 config_error:
@@ -2269,16 +1358,66 @@ config_error:
 	return(app_action_error);
 }
 
+static bool bright(int brightness)
+{
+	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
+	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable,
+				reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
+	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
+
+	if(brightness > 4)
+		return(false);
+
+	if(!write_command_data_1(reg_p1dcr, bright_level[brightness]))
+		return(false);
+
+	if(!write_command_data_1(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
+		return(false);
+
+	display.low_brightness = bright_low[brightness] ? true : false;
+
+	return(true);
+}
+
+roflash const char help_description_display_eastrising[] =
+		"display eastrising <mode=0=disabled|1=i2c|2=hspi [<user cs io> <user cs pin>]";
+
 static bool info(display_info_t *infostruct)
 {
-	strncpy(infostruct->name, "eastrising", sizeof(infostruct->name));
+	font_info_t font_info;
+	unsigned int columns, rows;
+	unsigned int cell_width, cell_height;
 
-	infostruct->columns = 25;
-	infostruct->rows = 8;
-	infostruct->cell_width = 16; // FIXME
-	infostruct->cell_height = 32; // FIXME
-	infostruct->width = 480;
-	infostruct->height = 272;
+	if(font_get_info(&font_info))
+	{
+		cell_width = font_info.width;
+		cell_height = font_info.height;
+	}
+	else
+	{
+		cell_width = 0;
+		cell_height = 0;
+	}
+
+	if((cell_width != 0) && (cell_height != 0))
+	{
+		columns = display.x_size / cell_width;
+		rows = display.y_size / cell_height;
+	}
+	else
+	{
+		columns = 0;
+		rows = 0;
+	}
+
+	strncpy(infostruct->name, "Eastrising TFT", sizeof(infostruct->name));
+
+	infostruct->columns = columns;
+	infostruct->rows = rows;
+	infostruct->cell_width = cell_width;
+	infostruct->cell_height = cell_height;
+	infostruct->width = display.x_size;
+	infostruct->height = display.y_size;
 	infostruct->pixel_mode = display_pixel_mode_16_rgb;
 
 	return(true);

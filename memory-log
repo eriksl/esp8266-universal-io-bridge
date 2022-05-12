@@ -13162,3 +13162,195 @@ Wed May 11 11:23:48 CEST 2022 74e6fbb display_spitft: remove display type, appar
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65373, free:  14892, 18 %
     irom:    available: 784 k, used: 435488, free: 367328, 45 %
+Wed May 11 14:15:49 CEST 2022 0b789b4 display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65373, free:  14892, 18 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Thu May 12 11:59:02 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433712, free: 369104, 45 %
+Thu May 12 14:03:14 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432720, free: 370096, 46 %
+Thu May 12 14:03:40 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432960, free: 369856, 46 %
+Thu May 12 14:04:57 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433104, free: 369712, 46 %
+Thu May 12 14:05:29 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433360, free: 369456, 46 %
+Thu May 12 14:06:00 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433440, free: 369376, 46 %
+Thu May 12 14:06:21 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433664, free: 369152, 45 %
+Thu May 12 14:09:48 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433712, free: 369104, 45 %
+Thu May 12 14:10:46 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 432032, free: 370784, 46 %
+Thu May 12 14:12:20 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432224, free: 370592, 46 %
+Thu May 12 14:12:49 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432592, free: 370224, 46 %
+Thu May 12 14:13:17 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432608, free: 370208, 46 %
+Thu May 12 14:19:39 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432656, free: 370160, 46 %
+Thu May 12 14:20:48 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432688, free: 370128, 46 %
+Thu May 12 14:32:43 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432624, free: 370192, 46 %
+Thu May 12 14:35:55 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432608, free: 370208, 46 %
+Thu May 12 14:39:00 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432624, free: 370192, 46 %
+Thu May 12 14:40:15 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432576, free: 370240, 46 %
+Thu May 12 14:46:30 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432512, free: 370304, 46 %
+Thu May 12 14:49:11 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432560, free: 370256, 46 %
+Thu May 12 15:05:11 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432528, free: 370288, 46 %
+Thu May 12 15:06:26 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432640, free: 370176, 46 %
+Thu May 12 15:09:47 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432864, free: 369952, 46 %
+Thu May 12 15:10:39 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432944, free: 369872, 46 %
+Thu May 12 15:11:55 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432960, free: 369856, 46 %
+Thu May 12 15:12:37 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432976, free: 369840, 46 %
+Thu May 12 15:25:14 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 432880, free: 369936, 46 %
+Thu May 12 15:27:58 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433344, free: 369472, 46 %
+Thu May 12 15:32:52 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433360, free: 369456, 46 %
+Thu May 12 16:30:17 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433472, free: 369344, 46 %
+Thu May 12 16:33:51 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433392, free: 369424, 46 %
+Thu May 12 16:34:25 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433472, free: 369344, 46 %
+Thu May 12 16:41:47 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433488, free: 369328, 46 %
+Thu May 12 16:46:14 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433472, free: 369344, 46 %
+Thu May 12 16:51:37 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433424, free: 369392, 46 %
+Thu May 12 16:54:52 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433440, free: 369376, 46 %
+Thu May 12 17:08:38 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433424, free: 369392, 46 %
+Thu May 12 17:18:59 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433408, free: 369408, 46 %
+Thu May 12 17:24:00 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433296, free: 369520, 46 %
+Thu May 12 17:30:20 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433376, free: 369440, 46 %
+Thu May 12 17:32:02 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433472, free: 369344, 46 %
+Thu May 12 17:42:25 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Thu May 12 17:44:14 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433440, free: 369376, 46 %
+Thu May 12 18:40:22 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433632, free: 369184, 45 %
+Thu May 12 18:43:43 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433744, free: 369072, 45 %
+Thu May 12 18:47:14 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433728, free: 369088, 45 %
+Thu May 12 18:49:19 CEST 2022 0aa835e display_spitft: correct off-by-one error loading pictures (plot).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65345, free:  14920, 18 %
+    irom:    available: 784 k, used: 433632, free: 369184, 45 %
