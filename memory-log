@@ -13362,3 +13362,223 @@ Thu May 12 19:04:08 CEST 2022 e5e7660 display_seeed: remove code, I can't get it
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65321, free:  14944, 18 %
     irom:    available: 784 k, used: 431888, free: 370928, 46 %
+Fri May 13 14:50:04 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429376, free: 373440, 46 %
+Fri May 13 14:52:45 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429344, free: 373472, 46 %
+Fri May 13 14:56:25 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428384, free: 374432, 46 %
+Fri May 13 15:00:43 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428448, free: 374368, 46 %
+Fri May 13 15:02:17 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428480, free: 374336, 46 %
+Fri May 13 15:04:59 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428496, free: 374320, 46 %
+Fri May 13 15:06:30 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428400, free: 374416, 46 %
+Fri May 13 15:10:23 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429296, free: 373520, 46 %
+Fri May 13 15:12:51 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429280, free: 373536, 46 %
+Fri May 13 15:13:34 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429264, free: 373552, 46 %
+Fri May 13 15:15:58 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429360, free: 373456, 46 %
+Fri May 13 15:18:17 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429280, free: 373536, 46 %
+Fri May 13 15:22:16 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Fri May 13 15:47:29 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429168, free: 373648, 46 %
+Fri May 13 20:56:40 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429200, free: 373616, 46 %
+Fri May 13 20:58:31 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Fri May 13 21:00:50 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 428720, free: 374096, 46 %
+Fri May 13 21:07:14 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Fri May 13 21:09:21 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429264, free: 373552, 46 %
+Fri May 13 21:13:56 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429280, free: 373536, 46 %
+Fri May 13 21:19:25 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Fri May 13 21:21:41 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429264, free: 373552, 46 %
+Fri May 13 21:22:11 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429216, free: 373600, 46 %
+Fri May 13 21:24:09 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429312, free: 373504, 46 %
+Fri May 13 21:28:52 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429392, free: 373424, 46 %
+Fri May 13 21:31:37 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429376, free: 373440, 46 %
+Fri May 13 21:38:15 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Fri May 13 21:39:28 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Fri May 13 21:40:43 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Fri May 13 21:43:29 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Fri May 13 21:44:13 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Fri May 13 21:47:32 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Sat May 14 11:50:17 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429184, free: 373632, 46 %
+Sat May 14 11:51:12 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429264, free: 373552, 46 %
+Sat May 14 11:53:41 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Sat May 14 12:02:42 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429216, free: 373600, 46 %
+Sat May 14 12:03:06 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429184, free: 373632, 46 %
+Sat May 14 12:03:44 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429248, free: 373568, 46 %
+Sat May 14 12:13:50 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429232, free: 373584, 46 %
+Sat May 14 12:44:26 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429632, free: 373184, 46 %
+Sat May 14 12:44:59 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429648, free: 373168, 46 %
+Sat May 14 12:49:22 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429616, free: 373200, 46 %
+Sat May 14 12:49:50 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429632, free: 373184, 46 %
+Sat May 14 12:50:52 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429584, free: 373232, 46 %
+Sat May 14 12:52:17 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429616, free: 373200, 46 %
+Sat May 14 12:54:58 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429632, free: 373184, 46 %
+Sat May 14 12:56:42 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429680, free: 373136, 46 %
+Sat May 14 13:00:12 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429696, free: 373120, 46 %
+Sat May 14 13:00:51 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429664, free: 373152, 46 %
+Sat May 14 13:08:48 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429680, free: 373136, 46 %
+Sat May 14 13:28:23 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429696, free: 373120, 46 %
+Sat May 14 13:29:32 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429712, free: 373104, 46 %
+Sat May 14 13:31:03 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429728, free: 373088, 46 %
+Sat May 14 13:33:09 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429680, free: 373136, 46 %
+Sat May 14 13:35:40 CEST 2022 f18e100 display_spitft: small simplifications.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 429696, free: 373120, 46 %

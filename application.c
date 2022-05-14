@@ -21,6 +21,7 @@
 #include "spi.h"
 #include "display_eastrising.h"
 #include "display_spitft.h"
+#include "display_ssd1306.h"
 #include "font.h"
 
 #include <stdint.h>
@@ -2533,6 +2534,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"de", "display-eastrising",
 		application_function_display_eastrising,
 		help_description_display_eastrising,
+	},
+	{
+		"dss", "display-ssd1306",
+		application_function_display_ssd1306,
+		help_description_display_ssd1306,
 	},
 	{
 		"dt", "display-spitft",
