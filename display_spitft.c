@@ -819,7 +819,7 @@ static bool bright(int brightness)
 }
 
 
-roflash const char help_description_display_spitft[] =	"> usage: display spitft <mode=0=disabled|1=st7735|2=ili9341>\n"
+roflash const char help_description_display_spitft[] =	"> usage: display spitft\n"
 														"> <x size> <x offset> <x mirror 0|1>\n"
 														"> <y size> <x offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
