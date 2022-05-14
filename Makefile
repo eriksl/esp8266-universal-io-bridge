@@ -183,7 +183,7 @@ HOSTCPPFLAGS	:= -O3 -Wall -Wextra -Werror -Wframe-larger-than=65536 -Wno-error=i
 					-lssl -lcrypto -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -lMagick++-6.Q16
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o display_saa.o \
-						display_eastrising.o display_spitft.o display_ssd1306.o display_font_6x8.o io_pcf.o \
+						display_eastrising.o display_spitft.o display_ssd1306.o io_pcf.o \
 						http.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o \
 						mailbox.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
 						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o rboot-interface.o font.o
@@ -201,7 +201,7 @@ LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/in
 						$(LWIP_SRC)/netif/etharp.o
 
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h display_saa.h \
-						display_eastrising.h display_spitft.h display_font_6x8.h display_ssd1306.h \
+						display_eastrising.h display_spitft.h display_ssd1306.h \
 						http.h i2c.h i2c_sensor.h io.h io_gpio.h remote_trigger.h spi.h i2s.h \
 						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h mailbox.h \
 						queue.h stats.h uart.h user_config.h dispatch.h util.h sequencer.h init.h \
@@ -335,7 +335,6 @@ display_orbital.o:		$(HEADERS)
 display_saa.o:			$(HEADERS)
 display_eastrising.o:	$(HEADERS)
 display_ssd1306.o:		$(HEADERS)
-display_font_6x8.o:		$(HEADERS)
 http.o:					$(HEADERS)
 font.o:					$(HEADERS)
 i2c.o:					$(HEADERS)
