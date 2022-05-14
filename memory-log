@@ -13586,3 +13586,23 @@ Sat May 14 13:59:55 CEST 2022 8633663 display_font_6x8: remove it, it's no longe
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65297, free:  14968, 18 %
     irom:    available: 784 k, used: 428880, free: 373936, 46 %
+Sat May 14 16:31:02 CEST 2022 892decf display_saa: remove it, it hasn't been suitable for a long time.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 429488, free: 373328, 46 %
+Sat May 14 16:40:08 CEST 2022 892decf display_saa: remove it, it hasn't been suitable for a long time.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 429520, free: 373296, 46 %
+Sat May 14 16:54:29 CEST 2022 892decf display_saa: remove it, it hasn't been suitable for a long time.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 429584, free: 373232, 46 %
+Sat May 14 16:55:09 CEST 2022 892decf display_saa: remove it, it hasn't been suitable for a long time.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 429568, free: 373248, 46 %
+Sat May 14 16:56:37 CEST 2022 892decf display_saa: remove it, it hasn't been suitable for a long time.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 429584, free: 373232, 46 %

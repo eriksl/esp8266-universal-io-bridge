@@ -73,13 +73,19 @@ static struct attr_packed
 	{
 		int8_t io;
 		int8_t pin;
-	} user_cs;
+	} dcx;
 
 	struct attr_packed
 	{
 		int8_t io;
 		int8_t pin;
-	} dcx;
+	} bright;
+
+	struct attr_packed
+	{
+		int8_t io;
+		int8_t pin;
+	} user_cs;
 } pin;
 
 static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned int b)
@@ -118,9 +124,12 @@ static void background_colour(unsigned int slot, bool highlight, unsigned int *r
 		*b >>= 1;
 	}
 
-	*r >>= (4 - display.brightness);
-	*g >>= (4 - display.brightness);
-	*b >>= (4 - display.brightness);
+	if((pin.bright.io < 0) || (pin.bright.pin < 0))
+	{
+		*r >>= (4 - display.brightness);
+		*g >>= (4 - display.brightness);
+		*b >>= (4 - display.brightness);
+	}
 }
 
 static bool attr_result_used write_command(uint8_t cmd)
@@ -299,9 +308,12 @@ static attr_result_used bool text_send(unsigned int code)
 	g = 0xff;
 	b = 0xff;
 
-	r >>= (4 - display.brightness);
-	g >>= (4 - display.brightness);
-	b >>= (4 - display.brightness);
+	if((pin.bright.io < 0) || (pin.bright.pin < 0))
+	{
+		r >>= (4 - display.brightness);
+		g >>= (4 - display.brightness);
+		b >>= (4 - display.brightness);
+	}
 
 	fg_colour = rgb_to_16bit_colour(r, g, b);
 
@@ -379,6 +391,7 @@ static attr_result_used bool text_newline(void)
 static bool init(void)
 {
 	int dcx_io, dcx_pin;
+	int bright_io, bright_pin;
 	int user_cs_io, user_cs_pin;
 	unsigned int x_size, x_offset;
 	unsigned int y_size, y_offset;
@@ -423,6 +436,16 @@ static bool init(void)
 
 	pin.dcx.io = dcx_io;
 	pin.dcx.pin = dcx_pin;
+
+	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
+			!config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
+	{
+		pin.bright.io = -1;
+		pin.bright.pin = -1;
+	}
+
+	pin.bright.io = bright_io;
+	pin.bright.pin = bright_pin;
 
 	if(!config_get_int("spitft.cs.io", &user_cs_io, -1, -1) ||
 			!config_get_int("spitft.cs.pin", &user_cs_pin, -1, -1))
@@ -644,6 +667,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	unsigned int y_size, y_offset, y_mirror;
 	unsigned int rotate;
 	int dcx_io, dcx_pin;
+	int bright_io, bright_pin;
 	int cs_io, cs_pin;
 
 	if(parse_uint(1, src, &x_size, 0, ' ') == parse_ok)
@@ -682,8 +706,23 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			return(app_action_error);
 		}
 
-		if((parse_int(10, src, &cs_io, 0, ' ') == parse_ok) &&
-				(parse_int(11, src, &cs_pin, 0, ' ') == parse_ok))
+		if((parse_int(10, src, &bright_io, 0, ' ') == parse_ok) &&
+				(parse_int(11, src, &bright_pin, 0, ' ') == parse_ok))
+		{
+			if((bright_io < 0) || (bright_io >= io_id_size) || (bright_pin < 0) || (bright_pin >= max_pins_per_io))
+			{
+				string_append_cstr_flash(dst, help_description_display_spitft);
+				return(app_action_error);
+			}
+		}
+		else
+		{
+			bright_io = -1;
+			bright_pin = -1;
+		}
+
+		if((parse_int(11, src, &cs_io, 0, ' ') == parse_ok) &&
+				(parse_int(12, src, &cs_pin, 0, ' ') == parse_ok))
 		{
 			if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
 			{
@@ -731,6 +770,20 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			if(!config_set_uint("spitft.dcx.pin", dcx_pin, -1, -1))
 				goto config_error;
 
+			if((bright_io < 0) || (bright_pin < 0))
+			{
+				config_delete("spitft.bright.io", false, -1, -1);
+				config_delete("spitft.bright.pin", false, -1, -1);
+			}
+			else
+			{
+				if(!config_set_uint("spitft.bright.io", bright_io, -1, -1))
+					goto config_error;
+
+				if(!config_set_uint("spitft.bright.pin", bright_pin, -1, -1))
+					goto config_error;
+			}
+
 			if((cs_io < 0) || (cs_pin < 0))
 			{
 				config_delete("spitft.cs.io", false, -1, -1);
@@ -748,12 +801,6 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 
 		if(!config_close_write())
 			goto config_error;
-
-		pin.dcx.io = dcx_io;
-		pin.dcx.pin = dcx_pin;
-
-		pin.user_cs.io = cs_io;
-		pin.user_cs.pin = cs_pin;
 	}
 
 	if(!config_get_uint("spitft.x.size", &x_size, -1, -1))
@@ -792,6 +839,13 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 
 	string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
 
+	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
+			!config_get_int("spitft.cs.pin", &bright_pin, -1, -1))
+		bright_io = bright_pin = -1;
+
+	if((bright_io >= 0) && (bright_pin >= 0))
+		string_format(dst, "> brightness pwm io: %d, pin: %d\n", cs_io, cs_pin);
+
 	if(!config_get_int("spitft.cs.io", &cs_io, -1, -1) ||
 			!config_get_int("spitft.cs.pin", &cs_pin, -1, -1))
 		cs_io = cs_pin = -1;
@@ -810,20 +864,42 @@ config_error:
 
 static bool bright(int brightness)
 {
+	static const roflash unsigned int brightness_factor[5] =
+	{
+		1000,
+		240,
+		200,
+		150,
+		0,
+	};
+
 	if((brightness < 0) || (brightness > 4))
 		return(false);
 
 	display.brightness = brightness;
 
+	if((pin.bright.io >= 0) && (pin.bright.pin >= 0))
+	{
+		io_pin_mode_t mode;
+		unsigned int lower_bound, upper_bound, value;
+		int step;
+
+		if(io_traits((string_t *)0, pin.bright.io, pin.bright.pin, &mode, &lower_bound, &upper_bound, &step, &value) == io_ok)
+		{
+			value = (upper_bound - lower_bound) * brightness_factor[brightness] / 1000;
+			io_write_pin((string_t *)0, pin.bright.io, pin.bright.pin, value + lower_bound);
+		}
+	}
+
 	return(true);
 }
-
 
 roflash const char help_description_display_spitft[] =	"> usage: display spitft\n"
 														"> <x size> <x offset> <x mirror 0|1>\n"
 														"> <y size> <x offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
 														"> <dcx io> <dcx pin>\n"
+														"> [<brightness pwm io> <brightness pwm pin>]\n"
 														"> [<user cs io> <user cs pin>]\n";
 
 static bool info(display_info_t *infostruct)
