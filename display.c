@@ -1,5 +1,4 @@
 #include "display.h"
-#include "display_saa.h"
 #include "display_lcd.h"
 #include "display_orbital.h"
 #include "display_cfa634.h"
@@ -64,7 +63,6 @@ assert_size(freeze_timer, 4);
 
 roflash static display_hooks_t const *const display_hooks[] =
 {
-	&display_hooks_saa1064,
 	&display_hooks_lcd,
 	&display_hooks_orbital,
 	&display_hooks_cfa,

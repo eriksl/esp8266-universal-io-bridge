@@ -13582,3 +13582,7 @@ Sat May 14 13:35:40 CEST 2022 f18e100 display_spitft: small simplifications.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65321, free:  14944, 18 %
     irom:    available: 784 k, used: 429696, free: 373120, 46 %
+Sat May 14 13:59:55 CEST 2022 8633663 display_font_6x8: remove it, it's no longer used.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65297, free:  14968, 18 %
+    irom:    available: 784 k, used: 428880, free: 373936, 46 %
