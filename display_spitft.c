@@ -864,13 +864,22 @@ config_error:
 
 static bool bright(int brightness)
 {
-	static const roflash unsigned int brightness_factor[5] =
+	static const roflash unsigned int brightness_factor[2][5] =
 	{
-		1000,
-		240,
-		200,
-		150,
-		0,
+		{
+			1000,
+			980,
+			900,
+			700,
+			0,
+		},
+		{
+			1000,
+			920,
+			800,
+			650,
+			0,
+		},
 	};
 
 	if((brightness < 0) || (brightness > 4))
@@ -881,13 +890,27 @@ static bool bright(int brightness)
 	if((pin.bright.io >= 0) && (pin.bright.pin >= 0))
 	{
 		io_pin_mode_t mode;
-		unsigned int lower_bound, upper_bound, value;
+		unsigned int lower_bound, upper_bound, max_value, value;
 		int step;
 
 		if(io_traits((string_t *)0, pin.bright.io, pin.bright.pin, &mode, &lower_bound, &upper_bound, &step, &value) == io_ok)
 		{
-			value = (upper_bound - lower_bound) * brightness_factor[brightness] / 1000;
-			io_write_pin((string_t *)0, pin.bright.io, pin.bright.pin, value + lower_bound);
+			max_value = io_pin_max_value(pin.bright.io, pin.bright.pin);
+
+			if(mode == io_pin_output_pwm1)
+				value = max_value * brightness_factor[0][brightness] / 1000;
+			else
+				if(mode == io_pin_output_pwm2)
+				{
+					value = max_value * brightness_factor[1][brightness] / 1000;
+					log("value: %u, max: %u, bf: %u\n",
+							value, max_value, brightness_factor[1][brightness]);
+				}
+				else
+					value = ~0;
+
+			if(value != ~0UL)
+				io_write_pin((string_t *)0, pin.bright.io, pin.bright.pin, value + lower_bound);
 		}
 	}
 
