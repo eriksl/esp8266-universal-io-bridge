@@ -1212,17 +1212,6 @@ io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_p
 		}
 
 		case(io_pin_output_pwm1):
-		{
-			*lower_bound	= pin_config->shared.output_pwm.lower_bound;
-			*upper_bound	= pin_config->shared.output_pwm.upper_bound;
-			*step			= pin_config->speed;
-
-			if((error = io_read_pin_x(errormsg, info, pin_data, pin_config, pin, value)) != io_ok)
-				return(error);
-
-			break;
-		}
-
 		case(io_pin_output_pwm2):
 		{
 			*lower_bound	= pin_config->shared.output_pwm.lower_bound;
