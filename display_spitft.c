@@ -840,11 +840,11 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
 
 	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
-			!config_get_int("spitft.cs.pin", &bright_pin, -1, -1))
+			!config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
 		bright_io = bright_pin = -1;
 
 	if((bright_io >= 0) && (bright_pin >= 0))
-		string_format(dst, "> brightness pwm io: %d, pin: %d\n", cs_io, cs_pin);
+		string_format(dst, "> brightness pwm io: %d, pin: %d\n", bright_io, bright_pin);
 
 	if(!config_get_int("spitft.cs.io", &cs_io, -1, -1) ||
 			!config_get_int("spitft.cs.pin", &cs_pin, -1, -1))
