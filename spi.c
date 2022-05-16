@@ -5,6 +5,7 @@
 #include "util.h"
 #include "io_gpio.h"
 #include "sys_time.h"
+#include "stats.h"
 
 static bool spi_inited;
 
@@ -91,6 +92,8 @@ bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, uns
 
 	write_peri_reg(PERIPHS_IO_MUX, PERIPHS_IO_MUX_HSPI_ENABLE);
 
+	stat_spi_smallest_chunk  = stat_spi_largest_chunk = stat_spi_wait_cycles = 0;
+
 	spi_inited = true;
 
 	return(true);
@@ -145,6 +148,12 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 			string_append(error, "spi: receive amount > 64");
 		return(false);
 	}
+
+	if((send_amount > 0) && (send_amount < stat_spi_smallest_chunk))
+		stat_spi_smallest_chunk = send_amount;
+
+	if(send_amount > stat_spi_largest_chunk)
+		stat_spi_largest_chunk = send_amount;
 
 	spi_user_static =		0x00;
 	spi_user_active =		0x00;

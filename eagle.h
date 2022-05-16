@@ -674,6 +674,11 @@ enum SPI_EXT3_bits
 	SPI_INT_HOLD_ENA_S =	0,
 };
 
+enum
+{
+	SPI_BUFFER_SIZE = 64,
+};
+
 attr_inline uint32_t UART_DATE(uint32_t i)		{ return(REG_UART_BASE(i) + 0x78); }
 attr_inline uint32_t UART_ID(uint32_t i)		{ return(REG_UART_BASE(i) + 0x7c); }
 

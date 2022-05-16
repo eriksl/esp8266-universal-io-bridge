@@ -409,8 +409,8 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 			{
 				chunk = left;
 
-				if(chunk > 32)
-					chunk = 32;
+				if(chunk > spi_buffer_size)
+					chunk = spi_buffer_size;
 
 				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin, true,
 						spi_rs_data | spi_rw_write,

@@ -3,6 +3,7 @@
 
 #include "util.h"
 #include "application.h"
+#include "spi.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -13,7 +14,7 @@ bool display_detected(void);
 
 enum
 {
-	display_buffer_size = 64,
+	display_buffer_size = spi_buffer_size,
 };
 
 extern uint8_t display_buffer[display_buffer_size];

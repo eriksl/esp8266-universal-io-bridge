@@ -2,6 +2,8 @@
 #define _spi_h_
 
 #include "io_gpio.h"
+#include "stats.h"
+#include "eagle.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,6 +47,11 @@ typedef enum
 	spi_clock_size,
 } spi_clock_t;
 
+enum
+{
+	spi_buffer_size = SPI_BUFFER_SIZE
+};
+
 attr_inline bool spi_ready(void)
 {
 	return((read_peri_reg(SPI_CMD(1)) & SPI_USR) == 0);
@@ -52,8 +59,13 @@ attr_inline bool spi_ready(void)
 
 attr_inline void spi_wait_completion(void)
 {
+	unsigned int cycles = 0;
+
 	while(!spi_ready())
-		(void)0;
+		cycles++;
+
+	if(cycles > stat_spi_wait_cycles)
+		stat_spi_wait_cycles = cycles;
 }
 
 attr_result_used bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_spiclk, unsigned int pin_spics, string_t *error);

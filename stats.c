@@ -71,6 +71,9 @@ unsigned int stat_display_update_max_us;
 
 unsigned int stat_spi_slave_interrupts;
 unsigned int stat_spi_slave_i2s_interrupts;
+unsigned int stat_spi_wait_cycles;
+unsigned int stat_spi_smallest_chunk;
+unsigned int stat_spi_largest_chunk;
 
 unsigned int stat_font_render_time;
 
@@ -399,12 +402,17 @@ void stats_counters(string_t *dst)
 			">  display updated:     %u\n"
 			">  picture load worker: %u\n"
 			">  primary PWM cycles:  %u\n"
-			">  uart data processed: %u\n",
+			">  uart data processed: %u\n"
+			">  spi wait cycles:     %u\n"
+			">  spi chunk sizes:     %u-%u\n",
 				stat_pc_counts,
 				stat_update_display,
 				stat_display_picture_load_worker_called,
 				stat_pwm_cycles,
-				stat_update_uart);
+				stat_update_uart,
+				stat_spi_wait_cycles,
+				stat_spi_smallest_chunk,
+				stat_spi_largest_chunk);
 
 	string_format(dst,
 			">\n> DEBUG COUNTERS\n"

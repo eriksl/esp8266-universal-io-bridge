@@ -61,11 +61,10 @@ static struct attr_packed
 	unsigned int	x_mirror:1;
 	unsigned int	y_mirror:1;
 	unsigned int	rotate:1;
-	unsigned int	buffer_size:8;
 	unsigned int	buffer_current:8;
 } display;
 
-assert_size(display, 7);
+assert_size(display, 6);
 
 static struct attr_packed
 {
@@ -261,7 +260,7 @@ static attr_result_used bool flush_data(void)
 
 attr_inline attr_result_used bool output_data(unsigned int byte)
 {
-	if(((display.buffer_current + 1) >= display.buffer_size) && !flush_data())
+	if(((display.buffer_current + 1) >= display_buffer_size) && !flush_data())
 		return(false);
 
 	display_buffer[display.buffer_current++] = (uint8_t)byte;
@@ -500,11 +499,6 @@ static bool init(void)
 
 	if(!write_command_data_1(cmd_madctl, madctl))
 		goto error;
-
-	if(display_buffer_size > 32) // spi engine can't handle writes > 32 bytes
-		display.buffer_size = 32;
-	else
-		display.buffer_size = display_buffer_size;
 
 	clear_screen();
 
