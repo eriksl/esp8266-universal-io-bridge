@@ -155,13 +155,13 @@ bool font_render(unsigned int code, font_cell_t cell)
 		if(font_code == font_codepoint_last_entry)
 		{
 			log("font_render: code not found (1)\n");
-			return(false);
+			return(true);
 		}
 
 		if(font_code > code)
 		{
-			log("font_render: code not found (2)\n");
-			return(false);
+			log("font_render: code not found (2) %u %u\n", font_code, code);
+			return(true);
 		}
 
 		if(font_code == code)
