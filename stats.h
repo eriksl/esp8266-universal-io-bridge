@@ -63,7 +63,6 @@ extern unsigned int stat_display_update_min_us;
 extern unsigned int stat_display_update_max_us;
 extern unsigned int stat_spi_slave_interrupts;
 extern unsigned int stat_spi_slave_i2s_interrupts;
-extern unsigned int stat_spi_smallest_chunk;
 extern unsigned int stat_spi_largest_chunk;
 extern unsigned int stat_spi_wait_cycles;
 

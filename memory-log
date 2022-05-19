@@ -13630,3 +13630,423 @@ Mon May 16 10:46:37 CEST 2022 bf8d1df display_spitft: fix missing brightness i/o
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65305, free:  14960, 18 %
     irom:    available: 784 k, used: 429760, free: 373056, 46 %
+Mon May 16 12:13:17 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65305, free:  14960, 18 %
+    irom:    available: 784 k, used: 429776, free: 373040, 46 %
+Tue May 17 14:44:25 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65321, free:  14944, 18 %
+    irom:    available: 784 k, used: 430208, free: 372608, 46 %
+Tue May 17 16:55:02 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433056, free: 369760, 46 %
+Tue May 17 17:07:15 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 431680, free: 371136, 46 %
+Tue May 17 18:05:49 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 432784, free: 370032, 46 %
+Tue May 17 18:16:46 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Tue May 17 18:35:27 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433488, free: 369328, 46 %
+Tue May 17 18:37:04 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 433552, free: 369264, 45 %
+Tue May 17 18:39:51 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 433504, free: 369312, 46 %
+Tue May 17 19:03:54 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Tue May 17 19:14:59 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434208, free: 368608, 45 %
+Tue May 17 19:16:50 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434192, free: 368624, 45 %
+Tue May 17 19:21:37 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434208, free: 368608, 45 %
+Tue May 17 19:26:19 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434336, free: 368480, 45 %
+Tue May 17 19:27:09 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434288, free: 368528, 45 %
+Tue May 17 19:30:14 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434224, free: 368592, 45 %
+Tue May 17 19:31:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434240, free: 368576, 45 %
+Tue May 17 19:38:12 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434256, free: 368560, 45 %
+Tue May 17 19:39:57 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434000, free: 368816, 45 %
+Tue May 17 19:43:21 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Tue May 17 19:51:14 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434016, free: 368800, 45 %
+Tue May 17 19:54:11 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434000, free: 368816, 45 %
+Tue May 17 19:55:25 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Tue May 17 19:56:23 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434032, free: 368784, 45 %
+Tue May 17 19:58:37 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Tue May 17 20:03:14 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434032, free: 368784, 45 %
+Tue May 17 20:06:07 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434064, free: 368752, 45 %
+Tue May 17 20:58:17 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434752, free: 368064, 45 %
+Wed May 18 10:10:48 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434864, free: 367952, 45 %
+Wed May 18 10:11:18 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434896, free: 367920, 45 %
+Wed May 18 10:12:11 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434928, free: 367888, 45 %
+Wed May 18 10:13:09 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434912, free: 367904, 45 %
+Wed May 18 10:13:37 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434752, free: 368064, 45 %
+Wed May 18 10:15:57 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434688, free: 368128, 45 %
+Wed May 18 10:16:42 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 432976, free: 369840, 46 %
+Wed May 18 10:17:49 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434112, free: 368704, 45 %
+Wed May 18 10:20:03 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65337, free:  14928, 18 %
+    irom:    available: 784 k, used: 434272, free: 368544, 45 %
+Wed May 18 10:35:49 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434112, free: 368704, 45 %
+Wed May 18 10:40:49 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 434128, free: 368688, 45 %
+Wed May 18 10:43:16 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Wed May 18 10:43:48 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433904, free: 368912, 45 %
+Wed May 18 10:45:12 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Wed May 18 10:47:02 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Wed May 18 10:56:13 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65329, free:  14936, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Wed May 18 11:33:43 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433760, free: 369056, 45 %
+Wed May 18 11:41:29 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Wed May 18 11:45:38 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 11:47:27 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Wed May 18 11:50:25 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 11:50:59 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Wed May 18 11:52:01 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433744, free: 369072, 45 %
+Wed May 18 11:53:52 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433728, free: 369088, 45 %
+Wed May 18 11:56:56 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 433712, free: 369104, 45 %
+Wed May 18 12:07:03 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65409, free:  14856, 18 %
+    irom:    available: 784 k, used: 434192, free: 368624, 45 %
+Wed May 18 12:09:51 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65441, free:  14824, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 12:12:49 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 434192, free: 368624, 45 %
+Wed May 18 12:13:10 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 432912, free: 369904, 46 %
+Wed May 18 13:42:31 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433520, free: 369296, 46 %
+Wed May 18 13:50:27 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Wed May 18 13:51:09 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433520, free: 369296, 46 %
+Wed May 18 13:56:16 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433536, free: 369280, 45 %
+Wed May 18 16:51:48 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433568, free: 369248, 45 %
+Wed May 18 16:54:42 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433584, free: 369232, 45 %
+Wed May 18 16:57:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433680, free: 369136, 45 %
+Wed May 18 17:16:12 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433712, free: 369104, 45 %
+Wed May 18 17:18:21 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433696, free: 369120, 45 %
+Wed May 18 17:22:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 17:23:18 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433808, free: 369008, 45 %
+Wed May 18 17:23:54 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 17:24:15 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433808, free: 369008, 45 %
+Wed May 18 17:28:45 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433264, free: 369552, 46 %
+Wed May 18 17:37:56 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Wed May 18 17:44:51 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Wed May 18 17:48:47 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Wed May 18 17:50:02 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Wed May 18 17:52:06 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433952, free: 368864, 45 %
+Wed May 18 17:52:48 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65465, free:  14800, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Wed May 18 17:57:12 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433856, free: 368960, 45 %
+Wed May 18 20:12:28 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433872, free: 368944, 45 %
+Wed May 18 20:17:06 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433760, free: 369056, 45 %
+Wed May 18 20:26:36 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 20:27:42 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433760, free: 369056, 45 %
+Wed May 18 20:28:52 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433744, free: 369072, 45 %
+Wed May 18 21:00:19 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Wed May 18 21:01:35 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 21:06:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433776, free: 369040, 45 %
+Wed May 18 21:08:53 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433792, free: 369024, 45 %
+Wed May 18 21:09:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433808, free: 369008, 45 %
+Thu May 19 09:49:00 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433824, free: 368992, 45 %
+Thu May 19 09:51:55 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433808, free: 369008, 45 %
+Thu May 19 09:57:02 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433824, free: 368992, 45 %
+Thu May 19 11:52:29 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433888, free: 368928, 45 %
+Thu May 19 12:09:19 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Thu May 19 12:10:20 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433984, free: 368832, 45 %
+Thu May 19 12:21:54 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 434032, free: 368784, 45 %
+Thu May 19 12:26:27 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 434016, free: 368800, 45 %
+Thu May 19 12:31:18 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433984, free: 368832, 45 %
+Thu May 19 12:34:09 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 434000, free: 368816, 45 %
+Thu May 19 12:39:50 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433984, free: 368832, 45 %
+Thu May 19 12:40:59 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 433968, free: 368848, 45 %
+Thu May 19 15:05:28 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 434960, free: 367856, 45 %
+Thu May 19 15:12:04 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435120, free: 367696, 45 %
+Thu May 19 15:19:19 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435008, free: 367808, 45 %
+Thu May 19 15:21:27 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435104, free: 367712, 45 %
+Thu May 19 15:26:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fix max spi write buffer is 64 not 32 bytes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435312, free: 367504, 45 %

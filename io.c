@@ -1680,7 +1680,7 @@ void io_init(void)
 
 		if(spi_pin == 4)
 		{
-			if(!spi_init(io, spi_pins[0], spi_pins[1], spi_pins[2], spi_pins[3], &error))
+			if(!spi_init(&error, io, spi_pins[0], spi_pins[1], spi_pins[2], spi_pins[3]))
 				log("io: %s\n", string_to_cstr(&error));
 		}
 	}

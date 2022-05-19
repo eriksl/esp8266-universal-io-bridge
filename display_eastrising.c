@@ -378,21 +378,43 @@ static bool attr_result_used write_command(uint8_t cmd)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_20M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin,
-						true, spi_rs_cmd | spi_rw_write, 1, &cmd, 0, 0, (uint8_t *)0, &error))
-				return(true);
+			if(!spi_start(&error))
+			{
+				log("eastrising command spi start: %s\n", string_to_cstr(&error));
+				return(false);
+			}
 
-			log("eastrising write command: %s\n", string_to_cstr(&error));
+			if(!spi_write_8(spi_rs_cmd | spi_rw_write))
+			{
+				log("eastrising command spi write failed\n");
+				return(false);
+			}
+
+			if(!spi_write_8(cmd))
+			{
+				log("eastrising command spi write failed\n");
+				return(false);
+			}
+
+			if(!spi_transmit(&error, spi_clock_10M, 0, 0, 0, 0, 0, 0))
+			{
+				log("eastrising command spi transmit: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			if(!spi_finish(&error))
+			{
+				log("eastrising command spi finish failed\n");
+				return(false);
+			}
 		}
 	}
 
-	return(false);
+	return(true);
 }
 
 static bool attr_result_used write_data(unsigned int length, const uint8_t *data)
 {
-	string_new(, error, 64);
-
 	switch(display.mode)
 	{
 		case(display_mode_disabled): return(false);
@@ -403,34 +425,60 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 
 		case(display_mode_spi):
 		{
-			unsigned int offset, left, chunk;
+			string_new(, error, 64);
+			unsigned int current;
 
-			for(offset = 0, left = length; (left > 0) && (offset < length);)
+			if(!spi_start(&error))
 			{
-				chunk = left;
+				log("eastrising data spi start: %s\n", string_to_cstr(&error));
+				return(false);
+			}
 
-				if(chunk > spi_buffer_size)
-					chunk = spi_buffer_size;
+			for(current = 0; current < length; current++)
+			{
+				if(spi_write_8(data[current]))
+					continue;
 
-				if(!spi_send_receive(spi_clock_10M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin, true,
-						spi_rs_data | spi_rw_write,
-						chunk, &data[offset],
-						0,
-						0, (uint8_t *)0, &error))
+				if(!spi_transmit(&error, spi_clock_10M, 8, spi_rs_data | spi_rw_write, 0, 0, 0, 0))
 				{
-					log("eastrising write data: %s\n", string_to_cstr(&error));
+					log("eastrising data spi transmit: %s\n", string_to_cstr(&error));
 					return(false);
 				}
 
-				offset += chunk;
-				left -= chunk;
+				if(!spi_finish(&error))
+				{
+					log("eastrising data spi finish failed\n");
+					return(false);
+				}
+
+				if(!spi_start(&error))
+				{
+					log("eastrising data spi start: %s\n", string_to_cstr(&error));
+					return(false);
+				}
+
+				if(!spi_write_8(data[current]))
+				{
+					log("eastrising data spi write failed\n");
+					return(false);
+				}
 			}
 
-			return(true);
+			if(!spi_transmit(&error, spi_clock_10M, 8, spi_rs_data | spi_rw_write, 0, 0, 0, 0))
+			{
+				log("eastrising data spi transmit: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			if(!spi_finish(&error))
+			{
+				log("eastrising data spi finish failed\n");
+				return(false);
+			}
 		}
 	}
 
-	return(false);
+	return(true);
 }
 
 static bool attr_result_used write_data_1(uint8_t data)
@@ -463,16 +511,39 @@ static bool attr_result_used read_data(uint8_t cmd, uint8_t *data)
 		{
 			string_new(, error, 64);
 
-			if(spi_send_receive(spi_clock_10M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin, true, spi_rs_data | spi_rw_read,
-						0, (const uint8_t *)0, 0, 1, data, &error))
+			if(!spi_start(&error))
+			{
+				log("eastrising data read spi start: %s\n", string_to_cstr(&error));
+				return(false);
+			}
 
-				return(true);
+			if(!spi_write_8(spi_rs_data | spi_rw_read))
+			{
+				log("eastrising data read spi write failed\n");
+				return(false);
+			}
 
-			log("eastrising read: %s\n", string_to_cstr(&error));
+			if(!spi_transmit(&error, spi_clock_10M, 0, 0, 0, 0, 0, 1))
+			{
+				log("eastrising data read spi transmit: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			if(!spi_receive(&error, 1, data))
+			{
+				log("eastrising data read spi receive: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			if(!spi_finish(&error))
+			{
+				log("eastrising data read spi finish failed\n");
+				return(false);
+			}
 		}
 	}
 
-	return(false);
+	return(true);
 }
 
 static bool attr_result_used fgcolour_set(unsigned int r, unsigned int g, unsigned int b)
@@ -589,7 +660,7 @@ static bool attr_result_used box(unsigned int r, unsigned int g, unsigned int b,
 	}
 
 	if(timeout >= 10)
-		log("BTE clear area timeout");
+		log("BTE clear area timeout\n");
 	else
 		success = true;
 
@@ -947,6 +1018,7 @@ static bool bright(int brightness);
 
 static bool init(void)
 {
+	string_new(, error, 64);
 	unsigned int mode;
 	int user_cs_io, user_cs_pin;
 	unsigned int mwcr0;
@@ -966,6 +1038,12 @@ static bool init(void)
 	{
 		pin.user_cs.io = user_cs_io;
 		pin.user_cs.pin = user_cs_pin;
+	}
+
+	if(!spi_configure(&error, spi_mode_0, true, pin.user_cs.io, pin.user_cs.pin))
+	{
+		log("eastrising init configure: %s\n", string_to_cstr(&error));
+		return(false);
 	}
 
 	display.logmode = 1;

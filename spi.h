@@ -49,30 +49,25 @@ typedef enum
 
 enum
 {
-	spi_buffer_size = SPI_BUFFER_SIZE
+	spi_buffer_size = SPI_W0_REGISTERS * SPI_W0_REGISTER_BYTE_WIDTH,
+	spi_bulk_buffer_size = SPI_W0_REGISTERS,
+	spi_bulk_buffer_bit_width = SPI_W0_REGISTER_BIT_WIDTH,
 };
 
-attr_inline bool spi_ready(void)
-{
-	return((read_peri_reg(SPI_CMD(1)) & SPI_USR) == 0);
-}
+extern const char help_description_spi_write_read[];
 
-attr_inline void spi_wait_completion(void)
-{
-	unsigned int cycles = 0;
+attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs);
+attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin);
+attr_result_used bool spi_start(string_t *error);
+attr_result_used bool spi_write(unsigned int bits, uint32_t value);
+attr_result_used bool spi_write_8(unsigned int value);
+attr_result_used bool spi_write_16(unsigned int value);
+attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4]);
+attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
+		unsigned int command_length_bits, unsigned int command, unsigned int address_length_bits, unsigned int address, unsigned int skip_bits, unsigned int receive_bytes);
+attr_result_used bool spi_receive(string_t *error, unsigned int receive_bytes, uint8_t *receive_data);
+attr_result_used bool spi_finish(string_t *error);
 
-	while(!spi_ready())
-		cycles++;
-
-	if(cycles > stat_spi_wait_cycles)
-		stat_spi_wait_cycles = cycles;
-}
-
-attr_result_used bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_spiclk, unsigned int pin_spics, string_t *error);
-attr_result_used bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_io, int cs_pin,
-						bool send_command, uint8_t command,
-						unsigned int send_amount, const uint8_t *send_data, unsigned int skip_amount, unsigned int receive_amount, uint8_t *receive_data,
-						string_t *error);
 attr_result_used app_action_t application_function_spi_write_read(string_t *src, string_t *dst);
 
 #endif

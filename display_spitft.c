@@ -1,4 +1,3 @@
-#include "display.h"
 #include "display_spitft.h"
 #include "spi.h"
 #include "config.h"
@@ -38,54 +37,63 @@ enum
 	colmod_16bpp = 	0x05,
 };
 
-static struct attr_packed
+typedef struct
 {
-	unsigned int column:8;
-	unsigned int row:8;
-	unsigned int slot:4;
-	unsigned int display_slot:1;
-} text;
+	unsigned int column;
+	unsigned int row;
+	unsigned int slot;
+	unsigned int display_slot;
+} text_t;
 
-assert_size(text, 3);
+assert_size(text_t, 16);
 
-static struct attr_packed
+typedef struct
 {
-	unsigned int	enabled:1;
-	unsigned int	logmode:1;
-	unsigned int	graphic_mode:1;
-	unsigned int	brightness:3;
-	unsigned int	x_size:10;
-	unsigned int	y_size:10;
-	unsigned int	x_offset:4;
-	unsigned int	y_offset:4;
-	unsigned int	x_mirror:1;
-	unsigned int	y_mirror:1;
-	unsigned int	rotate:1;
-	unsigned int	buffer_current:8;
-} display;
+	unsigned int brightness;
+	unsigned int x_size;
+	unsigned int y_size;
+	unsigned int x_offset;
+	unsigned int y_offset;
+	unsigned int enabled:1;
+	unsigned int logmode:1;
+	unsigned int graphic_mode:1;
+	unsigned int x_mirror:1;
+	unsigned int y_mirror:1;
+	unsigned int rotate:1;
+	unsigned int buffer_dirty:1;
+} display_t;
 
-assert_size(display, 6);
+assert_size(display_t, 24);
 
-static struct attr_packed
+typedef struct
 {
-	struct attr_packed
+	struct
 	{
-		int8_t io;
-		int8_t pin;
+		unsigned int enabled;
+		int io;
+		int pin;
 	} dcx;
 
-	struct attr_packed
+	struct
 	{
-		int8_t io;
-		int8_t pin;
+		unsigned int enabled;
+		int io;
+		int pin;
 	} bright;
 
-	struct attr_packed
+	struct
 	{
-		int8_t io;
-		int8_t pin;
+		unsigned int enabled;
+		int io;
+		int pin;
 	} user_cs;
-} pin;
+} pin_t;
+
+assert_size(pin_t, 36);
+
+static text_t text;
+static display_t display;
+static pin_t pin;
 
 static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned int b)
 {
@@ -123,7 +131,7 @@ static void background_colour(unsigned int slot, bool highlight, unsigned int *r
 		*b >>= 1;
 	}
 
-	if((pin.bright.io < 0) || (pin.bright.pin < 0))
+	if(!pin.bright.enabled)
 	{
 		*r >>= (4 - display.brightness);
 		*g >>= (4 - display.brightness);
@@ -131,114 +139,365 @@ static void background_colour(unsigned int slot, bool highlight, unsigned int *r
 	}
 }
 
-static bool attr_result_used write_command(uint8_t cmd)
+static attr_result_used bool send_command_data(string_t *error, unsigned int send_cmd, unsigned int cmd, unsigned int length, const uint8_t *data)
 {
-	string_new(, error, 64);
+	unsigned int current;
+	unsigned int value;
 
-	if(io_write_pin(&error, pin.dcx.io, pin.dcx.pin, 0) != io_ok)
+	if(pin.dcx.enabled)
 	{
-		log("spitft write command: io: %s\n", string_to_cstr(&error));
-		return(false);
-	}
-
-	if(!spi_send_receive(spi_clock_20M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin,
-				false, 0, 1, &cmd, 0, 0, (uint8_t *)0, &error))
-	{
-		log("spitft write command: spi: %s\n", string_to_cstr(&error));
-		return(false);
-	}
-
-	return(true);
-}
-
-static bool attr_result_used write_data(int length, const uint8_t *data)
-{
-	string_new(, error, 64);
-
-	if(io_write_pin(&error, pin.dcx.io, pin.dcx.pin, 1) != io_ok)
-	{
-		log("spitft write data: io: %s\n", string_to_cstr(&error));
-		return(false);
-	}
-
-	if(!spi_send_receive(spi_clock_20M, spi_mode_0, false, pin.user_cs.io, pin.user_cs.pin,
-				false, 0, length, data, 0, 0, (uint8_t *)0, &error))
-	{
-		log("spitft write data: spi: %s\n", string_to_cstr(&error));
-		return(false);
-	}
-
-	return(true);
-}
-
-static bool attr_result_used write_command_data_1(unsigned int cmd, unsigned int data)
-{
-	uint8_t data_array[1];
-
-	if(!write_command(cmd))
-		return(false);
-
-	data_array[0] = data;
-
-	if(!write_data(1, data_array))
-		return(false);
-
-	return(true);
-}
-
-static bool attr_result_used write_command_data_2_16(unsigned int cmd, unsigned int data_1, unsigned int data_2)
-{
-	uint8_t data_array[4];
-
-	data_array[0] = (data_1 & 0xff00) >> 8;
-	data_array[1] = (data_1 & 0x00ff) >> 0;
-	data_array[2] = (data_2 & 0xff00) >> 8;
-	data_array[3] = (data_2 & 0x00ff) >> 0;
-
-	if(!write_command(cmd))
-		return(false);
-
-	if(!write_data(sizeof(data_array), data_array))
-		return(false);
-
-	return(true);
-}
-
-static attr_result_used bool flush_data(void);
-attr_inline attr_result_used bool output_data(unsigned int byte);
-
-static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
-{
-	unsigned int box_colour;
-	uint8_t colour[2];
-	unsigned int x, y;
-
-	if(!write_command_data_2_16(cmd_caset, from_x + display.x_offset, to_x + display.x_offset))
-		return(false);
-
-	if(!write_command_data_2_16(cmd_raset, from_y + display.y_offset, to_y + display.y_offset))
-		return(false);
-
-	if(!write_command(cmd_ramwr))
-		return(false);
-
-	box_colour = rgb_to_16bit_colour(r, g, b);
-	colour[0] = (box_colour & 0xff00) >> 8;
-	colour[1] = (box_colour & 0x00ff) >> 0;
-
-	for(y = from_y; y <= to_y; y++)
-	{
-		for(x = from_x; x <= to_x; x++)
+		if(send_cmd)
 		{
-			if(!output_data(colour[0]))
+			if(!spi_start(error))
+			{
+				if(error)
+					string_append(error, " - during cmd start 8");
 				return(false);
-			if(!output_data(colour[1]))
+			}
+
+			if(io_write_pin(error, pin.dcx.io, pin.dcx.pin, 0) != io_ok)
+			{
+				if(error)
+					string_append(error, " - during cmd io 8");
 				return(false);
+			}
+
+			if(!spi_transmit(error, spi_clock_20M, 8, cmd, 0, 0, 0, 0))
+			{
+				if(error)
+					string_append(error, "- during cmd transmit 8");
+				return(false);
+			}
+
+			if(!spi_finish(error))
+			{
+				if(error)
+					string_append(error, "- during cmd finish 8");
+				return(false);
+			}
+		}
+
+		if(length > 0)
+		{
+			if(!spi_start(error))
+			{
+				if(error)
+					string_append(error, " - during data start 8");
+				return(false);
+			}
+
+			for(current = 0; current < length; current++)
+			{
+				value = data[current] & 0xff;
+
+				if(!spi_write_8(value))
+				{
+					if(error)
+						string_append(error, " - during data write 8");
+					return(false);
+				}
+			}
+
+			if(io_write_pin(error, pin.dcx.io, pin.dcx.pin, 1) != io_ok)
+			{
+				if(error)
+					string_append(error, " - during data io 8");
+				return(false);
+			}
+
+			if(!spi_transmit(error, spi_clock_20M, 0, 0, 0, 0, 0, 0))
+			{
+				if(error)
+					string_append(error, " - during data transmit 8");
+				return(false);
+			}
+
+			if(!spi_finish(error))
+			{
+				if(error)
+					string_append(error, " - during data finish 8");
+				return(false);
+			}
+		}
+	}
+	else
+	{
+		if(!spi_start(error))
+		{
+			if(error)
+				string_append(error, " - during start 9");
+			return(false);
+		}
+
+		for(current = 0; current < length; current++)
+		{
+			value = (data[current] & 0xff) | (1 << 8);
+
+			if(!spi_write(9, value))
+			{
+				if(error)
+					string_append(error, " - during write 9");
+				return(false);
+			}
+		}
+
+		if(!spi_transmit(error, spi_clock_20M, send_cmd ? 9 : 0, send_cmd ? cmd : 0, 0, 0, 0, 0))
+		{
+			if(error)
+				string_append(error, " - during transmit 9");
+			return(false);
+		}
+
+		if(!spi_finish(error))
+		{
+			if(error)
+				string_append(error, " - during finish 9");
+			return(false);
 		}
 	}
 
-	if(!flush_data())
+	return(true);
+}
+
+static bool attr_result_used send_command(string_t *error, unsigned int cmd)
+{
+	return(send_command_data(error, true, cmd, 0, 0));
+}
+
+static bool attr_result_used send_command_data_1_8(string_t *error, unsigned int cmd, unsigned int data)
+{
+	uint8_t bytes[1];
+
+	bytes[0] = data & 0xff;
+
+	return(send_command_data(error, true, cmd, 1, bytes));
+}
+
+static bool attr_result_used send_command_data_2_16(string_t *error, unsigned int cmd, unsigned int data_1, unsigned int data_2)
+{
+	uint8_t bytes[4];
+
+	bytes[0] = (data_1 & 0xff00) >> 8;
+	bytes[1] = (data_1 & 0x00ff) >> 0;
+	bytes[2] = (data_2 & 0xff00) >> 8;
+	bytes[3] = (data_2 & 0x00ff) >> 0;
+
+	return(send_command_data(error, true, cmd, 4, bytes));
+}
+
+static bool flush_data(string_t *error)
+{
+	if(!display.buffer_dirty)
+		return(true);
+
+	if(pin.dcx.enabled && (io_write_pin(error, pin.dcx.io, pin.dcx.pin, 1) != io_ok))
 		return(false);
+
+	if(!spi_transmit(error, spi_clock_40M, 0, 0, 0, 0, 0, 0))
+		return(false);
+
+	if(!spi_finish(error))
+		return(false);
+
+	if(!spi_start(error))
+		return(false);
+
+	display.buffer_dirty = 0;
+
+	return(true);
+}
+
+static bool output_data_8(string_t *error, unsigned int data)
+{
+	if(pin.dcx.enabled)
+	{
+		if(!spi_write_8(data))
+		{
+			if(!flush_data(error))
+			{
+				if(error)
+					string_append(error, "flush data");
+				return(false);
+			}
+
+			if(!spi_write_8(data))
+			{
+				if(error)
+					string_append(error, "spi write");
+				return(false);
+			}
+		}
+	}
+	else
+	{
+		data |= 1UL << 8;
+
+		if(!spi_write(9, data))
+		{
+			if(!flush_data(error))
+			{
+				if(error)
+					string_append(error, "flush data");
+				return(false);
+			}
+
+			if(!spi_write(9, data))
+			{
+				if(error)
+					string_append(error, "spi write");
+				return(false);
+			}
+		}
+	}
+
+	display.buffer_dirty = 1;
+
+	return(true);
+}
+
+static bool output_data_16(string_t *error, unsigned int data)
+{
+	if(pin.dcx.enabled)
+	{
+		if(!spi_write_16(data))
+		{
+			if(!flush_data(error))
+			{
+				if(error)
+					string_append(error, "flush data");
+				return(false);
+			}
+
+			if(!spi_write_16(data))
+			{
+				if(error)
+					string_append(error, "spi write");
+				return(false);
+			}
+		}
+	}
+	else
+	{
+		data |= 1UL << 16;
+
+		if(!spi_write(17, data))
+		{
+			if(!flush_data(error))
+			{
+				if(error)
+					string_append(error, "flush data");
+				return(false);
+			}
+
+			if(!spi_write(17, data))
+			{
+				if(error)
+					string_append(error, "spi write");
+				return(false);
+			}
+		}
+	}
+
+	display.buffer_dirty = 1;
+
+	return(true);
+}
+
+static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
+{
+	string_new(, error, 64);
+	unsigned int box_colour;
+	unsigned int colour[2];
+	unsigned int pixels, bulk_stride, bulk_bits;
+	uint8_t bulk_values[4];
+
+	if(!flush_data(&error))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	if(!send_command_data_2_16(&error, cmd_caset, from_x + display.x_offset, to_x + display.x_offset))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	if(!send_command_data_2_16(&error, cmd_raset, from_y + display.y_offset, to_y + display.y_offset))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	if(!send_command(&error, cmd_ramwr))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	box_colour = rgb_to_16bit_colour(r, g, b) & 0x0000ffff;
+	colour[0] = (box_colour & 0xff00) >> 8;
+	colour[1] = (box_colour & 0x00ff) >> 0;
+	pixels = (to_x - from_x + 1) * (to_y - from_y + 1);
+	bulk_bits = spi_bulk_buffer_size * spi_bulk_buffer_bit_width;
+	bulk_stride = bulk_bits / 16;
+
+	if(pixels >= bulk_stride)
+	{
+		bulk_values[0] = bulk_values[2] = colour[0];
+		bulk_values[1] = bulk_values[3] = colour[1];
+
+		if(!spi_start(&error))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+
+		if(!spi_write_bulk(&error, bulk_bits, bulk_values))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+
+		if(pin.dcx.enabled && (io_write_pin(&error, pin.dcx.io, pin.dcx.pin, 1) != io_ok))
+			return(false);
+
+		for(; pixels >= bulk_stride; pixels -= bulk_stride)
+		{
+			if(!spi_transmit(&error, spi_clock_20M, 0, 0, 0, 0, 0, 0))
+			{
+				log("spitft box: spi error: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+
+			if(!spi_finish(&error))
+			{
+				log("spitft box: spi error: %s\n", string_to_cstr(&error));
+				return(false);
+			}
+		}
+	}
+
+	if(!flush_data(&error))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	for(; pixels > 0; pixels--)
+	{
+		if(!output_data_16(&error, box_colour))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+	}
+
+	if(!flush_data(&error))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
 
 	return(true);
 }
@@ -248,36 +507,20 @@ static bool clear_screen(void)
 	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1));
 }
 
-static attr_result_used bool flush_data(void)
-{
-	if((display.buffer_current > 1) && !write_data(display.buffer_current, display_buffer))
-		return(false);
-
-	display.buffer_current = 0;
-
-	return(true);
-}
-
-attr_inline attr_result_used bool output_data(unsigned int byte)
-{
-	if(((display.buffer_current + 1) >= display_buffer_size) && !flush_data())
-		return(false);
-
-	display_buffer[display.buffer_current++] = (uint8_t)byte;
-
-	return(true);
-}
-
 static attr_result_used bool text_send(unsigned int code)
 {
+	string_new(, error, 64);
 	font_info_t font_info;
 	font_cell_t font_cell;
 	unsigned int x, y, r, g, b;
 	unsigned int y_offset;
 	unsigned int fg_colour, bg_colour, colour;
 
-	if(!flush_data())
+	if(!flush_data(&error))
+	{
+		log("spi: text_send 1: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
 	if(!font_get_info(&font_info))
 		return(false);
@@ -307,7 +550,7 @@ static attr_result_used bool text_send(unsigned int code)
 	g = 0xff;
 	b = 0xff;
 
-	if((pin.bright.io < 0) || (pin.bright.pin < 0))
+	if(!pin.bright.enabled)
 	{
 		r >>= (4 - display.brightness);
 		g >>= (4 - display.brightness);
@@ -327,14 +570,23 @@ static attr_result_used bool text_send(unsigned int code)
 
 	bg_colour = rgb_to_16bit_colour(r, g, b);
 
-	if(!write_command_data_2_16(cmd_caset, x + 0 + display.x_offset, x + font_info.width + display.x_offset - 1))
+	if(!send_command_data_2_16(&error, cmd_caset, x + 0 + display.x_offset, x + font_info.width + display.x_offset - 1))
+	{
+		log("spi: text_send 2: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
-	if(!write_command_data_2_16(cmd_raset, y + 0 + display.y_offset, y + font_info.height + display.y_offset - 1))
+	if(!send_command_data_2_16(&error, cmd_raset, y + 0 + display.y_offset, y + font_info.height + display.y_offset - 1))
+	{
+		log("spi: text_send 3: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
-	if(!write_command(cmd_ramwr))
+	if(!send_command(&error, cmd_ramwr))
+	{
+		log("spi: text_send 4: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
 	for(y = 0; y < font_info.height; y++)
 	{
@@ -342,15 +594,19 @@ static attr_result_used bool text_send(unsigned int code)
 		{
 			colour = font_cell[y][x] ? fg_colour : bg_colour;
 
-			if(!output_data((colour & 0xff00) >> 8))
+			if(!output_data_16(&error, colour))
+			{
+				log("spi: text_send 5: %s\n", string_to_cstr(&error));
 				return(false);
-			if(!output_data((colour & 0x00ff) >> 0))
-				return(false);
+			}
 		}
 	}
 
-	if(!flush_data())
+	if(!flush_data(&error))
+	{
+		log("spi: text_send 7: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
 skip:
 	text.column++;
@@ -389,6 +645,8 @@ static attr_result_used bool text_newline(void)
 
 static bool init(void)
 {
+	string_new(, error, 64);
+
 	int dcx_io, dcx_pin;
 	int bright_io, bright_pin;
 	int user_cs_io, user_cs_pin;
@@ -429,61 +687,97 @@ static bool init(void)
 	display.y_mirror = y_mirror;
 	display.rotate = rotate;
 
-	if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
-			!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
-		goto error;
-
-	pin.dcx.io = dcx_io;
-	pin.dcx.pin = dcx_pin;
-
-	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
-			!config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
+	if(config_get_int("spitft.dcx.io", &dcx_io, -1, -1) &&
+			config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
 	{
+		pin.dcx.enabled = 1;
+		pin.dcx.io = dcx_io;
+		pin.dcx.pin = dcx_pin;
+	}
+	else
+	{
+		pin.dcx.enabled = 0;
+		pin.dcx.io = -1;
+		pin.dcx.pin = -1;
+	}
+
+	if(config_get_int("spitft.bright.io", &bright_io, -1, -1) &&
+			config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
+	{
+		pin.bright.enabled = 1;
+		pin.bright.io = bright_io;
+		pin.bright.pin = bright_pin;
+	}
+	else
+	{
+		pin.bright.enabled = 0;
 		pin.bright.io = -1;
 		pin.bright.pin = -1;
 	}
 
-	pin.bright.io = bright_io;
-	pin.bright.pin = bright_pin;
-
-	if(!config_get_int("spitft.cs.io", &user_cs_io, -1, -1) ||
-			!config_get_int("spitft.cs.pin", &user_cs_pin, -1, -1))
+	if(config_get_int("spitft.cs.io", &user_cs_io, -1, -1) &&
+			config_get_int("spitft.cs.pin", &user_cs_pin, -1, -1))
 	{
-		user_cs_io = -1;
-		user_cs_pin = -1;
+		pin.user_cs.enabled = 1;
+		pin.user_cs.io = user_cs_io;
+		pin.user_cs.pin = user_cs_pin;
 	}
-
-	pin.user_cs.io = user_cs_io;
-	pin.user_cs.pin = user_cs_pin;
+	else
+	{
+		pin.user_cs.enabled = 0;
+		pin.user_cs.io = -1;
+		pin.user_cs.pin = -1;
+	}
 
 	text.column = text.row = 0;
 
 	display.brightness = 4;
 	display.graphic_mode = 0;
 	display.logmode = 0;
-	display.buffer_current = 0;
+	display.buffer_dirty = 0;
 	display.enabled = 1;
 
-	if(!write_command(cmd_swreset))
+	if(!spi_configure(&error, spi_mode_0, true, pin.user_cs.io, pin.user_cs.pin))
+	{
+		log("spitft init configure: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	if(!send_command(&error, cmd_swreset))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
 	msleep(10);
 
-	if(!write_command(cmd_sleepout))
+	if(!send_command(&error, cmd_sleepout))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
 	msleep(10);
 
-	if(!write_command_data_1(cmd_colmod, colmod_16bpp))
+	if(!send_command_data_1_8(&error, cmd_colmod, colmod_16bpp))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
-	if(!write_command(cmd_noron))
+	if(!send_command(&error, cmd_noron))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
-	if(!write_command(cmd_dispon))
+	if(!send_command(&error, cmd_dispon))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
-	if(!write_command(cmd_invoff))
+	if(!send_command(&error, cmd_invoff))
 		goto error;
 
 	madctl = madctl_bgr;
@@ -497,8 +791,11 @@ static bool init(void)
 	if(display.y_mirror)
 		madctl |= madctl_my;
 
-	if(!write_command_data_1(cmd_madctl, madctl))
+	if(!send_command_data_1_8(&error, cmd_madctl, madctl))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
+	}
 
 	clear_screen();
 
@@ -612,45 +909,52 @@ static bool end(void)
 
 static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 {
+	string_new(, error, 64);
 	int ix;
 
 	if(string_length(pixels) == 0)
 		return(true);
 
-	if(x >= display.x_size)
+	if((unsigned int)x >= display.x_size)
 		return(false);
 
-	if(y >= display.y_size)
+	if((unsigned int)y >= display.y_size)
 		return(false);
 
 	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
 		return(false);
 
-	if(!flush_data())
+	if(!flush_data(&error))
+	{
+		log("spitft plot: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
 	string_setlength(pixels, pixel_amount * 2);
 
 	if((x == 0) && (y == 0))
 	{
-		if(!write_command_data_2_16(cmd_caset, display.x_offset, display.x_offset + display.x_size - 1))
+		if(!send_command_data_2_16((string_t *)0, cmd_caset, display.x_offset, display.x_offset + display.x_size - 1))
 			return(false);
 
-		if(!write_command_data_2_16(cmd_raset, display.y_offset, display.y_offset + display.y_size - 1))
+		if(!send_command_data_2_16((string_t *)0, cmd_raset, display.y_offset, display.y_offset + display.y_size - 1))
 			return(false);
 
-		if(!write_command(cmd_ramwr))
+		if(!send_command((string_t *)0, cmd_ramwr))
 			return(false);
 	}
 
 	display.graphic_mode = 1;
 
 	for(ix = 0; ix < string_length(pixels); ix++)
-		if(!output_data(string_at(pixels, ix)))
+		if(!output_data_8((string_t *)0, string_at(pixels, ix)))
 			return(false);
 
-	if(!flush_data())
+	if(!flush_data(&error))
+	{
+		log("spitft plot: %s\n", string_to_cstr(&error));
 		return(false);
+	}
 
 	return(true);
 }
@@ -687,17 +991,19 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			return(app_action_error);
 		}
 
-		if((parse_int(8, src, &dcx_io, 0, ' ') != parse_ok) ||
-				(parse_int(9, src, &dcx_pin, 0, ' ') != parse_ok))
+		if((parse_int(8, src, &dcx_io, 0, ' ') == parse_ok) ||
+				(parse_int(9, src, &dcx_pin, 0, ' ') == parse_ok))
 		{
-			string_append_cstr_flash(dst, help_description_display_spitft);
-			return(app_action_error);
+			if((dcx_io < 0) || (dcx_io >= io_id_size) || (dcx_pin < 0) || (dcx_pin >= max_pins_per_io))
+			{
+				string_append_cstr_flash(dst, help_description_display_spitft);
+				return(app_action_error);
+			}
 		}
-
-		if((dcx_io < 0) || (dcx_io >= io_id_size) || (dcx_pin < 0) || (dcx_pin >= max_pins_per_io))
+		else
 		{
-			string_append_cstr_flash(dst, help_description_display_spitft);
-			return(app_action_error);
+			dcx_io = -1;
+			dcx_pin = -1;
 		}
 
 		if((parse_int(10, src, &bright_io, 0, ' ') == parse_ok) &&
@@ -758,11 +1064,19 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			if(!config_set_uint("spitft.rotate", rotate, -1, -1))
 				goto config_error;
 
-			if(!config_set_uint("spitft.dcx.io", dcx_io, -1, -1))
-				goto config_error;
+			if((dcx_io < 0) || (dcx_pin < 0))
+			{
+				config_delete("spitft.dcx.io", false, -1, -1);
+				config_delete("spitft.dcx.pin", false, -1, -1);
+			}
+			else
+			{
+				if(!config_set_uint("spitft.dcx.io", dcx_io, -1, -1))
+					goto config_error;
 
-			if(!config_set_uint("spitft.dcx.pin", dcx_pin, -1, -1))
-				goto config_error;
+				if(!config_set_uint("spitft.dcx.pin", dcx_pin, -1, -1))
+					goto config_error;
+			}
 
 			if((bright_io < 0) || (bright_pin < 0))
 			{
@@ -831,7 +1145,8 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
 		dcx_io = dcx_pin = -1;
 
-	string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
+	if((dcx_io >= 0) && (dcx_pin >= 0))
+		string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
 
 	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
 			!config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
@@ -881,7 +1196,7 @@ static bool bright(int brightness)
 
 	display.brightness = brightness;
 
-	if((pin.bright.io >= 0) && (pin.bright.pin >= 0))
+	if(pin.bright.enabled)
 	{
 		io_pin_mode_t mode;
 		unsigned int lower_bound, upper_bound, max_value, value;
@@ -895,11 +1210,7 @@ static bool bright(int brightness)
 				value = max_value * brightness_factor[0][brightness] / 1000;
 			else
 				if(mode == io_pin_output_pwm2)
-				{
 					value = max_value * brightness_factor[1][brightness] / 1000;
-					log("value: %u, max: %u, bf: %u\n",
-							value, max_value, brightness_factor[1][brightness]);
-				}
 				else
 					value = ~0;
 
@@ -915,7 +1226,7 @@ roflash const char help_description_display_spitft[] =	"> usage: display spitft\
 														"> <x size> <x offset> <x mirror 0|1>\n"
 														"> <y size> <x offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
-														"> <dcx io> <dcx pin>\n"
+														"> [<dcx io> <dcx pin>]\n"
 														"> [<brightness pwm io> <brightness pwm pin>]\n"
 														"> [<user cs io> <user cs pin>]\n";
 

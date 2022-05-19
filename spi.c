@@ -7,14 +7,42 @@
 #include "sys_time.h"
 #include "stats.h"
 
-static bool spi_inited;
+typedef struct
+{
+	const spi_clock_t clock;
+	const unsigned int pre_div;
+	const unsigned int div;
+} spi_clock_map_t;
 
 typedef struct
 {
-	const spi_clock_t	clock;
-	const unsigned int	pre_div;
-	const unsigned int	div;
-} spi_clock_map_t;
+	unsigned int filled:1;
+	unsigned int bits_available;
+	unsigned int word;
+	unsigned int bit;
+	unsigned int bits;
+	uint32_t data[SPI_W0_REGISTERS];
+} spi_send_buffer_t;
+
+assert_size(spi_send_buffer_t, 84);
+
+typedef struct attr_packed
+{
+	unsigned int inited:1;
+	unsigned int configured:1;
+	unsigned int cs_hold:1;
+	unsigned int spi_mode:4;
+	unsigned int receive_bytes:8;
+
+	struct attr_packed
+	{
+		unsigned int enabled:1;
+		unsigned int io:4;
+		unsigned int pin:4;
+	} user_cs;
+} spi_state_t;
+
+assert_size(spi_state_t, 4);
 
 static roflash const spi_clock_map_t spi_clock_map[] =
 {
@@ -53,8 +81,22 @@ static roflash const unsigned int mode_table[spi_mode_size][2] =
 	{	1,	0	},
 };
 
-bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs, string_t *error)
+static spi_send_buffer_t send_buffer;
+static spi_state_t state;
+
+attr_inline void wait_completion(void)
 {
+	stat_spi_wait_cycles = 0;
+
+	while((read_peri_reg(SPI_CMD(1)) & SPI_USR))
+		stat_spi_wait_cycles++;
+}
+
+attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs)
+{
+	state.inited = 0;
+	state.configured = 0;
+
 	if(io != 0)
 	{
 		if(error)
@@ -90,95 +132,25 @@ bool spi_init(unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, uns
 		return(false);
 	}
 
-	write_peri_reg(PERIPHS_IO_MUX, PERIPHS_IO_MUX_HSPI_ENABLE);
+	send_buffer.bits_available = SPI_W0_REGISTERS * SPI_W0_REGISTER_BIT_WIDTH;
 
-	stat_spi_smallest_chunk  = stat_spi_largest_chunk = stat_spi_wait_cycles = 0;
-
-	spi_inited = true;
+	stat_spi_largest_chunk = stat_spi_wait_cycles = 0;
+	state.inited = 1;
 
 	return(true);
 }
 
-bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_io, int cs_pin,
-		bool send_command, uint8_t command,
-		unsigned int send_amount, const uint8_t *send_data, unsigned int skip_amount, unsigned int receive_amount, uint8_t *receive_data,
-		string_t *error)
+attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin)
 {
-	unsigned int current, current_value;
-	unsigned int clock_pre_div, clock_div;
-	unsigned int clock_high, clock_low;
-	unsigned int spi_user_static, spi_user_active;
-	unsigned int spi_pin_mode_static, spi_pin_mode_active;
-	unsigned int spi_user1_static, spi_user1_active;
-	unsigned int spi_user2_static, spi_user2_active;
-	const spi_clock_map_t *clock_map_ptr;
-	bool success;
+	unsigned int reg_pin_mode;
+	unsigned int reg_spi_config;
 
-	if(!spi_inited)
+	if(!state.inited)
 	{
 		if(error)
 			string_append(error, "spi: not inited");
 		return(false);
 	}
-
-	if((cs_io == -1) && (cs_pin != -1))
-	{
-		if(error)
-			string_append(error, "spi: invalid cs");
-		return(false);
-	}
-
-	if((cs_io != -1) && (cs_pin == -1))
-	{
-		if(error)
-			string_append(error, "spi: invalid cs");
-		return(false);
-	}
-
-	if(send_amount > 64)
-	{
-		if(error)
-			string_append(error, "spi: send amount > 64");
-		return(false);
-	}
-
-	if(receive_amount > 64)
-	{
-		if(error)
-			string_append(error, "spi: receive amount > 64");
-		return(false);
-	}
-
-	if((send_amount > 0) && (send_amount < stat_spi_smallest_chunk))
-		stat_spi_smallest_chunk = send_amount;
-
-	if(send_amount > stat_spi_largest_chunk)
-		stat_spi_largest_chunk = send_amount;
-
-	spi_user_static =		0x00;
-	spi_user_active =		0x00;
-	spi_user1_static =		0x00;
-	spi_user1_active =		0x00;
-	spi_user2_static =		0x00;
-	spi_user2_active =		0x00;
-	spi_pin_mode_static =	0x00;
-	spi_pin_mode_active =	0x00;
-
-	for(clock_map_ptr = spi_clock_map; clock_map_ptr != spi_clock_none; clock_map_ptr++)
-		if(clock_map_ptr->clock == clock)
-			break;
-
-	if(clock_map_ptr->clock == spi_clock_none)
-	{
-		if(error)
-			string_append(error, "spi: invalid speed");
-		return(false);
-	}
-
-	clock_pre_div = clock_map_ptr->pre_div - 1;
-	clock_div =		clock_map_ptr->div - 1;
-	clock_high =	clock_div;
-	clock_low =		clock_div / 2;
 
 	if((mode <= spi_mode_none) || (mode >= spi_mode_size))
 	{
@@ -187,34 +159,287 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 		return(false);
 	}
 
-	spi_pin_mode_static |=	mode_table[(unsigned int)mode][0] ? SPI_IDLE_EDGE : 0;		// CPOL
-	spi_user_static |=		mode_table[(unsigned int)mode][1] ? SPI_CK_OUT_EDGE : 0;	// CPHA
+	state.user_cs.enabled = 0;
 
-	spi_user_static |= cs_hold ? (SPI_CS_SETUP | SPI_CS_HOLD) : 0x00;
-
-	if(send_command)
+	if((user_cs_io >= 0) && (user_cs_pin >= 0))
 	{
-		spi_user_active |= SPI_USR_COMMAND;
-		spi_user2_active |= (((1 * 8) - 1) & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S;
-		spi_user2_active |= (command & SPI_USR_COMMAND_VALUE) << SPI_USR_COMMAND_VALUE_S;
+		if((user_cs_io >= io_id_size) || (user_cs_pin >= max_pins_per_io))
+		{
+			if(error)
+				string_append(error, "spi: invalid io/pin for user cs\n");
+		}
+		else
+		{
+			state.user_cs.enabled = 1;
+			state.user_cs.io = user_cs_io;
+			state.user_cs.pin = user_cs_pin;
+		}
 	}
 
-	if(skip_amount > 0)
+	reg_spi_config = read_peri_reg(PERIPHS_IO_MUX);
+	reg_spi_config &= ~(PERIPHS_IO_MUX_HSPI_SYSCLK);
+	reg_spi_config |= PERIPHS_IO_MUX_HSPI_ENABLE;
+	write_peri_reg(PERIPHS_IO_MUX, reg_spi_config);
+
+	state.spi_mode = mode;
+
+	reg_pin_mode |= SPI_CS1_DIS | SPI_CS2_DIS;
+
+	if(state.user_cs.enabled)
+		reg_pin_mode |= SPI_CS0_DIS;
+
+	state.cs_hold = cs_hold;
+	state.configured = 1;
+
+	if(!spi_start(error))
+		return(false);
+
+	return(true);
+}
+
+attr_result_used bool spi_start(string_t *error)
+{
+	unsigned int current;
+
+	if(!state.inited || !state.configured)
 	{
-		spi_user_active |= SPI_USR_DUMMY;
-		spi_user1_active |= ((skip_amount - 1) & SPI_USR_DUMMY_CYCLELEN) << SPI_USR_DUMMY_CYCLELEN_S;
+		if(error)
+			string_append(error, "spi start: not inited\n");
+		return(false);
 	}
 
-	if(receive_amount > 0)
+	send_buffer.bits = 0;
+	send_buffer.word = 0;
+	send_buffer.bit = 0;
+	send_buffer.filled = 0;
+
+	for(current = 0; current < SPI_W0_REGISTERS; current++)
+		send_buffer.data[current] = 0;
+
+	return(true);
+}
+
+attr_result_used bool spi_write(unsigned int bits, uint32_t value)
+{
+	unsigned int bit;
+
+	if((send_buffer.bits + bits) >= send_buffer.bits_available)
+		return(false);
+
+	for(bit = 0; bit < bits; bit++)
 	{
-		spi_user_active |= SPI_USR_MISO;
-		spi_user1_active |= (((receive_amount * 8) - 1) & SPI_USR_MISO_BITLEN) << SPI_USR_MISO_BITLEN_S;
+		if(value & (1UL << bit))
+			send_buffer.data[send_buffer.word] |= (1UL << send_buffer.bit);
+
+		send_buffer.bits++;
+
+		if(send_buffer.bit < 31)
+			send_buffer.bit++;
+		else
+		{
+			send_buffer.bit = 0;
+			send_buffer.word++;
+		}
 	}
 
-	if(cs_io != -1)
-		spi_pin_mode_active |= SPI_CS0_DIS;
+	return(true);
+}
 
-	spi_wait_completion();
+attr_result_used bool spi_write_8(unsigned int value)
+{
+	if((send_buffer.bits + 8) >= send_buffer.bits_available)
+		return(false);
+
+	if((send_buffer.bit % 8) != 0)
+		return(spi_write(8, value));
+
+	if(send_buffer.bit > 24)
+	{
+		send_buffer.bit = 0;
+		send_buffer.word++;
+	}
+
+	send_buffer.data[send_buffer.word] |= (value & 0xff) << send_buffer.bit;
+	send_buffer.bits += 8;
+
+	if(send_buffer.bit < 24)
+		send_buffer.bit += 8;
+	else
+	{
+		send_buffer.bit = 0;
+		send_buffer.word++;
+	}
+
+	return(true);
+}
+
+attr_result_used bool spi_write_16(unsigned int value)
+{
+	value = ((value & 0x00ff) << 8) |
+			((value & 0xff00) >> 8);
+
+	if((send_buffer.bits + 16) >= send_buffer.bits_available)
+		return(false);
+
+	if((send_buffer.bit % 16) != 0)
+		return(spi_write(16, value));
+
+	if(send_buffer.bit > 16)
+	{
+		send_buffer.bit = 0;
+		send_buffer.word++;
+	}
+
+	send_buffer.data[send_buffer.word] |= (value & 0xffff) << send_buffer.bit;
+	send_buffer.bits += 16;
+
+	if(send_buffer.bit < 16)
+		send_buffer.bit += 16;
+	else
+	{
+		send_buffer.bit = 0;
+		send_buffer.word++;
+	}
+
+	return(true);
+}
+
+attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4])
+{
+	unsigned int value, current, length;
+
+	if(bits > (spi_bulk_buffer_size * spi_bulk_buffer_bit_width))
+	{
+		if(error)
+			string_append(error, "spi_write_bulk: parameter error\n");
+
+		return(false);
+	}
+
+	value =	(values[3] << 24) |
+			(values[2] << 16) |
+			(values[1] <<  8) |
+			(values[0] <<  0);
+
+	length = (bits / spi_bulk_buffer_bit_width) + 1;
+
+	if(length > spi_bulk_buffer_size)
+		length = spi_bulk_buffer_size;
+
+	wait_completion();
+
+	for(current = 0; current < length; current++)
+		write_peri_reg(SPI_W0(1) + (current * 4), value);
+
+	send_buffer.filled = 1;
+	send_buffer.bits = bits;
+
+	return(true);
+}
+
+attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
+		unsigned int command_length_bits, unsigned int command,
+		unsigned int address_length_bits, unsigned int address,
+		unsigned int skip_bits,
+		unsigned int receive_bytes)
+{
+	const spi_clock_map_t *clock_map_ptr;
+	unsigned int clock_pre_div, clock_div;
+	unsigned int clock_high, clock_low;
+	unsigned int w0cur, w0size;
+	unsigned int spi_user;
+	unsigned int spi_user1;
+	unsigned int spi_user2;
+	unsigned int spi_addr;
+	unsigned int spi_pin_mode;
+
+	if(!state.inited || !state.configured)
+	{
+		if(error)
+			string_append(error, "spi transmit: not inited or not configured");
+		return(false);
+	}
+
+	if((command_length_bits > 16) || (address_length_bits > 31) || (skip_bits > 8) || (receive_bytes > 64))
+	{
+		if(error)
+			string_append(error, "spi transmit: parameter error");
+		return(false);
+	}
+
+	if((command_length_bits == 0) && (address_length_bits == 0) && (send_buffer.bits == 0) && (receive_bytes == 0))
+		return(true);
+
+	for(clock_map_ptr = spi_clock_map; clock_map_ptr != spi_clock_none; clock_map_ptr++)
+		if(clock_map_ptr->clock == clock)
+			break;
+
+	if(clock_map_ptr->clock == spi_clock_none)
+	{
+		if(error)
+			string_append(error, "spi transmit: invalid speed");
+		return(false);
+	}
+
+	if(send_buffer.bits > stat_spi_largest_chunk)
+		stat_spi_largest_chunk = send_buffer.bits;
+
+	spi_user = mode_table[state.spi_mode][1] ? SPI_CK_OUT_EDGE : 0;	// CPHA
+	spi_user1 = 0x00;
+	spi_user2 = 0x00;
+	spi_addr = 0x00;
+	spi_pin_mode = mode_table[state.spi_mode][0] ? SPI_IDLE_EDGE : 0;	// CPOL
+
+	if(command_length_bits > 0)
+	{
+		spi_user  |= SPI_USR_COMMAND;
+		spi_user2 |= ((command_length_bits - 1) & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S;
+		spi_user2 |= (command & SPI_USR_COMMAND_VALUE) << SPI_USR_COMMAND_VALUE_S;
+	}
+
+	if(address_length_bits > 0)
+	{
+		spi_user  |= SPI_USR_ADDR;
+		spi_user1 |= ((address_length_bits - 1) & SPI_USR_ADDR_BITLEN) << SPI_USR_ADDR_BITLEN_S;
+		spi_addr   = address;
+	}
+
+	if(skip_bits > 0)
+	{
+		spi_user  |= SPI_USR_DUMMY;
+		spi_user1 |= ((skip_bits - 1) & SPI_USR_DUMMY_CYCLELEN) << SPI_USR_DUMMY_CYCLELEN_S;
+	}
+
+	if(send_buffer.bits > 0)
+	{
+		spi_user  |= SPI_USR_MOSI;
+		spi_user1 |= ((send_buffer.bits - 1) & SPI_USR_MOSI_BITLEN) << SPI_USR_MOSI_BITLEN_S;
+	}
+
+	if(receive_bytes > 0)
+	{
+		spi_user  |= SPI_USR_MISO;
+		spi_user1 |= (((receive_bytes * 8) - 1) & SPI_USR_MISO_BITLEN) << SPI_USR_MISO_BITLEN_S;
+		state.receive_bytes = receive_bytes;
+	}
+
+	clock_pre_div = clock_map_ptr->pre_div - 1;
+	clock_div =		clock_map_ptr->div - 1;
+	clock_high =	((clock_div + 1) / 2) - 1;
+	clock_low =		clock_div;
+
+	wait_completion();
+
+	if((send_buffer.bits > 0) && !send_buffer.filled)
+	{
+		w0size = (send_buffer.bits / SPI_W0_REGISTER_BIT_WIDTH) + 1;
+
+		if(w0size > SPI_W0_REGISTERS)
+			w0size = SPI_W0_REGISTERS;
+
+		for(w0cur = 0; w0cur < w0size; w0cur++)
+			write_peri_reg(SPI_W0(1) + (w0cur * 4), send_buffer.data[w0cur]);
+	}
 
 	write_peri_reg(SPI_CLOCK(1),
 			((clock_pre_div	& SPI_CLKDIV_PRE)	<< SPI_CLKDIV_PRE_S)	|
@@ -222,72 +447,97 @@ bool spi_send_receive(spi_clock_t clock, spi_mode_t mode, bool cs_hold, int cs_i
 			((clock_high	& SPI_CLKCNT_H)		<< SPI_CLKCNT_H_S)		|
 			((clock_low		& SPI_CLKCNT_L)		<< SPI_CLKCNT_L_S));
 
-	if(send_amount > 0)
+	if(state.cs_hold)
+		spi_user |= SPI_CS_SETUP | SPI_CS_HOLD;
+
+	write_peri_reg(SPI_ADDR(1), spi_addr);
+	write_peri_reg(SPI_USER(1), spi_user);
+	write_peri_reg(SPI_USER1(1), spi_user1);
+	write_peri_reg(SPI_USER2(1), spi_user2);
+	write_peri_reg(SPI_PIN(1), spi_pin_mode);
+
+	if(state.user_cs.enabled && (io_write_pin(error, state.user_cs.io, state.user_cs.pin, 1) != io_ok))
 	{
-		spi_user_active |= SPI_USR_MOSI;
-		spi_user1_active |= (((send_amount * 8) - 1) & SPI_USR_MOSI_BITLEN) << SPI_USR_MOSI_BITLEN_S;
-
-		for(current = 0, current_value = 0; current < send_amount; current++)
-		{
-			current_value |= (send_data[current] & 0xff) << ((current & 0x03) << 3);
-
-			if((current & 0x03) == 0x03)
-			{
-				write_peri_reg(SPI_W0(1) + (current & ~0x03), current_value);
-				current_value = 0;
-			}
-		}
-
-		if((current & 0x03) != 0)
-			write_peri_reg(SPI_W0(1) + (current & ~0x03), current_value);
-	}
-
-	write_peri_reg(SPI_USER(1), spi_user_static | spi_user_active);
-	write_peri_reg(SPI_USER1(1), spi_user1_static | spi_user1_active);
-	write_peri_reg(SPI_USER2(1), spi_user2_static | spi_user2_active);
-	write_peri_reg(SPI_PIN(1), spi_pin_mode_static | spi_pin_mode_active );
-
-	if(cs_io != -1)
-		success = io_write_pin(error, cs_io, cs_pin, 1) == io_ok;
-	else
-		success = true;
-
-	if(success)
-	{
-		set_peri_reg_mask(SPI_CMD(1), SPI_USR);
-		spi_wait_completion();
-
-		if(cs_io != -1)
-			success = io_write_pin(error, cs_io, cs_pin, 0) == io_ok;
-		else
-			success = true;
-	}
-
-	write_peri_reg(SPI_USER(1), spi_user_static);
-	write_peri_reg(SPI_USER1(1), spi_user1_static);
-	write_peri_reg(SPI_USER2(1), spi_user2_static);
-	write_peri_reg(SPI_PIN(1), spi_pin_mode_static);
-
-	if(!success)
+		if(error)
+			string_append(error, "spi: user cs issue (1)");
 		return(false);
-
-	if(receive_amount > 0)
-	{
-		for(current = 0, current_value = 0; current < receive_amount; current++)
-		{
-			if((current & 0x03) == 0x00)
-				current_value = read_peri_reg(SPI_W0(1) + (current & ~0x03));
-
-			receive_data[current] = (current_value >> ((current & 0x03) << 3)) & 0xff;
-		}
 	}
+
+	set_peri_reg_mask(SPI_CMD(1), SPI_USR);
 
 	return(true);
 }
 
+attr_result_used bool spi_receive(string_t *error, unsigned int size, uint8_t *receive_data)
+{
+	unsigned int current, current_value;
+
+	if(!state.inited || !state.configured)
+	{
+		if(error)
+			string_append(error, "spi receive: not inited or not configured");
+		return(false);
+	}
+
+	if(state.receive_bytes == 0)
+	{
+		if(error)
+			string_append(error, "spi receive: no data\n");
+		return(false);
+	}
+
+	wait_completion();
+
+	for(current = 0, current_value = 0; (current < size) && (current < state.receive_bytes); current++)
+	{
+		if((current & 0x03) == 0x00)
+			current_value = read_peri_reg(SPI_W0(1) + (current & ~0x03));
+
+		receive_data[current] = (current_value >> ((current & 0x03) << 3)) & 0xff;
+	}
+
+	state.receive_bytes = 0;
+
+	return(true);
+}
+
+attr_result_used bool spi_finish(string_t *error)
+{
+	if(!state.inited || !state.configured)
+	{
+		if(error)
+			string_append(error, "spi finish: not inited or not configured");
+		return(false);
+	}
+
+	wait_completion();
+
+	if(state.user_cs.enabled)
+	{
+		if(io_write_pin(error, state.user_cs.io, state.user_cs.pin, 0) != io_ok)
+		{
+			if(error)
+				string_append(error, "spi finish: user cs issue");
+			return(false);
+		}
+	}
+
+	state.receive_bytes = 0;
+
+	return(true);
+}
+
+roflash const char help_description_spi_write_read[] = "write data to spi and read back data\n"
+		"usage: spi_write_read <clock_speed (0-22, see spi.h)>\n"
+		"           <spi mode (0-3)>\n"
+		"           <cs hold (0-1)\n"
+		"           <user cs io (or -1)> <user cs pin (or -1)>\n"
+		"           <receive length>\n"
+		"			[<bytes to send (hex, max 32)>]\n";
+
 app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 {
-	uint8_t			sendbytes[64];
+	string_new(, error, 64);
 	uint8_t			receivebytes[64];
 	unsigned int	current;
 	unsigned int	byte;
@@ -298,7 +548,6 @@ app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 	unsigned int	cs_hold;
 	int				cs_io, cs_pin;
 	unsigned int	to_write;
-	unsigned int	to_skip;
 	unsigned int	to_read;
 	const			spi_clock_map_t *clock_map_ptr;
 
@@ -357,24 +606,49 @@ app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 		goto usage;
 	}
 
-	if(parse_uint(7, src, &to_skip, 0, ' ') != parse_ok)
-		goto usage;
+	if(!spi_configure(&error, spi_mode_enum, !!cs_hold, cs_io, cs_pin))
+	{
+		string_format(dst, "spi configure failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
 
-	for(to_write = 0; to_write <= sizeof(sendbytes); to_write++)
+	if(!spi_start(&error))
+	{
+		string_format(dst, "spi start failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
+
+	for(to_write = 0; to_write <= 256; to_write++)
 	{
 		if(parse_uint(to_write + 8, src, &byte, 16, ' ') != parse_ok)
 			break;
 
-		sendbytes[to_write] = (uint8_t)(byte & 0xff);
+		if(!spi_write_8(byte))
+		{
+			string_append(dst, "spi write_8 failed\n");
+			return(app_action_error);
+		}
 	}
 
-	if(!spi_send_receive(clock_speed_enum, spi_mode_enum, cs_hold != 0, cs_io, cs_pin, false, 0, to_write, sendbytes, to_skip, to_read, receivebytes, dst))
+	if(!spi_transmit(&error, clock_speed_enum, 0, 0, 0, 0, 0, to_read))
 	{
-		string_append(dst, "\n");
+		string_format(dst, "spi transmit failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_format(dst, "spiwriteread: written %u bytes, received %u bytes and skipped %u cycles:", to_write, to_read, to_skip);
+	if((to_read > 0) && !spi_receive(&error, to_read, receivebytes))
+	{
+		string_format(dst, "spi receive failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
+
+	if(!spi_finish(&error))
+	{
+		string_format(dst, "spi finish failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
+
+	string_format(dst, "spiwriteread: written %u bytes and received %u bytes:", to_write, to_read);
 
 	for(current = 0; current < to_read; current++)
 		string_format(dst, " %02x", receivebytes[current]);

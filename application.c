@@ -2109,7 +2109,6 @@ roflash static const char help_description_i2c_read[] =				"read data from i2c s
 roflash static const char help_description_i2c_speed[] =			"set i2c bus speed, 1000 (default) is 100 kHz, 0 is unconstrained";
 roflash static const char help_description_i2c_write[] =			"write data to i2c slave";
 roflash static const char help_description_i2c_write_read[] =		"write data to i2c slave and read back data";
-roflash static const char help_description_spi_write_read[] =		"write data to spi and read back data";
 roflash static const char help_description_io_mode[] =				"config i/o pin";
 roflash static const char help_description_io_read[] =				"read from i/o pin";
 roflash static const char help_description_io_trigger[] = 			"trigger i/o pin";
