@@ -259,12 +259,12 @@ static attr_result_used bool send_command_data(string_t *error, unsigned int sen
 	return(true);
 }
 
-static bool attr_result_used send_command(string_t *error, unsigned int cmd)
+static attr_result_used bool send_command(string_t *error, unsigned int cmd)
 {
 	return(send_command_data(error, true, cmd, 0, 0));
 }
 
-static bool attr_result_used send_command_data_1_8(string_t *error, unsigned int cmd, unsigned int data)
+static attr_result_used bool send_command_data_1_8(string_t *error, unsigned int cmd, unsigned int data)
 {
 	uint8_t bytes[1];
 
@@ -273,7 +273,7 @@ static bool attr_result_used send_command_data_1_8(string_t *error, unsigned int
 	return(send_command_data(error, true, cmd, 1, bytes));
 }
 
-static bool attr_result_used send_command_data_2_16(string_t *error, unsigned int cmd, unsigned int data_1, unsigned int data_2)
+static attr_result_used bool send_command_data_2_16(string_t *error, unsigned int cmd, unsigned int data_1, unsigned int data_2)
 {
 	uint8_t bytes[4];
 
@@ -285,7 +285,7 @@ static bool attr_result_used send_command_data_2_16(string_t *error, unsigned in
 	return(send_command_data(error, true, cmd, 4, bytes));
 }
 
-static bool flush_data(string_t *error)
+static attr_result_used bool flush_data(string_t *error)
 {
 	if(!display.buffer_dirty)
 		return(true);
@@ -307,7 +307,7 @@ static bool flush_data(string_t *error)
 	return(true);
 }
 
-static bool output_data_8(string_t *error, unsigned int data)
+static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
@@ -355,7 +355,7 @@ static bool output_data_8(string_t *error, unsigned int data)
 	return(true);
 }
 
-static bool output_data_16(string_t *error, unsigned int data)
+static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
@@ -403,7 +403,7 @@ static bool output_data_16(string_t *error, unsigned int data)
 	return(true);
 }
 
-static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
+static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int from_x, unsigned int from_y, unsigned int to_x, unsigned int to_y)
 {
 	string_new(, error, 64);
 	unsigned int box_colour;
@@ -502,7 +502,7 @@ static bool box(unsigned int r, unsigned int g, unsigned int b, unsigned int fro
 	return(true);
 }
 
-static bool clear_screen(void)
+static attr_result_used bool clear_screen(void)
 {
 	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1));
 }
@@ -797,7 +797,8 @@ static bool init(void)
 		goto error;
 	}
 
-	clear_screen();
+	if(!clear_screen())
+		return(false);
 
 	return(true);
 

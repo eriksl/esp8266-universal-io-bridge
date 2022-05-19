@@ -14050,3 +14050,19 @@ Thu May 19 15:26:22 CEST 2022 5578c9a display-spitftp and display-eastrising: fi
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65457, free:  14808, 18 %
     irom:    available: 784 k, used: 435312, free: 367504, 45 %
+Thu May 19 15:53:23 CEST 2022 fed67da SPI: implement new, more flexible API, affected: eastrising and tft displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 435248, free: 367568, 45 %
+Thu May 19 15:54:55 CEST 2022 fed67da SPI: implement new, more flexible API, affected: eastrising and tft displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65393, free:  14872, 18 %
+    irom:    available: 784 k, used: 435280, free: 367536, 45 %
+Thu May 19 15:56:45 CEST 2022 fed67da SPI: implement new, more flexible API, affected: eastrising and tft displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435296, free: 367520, 45 %
+Thu May 19 16:08:41 CEST 2022 fed67da SPI: implement new, more flexible API, affected: eastrising and tft displays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
