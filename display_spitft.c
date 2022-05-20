@@ -992,10 +992,10 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			return(app_action_error);
 		}
 
-		if((parse_int(8, src, &dcx_io, 0, ' ') == parse_ok) ||
+		if((parse_int(8, src, &dcx_io, 0, ' ') == parse_ok) &&
 				(parse_int(9, src, &dcx_pin, 0, ' ') == parse_ok))
 		{
-			if((dcx_io < 0) || (dcx_io >= io_id_size) || (dcx_pin < 0) || (dcx_pin >= max_pins_per_io))
+			if((dcx_io < -1) || (dcx_io >= io_id_size) || (dcx_pin < -1) || (dcx_pin >= max_pins_per_io))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
@@ -1010,7 +1010,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if((parse_int(10, src, &bright_io, 0, ' ') == parse_ok) &&
 				(parse_int(11, src, &bright_pin, 0, ' ') == parse_ok))
 		{
-			if((bright_io < 0) || (bright_io >= io_id_size) || (bright_pin < 0) || (bright_pin >= max_pins_per_io))
+			if((bright_io < -1) || (bright_io >= io_id_size) || (bright_pin < -1) || (bright_pin >= max_pins_per_io))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
@@ -1025,7 +1025,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 		if((parse_int(11, src, &cs_io, 0, ' ') == parse_ok) &&
 				(parse_int(12, src, &cs_pin, 0, ' ') == parse_ok))
 		{
-			if((cs_io < 0) || (cs_io >= io_id_size) || (cs_pin < 0) || (cs_pin >= max_pins_per_io))
+			if((cs_io < -1) || (cs_io >= io_id_size) || (cs_pin < -1) || (cs_pin >= max_pins_per_io))
 			{
 				string_append_cstr_flash(dst, help_description_display_spitft);
 				return(app_action_error);
@@ -1225,7 +1225,7 @@ static bool bright(int brightness)
 
 roflash const char help_description_display_spitft[] =	"> usage: display spitft\n"
 														"> <x size> <x offset> <x mirror 0|1>\n"
-														"> <y size> <x offset> <y mirror 0|1>\n"
+														"> <y size> <y offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
 														"> [<dcx io> <dcx pin>]\n"
 														"> [<brightness pwm io> <brightness pwm pin>]\n"

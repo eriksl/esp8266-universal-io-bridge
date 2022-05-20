@@ -14066,3 +14066,7 @@ Thu May 19 16:08:41 CEST 2022 fed67da SPI: implement new, more flexible API, aff
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65457, free:  14808, 18 %
     irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Fri May 20 11:02:08 CEST 2022 c029e8c display_spitft: small trivial cleanups, enforce status return values to be used always.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435344, free: 367472, 45 %
