@@ -47,13 +47,6 @@ typedef enum
 	spi_clock_size,
 } spi_clock_t;
 
-enum
-{
-	spi_buffer_size = SPI_W0_REGISTERS * SPI_W0_REGISTER_BYTE_WIDTH,
-	spi_bulk_buffer_size = SPI_W0_REGISTERS,
-	spi_bulk_buffer_bit_width = SPI_W0_REGISTER_BIT_WIDTH,
-};
-
 extern const char help_description_spi_configure[];
 extern const char help_description_spi_start[];
 extern const char help_description_spi_write[];
@@ -65,7 +58,6 @@ attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pi
 attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin);
 attr_result_used bool spi_start(string_t *error);
 attr_result_used bool spi_write(unsigned int bits, uint32_t value);
-attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4]);
 attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 		unsigned int command_length_bits, unsigned int command, unsigned int address_length_bits, unsigned int address, unsigned int skip_bits, unsigned int receive_bytes);
 attr_result_used bool spi_receive(string_t *error, unsigned int receive_bytes, uint8_t *receive_data);

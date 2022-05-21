@@ -14178,3 +14178,11 @@ Sat May 21 16:10:30 CEST 2022 b3831b7 spitft: fix configure command parameter ha
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 436288, free: 366528, 45 %
+Sat May 21 16:29:46 CEST 2022 65d646e display_eastrising: fix display being initialised even though not configured.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436320, free: 366496, 45 %
+Sat May 21 17:03:10 CEST 2022 65d646e display_eastrising: fix display being initialised even though not configured.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436464, free: 366352, 45 %

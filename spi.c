@@ -301,30 +301,6 @@ attr_result_used bool spi_write(unsigned int bits, uint32_t value)
 	return(true);
 }
 
-attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4])
-{
-	unsigned int value;
-
-	if(bits > (spi_bulk_buffer_size * spi_bulk_buffer_bit_width))
-	{
-		if(error)
-			string_append(error, "spi_write_bulk: parameter error\n");
-
-		return(false);
-	}
-
-	value =	(values[3] << 24) |
-			(values[2] << 16) |
-			(values[1] <<  8) |
-			(values[0] <<  0);
-
-	send_buffer.bits = bits;
-	send_buffer.data[0] = value;
-	send_buffer.fill = 1;
-
-	return(true);
-}
-
 attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 		unsigned int command_length_bits, unsigned int command,
 		unsigned int address_length_bits, unsigned int address,
