@@ -316,6 +316,7 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 	unsigned int spi_user2;
 	unsigned int spi_addr;
 	unsigned int spi_pin_mode;
+	unsigned int spi_clock;
 
 	if(!state.inited || !state.configured)
 	{
@@ -402,6 +403,17 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 	clock_high =	((clock_div + 1) / 2) - 1;
 	clock_low =		clock_div;
 
+	spi_clock =	((clock_pre_div	& SPI_CLKDIV_PRE)	<< SPI_CLKDIV_PRE_S)	|
+				((clock_div		& SPI_CLKCNT_N)		<< SPI_CLKCNT_N_S)		|
+				((clock_high	& SPI_CLKCNT_H)		<< SPI_CLKCNT_H_S)		|
+				((clock_low		& SPI_CLKCNT_L)		<< SPI_CLKCNT_L_S);
+
+	if(clock == spi_clock_80M)
+		spi_clock |= SPI_CLK_EQU_SYSCLK;
+
+	if(state.cs_hold)
+		spi_user |= SPI_CS_SETUP | SPI_CS_HOLD;
+
 	wait_completion();
 
 	if(send_buffer.bits > 0)
@@ -415,19 +427,11 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 			write_peri_reg(SPI_W0(1) + (w0cur * 4), send_buffer.data[send_buffer.fill ? 0 : w0cur]);
 	}
 
-	write_peri_reg(SPI_CLOCK(1),
-			((clock_pre_div	& SPI_CLKDIV_PRE)	<< SPI_CLKDIV_PRE_S)	|
-			((clock_div		& SPI_CLKCNT_N)		<< SPI_CLKCNT_N_S)		|
-			((clock_high	& SPI_CLKCNT_H)		<< SPI_CLKCNT_H_S)		|
-			((clock_low		& SPI_CLKCNT_L)		<< SPI_CLKCNT_L_S));
-
-	if(state.cs_hold)
-		spi_user |= SPI_CS_SETUP | SPI_CS_HOLD;
-
 	write_peri_reg(SPI_ADDR(1), spi_addr);
 	write_peri_reg(SPI_USER(1), spi_user);
 	write_peri_reg(SPI_USER1(1), spi_user1);
 	write_peri_reg(SPI_USER2(1), spi_user2);
+	write_peri_reg(SPI_CLOCK(1), spi_clock);
 	write_peri_reg(SPI_PIN(1), spi_pin_mode);
 
 	if(state.user_cs.enabled && (io_write_pin(error, state.user_cs.io, state.user_cs.pin, 1) != io_ok))
