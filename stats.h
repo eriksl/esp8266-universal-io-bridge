@@ -65,6 +65,8 @@ extern unsigned int stat_spi_slave_interrupts;
 extern unsigned int stat_spi_slave_i2s_interrupts;
 extern unsigned int stat_spi_largest_chunk;
 extern unsigned int stat_spi_wait_cycles;
+extern unsigned int stat_spi_8;
+extern unsigned int stat_spi_16;
 
 extern int stat_debug_1;
 extern int stat_debug_2;

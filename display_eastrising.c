@@ -384,13 +384,13 @@ static bool attr_result_used write_command(uint8_t cmd)
 				return(false);
 			}
 
-			if(!spi_write_8(spi_rs_cmd | spi_rw_write))
+			if(!spi_write(8, spi_rs_cmd | spi_rw_write))
 			{
 				log("eastrising command spi write failed\n");
 				return(false);
 			}
 
-			if(!spi_write_8(cmd))
+			if(!spi_write(8, cmd))
 			{
 				log("eastrising command spi write failed\n");
 				return(false);
@@ -436,7 +436,7 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 
 			for(current = 0; current < length; current++)
 			{
-				if(spi_write_8(data[current]))
+				if(spi_write(8, data[current]))
 					continue;
 
 				if(!spi_transmit(&error, spi_clock_10M, 8, spi_rs_data | spi_rw_write, 0, 0, 0, 0))
@@ -457,7 +457,7 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 					return(false);
 				}
 
-				if(!spi_write_8(data[current]))
+				if(!spi_write(8, data[current]))
 				{
 					log("eastrising data spi write failed\n");
 					return(false);
@@ -517,7 +517,7 @@ static bool attr_result_used read_data(uint8_t cmd, uint8_t *data)
 				return(false);
 			}
 
-			if(!spi_write_8(spi_rs_data | spi_rw_read))
+			if(!spi_write(8, spi_rs_data | spi_rw_read))
 			{
 				log("eastrising data read spi write failed\n");
 				return(false);

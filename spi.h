@@ -54,20 +54,28 @@ enum
 	spi_bulk_buffer_bit_width = SPI_W0_REGISTER_BIT_WIDTH,
 };
 
-extern const char help_description_spi_write_read[];
+extern const char help_description_spi_configure[];
+extern const char help_description_spi_start[];
+extern const char help_description_spi_write[];
+extern const char help_description_spi_transmit[];
+extern const char help_description_spi_receive[];
+extern const char help_description_spi_finish[];
 
 attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs);
 attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin);
 attr_result_used bool spi_start(string_t *error);
 attr_result_used bool spi_write(unsigned int bits, uint32_t value);
-attr_result_used bool spi_write_8(unsigned int value);
-attr_result_used bool spi_write_16(unsigned int value);
 attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4]);
 attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 		unsigned int command_length_bits, unsigned int command, unsigned int address_length_bits, unsigned int address, unsigned int skip_bits, unsigned int receive_bytes);
 attr_result_used bool spi_receive(string_t *error, unsigned int receive_bytes, uint8_t *receive_data);
 attr_result_used bool spi_finish(string_t *error);
 
-attr_result_used app_action_t application_function_spi_write_read(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_configure(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_start(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_write(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_transmit(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_receive(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_finish(string_t *src, string_t *dst);
 
 #endif

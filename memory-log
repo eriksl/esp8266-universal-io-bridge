@@ -14070,3 +14070,111 @@ Fri May 20 11:02:08 CEST 2022 c029e8c display_spitft: small trivial cleanups, en
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65457, free:  14808, 18 %
     irom:    available: 784 k, used: 435344, free: 367472, 45 %
+Fri May 20 11:21:49 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Fri May 20 11:25:14 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435344, free: 367472, 45 %
+Fri May 20 11:30:50 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Fri May 20 16:23:14 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435392, free: 367424, 45 %
+Fri May 20 17:48:27 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435360, free: 367456, 45 %
+Fri May 20 17:57:17 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65457, free:  14808, 18 %
+    irom:    available: 784 k, used: 435392, free: 367424, 45 %
+Sat May 21 11:09:02 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436144, free: 366672, 45 %
+Sat May 21 11:18:44 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436224, free: 366592, 45 %
+Sat May 21 11:28:27 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436176, free: 366640, 45 %
+Sat May 21 11:31:16 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436208, free: 366608, 45 %
+Sat May 21 11:40:44 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436240, free: 366576, 45 %
+Sat May 21 11:51:01 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436272, free: 366544, 45 %
+Sat May 21 12:40:04 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436240, free: 366576, 45 %
+Sat May 21 12:56:33 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436256, free: 366560, 45 %
+Sat May 21 13:00:32 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436240, free: 366576, 45 %
+Sat May 21 13:14:25 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 440432, free: 362384, 45 %
+Sat May 21 13:36:41 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436240, free: 366576, 45 %
+Sat May 21 13:41:33 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436192, free: 366624, 45 %
+Sat May 21 14:11:02 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436368, free: 366448, 45 %
+Sat May 21 14:25:09 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436416, free: 366400, 45 %
+Sat May 21 14:46:54 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65521, free:  14744, 18 %
+    irom:    available: 784 k, used: 436144, free: 366672, 45 %
+Sat May 21 14:50:05 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436256, free: 366560, 45 %
+Sat May 21 14:56:30 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436240, free: 366576, 45 %
+Sat May 21 15:29:15 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436256, free: 366560, 45 %
+Sat May 21 15:46:16 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436288, free: 366528, 45 %
+Sat May 21 15:59:58 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436368, free: 366448, 45 %
+Sat May 21 16:10:30 CEST 2022 b3831b7 spitft: fix configure command parameter handling.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436288, free: 366528, 45 %

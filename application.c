@@ -2310,9 +2310,34 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_i2c_write_read,
 	},
 	{
-		"swr", "spi-write-read",
-		application_function_spi_write_read,
-		help_description_spi_write_read,
+		"spc", "spi-configure",
+		application_function_spi_configure,
+		help_description_spi_configure,
+	},
+	{
+		"sps", "spi-start",
+		application_function_spi_start,
+		help_description_spi_start,
+	},
+	{
+		"spw", "spi-write",
+		application_function_spi_write,
+		help_description_spi_write,
+	},
+	{
+		"spt", "spi-transmit",
+		application_function_spi_transmit,
+		help_description_spi_transmit,
+	},
+	{
+		"spr", "spi-receive",
+		application_function_spi_receive,
+		help_description_spi_receive,
+	},
+	{
+		"spf", "spi-finish",
+		application_function_spi_finish,
+		help_description_spi_finish,
 	},
 	{
 		"im", "io-mode",

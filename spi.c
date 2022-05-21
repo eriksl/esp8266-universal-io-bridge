@@ -16,7 +16,7 @@ typedef struct
 
 typedef struct
 {
-	unsigned int filled:1;
+	unsigned int fill:1;
 	unsigned int bits_available;
 	unsigned int word;
 	unsigned int bit;
@@ -211,7 +211,7 @@ attr_result_used bool spi_start(string_t *error)
 	send_buffer.bits = 0;
 	send_buffer.word = 0;
 	send_buffer.bit = 0;
-	send_buffer.filled = 0;
+	send_buffer.fill = 0;
 
 	for(current = 0; current < SPI_W0_REGISTERS; current++)
 		send_buffer.data[current] = 0;
@@ -219,45 +219,9 @@ attr_result_used bool spi_start(string_t *error)
 	return(true);
 }
 
-attr_result_used bool spi_write(unsigned int bits, uint32_t value)
+attr_result_used static bool spi_write_8(unsigned int value)
 {
-	unsigned int bit;
-
-	if((send_buffer.bits + bits) >= send_buffer.bits_available)
-		return(false);
-
-	for(bit = 0; bit < bits; bit++)
-	{
-		if(value & (1UL << bit))
-			send_buffer.data[send_buffer.word] |= (1UL << send_buffer.bit);
-
-		send_buffer.bits++;
-
-		if(send_buffer.bit < 31)
-			send_buffer.bit++;
-		else
-		{
-			send_buffer.bit = 0;
-			send_buffer.word++;
-		}
-	}
-
-	return(true);
-}
-
-attr_result_used bool spi_write_8(unsigned int value)
-{
-	if((send_buffer.bits + 8) >= send_buffer.bits_available)
-		return(false);
-
-	if((send_buffer.bit % 8) != 0)
-		return(spi_write(8, value));
-
-	if(send_buffer.bit > 24)
-	{
-		send_buffer.bit = 0;
-		send_buffer.word++;
-	}
+	stat_spi_8++;
 
 	send_buffer.data[send_buffer.word] |= (value & 0xff) << send_buffer.bit;
 	send_buffer.bits += 8;
@@ -273,22 +237,12 @@ attr_result_used bool spi_write_8(unsigned int value)
 	return(true);
 }
 
-attr_result_used bool spi_write_16(unsigned int value)
+attr_result_used static bool spi_write_16(unsigned int value)
 {
+	stat_spi_16++;
+
 	value = ((value & 0x00ff) << 8) |
 			((value & 0xff00) >> 8);
-
-	if((send_buffer.bits + 16) >= send_buffer.bits_available)
-		return(false);
-
-	if((send_buffer.bit % 16) != 0)
-		return(spi_write(16, value));
-
-	if(send_buffer.bit > 16)
-	{
-		send_buffer.bit = 0;
-		send_buffer.word++;
-	}
 
 	send_buffer.data[send_buffer.word] |= (value & 0xffff) << send_buffer.bit;
 	send_buffer.bits += 16;
@@ -304,9 +258,52 @@ attr_result_used bool spi_write_16(unsigned int value)
 	return(true);
 }
 
+attr_result_used bool spi_write(unsigned int bits, uint32_t value)
+{
+	int bit;
+
+	roflash static const int buffer_bit_index_map[32] =
+	{
+		 7,  6,  5,  4,  3,  2,  1,  0,
+		15, 14, 13, 12, 11, 10,  9,  8,
+		23, 22, 21, 20, 19, 18, 17, 16,
+		31, 30, 29, 28, 27, 26, 25, 24,
+	};
+
+	if(!state.inited || !state.configured)
+		return(false);
+
+	if((send_buffer.bits + bits) >= send_buffer.bits_available)
+		return(false);
+
+	if((bits == 8) && (send_buffer.bit % 8) == 0)
+		return(spi_write_8(value));
+
+	if((bits == 16) && (send_buffer.bit % 16) == 0)
+		return(spi_write_16(value));
+
+	for(bit = bits - 1; bit >= 0; bit--)
+	{
+		if(value & (1UL << bit))
+			send_buffer.data[send_buffer.word] |= (1UL << buffer_bit_index_map[send_buffer.bit]);
+
+		send_buffer.bits++;
+
+		if(send_buffer.bit < 31)
+			send_buffer.bit++;
+		else
+		{
+			send_buffer.bit = 0;
+			send_buffer.word++;
+		}
+	}
+
+	return(true);
+}
+
 attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const uint8_t values[4])
 {
-	unsigned int value, current, length;
+	unsigned int value;
 
 	if(bits > (spi_bulk_buffer_size * spi_bulk_buffer_bit_width))
 	{
@@ -321,18 +318,9 @@ attr_result_used bool spi_write_bulk(string_t *error, unsigned int bits, const u
 			(values[1] <<  8) |
 			(values[0] <<  0);
 
-	length = (bits / spi_bulk_buffer_bit_width) + 1;
-
-	if(length > spi_bulk_buffer_size)
-		length = spi_bulk_buffer_size;
-
-	wait_completion();
-
-	for(current = 0; current < length; current++)
-		write_peri_reg(SPI_W0(1) + (current * 4), value);
-
-	send_buffer.filled = 1;
 	send_buffer.bits = bits;
+	send_buffer.data[0] = value;
+	send_buffer.fill = 1;
 
 	return(true);
 }
@@ -370,7 +358,7 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 	if((command_length_bits == 0) && (address_length_bits == 0) && (send_buffer.bits == 0) && (receive_bytes == 0))
 		return(true);
 
-	for(clock_map_ptr = spi_clock_map; clock_map_ptr != spi_clock_none; clock_map_ptr++)
+	for(clock_map_ptr = spi_clock_map; clock_map_ptr->clock != spi_clock_none; clock_map_ptr++)
 		if(clock_map_ptr->clock == clock)
 			break;
 
@@ -393,6 +381,15 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 	if(command_length_bits > 0)
 	{
 		spi_user  |= SPI_USR_COMMAND;
+
+		if(command_length_bits < 9)
+			command <<= (8 - command_length_bits);
+		else
+		{
+			command <<= (16 - command_length_bits);
+			command = ((command & 0x00ff) << 8) | ((command & 0xff00) >> 8);
+		}
+
 		spi_user2 |= ((command_length_bits - 1) & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S;
 		spi_user2 |= (command & SPI_USR_COMMAND_VALUE) << SPI_USR_COMMAND_VALUE_S;
 	}
@@ -400,6 +397,7 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 	if(address_length_bits > 0)
 	{
 		spi_user  |= SPI_USR_ADDR;
+		address <<= (32 - address_length_bits);
 		spi_user1 |= ((address_length_bits - 1) & SPI_USR_ADDR_BITLEN) << SPI_USR_ADDR_BITLEN_S;
 		spi_addr   = address;
 	}
@@ -430,7 +428,7 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 
 	wait_completion();
 
-	if((send_buffer.bits > 0) && !send_buffer.filled)
+	if(send_buffer.bits > 0)
 	{
 		w0size = (send_buffer.bits / SPI_W0_REGISTER_BIT_WIDTH) + 1;
 
@@ -438,7 +436,7 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 			w0size = SPI_W0_REGISTERS;
 
 		for(w0cur = 0; w0cur < w0size; w0cur++)
-			write_peri_reg(SPI_W0(1) + (w0cur * 4), send_buffer.data[w0cur]);
+			write_peri_reg(SPI_W0(1) + (w0cur * 4), send_buffer.data[send_buffer.fill ? 0 : w0cur]);
 	}
 
 	write_peri_reg(SPI_CLOCK(1),
@@ -527,29 +525,121 @@ attr_result_used bool spi_finish(string_t *error)
 	return(true);
 }
 
-roflash const char help_description_spi_write_read[] = "write data to spi and read back data\n"
-		"usage: spi_write_read <clock_speed (0-22, see spi.h)>\n"
-		"           <spi mode (0-3)>\n"
-		"           <cs hold (0-1)\n"
-		"           <user cs io (or -1)> <user cs pin (or -1)>\n"
-		"           <receive length>\n"
-		"			[<bytes to send (hex, max 32)>]\n";
+roflash const char help_description_spi_configure[] = "configure SPI interface\n"
+		"> usage: spc <mode=0-3> <cs delay=0|1> [<user cs io> <user cs pin>]\n";
 
-app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
+app_action_t application_function_spi_configure(string_t *src, string_t *dst)
 {
 	string_new(, error, 64);
-	uint8_t			receivebytes[64];
-	unsigned int	current;
-	unsigned int	byte;
-	unsigned int	clock_speed;
-	spi_clock_t		clock_speed_enum;
 	unsigned int	spi_mode;
 	spi_mode_t		spi_mode_enum;
-	unsigned int	cs_hold;
-	int				cs_io, cs_pin;
-	unsigned int	to_write;
-	unsigned int	to_read;
-	const			spi_clock_map_t *clock_map_ptr;
+	unsigned int	cs_delay;
+	int				user_cs_io, user_cs_pin;
+
+	if(parse_uint(1, src, &spi_mode, 0, ' ') != parse_ok)
+		goto usage;
+
+	spi_mode_enum = (spi_mode_t)(spi_mode + spi_mode_0);
+
+	if((spi_mode_enum <= spi_mode_none) || (spi_mode_enum >= spi_mode_size))
+		goto usage;
+
+	if(parse_uint(2, src, &cs_delay, 0, ' ') != parse_ok)
+		goto usage;
+
+	if(parse_int(3, src, &user_cs_io, 0, ' ') != parse_ok)
+		user_cs_io = -1;
+
+	if((user_cs_io < -1) || (user_cs_io > 15))
+		goto usage;
+
+	if(parse_int(4, src, &user_cs_pin, 0, ' ') != parse_ok)
+		user_cs_pin = -1;
+
+	if((user_cs_pin < -1) || (user_cs_pin >= max_pins_per_io))
+		goto usage;
+
+	if(!spi_configure(&error, spi_mode_enum, cs_delay, user_cs_io, user_cs_pin))
+	{
+		string_format(dst, "spi configure failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
+
+	string_append(dst, "spi configure ok\n");
+	return(app_action_normal);
+
+usage:
+	string_append_cstr_flash(dst, help_description_spi_configure);
+
+	string_append(dst, "> spi mode:\n");
+	string_append(dst, ">    0 clk=0 pha=0\n");
+	string_append(dst, ">    1 clk=0 pha=1\n");
+	string_append(dst, ">    2 clk=1 pha=0\n");
+	string_append(dst, ">    3 clk=1 pha=1\n");
+
+	return(app_action_error);
+}
+
+roflash const char help_description_spi_start[] = "prepare writing SPI send buffer data\n"
+		"usage: sps\n";
+
+app_action_t application_function_spi_start(string_t *src, string_t *dst)
+{
+	string_new(, error, 64);
+
+	if(!spi_start(&error))
+	{
+		string_format(dst, "spi start failed: %s\n", string_to_cstr(&error));
+		return(app_action_error);
+	}
+
+	string_append(dst, "spi start ok\n");
+	return(app_action_normal);
+}
+
+roflash const char help_description_spi_write[] = "write data to SPI send buffer\n"
+		"usage: spw <bits=0-32> <value>\n";
+
+app_action_t application_function_spi_write(string_t *src, string_t *dst)
+{
+	unsigned int bits, value;
+
+	if(parse_uint(1, src, &bits, 0, ' ') != parse_ok)
+		goto usage;
+
+	if(parse_uint(2, src, &value, 0, ' ') != parse_ok)
+		goto usage;
+
+	if(!spi_write(bits, value))
+	{
+		string_format(dst, "spi write failed\n");
+		return(app_action_error);
+	}
+
+	string_append(dst, "spi write ok\n");
+	return(app_action_normal);
+
+usage:
+	string_append_cstr_flash(dst, help_description_spi_write);
+	return(app_action_error);
+}
+
+roflash const char help_description_spi_transmit[] = "execute the SPI transaction (send and receive)\n"
+		"usage: spt <clock speed index>\n"
+		"           <command length bits (0-15 bits)> <command value (hex)\n"
+		"           <address length bits (0-31 bits)> <address value (hex)\n"
+		"           <receive bytes (0-64)\n";
+
+app_action_t application_function_spi_transmit(string_t *src, string_t *dst)
+{
+	string_new(, error, 64);
+	unsigned int command_length, command;
+	unsigned int address_length, address;
+	unsigned int skip_length;
+	unsigned int receive_bytes;
+	unsigned int clock_speed;
+	spi_clock_t clock_speed_enum;
+	const spi_clock_map_t *clock_map_ptr;
 
 	if(parse_uint(1, src, &clock_speed, 0, ' ') != parse_ok)
 		goto usage;
@@ -559,88 +649,78 @@ app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 	if((clock_speed_enum <= spi_clock_none) || (clock_speed_enum >= spi_clock_size))
 		goto usage;
 
-	if(parse_uint(2, src, &spi_mode, 0, ' ') != parse_ok)
+	if((parse_uint(2, src, &command_length, 0, ' ') != parse_ok) || (parse_uint(3, src, &command, 16, ' ') != parse_ok))
 		goto usage;
 
-	spi_mode_enum = (spi_mode_t)(spi_mode + spi_mode_0);
-
-	if((spi_mode_enum <= spi_mode_none) || (spi_mode_enum >= spi_mode_size))
-	{
-		string_append(dst, "spi_mode: 0, 1, 2, 3\n");
-		goto usage;
-	}
-
-	if(parse_uint(3, src, &cs_hold, 0, ' ') != parse_ok)
+	if((parse_uint(4, src, &address_length, 0, ' ') != parse_ok) || (parse_uint(5, src, &address, 16, ' ') != parse_ok))
 		goto usage;
 
-	if(cs_hold > 1)
-	{
-		string_append(dst, "cs_hold: 0 or 1\n");
-		goto usage;
-	}
-
-	if(parse_int(4, src, &cs_io, 0, ' ') != parse_ok)
+	if(parse_uint(6, src, &skip_length, 0, ' ') != parse_ok)
 		goto usage;
 
-	if((cs_io < -1) || (cs_io > 15))
-	{
-		string_append(dst, "cs_io: -1, 0 - 15\n");
-		goto usage;
-	}
-
-	if(parse_int(5, src, &cs_pin, 0, ' ') != parse_ok)
+	if(parse_uint(7, src, &receive_bytes, 0, ' ') != parse_ok)
 		goto usage;
 
-	if((cs_pin < -1) || (cs_pin >= max_pins_per_io))
-	{
-		string_append(dst, "cs_pin: -1, 0 - 15\n");
-		goto usage;
-	}
-
-	if(parse_uint(6, src, &to_read, 0, ' ') != parse_ok)
-		goto usage;
-
-	if(to_read > (int)sizeof(receivebytes))
-	{
-		string_format(dst, "swr: max read %u bytes\n", sizeof(receivebytes));
-		goto usage;
-	}
-
-	if(!spi_configure(&error, spi_mode_enum, !!cs_hold, cs_io, cs_pin))
-	{
-		string_format(dst, "spi configure failed: %s\n", string_to_cstr(&error));
-		return(app_action_error);
-	}
-
-	if(!spi_start(&error))
-	{
-		string_format(dst, "spi start failed: %s\n", string_to_cstr(&error));
-		return(app_action_error);
-	}
-
-	for(to_write = 0; to_write <= 256; to_write++)
-	{
-		if(parse_uint(to_write + 8, src, &byte, 16, ' ') != parse_ok)
-			break;
-
-		if(!spi_write_8(byte))
-		{
-			string_append(dst, "spi write_8 failed\n");
-			return(app_action_error);
-		}
-	}
-
-	if(!spi_transmit(&error, clock_speed_enum, 0, 0, 0, 0, 0, to_read))
+	if(!spi_transmit(&error, clock_speed_enum, command_length, command, address_length, address, skip_length, receive_bytes))
 	{
 		string_format(dst, "spi transmit failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	if((to_read > 0) && !spi_receive(&error, to_read, receivebytes))
+	string_format(dst, "spi transmit ok\n");
+
+	return(app_action_normal);
+
+usage:
+	string_append_cstr_flash(dst, help_description_spi_transmit);
+	string_append(dst, ">\n");
+
+	for(clock_map_ptr = spi_clock_map; clock_map_ptr->clock != spi_clock_none; clock_map_ptr++)
+		string_format(dst, ">    %2u %10u\n", clock_map_ptr->clock, (unsigned int)(80000000.0 / clock_map_ptr->pre_div / clock_map_ptr->div));
+
+	return(app_action_error);
+}
+
+roflash const char help_description_spi_receive[] = "fetch data received by SPI transaction\n"
+		"usage: spr <number of bytes to read (0 - 63)>\n";
+
+app_action_t application_function_spi_receive(string_t *src, string_t *dst)
+{
+	string_new(, error, 64);
+	unsigned int current, length;
+	uint8_t buffer[64];
+
+	if(parse_uint(1, src, &length, 0, ' ') != parse_ok)
+		goto usage;
+
+	if(length > 64)
+		goto usage;
+
+	if(!spi_receive(&error, length, buffer))
 	{
 		string_format(dst, "spi receive failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
+
+	string_append(dst, "spi receive ok, received: ");
+
+	for(current = 0; current < length; current++)
+		string_format(dst, "%02x ", buffer[current]);
+
+	string_append(dst, "\n");
+	return(app_action_normal);
+
+usage:
+	string_append_cstr_flash(dst, help_description_spi_receive);
+	return(app_action_error);
+}
+
+roflash const char help_description_spi_finish[] = "finish SPI transaction\n"
+		"usage: spf\n";
+
+app_action_t application_function_spi_finish(string_t *src, string_t *dst)
+{
+	string_new(, error, 64);
 
 	if(!spi_finish(&error))
 	{
@@ -648,27 +728,6 @@ app_action_t application_function_spi_write_read(string_t *src, string_t *dst)
 		return(app_action_error);
 	}
 
-	string_format(dst, "spiwriteread: written %u bytes and received %u bytes:", to_write, to_read);
-
-	for(current = 0; current < to_read; current++)
-		string_format(dst, " %02x", receivebytes[current]);
-
-	string_append(dst, "\n");
-
+	string_append(dst, "spi finish ok\n");
 	return(app_action_normal);
-
-usage:
-	string_append(dst, "usage: swr <clock speed index> <spi mode> <cs hold> <cs io> <cs pin> <# of bytes to read> <skip cycles> <bytes to send ...>\n");
-	string_append(dst, "> clock speed index:\n");
-
-	for(clock_map_ptr = spi_clock_map; clock_map_ptr->clock != spi_clock_none; clock_map_ptr++)
-		string_format(dst, ">    %2u %10u\n", clock_map_ptr->clock, (unsigned int)(80000000.0 / clock_map_ptr->pre_div / clock_map_ptr->div));
-
-	string_append(dst, "> spi mode:\n");
-	string_append(dst, ">    0 clk=0 pha=0\n");
-	string_append(dst, ">    1 clk=0 pha=1\n");
-	string_append(dst, ">    2 clk=1 pha=0\n");
-	string_append(dst, ">    3 clk=1 pha=1\n");
-
-	return(app_action_error);
 }
