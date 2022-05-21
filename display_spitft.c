@@ -190,7 +190,7 @@ static attr_result_used bool send_command_data(string_t *error, unsigned int sen
 			{
 				value = data[current] & 0xff;
 
-				if(!spi_write_8(value))
+				if(!spi_write(8, value))
 				{
 					if(error)
 						string_append(error, " - during data write 8");
@@ -231,7 +231,7 @@ static attr_result_used bool send_command_data(string_t *error, unsigned int sen
 
 		for(current = 0; current < length; current++)
 		{
-			value = (data[current] & 0xff) | (1 << 8);
+			value = data[current] | 0x100;
 
 			if(!spi_write(9, value))
 			{
@@ -241,7 +241,7 @@ static attr_result_used bool send_command_data(string_t *error, unsigned int sen
 			}
 		}
 
-		if(!spi_transmit(error, spi_clock_20M, send_cmd ? 9 : 0, send_cmd ? cmd : 0, 0, 0, 0, 0))
+		if(!spi_transmit(error, spi_clock_20M, send_cmd ? 9 : 0, cmd, 0, 0, 0, 0))
 		{
 			if(error)
 				string_append(error, " - during transmit 9");
@@ -311,7 +311,7 @@ static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
-		if(!spi_write_8(data))
+		if(!spi_write(8, data))
 		{
 			if(!flush_data(error))
 			{
@@ -320,7 +320,7 @@ static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 				return(false);
 			}
 
-			if(!spi_write_8(data))
+			if(!spi_write(8, data))
 			{
 				if(error)
 					string_append(error, "spi write");
@@ -330,7 +330,7 @@ static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 	}
 	else
 	{
-		data |= 1UL << 8;
+		data |= (1UL << 8);
 
 		if(!spi_write(9, data))
 		{
@@ -359,7 +359,7 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
-		if(!spi_write_16(data))
+		if(!spi_write(16, data))
 		{
 			if(!flush_data(error))
 			{
@@ -368,7 +368,7 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 				return(false);
 			}
 
-			if(!spi_write_16(data))
+			if(!spi_write(16, data))
 			{
 				if(error)
 					string_append(error, "spi write");
@@ -378,9 +378,9 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 	}
 	else
 	{
-		data |= 1UL << 16;
+		data = (((data & 0x0000ff00) << 1) | ((data & 0x000000ff) << 0)) | 0x20100;
 
-		if(!spi_write(17, data))
+		if(!spi_write(18, data))
 		{
 			if(!flush_data(error))
 			{
@@ -389,7 +389,7 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 				return(false);
 			}
 
-			if(!spi_write(17, data))
+			if(!spi_write(18, data))
 			{
 				if(error)
 					string_append(error, "spi write");
@@ -408,8 +408,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	string_new(, error, 64);
 	unsigned int box_colour;
 	unsigned int colour[2];
-	unsigned int pixels, bulk_stride, bulk_bits;
-	uint8_t bulk_values[4];
+	unsigned int pixels, bulk_pixel, bulk_stride, write_bits;
 
 	if(!flush_data(&error))
 	{
@@ -436,64 +435,89 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	}
 
 	box_colour = rgb_to_16bit_colour(r, g, b) & 0x0000ffff;
+	pixels = (to_x - from_x + 1) * (to_y - from_y + 1);
+
 	colour[0] = (box_colour & 0xff00) >> 8;
 	colour[1] = (box_colour & 0x00ff) >> 0;
-	pixels = (to_x - from_x + 1) * (to_y - from_y + 1);
-	bulk_bits = spi_bulk_buffer_size * spi_bulk_buffer_bit_width;
-	bulk_stride = bulk_bits / 16;
+	write_bits = 8;
 
-	if(pixels >= bulk_stride)
+	if(!pin.dcx.enabled)
 	{
-		bulk_values[0] = bulk_values[2] = colour[0];
-		bulk_values[1] = bulk_values[3] = colour[1];
-
-		if(!spi_start(&error))
-		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
-			return(false);
-		}
-
-		if(!spi_write_bulk(&error, bulk_bits, bulk_values))
-		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
-			return(false);
-		}
-
-		if(pin.dcx.enabled && (io_write_pin(&error, pin.dcx.io, pin.dcx.pin, 1) != io_ok))
-			return(false);
-
-		for(; pixels >= bulk_stride; pixels -= bulk_stride)
-		{
-			if(!spi_transmit(&error, spi_clock_20M, 0, 0, 0, 0, 0, 0))
-			{
-				log("spitft box: spi error: %s\n", string_to_cstr(&error));
-				return(false);
-			}
-
-			if(!spi_finish(&error))
-			{
-				log("spitft box: spi error: %s\n", string_to_cstr(&error));
-				return(false);
-			}
-		}
+		write_bits = 9;
+		colour[0] |= (1UL << 8);
+		colour[1] |= (1UL << 8);
 	}
 
-	if(!flush_data(&error))
+	if(!spi_start(&error))
 	{
 		log("spitft box: spi error: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
-	for(; pixels > 0; pixels--)
+	for(bulk_stride = 0; bulk_stride < 256; bulk_stride++)
 	{
-		if(!output_data_16(&error, box_colour))
+		if(!spi_write(write_bits, colour[0]))
+			break;
+
+		if(!spi_write(write_bits, colour[1]))
 		{
 			log("spitft box: spi error: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 	}
 
-	if(!flush_data(&error))
+	if(bulk_stride >= 256)
+	{
+		log("spitft box: out of limits\n");
+		return(false);
+	}
+
+	if(pin.dcx.enabled && (io_write_pin(&error, pin.dcx.io, pin.dcx.pin, 1) != io_ok))
+		return(false);
+
+	for(bulk_pixel = 0; (bulk_pixel + bulk_stride) < pixels; bulk_pixel += bulk_stride)
+	{
+		if(!spi_transmit(&error, spi_clock_40M, 0, 0, 0, 0, 0, 0))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+
+		if(!spi_finish(&error))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+	}
+
+	if(!spi_start(&error))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	for(; bulk_pixel < pixels; bulk_pixel++)
+	{
+		if(!spi_write(write_bits, colour[0]))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+
+		if(!spi_write(write_bits, colour[1]))
+		{
+			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			return(false);
+		}
+	}
+
+	if(!spi_transmit(&error, spi_clock_40M, 0, 0, 0, 0, 0, 0))
+	{
+		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		return(false);
+	}
+
+	if(!spi_finish(&error))
 	{
 		log("spitft box: spi error: %s\n", string_to_cstr(&error));
 		return(false);

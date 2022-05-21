@@ -14186,3 +14186,7 @@ Sat May 21 17:03:10 CEST 2022 65d646e display_eastrising: fix display being init
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 436464, free: 366352, 45 %
+Sat May 21 17:04:54 CEST 2022 b6ad0b3 spi: remove obsolete <<write bulk>> interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436432, free: 366384, 45 %
