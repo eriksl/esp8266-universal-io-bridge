@@ -273,7 +273,7 @@ attr_result_used bool spi_write(unsigned int bits, uint32_t value)
 	if(!state.inited || !state.configured)
 		return(false);
 
-	if((send_buffer.bits + bits) >= send_buffer.bits_available)
+	if((send_buffer.bits + bits) > send_buffer.bits_available)
 		return(false);
 
 	if((bits == 8) && (send_buffer.bit % 8) == 0)
