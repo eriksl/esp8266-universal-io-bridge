@@ -1024,9 +1024,9 @@ static bool init(void)
 	unsigned int mwcr0;
 
 	if(!config_get_uint("display_eastrising.mode", &mode, -1, -1))
-		display.mode = display_mode_disabled;
-	else
-		display.mode = (display_mode_t)mode;
+		goto error;
+
+	display.mode = (display_mode_t)mode;
 
 	if(!config_get_int("display_eastrising.io", &user_cs_io, -1, -1) ||
 			!config_get_int("display_eastrising.pin", &user_cs_pin, -1, -1))
