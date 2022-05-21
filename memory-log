@@ -14190,3 +14190,11 @@ Sat May 21 17:04:54 CEST 2022 b6ad0b3 spi: remove obsolete <<write bulk>> interf
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 436432, free: 366384, 45 %
+Sat May 21 17:52:23 CEST 2022 c14c942 display-spitft: working support for SPI TFT displays in <<3 wire mode>>
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436720, free: 366096, 45 %
+Sat May 21 17:53:15 CEST 2022 c14c942 display-spitft: working support for SPI TFT displays in <<3 wire mode>>
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436784, free: 366032, 45 %
