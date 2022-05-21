@@ -413,25 +413,25 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 	if(!flush_data(&error))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 1: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
 	if(!send_command_data_2_16(&error, cmd_caset, from_x + display.x_offset, to_x + display.x_offset))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 2: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
 	if(!send_command_data_2_16(&error, cmd_raset, from_y + display.y_offset, to_y + display.y_offset))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 3: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
 	if(!send_command(&error, cmd_ramwr))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 4: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
@@ -451,7 +451,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 	if(!spi_start(&error))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 5: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
@@ -462,7 +462,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 		if(!spi_write(write_bits, colour[1]))
 		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 6: spi write\n");
 			return(false);
 		}
 	}
@@ -480,20 +480,20 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	{
 		if(!spi_transmit(&error, display.spispeed, 0, 0, 0, 0, 0, 0))
 		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 7: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 
 		if(!spi_finish(&error))
 		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 8: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 	}
 
 	if(!spi_start(&error))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 9: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
@@ -501,26 +501,26 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	{
 		if(!spi_write(write_bits, colour[0]))
 		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 10: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 
 		if(!spi_write(write_bits, colour[1]))
 		{
-			log("spitft box: spi error: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 11: spi_write\n");
 			return(false);
 		}
 	}
 
 	if(!spi_transmit(&error, display.spispeed, 0, 0, 0, 0, 0, 0))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 12: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
 	if(!spi_finish(&error))
 	{
-		log("spitft box: spi error: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 13: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 

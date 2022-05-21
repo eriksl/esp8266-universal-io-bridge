@@ -14206,3 +14206,15 @@ Sat May 21 18:12:33 CEST 2022 6ea1d30 display-spitft: make SPI speed configurabl
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 436768, free: 366048, 45 %
+Sat May 21 20:03:28 CEST 2022 db78620 spi: experimental support for 80 MHz bus. Not sure if it works at all.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436752, free: 366064, 45 %
+Sat May 21 20:05:12 CEST 2022 db78620 spi: experimental support for 80 MHz bus. Not sure if it works at all.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436784, free: 366032, 45 %
+Sat May 21 20:35:43 CEST 2022 db78620 spi: experimental support for 80 MHz bus. Not sure if it works at all.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436752, free: 366064, 45 %
