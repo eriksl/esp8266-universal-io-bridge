@@ -541,6 +541,9 @@ static attr_result_used bool text_send(unsigned int code)
 	unsigned int y_offset;
 	unsigned int fg_colour, bg_colour, colour;
 
+	if(code == ' ')
+		goto skip;
+
 	if(!flush_data(&error))
 	{
 		log("spi: text_send 1: %s\n", string_to_cstr(&error));
