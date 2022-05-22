@@ -15,7 +15,9 @@ typedef enum
 {
 	display_mode_disabled = 0,
 	display_mode_i2c,
-	display_mode_spi,
+	display_mode_spi_mosi_miso,
+	display_mode_spi_mosi,
+	display_mode_size,
 } display_mode_t;
 
 typedef struct attr_packed
@@ -30,7 +32,7 @@ assert_size(text_t, 3);
 
 typedef struct attr_packed
 {
-	display_mode_t	mode:2;
+	display_mode_t	mode:3;
 	unsigned int	logmode:1;
 	unsigned int	graphic_mode:1;
 	unsigned int	brightness:3;
@@ -325,6 +327,21 @@ static text_t		text;
 static display_t	display;
 static pin_t		pin;
 
+attr_result_used static bool if_can_read(void)
+{
+	switch(display.mode)
+	{
+		case(display_mode_i2c): return(true);
+		case(display_mode_spi_mosi_miso): return(true);
+		case(display_mode_spi_mosi): return(false);
+		default:
+		{
+			log("eastrising: if_can_read: invalid mode\n");
+			return(false);
+		}
+	}
+}
+
 static void set_i2c_speed(int speed)
 {
 	unsigned int config_speed;
@@ -374,7 +391,8 @@ static bool attr_result_used write_command(uint8_t cmd)
 			return(i2c_send1(i2c_addr_command, cmd) == i2c_error_ok);
 		}
 
-		case(display_mode_spi):
+		case(display_mode_spi_mosi_miso):
+		case(display_mode_spi_mosi):
 		{
 			string_new(, error, 64);
 
@@ -407,6 +425,14 @@ static bool attr_result_used write_command(uint8_t cmd)
 				log("eastrising command spi finish failed\n");
 				return(false);
 			}
+
+			break;
+		}
+
+		default:
+		{
+			log("eastrising command: invalid mode\n");
+			return(false);
 		}
 	}
 
@@ -423,7 +449,8 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 			return(i2c_send(i2c_addr_data, length, data) == i2c_error_ok);
 		}
 
-		case(display_mode_spi):
+		case(display_mode_spi_mosi_miso):
+		case(display_mode_spi_mosi):
 		{
 			string_new(, error, 64);
 			unsigned int current;
@@ -475,6 +502,14 @@ static bool attr_result_used write_data(unsigned int length, const uint8_t *data
 				log("eastrising data spi finish failed\n");
 				return(false);
 			}
+
+			break;
+		}
+
+		default:
+		{
+			log("eastrising data: invalid mode\n");
+			return(false);
 		}
 	}
 
@@ -507,7 +542,7 @@ static bool attr_result_used read_data(uint8_t cmd, uint8_t *data)
 			return(i2c_receive(i2c_addr_data, 1, data) == i2c_error_ok);
 		}
 
-		case(display_mode_spi):
+		case(display_mode_spi_mosi_miso):
 		{
 			string_new(, error, 64);
 
@@ -540,6 +575,14 @@ static bool attr_result_used read_data(uint8_t cmd, uint8_t *data)
 				log("eastrising data read spi finish failed\n");
 				return(false);
 			}
+
+			break;
+		}
+
+		default:
+		{
+			log("eastrising read data: invalid mode\n");
+			return(false);
 		}
 	}
 
@@ -648,23 +691,34 @@ static bool attr_result_used box(unsigned int r, unsigned int g, unsigned int b,
 	if(!write_command_data_1(reg_mclr, reg_mclr_memory_clear_start | reg_mclr_memory_area_active_window))
 		goto error;
 
-	for(timeout = 0; timeout < 10; timeout++)
+	if(if_can_read())
 	{
-		if(!read_data(reg_mclr, &data))
-			goto error;
+		for(timeout = 10; timeout > 0; timeout--)
+		{
+			if(!read_data(reg_mclr, &data))
+				goto error;
 
-		if(!(data & reg_mclr_memory_clear_start))
-			break;
+			if(!(data & reg_mclr_memory_clear_start))
+				break;
 
-		msleep(2);
+			os_delay_us(500);
+		}
+
+		if(timeout == 0)
+			log("BTE clear area timeout\n");
+		else
+			success = true;
+	}
+	else
+	{
+		os_delay_us(1750);
+		success = true;
 	}
 
-	if(timeout >= 10)
-		log("BTE clear area timeout\n");
-	else
-		success = true;
-
 error:
+	if(!write_command_data_1(reg_becr0, 0))
+		success = false;
+
 	if(!set_active_window(0, 0, display.x_size - 1, display.y_size - 1))
 		success = false;
 
@@ -728,21 +782,29 @@ static bool attr_result_used scroll(unsigned int x0, unsigned int y0, unsigned i
 	if(!write_command_data_1(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
-	for(timeout = 0; timeout < 10; timeout++)
+	if(if_can_read())
 	{
-		if(!read_data(reg_becr0, &data))
-			goto error;
+		for(timeout = 0; timeout < 10; timeout++)
+		{
+			if(!read_data(reg_becr0, &data))
+				goto error;
 
-		if(!(data & reg_becr0_busy))
-			break;
+			if(!(data & reg_becr0_busy))
+				break;
 
-		msleep(10);
+			msleep(10);
+		}
+
+		if(timeout >= 10)
+			log("scroll: BTE timeout\n");
+		else
+			success = true;
 	}
-
-	if(timeout >= 10)
-		log("scroll: BTE timeout\n");
 	else
+	{
+		msleep(10);
 		success = true;
+	}
 
 error:
 	if(!write_command_data_1(reg_becr0, 0))
@@ -803,21 +865,29 @@ static bool attr_result_used copy_layer(unsigned int source_layer, unsigned int 
 	if(!write_command_data_1(reg_becr0, reg_becr0_busy | reg_becr0_src_block | reg_becr0_dst_block))
 		goto error;
 
-	for(timeout = 0; timeout < 10; timeout++)
+	if(if_can_read())
 	{
-		if(!read_data(reg_becr0, &data))
-			goto error;
+		for(timeout = 0; timeout < 10; timeout++)
+		{
+			if(!read_data(reg_becr0, &data))
+				goto error;
 
-		if(!(data & reg_becr0_busy))
-			break;
+			if(!(data & reg_becr0_busy))
+				break;
 
-		msleep(10);
+			msleep(10);
+		}
+
+		if(timeout >= 10)
+			log("copy_layer: BTE timeout\n");
+		else
+			success = true;
 	}
-
-	if(timeout >= 10)
-		log("copy_layer: BTE timeout\n");
 	else
+	{
+		msleep(15);
 		success = true;
+	}
 
 error:
 	if(!write_command_data_1(reg_becr0, 0))
@@ -887,16 +957,19 @@ error:
 		success = false;
 	}
 
-	if(!read_data(reg_becr0, &rdata))
+	if(if_can_read())
 	{
-		log("display eastrising: can't read BTE status\n");
-		success = false;
-	}
+		if(!read_data(reg_becr0, &rdata))
+		{
+			log("display eastrising: can't read BTE status\n");
+			success = false;
+		}
 
-	if(rdata & reg_becr0_busy)
-	{
-		log("display eastrising: BTE still busy\n");
-		success = false;
+		if(rdata & reg_becr0_busy)
+		{
+			log("display eastrising: BTE still busy\n");
+			success = false;
+		}
 	}
 
 	return(success);
@@ -1185,7 +1258,9 @@ static bool begin(unsigned int slot, bool logmode)
 	unsigned int r, g, b;
 	font_info_t font_info;
 
-	if((display.mode != display_mode_i2c) && (display.mode != display_mode_spi))
+	if((display.mode != display_mode_i2c) &&
+			(display.mode != display_mode_spi_mosi_miso) &&
+			(display.mode != display_mode_spi_mosi))
 		return(false);
 
 	text.column = text.row = 0;
@@ -1339,6 +1414,30 @@ static bool freeze(bool active)
 	return(true);
 }
 
+static bool bright(int brightness)
+{
+	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
+	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable,
+				reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
+	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
+
+	if(brightness > 4)
+		return(false);
+
+	if(!write_command_data_1(reg_p1dcr, bright_level[brightness]))
+		return(false);
+
+	if(!write_command_data_1(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
+		return(false);
+
+	display.low_brightness = bright_low[brightness] ? true : false;
+
+	return(true);
+}
+
+roflash const char help_description_display_eastrising[] =
+		"display eastrising <mode=0=disabled|1=i2c|2=hspi-mosi-miso|3=hspi-mosi [<user cs io> <user cs pin>]";
+
 app_action_t application_function_display_eastrising(string_t *src, string_t *dst)
 {
 	display_mode_t mode;
@@ -1346,7 +1445,7 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 
 	if(parse_uint(1, src, &mode, 0, ' ') == parse_ok)
 	{
-		if(mode > 2)
+		if(mode > display_mode_size)
 		{
 			string_append_cstr_flash(dst, help_description_display_eastrising);
 			return(app_action_error);
@@ -1412,9 +1511,13 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 	{
 		case(display_mode_disabled): string_append(dst, "> mode 0 (disabled)"); break;
 		case(display_mode_i2c): string_append(dst, "> mode 1 (i2c)"); break;
-		case(display_mode_spi):
+		case(display_mode_spi_mosi_miso):
+		case(display_mode_spi_mosi):
 		{
-			string_append(dst, "> mode 2 (spi), ");
+			if(mode == display_mode_spi_mosi_miso)
+				string_append(dst, "> mode 2 (spi using output/mosi and input/miso), ");
+			else
+				string_append(dst, "> mode 3 (spi using output/mosi only), ");
 
 			if((user_cs_io >= 0) && (user_cs_pin >= 0))
 				string_format(dst, "user cs pin: %d/%d", user_cs_io, user_cs_pin);
@@ -1435,30 +1538,6 @@ config_error:
 	string_append(dst, "> cannot set config\n");
 	return(app_action_error);
 }
-
-static bool bright(int brightness)
-{
-	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
-	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable,
-				reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
-	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
-
-	if(brightness > 4)
-		return(false);
-
-	if(!write_command_data_1(reg_p1dcr, bright_level[brightness]))
-		return(false);
-
-	if(!write_command_data_1(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
-		return(false);
-
-	display.low_brightness = bright_low[brightness] ? true : false;
-
-	return(true);
-}
-
-roflash const char help_description_display_eastrising[] =
-		"display eastrising <mode=0=disabled|1=i2c|2=hspi [<user cs io> <user cs pin>]";
 
 static bool info(display_info_t *infostruct)
 {
