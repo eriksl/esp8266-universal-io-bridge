@@ -14218,3 +14218,11 @@ Sat May 21 20:35:43 CEST 2022 db78620 spi: experimental support for 80 MHz bus. 
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 436752, free: 366064, 45 %
+Sun May 22 09:34:21 CEST 2022 b449c1e spi: fix off-by-one error in buffering.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436720, free: 366096, 45 %
+Sun May 22 09:37:56 CEST 2022 b449c1e spi: fix off-by-one error in buffering.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436704, free: 366112, 45 %

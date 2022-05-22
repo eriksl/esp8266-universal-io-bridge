@@ -375,7 +375,7 @@ static void time_stamp_to_components(uint64_t stamp,
 	struct tm *tm;
 	time_t ticks;
 
-	ticks = stamp + 3600 * time_timezone;
+	ticks = stamp;
 	tm = localtime(&ticks);
 
 	if(Y)
@@ -505,7 +505,7 @@ void time_stats(string_t *dst)
 	stampms_to_dhm(secs, msecs, &D, &h, &m, &s);
 	string_format(dst, "> %-6s %3u %02u:%02u:%02u.%03u %08x %08x %08x %5u\n", "rtc", D, h, m, s, msecs, msw, lsw, base, wraps);
 
-	secs =	sntp_current_ds / 10;
+	secs =	sntp_current_ds / 10 + (time_timezone * 3600);
 	msecs =	(sntp_current_ds % 10) * 100;
 	base =	sntp_base_s;
 	sntp_secs = secs;
