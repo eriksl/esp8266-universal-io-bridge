@@ -169,6 +169,18 @@ enum IRAM_BASE
 	IRAM_MAP_0x4010c000 =	1 << 8,
 };
 
+enum PERI_IO_SWAP
+{
+	PERI_IO_SWAP_REG =			0x3ff00028,
+	PERI_IO_SWAP_UARTS =		1 << 0,		// swap both UARTs
+	PERI_IO_SWAP_SPI =			1 << 1,		// swap both SPI modules
+	PERI_IO_SWAP_UART0_PINS =	1 << 2,		// "swap UART0 pins (u0rxd <-> u0cts), (u0txd <-> u0rts)"
+	PERI_IO_SWAP_UART1_PINS =	1 << 3,		// "swap UART1 pins (u1rxd <-> u1cts), (u1txd <-> u1rts)"
+	PERI_IO_SWAP_HSPI_PRIO =	1 << 5,		// "hspi is with the higher prior"
+	PERI_IO_SWAP_HSPI_BOTH =	1 << 6,		// "two spi masters on hspi"
+	PERI_IO_SWAP_SPI_HSPI =		1 << 7,		// SPI/HSPI overlap mode ("two spi masters on cspi (reg_cspi_overlap)")
+};
+
 enum TIMER0_LOAD
 {
 	TIMER0_LOAD_REG = 0x60000600,

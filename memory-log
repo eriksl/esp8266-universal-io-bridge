@@ -14270,3 +14270,31 @@ Sun May 22 10:32:19 CEST 2022 92211ed time: fix timezone.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 437184, free: 365632, 45 %
+Sun May 22 11:38:26 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437232, free: 365584, 45 %
+Sun May 22 12:31:47 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437312, free: 365504, 45 %
+Sun May 22 12:44:46 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Sun May 22 12:58:46 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Sun May 22 13:10:23 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 436976, free: 365840, 45 %
+Sun May 22 13:10:56 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Sun May 22 13:43:37 CEST 2022 75f981a display_eastrising: add extra output-only mode, don't use miso.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65529, free:  14736, 18 %
+    irom:    available: 784 k, used: 437232, free: 365584, 45 %
