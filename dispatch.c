@@ -37,7 +37,7 @@ enum
 
 static os_event_t task_queue[3][task_queue_length];
 
-string_new(static attr_flash_align, command_socket_receive_buffer, 128);
+string_new(static attr_flash_align, command_socket_receive_buffer, 256);
 string_new(static attr_flash_align, command_socket_send_buffer, 2048);
 static lwip_if_socket_t command_socket;
 

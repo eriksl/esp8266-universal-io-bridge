@@ -624,17 +624,21 @@ roflash const char help_description_spi_write[] = "write data to SPI send buffer
 app_action_t application_function_spi_write(string_t *src, string_t *dst)
 {
 	unsigned int bits, value;
+	unsigned int current;
 
 	if(parse_uint(1, src, &bits, 0, ' ') != parse_ok)
 		goto usage;
 
-	if(parse_uint(2, src, &value, 0, ' ') != parse_ok)
-		goto usage;
-
-	if(!spi_write(bits, value))
+	for(current = 2; current < 66; current++)
 	{
-		string_format(dst, "spi write failed\n");
-		return(app_action_error);
+		if(parse_uint(current, src, &value, 16, ' ') != parse_ok)
+			break;
+
+		if(!spi_write(bits, value))
+		{
+			string_format(dst, "spi write failed\n");
+			return(app_action_error);
+		}
 	}
 
 	string_append(dst, "spi write ok\n");

@@ -14298,3 +14298,7 @@ Sun May 22 13:43:37 CEST 2022 75f981a display_eastrising: add extra output-only 
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65529, free:  14736, 18 %
     irom:    available: 784 k, used: 437232, free: 365584, 45 %
+Mon May 23 12:21:02 CEST 2022 57fef72 Add experimental (inactive) code for enabling SPI-HSPI overlap mode.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  65657, free:  14608, 18 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
