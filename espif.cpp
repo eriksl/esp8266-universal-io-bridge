@@ -1479,6 +1479,218 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 	}
 }
 
+static void cie_spi_write(GenericSocket &command_channel, const std::string &data, const std::string &match, bool verbose)
+{
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+	std::string reply;
+
+	process(command_channel, data, reply, match, string_value, int_value, verbose);
+}
+
+static void cie_uc_cmd_data(GenericSocket &command_channel, bool isdata, unsigned int data_value, bool verbose)
+{
+	std::string data, reply;
+	std::stringstream text;
+
+	text.str("");
+	text << "spt 17 8 " << std::hex << std::setfill('0') << std::setw(2) << data_value << " 0 0 0 0";
+	data = text.str();
+
+	cie_spi_write(command_channel, "sps", "spi start ok", verbose);
+	cie_spi_write(command_channel, std::string("iw 1 0 ") + (isdata ? "1" : "0"), std::string("digital output: \\[") + (isdata ? "1" : "0") + "\\]", verbose);
+	cie_spi_write(command_channel, data, "spi transmit ok", verbose);
+	cie_spi_write(command_channel, "spf", "spi finish ok", verbose);
+}
+
+static void cie_uc_cmd(GenericSocket &command_channel, unsigned int cmd, bool verbose)
+{
+	return(cie_uc_cmd_data(command_channel, false, cmd, verbose));
+}
+
+static void cie_uc_data(GenericSocket &command_channel, unsigned int data, bool verbose)
+{
+	return(cie_uc_cmd_data(command_channel, true, data, verbose));
+}
+
+static void cie_uc_data_string(GenericSocket &command_channel, const std::string valuestring, bool verbose)
+{
+	cie_spi_write(command_channel, "iw 1 0 1", "digital output: \\[1\\]", verbose);
+	cie_spi_write(command_channel, "sps", "spi start ok", verbose);
+	cie_spi_write(command_channel, std::string("spw 8 ") + valuestring, "spi write ok", verbose);
+	cie_spi_write(command_channel, "spt 17 0 0 0 0 0 0 0", "spi transmit ok", verbose);
+	cie_spi_write(command_channel, "spf", "spi finish ok", verbose);
+}
+
+static void command_image_epaper(GenericSocket &command_channel, const std::string &filename, bool verbose)
+{
+	static const unsigned int dim_x = 212;
+	static const unsigned int dim_y = 104;
+	uint8_t dummy_display[dim_x][dim_y];
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+	std::string values, command, reply;
+	std::stringstream text;
+	unsigned int layer, all_bytes, bytes, byte, bit;
+	int x, y;
+	struct timeval time_start, time_now;
+	int seconds, useconds;
+	double duration, rate;
+
+	gettimeofday(&time_start, 0);
+
+	cie_spi_write(command_channel, "spc 0 0", "spi configure ok", verbose);
+
+	cie_uc_cmd(command_channel, 0x04, verbose); 	// power on PON, no arguments
+
+	cie_uc_cmd(command_channel, 0x00, verbose);		// panel settings PSR, 1 argument
+	cie_uc_data(command_channel, 0x0f, verbose);	// default
+
+	cie_uc_cmd(command_channel, 0x61, verbose); 	// resultion settings TSR, 3 argument
+	cie_uc_data(command_channel, 0x68, verbose);	// height
+	cie_uc_data(command_channel, 0x00, verbose);	// width[7]
+	cie_uc_data(command_channel, 0xd4, verbose);	// width[6-0]
+
+	cie_uc_cmd(command_channel, 0x50, verbose); 	// vcom and data interval setting, 1 argument
+	cie_uc_data(command_channel, 0xd7, verbose);	// default
+
+	try
+	{
+		Magick::Image image;
+		Magick::Geometry newsize(dim_x, dim_y);
+		Magick::Color colour;
+		newsize.aspect(true);
+
+		if(!filename.length())
+			throw(std::string("image epaper: empty file name"));
+
+		image.read(filename);
+
+		if(verbose)
+			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
+
+		image.resize(newsize);
+
+		if((image.columns() != dim_x) || (image.rows() != dim_y))
+			throw(std::string("image epaper: image magic resize failed"));
+
+		all_bytes = 0;
+		bytes = 0;
+		byte = 0;
+		bit = 7;
+		values = "";
+		cie_spi_write(command_channel, "sps", "spi start ok", verbose);
+
+		for(x = 0; x < (int)dim_x; x++)
+			for(y = 0; y < (int)dim_y; y++)
+				dummy_display[x][y] = 0;
+
+		for(layer = 0; layer < 2; layer++)
+		{
+			cie_uc_cmd(command_channel, layer == 0 ? 0x10 : 0x13, verbose); // DTM1 / DTM2
+
+			for(x = dim_x - 1; x >= 0; x--)
+			{
+				for(y = 0; y < (int)dim_y; y++)
+				{
+					colour = image.pixelColor(x, y);
+
+					if(layer == 0)
+					{
+						if((colour.redQuantum() > 16384) && (colour.greenQuantum() > 16384) && (colour.blueQuantum() > 16384))
+						{
+							dummy_display[x][y] |= 0x01;
+							byte |= 1 << bit;
+						}
+					}
+					else
+					{
+						if((colour.redQuantum() > 16384) && (colour.greenQuantum() < 16384) && (colour.blueQuantum() < 16384))
+						{
+							dummy_display[x][y] |= 0x02;
+							byte |= 1 << bit;
+						}
+					}
+
+					if(bit > 0)
+						bit--;
+					else
+					{
+						text.str("");
+						text << std::hex << std::setfill('0') << std::setw(2) << byte << " ";
+						values.append(text.str());
+						all_bytes++;
+						bytes++;
+						bit = 7;
+						byte = 0;
+
+						if(bytes > 31)
+						{
+							cie_uc_data_string(command_channel, values, verbose);
+							values = "";
+							bytes = 0;
+						}
+					}
+				}
+
+				gettimeofday(&time_now, 0);
+
+				seconds = time_now.tv_sec - time_start.tv_sec;
+				useconds = time_now.tv_usec - time_start.tv_usec;
+				duration = seconds + (useconds / 1000000.0);
+				rate = all_bytes / 1024.0 / duration;
+
+				std::cout << std::setfill(' ');
+				std::cout << "sent "		<< std::setw(4) << (all_bytes / 1024) << " kbytes";
+				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+				std::cout << ", x "			<< std::setw(3) << x;
+				std::cout << ", y "			<< std::setw(3) << y;
+				std::cout << ", "			<< std::setw(3) << ((dim_x - 1 - x) * y * 100) / (2 * dim_x * dim_y) << "%       \r";
+				std::cout.flush();
+			}
+
+			if(bytes > 0)
+			{
+				cie_uc_data_string(command_channel, values, verbose);
+				values = "";
+				bytes = 0;
+			}
+
+			cie_uc_cmd(command_channel, 0x11, verbose); // data stop DST
+		}
+
+		cie_uc_cmd(command_channel, 0x12, verbose); // display refresh DRF
+	}
+	catch(const Magick::Error &error)
+	{
+		throw(std::string("image epaper: load failed: ") + error.what());
+	}
+	catch(const Magick::Warning &warning)
+	{
+		std::cout << "image epaper: " << warning.what();
+	}
+
+	if(verbose)
+	{
+		for(y = 0; y < 104; y++)
+		{
+			for(x = 0; x < 200; x++)
+			{
+				switch(dummy_display[x][y])
+				{
+					case(0): fputs(" ", stdout); break;
+					case(1): fputs("1", stdout); break;
+					case(2): fputs("2", stdout); break;
+					default: fputs("*", stdout); break;
+				}
+			}
+
+			fputs("$\n", stdout);
+		}
+	}
+}
+
 static void command_send(const std::string &host, const std::string &port, bool udp, bool verbose, bool dont_wait, std::string args)
 {
 	std::string reply;
@@ -1650,6 +1862,7 @@ int main(int argc, const char **argv)
 		bool cmd_checksum = false;
 		bool cmd_benchmark = false;
 		bool cmd_image = false;
+		bool cmd_image_epaper = false;
 		int cmd_multicast = 0;
 		bool cmd_read = false;
 		bool cmd_info = false;
@@ -1664,6 +1877,7 @@ int main(int argc, const char **argv)
 			("write,W",			po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
 			("benchmark,B",		po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
 			("image,I",			po::bool_switch(&cmd_image)->implicit_value(true),					"SEND IMAGE")
+			("epaper-image,e",	po::bool_switch(&cmd_image_epaper)->implicit_value(true),			"SEND EPAPER IMAGE (uc8151d connected to host)")
 			("multicast,M",		po::value<int>(&cmd_multicast)->implicit_value(3),					"MULTICAST SENDER send multicast message (arg is repeat count)")
 			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or multicast group to use")
 			("verbose,v",		po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
@@ -1720,6 +1934,9 @@ int main(int argc, const char **argv)
 		if(cmd_image)
 			selected++;
 
+		if(cmd_image_epaper)
+			selected++;
+
 		if(cmd_read)
 			selected++;
 
@@ -1730,7 +1947,7 @@ int main(int argc, const char **argv)
 			selected++;
 
 		if(selected > 1)
-			throw(std::string("specify one of write/simulate/verify/checksum/image/read/info"));
+			throw(std::string("specify one of write/simulate/verify/checksum/image/epaper-image/read/info"));
 
 		if(selected == 0)
 			command_send(host, command_port, use_udp, verbose, dont_wait, args);
@@ -1817,7 +2034,7 @@ int main(int argc, const char **argv)
 						otawrite = true;
 					}
 					else
-						if(!cmd_benchmark && !cmd_image)
+						if(!cmd_benchmark && !cmd_image && !cmd_image_epaper)
 							throw(std::string("start address not set"));
 				}
 
@@ -1848,6 +2065,9 @@ int main(int argc, const char **argv)
 									else
 										if(cmd_image)
 											command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, image_timeout, verbose);
+										else
+											if(cmd_image_epaper)
+												command_image_epaper(command_channel, filename, verbose);
 			}
 		}
 	}
