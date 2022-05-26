@@ -12,6 +12,14 @@
 
 enum
 {
+	pad_1 = 0,
+	pad_2 = 3,
+	border_1 = 4,
+	border_2 = 3,
+};
+
+enum
+{
 	cmd_nop =		0x00,
 	cmd_swreset =	0x01,
 	cmd_sleepout = 	0x11,
@@ -42,10 +50,7 @@ typedef struct
 	unsigned int column;
 	unsigned int row;
 	unsigned int slot;
-	unsigned int display_slot;
 } text_t;
-
-assert_size(text_t, 16);
 
 typedef struct
 {
@@ -109,28 +114,25 @@ static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned
 	return(colour);
 }
 
-static void background_colour(unsigned int slot, bool highlight, unsigned int *r, unsigned int *g, unsigned int *b)
+static void background_colour(unsigned int slot, unsigned int *r, unsigned int *g, unsigned int *b)
 {
-	roflash static const unsigned int rgb[4][3] =
+	roflash static const unsigned int rgb[8][3] =
 	{
-		{	0x40, 	0x40,	0x40	},
-		{	0xff,	0x00,	0x00	},
-		{	0x00,	0x88,	0x00	},
-		{	0x00,	0x00,	0xff	},
+		{	0x40,	0x40,	0x40	},	// dark grey	0
+		{	0xff, 	0x00,	0x00	},	// red			1
+		{	0x00,	0x88,	0x00	},	// green		2
+		{	0x00,	0x00,	0xff	},	// blue			3
+		{	0xff,	0x88,	0x00	},	// orange		4
+		{	0xaa,	0x77,	0x00	},	// brow			5
+		{	0xaa,	0xaa,	0xaa	},	// light grey	6
+		{	0x00,	0x88,	0xff	},	// cyan		7
 	};
 
-	slot = slot % 4;
+	slot = slot % 8;
 
 	*r = rgb[slot][0];
 	*g = rgb[slot][1];
 	*b = rgb[slot][2];
-
-	if(!highlight)
-	{
-		*r >>= 1;
-		*g >>= 1;
-		*b >>= 1;
-	}
 
 	if(!pin.bright.enabled)
 	{
@@ -534,15 +536,18 @@ static attr_result_used bool clear_screen(void)
 
 static attr_result_used bool text_send(unsigned int code)
 {
-	string_new(, error, 64);
 	font_info_t font_info;
 	font_cell_t font_cell;
-	unsigned int x, y, r, g, b;
-	unsigned int y_offset;
-	unsigned int fg_colour, bg_colour, colour;
+	unsigned int x, y, max_x, max_y;
+	unsigned int colour, fg_colour, bg_colour;
+	string_new(, error, 64);
+	unsigned int black, white;
 
 	if(code == ' ')
 		goto skip;
+
+	if(!font_get_info(&font_info))
+		return(false);
 
 	if(!flush_data(&error))
 	{
@@ -550,53 +555,66 @@ static attr_result_used bool text_send(unsigned int code)
 		return(false);
 	}
 
-	if(!font_get_info(&font_info))
-		return(false);
-
 	x = text.column * font_info.width;
 	y = text.row * font_info.height;
 
+	black = 0x00;
+	white = 0xff;
+
+	if(!pin.bright.enabled)
+		white >>= (4 - display.brightness);
+
 	if(display.logmode)
-		y_offset = 0;
+	{
+		max_x = x + font_info.width;
+		max_y = y + font_info.height;
+
+		fg_colour = rgb_to_16bit_colour(white, white, white);
+		bg_colour = rgb_to_16bit_colour(black, black, black);
+	}
 	else
 	{
-		y_offset = text.display_slot ? display.y_size / 2 : 0;
+		if(text.row == 0)
+		{
+			unsigned int r, g, b;
 
-		if(text.row > 0)
-			y_offset += 2;
+			fg_colour = rgb_to_16bit_colour(white, white, white);
+
+			background_colour(text.slot, &r, &g, &b);
+
+			if(!pin.bright.enabled)
+			{
+				r >>= (4 - display.brightness);
+				g >>= (4 - display.brightness);
+				b >>= (4 - display.brightness);
+			}
+
+			bg_colour = rgb_to_16bit_colour(r, g, b);
+
+			x += border_1 + pad_1;
+			y += border_1 + pad_1;
+
+			max_x = x + font_info.width + border_1 + pad_1;
+			max_y = y + font_info.height + border_1 + pad_1;
+		}
+		else
+		{
+			fg_colour = rgb_to_16bit_colour(black, black, black);
+			bg_colour = rgb_to_16bit_colour(white, white, white);
+
+			x += border_2 + pad_2;
+			y += (2 * border_1) + pad_2;
+
+			max_x = x + font_info.width + border_2 + pad_2;
+			max_y = y + font_info.height + border_2 + pad_2;
+		}
 	}
 
-	y += y_offset;
-
-	if(((x + font_info.width) > display.x_size) || ((y + font_info.height) > display.y_size))
+	if((max_x >= display.x_size) || (max_y >= display.y_size))
 		goto skip;
 
 	if(!font_render(code, font_cell))
 		return(false);
-
-	r = 0xff;
-	g = 0xff;
-	b = 0xff;
-
-	if(!pin.bright.enabled)
-	{
-		r >>= (4 - display.brightness);
-		g >>= (4 - display.brightness);
-		b >>= (4 - display.brightness);
-	}
-
-	fg_colour = rgb_to_16bit_colour(r, g, b);
-
-	if(display.logmode)
-	{
-		r = 0;
-		g = 0;
-		b = 0;
-	}
-	else
-		background_colour(text.slot, text.row == 0, &r, &g, &b);
-
-	bg_colour = rgb_to_16bit_colour(r, g, b);
 
 	if(!send_command_data_2_16(&error, cmd_caset, x + 0 + display.x_offset, x + font_info.width + display.x_offset - 1))
 	{
@@ -667,6 +685,17 @@ static attr_result_used bool text_newline(void)
 		text.row++;
 
 	text.column = 0;
+
+	return(true);
+}
+
+static attr_result_used bool text_send_ascii_string(const char *string)
+{
+	unsigned int current;
+
+	for(current = 0; string[current]; current++)
+		if(!text_send(string[current]))
+			return(false);
 
 	return(true);
 }
@@ -850,7 +879,6 @@ static bool begin(unsigned int slot, bool logmode)
 
 	text.column = text.row = 0;
 	text.slot = slot;
-	text.display_slot = slot % 2;
 	display.logmode = logmode;
 
 	if(!font_select(logmode))
@@ -861,43 +889,67 @@ static bool begin(unsigned int slot, bool logmode)
 
 	if(!display.logmode)
 	{
-		background_colour(text.slot, true, &r, &g, &b);
+		background_colour(slot, &r, &g, &b);
 
 		x1 = 0;
+		y1 = 0;
 		x2 = display.x_size - 1;
-
-		if(text.display_slot == 0)
-		{
-			y1 = 0;
-			y2 = font_info.height + 1;
-		}
-		else
-		{
-			y1 = (display.y_size - 1) / 2;
-			y2 = y1 + font_info.height + 1;
-		}
+		y2 = font_info.height + (2 * border_1) + border_2 - 1;
 
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
 
-		background_colour(text.slot, false, &r, &g, &b);
-
 		x1 = 0;
-		x2 = display.x_size - 1;
-
-		if(text.display_slot == 0)
-		{
-			y1 = font_info.height + 2;
-			y2 = (display.y_size - 1) / 2 - 1;
-		}
-		else
-		{
-			y1 = ((display.y_size - 1) / 2) + font_info.height + 2;
-			y2 = display.y_size - 1;
-		}
+		y1 = font_info.height + (2 * border_1);
+		x2 = border_2 - 1;
+		y2 = display.y_size - 1;
 
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
+
+		x1 = display.x_size - border_2;
+		y1 = font_info.height + (2 * border_1);
+		x2 = display.x_size - 1;
+		y2 = display.y_size - 1;
+
+		if(!box(r, g, b, x1, y1, x2, y2))
+			return(false);
+
+		x1 = 0;
+		y1 = display.y_size - border_2;
+		x2 = display.x_size - 1;
+		y2 = display.y_size - 1;
+
+		if(!box(r, g, b, x1, y1, x2, y2))
+			return(false);
+
+		x1 = border_2;
+		y1 = font_info.height + (2 * border_1);
+		x2 = display.x_size - 1 - border_2;
+		y2 = display.y_size - 1 - border_2;
+
+		if(!box(0xff, 0xff, 0xff, x1, y1, x2, y2))
+			return(false);
+
+		int column;
+		unsigned int columns;
+		unsigned int hour, minute, month, day;
+		string_new(, time_date, 32);
+
+		string_clear(&time_date);
+		time_get(&hour, &minute, 0, 0, &month, &day);
+		string_format(&time_date, "%02u/%02u %02u:%02u ", day, month, hour, minute);
+
+		columns = display.x_size / font_info.width;
+		column = columns - string_length(&time_date);
+
+		if(column >= 0)
+		{
+			text.column = column;
+			if(!text_send_ascii_string(string_to_cstr(&time_date)))
+				return(false);
+			text.column = 0;
+		}
 	}
 
 	return(true);

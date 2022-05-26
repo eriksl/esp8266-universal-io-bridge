@@ -14422,3 +14422,19 @@ Thu May 26 17:50:30 CEST 2022 204de13 display: overhaul for graphical display, f
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68601, free:  11664, 14 %
     irom:    available: 784 k, used: 436656, free: 366160, 45 %
+Thu May 26 18:58:43 CEST 2022 12eaa57 spi: allow for only some of the HSPI pins to be used.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 436608, free: 366208, 45 %
+Thu May 26 19:07:11 CEST 2022 12eaa57 spi: allow for only some of the HSPI pins to be used.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 436960, free: 365856, 45 %
+Thu May 26 19:48:47 CEST 2022 12eaa57 spi: allow for only some of the HSPI pins to be used.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 436976, free: 365840, 45 %
+Thu May 26 19:53:01 CEST 2022 12eaa57 spi: allow for only some of the HSPI pins to be used.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437024, free: 365792, 45 %
