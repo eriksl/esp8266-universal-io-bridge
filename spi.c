@@ -133,7 +133,7 @@ static void enable_overlap(void)
 }
 #endif
 
-attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs)
+attr_result_used bool spi_init(string_t *error, unsigned int io)
 {
 	state.inited = 0;
 	state.configured = 0;
@@ -142,34 +142,6 @@ attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pi
 	{
 		if(error)
 			string_append(error, "spi: only supported on gpio I/O (0)\n");
-		return(false);
-	}
-
-	if(pin_miso != 12)
-	{
-		if(error)
-			string_append(error, "spi: miso should be on pin 12\n");
-		return(false);
-	}
-
-	if(pin_mosi != 13)
-	{
-		if(error)
-			string_append(error, "spi: mosi should be on pin 13\n");
-		return(false);
-	}
-
-	if(pin_sclk != 14)
-	{
-		if(error)
-			string_append(error, "spi: sclk should be on pin 14\n");
-		return(false);
-	}
-
-	if(pin_cs != 15)
-	{
-		if(error)
-			string_append(error, "spi: primary cs should be on pin 15\n");
 		return(false);
 	}
 

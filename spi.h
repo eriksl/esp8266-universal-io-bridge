@@ -54,7 +54,7 @@ extern const char help_description_spi_transmit[];
 extern const char help_description_spi_receive[];
 extern const char help_description_spi_finish[];
 
-attr_result_used bool spi_init(string_t *error, unsigned int io, unsigned int pin_miso, unsigned int pin_mosi, unsigned int pin_sclk, unsigned int pin_cs);
+attr_result_used bool spi_init(string_t *error, unsigned int io);
 attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin);
 attr_result_used bool spi_start(string_t *error);
 attr_result_used bool spi_write(unsigned int bits, uint32_t value);

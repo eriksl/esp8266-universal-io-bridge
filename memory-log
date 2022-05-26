@@ -14402,3 +14402,23 @@ Thu May 26 16:54:37 CEST 2022 26ec1d4 espif: experimental support for uploading 
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68601, free:  11664, 14 %
     irom:    available: 784 k, used: 436912, free: 365904, 45 %
+Thu May 26 17:29:54 CEST 2022 204de13 display: overhaul for graphical display, first supported is eastrising.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436896, free: 365920, 45 %
+Thu May 26 17:41:50 CEST 2022 204de13 display: overhaul for graphical display, first supported is eastrising.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436928, free: 365888, 45 %
+Thu May 26 17:44:23 CEST 2022 204de13 display: overhaul for graphical display, first supported is eastrising.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436976, free: 365840, 45 %
+Thu May 26 17:49:05 CEST 2022 204de13 display: overhaul for graphical display, first supported is eastrising.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436288, free: 366528, 45 %
+Thu May 26 17:50:30 CEST 2022 204de13 display: overhaul for graphical display, first supported is eastrising.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436656, free: 366160, 45 %

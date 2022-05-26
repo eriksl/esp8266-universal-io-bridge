@@ -1237,7 +1237,7 @@ io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_p
 
 void io_init(void)
 {
-	string_new(, error, 32);
+	string_new(, error, 64);
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
@@ -1251,7 +1251,6 @@ void io_init(void)
 	int trigger;
 	unsigned int debounce;
 	int trigger_io, trigger_pin, trigger_type;
-	unsigned int spi_pins[4];
 	unsigned int spi_pin;
 	uint64_t start = time_get_us();
 
@@ -1586,7 +1585,7 @@ void io_init(void)
 						continue;
 					}
 
-					spi_pins[spi_pin++] = pin;
+					spi_pin++;
 
 					break;
 				}
@@ -1678,11 +1677,8 @@ void io_init(void)
 			}
 		}
 
-		if(spi_pin == 4)
-		{
-			if(!spi_init(&error, io, spi_pins[0], spi_pins[1], spi_pins[2], spi_pins[3]))
-				log("io: %s\n", string_to_cstr(&error));
-		}
+		if((spi_pin > 2) && !spi_init(&error, io))
+			log("io: %s\n", string_to_cstr(&error));
 	}
 
 	sequencer_init();
