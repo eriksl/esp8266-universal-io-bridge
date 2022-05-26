@@ -1328,7 +1328,7 @@ static bool begin(unsigned int slot, bool logmode)
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
 
-		x1 = display.x_size - 1 - border_2;
+		x1 = display.x_size - border_2;
 		y1 = font_info.height + (2 * border_1);
 		x2 = display.x_size - 1;
 		y2 = display.y_size - 1;
@@ -1337,7 +1337,7 @@ static bool begin(unsigned int slot, bool logmode)
 			return(false);
 
 		x1 = 0;
-		y1 = display.y_size - 1 - border_2;
+		y1 = display.y_size - border_2;
 		x2 = display.x_size - 1;
 		y2 = display.y_size - 1;
 
