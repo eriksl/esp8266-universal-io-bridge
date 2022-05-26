@@ -975,7 +975,7 @@ error:
 	return(success);
 }
 
-static attr_used bool text_send(unsigned int code)
+static attr_result_used bool text_send(unsigned int code)
 {
 	font_info_t font_info;
 	font_cell_t font_cell;
