@@ -14438,3 +14438,27 @@ Thu May 26 19:53:01 CEST 2022 12eaa57 spi: allow for only some of the HSPI pins 
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68593, free:  11672, 14 %
     irom:    available: 784 k, used: 437024, free: 365792, 45 %
+Thu May 26 20:17:52 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437040, free: 365776, 45 %
+Thu May 26 20:19:08 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437056, free: 365760, 45 %
+Thu May 26 20:20:10 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437072, free: 365744, 45 %
+Thu May 26 20:21:17 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437088, free: 365728, 45 %
+Thu May 26 20:22:08 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437104, free: 365712, 45 %
+Thu May 26 20:23:56 CEST 2022 efa5bac display-spitft: change to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437056, free: 365760, 45 %

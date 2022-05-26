@@ -827,17 +827,23 @@ static bool init(void)
 		goto error;
 	}
 
+	msleep(10);
+
 	if(!send_command(&error, cmd_noron))
 	{
 		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
 	}
 
+	msleep(10);
+
 	if(!send_command(&error, cmd_dispon))
 	{
 		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
 	}
+
+	msleep(10);
 
 	if(!send_command(&error, cmd_invoff))
 		goto error;
@@ -853,11 +859,15 @@ static bool init(void)
 	if(display.y_mirror)
 		madctl |= madctl_my;
 
+	msleep(10);
+
 	if(!send_command_data_1_8(&error, cmd_madctl, madctl))
 	{
 		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
 	}
+
+	msleep(10);
 
 	if(!clear_screen())
 		return(false);
