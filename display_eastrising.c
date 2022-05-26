@@ -711,7 +711,7 @@ static bool attr_result_used box(unsigned int r, unsigned int g, unsigned int b,
 	}
 	else
 	{
-		os_delay_us(1750);
+		msleep(3);
 		success = true;
 	}
 
@@ -802,7 +802,7 @@ static bool attr_result_used scroll(unsigned int x0, unsigned int y0, unsigned i
 	}
 	else
 	{
-		msleep(10);
+		msleep(15);
 		success = true;
 	}
 
