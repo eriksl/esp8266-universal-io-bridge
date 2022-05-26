@@ -14302,3 +14302,103 @@ Mon May 23 12:21:02 CEST 2022 57fef72 Add experimental (inactive) code for enabl
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  65657, free:  14608, 18 %
     irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Tue May 24 17:05:34 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67225, free:  13040, 16 %
+    irom:    available: 784 k, used: 437280, free: 365536, 45 %
+Tue May 24 17:07:33 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68121, free:  12144, 15 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Tue May 24 17:08:30 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Tue May 24 17:10:53 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Tue May 24 17:16:25 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Tue May 24 17:21:35 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437248, free: 365568, 45 %
+Tue May 24 17:22:40 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437232, free: 365584, 45 %
+Tue May 24 17:29:07 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Tue May 24 17:30:12 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Tue May 24 17:35:17 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Tue May 24 17:36:44 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68697, free:  11568, 14 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Tue May 24 18:40:26 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68409, free:  11856, 14 %
+    irom:    available: 784 k, used: 436784, free: 366032, 45 %
+Tue May 24 19:13:01 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68441, free:  11824, 14 %
+    irom:    available: 784 k, used: 436848, free: 365968, 45 %
+Tue May 24 19:34:19 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436800, free: 366016, 45 %
+Wed May 25 11:06:15 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436544, free: 366272, 45 %
+Wed May 25 11:19:20 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436528, free: 366288, 45 %
+Wed May 25 11:33:48 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436624, free: 366192, 45 %
+Wed May 25 11:43:52 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436688, free: 366128, 45 %
+Wed May 25 11:48:55 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436736, free: 366080, 45 %
+Wed May 25 11:50:38 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436784, free: 366032, 45 %
+Wed May 25 11:51:46 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436848, free: 365968, 45 %
+Wed May 25 12:25:12 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436576, free: 366240, 45 %
+Wed May 25 12:45:52 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436864, free: 365952, 45 %
+Wed May 25 12:50:34 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68345, free:  11920, 14 %
+    irom:    available: 784 k, used: 436912, free: 365904, 45 %
+Thu May 26 16:54:37 CEST 2022 26ec1d4 espif: experimental support for uploading images to UC8151D e-paper devices.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68601, free:  11664, 14 %
+    irom:    available: 784 k, used: 436912, free: 365904, 45 %

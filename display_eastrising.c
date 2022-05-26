@@ -11,6 +11,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+enum
+{
+	pad_1 = 0,
+	pad_2 = 4,
+	border_1 = 5,
+	border_2 = 4,
+};
+
 typedef enum
 {
 	display_mode_disabled = 0,
@@ -24,11 +32,9 @@ typedef struct attr_packed
 {
 	unsigned int column:8;
 	unsigned int row:8;
-	unsigned int slot:4;
-	unsigned int display_slot:1;
 } text_t;
 
-assert_size(text_t, 3);
+assert_size(text_t, 2);
 
 typedef struct attr_packed
 {
@@ -323,9 +329,9 @@ enum
 	display_slot_lines = 4,
 };
 
-static text_t		text;
-static display_t	display;
-static pin_t		pin;
+static text_t text;
+static display_t display;
+static pin_t pin;
 
 attr_result_used static bool if_can_read(void)
 {
@@ -357,28 +363,25 @@ static void set_i2c_speed(int speed)
 	i2c_speed_delay(speed);
 }
 
-static void background_colour(unsigned int slot, bool highlight, unsigned int *r, unsigned int *g, unsigned int *b)
+static void background_colour(unsigned int slot, unsigned int *r, unsigned int *g, unsigned int *b)
 {
-	roflash static const unsigned int rgb[4][3] =
+	roflash static const unsigned int rgb[8][3] =
 	{
-		{	0x40,	0x40,	0x40	},
-		{	0xff, 	0x00,	0x00	},
-		{	0x00,	0x88,	0x00	},
-		{	0x00,	0x00,	0xff	},
+		{	0x40,	0x40,	0x40	},	// dark grey	0
+		{	0xff, 	0x00,	0x00	},	// red			1
+		{	0x00,	0x88,	0x00	},	// green		2
+		{	0x00,	0x00,	0xff	},	// blue			3
+		{	0xff,	0x88,	0x00	},	// orange		4
+		{	0xaa,	0x77,	0x00	},	// brow			5
+		{	0xaa,	0xaa,	0xaa	},	// light grey	6
+		{	0x00,	0x88,	0xff	},	// cyan		7
 	};
 
-	slot = slot % 4;
+	slot = slot % 8;
 
 	*r = rgb[slot][0];
 	*g = rgb[slot][1];
 	*b = rgb[slot][2];
-
-	if(!highlight)
-	{
-		*r >>= 1;
-		*g >>= 1;
-		*b >>= 1;
-	}
 }
 
 static bool attr_result_used write_command(uint8_t cmd)
@@ -979,9 +982,8 @@ static attr_result_used bool text_send(unsigned int code)
 {
 	font_info_t font_info;
 	font_cell_t font_cell;
-	unsigned int x, y;
-	unsigned int y_offset;
-	unsigned int x2, y2, byte, bit;
+	unsigned int x, y, max_x, max_y;
+	unsigned int x2, y2, byte, bit, colour;
 	uint8_t data[(32 / 8) * 32];
 
 	if(!font_get_info(&font_info))
@@ -990,20 +992,40 @@ static attr_result_used bool text_send(unsigned int code)
 	x = text.column * font_info.width;
 	y = text.row * font_info.height;
 
+	max_x = 0;
+	max_y = 0;
+
+	colour = 0x00;
+
 	if(display.logmode)
-		y_offset = 0;
+		colour = 0xff;
 	else
 	{
-		y_offset = text.display_slot ? display.y_size / 2 : 0;
+		if(text.row == 0)
+		{
+			colour = 0xff;
 
-		if(text.row > 0)
-			y_offset += 2;
+			x += border_1 + pad_1;
+			y += border_1 + pad_1;
+
+			max_x = x + font_info.width + border_1 + pad_1;
+			max_y = y + font_info.height + border_1 + pad_1;
+		}
+		else
+		{
+			x += border_2 + pad_2;
+			y += (2 * border_1) + pad_2;
+
+			max_x = x + font_info.width + border_2 + pad_2;
+			max_y = y + font_info.height + border_2 + pad_2;
+		}
 	}
 
-	y += y_offset;
-
-	if(((x + font_info.width) >= display.x_size) || ((y + font_info.height) >= display.y_size))
+	if((max_x >= display.x_size) || (max_y >= display.y_size))
 		goto skip;
+
+	if(!fgcolour_set(colour, colour, colour))
+		return(false);
 
 	if(!font_render(code, font_cell))
 		return(false);
@@ -1083,6 +1105,17 @@ static attr_result_used bool text_newline(void)
 		text.row++;
 
 	text.column = 0;
+
+	return(true);
+}
+
+static attr_result_used bool text_send_ascii_string(const char *string)
+{
+	unsigned int current;
+
+	for(current = 0; string[current]; current++)
+		if(!text_send(string[current]))
+			return(false);
 
 	return(true);
 }
@@ -1264,8 +1297,6 @@ static bool begin(unsigned int slot, bool logmode)
 		return(false);
 
 	text.column = text.row = 0;
-	text.slot = slot;
-	text.display_slot = slot % 2;
 	display.logmode = logmode;
 
 	if(!font_select(logmode))
@@ -1276,43 +1307,67 @@ static bool begin(unsigned int slot, bool logmode)
 
 	if(!display.logmode)
 	{
-		background_colour(text.slot, true, &r, &g, &b);
+		background_colour(slot, &r, &g, &b);
 
 		x1 = 0;
+		y1 = 0;
 		x2 = display.x_size - 1;
-
-		if(text.display_slot == 0)
-		{
-			y1 = 0;
-			y2 = font_info.height + 1;
-		}
-		else
-		{
-			y1 = (display.y_size - 1) / 2;
-			y2 = y1 + font_info.height + 1;
-		}
+		y2 = font_info.height + (2 * border_1) + border_2 - 1;
 
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
 
-		background_colour(text.slot, false, &r, &g, &b);
-
 		x1 = 0;
-		x2 = display.x_size - 1;
-
-		if(text.display_slot == 0)
-		{
-			y1 = font_info.height + 2;
-			y2 = (display.y_size - 1) / 2 - 1;
-		}
-		else
-		{
-			y1 = ((display.y_size - 1) / 2) + font_info.height + 2;
-			y2 = display.y_size - 1;
-		}
+		y1 = font_info.height + (2 * border_1);
+		x2 = border_2 - 1;
+		y2 = display.y_size - 1;
 
 		if(!box(r, g, b, x1, y1, x2, y2))
 			return(false);
+
+		x1 = display.x_size - 1 - border_2;
+		y1 = font_info.height + (2 * border_1);
+		x2 = display.x_size - 1;
+		y2 = display.y_size - 1;
+
+		if(!box(r, g, b, x1, y1, x2, y2))
+			return(false);
+
+		x1 = 0;
+		y1 = display.y_size - 1 - border_2;
+		x2 = display.x_size - 1;
+		y2 = display.y_size - 1;
+
+		if(!box(r, g, b, x1, y1, x2, y2))
+			return(false);
+
+		x1 = border_2;
+		y1 = font_info.height + (2 * border_1);
+		x2 = display.x_size - 1 - border_2 - 1;
+		y2 = display.y_size - 1 - border_2 - 1;
+
+		if(!box(0xff, 0xff, 0xff, x1, y1, x2, y2))
+			return(false);
+
+		int column;
+		unsigned int columns;
+		unsigned int hour, minute, month, day;
+		string_new(, time_date, 32);
+
+		string_clear(&time_date);
+		time_get(&hour, &minute, 0, 0, &month, &day);
+		string_format(&time_date, "%02u/%02u %02u:%02u ", day, month, hour, minute);
+
+		columns = display.x_size / font_info.width;
+		column = columns - string_length(&time_date);
+
+		if(column >= 0)
+		{
+			text.column = column;
+			if(!text_send_ascii_string(string_to_cstr(&time_date)))
+				return(false);
+			text.column = 0;
+		}
 	}
 
 	return(true);
@@ -1340,12 +1395,10 @@ static bool output(unsigned int length, const unsigned int unicode[])
 		{
 			if(!text_newline())
 				return(false);
-
-			continue;
 		}
-
-		if(!text_send(current))
-			return(false);
+		else
+			if(!text_send(current))
+				return(false);
 	}
 
 	return(true);

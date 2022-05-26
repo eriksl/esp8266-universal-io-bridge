@@ -17,8 +17,6 @@ enum
 	display_buffer_size = 64,
 };
 
-extern uint8_t display_buffer[display_buffer_size];
-
 typedef enum
 {
 	display_pixel_mode_none = 0,
@@ -45,8 +43,8 @@ typedef const struct
 	bool (* const begin_fn)(unsigned int slot, bool logmode);
 	bool (* const output_fn)(unsigned int amount, const unsigned int unicode[]);
 	bool (* const end_fn)(void);
-	bool (* const bright_fn)(int brightness);
-	bool (* const standout_fn)(bool);
+	bool (* const bright_fn)(int brightness); // FIXME
+	bool (* const standout_fn)(bool); // FIXME
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
 	bool (* const plot_fn)(unsigned int pixel_amount, int x, int y, string_t *pixels);
@@ -55,6 +53,7 @@ typedef const struct
 
 assert_size(display_hooks_t, 44);
 
+extern uint8_t display_buffer[display_buffer_size];
 bool display_get_info(display_info_t *);
 bool display_load_picture_slot(unsigned int slot);
 

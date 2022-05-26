@@ -15,16 +15,14 @@
 #include "mailbox.h"
 #include "dispatch.h"
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 enum
 {
 	display_slot_amount = 8,
-	display_slot_tag_size = 16,
-	display_slot_content_lines = 3,
-	display_slot_content_line_length = 27,
-	display_slot_content_size = (display_slot_content_lines * (display_slot_content_line_length + 1)),
+	display_slot_content_size = 12 * 36,
 };
 
 static uint8_t display_current_slot;
@@ -34,11 +32,8 @@ assert_size(display_current_slot, 1);
 typedef struct
 {
 	int		timeout;
-	char	tag[display_slot_tag_size];
 	char	content[display_slot_content_size];
 } display_slot_t;
-
-assert_size(display_slot_t, 104);
 
 typedef enum attr_packed
 {
@@ -76,9 +71,6 @@ static const display_hooks_t *display_hooks_active = (const display_hooks_t *)0;
 attr_align_int uint8_t display_buffer[display_buffer_size]; // maybe used as array of ints
 static unsigned int flip_timeout;
 static display_slot_t display_slot[display_slot_amount];
-static roflash const unsigned int unicode_newline[1] = { '\n' };
-
-assert_size(display_slot, 832);
 
 attr_pure bool display_detected(void)
 {
@@ -282,11 +274,9 @@ no_error:
 
 static void display_update(bool dont_advance)
 {
-	const char *slot_content;
+	char *slot_content;
 	unsigned int attempt;
 	uint64_t start, spent;
-	string_new(, tag_string, display_slot_content_line_length * 2);
-	string_new(, info_text, display_slot_content_size * 2);
 	unsigned int unicode[display_slot_content_size];
 	unsigned int length;
 	unsigned int run;
@@ -353,63 +343,31 @@ static void display_update(bool dont_advance)
 active_slot_found:
 		slot_content = display_slot[display_current_slot].content;
 
-		if(!strncmp(display_slot[display_current_slot].tag, "picture-", 8))
+		if(!strncmp(slot_content, "picture-", 8))
 		{
-			unsigned int picture_slot = display_slot[display_current_slot].tag[8] == '0' ? 0 : 1;
+			unsigned int picture_slot = slot_content[8] == '0' ? 0 : 1;
 
 			if(display_load_picture_slot(picture_slot))
 				goto done;
 		}
 
-		if(!strcmp(slot_content, "%%%%"))
+		if(!strcmp(slot_content, "boot\n%%%%"))
 		{
-			config_get_string("identification", &info_text, -1, -1);
-			string_format(&info_text, "\n%s\n%ux%u, %ux%u@%u",
+			string_new(, id, 32);
+			config_get_string("identification", &id, -1, -1);
+
+			snprintf(slot_content, display_slot_content_size, "boot\n%s\n%ux%u, %ux%u@%u",
 					info.name,
 					info.columns,
 					info.rows,
 					info.width,
 					info.height,
 					info.pixel_mode);
-			slot_content = string_to_cstr(&info_text);
 		}
-
-		unsigned int hour, minute, month, day;
-
-		string_clear(&tag_string);
-		time_get(&hour, &minute, 0, 0, &month, &day);
-		string_format(&tag_string, "%02u:%02u %02u/%02u ", hour, minute, day, month);
-		string_append_cstr_flash(&tag_string, display_slot[display_current_slot].tag);
 
 		if(!display_hooks_active->begin_fn(display_current_slot, false))
 		{
 			log("display update: display begin failed\n");
-			goto error;
-		}
-
-		if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(1))
-		{
-			log("display update: display standout (1) failed\n");
-			goto error;
-		}
-
-		length = utf8_to_unicode(string_to_cstr(&tag_string), sizeof(unicode) / sizeof(*unicode), unicode);
-
-		if(!display_hooks_active->output_fn(length, unicode))
-		{
-			log("display update: display output (0) failed\n");
-			goto error;
-		}
-
-		if(!display_hooks_active->output_fn(1, unicode_newline))
-		{
-			log("display update: display output (1) failed\n");
-			goto error;
-		}
-
-		if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(0))
-		{
-			log("display update: display standout (1) failed\n");
 			goto error;
 		}
 
@@ -540,10 +498,7 @@ void display_periodic(void) // gets called 10 times per second
 		for(slot = 0; slot < display_slot_amount; slot++)
 		{
 			if(display_slot[slot].timeout == 1)
-			{
-				display_slot[slot].tag[0] = '\0';
 				display_slot[slot].content[0] = '\0';
-			}
 
 			if(display_slot[slot].timeout > 0)
 				display_slot[slot].timeout--;
@@ -555,8 +510,7 @@ void display_periodic(void) // gets called 10 times per second
 		if(active_slots == 0)
 		{
 			display_slot[0].timeout = 1;
-			strecpy(display_slot[0].tag, "boot", display_slot_tag_size);
-			strecpy(display_slot[0].content, "%%%%", display_slot_content_size);
+			strecpy(display_slot[0].content, "boot\n%%%%", display_slot_content_size);
 		}
 
 		if((last_update > now) || ((last_update + flip_timeout) < now))
@@ -598,7 +552,6 @@ void display_init(void)
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
 		display_slot[slot].timeout = 0;
-		display_slot[slot].tag[0] = '\0';
 		display_slot[slot].content[0] = '\0';
 	}
 
@@ -660,8 +613,8 @@ static void display_dump(string_t *dst)
 
 	for(slot = 0; slot < display_slot_amount; slot++)
 	{
-		string_format(dst, "\n> %c slot %u: timeout %d, tag: \"%s\", length: %u",
-				slot == display_current_slot ? '+' : ' ', slot, display_slot[slot].timeout, display_slot[slot].tag, strlen(display_slot[slot].content));
+		string_format(dst, "\n> %c slot %u: timeout %d, length: %u",
+				slot == display_current_slot ? '+' : ' ', slot, display_slot[slot].timeout, strlen(display_slot[slot].content));
 
 		for(ix = 0, newlines_pending = 1; ix < display_slot_content_size; ix++)
 		{
@@ -791,26 +744,16 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	}
 
 	if((parse_int(1, src, &user_slot, 0, ' ') != parse_ok) ||
-		(parse_int(2, src, &timeout, 0, ' ') != parse_ok) ||
-		(parse_string(3, src, dst, ' ') != parse_ok))
-	{
-		string_clear(dst);
-		string_append(dst, "display-set: usage: slot timeout tag text\n");
-		return(app_action_error);
-	}
+			(parse_int(2, src, &timeout, 0, ' ') != parse_ok))
+		goto usage;
 
-	if((from = string_sep(src, 0, 4, ' ')) < 0)
-	{
-		string_clear(dst);
-		string_append(dst, "display-set: missing text; usage: slot timeout tag text\n");
-		return(app_action_error);
-	}
+	if((from = string_sep(src, 0, 3, ' ')) < 0)
+		goto usage;
 
 	if(user_slot < 0)
 	{
 		for(slot = 0; slot < display_slot_amount; slot++)
 		{
-			display_slot[slot].tag[0] = '\0';
 			display_slot[slot].content[0] = '\0';
 			display_slot[slot].timeout = 0;
 		}
@@ -823,12 +766,9 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	if(slot >= display_slot_amount)
 	{
-		string_clear(dst);
 		string_format(dst, "display-set: slot #%d out of limits\n", user_slot);
 		return(app_action_error);
 	}
-
-	strecpy(display_slot[slot].tag, string_to_cstr(dst), display_slot_tag_size);
 
 	for(to = 0; (to + 1) < display_slot_content_size; from++)
 	{
@@ -852,11 +792,13 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	string_clear(dst);
 
-	string_format(dst, "display-set: set slot %u with tag %s to \"%s\"\n",
-				slot, display_slot[slot].tag,
-				display_slot[slot].content);
+	string_format(dst, "display-set: set slot %u to \"%s\"\n", slot, display_slot[slot].content);
 
 	return(app_action_normal);
+
+usage:
+	string_append(dst, "display-set: usage: slot timeout text\n");
+	return(app_action_error);
 }
 
 app_action_t application_function_display_picture_load(string_t *src, string_t *dst)
