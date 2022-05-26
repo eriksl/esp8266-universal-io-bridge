@@ -986,6 +986,9 @@ static attr_result_used bool text_send(unsigned int code)
 	unsigned int x2, y2, byte, bit, colour;
 	uint8_t data[(32 / 8) * 32];
 
+	if(code == ' ')
+		goto skip;
+
 	if(!font_get_info(&font_info))
 		return(false);
 
