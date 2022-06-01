@@ -559,9 +559,9 @@ static bool bright(int brightness)
 	roflash static const unsigned int bright_data[5][2] =
 	{
 		{	cmd_off_off_off,	0		},
-		{	cmd_on_off_off,		0		},
-		{	cmd_on_off_off,		512		},
-		{	cmd_on_off_off,		16384	},
+		{	cmd_on_off_off,		12000	},
+		{	cmd_on_off_off,		22000	},
+		{	cmd_on_off_off,		50000	},
 		{	cmd_on_off_off,		65535	}
 	};
 
@@ -707,7 +707,7 @@ static bool init(void)
 	display_inited = true;
 	display_mode = dm_text;
 
-	return(bright(1));
+	return(bright(2));
 }
 
 static bool begin(unsigned int slot, bool logmode)
