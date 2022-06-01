@@ -466,13 +466,13 @@ static bool attr_result_used send_byte(unsigned int byte, bool data)
 
 static bool attr_result_used text_send(unsigned int byte)
 {
-	display_x++;
-
 	if((display_x >= display_text_width) || (display_y >= display_text_height))
 		return(true);
 
 	if(!send_byte(byte, true))
 		return(false);
+
+	display_x++;
 
 	return(true);
 }
