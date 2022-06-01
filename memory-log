@@ -14518,3 +14518,7 @@ Wed Jun  1 18:58:34 CEST 2022 282c2db display-spitft: make initialisation somewh
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68593, free:  11672, 14 %
     irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Wed Jun  1 19:05:47 CEST 2022 94e9ffe display-lcd: convert to new display interface.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437232, free: 365584, 45 %

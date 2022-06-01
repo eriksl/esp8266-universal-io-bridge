@@ -1072,7 +1072,7 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 static bool info(display_info_t *infostruct)
 {
-	strncpy(infostruct->name, "lcd", sizeof(infostruct->name));
+	strncpy(infostruct->name, "Hitachi HD44780 LCD", sizeof(infostruct->name));
 
 	infostruct->columns = 20;
 	infostruct->rows = 4;
