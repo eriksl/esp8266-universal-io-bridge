@@ -3,6 +3,7 @@
 #include "io.h"
 #include "config.h"
 #include "dispatch.h"
+#include "sys_time.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -477,6 +478,17 @@ static bool attr_result_used text_send(unsigned int byte)
 	return(true);
 }
 
+static attr_result_used bool text_send_ascii_string(const char *string)
+{
+	unsigned int current;
+
+	for(current = 0; string[current]; current++)
+		if(!text_send(string[current]))
+			return(false);
+
+	return(true);
+}
+
 static bool attr_result_used text_goto(int x, int y)
 {
 	if(x >= 0)
@@ -496,21 +508,45 @@ static bool attr_result_used text_goto(int x, int y)
 
 static bool attr_result_used text_newline(void)
 {
-	unsigned int x, y;
+	unsigned int x, y, text_width;
+
+	text_width = display_text_width;
 
 	if(display_logmode)
 	{
 		y = (display_y + 1) % display_text_height;
+
 		if(!text_goto(0, y))
 			return(false);
 	}
 	else
+	{
+		if(display_y == 0)
+			text_width = display_text_width - 6;
+
 		y = display_y + 1;
+	}
 
 	if(display_y < display_text_height)
-		for(x = display_x; x < display_text_width; x++)
+		for(x = display_x; x < text_width; x++)
 			if(!text_send(' '))
 				return(false);
+
+	if(text_width != display_text_width)
+	{
+		unsigned int hour, minute;
+		string_new(, time_date, 32);
+
+		string_clear(&time_date);
+		time_get(&hour, &minute, 0, 0, 0, 0);
+		string_format(&time_date, " %02u:%02u", hour, minute);
+
+		if(!text_goto(14, 0))
+			return(false);
+
+		if(!text_send_ascii_string(string_to_cstr(&time_date)))
+			return(false);
+	}
 
 	if(!text_goto(0, y))
 		return(false);
@@ -718,6 +754,8 @@ static bool begin(unsigned int slot, bool logmode)
 		return(false);
 	}
 
+	display_logmode = logmode;
+
 	if(display_disable_text)
 		return(true);
 
@@ -731,8 +769,6 @@ static bool begin(unsigned int slot, bool logmode)
 
 		display_mode = dm_text;
 	}
-
-	display_logmode = logmode;
 
 	if(!text_goto(0, 0))
 		return(false);

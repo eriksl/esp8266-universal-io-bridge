@@ -14462,3 +14462,59 @@ Thu May 26 20:23:56 CEST 2022 efa5bac display-spitft: change to new display inte
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68593, free:  11672, 14 %
     irom:    available: 784 k, used: 437056, free: 365760, 45 %
+Wed Jun  1 16:32:18 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437072, free: 365744, 45 %
+Wed Jun  1 16:45:19 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Wed Jun  1 17:25:21 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437280, free: 365536, 45 %
+Wed Jun  1 17:39:48 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Wed Jun  1 17:48:14 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Wed Jun  1 17:56:15 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
+Wed Jun  1 17:57:42 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Wed Jun  1 18:40:38 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437312, free: 365504, 45 %
+Wed Jun  1 18:43:16 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Wed Jun  1 18:45:18 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437360, free: 365456, 45 %
+Wed Jun  1 18:47:24 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Wed Jun  1 18:55:40 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Wed Jun  1 18:57:42 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437296, free: 365520, 45 %
+Wed Jun  1 18:58:34 CEST 2022 282c2db display-spitft: make initialisation somewhat more robust, add some small delays.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68593, free:  11672, 14 %
+    irom:    available: 784 k, used: 437264, free: 365552, 45 %
