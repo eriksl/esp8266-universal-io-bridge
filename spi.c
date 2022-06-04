@@ -92,47 +92,6 @@ attr_inline void wait_completion(void)
 		stat_spi_wait_cycles++;
 }
 
-#if 0
-// strictly experimental!
-
-static void enable_overlap(void)
-{
-#define BIT2     0x00000004
-#define FUNC_SPI_CS2 1
-#define PERIPHS_IO_MUX_FUNC_S           4
-
-#define ETS_UNCACHED_ADDR(addr) (addr)
-#define ETS_CACHED_ADDR(addr) (addr)
-
-#define PERIPHS_IO_MUX_GPIO0_U          (PERIPHS_IO_MUX + 0x34)
-
-#define READ_PERI_REG(addr) (*((volatile uint32_t *)ETS_UNCACHED_ADDR(addr)))
-#define WRITE_PERI_REG(addr, val) (*((volatile uint32_t *)ETS_UNCACHED_ADDR(addr))) = (uint32_t)(val)
-#define CLEAR_PERI_REG_MASK(reg, mask) WRITE_PERI_REG((reg), (READ_PERI_REG(reg)&(~(mask))))
-#define SET_PERI_REG_MASK(reg, mask)   WRITE_PERI_REG((reg), (READ_PERI_REG(reg)|(mask)))
-#define GET_PERI_REG_BITS(reg, hipos,lowpos)      ((READ_PERI_REG(reg)>>(lowpos))&((1<<((hipos)-(lowpos)+1))-1))
-#define SET_PERI_REG_BITS(reg,bit_map,value,shift) (WRITE_PERI_REG((reg),(READ_PERI_REG(reg)&(~((bit_map)<<(shift))))|((value)<<(shift)) ))
-
-#define PIN_FUNC_SELECT(PIN_NAME, FUNC)  do { \
-    WRITE_PERI_REG(PIN_NAME,   \
-                                (READ_PERI_REG(PIN_NAME) \
-                                     &  (~(PERIPHS_IO_MUX_FUNC<<PERIPHS_IO_MUX_FUNC_S)))  \
-                                     |( (((FUNC&BIT2)<<2)|(FUNC&0x3))<<PERIPHS_IO_MUX_FUNC_S) );  \
-    } while (0)
-
-	set_peri_reg_mask(PERI_IO_SWAP_REG, PERI_IO_SWAP_SPI_HSPI);
-
-	set_peri_reg_mask(SPI_EXT3(0), 0x01);
-	set_peri_reg_mask(SPI_EXT3(1), 0x03);
-	set_peri_reg_mask(SPI_USER(1), SPI_CS_SETUP);
-
-	clear_peri_reg_mask(SPI_PIN(1), SPI_CS2_DIS);
-	set_peri_reg_mask(SPI_PIN(1), SPI_CS0_DIS | SPI_CS1_DIS);
-
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_SPI_CS2);
-}
-#endif
-
 attr_result_used bool spi_init(string_t *error, unsigned int io)
 {
 	state.inited = 0;

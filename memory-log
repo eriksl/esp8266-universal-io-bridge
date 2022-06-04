@@ -14522,3 +14522,107 @@ Wed Jun  1 19:05:47 CEST 2022 94e9ffe display-lcd: convert to new display interf
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68609, free:  11656, 14 %
     irom:    available: 784 k, used: 437232, free: 365584, 45 %
+Thu Jun  2 18:55:47 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437216, free: 365600, 45 %
+Fri Jun  3 15:10:55 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Fri Jun  3 15:24:05 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437520, free: 365296, 45 %
+Fri Jun  3 15:32:29 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437632, free: 365184, 45 %
+Fri Jun  3 15:35:13 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437552, free: 365264, 45 %
+Fri Jun  3 15:48:25 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437424, free: 365392, 45 %
+Fri Jun  3 15:52:19 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437552, free: 365264, 45 %
+Fri Jun  3 15:53:11 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437520, free: 365296, 45 %
+Fri Jun  3 15:55:49 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437552, free: 365264, 45 %
+Fri Jun  3 15:57:53 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437408, free: 365408, 45 %
+Fri Jun  3 18:43:57 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437344, free: 365472, 45 %
+Fri Jun  3 18:47:38 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437216, free: 365600, 45 %
+Fri Jun  3 18:57:58 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437408, free: 365408, 45 %
+Fri Jun  3 19:04:50 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437216, free: 365600, 45 %
+Fri Jun  3 20:04:25 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68577, free:  11688, 14 %
+    irom:    available: 784 k, used: 434736, free: 368080, 45 %
+Fri Jun  3 20:05:17 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 436416, free: 366400, 45 %
+Fri Jun  3 20:06:03 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 436624, free: 366192, 45 %
+Fri Jun  3 20:06:33 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 436704, free: 366112, 45 %
+Fri Jun  3 20:06:56 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 436800, free: 366016, 45 %
+Fri Jun  3 20:07:41 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437072, free: 365744, 45 %
+Fri Jun  3 20:08:08 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437200, free: 365616, 45 %
+Fri Jun  3 20:08:49 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437216, free: 365600, 45 %
+Fri Jun  3 20:10:11 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 435728, free: 367088, 45 %
+Fri Jun  3 20:35:10 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 435824, free: 366992, 45 %
+Fri Jun  3 20:48:49 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437328, free: 365488, 45 %
+Sat Jun  4 10:50:15 CEST 2022 66530cd display-lcd: fix identification.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68609, free:  11656, 14 %
+    irom:    available: 784 k, used: 437216, free: 365600, 45 %
