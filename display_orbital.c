@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "config.h"
 #include "dispatch.h"
+#include "sys_time.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -330,17 +331,57 @@ static bool attr_result_used text_send(unsigned int byte)
 	return(true);
 }
 
+static attr_result_used bool text_send_ascii_string(const char *string)
+{
+	unsigned int current;
+
+	for(current = 0; string[current]; current++)
+		if(!text_send(string[current]))
+			return(false);
+
+	return(true);
+}
+
 static bool attr_result_used text_newline(void)
 {
-	unsigned int x, y;
+	unsigned int x, y, text_width;
 
-	y = display_y + 1;
+	text_width = display_text_width;
+
+	if(display_logmode)
+	{
+		y = (display_y + 1) % display_text_height;
+
+		if(!text_goto(0, y))
+			return(false);
+	}
+	else
+	{
+		if(display_y == 0)
+			text_width = display_text_width - 6;
+
+		y = display_y + 1;
+	}
 
 	if(display_y < display_text_height)
-	{
-		for(x = display_x; x < display_text_width; x++)
+		for(x = display_x; x < text_width; x++)
 			if(!text_send(' '))
 				return(false);
+
+	if(text_width != display_text_width)
+	{
+		unsigned int hour, minute;
+		string_new(, time_date, 32);
+
+		string_clear(&time_date);
+		time_get(&hour, &minute, 0, 0, 0, 0);
+		string_format(&time_date, " %02u:%02u", hour, minute);
+
+		if(!text_goto(14, 0))
+			return(false);
+
+		if(!text_send_ascii_string(string_to_cstr(&time_date)))
+			return(false);
 	}
 
 	if(display_logmode && (y >= display_text_height))
@@ -409,9 +450,12 @@ static bool bright(int brightness)
 
 static bool init(void)
 {
-	unsigned int ix;
+	unsigned int ix, enabled;
 
-	if(!config_flags_match(flag_enable_orbital))
+	if(!config_get_uint("orbital.enabled", &enabled, -1, -1))
+		return(false);
+
+	if(!enabled)
 		return(false);
 
 	for(ix = 10; ix > 0; ix--)
@@ -742,9 +786,49 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	return(true);
 }
 
+roflash const char help_description_display_orbital[] = "> usage: display-orbital (do) <1=enable, 0=disable>\n";
+
+app_action_t application_function_display_orbital(string_t *src, string_t *dst)
+{
+	unsigned int enabled;
+
+	enabled = 0;
+
+	if(parse_uint(1, src, &enabled, 0, ' ') == parse_ok)
+	{
+		if(!config_open_write())
+			goto config_error;
+
+		if(enabled == 0)
+			config_delete("orbital.", true, -1, -1);
+		else
+			if(!config_set_uint("orbital.enabled", enabled, -1, -1))
+				goto config_error;
+
+		if(!config_close_write())
+			goto config_error;
+	}
+
+	if(!config_get_uint("orbital.enabled", &enabled, -1, -1))
+	{
+		string_format(dst, "no orbital display configured\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "orbital display enabled: %u\n", enabled);
+
+	return(app_action_normal);
+
+config_error:
+	config_abort_write();
+	string_clear(dst);
+	string_append(dst, "> cannot set config\n");
+	return(app_action_error);
+}
+
 static bool info(display_info_t *infostruct)
 {
-	strncpy(infostruct->name, "matrix orbital vfd", sizeof(infostruct->name));
+	strncpy(infostruct->name, "Matrix Orbital VFD", sizeof(infostruct->name));
 
 	infostruct->columns = 20;
 	infostruct->rows = 4;

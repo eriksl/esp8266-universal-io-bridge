@@ -23,6 +23,7 @@
 #include "display_spitft.h"
 #include "display_ssd1306.h"
 #include "display_cfa634.h"
+#include "display_orbital.h"
 #include "font.h"
 
 #include <stdint.h>
@@ -2574,6 +2575,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"dc6", "display-cfa-634",
 		application_function_display_cfa634,
 		help_description_display_cfa634,
+	},
+	{
+		"do", "display-orbital",
+		application_function_display_orbital,
+		help_description_display_orbital,
 	},
 	{
 		"dp", "display-plot",
