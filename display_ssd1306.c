@@ -572,7 +572,6 @@ roflash const display_hooks_t display_hooks_ssd1306 =
 	bright,
 	(void *)0,
 	(void *)0,
-	(void *)0,
 	plot,
 	(void *)0,
 };

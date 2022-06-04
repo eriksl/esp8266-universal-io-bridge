@@ -564,5 +564,4 @@ roflash const display_hooks_t display_hooks_cfa =
 	(void *)0,
 	(void *)0,
 	(void *)0,
-	(void *)0,
 };

@@ -44,14 +44,13 @@ typedef const struct
 	bool (* const output_fn)(unsigned int amount, const unsigned int unicode[]);
 	bool (* const end_fn)(void);
 	bool (* const bright_fn)(int brightness);
-	bool (* const standout_fn)(bool); // FIXME
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
 	bool (* const plot_fn)(unsigned int pixel_amount, int x, int y, string_t *pixels);
 	bool (* const freeze_fn)(bool active);
 } display_hooks_t;
 
-assert_size(display_hooks_t, 44);
+assert_size(display_hooks_t, 40);
 
 extern uint8_t display_buffer[display_buffer_size];
 bool display_get_info(display_info_t *);

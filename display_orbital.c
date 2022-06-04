@@ -849,7 +849,6 @@ roflash const display_hooks_t display_hooks_orbital =
 		output,
 		end,
 		bright,
-		(void *)0,
 		start_show_time,
 		stop_show_time,
 		plot,

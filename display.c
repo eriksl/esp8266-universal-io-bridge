@@ -566,12 +566,6 @@ void display_init(void)
 		goto error;
 	}
 
-	if(display_hooks_active->standout_fn && !display_hooks_active->standout_fn(0))
-	{
-		log("display init: display standout failed\n");
-		goto error;
-	}
-
 	os_timer_setfn(&picture_load_timer, picture_load_worker, (void *)0);
 	return;
 
