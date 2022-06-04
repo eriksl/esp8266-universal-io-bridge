@@ -14626,3 +14626,19 @@ Sat Jun  4 10:50:15 CEST 2022 66530cd display-lcd: fix identification.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68609, free:  11656, 14 %
     irom:    available: 784 k, used: 437216, free: 365600, 45 %
+Sat Jun  4 11:04:14 CEST 2022 d14f696 spi: remove experimental <<SPI overlap>> code.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 437376, free: 365440, 45 %
+Sat Jun  4 11:05:37 CEST 2022 d14f696 spi: remove experimental <<SPI overlap>> code.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68641, free:  11624, 14 %
+    irom:    available: 784 k, used: 437584, free: 365232, 45 %
+Sat Jun  4 11:11:30 CEST 2022 d14f696 spi: remove experimental <<SPI overlap>> code.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68657, free:  11608, 14 %
+    irom:    available: 784 k, used: 437600, free: 365216, 45 %
+Sat Jun  4 11:15:50 CEST 2022 d14f696 spi: remove experimental <<SPI overlap>> code.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68657, free:  11608, 14 %
+    irom:    available: 784 k, used: 437792, free: 365024, 45 %

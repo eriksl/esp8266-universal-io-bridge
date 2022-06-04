@@ -22,6 +22,7 @@
 #include "display_eastrising.h"
 #include "display_spitft.h"
 #include "display_ssd1306.h"
+#include "display_cfa634.h"
 #include "font.h"
 
 #include <stdint.h>
@@ -2568,6 +2569,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"dt", "display-spitft",
 		application_function_display_spitft,
 		help_description_display_spitft,
+	},
+	{
+		"dc6", "display-cfa-634",
+		application_function_display_cfa634,
+		help_description_display_cfa634,
 	},
 	{
 		"dp", "display-plot",

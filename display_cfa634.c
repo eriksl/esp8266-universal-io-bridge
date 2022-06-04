@@ -4,6 +4,7 @@
 #include "io.h"
 #include "io_gpio.h"
 #include "uart.h"
+#include "sys_time.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -251,7 +252,7 @@ roflash static const udg_map_t udg_map[] =
 	}
 };
 
-static bool			display_inited;
+static bool			display_setup;
 static bool			display_logmode;
 static unsigned int display_uart;
 static unsigned int display_x, display_y;
@@ -295,23 +296,58 @@ static bool attr_result_used text_send(unsigned int byte)
 	return(true);
 }
 
+static attr_result_used bool text_send_ascii_string(const char *string)
+{
+	unsigned int current;
+
+	for(current = 0; string[current]; current++)
+		if(!text_send(string[current]))
+			return(false);
+
+	return(true);
+}
+
 static bool attr_result_used text_newline(void)
 {
-	unsigned int x, y;
+	unsigned int x, y, text_width;
+
+	text_width = display_text_width;
 
 	if(display_logmode)
 	{
 		y = (display_y + 1) % display_text_height;
+
 		if(!text_goto(0, y))
 			return(false);
 	}
 	else
+	{
+		if(display_y == 0)
+			text_width = display_text_width - 6;
+
 		y = display_y + 1;
+	}
 
 	if(display_y < display_text_height)
-		for(x = display_x; x < display_text_width; x++)
+		for(x = display_x; x < text_width; x++)
 			if(!text_send(' '))
 				return(false);
+
+	if(text_width != display_text_width)
+	{
+		unsigned int hour, minute;
+		string_new(, time_date, 32);
+
+		string_clear(&time_date);
+		time_get(&hour, &minute, 0, 0, 0, 0);
+		string_format(&time_date, " %02u:%02u", hour, minute);
+
+		if(!text_goto(14, 0))
+			return(false);
+
+		if(!text_send_ascii_string(string_to_cstr(&time_date)))
+			return(false);
+	}
 
 	if(!text_goto(0, y))
 		return(false);
@@ -329,7 +365,7 @@ bool display_cfa634_setup(unsigned int io, unsigned int pin)
 	if((display_uart != 0) && (display_uart != 1))
 		return(false);
 
-	display_inited = true;
+	display_setup = true;
 
 	return(true);
 }
@@ -338,7 +374,7 @@ static attr_const bool bright(int brightness)
 {
 	roflash static const unsigned int values[5] = { 0, 55, 65, 70, 75 };
 
-	if(!display_inited)
+	if(!display_setup)
 		return(false);
 
 	if((brightness < 0) || (brightness > 4))
@@ -354,12 +390,15 @@ static attr_const bool bright(int brightness)
 static bool init(void)
 {
 	const udg_map_t *map;
-	unsigned int ix, byte;
+	unsigned int baudrate, ix, byte;
 
-	if(!display_inited)
+	if(!display_setup)
 		return(false);
 
-	uart_baudrate(display_uart, 19200);
+	if(!config_get_uint("cfa634.baud", &baudrate, -1, -1))
+		return(false);
+
+	uart_baudrate(display_uart, baudrate);
 	uart_data_bits(display_uart, 8);
 	uart_stop_bits(display_uart, 1);
 	uart_parity(display_uart, parity_none);
@@ -458,14 +497,54 @@ static bool end(void)
 	return(true);
 }
 
+roflash const char help_description_display_cfa634[] =	"> usage: dc6 <baud rate or 0 (disable)>\n";
+
+app_action_t application_function_display_cfa634(string_t *src, string_t *dst)
+{
+	unsigned int baudrate;
+
+	baudrate = 0;
+
+	if(parse_uint(1, src, &baudrate, 0, ' ') == parse_ok)
+	{
+		if(!config_open_write())
+			goto config_error;
+
+		if(baudrate == 0)
+			config_delete("cfa634.", true, -1, -1);
+		else
+			if(!config_set_uint("cfa634.baud", baudrate, -1, -1))
+				goto config_error;
+
+		if(!config_close_write())
+			goto config_error;
+	}
+
+	if(!config_get_uint("cfa634.baud", &baudrate, -1, -1))
+	{
+		string_format(dst, "no cfa634 display configured\n");
+		return(app_action_error);
+	}
+
+	string_format(dst, "cfa634: baud rate: %u\n", baudrate);
+
+	return(app_action_normal);
+
+config_error:
+	config_abort_write();
+	string_clear(dst);
+	string_append(dst, "> cannot set config\n");
+	return(app_action_error);
+}
+
 static bool info(display_info_t *infostruct)
 {
-	strncpy(infostruct->name, "cfa634", sizeof(infostruct->name));
+	strncpy(infostruct->name, "CrystalFontz CFA634", sizeof(infostruct->name));
 
 	infostruct->columns = 20;
 	infostruct->rows = 4;
-	infostruct->cell_width = 5;
-	infostruct->cell_height = 8;
+	infostruct->cell_width = 0;
+	infostruct->cell_height = 0;
 	infostruct->width = 0;
 	infostruct->height = 0;
 	infostruct->pixel_mode = display_pixel_mode_none;
