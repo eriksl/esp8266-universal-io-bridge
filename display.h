@@ -43,7 +43,7 @@ typedef const struct
 	bool (* const begin_fn)(unsigned int slot, bool logmode);
 	bool (* const output_fn)(unsigned int amount, const unsigned int unicode[]);
 	bool (* const end_fn)(void);
-	bool (* const bright_fn)(int brightness); // FIXME
+	bool (* const bright_fn)(int brightness);
 	bool (* const standout_fn)(bool); // FIXME
 	bool (* const show_time_start_fn)(unsigned int, unsigned int);
 	bool (* const show_time_stop_fn)(void);
