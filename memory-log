@@ -14666,3 +14666,91 @@ Sat Jun  4 16:49:02 CEST 2022 e10861b display-orbital: convert.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68625, free:  11640, 14 %
     irom:    available: 784 k, used: 438272, free: 364544, 45 %
+Fri Jun 17 12:42:40 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438352, free: 364464, 45 %
+Fri Jun 17 12:44:10 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438432, free: 364384, 45 %
+Fri Jun 17 12:44:46 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438448, free: 364368, 45 %
+Fri Jun 17 12:45:55 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %
+Fri Jun 24 10:27:37 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438336, free: 364480, 45 %
+Fri Jun 24 10:28:49 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %
+Fri Jun 24 10:33:28 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438336, free: 364480, 45 %
+Fri Jun 24 10:44:41 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %
+Fri Jun 24 10:45:53 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438336, free: 364480, 45 %
+Fri Jun 24 10:50:05 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438288, free: 364528, 45 %
+Fri Jun 24 10:59:16 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438240, free: 364576, 45 %
+Fri Jun 24 11:48:33 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %
+Fri Jun 24 11:55:18 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438240, free: 364576, 45 %
+Fri Jun 24 12:00:44 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %
+Sun Jun 26 10:17:45 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438352, free: 364464, 45 %
+Sun Jun 26 10:36:15 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68625, free:  11640, 14 %
+    irom:    available: 784 k, used: 438384, free: 364432, 45 %
+Sun Jun 26 10:54:25 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438464, free: 364352, 45 %
+Sun Jun 26 10:55:08 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438432, free: 364384, 45 %
+Sun Jun 26 10:59:09 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438384, free: 364432, 45 %
+Sun Jun 26 11:06:23 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438368, free: 364448, 45 %
+Sun Jun 26 11:31:57 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438432, free: 364384, 45 %
+Sun Jun 26 11:41:44 CEST 2022 9c371ab display: remove obsolete <<standout>> method.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438288, free: 364528, 45 %

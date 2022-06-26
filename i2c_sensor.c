@@ -71,6 +71,7 @@ assert_size(i2c_sensor_device_table_entry_t, 60); // 8 + 7 * 4
 
 static unsigned int i2c_sensors;
 static i2c_sensor_data_t i2c_sensor_data[i2c_sensor_data_entries];
+static uint64_t	next_background_run = 0ULL;
 
 assert_size(i2c_sensor_data, 896); // 32 * 28
 
@@ -7788,6 +7789,19 @@ static bool i2c_sensors_background(void)
 	const i2c_sensor_device_table_entry_t *device_table_entry;
 	i2c_sensor_data_t *data_entry;
 
+	if((sensor_info.background_current_sensor == 0) &&
+		(next_background_run > 0))
+	{
+		uint64_t now;
+
+		now = time_get_us();
+
+		if(now < next_background_run)
+			goto skip;
+
+		next_background_run = 0;
+	}
+
 	sensor_info.background_called++;
 
 	if(sensor_info.background_current_sensor >= i2c_sensors)
@@ -7817,6 +7831,7 @@ finish:
 	{
 		sensor_info.background_current_sensor = 0;
 		sensor_info.background_wrapped++;
+		next_background_run = time_get_us() + 1000000ULL;
 	}
 
 	return(false);
@@ -7827,6 +7842,7 @@ abort:
 	sensor_info.background_current_sensor = 0;
 	sensor_info.background_finished = 1;
 
+skip:
 	return(false);
 }
 
