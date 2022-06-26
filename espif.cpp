@@ -113,7 +113,7 @@ void GenericSocket::connect()
 			throw(std::string("multicast: cannot join mc group"));
 	}
 	else
-		if(::connect(socket_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
+		if(!use_udp && ::connect(socket_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 			throw(std::string("connect failed"));
 }
 
@@ -135,7 +135,10 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 	{
 		if(buffer.length() == 0)
 		{
-			write(socket_fd, buffer.data(), 0, 0);
+			if(use_udp)
+				::sendto(socket_fd, buffer.data(), 0, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr));
+			else
+				::send(socket_fd, buffer.data(), 0, 0);
 			return(true);
 		}
 	}
@@ -151,7 +154,7 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 
 		for(run = multicast; run > 0; run--)
 		{
-			if(sendto(socket_fd, buffer.data(), chunk, MSG_DONTWAIT, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
+			if(::sendto(socket_fd, buffer.data(), chunk, MSG_DONTWAIT, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 
 			usleep(200000);
@@ -177,8 +180,16 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 		if(use_udp && (chunk > max_udp_packet_size))
 			chunk = max_udp_packet_size;
 
-		if(write(socket_fd, buffer.data(), chunk) != chunk)
-			return(false);
+		if(use_udp)
+		{
+			if(::sendto(socket_fd, buffer.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
+				return(false);
+		}
+		else
+		{
+			if(::send(socket_fd, buffer.data(), chunk, 0) != chunk)
+				return(false);
+		}
 
 		buffer.erase(0, chunk);
 	}
@@ -237,7 +248,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 				return(false);
 
 			remote_length = sizeof(remote_addr);
-			if((length = recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
+			if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
 				return(false);
 
 			attempt = max_attempts;
@@ -339,11 +350,23 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 				break;
 			}
 
-			if((length = read(socket_fd, buffer, sizeof(buffer) - 1)) < 0)
+			if(use_udp)
 			{
-				if(verbose)
-					std::cout << "receive: length < 0" << std::endl;
-				return(false);
+				if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr *)0, 0)) < 0)
+				{
+					if(verbose)
+						std::cout << "udp receive: length < 0" << std::endl;
+					return(false);
+				}
+			}
+			else
+			{
+				if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) < 0)
+				{
+					if(verbose)
+						std::cout << "receive: length < 0" << std::endl;
+					return(false);
+				}
 			}
 
 			if((how == cooked) && (length == 0))
@@ -400,8 +423,16 @@ void GenericSocket::drain()
 		if(pfd.revents & (POLLERR | POLLHUP))
 			return;
 
-		if(read(socket_fd, buffer, sizeof(buffer)) < 0)
-			return;
+		if(use_udp)
+		{
+			if(::recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)0, 0) < 0)
+				return;
+		}
+		else
+		{
+			if(::recv(socket_fd, buffer, sizeof(buffer), 0) < 0)
+				return;
+		}
 	}
 }
 
