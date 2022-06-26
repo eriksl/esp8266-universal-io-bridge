@@ -2720,7 +2720,7 @@ static i2c_error_t sensor_bh1750_periodic(i2c_sensor_data_t *data)
 	current_value = (i2c_buffer[0] << 8) | i2c_buffer[1];
 
 	if(current_value == 0) // current measurement unfinished
-		return(i2c_error_ok);
+		goto retry;
 
 	if((current_value < scale_down_threshold) && (private_data->current_scaling > 0))
 		private_data->current_scaling--;
@@ -2731,6 +2731,7 @@ static i2c_error_t sensor_bh1750_periodic(i2c_sensor_data_t *data)
 	if(current_value < 0xffff)
 		private_data->raw_data = current_value;
 
+retry:
 	if((error = bh1750_start_measurement(private_data, data->basic.address)) != i2c_error_ok)
 	{
 		i2c_log("bh1750", error);
