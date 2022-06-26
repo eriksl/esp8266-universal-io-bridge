@@ -23,7 +23,7 @@ class GenericSocket
 {
 	private:
 
-		int fd;
+		int socket_fd;
 		std::string host;
 		std::string service;
 		bool use_udp, verbose;
@@ -48,7 +48,7 @@ class GenericSocket
 };
 
 GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, int multicast_in)
-		: fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), multicast(multicast_in)
+		: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), multicast(multicast_in)
 {
 	memset(&saddr, 0, sizeof(saddr));
 
@@ -70,7 +70,7 @@ void GenericSocket::connect()
 	struct addrinfo hints;
 	struct addrinfo *res = nullptr;
 
-	if((fd = socket(AF_INET, (use_udp || (multicast > 0)) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
+	if((socket_fd = socket(AF_INET, (use_udp || (multicast > 0)) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 		throw(std::string("socket failed"));
 
 	memset(&hints, 0, sizeof(hints));
@@ -98,33 +98,31 @@ void GenericSocket::connect()
 
 		arg = 3;
 
-		if(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &arg, sizeof(arg)))
+		if(setsockopt(socket_fd, IPPROTO_IP, IP_MULTICAST_TTL, &arg, sizeof(arg)))
 			throw(std::string("multicast: cannot set mc ttl"));
 
 		arg = 0;
 
-		if(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &arg, sizeof(arg)))
+		if(setsockopt(socket_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &arg, sizeof(arg)))
 			throw(std::string("multicast: cannot set loopback"));
 
 		mreq.imr_multiaddr = saddr.sin_addr;
 		mreq.imr_interface.s_addr = INADDR_ANY;
 
-		if(setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)))
+		if(setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)))
 			throw(std::string("multicast: cannot join mc group"));
 	}
 	else
-	{
-		if(::connect(fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
+		if(::connect(socket_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 			throw(std::string("connect failed"));
-	}
 }
 
 void GenericSocket::disconnect()
 {
-	if(fd >= 0)
-		close(fd);
+	if(socket_fd >= 0)
+		close(socket_fd);
 
-	fd = -1;
+	socket_fd = -1;
 }
 
 bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
@@ -137,7 +135,7 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 	{
 		if(buffer.length() == 0)
 		{
-			write(fd, buffer.data(), 0);
+			write(socket_fd, buffer.data(), 0, 0);
 			return(true);
 		}
 	}
@@ -153,7 +151,7 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 
 		for(run = multicast; run > 0; run--)
 		{
-			if(sendto(fd, buffer.data(), chunk, MSG_DONTWAIT, (const sockaddr *)&saddr, sizeof(saddr)) != chunk)
+			if(sendto(socket_fd, buffer.data(), chunk, MSG_DONTWAIT, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 
 			usleep(200000);
@@ -164,7 +162,7 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 
 	while(buffer.length() > 0)
 	{
-		pfd.fd = fd;
+		pfd.fd = socket_fd;
 		pfd.events = POLLOUT | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
@@ -179,7 +177,7 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 		if(use_udp && (chunk > max_udp_packet_size))
 			chunk = max_udp_packet_size;
 
-		if(write(fd, buffer.data(), chunk) != chunk)
+		if(write(socket_fd, buffer.data(), chunk) != chunk)
 			return(false);
 
 		buffer.erase(0, chunk);
@@ -192,7 +190,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 {
 	int attempt;
 	int length;
-	struct pollfd pfd = { .fd = fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
+	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 	char buffer[flash_sector_size + 1];
 	enum { max_attempts = 4 };
 
@@ -239,7 +237,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 				return(false);
 
 			remote_length = sizeof(remote_addr);
-			if((length = recvfrom(fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
+			if((length = recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
 				return(false);
 
 			attempt = max_attempts;
@@ -341,7 +339,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 				break;
 			}
 
-			if((length = read(fd, buffer, sizeof(buffer) - 1)) < 0)
+			if((length = read(socket_fd, buffer, sizeof(buffer) - 1)) < 0)
 			{
 				if(verbose)
 					std::cout << "receive: length < 0" << std::endl;
@@ -392,7 +390,7 @@ void GenericSocket::drain()
 
 	for(attempt = max_attempts; attempt > 0; attempt--)
 	{
-		pfd.fd = fd;
+		pfd.fd = socket_fd;
 		pfd.events = POLLIN | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
@@ -402,7 +400,7 @@ void GenericSocket::drain()
 		if(pfd.revents & (POLLERR | POLLHUP))
 			return;
 
-		if(read(fd, buffer, sizeof(buffer)) < 0)
+		if(read(socket_fd, buffer, sizeof(buffer)) < 0)
 			return;
 	}
 }
@@ -511,7 +509,7 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string filename, unsigned int start,
 	int chunk_size, bool verbose, bool simulate, bool otawrite)
 {
-	int fd;
+	int file_fd;
 	int64_t file_offset;
 	struct stat stat;
 	unsigned char sector_buffer[flash_sector_size];
@@ -536,10 +534,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	if(filename.empty())
 		throw(std::string("file name required"));
 
-	if((fd = open(filename.c_str(), O_RDONLY, 0)) < 0)
+	if((file_fd = open(filename.c_str(), O_RDONLY, 0)) < 0)
 		throw(std::string("file not found"));
 
-	fstat(fd, &stat);
+	fstat(file_fd, &stat);
 	file_offset = stat.st_size;
 	length = (file_offset + (flash_sector_size - 1)) / flash_sector_size;
 
@@ -573,10 +571,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 		{
 			memset(sector_buffer, 0xff, flash_sector_size);
 
-			if((sector_length = read(fd, sector_buffer, flash_sector_size)) <= 0)
+			if((sector_length = read(file_fd, sector_buffer, flash_sector_size)) <= 0)
 				throw(std::string("i/o error in read"));
 
-			if((file_offset = lseek(fd, 0, SEEK_CUR)) < 0)
+			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
 
 			SHA1(sector_buffer, flash_sector_size, sector_hash);
@@ -686,11 +684,11 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	}
 	catch(std::string &e)
 	{
-		close(fd);
+		close(file_fd);
 		throw;
 	}
 
-	close(fd);
+	close(file_fd);
 
 	if(!verbose)
 		std::cout << std::endl;
@@ -729,7 +727,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 
 static void command_checksum(GenericSocket &command_channel, const std::string &filename, unsigned int start, bool verbose)
 {
-	int fd;
+	int file_fd;
 	int64_t file_length;
 	struct stat stat;
 	uint8_t sector_buffer[flash_sector_size];
@@ -748,10 +746,10 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 	if(filename.empty())
 		throw(std::string("file name required"));
 
-	if((fd = open(filename.c_str(), O_RDONLY, 0)) < 0)
+	if((file_fd = open(filename.c_str(), O_RDONLY, 0)) < 0)
 		throw(std::string("file not found"));
 
-	fstat(fd, &stat);
+	fstat(file_fd, &stat);
 	file_length = stat.st_size;
 	length = (file_length + (flash_sector_size - 1)) / flash_sector_size;
 
@@ -766,7 +764,7 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 		{
 			memset(sector_buffer, 0xff, flash_sector_size);
 
-			if((sector_length = read(fd, sector_buffer, flash_sector_size)) <= 0)
+			if((sector_length = read(file_fd, sector_buffer, flash_sector_size)) <= 0)
 				throw(std::string("i/o error in read"));
 
 			SHA1_Update(&sha_file_ctx, sector_buffer, flash_sector_size);
@@ -774,11 +772,11 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 	}
 	catch(std::string &e)
 	{
-		close(fd);
+		close(file_fd);
 		throw;
 	}
 
-	close(fd);
+	close(file_fd);
 
 	std::cout << "checksumming " << length << " sectors..." << std::endl;
 
@@ -809,7 +807,7 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, int start, int length, bool verbose)
 {
 	int64_t file_offset;
-	int fd;
+	int file_fd;
 	int sector_attempt, current;
 	struct timeval time_start, time_now;
 	std::string send_string;
@@ -826,7 +824,7 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 	if(filename.empty())
 		throw(std::string("file name required"));
 
-	if((fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666)) < 0)
+	if((file_fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666)) < 0)
 		throw(std::string("can't create file"));
 
 	try
@@ -900,10 +898,10 @@ error:
 			if(sector_attempt <= 0)
 				throw(std::string("! receiving sector failed too many times"));
 
-			if((file_offset = lseek(fd, 0, SEEK_CUR)) < 0)
+			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
 
-			if(write(fd, reply.data(), flash_sector_size) <= 0)
+			if(write(file_fd, reply.data(), flash_sector_size) <= 0)
 				throw(std::string("i/o error in write"));
 
 			SHA1_Update(&sha_file_ctx, (const unsigned char *)reply.data(), flash_sector_size);
@@ -932,11 +930,11 @@ error:
 	}
 	catch(const std::string &e)
 	{
-		close(fd);
+		close(file_fd);
 		throw;
 	}
 
-	close(fd);
+	close(file_fd);
 
 	if(!verbose)
 		std::cout << std::endl;
@@ -970,7 +968,7 @@ error:
 static void command_verify(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, int start, bool verbose)
 {
 	int64_t file_offset;
-	int fd;
+	int file_fd;
 	struct stat stat;
 	unsigned int sector_attempt, current, length;
 	struct timeval time_start, time_now;
@@ -988,12 +986,12 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 	if(filename.empty())
 		throw(std::string("file name required"));
 
-	if((fd = open(filename.c_str(), O_RDONLY)) < 0)
+	if((file_fd = open(filename.c_str(), O_RDONLY)) < 0)
 		throw(std::string("can't open file"));
 
 	try
 	{
-		fstat(fd, &stat);
+		fstat(file_fd, &stat);
 		file_offset = stat.st_size;
 		length = (file_offset + (flash_sector_size - 1)) / flash_sector_size;
 
@@ -1049,12 +1047,12 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 						goto error;
 					}
 
-					if((file_offset = lseek(fd, (current - start) * flash_sector_size, SEEK_SET)) < 0)
+					if((file_offset = lseek(file_fd, (current - start) * flash_sector_size, SEEK_SET)) < 0)
 						throw(std::string("i/o error in seek"));
 
 					memset(sector_buffer, 0xff, sizeof(sector_buffer));
 
-					if(read(fd, sector_buffer, sizeof(sector_buffer)) <= 0)
+					if(read(file_fd, sector_buffer, sizeof(sector_buffer)) <= 0)
 						throw(std::string("i/o error in read"));
 
 					if(memcmp(reply.data(), sector_buffer, sizeof(sector_buffer)))
@@ -1099,11 +1097,11 @@ error:
 	}
 	catch(const std::string &e)
 	{
-		close(fd);
+		close(file_fd);
 		throw;
 	}
 
-	close(fd);
+	close(file_fd);
 
 	if(!verbose)
 		std::cout << std::endl;
