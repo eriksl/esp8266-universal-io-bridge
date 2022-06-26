@@ -14754,3 +14754,7 @@ Sun Jun 26 11:41:44 CEST 2022 9c371ab display: remove obsolete <<standout>> meth
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68633, free:  11632, 14 %
     irom:    available: 784 k, used: 438288, free: 364528, 45 %
+Sun Jun 26 13:03:22 CEST 2022 0b155c5 espif: replace read/write on socket with send/sendto and recv/recvfrom.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68633, free:  11632, 14 %
+    irom:    available: 784 k, used: 438304, free: 364512, 45 %

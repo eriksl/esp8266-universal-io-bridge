@@ -26,8 +26,7 @@ class GenericSocket
 		int socket_fd;
 		std::string host;
 		std::string service;
-		bool use_udp, verbose;
-		int multicast;
+		bool use_udp, verbose, broadcast, multicast;
 		struct sockaddr_in saddr;
 
 	public:
@@ -37,7 +36,7 @@ class GenericSocket
 			raw
 		} process_t;
 
-		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, int multicast = 0);
+		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, bool broadcast = false, bool multicast = false);
 		~GenericSocket();
 
 		bool send(std::string buffer, process_t how);
@@ -47,12 +46,12 @@ class GenericSocket
 		void connect();
 };
 
-GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, int multicast_in)
-		: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), multicast(multicast_in)
+GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, bool broadcast_in, bool multicast_in)
+		: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), broadcast(broadcast_in), multicast(multicast_in)
 {
 	memset(&saddr, 0, sizeof(saddr));
 
-	if(multicast_in > 0)
+	if(multicast)
 		host = std::string("239.255.255.") + host_in;
 	else
 		host = host_in;
@@ -70,7 +69,7 @@ void GenericSocket::connect()
 	struct addrinfo hints;
 	struct addrinfo *res = nullptr;
 
-	if((socket_fd = socket(AF_INET, (use_udp || (multicast > 0)) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
+	if((socket_fd = socket(AF_INET, (use_udp || broadcast || multicast) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 		throw(std::string("socket failed"));
 
 	memset(&hints, 0, sizeof(hints));
@@ -91,7 +90,21 @@ void GenericSocket::connect()
 	saddr = *(struct sockaddr_in *)res->ai_addr;
 	freeaddrinfo(res);
 
-	if(multicast > 0)
+	if(broadcast)
+	{
+		int arg;
+
+		arg = 1;
+
+		if(setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &arg, sizeof(arg)))
+		{
+			if(verbose)
+				perror("setsockopt SO_BROADCAST\n");
+			throw(std::string("set broadcast"));
+		}
+	}
+
+	if(multicast)
 	{
 		struct ip_mreq mreq;
 		int arg;
@@ -145,19 +158,19 @@ bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
 	else
 		buffer += "\n";
 
-	if(multicast > 0)
+	if(broadcast || multicast)
 	{
 		chunk = (ssize_t)buffer.length();
 
 		if(use_udp && (chunk > max_udp_packet_size))
 			chunk = max_udp_packet_size;
 
-		for(run = multicast; run > 0; run--)
+		for(run = 8; run > 0; run--)
 		{
-			if(::sendto(socket_fd, buffer.data(), chunk, MSG_DONTWAIT, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
+			if(::sendto(socket_fd, buffer.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 
-			usleep(200000);
+			usleep(50000);
 		}
 
 		return(true);
@@ -207,7 +220,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 
 	reply.clear();
 
-	if(multicast > 0)
+	if(broadcast || multicast)
 	{
 		struct timeval tv_start, tv_now;
 		uint64_t start, now;
@@ -311,7 +324,7 @@ bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, in
 			host_id_text << ((it.first & 0x0000ff00) >>  8) << ".";
 			host_id_text << ((it.first & 0x000000ff) >>  0);
 			text << std::setw(12) << std::left << host_id_text.str();
-			text << " " << it.second.count << " ";
+			text << " " << std::setw(2) << std::right << it.second.count << " ";
 			text << std::setw(12) << std::left << it.second.hostname;
 			text << " " << it.second.text << std::endl;
 		}
@@ -1783,10 +1796,27 @@ static void command_send(const std::string &host, const std::string &port, bool 
 	}
 }
 
-void command_multicast(const std::string &host, const std::string &port, bool verbose, int multicast_repeats, bool dontwait, const std::string &args)
+void command_broadcast(const std::string &host, const std::string &port, bool verbose, bool dontwait, const std::string &args)
 {
 	std::string reply;
-	GenericSocket multicast_socket(host, port, true, verbose, multicast_repeats);
+	GenericSocket broadcast_socket(host, port, true, verbose, true, false);
+
+	if(!broadcast_socket.send(args, GenericSocket::cooked))
+		throw(std::string("broadcast send failed"));
+
+	if(!dontwait)
+	{
+		if(!broadcast_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+			throw(std::string("broadcast receive failed"));
+
+		std::cout << reply << std::endl;
+	}
+}
+
+void command_multicast(const std::string &host, const std::string &port, bool verbose, bool dontwait, const std::string &args)
+{
+	std::string reply;
+	GenericSocket multicast_socket(host, port, true, verbose, false, true);
 
 	if(!multicast_socket.send(args, GenericSocket::cooked))
 		throw(std::string("mulicast send failed"));
@@ -1892,7 +1922,8 @@ int main(int argc, const char **argv)
 		bool cmd_benchmark = false;
 		bool cmd_image = false;
 		bool cmd_image_epaper = false;
-		int cmd_multicast = 0;
+		bool cmd_broadcast = false;
+		bool cmd_multicast = false;
 		bool cmd_read = false;
 		bool cmd_info = false;
 		unsigned int selected;
@@ -1907,8 +1938,9 @@ int main(int argc, const char **argv)
 			("benchmark,B",		po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
 			("image,I",			po::bool_switch(&cmd_image)->implicit_value(true),					"SEND IMAGE")
 			("epaper-image,e",	po::bool_switch(&cmd_image_epaper)->implicit_value(true),			"SEND EPAPER IMAGE (uc8151d connected to host)")
-			("multicast,M",		po::value<int>(&cmd_multicast)->implicit_value(3),					"MULTICAST SENDER send multicast message (arg is repeat count)")
-			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or multicast group to use")
+			("broadcast,b",		po::bool_switch(&cmd_broadcast)->implicit_value(true),				"BROADCAST SENDER send broadcast message")
+			("multicast,M",		po::bool_switch(&cmd_multicast)->implicit_value(true),				"MULTICAST SENDER send multicast message")
+			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or broadcast address or multicast group to use")
 			("verbose,v",		po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
 			("udp,u",			po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
 			("filename,f",		po::value<std::string>(&filename),									"file name")
@@ -1972,7 +2004,10 @@ int main(int argc, const char **argv)
 		if(cmd_info)
 			selected++;
 
-		if(cmd_multicast > 0)
+		if(cmd_broadcast)
+			selected++;
+
+		if(cmd_multicast)
 			selected++;
 
 		if(selected > 1)
@@ -1982,122 +2017,125 @@ int main(int argc, const char **argv)
 			command_send(host, command_port, use_udp, verbose, dont_wait, args);
 		else
 		{
-			if(cmd_multicast > 0)
-				command_multicast(host, command_port, verbose, cmd_multicast, dont_wait, args);
+			if(cmd_broadcast)
+				command_broadcast(host, command_port, verbose, dont_wait, args);
 			else
-			{
-				start = -1;
-				chunk_size = use_udp ? 1024 : flash_sector_size;
-
-				try
-				{
-					start = std::stoi(start_string, 0, 0);
-				}
-				catch(...)
-				{
-					throw(std::string("invalid value for start argument"));
-				}
-
-				if(start != -1)
-				{
-					if(((start % flash_sector_size) != 0) || (start < 0))
-						throw(std::string("invalid start address"));
-					start /= flash_sector_size;
-				}
-
-				try
-				{
-					length = std::stoi(length_string, 0, 0);
-				}
-				catch(...)
-				{
-					throw(std::string("invalid value for length argument"));
-				}
-
-				if((length % flash_sector_size) != 0)
-					length = length / flash_sector_size + 1;
+				if(cmd_multicast)
+					command_multicast(host, command_port, verbose, dont_wait, args);
 				else
-					length = length / flash_sector_size;
-
-				std::string reply;
-				std::vector<int> int_value;
-				std::vector<std::string> string_value;
-				unsigned int flash_slot, flash_address[2];
-
-				GenericSocket command_channel(host, command_port, use_udp, verbose);
-				GenericSocket mailbox_channel(host, mailbox_port, true, verbose);
-				mailbox_channel.send(std::string(" "), GenericSocket::raw);
-
-				try
 				{
-					process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
-				}
-				catch(std::string &e)
-				{
-					throw(std::string("MAILBOX incompatible image: ") + e);
-				}
+					start = -1;
+					chunk_size = use_udp ? 1024 : flash_sector_size;
 
-				flash_slot = int_value[0];
-				flash_address[0] = int_value[1];
-				flash_address[1] = int_value[2];
-				dim_x = int_value[3];
-				dim_y = int_value[4];
-				depth = int_value[5];
-
-				std::cout << "MAILBOX update available, current slot: " << flash_slot;
-				std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
-				std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
-				std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px @" << depth;
-				std::cout << std::endl;
-
-				if(start == -1)
-				{
-					if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
+					try
 					{
-						flash_slot++;
-
-						if(flash_slot >= 2)
-							flash_slot = 0;
-
-						start = flash_address[flash_slot];
-						otawrite = true;
+						start = std::stoi(start_string, 0, 0);
 					}
-					else
-						if(!cmd_benchmark && !cmd_image && !cmd_image_epaper)
-							throw(std::string("start address not set"));
-				}
+					catch(...)
+					{
+						throw(std::string("invalid value for start argument"));
+					}
 
-				if(cmd_read)
-					command_read(command_channel, mailbox_channel, filename, start, length, verbose);
-				else
-					if(cmd_verify)
-						command_verify(command_channel, mailbox_channel, filename, start, verbose);
+					if(start != -1)
+					{
+						if(((start % flash_sector_size) != 0) || (start < 0))
+							throw(std::string("invalid start address"));
+						start /= flash_sector_size;
+					}
+
+					try
+					{
+						length = std::stoi(length_string, 0, 0);
+					}
+					catch(...)
+					{
+						throw(std::string("invalid value for length argument"));
+					}
+
+					if((length % flash_sector_size) != 0)
+						length = length / flash_sector_size + 1;
 					else
-						if(cmd_checksum)
-							command_checksum(command_channel, filename, start, verbose);
+						length = length / flash_sector_size;
+
+					std::string reply;
+					std::vector<int> int_value;
+					std::vector<std::string> string_value;
+					unsigned int flash_slot, flash_address[2];
+
+					GenericSocket command_channel(host, command_port, use_udp, verbose);
+					GenericSocket mailbox_channel(host, mailbox_port, true, verbose);
+					mailbox_channel.send(std::string(" "), GenericSocket::raw);
+
+					try
+					{
+						process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
+					}
+					catch(std::string &e)
+					{
+						throw(std::string("MAILBOX incompatible image: ") + e);
+					}
+
+					flash_slot = int_value[0];
+					flash_address[0] = int_value[1];
+					flash_address[1] = int_value[2];
+					dim_x = int_value[3];
+					dim_y = int_value[4];
+					depth = int_value[5];
+
+					std::cout << "MAILBOX update available, current slot: " << flash_slot;
+					std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
+					std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
+					std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px @" << depth;
+					std::cout << std::endl;
+
+					if(start == -1)
+					{
+						if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
+						{
+							flash_slot++;
+
+							if(flash_slot >= 2)
+								flash_slot = 0;
+
+							start = flash_address[flash_slot];
+							otawrite = true;
+						}
 						else
-							if(cmd_simulate)
-								command_write(command_channel, mailbox_channel, filename, start,
-										chunk_size, verbose, true, false);
-							else
-								if(cmd_write)
-								{
-									command_write(command_channel, mailbox_channel, filename, start,
-											chunk_size, verbose, false, otawrite);
+							if(!cmd_benchmark && !cmd_image && !cmd_image_epaper)
+								throw(std::string("start address not set"));
+					}
 
-									if(otawrite && !nocommit)
-										commit_ota(command_channel, verbose, flash_slot, !noreset, notemp);
-								}
+					if(cmd_read)
+						command_read(command_channel, mailbox_channel, filename, start, length, verbose);
+					else
+						if(cmd_verify)
+							command_verify(command_channel, mailbox_channel, filename, start, verbose);
+						else
+							if(cmd_checksum)
+								command_checksum(command_channel, filename, start, verbose);
+							else
+								if(cmd_simulate)
+									command_write(command_channel, mailbox_channel, filename, start,
+											chunk_size, verbose, true, false);
 								else
-									if(cmd_benchmark)
-										command_benchmark(command_channel, mailbox_channel, verbose);
+									if(cmd_write)
+									{
+										command_write(command_channel, mailbox_channel, filename, start,
+												chunk_size, verbose, false, otawrite);
+
+										if(otawrite && !nocommit)
+											commit_ota(command_channel, verbose, flash_slot, !noreset, notemp);
+									}
 									else
-										if(cmd_image)
-											command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, image_timeout, verbose);
+										if(cmd_benchmark)
+											command_benchmark(command_channel, mailbox_channel, verbose);
 										else
-											if(cmd_image_epaper)
-												command_image_epaper(command_channel, filename, verbose);
-			}
+											if(cmd_image)
+												command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, image_timeout, verbose);
+											else
+												if(cmd_image_epaper)
+													command_image_epaper(command_channel, filename, verbose);
+				}
 		}
 	}
 	catch(const po::error &e)
