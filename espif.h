@@ -17,6 +17,6 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include <Magick++.h>

@@ -7,6 +7,7 @@ enum
 	max_attempts = 16,
 	max_udp_packet_size = 1472,
 	flash_sector_size = 4096,
+	sha1_text_hash_size = 20,
 };
 
 typedef std::vector<std::string> StringVector;
@@ -454,7 +455,7 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 	unsigned int current;
 	std::stringstream hash_string;
 
-	for(current = 0; current < SHA_DIGEST_LENGTH; current++)
+	for(current = 0; current < sha1_text_hash_size; current++)
 		hash_string << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)hash[current];
 
 	return(hash_string.str());
@@ -557,8 +558,8 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	int64_t file_offset;
 	struct stat stat;
 	unsigned char sector_buffer[flash_sector_size];
-	unsigned char sector_hash[SHA_DIGEST_LENGTH];
-	unsigned char file_hash[SHA_DIGEST_LENGTH];
+	unsigned char sector_hash[sha1_text_hash_size];
+	unsigned char file_hash[sha1_text_hash_size];
 	unsigned int sector_length, sector_attempt;
 	unsigned int current, length;
 	int sectors_written, sectors_skipped, sectors_erased;
@@ -569,7 +570,8 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	std::string reply;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-	SHA_CTX sha_file_ctx;
+	EVP_MD_CTX *sha_file_ctx;
+	unsigned int size;
 
 	sectors_skipped = 0;
 	sectors_erased = 0;
@@ -607,7 +609,8 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 		std::cout << ", length: " << std::dec << std::setw(0) << (length * flash_sector_size) << " (" << length << " sectors)";
 		std::cout << ", chunk size: " << chunk_size << std::endl;
 
-		SHA1_Init(&sha_file_ctx);
+		sha_file_ctx = EVP_MD_CTX_new();
+		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
 
 		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 
@@ -621,10 +624,11 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
 
-			SHA1(sector_buffer, flash_sector_size, sector_hash);
+			size = sha1_text_hash_size;
+			EVP_Digest(sector_buffer, flash_sector_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
 			sha_local_hash_text = sha_hash_to_text(sector_hash);
 
-			SHA1_Update(&sha_file_ctx, sector_buffer, flash_sector_size);
+			EVP_DigestUpdate(sha_file_ctx, sector_buffer, flash_sector_size);
 
 			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
 			{
@@ -743,7 +747,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	{
 		std::cout << "checksumming " << length << " sectors..." << std::endl;
 
-		SHA1_Final(file_hash, &sha_file_ctx);
+		size = sha1_text_hash_size;
+		EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
+		EVP_MD_CTX_free(sha_file_ctx);
+
 		sha_local_hash_text = sha_hash_to_text(file_hash);
 
 		send_string = std::string("mailbox-checksum ") + std::to_string(start) + " " + std::to_string(length);
@@ -775,7 +782,7 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 	int64_t file_length;
 	struct stat stat;
 	uint8_t sector_buffer[flash_sector_size];
-	unsigned char file_hash[SHA_DIGEST_LENGTH];
+	unsigned char file_hash[sha1_text_hash_size];
 	unsigned int current, length;
 	int sector_length;
 	std::string sha_local_hash_text;
@@ -785,7 +792,8 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 	std::string operation;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-	SHA_CTX sha_file_ctx;
+	EVP_MD_CTX *sha_file_ctx;
+	unsigned int size;
 
 	if(filename.empty())
 		throw(std::string("file name required"));
@@ -802,7 +810,8 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 		std::cout << "start checksum from 0x" << std::hex << (start * flash_sector_size) << " (sector " << std::dec << start;
 		std::cout << "), length: " << file_length << " (" << length << " sectors" << ")" << std::endl;
 
-		SHA1_Init(&sha_file_ctx);
+		sha_file_ctx = EVP_MD_CTX_new();
+		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
 
 		for(current  = 0; current < length; current++)
 		{
@@ -811,7 +820,7 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 			if((sector_length = read(file_fd, sector_buffer, flash_sector_size)) <= 0)
 				throw(std::string("i/o error in read"));
 
-			SHA1_Update(&sha_file_ctx, sector_buffer, flash_sector_size);
+			EVP_DigestUpdate(sha_file_ctx, sector_buffer, flash_sector_size);
 		}
 	}
 	catch(std::string &e)
@@ -824,7 +833,10 @@ static void command_checksum(GenericSocket &command_channel, const std::string &
 
 	std::cout << "checksumming " << length << " sectors..." << std::endl;
 
-	SHA1_Final(file_hash, &sha_file_ctx);
+	size = sha1_text_hash_size;
+	EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
+	EVP_MD_CTX_free(sha_file_ctx);
+
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
@@ -859,9 +871,10 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 	std::string operation;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-	SHA_CTX sha_file_ctx;
-	unsigned char sector_hash[SHA_DIGEST_LENGTH];
-	unsigned char file_hash[SHA_DIGEST_LENGTH];
+	EVP_MD_CTX * sha_file_ctx;
+	unsigned int size;
+	unsigned char sector_hash[sha1_text_hash_size];
+	unsigned char file_hash[sha1_text_hash_size];
 	std::string sha_local_hash_text;
 	std::string sha_remote_hash_text;
 
@@ -879,7 +892,8 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 		std::cout << ", length: 0x" << std::hex << length * flash_sector_size << " (" << std::dec << length * flash_sector_size << ")";
 		std::cout << std::endl;
 
-		SHA1_Init(&sha_file_ctx);
+		sha_file_ctx = EVP_MD_CTX_new();
+		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
 
 		current = start;
 
@@ -910,7 +924,8 @@ static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_
 
 				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
 				{
-					SHA1((const unsigned char *)reply.data(), flash_sector_size, sector_hash);
+					size = sha1_text_hash_size;
+					EVP_Digest((const unsigned char *)reply.data(), flash_sector_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
 					sha_local_hash_text = sha_hash_to_text(sector_hash);
 
 					if(verbose)
@@ -948,7 +963,7 @@ error:
 			if(write(file_fd, reply.data(), flash_sector_size) <= 0)
 				throw(std::string("i/o error in write"));
 
-			SHA1_Update(&sha_file_ctx, (const unsigned char *)reply.data(), flash_sector_size);
+			EVP_DigestUpdate(sha_file_ctx, (const unsigned char *)reply.data(), flash_sector_size);
 
 			if(!verbose)
 			{
@@ -985,7 +1000,10 @@ error:
 
 	std::cout << "checksumming " << length << " sectors..." << std::endl;
 
-	SHA1_Final(file_hash, &sha_file_ctx);
+	size = sha1_text_hash_size;
+	EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
+	EVP_MD_CTX_free(sha_file_ctx);
+
 	sha_local_hash_text = sha_hash_to_text(file_hash);
 
 	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
@@ -1022,8 +1040,8 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
 	uint8_t sector_buffer[flash_sector_size];
-
-	unsigned char hash[SHA_DIGEST_LENGTH];
+	unsigned char hash[sha1_text_hash_size];
+	unsigned int size;
 	std::string sha_local_hash_text;
 	std::string sha_remote_hash_text;
 
@@ -1082,7 +1100,8 @@ static void command_verify(GenericSocket &command_channel, GenericSocket &mailbo
 						std::cout << std::endl;
 					}
 
-					SHA1((const unsigned char *)reply.data(), flash_sector_size, hash);
+					size = sha1_text_hash_size;
+					EVP_Digest((const unsigned char *)reply.data(), flash_sector_size, hash, &size, EVP_sha1(), (ENGINE *)0);
 					sha_local_hash_text = sha_hash_to_text(hash);
 
 					if(sha_remote_hash_text != sha_local_hash_text)
@@ -1246,7 +1265,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 }
 
 static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel,
-		int current_sector, const unsigned char *buffer, unsigned int size, unsigned int length,
+		int current_sector, const unsigned char *buffer, unsigned int buffer_size, unsigned int length,
 		unsigned int current_x, unsigned int current_y, unsigned int depth, bool verbose)
 {
 	enum { attempts =  8 };
@@ -1254,11 +1273,13 @@ static void command_image_send_sector(GenericSocket &command_channel, GenericSoc
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
 	std::string reply;
-	unsigned char sector_hash[SHA_DIGEST_LENGTH];
+	unsigned char sector_hash[sha1_text_hash_size];
 	std::string sha_local_hash_text;
 	unsigned int pixels;
+	unsigned int size;
 
-	SHA1(buffer, size, sector_hash);
+	size = sha1_text_hash_size;
+	EVP_Digest(buffer, buffer_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
 	sha_local_hash_text = sha_hash_to_text(sector_hash);
 
 	for(attempt = 0; attempt < attempts; attempt++)
