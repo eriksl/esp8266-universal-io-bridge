@@ -14762,3 +14762,7 @@ Sun Jul  3 18:13:53 CEST 2022 864d279 espif: update to openssl 3.0 with obsolete
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68633, free:  11632, 14 %
     irom:    available: 784 k, used: 438368, free: 364448, 45 %
+Fri Jul  8 14:09:28 CEST 2022 b3b08a3 Update ESP8266_NONOS_SDK
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74393, free:   5872,  7 %
+    irom:    available: 784 k, used: 438352, free: 364464, 45 %
