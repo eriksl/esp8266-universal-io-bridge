@@ -56,12 +56,12 @@ extern uint8_t display_buffer[display_buffer_size];
 bool display_get_info(display_info_t *);
 bool display_load_picture_slot(unsigned int slot);
 
-app_action_t application_function_display_brightness(string_t *src, string_t *dst);
-app_action_t application_function_display_dump(string_t *src, string_t *dst);
-app_action_t application_function_display_default_message(string_t *src, string_t *dst);
-app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst);
-app_action_t application_function_display_set(string_t *src, string_t *dst);
-app_action_t application_function_display_picture_load(string_t *src, string_t *dst);
-app_action_t application_function_display_plot(string_t *src, string_t *dst);
-app_action_t application_function_display_freeze(string_t *src, string_t *dst);
+app_action_t application_function_display_brightness(app_params_t *);
+app_action_t application_function_display_dump(app_params_t *);
+app_action_t application_function_display_default_message(app_params_t *);
+app_action_t application_function_display_flip_timeout(app_params_t *);
+app_action_t application_function_display_set(app_params_t *);
+app_action_t application_function_display_picture_load(app_params_t *);
+app_action_t application_function_display_plot(app_params_t *);
+app_action_t application_function_display_freeze(app_params_t *);
 #endif

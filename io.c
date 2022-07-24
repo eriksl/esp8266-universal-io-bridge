@@ -1841,7 +1841,7 @@ void io_periodic_slow(unsigned int period)
 
 /* app commands */
 
-app_action_t application_function_io_mode(string_t *src, string_t *dst)
+app_action_t application_function_io_mode(app_params_t *parameters)
 {
 	const io_info_entry_t	*info;
 	io_data_entry_t			*data;
@@ -1854,15 +1854,15 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 	int						trigger_io, trigger_pin;
 	io_trigger_t			trigger_type;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		io_config_dump(dst, -1, -1, false);
+		io_config_dump(parameters->dst, -1, -1, false);
 		return(app_action_normal);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
@@ -1871,48 +1871,48 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 	if(!data->detected)
 	{
-		string_format(dst, "io %u not detected\n", io);
+		string_format(parameters->dst, "io %u not detected\n", io);
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
-		io_config_dump(dst, io, -1, false);
+		io_config_dump(parameters->dst, io, -1, false);
 		return(app_action_normal);
 	}
 
 	if(pin >= info->pins)
 	{
-		string_append(dst, "io pin out of range\n");
+		string_append(parameters->dst, "io pin out of range\n");
 		return(app_action_error);
 	}
 
 	pin_config = &io_config[io][pin];
 	pin_data = &data->pin[pin];
 
-	if(parse_string(3, src, dst, ' ') != parse_ok)
+	if(parse_string(3, parameters->src, parameters->dst, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		io_config_dump(dst, io, pin, false);
+		string_clear(parameters->dst);
+		io_config_dump(parameters->dst, io, pin, false);
 		return(app_action_normal);
 	}
 
-	if((mode = io_mode_from_string(dst)) == io_pin_error)
+	if((mode = io_mode_from_string(parameters->dst)) == io_pin_error)
 	{
-		string_clear(dst);
-		string_append(dst, "invalid mode, available modes: ");
-		io_strings_from_modes(dst);
-		string_append(dst, "\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "invalid mode, available modes: ");
+		io_strings_from_modes(parameters->dst);
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
-	string_clear(dst);
+	string_clear(parameters->dst);
 
 	llmode = io_pin_ll_error;
 
 	if(!config_open_write())
 	{
-		string_append(dst, "config write failure (open)\n");
+		string_append(parameters->dst, "config write failure (open)\n");
 		return(app_action_error);
 	}
 
@@ -1923,7 +1923,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 			if(!(info->caps & caps_input_digital))
 			{
 				config_abort_write();
-				string_append(dst, "digital input mode invalid for this io\n");
+				string_append(parameters->dst, "digital input mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -1941,14 +1941,14 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 			if(!(info->caps & caps_counter))
 			{
 				config_abort_write();
-				string_append(dst, "counter mode invalid for this io\n");
+				string_append(parameters->dst, "counter mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			if((parse_uint(4, src, &debounce, 0, ' ') != parse_ok))
+			if((parse_uint(4, parameters->src, &debounce, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
-				string_append(dst, "counter: <debounce ms>\n");
+				string_append(parameters->dst, "counter: <debounce ms>\n");
 				return(app_action_error);
 			}
 
@@ -1971,23 +1971,23 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 			if(!(info->caps & caps_rotary_encoder))
 			{
-				string_append(dst, "rotary encoder mode invalid for this io\n");
+				string_append(parameters->dst, "rotary encoder mode invalid for this io\n");
 				goto renc_error1;
 			}
 
-			if(parse_string(4, src, dst, ' ') != parse_ok)
+			if(parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok)
 				goto renc_error;
 
-			if((pin_type = io_renc_pin_from_string(dst)) == io_renc_error)
+			if((pin_type = io_renc_pin_from_string(parameters->dst)) == io_renc_error)
 				goto renc_error;
 
-			string_clear(dst);
+			string_clear(parameters->dst);
 
-			if(parse_uint(5, src, &debounce, 0, ' ') != parse_ok)
+			if(parse_uint(5, parameters->src, &debounce, 0, ' ') != parse_ok)
 				goto renc_error;
 
-			if((parse_int(6, src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(7, src, &trigger_pin, 0, ' ') == parse_ok))
-				if(parse_int(8, src, &trigger_remote_index, 0, ' ') == parse_ok)
+			if((parse_int(6, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(7, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
+				if(parse_int(8, parameters->src, &trigger_remote_index, 0, ' ') == parse_ok)
 					(void)0;
 				else
 					trigger_remote_index = -1;
@@ -2008,7 +2008,7 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 				if(partner_pin >= pin)
 				{
-					string_append(dst, "rotary encoder: no matching 'a' pin for 'b' pin on this io\n");
+					string_append(parameters->dst, "rotary encoder: no matching 'a' pin for 'b' pin on this io\n");
 					goto renc_error1;
 				}
 
@@ -2043,8 +2043,8 @@ app_action_t application_function_io_mode(string_t *src, string_t *dst)
 
 			break;
 renc_error:
-			string_clear(dst);
-			string_append(dst, "rotary encoder: <pin mode> <debounce ms> [<trigger io> <trigger pin> [<remote index>]], <pin mode>=1a|1b|2a|2b\n");
+			string_clear(parameters->dst);
+			string_append(parameters->dst, "rotary encoder: <pin mode> <debounce ms> [<trigger io> <trigger pin> [<remote index>]], <pin mode>=1a|1b|2a|2b\n");
 renc_error1:
 			config_abort_write();
 			return(app_action_error);
@@ -2055,46 +2055,46 @@ renc_error1:
 			if(!(info->caps & caps_counter))
 			{
 				config_abort_write();
-				string_append(dst, "trigger mode invalid for this io\n");
+				string_append(parameters->dst, "trigger mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			if((parse_uint(4, src, &debounce, 0, ' ') != parse_ok))
+			if((parse_uint(4, parameters->src, &debounce, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
-				iomode_trigger_usage(dst, "debounce");
+				iomode_trigger_usage(parameters->dst, "debounce");
 				return(app_action_error);
 			}
 
 			pin_config->speed = debounce;
 
-			if((parse_string(5, src, dst, ' ') != parse_ok))
+			if((parse_string(5, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
 				config_abort_write();
-				string_clear(dst);
-				iomode_trigger_usage(dst, "action 1");
+				string_clear(parameters->dst);
+				iomode_trigger_usage(parameters->dst, "action 1");
 				return(app_action_error);
 			}
 
-			if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+			if((trigger_type = string_to_trigger_action(parameters->dst)) == io_trigger_error)
 			{
 				config_abort_write();
-				string_clear(dst);
-				iomode_trigger_usage(dst, "action 2");
+				string_clear(parameters->dst);
+				iomode_trigger_usage(parameters->dst, "action 2");
 				return(app_action_error);
 			}
 
-			if((parse_int(6, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(6, parameters->src, &trigger_io, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
-				iomode_trigger_usage(dst, "io");
+				iomode_trigger_usage(parameters->dst, "io");
 				return(app_action_error);
 			}
 
-			if((parse_int(7, src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_int(7, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
-				iomode_trigger_usage(dst, "pin");
+				iomode_trigger_usage(parameters->dst, "pin");
 				return(app_action_error);
 			}
 
@@ -2106,24 +2106,24 @@ renc_error1:
 			pin_config->shared.trigger[1].io.pin = -1;
 			pin_config->shared.trigger[1].action = io_trigger_none;
 
-			if((parse_string(8, src, dst, ' ') != parse_ok))
+			if((parse_string(8, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
-				string_clear(dst);
+				string_clear(parameters->dst);
 				goto skip;
 			}
 
-			string_clear(dst);
+			string_clear(parameters->dst);
 
-			if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+			if((trigger_type = string_to_trigger_action(parameters->dst)) == io_trigger_error)
 			{
-				string_clear(dst);
+				string_clear(parameters->dst);
 				goto skip;
 			}
 
-			if((parse_int(9, src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(9, parameters->src, &trigger_io, 0, ' ') != parse_ok))
 				goto skip;
 
-			if((parse_int(10, src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_int(10, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
 				goto skip;
 
 			pin_config->shared.trigger[1].io.io = trigger_io;
@@ -2159,7 +2159,7 @@ skip:
 			if(!(info->caps & caps_output_digital))
 			{
 				config_abort_write();
-				string_append(dst, "digital output mode invalid for this io\n");
+				string_append(parameters->dst, "digital output mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -2180,43 +2180,43 @@ skip:
 			if(!(info->caps & caps_output_digital))
 			{
 				config_abort_write();
-				string_append(dst, "timer mode invalid for this io\n");
+				string_append(parameters->dst, "timer mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			if(parse_string(4, src, dst, ' ') != parse_ok)
+			if(parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok)
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "timer: <direction>:up/down <speed>:ms\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
-			if(string_match_cstr(dst, "up"))
+			if(string_match_cstr(parameters->dst, "up"))
 				direction = io_dir_up;
-			else if(string_match_cstr(dst, "down"))
+			else if(string_match_cstr(parameters->dst, "down"))
 				direction = io_dir_down;
 			else
 			{
 				config_abort_write();
-				string_append(dst, ": timer direction invalid\n");
+				string_append(parameters->dst, ": timer direction invalid\n");
 				return(app_action_error);
 			}
 
-			string_clear(dst);
+			string_clear(parameters->dst);
 
-			if((parse_uint(5, src, &speed, 0, ' ') != parse_ok))
+			if((parse_uint(5, parameters->src, &speed, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "timer: <direction>:up/down <speed>:ms\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "timer: <direction>:up/down <speed>:ms\n");
 				return(app_action_error);
 			}
 
 			if(speed < 100)
 			{
 				config_abort_write();
-				string_format(dst, "timer: speed too small: must be >= %d ms\n", 100);
+				string_format(parameters->dst, "timer: speed too small: must be >= %d ms\n", 100);
 				return(app_action_error);
 			}
 
@@ -2239,7 +2239,7 @@ skip:
 			if(!(info->caps & caps_input_analog))
 			{
 				config_abort_write();
-				string_append(dst, "analog input mode invalid for this io\n");
+				string_append(parameters->dst, "analog input mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -2261,13 +2261,13 @@ skip:
 			if(!(info->caps & caps_output_pwm1))
 			{
 				config_abort_write();
-				string_append(dst, "primary pwm output mode invalid for this io\n");
+				string_append(parameters->dst, "primary pwm output mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			parse_uint(4, src, &lower_bound, 0, ' ');
-			parse_uint(5, src, &upper_bound, 0, ' ');
-			parse_int(6, src, &speed, 0, ' ');
+			parse_uint(4, parameters->src, &lower_bound, 0, ' ');
+			parse_uint(5, parameters->src, &upper_bound, 0, ' ');
+			parse_int(6, parameters->src, &speed, 0, ' ');
 
 			if(upper_bound == 0)
 				upper_bound = ~0;
@@ -2275,7 +2275,7 @@ skip:
 			if(upper_bound < lower_bound)
 			{
 				config_abort_write();
-				string_append(dst, "upper bound below lower bound\n");
+				string_append(parameters->dst, "upper bound below lower bound\n");
 				return(app_action_error);
 			}
 
@@ -2310,13 +2310,13 @@ skip:
 			if(!(info->caps & caps_output_pwm2))
 			{
 				config_abort_write();
-				string_append(dst, "secondary pwm output mode invalid for this io\n");
+				string_append(parameters->dst, "secondary pwm output mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			parse_uint(4, src, &lower_bound, 0, ' ');
-			parse_uint(5, src, &upper_bound, 0, ' ');
-			parse_int(6, src, &speed, 0, ' ');
+			parse_uint(4, parameters->src, &lower_bound, 0, ' ');
+			parse_uint(5, parameters->src, &upper_bound, 0, ' ');
+			parse_int(6, parameters->src, &speed, 0, ' ');
 
 			if(upper_bound == 0)
 				upper_bound = ~0;
@@ -2324,7 +2324,7 @@ skip:
 			if(upper_bound < lower_bound)
 			{
 				config_abort_write();
-				string_append(dst, "upper bound below lower bound\n");
+				string_append(parameters->dst, "upper bound below lower bound\n");
 				return(app_action_error);
 			}
 
@@ -2357,27 +2357,27 @@ skip:
 			if(!(info->caps & caps_i2c))
 			{
 				config_abort_write();
-				string_append(dst, "i2c mode invalid for this io\n");
+				string_append(parameters->dst, "i2c mode invalid for this io\n");
 				return(app_action_error);
 			}
 
-			if(parse_string(4, src, dst, ' ') != parse_ok)
+			if(parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok)
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "i2c: <pin mode>=sda|scl\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "i2c: <pin mode>=sda|scl\n");
 				return(app_action_error);
 			}
 
-			if((pin_mode = io_i2c_pin_from_string(dst)) == io_i2c_error)
+			if((pin_mode = io_i2c_pin_from_string(parameters->dst)) == io_i2c_error)
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "i2c: <pin mode>=sda|scl\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "i2c: <pin mode>=sda|scl\n");
 				return(app_action_error);
 			}
 
-			string_clear(dst);
+			string_clear(parameters->dst);
 
 			pin_config->shared.i2c.pin_mode = pin_mode;
 
@@ -2396,7 +2396,7 @@ skip:
 			if(!(info->caps & caps_uart))
 			{
 				config_abort_write();
-				string_append(dst, "uart mode invalid for this io\n");
+				string_append(parameters->dst, "uart mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -2413,23 +2413,23 @@ skip:
 		{
 			io_lcd_mode_t pin_mode;
 
-			if(parse_string(4, src, dst, ' ') != parse_ok)
+			if(parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok)
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 
-			if((pin_mode = io_lcd_mode_from_string(dst)) == io_lcd_error)
+			if((pin_mode = io_lcd_mode_from_string(parameters->dst)) == io_lcd_error)
 			{
 				config_abort_write();
-				string_clear(dst);
-				string_append(dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
+				string_clear(parameters->dst);
+				string_append(parameters->dst, "lcd: <pin use>=rs|rw|e|d0|d1|d2|d3|d4|d5|d6|d7|bl\n");
 				return(app_action_error);
 			}
 
-			string_clear(dst);
+			string_clear(parameters->dst);
 
 			if(pin_mode == io_lcd_bl) // backlight
 			{
@@ -2444,7 +2444,7 @@ skip:
 						else
 						{
 							config_abort_write();
-							string_append(dst, "pwm1/digital output mode invalid for this io\n");
+							string_append(parameters->dst, "pwm1/digital output mode invalid for this io\n");
 							return(app_action_error);
 						}
 			}
@@ -2453,7 +2453,7 @@ skip:
 				if(!(info->caps & caps_output_digital))
 				{
 					config_abort_write();
-					string_append(dst, "digital output mode invalid for this io\n");
+					string_append(parameters->dst, "digital output mode invalid for this io\n");
 					return(app_action_error);
 				}
 
@@ -2475,7 +2475,7 @@ skip:
 			if(!(info->caps & caps_ledpixel))
 			{
 				config_abort_write();
-				string_append(dst, "ledpixel mode invalid for this io\n");
+				string_append(parameters->dst, "ledpixel mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -2497,7 +2497,7 @@ skip:
 				default:
 				{
 					config_abort_write();
-					string_append(dst, "ledpixel mode invalid for this pin\n");
+					string_append(parameters->dst, "ledpixel mode invalid for this pin\n");
 					return(app_action_error);
 				}
 			}
@@ -2514,7 +2514,7 @@ skip:
 			if(!(info->caps & caps_uart))
 			{
 				config_abort_write();
-				string_append(dst, "cfa634 mode invalid for this io (must be an uart)\n");
+				string_append(parameters->dst, "cfa634 mode invalid for this io (must be an uart)\n");
 				return(app_action_error);
 			}
 
@@ -2532,7 +2532,7 @@ skip:
 			if(!(info->caps & caps_spi))
 			{
 				config_abort_write();
-				string_append(dst, "spi mode invalid for this io\n");
+				string_append(parameters->dst, "spi mode invalid for this io\n");
 				return(app_action_error);
 			}
 
@@ -2559,7 +2559,7 @@ skip:
 			llmode = io_pin_ll_error;
 
 			config_abort_write();
-			string_append(dst, "unsupported io mode\n");
+			string_append(parameters->dst, "unsupported io mode\n");
 			return(app_action_error);
 		}
 	}
@@ -2568,258 +2568,258 @@ skip:
 
 	if((mode == io_pin_error) || (llmode == io_pin_ll_error))
 	{
-		string_append(dst, "error\n");
+		string_append(parameters->dst, "error\n");
 		return(app_action_error);
 	}
 
 	pin_config->mode = mode;
 	pin_config->llmode = llmode;
 
-	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
+	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(parameters->dst, info, pin_data, pin_config, pin) != io_ok))
 	{
 		pin_config->mode = io_pin_disabled;
 		pin_config->llmode = io_pin_ll_disabled;
 		return(app_action_error);
 	}
 
-	io_config_dump(dst, io, pin, false);
+	io_config_dump(parameters->dst, io, pin, false);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_io_read(string_t *src, string_t *dst)
+app_action_t application_function_io_read(app_params_t *parameters)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
 	unsigned int io, pin, value;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-read: <io> <pin>\n");
+		string_append(parameters->dst, "io-read: <io> <pin>\n");
 		return(app_action_error);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
 	info = &io_info[io];
 
-	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "get: <io> <pin>\n");
+		string_append(parameters->dst, "get: <io> <pin>\n");
 		return(app_action_error);
 	}
 
 	if(pin >= info->pins)
 	{
-		string_append(dst, "io pin out of range\n");
+		string_append(parameters->dst, "io pin out of range\n");
 		return(app_action_error);
 	}
 
 	pin_config = &io_config[io][pin];
 
-	io_string_from_mode(dst, pin_config->mode, 0);
+	io_string_from_mode(parameters->dst, pin_config->mode, 0);
 
 	if(pin_config->mode == io_pin_i2c)
 	{
-		string_append(dst, "/");
-		io_string_from_i2c_type(dst, pin_config->shared.i2c.pin_mode);
+		string_append(parameters->dst, "/");
+		io_string_from_i2c_type(parameters->dst, pin_config->shared.i2c.pin_mode);
 	}
 
 	if(pin_config->mode == io_pin_lcd)
 	{
-		string_append(dst, "/");
-		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
+		string_append(parameters->dst, "/");
+		io_string_from_lcd_mode(parameters->dst, pin_config->shared.lcd.pin_use);
 	}
 
 	if(pin_config->mode == io_pin_rotary_encoder)
 	{
-		string_append(dst, "/");
-		io_string_from_renc_pin(dst, pin_config->shared.renc.pin_type);
+		string_append(parameters->dst, "/");
+		io_string_from_renc_pin(parameters->dst, pin_config->shared.renc.pin_type);
 	}
 
-	string_append(dst, ": ");
+	string_append(parameters->dst, ": ");
 
-	if(io_read_pin(dst, io, pin, &value) != io_ok)
+	if(io_read_pin(parameters->dst, io, pin, &value) != io_ok)
 		return(app_action_error);
 
-	string_format(dst, "[%u]\n", value);
+	string_format(parameters->dst, "[%u]\n", value);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_io_write(string_t *src, string_t *dst)
+app_action_t application_function_io_write(app_params_t *parameters)
 {
 	const io_info_entry_t *info;
 	io_config_pin_entry_t *pin_config;
 	unsigned int io, pin, value;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-write <io> <pin> <value>\n");
+		string_append(parameters->dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
 	info = &io_info[io];
 
-	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-write <io> <pin> <value>\n");
+		string_append(parameters->dst, "io-write <io> <pin> <value>\n");
 		return(app_action_error);
 	}
 
 	if(pin >= info->pins)
 	{
-		string_append(dst, "invalid pin\n");
+		string_append(parameters->dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
 	pin_config = &io_config[io][pin];
 
 	value = 0;
-	parse_uint(3, src, &value, 0, ' ');
+	parse_uint(3, parameters->src, &value, 0, ' ');
 
-	io_string_from_mode(dst, pin_config->mode, 0);
+	io_string_from_mode(parameters->dst, pin_config->mode, 0);
 
 	if(pin_config->mode == io_pin_lcd)
 	{
-		string_append(dst, "/");
-		io_string_from_lcd_mode(dst, pin_config->shared.lcd.pin_use);
+		string_append(parameters->dst, "/");
+		io_string_from_lcd_mode(parameters->dst, pin_config->shared.lcd.pin_use);
 	}
 
-	string_append(dst, ": ");
+	string_append(parameters->dst, ": ");
 
-	if(io_write_pin(dst, io, pin, value) != io_ok)
+	if(io_write_pin(parameters->dst, io, pin, value) != io_ok)
 	{
-		string_append(dst, "\n");
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
-	if(io_read_pin(dst, io, pin, &value) != io_ok)
+	if(io_read_pin(parameters->dst, io, pin, &value) != io_ok)
 	{
-		string_append(dst, "\n");
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "[%u]\n", value);
+	string_format(parameters->dst, "[%u]\n", value);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_io_set_mask(string_t *src, string_t *dst)
+app_action_t application_function_io_set_mask(app_params_t *parameters)
 {
 	unsigned int io, mask, pins;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		string_append(parameters->dst, "io-set-mask <io> <mask> <pins>\n");
 		return(app_action_error);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &mask, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &mask, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		string_append(parameters->dst, "io-set-mask <io> <mask> <pins>\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(3, src, &pins, 0, ' ') != parse_ok)
+	if(parse_uint(3, parameters->src, &pins, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-set-mask <io> <mask> <pins>\n");
+		string_append(parameters->dst, "io-set-mask <io> <mask> <pins>\n");
 		return(app_action_error);
 	}
 
-	if(io_set_mask(dst, io, mask, pins) != io_ok)
+	if(io_set_mask(parameters->dst, io, mask, pins) != io_ok)
 	{
-		string_append(dst, "error\n");
+		string_append(parameters->dst, "error\n");
 		return(app_action_error);
 	}
 
-	string_append(dst, "ok\n");
+	string_append(parameters->dst, "ok\n");
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_io_trigger(string_t *src, string_t *dst)
+app_action_t application_function_io_trigger(app_params_t *parameters)
 {
 	const io_info_entry_t *info;
 	unsigned int io, pin;
 	io_trigger_t trigger_type;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		trigger_usage(dst);
+		string_clear(parameters->dst);
+		trigger_usage(parameters->dst);
 		return(app_action_normal);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
 	info = &io_info[io];
 
-	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		trigger_usage(dst);
+		string_clear(parameters->dst);
+		trigger_usage(parameters->dst);
 		return(app_action_normal);
 	}
 
 	if(pin >= info->pins)
 	{
-		string_append(dst, "invalid pin\n");
+		string_append(parameters->dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
-	if(parse_string(3, src, dst, ' ') != parse_ok)
+	if(parse_string(3, parameters->src, parameters->dst, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		trigger_usage(dst);
+		string_clear(parameters->dst);
+		trigger_usage(parameters->dst);
 		return(app_action_normal);
 	}
 
-	if((trigger_type = string_to_trigger_action(dst)) == io_trigger_error)
+	if((trigger_type = string_to_trigger_action(parameters->dst)) == io_trigger_error)
 	{
-		string_clear(dst);
-		trigger_usage(dst);
+		string_clear(parameters->dst);
+		trigger_usage(parameters->dst);
 		return(app_action_normal);
 	}
 
-	string_clear(dst);
+	string_clear(parameters->dst);
 
-	string_append(dst, "trigger ");
-	trigger_action_to_string(dst, trigger_type);
-	string_format(dst, " %u/%u: ", io, pin);
+	string_append(parameters->dst, "trigger ");
+	trigger_action_to_string(parameters->dst, trigger_type);
+	string_format(parameters->dst, " %u/%u: ", io, pin);
 
-	if(io_trigger_pin(dst, io, pin, trigger_type) != io_ok)
+	if(io_trigger_pin(parameters->dst, io, pin, trigger_type) != io_ok)
 	{
-		string_append(dst, "\n");
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
-	string_append(dst, "ok\n");
+	string_append(parameters->dst, "ok\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_io_clear_set_flag(const string_t *src, string_t *dst, uint32_t value)
+static app_action_t application_function_io_clear_set_flag(app_params_t *parameters, unsigned int value)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -2829,30 +2829,30 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 	io_pin_flag_t saved_flags;
 	io_pin_flag_to_int_t io_pin_flag_to_int;
 
-	if(parse_uint(1, src, &io, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-flag <io> <pin> <flag>\n");
+		string_append(parameters->dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
 	if(io >= io_id_size)
 	{
-		string_format(dst, "invalid io %u\n", io);
+		string_format(parameters->dst, "invalid io %u\n", io);
 		return(app_action_error);
 	}
 
 	info = &io_info[io];
 	data = &io_data[io];
 
-	if(parse_uint(2, src, &pin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "io-flag <io> <pin> <flag>\n");
+		string_append(parameters->dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
 	if(pin >= info->pins)
 	{
-		string_append(dst, "invalid pin\n");
+		string_append(parameters->dst, "invalid pin\n");
 		return(app_action_error);
 	}
 
@@ -2861,26 +2861,26 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 
 	saved_flags = pin_config->flags;
 
-	if((parse_string(3, src, dst, ' ') == parse_ok) && !io_string_to_flags(dst, pin_config, !!value))
+	if((parse_string(3, parameters->src, parameters->dst, ' ') == parse_ok) && !io_string_to_flags(parameters->dst, pin_config, !!value))
 	{
-		string_clear(dst);
-		string_append(dst, "io-flag <io> <pin> <flag>\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "io-flag <io> <pin> <flag>\n");
 		return(app_action_error);
 	}
 
 	if((pin_config->flags & io_flag_pullup) && !(info->caps & caps_pullup))
 	{
 		pin_config->flags = saved_flags;
-		string_clear(dst);
-		string_append(dst, "io does not support pullup\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "io does not support pullup\n");
 		return(app_action_error);
 	}
 
-	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(dst, info, pin_data, pin_config, pin) != io_ok))
+	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(parameters->dst, info, pin_data, pin_config, pin) != io_ok))
 	{
 		pin_config->flags = saved_flags;
-		string_clear(dst);
-		string_append(dst, "cannot enable this flag\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "cannot enable this flag\n");
 		return(app_action_error);
 	}
 
@@ -2889,24 +2889,24 @@ static app_action_t application_function_io_clear_set_flag(const string_t *src, 
 	config_set_int("io.%u.%u.flags", io_pin_flag_to_int.intvalue, io, pin);
 	config_close_write();
 
-	string_clear(dst);
-	string_format(dst, "flags for pin %u/%u:", io, pin);
+	string_clear(parameters->dst);
+	string_format(parameters->dst, "flags for pin %u/%u:", io, pin);
 
-	io_flags_to_string(dst, pin_config);
+	io_flags_to_string(parameters->dst, pin_config);
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_io_set_flag(string_t *src, string_t *dst)
+app_action_t application_function_io_set_flag(app_params_t *parameters)
 {
-	return(application_function_io_clear_set_flag(src, dst, 1));
+	return(application_function_io_clear_set_flag(parameters, 1));
 }
 
-app_action_t application_function_io_clear_flag(string_t *src, string_t *dst)
+app_action_t application_function_io_clear_flag(app_params_t *parameters)
 {
-	return(application_function_io_clear_set_flag(src, dst, 0));
+	return(application_function_io_clear_set_flag(parameters, 0));
 }
 
 /* dump */

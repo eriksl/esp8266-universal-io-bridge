@@ -788,13 +788,13 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 
 roflash const char help_description_display_orbital[] = "> usage: display-orbital (do) <1=enable, 0=disable>\n";
 
-app_action_t application_function_display_orbital(string_t *src, string_t *dst)
+app_action_t application_function_display_orbital(app_params_t *parameters)
 {
 	unsigned int enabled;
 
 	enabled = 0;
 
-	if(parse_uint(1, src, &enabled, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &enabled, 0, ' ') == parse_ok)
 	{
 		if(!config_open_write())
 			goto config_error;
@@ -811,18 +811,18 @@ app_action_t application_function_display_orbital(string_t *src, string_t *dst)
 
 	if(!config_get_uint("orbital.enabled", &enabled, -1, -1))
 	{
-		string_format(dst, "no orbital display configured\n");
+		string_format(parameters->dst, "no orbital display configured\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "orbital display enabled: %u\n", enabled);
+	string_format(parameters->dst, "orbital display enabled: %u\n", enabled);
 
 	return(app_action_normal);
 
 config_error:
 	config_abort_write();
-	string_clear(dst);
-	string_append(dst, "> cannot set config\n");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> cannot set config\n");
 	return(app_action_error);
 }
 

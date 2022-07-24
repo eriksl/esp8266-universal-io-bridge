@@ -40,7 +40,7 @@ void mailbox_init(unsigned int mailbox_port)
 			false, socket_mailbox_callback_data_received);
 }
 
-app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_info(app_params_t *parameters)
 {
 	rboot_if_config_t config;
 	rboot_if_rtc_config_t rtc;
@@ -51,7 +51,7 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 
 	if(!rboot_if_read_config(&config))
 	{
-		string_append(dst, "ERROR rboot config invalid\n");
+		string_append(parameters->dst, "ERROR rboot config invalid\n");
 		return(app_action_error);
 	}
 
@@ -73,7 +73,7 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 		pixel_mode = display_pixel_mode_none;
 	}
 
-	string_format(dst, "OK mailbox function available, "
+	string_format(parameters->dst, "OK mailbox function available, "
 				"slots: %u, current: %u, "
 				"sectors: [ %u, %u ], display: %ux%upx@%u\n",
 			config.slot_count, mailbox_slot,
@@ -83,32 +83,32 @@ app_action_t application_function_mailbox_info(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_reset(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_reset(app_params_t *parameters)
 {
 	string_clear(&mailbox_socket_send_buffer);
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);
 
-	string_format(dst, "OK mailbox-reset\n");
+	string_format(parameters->dst, "OK mailbox-reset\n");
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_read(app_params_t *parameters)
 {
 	unsigned int sector;
 	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
 	SpiFlashOpResult flash_result;
 
-	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR: mailbox-read: invalid sector\n");
+		string_append(parameters->dst, "ERROR: mailbox-read: invalid sector\n");
 		return(app_action_error);
 	}
 
 	if(lwip_if_send_buffer_locked(&mailbox_socket))
 	{
-		string_append(dst, "ERROR: mailbox-read: send buffer busy\n");
+		string_append(parameters->dst, "ERROR: mailbox-read: send buffer busy\n");
 		return(app_action_error);
 	}
 
@@ -117,13 +117,13 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
-		string_append(dst, "ERROR: mailbox-read: read error\n");
+		string_append(parameters->dst, "ERROR: mailbox-read: read error\n");
 		return(app_action_error);
 	}
 
 	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 	{
-		string_append(dst, "ERROR: mailbox-read: read timeout\n");
+		string_append(parameters->dst, "ERROR: mailbox-read: read timeout\n");
 		return(app_action_error);
 	}
 
@@ -131,27 +131,27 @@ app_action_t application_function_mailbox_read(string_t *src, string_t *dst)
 	SHA1_text((const unsigned char *)string_buffer(&mailbox_socket_send_buffer), SPI_FLASH_SEC_SIZE, &sha_text);
 
 	if(lwip_if_send(&mailbox_socket))
-		string_format(dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_text));
+		string_format(parameters->dst, "OK mailbox-read: sending sector %u, checksum: %s\n", sector, string_to_cstr(&sha_text));
 	else
-		string_append(dst, "ERROR mailbox-read: send failed\n");
+		string_append(parameters->dst, "ERROR mailbox-read: send failed\n");
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_bench(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_bench(app_params_t *parameters)
 {
 	unsigned int direction;
 
-	if(parse_uint(1, src, &direction, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &direction, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR: mailbox-bench: invalid direction\n");
+		string_append(parameters->dst, "ERROR: mailbox-bench: invalid direction\n");
 		return(app_action_error);
 	}
 
 	if(direction == 0)
 	{
 		string_setlength(&mailbox_socket_send_buffer, SPI_FLASH_SEC_SIZE);
-		string_append(dst, "OK mailbox-bench: sending one sector\n");
+		string_append(parameters->dst, "OK mailbox-bench: sending one sector\n");
 
 		if(!lwip_if_send(&mailbox_socket))
 			log("mailbox-bench send failed\n");
@@ -159,9 +159,9 @@ app_action_t application_function_mailbox_bench(string_t *src, string_t *dst)
 	else
 	{
 		if(string_length(&mailbox_socket_receive_buffer) != SPI_FLASH_SEC_SIZE)
-			string_format(dst, "ERROR mailbox-bench: received incomplete sector: %d\n", string_length(&mailbox_socket_receive_buffer));
+			string_format(parameters->dst, "ERROR mailbox-bench: received incomplete sector: %d\n", string_length(&mailbox_socket_receive_buffer));
 		else
-			string_append(dst, "OK mailbox-bench: received one sector\n");
+			string_append(parameters->dst, "OK mailbox-bench: received one sector\n");
 
 		string_setlength(&mailbox_socket_receive_buffer, 0);
 		lwip_if_receive_buffer_unlock(&mailbox_socket);
@@ -170,7 +170,7 @@ app_action_t application_function_mailbox_bench(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_checksum(app_params_t *parameters)
 {
 	unsigned int current, sector, sectors;
 	SpiFlashOpResult flash_result;
@@ -181,15 +181,15 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 	char *buffer_cstr;
 	unsigned int size;
 
-	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR mailbox-checksum: start sector required\n");
+		string_append(parameters->dst, "ERROR mailbox-checksum: start sector required\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &sectors, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &sectors, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR mailbox-checksum: amount of sectors required\n");
+		string_append(parameters->dst, "ERROR mailbox-checksum: amount of sectors required\n");
 		return(app_action_error);
 	}
 
@@ -197,7 +197,7 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 
 	if(!buffer_string)
 	{
-		string_format(dst, "mailbox_checksum: flash buffer busy (%u)\n", flash_buffer_using());
+		string_format(parameters->dst, "mailbox_checksum: flash buffer busy (%u)\n", flash_buffer_using());
 		return(app_action_error);
 	}
 
@@ -209,14 +209,14 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
-			string_append(dst, "ERROR: mailbox-checksum: read error\n");
+			string_append(parameters->dst, "ERROR: mailbox-checksum: read error\n");
 			flash_buffer_release(fsb_mailbox, "mailbox checksum");
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
-			string_append(dst, "ERROR: mailbox-checksum: read timeout\n");
+			string_append(parameters->dst, "ERROR: mailbox-checksum: read timeout\n");
 			flash_buffer_release(fsb_mailbox, "mailbox checksum");
 			return(app_action_error);
 		}
@@ -229,32 +229,32 @@ app_action_t application_function_mailbox_checksum(string_t *src, string_t *dst)
 	SHA1Final(sha_result, &sha_context);
 	string_bin_to_hex(&sha_string, sha_result, SHA_DIGEST_LENGTH);
 
-	string_format(dst, "OK mailbox-checksum: checksummed sectors: %u, from sector: %u, checksum: ", sectors, sector);
-	string_append_string(dst, &sha_string);
-	string_append(dst, "\n");
+	string_format(parameters->dst, "OK mailbox-checksum: checksummed sectors: %u, from sector: %u, checksum: ", sectors, sector);
+	string_append_string(parameters->dst, &sha_string);
+	string_append(parameters->dst, "\n");
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_simulate(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_simulate(app_params_t *parameters)
 {
 	unsigned int sector;
 	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
 
-	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR: mailbox-simulate: invalid sector\n");
+		string_append(parameters->dst, "ERROR: mailbox-simulate: invalid sector\n");
 		return(app_action_error);
 	}
 
 	if(string_length(&mailbox_socket_receive_buffer) != SPI_FLASH_SEC_SIZE)
 	{
-		string_format(dst, "ERROR: mailbox-simulate: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
+		string_format(parameters->dst, "ERROR: mailbox-simulate: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
 		return(app_action_error);
 	}
 
 	SHA1_text((const unsigned char *)string_buffer(&mailbox_socket_receive_buffer), SPI_FLASH_SEC_SIZE, &sha_text);
-	string_format(dst, "OK mailbox-simulate: received sector %u, erased: %u, skipped %u, checksum: %s\n", sector, 0U, 0U, string_to_cstr(&sha_text));
+	string_format(parameters->dst, "OK mailbox-simulate: received sector %u, erased: %u, skipped %u, checksum: %s\n", sector, 0U, 0U, string_to_cstr(&sha_text));
 
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);
@@ -262,7 +262,7 @@ app_action_t application_function_mailbox_simulate(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_write(app_params_t *parameters)
 {
 	unsigned int sector;
 	string_new(, sha_text, SHA_DIGEST_LENGTH * 2 + 2);
@@ -273,9 +273,9 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 	char *buffer_cstr;
 	unsigned int buffer_size;
 
-	if(parse_uint(1, src, &sector, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR: mailbox-write: invalid sector\n");
+		string_append(parameters->dst, "ERROR: mailbox-write: invalid sector\n");
 		return(app_action_error);
 	}
 
@@ -283,14 +283,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 
 	if(!buffer_string)
 	{
-		string_format(dst, "mailbox_write: flash buffer busy (%u)\n", flash_buffer_using());
+		string_format(parameters->dst, "mailbox_write: flash buffer busy (%u)\n", flash_buffer_using());
 		return(app_action_error);
 	}
 
 	if(string_length(&mailbox_socket_receive_buffer) != (int)buffer_size)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
-		string_format(dst, "ERROR: mailbox-write: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
+		string_format(parameters->dst, "ERROR: mailbox-write: mailbox incomplete, %d bytes\n", string_length(&mailbox_socket_receive_buffer));
 		return(app_action_error);
 	}
 
@@ -299,14 +299,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
-		string_append(dst, "ERROR: mailbox-write: read error (check)\n");
+		string_append(parameters->dst, "ERROR: mailbox-write: read error (check)\n");
 		return(app_action_error);
 	}
 
 	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
-		string_append(dst, "ERROR: mailbox-write: read timeout (check)\n");
+		string_append(parameters->dst, "ERROR: mailbox-write: read timeout (check)\n");
 		return(app_action_error);
 	}
 
@@ -321,14 +321,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
 			flash_buffer_release(fsb_mailbox, "mailbox write");
-			string_append(dst, "ERROR: mailbox-write: erase error\n");
+			string_append(parameters->dst, "ERROR: mailbox-write: erase error\n");
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
 			flash_buffer_release(fsb_mailbox, "mailbox write");
-			string_append(dst, "ERROR: mailbox-write: erase timeout\n");
+			string_append(parameters->dst, "ERROR: mailbox-write: erase timeout\n");
 			return(app_action_error);
 		}
 
@@ -337,14 +337,14 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 		if(flash_result == SPI_FLASH_RESULT_ERR)
 		{
 			flash_buffer_release(fsb_mailbox, "mailbox write");
-			string_append(dst, "ERROR: mailbox-write: read error\n");
+			string_append(parameters->dst, "ERROR: mailbox-write: read error\n");
 			return(app_action_error);
 		}
 
 		if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 		{
 			flash_buffer_release(fsb_mailbox, "mailbox write");
-			string_append(dst, "ERROR: mailbox-write: read timeout\n");
+			string_append(parameters->dst, "ERROR: mailbox-write: read timeout\n");
 			return(app_action_error);
 		}
 	}
@@ -354,21 +354,21 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 	if(flash_result == SPI_FLASH_RESULT_ERR)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
-		string_append(dst, "ERROR: mailbox-write: read error (verify)\n");
+		string_append(parameters->dst, "ERROR: mailbox-write: read error (verify)\n");
 		return(app_action_error);
 	}
 
 	if(flash_result == SPI_FLASH_RESULT_TIMEOUT)
 	{
 		flash_buffer_release(fsb_mailbox, "mailbox write");
-		string_append(dst, "ERROR: mailbox-write: read timeout (verify)\n");
+		string_append(parameters->dst, "ERROR: mailbox-write: read timeout (verify)\n");
 		return(app_action_error);
 	}
 
 	SHA1_text((const unsigned char*)buffer_cstr, buffer_size, &sha_text);
 
 	flash_buffer_release(fsb_mailbox, "mailbox write");
-	string_format(dst, "OK mailbox-write: written sector %u, erased: %d, skipped %u, checksum: %s\n", sector, !skip, skip, string_to_cstr(&sha_text));
+	string_format(parameters->dst, "OK mailbox-write: written sector %u, erased: %d, skipped %u, checksum: %s\n", sector, !skip, skip, string_to_cstr(&sha_text));
 
 	string_clear(&mailbox_socket_receive_buffer);
 	lwip_if_receive_buffer_unlock(&mailbox_socket);
@@ -376,7 +376,7 @@ app_action_t application_function_mailbox_write(string_t *src, string_t *dst)
 	return(app_action_normal);
 }
 
-app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
+app_action_t application_function_mailbox_select(app_params_t *parameters)
 {
 	unsigned int slot;
 	unsigned int permanent;
@@ -384,27 +384,27 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 	rboot_if_config_t config;
 	rboot_if_rtc_config_t rtc;
 
-	if(parse_uint(1, src, &slot, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &slot, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR mailbox-select: slot required\n");
+		string_append(parameters->dst, "ERROR mailbox-select: slot required\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &permanent, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &permanent, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "ERROR mailbox-select: permanent status required\n");
+		string_append(parameters->dst, "ERROR mailbox-select: permanent status required\n");
 		return(app_action_error);
 	}
 
 	if(!rboot_if_read_config(&config))
 	{
-		string_append(dst, "ERROR mailbox-select: rboot config invalid\n");
+		string_append(parameters->dst, "ERROR mailbox-select: rboot config invalid\n");
 		return(app_action_error);
 	}
 
 	if(slot >= config.slot_count)
 	{
-		string_append(dst, "ERROR mailbox-select: invalid slot\n");
+		string_append(parameters->dst, "ERROR mailbox-select: invalid slot\n");
 		return(app_action_error);
 	}
 
@@ -418,20 +418,20 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 
 		if(!rboot_if_write_rtc_ram(&rtc))
 		{
-			string_format(dst, "ERROR: mailbox-select: RTC RAM config signature absent and can't create a new one\n");
+			string_format(parameters->dst, "ERROR: mailbox-select: RTC RAM config signature absent and can't create a new one\n");
 			return(app_action_error);
 		}
 	}
 
 	if(!rboot_if_read_rtc_ram(&rtc))
 	{
-		string_append(dst, "ERROR: mailbox-select: write initial data to RTC RAM failed\n");
+		string_append(parameters->dst, "ERROR: mailbox-select: write initial data to RTC RAM failed\n");
 		return(app_action_error);
 	}
 
 	if(rboot_if_mapped_slot() != rtc.last_slot)
 	{
-		string_format(dst, "ERROR mailbox-select: current slot according to rboot RTC RAM info does not match flash memory map: %u vs. %u\n",
+		string_format(parameters->dst, "ERROR mailbox-select: current slot according to rboot RTC RAM info does not match flash memory map: %u vs. %u\n",
 				config.slot_current, rboot_if_mapped_slot());
 		return(app_action_error);
 	}
@@ -441,25 +441,25 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 
 	if(!rboot_if_write_rtc_ram(&rtc))
 	{
-		string_append(dst, "ERROR: mailbox-select: write data to RTC RAM failed\n");
+		string_append(parameters->dst, "ERROR: mailbox-select: write data to RTC RAM failed\n");
 		return(app_action_error);
 	}
 
 	if(!rboot_if_read_rtc_ram(&rtc))
 	{
-		string_append(dst, "ERROR: mailbox-select: verify RTC data failed\n");
+		string_append(parameters->dst, "ERROR: mailbox-select: verify RTC data failed\n");
 		return(app_action_error);
 	}
 
 	if(rtc.next_mode != (permanent ? rboot_if_conf_mode_standard : rboot_if_conf_mode_temp_rom))
 	{
-		string_format(dst, "ERROR: mailbox-select: RTC data invalid, next boot mode: %s\n", rboot_if_boot_mode(rtc.next_mode));
+		string_format(parameters->dst, "ERROR: mailbox-select: RTC data invalid, next boot mode: %s\n", rboot_if_boot_mode(rtc.next_mode));
 		return(app_action_error);
 	}
 
 	if(rtc.temporary_slot != slot)
 	{
-		string_format(dst, "ERROR: mailbox-selects: RTC data invalid, next boot slot: %x\n", rtc.temporary_slot);
+		string_format(parameters->dst, "ERROR: mailbox-selects: RTC data invalid, next boot slot: %x\n", rtc.temporary_slot);
 		return(app_action_error);
 	}
 
@@ -471,7 +471,7 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 
 		if(!rboot_if_read_config(&config))
 		{
-			string_append(dst, "ERROR mailbox-select: rboot config invalid\n");
+			string_append(parameters->dst, "ERROR mailbox-select: rboot config invalid\n");
 			return(app_action_error);
 		}
 
@@ -480,26 +480,26 @@ app_action_t application_function_mailbox_select(string_t *src, string_t *dst)
 
 		if(!success)
 		{
-			string_append(dst, "ERROR mailbox-select: update rboot config failed\n");
+			string_append(parameters->dst, "ERROR mailbox-select: update rboot config failed\n");
 			return(app_action_error);
 		}
 
 		if(!rboot_if_read_config(&config))
 		{
-			string_append(dst, "ERROR mailbox-select: rboot config invalid after update\n");
+			string_append(parameters->dst, "ERROR mailbox-select: rboot config invalid after update\n");
 			return(app_action_error);
 		}
 
 		if(config.slot_current != slot)
 		{
-			string_append(dst, "ERROR mailbox-select: slot not selected\n");
+			string_append(parameters->dst, "ERROR mailbox-select: slot not selected\n");
 			return(app_action_error);
 		}
 
 		slot = config.slot_current;
 	}
 
-	string_format(dst, "OK mailbox-select: slot %u, permanent %u\n", slot, permanent ? 1U : 0U);
+	string_format(parameters->dst, "OK mailbox-select: slot %u, permanent %u\n", slot, permanent ? 1U : 0U);
 
 	return(app_action_normal);
 }

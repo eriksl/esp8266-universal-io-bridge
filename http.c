@@ -166,7 +166,7 @@ static app_action_t http_error(string_t *dst, const char *error_string, const ch
 	return(app_action_error);
 }
 
-app_action_t application_function_http_get(string_t *src, string_t *dst)
+app_action_t application_function_http_get(app_params_t *parameters)
 {
 	string_new(, url, 64);
 	string_new(, afterslash, 64);
@@ -175,14 +175,14 @@ app_action_t application_function_http_get(string_t *src, string_t *dst)
 	const http_handler_t *handler;
 	app_action_t error;
 
-	if((parse_string(1, src, &url, ' ')) != parse_ok)
-		return(http_error(dst, "400 Bad Request 1", "no url"));
+	if((parse_string(1, parameters->src, &url, ' ')) != parse_ok)
+		return(http_error(parameters->dst, "400 Bad Request 1", "no url"));
 
 	if(string_at(&url, 0) != '/')
-		return(http_error(dst, "400 Bad Request 2", string_to_cstr(&url)));
+		return(http_error(parameters->dst, "400 Bad Request 2", string_to_cstr(&url)));
 
 	if(!string_match_cstr(&url, "/") && (parse_string(1, &url, &afterslash, '/') != parse_ok))
-		return(http_error(dst, "400 Bad Request 3", string_to_cstr(&afterslash)));
+		return(http_error(parameters->dst, "400 Bad Request 3", string_to_cstr(&afterslash)));
 
 	if((parse_string(0, &afterslash, &action, '?')) != parse_ok)
 	{
@@ -195,31 +195,31 @@ app_action_t application_function_http_get(string_t *src, string_t *dst)
 			break;
 
 	if(!handler->action || !handler->handler)
-		return(http_error(dst, "404 Not Found", string_to_cstr(&action)));
+		return(http_error(parameters->dst, "404 Not Found", string_to_cstr(&action)));
 
-	string_clear(dst);
-	string_append_cstr_flash(dst, roflash_http_header_pre);
-	string_append_cstr_flash(dst, roflash_http_header_ok);
-	string_append_cstr_flash(dst, roflash_html_header);
+	string_clear(parameters->dst);
+	string_append_cstr_flash(parameters->dst, roflash_http_header_pre);
+	string_append_cstr_flash(parameters->dst, roflash_http_header_ok);
+	string_append_cstr_flash(parameters->dst, roflash_html_header);
 
-	error = handler->handler(&afterslash, dst);
+	error = handler->handler(&afterslash, parameters->dst);
 
-	string_append_cstr_flash(dst, roflash_html_link_home);
-	string_append_cstr_flash(dst, roflash_html_footer);
+	string_append_cstr_flash(parameters->dst, roflash_html_link_home);
+	string_append_cstr_flash(parameters->dst, roflash_html_footer);
 
-	if((length = string_length(dst) - (sizeof(roflash_http_header_pre) - 1) - (sizeof(roflash_http_header_ok) - 1)) <= 0)
-		return(http_error(dst, "500 Internal Server Error", 0));
+	if((length = string_length(parameters->dst) - (sizeof(roflash_http_header_pre) - 1) - (sizeof(roflash_http_header_ok) - 1)) <= 0)
+		return(http_error(parameters->dst, "500 Internal Server Error", 0));
 
-	if((ix = string_find(dst, 0, '@')) <= 0)
-		return(http_error(dst, "501 Not Implemented", 0));
+	if((ix = string_find(parameters->dst, 0, '@')) <= 0)
+		return(http_error(parameters->dst, "501 Not Implemented", 0));
 
-	string_replace(dst, ix + 0, (length / 1000) + '0');
+	string_replace(parameters->dst, ix + 0, (length / 1000) + '0');
 	length %= 1000;
-	string_replace(dst, ix + 1, (length / 100) + '0');
+	string_replace(parameters->dst, ix + 1, (length / 100) + '0');
 	length %= 100;
-	string_replace(dst, ix + 2, (length / 10) + '0');
+	string_replace(parameters->dst, ix + 2, (length / 10) + '0');
 	length %= 10;
-	string_replace(dst, ix + 3, (length / 1) + '0');
+	string_replace(parameters->dst, ix + 3, (length / 1) + '0');
 
 	return(error);
 }

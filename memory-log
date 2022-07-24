@@ -14766,3 +14766,79 @@ Fri Jul  8 14:09:28 CEST 2022 b3b08a3 Update ESP8266_NONOS_SDK
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  74393, free:   5872,  7 %
     irom:    available: 784 k, used: 438352, free: 364464, 45 %
+Fri Jul  8 14:51:16 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74521, free:   5744,  7 %
+    irom:    available: 784 k, used: 445600, free: 357216, 44 %
+Fri Jul  8 15:14:43 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74521, free:   5744,  7 %
+    irom:    available: 784 k, used: 445536, free: 357280, 44 %
+Fri Jul  8 16:54:14 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 443136, free: 359680, 44 %
+Fri Jul  8 17:10:10 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74505, free:   5760,  7 %
+    irom:    available: 784 k, used: 443088, free: 359728, 44 %
+Fri Jul 22 12:27:02 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 442560, free: 360256, 44 %
+Fri Jul 22 12:28:31 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74473, free:   5792,  7 %
+    irom:    available: 784 k, used: 442496, free: 360320, 44 %
+Fri Jul 22 12:38:25 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74473, free:   5792,  7 %
+    irom:    available: 784 k, used: 442880, free: 359936, 44 %
+Fri Jul 22 12:43:31 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 442848, free: 359968, 44 %
+Fri Jul 22 12:46:48 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 442816, free: 360000, 44 %
+Fri Jul 22 12:52:22 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 442784, free: 360032, 44 %
+Fri Jul 22 13:15:11 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74473, free:   5792,  7 %
+    irom:    available: 784 k, used: 442896, free: 359920, 44 %
+Fri Jul 22 13:19:11 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74457, free:   5808,  7 %
+    irom:    available: 784 k, used: 442912, free: 359904, 44 %
+Fri Jul 22 13:21:52 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74457, free:   5808,  7 %
+    irom:    available: 784 k, used: 442960, free: 359856, 44 %
+Fri Jul 22 13:33:04 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74457, free:   5808,  7 %
+    irom:    available: 784 k, used: 443296, free: 359520, 44 %
+Fri Jul 22 13:35:49 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74457, free:   5808,  7 %
+    irom:    available: 784 k, used: 443312, free: 359504, 44 %
+Fri Jul 22 13:44:55 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74457, free:   5808,  7 %
+    irom:    available: 784 k, used: 443104, free: 359712, 44 %
+Sat Jul 23 11:29:34 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74489, free:   5776,  7 %
+    irom:    available: 784 k, used: 443104, free: 359712, 44 %
+Sat Jul 23 12:24:27 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74617, free:   5648,  7 %
+    irom:    available: 784 k, used: 443104, free: 359712, 44 %
+Sun Jul 24 11:58:10 CEST 2022 f9478fb Resize input and output buffer back to 4k.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74617, free:   5648,  7 %
+    irom:    available: 784 k, used: 443856, free: 358960, 44 %

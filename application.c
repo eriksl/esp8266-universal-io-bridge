@@ -1,7 +1,6 @@
 #include "util.h"
 #include "sys_string.h"
 #include "application.h"
-#include "app_action.h"
 #include "stats.h"
 #include "config.h"
 #include "uart.h"
@@ -15,7 +14,6 @@
 #include "mailbox.h"
 #include "sequencer.h"
 #include "init.h"
-#include "dispatch.h"
 #include "remote_trigger.h"
 #include "sdk.h"
 #include "spi.h"
@@ -33,7 +31,7 @@ typedef struct attr_flash_align
 {
 	const char		*command_short;
 	const char		*command_long;
-	app_action_t	(*function)(string_t *, string_t *);
+	app_action_t	(*function)(app_params_t *);
 	const char		*description;
 } application_function_table_t;
 
@@ -66,7 +64,7 @@ void application_init(void)
 	}
 }
 
-app_action_t application_content(string_t *src, string_t *dst)
+app_action_t application_content(app_params_t *parameters)
 {
 	const application_function_table_t *tableptr;
 
@@ -76,167 +74,167 @@ app_action_t application_content(string_t *src, string_t *dst)
 		io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
 	}
 
-	if(parse_string(0, src, dst, ' ') != parse_ok)
+	if(parse_string(0, parameters->src, parameters->dst, ' ') != parse_ok)
 		return(app_action_empty);
 
 	for(tableptr = application_function_table; tableptr->function; tableptr++)
-		if(string_match_cstr(dst, tableptr->command_short) ||
-				string_match_cstr(dst, tableptr->command_long))
+		if(string_match_cstr(parameters->dst, tableptr->command_short) ||
+				string_match_cstr(parameters->dst, tableptr->command_long))
 			break;
 
 	if(tableptr->function)
 	{
-		string_clear(dst);
-		return(tableptr->function(src, dst));
+		string_clear(parameters->dst);
+		return(tableptr->function(parameters));
 	}
 
-	string_append(dst, ": command unknown\n");
+	string_append(parameters->dst, ": command unknown\n");
 	return(app_action_error);
 }
 
-static app_action_t application_function_config_dump(string_t *src, string_t *dst)
+static app_action_t application_function_config_dump(app_params_t *parameters)
 {
-	if(!config_dump(dst))
+	if(!config_dump(parameters->dst))
 	{
-		string_append(dst, "config-dump: failed\n");
+		string_append(parameters->dst, "config-dump: failed\n");
 		return(app_action_error);
 	}
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_config_query_int(string_t *src, string_t *dst)
+static app_action_t application_function_config_query_int(app_params_t *parameters)
 {
 	int index1 = -1;
 	int index2 = -1;
 	unsigned int value;
 
-	string_clear(dst);
+	string_clear(parameters->dst);
 
-	if(parse_string(1, src, dst, ' ') != parse_ok)
+	if(parse_string(1, parameters->src, parameters->dst, ' ') != parse_ok)
 		return(app_action_error);
 
-	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
+	if(parse_int(2, parameters->src, &index1, 0, ' ') != parse_ok)
 		index1 = -1;
 	else
-		if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
+		if(parse_int(3, parameters->src, &index2, 0, ' ') != parse_ok)
 			index2 = -1;
 
-	if(!config_get_uint_flashptr(string_to_cstr(dst), &value, index1, index2))
+	if(!config_get_uint_flashptr(string_to_cstr(parameters->dst), &value, index1, index2))
 	{
-		string_clear(dst);
-		string_append(dst, "ERROR\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "ERROR\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "=%u OK\n", value);
+	string_format(parameters->dst, "=%u OK\n", value);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_config_query_string(string_t *src, string_t *dst)
+static app_action_t application_function_config_query_string(app_params_t *parameters)
 {
 	string_new(, varid, 64);
 	int index1 = -1;
 	int index2 = -1;
 
-	if(parse_string(1, src, &varid, ' ') != parse_ok)
+	if(parse_string(1, parameters->src, &varid, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		string_append(dst, "missing variable name\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "missing variable name\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
+	if(parse_int(2, parameters->src, &index1, 0, ' ') != parse_ok)
 		index1 = -1;
 	else
-		if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
+		if(parse_int(3, parameters->src, &index2, 0, ' ') != parse_ok)
 			index2 = -1;
 
-	string_clear(dst);
-	string_append_string(dst, &varid);
-	string_append(dst, "=");
+	string_clear(parameters->dst);
+	string_append_string(parameters->dst, &varid);
+	string_append(parameters->dst, "=");
 
-	if(!config_get_string_flashptr(string_to_cstr(&varid), dst, index1, index2))
+	if(!config_get_string_flashptr(string_to_cstr(&varid), parameters->dst, index1, index2))
 	{
-		string_clear(dst);
-		string_append(dst, "ERROR\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "ERROR\n");
 		return(app_action_error);
 	}
 
-	string_append(dst, " OK\n");
+	string_append(parameters->dst, " OK\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_config_set(string_t *src, string_t *dst)
+static app_action_t application_function_config_set(app_params_t *parameters)
 {
 	int index1, index2, offset;
 	string_new(, name, 64);
 	string_new(, value, 64);
 
-	if(parse_string(1, src, &name, ' ') != parse_ok)
+	if(parse_string(1, parameters->src, &name, ' ') != parse_ok)
 		goto usage;
 
-	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
+	if(parse_int(2, parameters->src, &index1, 0, ' ') != parse_ok)
 		goto usage;
 
-	if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
+	if(parse_int(3, parameters->src, &index2, 0, ' ') != parse_ok)
 		goto usage;
 
-	if((offset = string_sep(src, 0, 4, ' ')) < 0)
+	if((offset = string_sep(parameters->src, 0, 4, ' ')) < 0)
 		goto usage;
 
-	string_splice(&value, 0, src, offset, -1);
+	string_splice(&value, 0, parameters->src, offset, -1);
 
 	if(!config_open_write())
 	{
-		string_append(dst, "config set failure (open)\n");
+		string_append(parameters->dst, "config set failure (open)\n");
 		return(app_action_error);
 	}
 
 	if(!config_set_string_flashptr(string_to_cstr(&name), string_to_cstr(&value), index1, index2))
 	{
 		config_abort_write();
-		string_append(dst, "config set failure (set)\n");
+		string_append(parameters->dst, "config set failure (set)\n");
 		return(app_action_error);
 	}
 
 	if(!config_close_write())
 	{
-		string_append(dst, "config set failure (close)\n");
+		string_append(parameters->dst, "config set failure (close)\n");
 		return(app_action_error);
 	}
 
-	string_append(dst, "OK\n");
+	string_append(parameters->dst, "OK\n");
 
 	return(app_action_normal);
 
 usage:
-	string_append(dst, "usage: config-set <variable name pattern> <index1> <index2> <value>\n");
+	string_append(parameters->dst, "usage: config-set <variable name pattern> <index1> <index2> <value>\n");
 	return(app_action_error);
 }
 
-static app_action_t application_function_config_delete(string_t *src, string_t *dst)
+static app_action_t application_function_config_delete(app_params_t *parameters)
 {
 	int index1, index2;
 	unsigned int wildcard;
 	string_new(, name, 64);
 
-	if(parse_string(1, src, &name, ' ') != parse_ok)
+	if(parse_string(1, parameters->src, &name, ' ') != parse_ok)
 	{
-		string_clear(dst);
-		string_append(dst, "missing variable name\n");
+		string_clear(parameters->dst);
+		string_append(parameters->dst, "missing variable name\n");
 		return(app_action_error);
 	}
 
-	if(parse_int(2, src, &index1, 0, ' ') != parse_ok)
+	if(parse_int(2, parameters->src, &index1, 0, ' ') != parse_ok)
 		index1 = -1;
 
-	if(parse_int(3, src, &index2, 0, ' ') != parse_ok)
+	if(parse_int(3, parameters->src, &index2, 0, ' ') != parse_ok)
 		index2 = -1;
 
-	if(parse_uint(4, src, &wildcard, 0, ' ') != parse_ok)
+	if(parse_uint(4, parameters->src, &wildcard, 0, ' ') != parse_ok)
 		wildcard = 0;
 
 	if(config_open_write())
@@ -245,26 +243,26 @@ static app_action_t application_function_config_delete(string_t *src, string_t *
 
 		if(config_close_write())
 		{
-			string_format(dst, "%d config entries deleted\n", index1);
+			string_format(parameters->dst, "%d config entries deleted\n", index1);
 			return(app_action_normal);
 		}
 		else
-			string_append(dst, "config-delete: config close failure\n");
+			string_append(parameters->dst, "config-delete: config close failure\n");
 	}
 	else
-		string_append(dst, "config-delete: config open failure\n");
+		string_append(parameters->dst, "config-delete: config open failure\n");
 
 	return(app_action_error);
 }
 
-static app_action_t application_function_help(string_t *src, string_t *dst)
+static app_action_t application_function_help(app_params_t *parameters)
 {
 	const application_function_table_t *tableptr;
 	int previous;
 	unsigned int x;
 	string_new(, topic, 32);
 
-	if(parse_string(1, src, &topic, ' ') == parse_ok)
+	if(parse_string(1, parameters->src, &topic, ' ') == parse_ok)
 	{
 		for(tableptr = application_function_table; tableptr->function; tableptr++)
 		{
@@ -274,26 +272,26 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 
 			if(tableptr->command_short)
 			{
-				string_append_cstr_flash(dst, tableptr->command_short);
+				string_append_cstr_flash(parameters->dst, tableptr->command_short);
 
 				if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
-					string_append(dst, "/");
+					string_append(parameters->dst, "/");
 			}
 
 			if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
-				string_append_cstr_flash(dst, tableptr->command_long);
+				string_append_cstr_flash(parameters->dst, tableptr->command_long);
 
 			if(tableptr->description)
 			{
-				string_append(dst, ": ");
-				string_append_cstr_flash(dst, tableptr->description);
+				string_append(parameters->dst, ": ");
+				string_append_cstr_flash(parameters->dst, tableptr->description);
 			}
 
-			string_append(dst, "\n");
+			string_append(parameters->dst, "\n");
 		}
 
-		if(string_length(dst) == 0)
-			string_append(dst, "help: no match\n");
+		if(string_length(parameters->dst) == 0)
+			string_append(parameters->dst, "help: no match\n");
 	}
 	else
 	{
@@ -301,51 +299,51 @@ static app_action_t application_function_help(string_t *src, string_t *dst)
 
 		for(tableptr = application_function_table; tableptr->function; tableptr++)
 		{
-			previous = string_length(dst);
+			previous = string_length(parameters->dst);
 
 			if(tableptr->command_short)
 			{
-				string_append_cstr_flash(dst, tableptr->command_short);
+				string_append_cstr_flash(parameters->dst, tableptr->command_short);
 
 				if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
-					string_append(dst, "/");
+					string_append(parameters->dst, "/");
 			}
 
 			if(tableptr->command_long && (tableptr->command_long != tableptr->command_short))
-				string_append_cstr_flash(dst, tableptr->command_long);
+				string_append_cstr_flash(parameters->dst, tableptr->command_long);
 
-			x += string_length(dst) - previous;
+			x += string_length(parameters->dst) - previous;
 
 			if(x < 80)
-				string_append(dst, " ");
+				string_append(parameters->dst, " ");
 			else
 			{
-				string_append(dst, "\n");
+				string_append(parameters->dst, "\n");
 				x = 0;
 			}
 		}
 
-		string_append(dst, "\n");
+		string_append(parameters->dst, "\n");
 	}
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_identification(string_t *src, string_t *dst)
+static app_action_t application_function_identification(app_params_t *parameters)
 {
 	int start;
 	string_new(, text, 64);
 
-	if((start = string_sep(src, 0, 1, ' ')) > 0)
+	if((start = string_sep(parameters->src, 0, 1, ' ')) > 0)
 	{
-		string_splice(&text, 0, src, start, -1);
+		string_splice(&text, 0, parameters->src, start, -1);
 
 		if(!config_open_write() ||
 				!config_set_string("identification", string_to_cstr(&text), -1, -1) ||
 				!config_close_write())
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set identification\n");
+			string_append(parameters->dst, "> cannot set identification\n");
 			return(app_action_error);
 		}
 	}
@@ -359,7 +357,7 @@ static app_action_t application_function_identification(string_t *src, string_t 
 				!config_close_write())
 		{
 			config_abort_write();
-			string_append(dst, "> config delete failure\n");
+			string_append(parameters->dst, "> config delete failure\n");
 			return(app_action_error);
 		}
 	}
@@ -369,66 +367,66 @@ static app_action_t application_function_identification(string_t *src, string_t 
 	if(!config_get_string("identification", &text, -1, -1))
 		string_append(&text, "<unset>");
 
-	string_format(dst, "identification is \"%s\"\n", string_to_cstr(&text));
+	string_format(parameters->dst, "identification is \"%s\"\n", string_to_cstr(&text));
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_quit(string_t *src, string_t *dst)
+static app_action_t application_function_quit(app_params_t *parameters)
 {
 	return(app_action_disconnect);
 }
 
-static app_action_t application_function_reset(string_t *src, string_t *dst)
+static app_action_t application_function_reset(app_params_t *parameters)
 {
 	return(app_action_reset);
 }
 
-static app_action_t application_function_stats_firmware(string_t *src, string_t *dst)
+static app_action_t application_function_stats_firmware(app_params_t *parameters)
 {
-	stats_firmware(dst);
+	stats_firmware(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_flash(string_t *src, string_t *dst)
+static app_action_t application_function_stats_flash(app_params_t *parameters)
 {
-	stats_flash(dst);
+	stats_flash(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_time(string_t *src, string_t *dst)
+static app_action_t application_function_stats_time(app_params_t *parameters)
 {
-	stats_time(dst);
+	stats_time(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_counters(string_t *src, string_t *dst)
+static app_action_t application_function_stats_counters(app_params_t *parameters)
 {
-	stats_counters(dst);
+	stats_counters(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_i2c(string_t *src, string_t *dst)
+static app_action_t application_function_stats_i2c(app_params_t *parameters)
 {
-	stats_i2c(dst);
+	stats_i2c(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_wlan(string_t *src, string_t *dst)
+static app_action_t application_function_stats_wlan(app_params_t *parameters)
 {
-	stats_wlan(dst);
+	stats_wlan(parameters->dst);
 	return(app_action_normal);
 }
 
-static app_action_t application_function_bridge_port(string_t *src, string_t *dst)
+static app_action_t application_function_bridge_port(app_params_t *parameters)
 {
 	unsigned int port;
 
-	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &port, 0, ' ') == parse_ok)
 	{
 		if(port > 65535)
 		{
-			string_format(dst, "> invalid port %u\n", port);
+			string_format(parameters->dst, "> invalid port %u\n", port);
 			return(app_action_error);
 		}
 
@@ -439,7 +437,7 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -449,7 +447,7 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -457,20 +455,20 @@ static app_action_t application_function_bridge_port(string_t *src, string_t *ds
 	if(!config_get_uint("bridge.port", &port, -1, -1))
 		port = 0;
 
-	string_format(dst, "> port: %u\n", port);
+	string_format(parameters->dst, "> port: %u\n", port);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_command_port(string_t *src, string_t *dst)
+static app_action_t application_function_command_port(app_params_t *parameters)
 {
 	unsigned int port;
 
-	if(parse_uint(1, src, &port, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &port, 0, ' ') == parse_ok)
 	{
 		if(port > 65535)
 		{
-			string_format(dst, "> invalid port %u\n", port);
+			string_format(parameters->dst, "> invalid port %u\n", port);
 			return(app_action_error);
 		}
 
@@ -481,7 +479,7 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -491,7 +489,7 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -499,57 +497,57 @@ static app_action_t application_function_command_port(string_t *src, string_t *d
 	if(!config_get_uint("cmd.port", &port, -1, -1))
 		port = 24;
 
-	string_format(dst, "> port: %u\n", port);
+	string_format(parameters->dst, "> port: %u\n", port);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_clear(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_clear(app_params_t *parameters)
 {
 	bool result;
 
 	result = sequencer_clear();
 
-	string_format(dst, "> sequencer-clear: %s\n", result ? "ok" : "failed");
+	string_format(parameters->dst, "> sequencer-clear: %s\n", result ? "ok" : "failed");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_remove(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_remove(app_params_t *parameters)
 {
 	unsigned int current;
 
-	if(parse_uint(1, src, &current, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &current, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "> usage: sequencer-remove index\n");
+		string_append(parameters->dst, "> usage: sequencer-remove index\n");
 		return(app_action_error);
 	}
 
 	if(!sequencer_remove_entry(current))
 	{
-		string_append(dst, "sequencer-remove: failed\n");
+		string_append(parameters->dst, "sequencer-remove: failed\n");
 		return(app_action_error);
 	}
 
-	string_append(dst, "sequencer-remove: ok\n");
+	string_append(parameters->dst, "sequencer-remove: ok\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_add(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_add(app_params_t *parameters)
 {
 	static unsigned int start = 0;
 	int io, pin, start_in;
 	unsigned int duration, value;
 	bool active;
 
-	if((parse_int(1, src, &start_in, 0, ' ') != parse_ok) ||
-			(parse_int(2, src, &io, 0, ' ') != parse_ok) ||
-			(parse_int(3, src, &pin, 0, ' ') != parse_ok) ||
-			(parse_uint(4, src, &value, 0, ' ') != parse_ok) ||
-			(parse_uint(5, src, &duration, 0, ' ') != parse_ok))
+	if((parse_int(1, parameters->src, &start_in, 0, ' ') != parse_ok) ||
+			(parse_int(2, parameters->src, &io, 0, ' ') != parse_ok) ||
+			(parse_int(3, parameters->src, &pin, 0, ' ') != parse_ok) ||
+			(parse_uint(4, parameters->src, &value, 0, ' ') != parse_ok) ||
+			(parse_uint(5, parameters->src, &duration, 0, ' ') != parse_ok))
 	{
-		string_append(dst, "> usage: sequencer-set index io pin value duration_ms\n");
+		string_append(parameters->dst, "> usage: sequencer-set index io pin value duration_ms\n");
 		return(app_action_error);
 	}
 
@@ -558,17 +556,17 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 
 	if(!sequencer_set_entry(start, io, pin, value, duration))
 	{
-		string_append(dst, "> sequencer-set: error setting entry (set)\n");
+		string_append(parameters->dst, "> sequencer-set: error setting entry (set)\n");
 		return(app_action_error);
 	}
 
 	if(!sequencer_get_entry(start, &active, &io, &pin, &value, &duration))
 	{
-		string_append(dst, "> sequencer-set: error setting entry (get)\n");
+		string_append(parameters->dst, "> sequencer-set: error setting entry (get)\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "> sequencer-set: %u: %d/%d %u %u ms %s\n",
+	string_format(parameters->dst, "> sequencer-set: %u: %d/%d %u %u ms %s\n",
 			start, io, pin, value, duration, onoff(active));
 
 	start++;
@@ -576,56 +574,56 @@ static app_action_t application_function_sequencer_add(string_t *src, string_t *
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_list(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_list(app_params_t *parameters)
 {
 	static unsigned int start = 0;
 	unsigned int index, value, duration;
 	int io, pin;
 	bool active;
 
-	if(parse_uint(1, src, &index, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &index, 0, ' ') == parse_ok)
 		start = index;
 
-	string_append(dst, "> index io pin value duration_ms\n");
+	string_append(parameters->dst, "> index io pin value duration_ms\n");
 
 	for(index = 0; index < 20; index++, start++)
 	{
 		if(!sequencer_get_entry(start, &active, &io, &pin, &value, &duration))
 			break;
 
-		string_format(dst, "> %5u %2d %3d %5u       %5u %s\n", start, io, pin, value, duration, onoff(active));
+		string_format(parameters->dst, "> %5u %2d %3d %5u       %5u %s\n", start, io, pin, value, duration, onoff(active));
 	}
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_start(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_start(app_params_t *parameters)
 {
 	unsigned int start, repeats;
 
-	if((parse_uint(1, src, &start, 0, ' ') != parse_ok) || (parse_uint(2, src, &repeats, 0, ' ') != parse_ok))
+	if((parse_uint(1, parameters->src, &start, 0, ' ') != parse_ok) || (parse_uint(2, parameters->src, &repeats, 0, ' ') != parse_ok))
 	{
-		string_append(dst, "> usage: sequencer-play start_entry repeats\n");
+		string_append(parameters->dst, "> usage: sequencer-play start_entry repeats\n");
 		return(app_action_error);
 	}
 
 	sequencer_start(start, repeats);
 
-	string_format(dst, "> sequencer started: %u,%u ok\n", start, repeats);
+	string_format(parameters->dst, "> sequencer started: %u,%u ok\n", start, repeats);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sequencer_stop(string_t *src, string_t *dst)
+static app_action_t application_function_sequencer_stop(app_params_t *parameters)
 {
 	sequencer_stop();
 
-	string_append(dst, "> sequencer stopped\n");
+	string_append(parameters->dst, "> sequencer stopped\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_stats_sequencer(string_t *src, string_t *dst)
+static app_action_t application_function_stats_sequencer(app_params_t *parameters)
 {
 	bool running, active;
 	int io, pin;
@@ -634,7 +632,7 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 
 	sequencer_get_status(&running, &start, &flash_size, &flash_size_entries, &flash_offset_flash0, &flash_offset_flash1, &flash_offset_mapped);
 
-	string_format(dst, "> sequencer\n>\n"
+	string_format(parameters->dst, "> sequencer\n>\n"
 			"> running: %s\n"
 			"> total flash size available: %u\n"
 			"> total entries in flash available: %u\n"
@@ -650,7 +648,7 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 
 	if(running)
 	{
-		string_format(dst, "> starting from entry: %d\n"
+		string_format(parameters->dst, "> starting from entry: %d\n"
 				"> repeats left: %d\n"
 				"> remaining duration from current entry: %u\n",
 			sequencer_get_start(),
@@ -661,26 +659,26 @@ static app_action_t application_function_stats_sequencer(string_t *src, string_t
 
 		if(sequencer_get_entry(current, &active, &io, &pin, &value, &duration))
 		{
-			string_append(dst, "> now playing:\n");
-			string_append(dst, "> index io pin value duration_ms\n");
-			string_format(dst, "> %5u %2d %3d %5u       %5u %s\n", current, io, pin, value, duration, onoff(active));
+			string_append(parameters->dst, "> now playing:\n");
+			string_append(parameters->dst, "> index io pin value duration_ms\n");
+			string_format(parameters->dst, "> %5u %2d %3d %5u       %5u %s\n", current, io, pin, value, duration, onoff(active));
 		}
 	}
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_baud_rate(string_t *src, string_t *dst)
+static app_action_t application_function_uart_baud_rate(app_params_t *parameters)
 {
 	unsigned int uart, baud_rate;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-baudrate <uart [0|1]> <baud rate>\n");
+		string_append(parameters->dst, "> usage uart-baudrate <uart [0|1]> <baud rate>\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &baud_rate, 0, ' ') == parse_ok)
+	if(parse_uint(2, parameters->src, &baud_rate, 0, ' ') == parse_ok)
 	{
 		if(baud_rate == 115200)
 		{
@@ -689,7 +687,7 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -699,7 +697,7 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -709,26 +707,26 @@ static app_action_t application_function_uart_baud_rate(string_t *src, string_t 
 	if(!config_get_uint("uart.baud.%u", &baud_rate, uart, -1))
 		baud_rate = 115200;
 
-	string_format(dst, "> baudrate[%u]: %u\n", uart, baud_rate);
+	string_format(parameters->dst, "> baudrate[%u]: %u\n", uart, baud_rate);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_data_bits(string_t *src, string_t *dst)
+static app_action_t application_function_uart_data_bits(app_params_t *parameters)
 {
 	unsigned int uart, data_bits;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-data-bits <uart [0|1]> <data bits>\n");
+		string_append(parameters->dst, "> usage uart-data-bits <uart [0|1]> <data bits>\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &data_bits, 0, ' ') == parse_ok)
+	if(parse_uint(2, parameters->src, &data_bits, 0, ' ') == parse_ok)
 	{
 		if((data_bits < 5) || (data_bits > 8))
 		{
-			string_format(dst, "> invalid data bits: %u\n", data_bits);
+			string_format(parameters->dst, "> invalid data bits: %u\n", data_bits);
 			return(app_action_error);
 		}
 
@@ -739,7 +737,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -750,7 +748,7 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -760,26 +758,26 @@ static app_action_t application_function_uart_data_bits(string_t *src, string_t 
 	if(!config_get_uint("uart.data.%u", &data_bits, uart, -1))
 		data_bits = 8;
 
-	string_format(dst, "data bits[%u]: %u\n", uart, data_bits);
+	string_format(parameters->dst, "data bits[%u]: %u\n", uart, data_bits);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_stop_bits(string_t *src, string_t *dst)
+static app_action_t application_function_uart_stop_bits(app_params_t *parameters)
 {
 	unsigned int uart, stop_bits;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-stop-bits <uart [1|2]> <stop bits>\n");
+		string_append(parameters->dst, "> usage uart-stop-bits <uart [1|2]> <stop bits>\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &stop_bits, 0, ' ') == parse_ok)
+	if(parse_uint(2, parameters->src, &stop_bits, 0, ' ') == parse_ok)
 	{
 		if((stop_bits < 1) || (stop_bits > 2))
 		{
-			string_format(dst, "> stop bits out of range: %u\n", stop_bits);
+			string_format(parameters->dst, "> stop bits out of range: %u\n", stop_bits);
 			return(app_action_error);
 		}
 
@@ -790,7 +788,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -800,7 +798,7 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -810,29 +808,29 @@ static app_action_t application_function_uart_stop_bits(string_t *src, string_t 
 	if(!config_get_uint("uart.stop.%u", &stop_bits, uart, -1))
 		stop_bits = 1;
 
-	string_format(dst, "> stop bits[%u]: %u\n", uart, stop_bits);
+	string_format(parameters->dst, "> stop bits[%u]: %u\n", uart, stop_bits);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_parity(string_t *src, string_t *dst)
+static app_action_t application_function_uart_parity(app_params_t *parameters)
 {
 	uart_parity_t parity;
 	unsigned int uart, parity_int;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-parity <uart [0|1]> <parity>\n");
+		string_append(parameters->dst, "> usage uart-parity <uart [0|1]> <parity>\n");
 		return(app_action_error);
 	}
 
-	if(parse_string(2, src, dst, ' ') == parse_ok)
+	if(parse_string(2, parameters->src, parameters->dst, ' ') == parse_ok)
 	{
-		parity = uart_string_to_parity(dst);
+		parity = uart_string_to_parity(parameters->dst);
 
 		if(parity >= parity_error)
 		{
-			string_append(dst, ": invalid parity\n");
+			string_append(parameters->dst, ": invalid parity\n");
 			return(app_action_error);
 		}
 
@@ -843,7 +841,7 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -857,7 +855,7 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 		}
@@ -870,70 +868,70 @@ static app_action_t application_function_uart_parity(string_t *src, string_t *ds
 	else
 		parity = parity_none;
 
-	string_clear(dst);
-	string_format(dst, "parity[%u]: ", uart);
-	uart_parity_to_string(dst, parity);
-	string_append(dst, "\n");
+	string_clear(parameters->dst);
+	string_format(parameters->dst, "parity[%u]: ", uart);
+	uart_parity_to_string(parameters->dst, parity);
+	string_append(parameters->dst, "\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_loopback(string_t *src, string_t *dst)
+static app_action_t application_function_uart_loopback(app_params_t *parameters)
 {
 	unsigned int uart, mode;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || (uart > 1))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || (uart > 1))
 	{
-		string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
+		string_append(parameters->dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &mode, 0, ' ') == parse_ok)
+	if(parse_uint(2, parameters->src, &mode, 0, ' ') == parse_ok)
 	{
 		if(mode > 1)
 		{
-			string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
+			string_append(parameters->dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 			return(app_action_error);
 		}
 
 		uart_loopback(uart, mode ? true : false);
 
-		string_format(dst, "> uart loopback %s for uart %u\n", onoff(mode), uart);
+		string_format(parameters->dst, "> uart loopback %s for uart %u\n", onoff(mode), uart);
 	}
 	else
-		string_append(dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
+		string_append(parameters->dst, "> usage uart-loopback <uart [0|1]> [0|1]\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_write(string_t *src, string_t *dst)
+static app_action_t application_function_uart_write(app_params_t *parameters)
 {
 	unsigned int uart;
 	int start, length;
 	char last;
 
-	if((parse_uint(1, src, &uart, 0, ' ') != parse_ok) || ((start = string_sep(src, 0, 2, ' ')) <= 0))
+	if((parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok) || ((start = string_sep(parameters->src, 0, 2, ' ')) <= 0))
 	{
-		string_append(dst, "> usage: uart-write <uart id> <text>\n");
+		string_append(parameters->dst, "> usage: uart-write <uart id> <text>\n");
 		return(app_action_error);
 	}
 
-	length = string_length(src) - start;
+	length = string_length(parameters->src) - start;
 
 	if(length > 0)
 	{
-		last = string_at(src, length - 1);
+		last = string_at(parameters->src, length - 1);
 
 		if((last == '\n') || (last == '\r'))
 			length--;
 	}
 
 	for(; length > 0; length--, start++)
-		uart_send(uart, string_at(src, start));
+		uart_send(uart, string_at(parameters->src, start));
 
 	uart_flush(uart);
 
-	string_append(dst, "> uart-write ok\n");
+	string_append(parameters->dst, "> uart-write ok\n");
 
 	return(app_action_normal);
 }
@@ -941,45 +939,45 @@ static app_action_t application_function_uart_write(string_t *src, string_t *dst
 static int i2c_address = 0;
 static int i2c_bus = 0;
 
-static app_action_t application_function_i2c_address(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_address(app_params_t *parameters)
 {
 	unsigned int intin;
 
-	if(parse_uint(1, src, &intin, 16, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &intin, 16, ' ') == parse_ok)
 	{
 		if((intin < 2) || (intin > 127))
 		{
-			string_format(dst, "i2c-address: invalid address 0x%02x\n", intin);
+			string_format(parameters->dst, "i2c-address: invalid address 0x%02x\n", intin);
 			return(app_action_error);
 		}
 
 		i2c_address = intin;
 	}
 
-	string_format(dst, "i2c-address: address: 0x%02x\n", (unsigned int)i2c_address);
+	string_format(parameters->dst, "i2c-address: address: 0x%02x\n", (unsigned int)i2c_address);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_bus(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_bus(app_params_t *parameters)
 {
 	unsigned int intin;
 	i2c_error_t error;
 
-	if(parse_uint(1, src, &intin, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &intin, 0, ' ') == parse_ok)
 	{
 		if((error = i2c_select_bus(intin)) != i2c_error_ok)
 		{
-			string_append(dst, "i2c-bus");
-			i2c_error_format_string(dst, error);
-			string_append(dst, "\n");
+			string_append(parameters->dst, "i2c-bus");
+			i2c_error_format_string(parameters->dst, error);
+			string_append(parameters->dst, "\n");
 			return(app_action_error);
 		}
 
 		i2c_bus = intin;
 	}
 
-	string_format(dst, "i2c-bus: bus: %d\n", i2c_bus);
+	string_format(parameters->dst, "i2c-bus: bus: %d\n", i2c_bus);
 
 	return(app_action_normal);
 }
@@ -999,22 +997,22 @@ static void i2c_timing_report(string_t *dst, uint32_t from_us, uint32_t to_us, i
 	string_format(dst, "> time spent: %u microseconds, makes %u Hz i2c bus", spent_us, speed);
 }
 
-static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_read(app_params_t *parameters)
 {
 	unsigned int size, current;
 	i2c_error_t error;
 	uint8_t bytes[32];
 	uint32_t from, to;
 
-	if(parse_uint(1, src, &size, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &size, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "i2c-read: missing byte count\n");
+		string_append(parameters->dst, "i2c-read: missing byte count\n");
 		return(app_action_error);
 	}
 
 	if(size > (int)sizeof(bytes))
 	{
-		string_format(dst, "i2c-read: read max %u bytes\n", sizeof(bytes));
+		string_format(parameters->dst, "i2c-read: read max %u bytes\n", sizeof(bytes));
 		return(app_action_error);
 	}
 
@@ -1024,27 +1022,27 @@ static app_action_t application_function_i2c_read(string_t *src, string_t *dst)
 
 	if((error = i2c_receive(i2c_address, size, bytes)) != i2c_error_ok)
 	{
-		string_append(dst, "i2c_read");
-		i2c_error_format_string(dst, error);
-		string_append(dst, "\n");
+		string_append(parameters->dst, "i2c_read");
+		i2c_error_format_string(parameters->dst, error);
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
 	to = system_get_time();
 
-	string_format(dst, "> i2c_read: read %u bytes from %02x:", size, (unsigned int)i2c_address);
+	string_format(parameters->dst, "> i2c_read: read %u bytes from %02x:", size, (unsigned int)i2c_address);
 
 	for(current = 0; current < size; current++)
-		string_format(dst, " %02x", bytes[current]);
+		string_format(parameters->dst, " %02x", bytes[current]);
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 
-	i2c_timing_report(dst, from, to, size, 0);
+	i2c_timing_report(parameters->dst, from, to, size, 0);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_write(app_params_t *parameters)
 {
 	i2c_error_t error;
 	static uint8_t bytes[32];
@@ -1053,7 +1051,7 @@ static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
 
 	for(size = 0; size < (int)sizeof(bytes); size++)
 	{
-		if(parse_uint(size + 1, src, &out, 16, ' ') != parse_ok)
+		if(parse_uint(size + 1, parameters->src, &out, 16, ' ') != parse_ok)
 			break;
 
 		bytes[size] = (uint8_t)(out & 0xff);
@@ -1065,22 +1063,22 @@ static app_action_t application_function_i2c_write(string_t *src, string_t *dst)
 
 	if((error = i2c_send(i2c_address, size, bytes)) != i2c_error_ok)
 	{
-		string_append(dst, "i2c_write");
-		i2c_error_format_string(dst, error);
-		string_append(dst, "\n");
+		string_append(parameters->dst, "i2c_write");
+		i2c_error_format_string(parameters->dst, error);
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
 	to = system_get_time();
 
-	string_format(dst, "i2c_write: written %u bytes to %02x\n", size, (unsigned int)i2c_address);
+	string_format(parameters->dst, "i2c_write: written %u bytes to %02x\n", size, (unsigned int)i2c_address);
 
-	i2c_timing_report(dst, from, to, size, 0);
+	i2c_timing_report(parameters->dst, from, to, size, 0);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_write_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_write_read(app_params_t *parameters)
 {
 	i2c_error_t error;
 	uint8_t sendbytes[1];
@@ -1088,9 +1086,9 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 	unsigned int size, current, out;
 	uint32_t from, to;
 
-	if(parse_uint(1, src, &out, 16, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &out, 16, ' ') != parse_ok)
 	{
-		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
+		string_append(parameters->dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
@@ -1098,15 +1096,15 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 
 	sendbytes[0] = (uint8_t)(out & 0xff);
 
-	if(parse_uint(2, src, &size, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &size, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "usage: i2wr <send byte> <amount to read>\n");
+		string_append(parameters->dst, "usage: i2wr <send byte> <amount to read>\n");
 		return(app_action_error);
 	}
 
 	if(size >= (int)sizeof(receivebytes))
 	{
-		string_format(dst, "i2wr: max read %u bytes\n", sizeof(receivebytes));
+		string_format(parameters->dst, "i2wr: max read %u bytes\n", sizeof(receivebytes));
 		return(app_action_error);
 	}
 
@@ -1114,35 +1112,35 @@ static app_action_t application_function_i2c_write_read(string_t *src, string_t 
 
 	if((error = i2c_send1_receive(i2c_address, sendbytes[0], size, receivebytes)) != i2c_error_ok)
 	{
-		string_append(dst, "i2wr");
-		i2c_error_format_string(dst, error);
-		string_append(dst, "\n");
+		string_append(parameters->dst, "i2wr");
+		i2c_error_format_string(parameters->dst, error);
+		string_append(parameters->dst, "\n");
 		return(app_action_error);
 	}
 
 	to = system_get_time();
 
-	string_format(dst, "> i2wr: read %u bytes from %02x:", size, (unsigned int)i2c_address);
+	string_format(parameters->dst, "> i2wr: read %u bytes from %02x:", size, (unsigned int)i2c_address);
 
 	for(current = 0; current < size; current++)
-		string_format(dst, " %02x", receivebytes[current]);
+		string_format(parameters->dst, " %02x", receivebytes[current]);
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 
-	i2c_timing_report(dst, from, to, size, 19);
+	i2c_timing_report(parameters->dst, from, to, size, 19);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_speed(app_params_t *parameters)
 {
 	unsigned int speed_delay;
 
-	if(parse_uint(1, src, &speed_delay, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &speed_delay, 0, ' ') == parse_ok)
 	{
 		if(speed_delay > 65535)
 		{
-			string_format(dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %u\n", speed_delay);
+			string_format(parameters->dst, "> invalid i2c speed delay (0-65535, 1000 is normal): %u\n", speed_delay);
 			return(app_action_error);
 		}
 
@@ -1153,7 +1151,7 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 
@@ -1164,7 +1162,7 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 	}
@@ -1174,79 +1172,79 @@ static app_action_t application_function_i2c_speed(string_t *src, string_t *dst)
 
 	i2c_speed_delay(speed_delay);
 
-	string_format(dst, "> i2c speed delay: %u\n", speed_delay);
+	string_format(parameters->dst, "> i2c speed delay: %u\n", speed_delay);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_sensor_read(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_read(app_params_t *parameters)
 {
 	unsigned int intin, bus;
 	i2c_sensor_t sensor;
 
-	if((parse_uint(1, src, &intin, 0, ' ')) != parse_ok)
+	if((parse_uint(1, parameters->src, &intin, 0, ' ')) != parse_ok)
 	{
-		string_format(dst, "> invalid i2c sensor: %u\n", intin);
+		string_format(parameters->dst, "> invalid i2c sensor: %u\n", intin);
 		return(app_action_error);
 	}
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_uint(2, src, &bus, 0, ' ')) != parse_ok)
+	if((parse_uint(2, parameters->src, &bus, 0, ' ')) != parse_ok)
 		bus = 0;
 
 	if(bus >= i2c_busses)
 	{
-		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
+		string_format(parameters->dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
 		return(app_action_error);
 	}
 
-	if(!i2c_sensor_read(dst, bus, sensor, true, false))
+	if(!i2c_sensor_read(parameters->dst, bus, sensor, true, false))
 	{
-		string_clear(dst);
-		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, sensor);
+		string_clear(parameters->dst);
+		string_format(parameters->dst, "> invalid i2c sensor: %u/%u\n", bus, sensor);
 		return(app_action_error);
 	}
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_sensor_calibrate(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_calibrate(app_params_t *parameters)
 {
 	unsigned int intin, bus;
 	i2c_sensor_t sensor;
 	double factor, offset;
 	int int_factor, int_offset;
 
-	if(parse_uint(1, src, &bus, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &bus, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "> missing i2c bus\n");
+		string_append(parameters->dst, "> missing i2c bus\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(2, src, &intin, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &intin, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "> missing i2c sensor\n");
+		string_append(parameters->dst, "> missing i2c sensor\n");
 		return(app_action_error);
 	}
 
 	if(bus >= i2c_busses)
 	{
-		string_format(dst, "> invalid i2c bus: %u\n", bus);
+		string_format(parameters->dst, "> invalid i2c bus: %u\n", bus);
 		return(app_action_error);
 	}
 
 	if(intin >= i2c_sensor_size)
 	{
-		string_format(dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
+		string_format(parameters->dst, "> invalid i2c sensor: %u/%u\n", bus, intin);
 		return(app_action_error);
 	}
 
 	sensor = (i2c_sensor_t)intin;
 
-	if((parse_float(3, src, &factor, ' ') == parse_ok) && (parse_float(4, src, &offset, ' ') == parse_ok))
+	if((parse_float(3, parameters->src, &factor, ' ') == parse_ok) && (parse_float(4, parameters->src, &offset, ' ') == parse_ok))
 	{
 		int_factor = (int)(factor * 1000.0);
 		int_offset = (int)(offset * 1000.0);
@@ -1254,7 +1252,7 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 		if(!config_open_write())
 		{
 			config_abort_write();
-			string_append(dst, "cannot open config for writing\n");
+			string_append(parameters->dst, "cannot open config for writing\n");
 			return(app_action_error);
 		}
 
@@ -1263,20 +1261,20 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 		if((int_factor != 1000) && !config_set_int("i2s.%u.%u.factor", int_factor, bus, sensor))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set factor\n");
+			string_append(parameters->dst, "> cannot set factor\n");
 			return(app_action_error);
 		}
 
 		if((int_offset != 0) && !config_set_int("i2s.%u.%u.offset", int_offset, bus, sensor))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set offset\n");
+			string_append(parameters->dst, "> cannot set offset\n");
 			return(app_action_error);
 		}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot write config\n");
+			string_append(parameters->dst, "> cannot write config\n");
 			return(app_action_error);
 		}
 	}
@@ -1287,27 +1285,27 @@ static app_action_t application_function_i2c_sensor_calibrate(string_t *src, str
 	if(!config_get_int("i2s.%u.%u.offset", &int_offset, bus, sensor))
 		int_offset = 0;
 
-	string_format(dst, "> i2c sensor %u/%u calibration set to factor %f, offset: %f\n", bus, sensor, int_factor / 1000.0, int_offset / 1000.0);
+	string_format(parameters->dst, "> i2c sensor %u/%u calibration set to factor %f, offset: %f\n", bus, sensor, int_factor / 1000.0, int_offset / 1000.0);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_i2c_sensor_dump(string_t *src, string_t *dst)
+static app_action_t application_function_i2c_sensor_dump(app_params_t *parameters)
 {
 	unsigned int option;
 	bool verbose;
 	int original_length;
 
-	original_length = string_length(dst);
+	original_length = string_length(parameters->dst);
 	verbose = false;
 
-	if((parse_uint(1, src, &option, 0, ' ') == parse_ok) && option)
+	if((parse_uint(1, parameters->src, &option, 0, ' ') == parse_ok) && option)
 		verbose = true;
 
-	i2c_sensor_dump(verbose, dst);
+	i2c_sensor_dump(verbose, parameters->dst);
 
-	if(string_length(dst) == original_length)
-		string_append(dst, "> no sensors detected\n");
+	if(string_length(parameters->dst) == original_length)
+		string_append(parameters->dst, "> no sensors detected\n");
 
 	return(app_action_normal);
 }
@@ -1330,24 +1328,24 @@ static app_action_t set_unset_flag(string_t *src, string_t *dst, bool add)
 	return(app_action_normal);
 }
 
-static app_action_t application_function_flag_set(string_t *src, string_t *dst)
+static app_action_t application_function_flag_set(app_params_t *parameters)
 {
-	return(set_unset_flag(src, dst, true));
+	return(set_unset_flag(parameters->src, parameters->dst, true));
 }
 
-static app_action_t application_function_flag_unset(string_t *src, string_t *dst)
+static app_action_t application_function_flag_unset(app_params_t *parameters)
 {
-	return(set_unset_flag(src, dst, false));
+	return(set_unset_flag(parameters->src, parameters->dst, false));
 }
 
-static app_action_t application_function_time_set(string_t *src, string_t *dst)
+static app_action_t application_function_time_set(app_params_t *parameters)
 {
 	unsigned int Y, M, D, h, m, s;
 	const char *source;
 
-	if((parse_uint(1, src, &h, 0, ' ') == parse_ok) && (parse_uint(2, src, &m, 0, ' ') == parse_ok))
+	if((parse_uint(1, parameters->src, &h, 0, ' ') == parse_ok) && (parse_uint(2, parameters->src, &m, 0, ' ') == parse_ok))
 	{
-		if(parse_uint(3, src, &s, 0, ' ') != parse_ok)
+		if(parse_uint(3, parameters->src, &s, 0, ' ') != parse_ok)
 			s = 0;
 
 		time_set_hms(h, m, s);
@@ -1355,44 +1353,44 @@ static app_action_t application_function_time_set(string_t *src, string_t *dst)
 
 	source = time_get(&h, &m, &s, &Y, &M, &D);
 
-	string_format(dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
+	string_format(parameters->dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_time_stamp_set(string_t *src, string_t *dst)
+static app_action_t application_function_time_stamp_set(app_params_t *parameters)
 {
 	unsigned int stamp;
 	unsigned int Y, M, D, h, m, s;
 	const char *source;
 
-	if(parse_uint(1, src, &stamp, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &stamp, 0, ' ') == parse_ok)
 		time_set_stamp(stamp);
 
 	source = time_get(&h, &m, &s, &Y, &M, &D);
 
-	string_format(dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
+	string_format(parameters->dst, "%s: %04u/%02u/%02u %02u:%02u:%02u\n", source, Y, M, D, h, m, s);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_time_zone_set(string_t *src, string_t *dst)
+static app_action_t application_function_time_zone_set(app_params_t *parameters)
 {
 	int tz;
 
-	if(parse_int(1, src, &tz, 0, ' ') == parse_ok)
+	if(parse_int(1, parameters->src, &tz, 0, ' ') == parse_ok)
 	{
-		string_clear(src);
+		string_clear(parameters->src);
 
-		if(!time_set_timezone(tz, src))
+		if(!time_set_timezone(tz, parameters->src))
 		{
-			string_append(dst, "time-zone-set: error: ");
-			string_append_string(dst, src);
+			string_append(parameters->dst, "time-zone-set: error: ");
+			string_append_string(parameters->dst, parameters->src);
 			return(app_action_error);
 		}
 	}
 
-	string_format(dst, "time-zone-set: timezone: %d\n", time_get_timezone());
+	string_format(parameters->dst, "time-zone-set: timezone: %d\n", time_get_timezone());
 
 	return(app_action_normal);
 }
@@ -1489,58 +1487,58 @@ static void wlan_scan_terse_done_callback(void *arg, STATUS status)
 	}
 }
 
-static app_action_t application_function_wlan_ap_configure(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_ap_configure(app_params_t *parameters)
 {
 	unsigned int channel;
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
 
-	if((parse_string(1, src, &ssid, ' ') == parse_ok) && (parse_string(2, src, &passwd, ' ') == parse_ok) &&
-			(parse_uint(3, src, &channel, 0, ' ') == parse_ok))
+	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok) &&
+			(parse_uint(3, parameters->src, &channel, 0, ' ') == parse_ok))
 	{
 		if((channel < 1) || (channel > 13))
 		{
-			string_format(dst, "> channel %u out of range (1-13)\n", channel);
+			string_format(parameters->dst, "> channel %u out of range (1-13)\n", channel);
 			return(app_action_error);
 		}
 
 		if(string_length(&passwd) < 8)
 		{
-			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n",
+			string_format(parameters->dst, "> passwd \"%s\" too short (length must be >= 8)\n",
 					string_to_cstr(&passwd));
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.ap.ssid", string_to_cstr(&ssid), -1, -1))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set config (set ssid)\n");
+			string_append(parameters->dst, "> cannot set config (set ssid)\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.ap.passwd", string_to_cstr(&passwd), -1, -1))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set config (passwd)\n");
+			string_append(parameters->dst, "> cannot set config (passwd)\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_int("wlan.ap.channel", channel, -1, -1))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set config (channel)\n");
+			string_append(parameters->dst, "> cannot set config (channel)\n");
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -1563,48 +1561,48 @@ static app_action_t application_function_wlan_ap_configure(string_t *src, string
 	if(!config_get_uint("wlan.ap.channel", &channel, -1, -1))
 		channel = 0;
 
-	string_format(dst, "> ssid: \"%s\", passwd: \"%s\", channel: %u\n",
+	string_format(parameters->dst, "> ssid: \"%s\", passwd: \"%s\", channel: %u\n",
 			string_to_cstr(&ssid), string_to_cstr(&passwd), channel);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_wlan_client_configure(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_client_configure(app_params_t *parameters)
 {
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
 
-	if((parse_string(1, src, &ssid, ' ') == parse_ok) && (parse_string(2, src, &passwd, ' ') == parse_ok))
+	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok))
 	{
 		if(string_length(&passwd) < 8)
 		{
-			string_format(dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_cstr(&passwd));
+			string_format(parameters->dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_cstr(&passwd));
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set config (write ssid)\n");
+			string_append(parameters->dst, "> cannot set config (write ssid)\n");
 			return(app_action_error);
 		}
 
 		if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
 		{
 			config_abort_write();
-			string_append(dst, "> cannot set config (write passwd)\n");
+			string_append(parameters->dst, "> cannot set config (write passwd)\n");
 			return(app_action_error);
 		}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -1624,26 +1622,26 @@ static app_action_t application_function_wlan_client_configure(string_t *src, st
 		string_append(&passwd, "<empty>");
 	}
 
-	string_format(dst, "> ssid: \"%s\", passwd: \"%s\"\n",
+	string_format(parameters->dst, "> ssid: \"%s\", passwd: \"%s\"\n",
 			string_to_cstr(&ssid), string_to_cstr(&passwd));
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_wlan_ap_switch(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_ap_switch(app_params_t *parameters)
 {
 	mac_addr_t mac;
 	string_new(, mac_string, 32);
 
-	if(parse_string(1, src, &mac_string, ' ') != parse_ok)
+	if(parse_string(1, parameters->src, &mac_string, ' ') != parse_ok)
 	{
-		string_append(dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
+		string_append(parameters->dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
 		return(app_action_error);
 	}
 
 	if(!string_to_mac(&mac, &mac_string))
 	{
-		string_append(dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
+		string_append(parameters->dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
 		return(app_action_error);
 	}
 
@@ -1653,32 +1651,32 @@ static app_action_t application_function_wlan_ap_switch(string_t *src, string_t 
 
 	if(!wlan_ap_switch(mac))
 	{
-		string_format(dst, "> wlan-ap-switch to %s failed\n", string_to_cstr(&mac_string));
+		string_format(parameters->dst, "> wlan-ap-switch to %s failed\n", string_to_cstr(&mac_string));
 		return(app_action_error);
 	}
 
-	string_format(dst, "> wlan-ap-switch to %s OK\n", string_to_cstr(&mac_string));
+	string_format(parameters->dst, "> wlan-ap-switch to %s OK\n", string_to_cstr(&mac_string));
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_mode(app_params_t *parameters)
 {
 	unsigned int int_mode;
 	config_wlan_mode_t mode;
 
-	if(parse_string(1, src, dst, ' ') == parse_ok)
+	if(parse_string(1, parameters->src, parameters->dst, ' ') == parse_ok)
 	{
-		if(string_match_cstr(dst, "client"))
+		if(string_match_cstr(parameters->dst, "client"))
 		{
-			string_clear(dst);
+			string_clear(parameters->dst);
 
 			if(!config_open_write() ||
 					!config_set_int("wlan.mode", config_wlan_mode_client, -1, -1) ||
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -1687,16 +1685,16 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 			return(app_action_disconnect);
 		}
 
-		if(string_match_cstr(dst, "ap"))
+		if(string_match_cstr(parameters->dst, "ap"))
 		{
-			string_clear(dst);
+			string_clear(parameters->dst);
 
 			if(!config_open_write() ||
 					!config_set_int("wlan.mode", config_wlan_mode_ap, -1, -1) ||
 					!config_close_write())
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
@@ -1705,12 +1703,12 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 			return(app_action_disconnect);
 		}
 
-		string_append(dst, ": invalid wlan mode\n");
+		string_append(parameters->dst, ": invalid wlan mode\n");
 		return(app_action_error);
 	}
 
-	string_clear(dst);
-	string_append(dst, "> current mode: ");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> current mode: ");
 
 	if(config_get_uint("wlan.mode", &int_mode, -1, -1))
 	{
@@ -1720,63 +1718,63 @@ static app_action_t application_function_wlan_mode(string_t *src, string_t *dst)
 		{
 			case(config_wlan_mode_client):
 			{
-				string_append(dst, "client mode");
+				string_append(parameters->dst, "client mode");
 				break;
 			}
 
 			case(config_wlan_mode_ap):
 			{
-				string_append(dst, "ap mode");
+				string_append(parameters->dst, "ap mode");
 				break;
 			}
 
 			default:
 			{
-				string_append(dst, "unknown mode");
+				string_append(parameters->dst, "unknown mode");
 				break;
 			}
 		}
 	}
 	else
-		string_append(dst, "mode unset");
+		string_append(parameters->dst, "mode unset");
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_log_display(string_t *src, string_t *dst)
+static app_action_t application_function_log_display(app_params_t *parameters)
 {
 	if(string_length(&logbuffer) == 0)
-		string_append(dst, "<log empty>\n");
+		string_append(parameters->dst, "<log empty>\n");
 	else
 	{
-		string_clear(dst);
-		string_append_string(dst, &logbuffer);
+		string_clear(parameters->dst);
+		string_append_string(parameters->dst, &logbuffer);
 	}
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_log_clear(string_t *src, string_t *dst)
+static app_action_t application_function_log_clear(app_params_t *parameters)
 {
 	app_action_t rv;
 
-	rv = application_function_log_display(src, dst);
+	rv = application_function_log_display(parameters);
 
 	logbuffer_clear();
 
 	return(rv);
 }
 
-static app_action_t application_function_log_write(string_t *src, string_t *dst)
+static app_action_t application_function_log_write(app_params_t *parameters)
 {
 	string_new(, text, 64);
 	unsigned int start, current, length;
 
-	if((start = string_sep(src, 0, 1, ' ')) > 0)
+	if((start = string_sep(parameters->src, 0, 1, ' ')) > 0)
 	{
-		string_splice(&text, 0, src, start, -1);
+		string_splice(&text, 0, parameters->src, start, -1);
 		length = string_length(&text);
 
 		for(current = 0; current < length; current++)
@@ -1785,12 +1783,12 @@ static app_action_t application_function_log_write(string_t *src, string_t *dst)
 		logchar('\n');
 	}
 
-	string_append(dst, "log write ok\n");
+	string_append(parameters->dst, "log write ok\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_scan(app_params_t *parameters)
 {
 	struct scan_config sc =
 	{
@@ -1804,12 +1802,12 @@ static app_action_t application_function_wlan_scan(string_t *src, string_t *dst)
 	};
 
 	wifi_station_scan(&sc, wlan_scan_done_callback);
-	string_append(dst, "wlan scan started, see log to retrieve the results\n");
+	string_append(parameters->dst, "wlan scan started, see log to retrieve the results\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_wlan_scan_terse(string_t *src, string_t *dst)
+static app_action_t application_function_wlan_scan_terse(app_params_t *parameters)
 {
 	struct scan_config sc =
 	{
@@ -1823,21 +1821,21 @@ static app_action_t application_function_wlan_scan_terse(string_t *src, string_t
 	};
 
 	wifi_station_scan(&sc, wlan_scan_terse_done_callback);
-	string_append(dst, "terse wlan scan started, see log to retrieve the results\n");
+	string_append(parameters->dst, "terse wlan scan started, see log to retrieve the results\n");
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_sntp_set(string_t *src, string_t *dst)
+static app_action_t application_function_sntp_set(app_params_t *parameters)
 {
 	string_new(, ipstring, 32);
 	ip_addr_t ipaddr;
 
-	if(parse_string(1, src, &ipstring, ' ') == parse_ok)
+	if(parse_string(1, parameters->src, &ipstring, ' ') == parse_ok)
 	{
 		ipaddr = ip_addr(string_to_cstr(&ipstring));
 
-		if(!time_sntp_set_server(dst, ipaddr))
+		if(!time_sntp_set_server(parameters->dst, ipaddr))
 			return(app_action_error);
 
 		time_sntp_start();
@@ -1847,34 +1845,34 @@ static app_action_t application_function_sntp_set(string_t *src, string_t *dst)
 
 	if(!time_sntp_get_server(&ipaddr))
 	{
-		string_append(dst, "> server address unavailable\n");
+		string_append(parameters->dst, "> server address unavailable\n");
 		return(app_action_error);
 	}
 
 	string_clear(&ipstring);
 	string_ip(&ipstring, ipaddr);
 
-	string_format(dst, "sntp-set: server: %s\n", string_to_cstr(&ipstring));
+	string_format(parameters->dst, "sntp-set: server: %s\n", string_to_cstr(&ipstring));
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_multicast_group_set(string_t *src, string_t *dst)
+static app_action_t application_function_multicast_group_set(app_params_t *parameters)
 {
 	unsigned int entry, entries;
 	string_new(, ip, 32);
 
-	if((parse_uint(1, src, &entry, 0, ' ') == parse_ok) && (parse_string(2, src, &ip, ' ') == parse_ok))
+	if((parse_uint(1, parameters->src, &entry, 0, ' ') == parse_ok) && (parse_string(2, parameters->src, &ip, ' ') == parse_ok))
 	{
 		if(entry > 7)
 		{
-			string_append(dst, "entry must be between 0 and 7\n");
+			string_append(parameters->dst, "entry must be between 0 and 7\n");
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "cannot set config (open)\n");
+			string_append(parameters->dst, "cannot set config (open)\n");
 			return(app_action_error);
 		}
 
@@ -1885,14 +1883,14 @@ static app_action_t application_function_multicast_group_set(string_t *src, stri
 			if(!config_set_string("multicast-group.%u", string_to_cstr(&ip), entry, -1))
 			{
 				config_abort_write();
-				string_append(dst, "cannot set config (set multicast group entry)\n");
+				string_append(parameters->dst, "cannot set config (set multicast group entry)\n");
 				return(app_action_error);
 			}
 		}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "cannot set config (close)\n");
+			string_append(parameters->dst, "cannot set config (close)\n");
 			return(app_action_error);
 		}
 
@@ -1906,30 +1904,30 @@ static app_action_t application_function_multicast_group_set(string_t *src, stri
 		if(config_get_string("multicast-group.%u", &ip, entry, -1))
 		{
 			entries++;
-			string_format(dst, "> %u: %s\n", entry, string_to_cstr(&ip));
+			string_format(parameters->dst, "> %u: %s\n", entry, string_to_cstr(&ip));
 		}
 	}
 
-	string_format(dst, "%u entries\n", entries);
+	string_format(parameters->dst, "%u entries\n", entries);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_gpio_status_set(string_t *src, string_t *dst)
+static app_action_t application_function_gpio_status_set(app_params_t *parameters)
 {
 	int trigger_io, trigger_pin;
 
-	if((parse_int(1, src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, src, &trigger_pin, 0, ' ') == parse_ok))
+	if((parse_int(1, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
 	{
 		if((trigger_io < -1) || (trigger_io > io_id_size))
 		{
-			string_format(dst, "status trigger io %d/%d invalid\n", trigger_io, trigger_pin);
+			string_format(parameters->dst, "status trigger io %d/%d invalid\n", trigger_io, trigger_pin);
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
@@ -1939,7 +1937,7 @@ static app_action_t application_function_gpio_status_set(string_t *src, string_t
 					!config_delete("trigger.status.pin", false, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -1948,13 +1946,13 @@ static app_action_t application_function_gpio_status_set(string_t *src, string_t
 					!config_set_int("trigger.status.pin", trigger_pin, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -1965,27 +1963,27 @@ static app_action_t application_function_gpio_status_set(string_t *src, string_t
 	if(!config_get_int("trigger.status.pin", &trigger_pin, -1, -1))
 		trigger_pin = -1;
 
-	string_format(dst, "status trigger at io %d/%d (-1 is disabled)\n",
+	string_format(parameters->dst, "status trigger at io %d/%d (-1 is disabled)\n",
 			trigger_io, trigger_pin);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_gpio_assoc_set(string_t *src, string_t *dst)
+static app_action_t application_function_gpio_assoc_set(app_params_t *parameters)
 {
 	int trigger_io, trigger_pin;
 
-	if((parse_int(1, src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, src, &trigger_pin, 0, ' ') == parse_ok))
+	if((parse_int(1, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
 	{
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
 		if((trigger_io < -1) || (trigger_io > io_id_size))
 		{
-			string_format(dst, "association trigger io %d/%d invalid\n", trigger_io, trigger_pin);
+			string_format(parameters->dst, "association trigger io %d/%d invalid\n", trigger_io, trigger_pin);
 			return(app_action_error);
 		}
 
@@ -1995,7 +1993,7 @@ static app_action_t application_function_gpio_assoc_set(string_t *src, string_t 
 					!config_delete("trigger.assoc.pin", false, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -2004,13 +2002,13 @@ static app_action_t application_function_gpio_assoc_set(string_t *src, string_t 
 					!config_set_int("trigger.assoc.pin", trigger_pin, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -2021,54 +2019,54 @@ static app_action_t application_function_gpio_assoc_set(string_t *src, string_t 
 	if(!config_get_int("trigger.assoc.pin", &trigger_pin, -1, -1))
 		trigger_pin = -1;
 
-	string_format(dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
+	string_format(parameters->dst, "wlan association trigger at io %d/%d (-1 is disabled)\n",
 			trigger_io, trigger_pin);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_pwm_width(string_t *src, string_t *dst)
+static app_action_t application_function_pwm_width(app_params_t *parameters)
 {
 	unsigned int width;
 
-	if(parse_uint(1, src, &width, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &width, 0, ' ') == parse_ok)
 	{
 		if(!io_gpio_pwm1_width_set(width, /*load*/false, /*save*/true))
 		{
-			string_format(dst, "pwm-width: invalid width: %u\n", width);
+			string_format(parameters->dst, "pwm-width: invalid width: %u\n", width);
 			return(app_action_error);
 		}
 	}
 
-	string_format(dst, "pwm-width: %u\n", io_gpio_pwm1_width_get());
+	string_format(parameters->dst, "pwm-width: %u\n", io_gpio_pwm1_width_get());
 
 	return(app_action_normal);
 }
-static app_action_t application_function_peek(string_t *src, string_t *dst)
+static app_action_t application_function_peek(app_params_t *parameters)
 {
 	unsigned int address;
 
-	if(parse_uint(1, src, &address, 16, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &address, 16, ' ') != parse_ok)
 	{
-		string_append(dst, "> use peek <address>");
+		string_append(parameters->dst, "> use peek <address>");
 		return(app_action_error);
 	}
 
 	address &= ~0x03; // ensure proper alignment
 
-	string_format(dst, "> peek (0x%x) = 0x%x\n", address, *(unsigned int *)address);
+	string_format(parameters->dst, "> peek (0x%x) = 0x%x\n", address, *(unsigned int *)address);
 
 	return(app_action_normal);
 }
 
-static app_action_t application_function_poke(string_t *src, string_t *dst)
+static app_action_t application_function_poke(app_params_t *parameters)
 {
 	unsigned int address;
 	unsigned int value;
 
-	if((parse_uint(1, src, &address, 16, ' ') != parse_ok) || (parse_uint(2, src, &value, 16, ' ') != parse_ok))
+	if((parse_uint(1, parameters->src, &address, 16, ' ') != parse_ok) || (parse_uint(2, parameters->src, &value, 16, ' ') != parse_ok))
 	{
-		string_append(dst, "> use poke <address> <value>");
+		string_append(parameters->dst, "> use poke <address> <value>");
 		return(app_action_error);
 	}
 
@@ -2076,7 +2074,7 @@ static app_action_t application_function_poke(string_t *src, string_t *dst)
 
 	*(uint32_t *)address = value;
 
-	string_format(dst, "> poke (0x%x,0x%x) = 0x%x\n", address, value, *(unsigned int *)address);
+	string_format(parameters->dst, "> poke (0x%x,0x%x) = 0x%x\n", address, value, *(unsigned int *)address);
 
 	return(app_action_normal);
 }

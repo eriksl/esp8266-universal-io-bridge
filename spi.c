@@ -480,7 +480,7 @@ attr_result_used bool spi_finish(string_t *error)
 roflash const char help_description_spi_configure[] = "configure SPI interface\n"
 		"> usage: spc <mode=0-3> <cs delay=0|1> [<user cs io> <user cs pin>]\n";
 
-app_action_t application_function_spi_configure(string_t *src, string_t *dst)
+app_action_t application_function_spi_configure(app_params_t *parameters)
 {
 	string_new(, error, 64);
 	unsigned int	spi_mode;
@@ -488,7 +488,7 @@ app_action_t application_function_spi_configure(string_t *src, string_t *dst)
 	unsigned int	cs_delay;
 	int				user_cs_io, user_cs_pin;
 
-	if(parse_uint(1, src, &spi_mode, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &spi_mode, 0, ' ') != parse_ok)
 		goto usage;
 
 	spi_mode_enum = (spi_mode_t)(spi_mode + spi_mode_0);
@@ -496,16 +496,16 @@ app_action_t application_function_spi_configure(string_t *src, string_t *dst)
 	if((spi_mode_enum <= spi_mode_none) || (spi_mode_enum >= spi_mode_size))
 		goto usage;
 
-	if(parse_uint(2, src, &cs_delay, 0, ' ') != parse_ok)
+	if(parse_uint(2, parameters->src, &cs_delay, 0, ' ') != parse_ok)
 		goto usage;
 
-	if(parse_int(3, src, &user_cs_io, 0, ' ') != parse_ok)
+	if(parse_int(3, parameters->src, &user_cs_io, 0, ' ') != parse_ok)
 		user_cs_io = -1;
 
 	if((user_cs_io < -1) || (user_cs_io > 15))
 		goto usage;
 
-	if(parse_int(4, src, &user_cs_pin, 0, ' ') != parse_ok)
+	if(parse_int(4, parameters->src, &user_cs_pin, 0, ' ') != parse_ok)
 		user_cs_pin = -1;
 
 	if((user_cs_pin < -1) || (user_cs_pin >= max_pins_per_io))
@@ -513,21 +513,21 @@ app_action_t application_function_spi_configure(string_t *src, string_t *dst)
 
 	if(!spi_configure(&error, spi_mode_enum, cs_delay, user_cs_io, user_cs_pin))
 	{
-		string_format(dst, "spi configure failed: %s\n", string_to_cstr(&error));
+		string_format(parameters->dst, "spi configure failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_append(dst, "spi configure ok\n");
+	string_append(parameters->dst, "spi configure ok\n");
 	return(app_action_normal);
 
 usage:
-	string_append_cstr_flash(dst, help_description_spi_configure);
+	string_append_cstr_flash(parameters->dst, help_description_spi_configure);
 
-	string_append(dst, "> spi mode:\n");
-	string_append(dst, ">    0 clk=0 pha=0\n");
-	string_append(dst, ">    1 clk=0 pha=1\n");
-	string_append(dst, ">    2 clk=1 pha=0\n");
-	string_append(dst, ">    3 clk=1 pha=1\n");
+	string_append(parameters->dst, "> spi mode:\n");
+	string_append(parameters->dst, ">    0 clk=0 pha=0\n");
+	string_append(parameters->dst, ">    1 clk=0 pha=1\n");
+	string_append(parameters->dst, ">    2 clk=1 pha=0\n");
+	string_append(parameters->dst, ">    3 clk=1 pha=1\n");
 
 	return(app_action_error);
 }
@@ -535,48 +535,48 @@ usage:
 roflash const char help_description_spi_start[] = "prepare writing SPI send buffer data\n"
 		"usage: sps\n";
 
-app_action_t application_function_spi_start(string_t *src, string_t *dst)
+app_action_t application_function_spi_start(app_params_t *parameters)
 {
 	string_new(, error, 64);
 
 	if(!spi_start(&error))
 	{
-		string_format(dst, "spi start failed: %s\n", string_to_cstr(&error));
+		string_format(parameters->dst, "spi start failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_append(dst, "spi start ok\n");
+	string_append(parameters->dst, "spi start ok\n");
 	return(app_action_normal);
 }
 
 roflash const char help_description_spi_write[] = "write data to SPI send buffer\n"
 		"usage: spw <bits=0-32> <value>\n";
 
-app_action_t application_function_spi_write(string_t *src, string_t *dst)
+app_action_t application_function_spi_write(app_params_t *parameters)
 {
 	unsigned int bits, value;
 	unsigned int current;
 
-	if(parse_uint(1, src, &bits, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &bits, 0, ' ') != parse_ok)
 		goto usage;
 
 	for(current = 2; current < 66; current++)
 	{
-		if(parse_uint(current, src, &value, 16, ' ') != parse_ok)
+		if(parse_uint(current, parameters->src, &value, 16, ' ') != parse_ok)
 			break;
 
 		if(!spi_write(bits, value))
 		{
-			string_format(dst, "spi write failed\n");
+			string_format(parameters->dst, "spi write failed\n");
 			return(app_action_error);
 		}
 	}
 
-	string_append(dst, "spi write ok\n");
+	string_append(parameters->dst, "spi write ok\n");
 	return(app_action_normal);
 
 usage:
-	string_append_cstr_flash(dst, help_description_spi_write);
+	string_append_cstr_flash(parameters->dst, help_description_spi_write);
 	return(app_action_error);
 }
 
@@ -586,7 +586,7 @@ roflash const char help_description_spi_transmit[] = "execute the SPI transactio
 		"           <address length bits (0-31 bits)> <address value (hex)\n"
 		"           <receive bytes (0-64)\n";
 
-app_action_t application_function_spi_transmit(string_t *src, string_t *dst)
+app_action_t application_function_spi_transmit(app_params_t *parameters)
 {
 	string_new(, error, 64);
 	unsigned int command_length, command;
@@ -597,7 +597,7 @@ app_action_t application_function_spi_transmit(string_t *src, string_t *dst)
 	spi_clock_t clock_speed_enum;
 	const spi_clock_map_t *clock_map_ptr;
 
-	if(parse_uint(1, src, &clock_speed, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &clock_speed, 0, ' ') != parse_ok)
 		goto usage;
 
 	clock_speed_enum = (spi_clock_t)clock_speed;
@@ -605,34 +605,34 @@ app_action_t application_function_spi_transmit(string_t *src, string_t *dst)
 	if((clock_speed_enum <= spi_clock_none) || (clock_speed_enum >= spi_clock_size))
 		goto usage;
 
-	if((parse_uint(2, src, &command_length, 0, ' ') != parse_ok) || (parse_uint(3, src, &command, 16, ' ') != parse_ok))
+	if((parse_uint(2, parameters->src, &command_length, 0, ' ') != parse_ok) || (parse_uint(3, parameters->src, &command, 16, ' ') != parse_ok))
 		goto usage;
 
-	if((parse_uint(4, src, &address_length, 0, ' ') != parse_ok) || (parse_uint(5, src, &address, 16, ' ') != parse_ok))
+	if((parse_uint(4, parameters->src, &address_length, 0, ' ') != parse_ok) || (parse_uint(5, parameters->src, &address, 16, ' ') != parse_ok))
 		goto usage;
 
-	if(parse_uint(6, src, &skip_length, 0, ' ') != parse_ok)
+	if(parse_uint(6, parameters->src, &skip_length, 0, ' ') != parse_ok)
 		goto usage;
 
-	if(parse_uint(7, src, &receive_bytes, 0, ' ') != parse_ok)
+	if(parse_uint(7, parameters->src, &receive_bytes, 0, ' ') != parse_ok)
 		goto usage;
 
 	if(!spi_transmit(&error, clock_speed_enum, command_length, command, address_length, address, skip_length, receive_bytes))
 	{
-		string_format(dst, "spi transmit failed: %s\n", string_to_cstr(&error));
+		string_format(parameters->dst, "spi transmit failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_format(dst, "spi transmit ok\n");
+	string_format(parameters->dst, "spi transmit ok\n");
 
 	return(app_action_normal);
 
 usage:
-	string_append_cstr_flash(dst, help_description_spi_transmit);
-	string_append(dst, ">\n");
+	string_append_cstr_flash(parameters->dst, help_description_spi_transmit);
+	string_append(parameters->dst, ">\n");
 
 	for(clock_map_ptr = spi_clock_map; clock_map_ptr->clock != spi_clock_none; clock_map_ptr++)
-		string_format(dst, ">    %2u %10u\n", clock_map_ptr->clock, (unsigned int)(80000000.0 / clock_map_ptr->pre_div / clock_map_ptr->div));
+		string_format(parameters->dst, ">    %2u %10u\n", clock_map_ptr->clock, (unsigned int)(80000000.0 / clock_map_ptr->pre_div / clock_map_ptr->div));
 
 	return(app_action_error);
 }
@@ -640,13 +640,13 @@ usage:
 roflash const char help_description_spi_receive[] = "fetch data received by SPI transaction\n"
 		"usage: spr <number of bytes to read (0 - 63)>\n";
 
-app_action_t application_function_spi_receive(string_t *src, string_t *dst)
+app_action_t application_function_spi_receive(app_params_t *parameters)
 {
 	string_new(, error, 64);
 	unsigned int current, length;
 	uint8_t buffer[64];
 
-	if(parse_uint(1, src, &length, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &length, 0, ' ') != parse_ok)
 		goto usage;
 
 	if(length > 64)
@@ -654,36 +654,36 @@ app_action_t application_function_spi_receive(string_t *src, string_t *dst)
 
 	if(!spi_receive(&error, length, buffer))
 	{
-		string_format(dst, "spi receive failed: %s\n", string_to_cstr(&error));
+		string_format(parameters->dst, "spi receive failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_append(dst, "spi receive ok, received: ");
+	string_append(parameters->dst, "spi receive ok, received: ");
 
 	for(current = 0; current < length; current++)
-		string_format(dst, "%02x ", buffer[current]);
+		string_format(parameters->dst, "%02x ", buffer[current]);
 
-	string_append(dst, "\n");
+	string_append(parameters->dst, "\n");
 	return(app_action_normal);
 
 usage:
-	string_append_cstr_flash(dst, help_description_spi_receive);
+	string_append_cstr_flash(parameters->dst, help_description_spi_receive);
 	return(app_action_error);
 }
 
 roflash const char help_description_spi_finish[] = "finish SPI transaction\n"
 		"usage: spf\n";
 
-app_action_t application_function_spi_finish(string_t *src, string_t *dst)
+app_action_t application_function_spi_finish(app_params_t *parameters)
 {
 	string_new(, error, 64);
 
 	if(!spi_finish(&error))
 	{
-		string_format(dst, "spi finish failed: %s\n", string_to_cstr(&error));
+		string_format(parameters->dst, "spi finish failed: %s\n", string_to_cstr(&error));
 		return(app_action_error);
 	}
 
-	string_append(dst, "spi finish ok\n");
+	string_append(parameters->dst, "spi finish ok\n");
 	return(app_action_normal);
 }

@@ -1064,7 +1064,7 @@ roflash const char help_description_display_spitft[] =	"> usage: display spitft\
 														"> [<brightness pwm io> <brightness pwm pin>]\n"
 														"> [<user cs io> <user cs pin>]\n";
 
-app_action_t application_function_display_spitft(string_t *src, string_t *dst)
+app_action_t application_function_display_spitft(app_params_t *parameters)
 {
 	unsigned int x_size, x_offset, x_mirror;
 	unsigned int y_size, y_offset, y_mirror;
@@ -1074,46 +1074,46 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	int bright_io, bright_pin;
 	int cs_io, cs_pin;
 
-	if(parse_uint(1, src, &x_size, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &x_size, 0, ' ') == parse_ok)
 	{
-		if((parse_uint(2, src, &x_offset, 0, ' ') != parse_ok) ||
-			(parse_uint(3, src, &x_mirror, 0, ' ') != parse_ok))
+		if((parse_uint(2, parameters->src, &x_offset, 0, ' ') != parse_ok) ||
+			(parse_uint(3, parameters->src, &x_mirror, 0, ' ') != parse_ok))
 		{
-			string_append_cstr_flash(dst, help_description_display_spitft);
+			string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 			return(app_action_error);
 		}
 
-		if((parse_uint(4, src, &y_size, 0, ' ') != parse_ok) ||
-				(parse_uint(5, src, &y_offset, 0, ' ') != parse_ok) ||
-				(parse_uint(6, src, &y_mirror, 0, ' ') != parse_ok))
+		if((parse_uint(4, parameters->src, &y_size, 0, ' ') != parse_ok) ||
+				(parse_uint(5, parameters->src, &y_offset, 0, ' ') != parse_ok) ||
+				(parse_uint(6, parameters->src, &y_mirror, 0, ' ') != parse_ok))
 		{
-			string_append_cstr_flash(dst, help_description_display_spitft);
+			string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 			return(app_action_error);
 		}
 
-		if(parse_uint(7, src, &rotate, 0, ' ') != parse_ok)
+		if(parse_uint(7, parameters->src, &rotate, 0, ' ') != parse_ok)
 		{
-			string_append_cstr_flash(dst, help_description_display_spitft);
+			string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 			return(app_action_error);
 		}
 
-		if(parse_int(8, src, &speed, 0, ' ') == parse_ok)
+		if(parse_int(8, parameters->src, &speed, 0, ' ') == parse_ok)
 		{
 			if((speed < -1) || (speed >= spi_clock_size))
 			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
+				string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 		}
 		else
 			speed = -1;
 
-		if((parse_int(9, src, &dcx_io, 0, ' ') == parse_ok) &&
-				(parse_int(10, src, &dcx_pin, 0, ' ') == parse_ok))
+		if((parse_int(9, parameters->src, &dcx_io, 0, ' ') == parse_ok) &&
+				(parse_int(10, parameters->src, &dcx_pin, 0, ' ') == parse_ok))
 		{
 			if((dcx_io < -1) || (dcx_io >= io_id_size) || (dcx_pin < -1) || (dcx_pin >= max_pins_per_io))
 			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
+				string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 		}
@@ -1123,12 +1123,12 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			dcx_pin = -1;
 		}
 
-		if((parse_int(11, src, &bright_io, 0, ' ') == parse_ok) &&
-				(parse_int(12, src, &bright_pin, 0, ' ') == parse_ok))
+		if((parse_int(11, parameters->src, &bright_io, 0, ' ') == parse_ok) &&
+				(parse_int(12, parameters->src, &bright_pin, 0, ' ') == parse_ok))
 		{
 			if((bright_io < -1) || (bright_io >= io_id_size) || (bright_pin < -1) || (bright_pin >= max_pins_per_io))
 			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
+				string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 		}
@@ -1138,12 +1138,12 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 			bright_pin = -1;
 		}
 
-		if((parse_int(13, src, &cs_io, 0, ' ') == parse_ok) &&
-				(parse_int(14, src, &cs_pin, 0, ' ') == parse_ok))
+		if((parse_int(13, parameters->src, &cs_io, 0, ' ') == parse_ok) &&
+				(parse_int(14, parameters->src, &cs_pin, 0, ' ') == parse_ok))
 		{
 			if((cs_io < -1) || (cs_io >= io_id_size) || (cs_pin < -1) || (cs_pin >= max_pins_per_io))
 			{
-				string_append_cstr_flash(dst, help_description_display_spitft);
+				string_append_cstr_flash(parameters->dst, help_description_display_spitft);
 				return(app_action_error);
 			}
 		}
@@ -1236,7 +1236,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 
 	if(!config_get_uint("spitft.x.size", &x_size, -1, -1))
 	{
-		string_format(dst, "no spi tft display configured\n");
+		string_format(parameters->dst, "no spi tft display configured\n");
 		return(app_action_error);
 	}
 
@@ -1246,7 +1246,7 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	if(!config_get_uint("spitft.x.mirror", &x_mirror, -1, -1))
 		x_mirror = 0;
 
-	string_format(dst, "> x size: %u, offset: %u, mirror: %u\n", x_size, x_offset, x_mirror);
+	string_format(parameters->dst, "> x size: %u, offset: %u, mirror: %u\n", x_size, x_offset, x_mirror);
 
 	if(!config_get_uint("spitft.y.size", &y_size, -1, -1))
 		y_size = 0;
@@ -1257,48 +1257,48 @@ app_action_t application_function_display_spitft(string_t *src, string_t *dst)
 	if(!config_get_uint("spitft.y.mirror", &y_mirror, -1, -1))
 		x_mirror = 0;
 
-	string_format(dst, "> y size: %u, offset: %u, mirror: %u\n", y_size, y_offset, y_mirror);
+	string_format(parameters->dst, "> y size: %u, offset: %u, mirror: %u\n", y_size, y_offset, y_mirror);
 
 	if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
 		rotate = 0;
 
-	string_format(dst, "> rotate: %u\n", rotate);
+	string_format(parameters->dst, "> rotate: %u\n", rotate);
 
 	if(!config_get_int("spitft.speed", &speed, -1, -1))
 		speed = -1;
 
 	if(speed >= 0)
-		string_format(dst, "> speed: %d\n", speed);
+		string_format(parameters->dst, "> speed: %d\n", speed);
 	else
-		string_append(dst, "> speed default: 10 Mhz\n");
+		string_append(parameters->dst, "> speed default: 10 Mhz\n");
 
 	if(!config_get_int("spitft.dcx.io", &dcx_io, -1, -1) ||
 			!config_get_int("spitft.dcx.pin", &dcx_pin, -1, -1))
 		dcx_io = dcx_pin = -1;
 
 	if((dcx_io >= 0) && (dcx_pin >= 0))
-		string_format(dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
+		string_format(parameters->dst, "> dcx io: %d, pin: %d\n", dcx_io, dcx_pin);
 
 	if(!config_get_int("spitft.bright.io", &bright_io, -1, -1) ||
 			!config_get_int("spitft.bright.pin", &bright_pin, -1, -1))
 		bright_io = bright_pin = -1;
 
 	if((bright_io >= 0) && (bright_pin >= 0))
-		string_format(dst, "> brightness pwm io: %d, pin: %d\n", bright_io, bright_pin);
+		string_format(parameters->dst, "> brightness pwm io: %d, pin: %d\n", bright_io, bright_pin);
 
 	if(!config_get_int("spitft.cs.io", &cs_io, -1, -1) ||
 			!config_get_int("spitft.cs.pin", &cs_pin, -1, -1))
 		cs_io = cs_pin = -1;
 
 	if((cs_io >= 0) && (cs_pin >= 0))
-		string_format(dst, "> cs io: %d, pin: %d\n", cs_io, cs_pin);
+		string_format(parameters->dst, "> cs io: %d, pin: %d\n", cs_io, cs_pin);
 
 	return(app_action_normal);
 
 config_error:
 	config_abort_write();
-	string_clear(dst);
-	string_append(dst, "> cannot set config\n");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> cannot set config\n");
 	return(app_action_error);
 }
 

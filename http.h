@@ -3,7 +3,8 @@
 
 #include "util.h"
 #include "application.h"
+#include "dispatch.h"
 
-app_action_t application_function_http_get(string_t *src, string_t *dst);
+app_action_t application_function_http_get(app_params_t *);
 
 #endif

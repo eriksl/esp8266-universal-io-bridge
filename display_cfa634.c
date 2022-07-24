@@ -499,13 +499,13 @@ static bool end(void)
 
 roflash const char help_description_display_cfa634[] =	"> usage: dc6 <baud rate or 0 (disable)>\n";
 
-app_action_t application_function_display_cfa634(string_t *src, string_t *dst)
+app_action_t application_function_display_cfa634(app_params_t *parameters)
 {
 	unsigned int baudrate;
 
 	baudrate = 0;
 
-	if(parse_uint(1, src, &baudrate, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &baudrate, 0, ' ') == parse_ok)
 	{
 		if(!config_open_write())
 			goto config_error;
@@ -522,18 +522,18 @@ app_action_t application_function_display_cfa634(string_t *src, string_t *dst)
 
 	if(!config_get_uint("cfa634.baud", &baudrate, -1, -1))
 	{
-		string_format(dst, "no cfa634 display configured\n");
+		string_format(parameters->dst, "no cfa634 display configured\n");
 		return(app_action_error);
 	}
 
-	string_format(dst, "cfa634: baud rate: %u\n", baudrate);
+	string_format(parameters->dst, "cfa634: baud rate: %u\n", baudrate);
 
 	return(app_action_normal);
 
 config_error:
 	config_abort_write();
-	string_clear(dst);
-	string_append(dst, "> cannot set config\n");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> cannot set config\n");
 	return(app_action_error);
 }
 

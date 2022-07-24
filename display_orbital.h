@@ -2,9 +2,10 @@
 #define display_orbital_h
 
 #include "display.h"
+#include "dispatch.h"
 
 extern const char help_description_display_orbital[];
-app_action_t application_function_display_orbital(string_t *src, string_t *dst);
+app_action_t application_function_display_orbital(app_params_t *);
 
 extern display_hooks_t display_hooks_orbital;
 

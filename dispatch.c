@@ -165,6 +165,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 		case(task_received_command):
 		{
+			app_params_t parameters;
 			app_action_t action;
 
 			if(argument) // commands from uart enabled
@@ -194,7 +195,10 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 			string_clear(&command_socket_send_buffer);
 
-			action = application_content(&command_socket_receive_buffer, &command_socket_send_buffer);
+			parameters.src = &command_socket_receive_buffer;
+			parameters.dst = &command_socket_send_buffer;
+
+			action = application_content(&parameters);
 
 			string_clear(&command_socket_receive_buffer);
 			lwip_if_receive_buffer_unlock(&command_socket);

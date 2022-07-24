@@ -186,21 +186,21 @@ bool font_render(unsigned int code, font_cell_t cell)
 
 roflash const char help_description_display_font_select[] = "select display font <0-2>\n";
 
-app_action_t application_function_display_font_select(string_t *src, string_t *dst)
+app_action_t application_function_display_font_select(app_params_t *parameters)
 {
 	unsigned int font_logging_local, font_other_local, ix;
 
-	if((parse_uint(1, src, &font_logging_local, 0, ' ') == parse_ok) && parse_uint(2, src, &font_other_local, 0, ' ') == parse_ok)
+	if((parse_uint(1, parameters->src, &font_logging_local, 0, ' ') == parse_ok) && parse_uint(2, parameters->src, &font_other_local, 0, ' ') == parse_ok)
 	{
 		if((font_logging_local >= fonts) || (font_other_local >= fonts))
 		{
-			string_format(dst, "> font must be 0 - %u\n", fonts - 1U);
+			string_format(parameters->dst, "> font must be 0 - %u\n", fonts - 1U);
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
@@ -211,13 +211,13 @@ app_action_t application_function_display_font_select(string_t *src, string_t *d
 					!config_set_int("font.id.other", font_other_local, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 
@@ -233,19 +233,19 @@ app_action_t application_function_display_font_select(string_t *src, string_t *d
 
 	for(ix = 0; ix < fonts; ix++)
 	{
-		string_format(dst, "> font %2u: ", ix);
+		string_format(parameters->dst, "> font %2u: ", ix);
 
 		if(!font[ix])
-			string_append(dst, "unavailable");
+			string_append(parameters->dst, "unavailable");
 		else
 		{
-			string_format(dst, "%2u x %2u %-7s %-5s",
+			string_format(parameters->dst, "%2u x %2u %-7s %-5s",
 				font[ix]->width, font[ix]->height,
 				ix == font_logging_local ? "logging" : "",
 				ix == font_other_local ? "other" : "");
 		}
 
-		string_format(dst, "\n");
+		string_format(parameters->dst, "\n");
 	}
 
 	return(app_action_normal);

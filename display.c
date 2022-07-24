@@ -638,28 +638,28 @@ static void display_dump(string_t *dst)
 	}
 }
 
-app_action_t application_function_display_dump(string_t *src, string_t *dst)
+app_action_t application_function_display_dump(app_params_t *parameters)
 {
-	display_dump(dst);
+	display_dump(parameters->dst);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_flip_timeout(string_t *src, string_t *dst)
+app_action_t application_function_display_flip_timeout(app_params_t *parameters)
 {
 	unsigned int timeout;
 
-	if(parse_uint(1, src, &timeout, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &timeout, 0, ' ') == parse_ok)
 	{
 		if((timeout < 1) || (timeout > 60))
 		{
-			string_format(dst, "> invalid timeout: %u\n", timeout);
+			string_format(parameters->dst, "> invalid timeout: %u\n", timeout);
 			return(app_action_error);
 		}
 
 		if(!config_open_write())
 		{
-			string_append(dst, "> cannot set config (open)\n");
+			string_append(parameters->dst, "> cannot set config (open)\n");
 			return(app_action_error);
 		}
 
@@ -668,7 +668,7 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 			if(!config_delete("display.fliptimeout", false, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot delete config (default values)\n");
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
 				return(app_action_error);
 			}
 		}
@@ -676,13 +676,13 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 			if(!config_set_int("display.fliptimeout", timeout, -1, -1))
 			{
 				config_abort_write();
-				string_append(dst, "> cannot set config\n");
+				string_append(parameters->dst, "> cannot set config\n");
 				return(app_action_error);
 			}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "> cannot set config (close)\n");
+			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -692,39 +692,39 @@ app_action_t application_function_display_flip_timeout(string_t *src, string_t *
 
 	flip_timeout = timeout;
 
-	string_format(dst, "> timeout: %u s\n", flip_timeout);
+	string_format(parameters->dst, "> timeout: %u s\n", flip_timeout);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_brightness(string_t *src, string_t *dst)
+app_action_t application_function_display_brightness(app_params_t *parameters)
 {
 	unsigned int value;
 
 	if(!display_hooks_active)
 	{
-		string_append(dst, "display_brightess: no display detected\n");
+		string_append(parameters->dst, "display_brightess: no display detected\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(1, src, &value, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &value, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
+		string_append(parameters->dst, "display-brightness: usage: <brightness>=0,1,2,3,4\n");
 		return(app_action_error);
 	}
 
 	if(!display_hooks_active->bright_fn || !display_hooks_active->bright_fn(value))
 	{
-		string_format(dst, "display-brightness: invalid brightness value: %u\n", value);
+		string_format(parameters->dst, "display-brightness: invalid brightness value: %u\n", value);
 		return(app_action_error);
 	}
 
-	string_format(dst, "display brightness: %u\n", value);
+	string_format(parameters->dst, "display brightness: %u\n", value);
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_set(string_t *src, string_t *dst)
+app_action_t application_function_display_set(app_params_t *parameters)
 {
 	int user_slot, timeout, from, to;
 	unsigned int slot;
@@ -733,15 +733,15 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	if(!display_hooks_active)
 	{
-		string_append(dst, "display_set: no display detected\n");
+		string_append(parameters->dst, "display_set: no display detected\n");
 		return(app_action_error);
 	}
 
-	if((parse_int(1, src, &user_slot, 0, ' ') != parse_ok) ||
-			(parse_int(2, src, &timeout, 0, ' ') != parse_ok))
+	if((parse_int(1, parameters->src, &user_slot, 0, ' ') != parse_ok) ||
+			(parse_int(2, parameters->src, &timeout, 0, ' ') != parse_ok))
 		goto usage;
 
-	if((from = string_sep(src, 0, 3, ' ')) < 0)
+	if((from = string_sep(parameters->src, 0, 3, ' ')) < 0)
 		goto usage;
 
 	if(user_slot < 0)
@@ -760,16 +760,16 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 
 	if(slot >= display_slot_amount)
 	{
-		string_format(dst, "display-set: slot #%d out of limits\n", user_slot);
+		string_format(parameters->dst, "display-set: slot #%d out of limits\n", user_slot);
 		return(app_action_error);
 	}
 
 	for(to = 0; (to + 1) < display_slot_content_size; from++)
 	{
-		if(!(current = string_at(src, from)))
+		if(!(current = string_at(parameters->src, from)))
 			break;
 
-		if((current == '\\') && (string_length(src) > from) && (string_at(src, from + 1) == 'n'))
+		if((current == '\\') && (string_length(parameters->src) > from) && (string_at(parameters->src, from + 1) == 'n'))
 		{
 			from++;
 			current = '\n';
@@ -784,59 +784,59 @@ app_action_t application_function_display_set(string_t *src, string_t *dst)
 	if(cleared)
 		display_update(true);
 
-	string_clear(dst);
+	string_clear(parameters->dst);
 
-	string_format(dst, "display-set: set slot %u to \"%s\"\n", slot, display_slot[slot].content);
+	string_format(parameters->dst, "display-set: set slot %u to \"%s\"\n", slot, display_slot[slot].content);
 
 	return(app_action_normal);
 
 usage:
-	string_append(dst, "display-set: usage: slot timeout text\n");
+	string_append(parameters->dst, "display-set: usage: slot timeout text\n");
 	return(app_action_error);
 }
 
-app_action_t application_function_display_picture_load(string_t *src, string_t *dst)
+app_action_t application_function_display_picture_load(app_params_t *parameters)
 {
 	unsigned int entry;
 	bool rv;
 
-	if(!parse_uint(1, src, &entry, 0, ' ') == parse_ok)
+	if(!parse_uint(1, parameters->src, &entry, 0, ' ') == parse_ok)
 		entry = 0;
 
 	if(entry > 1)
 	{
-		string_append(dst, "picture load: usage: [slot (0/1)]\n");
+		string_append(parameters->dst, "picture load: usage: [slot (0/1)]\n");
 		return(app_action_error);
 	}
 
 	rv = display_load_picture_slot(entry);
 
-	string_format(dst, "picture load success: %s\n", yesno(rv));
+	string_format(parameters->dst, "picture load success: %s\n", yesno(rv));
 
 	return(app_action_normal);
 }
 
-app_action_t application_function_display_plot(string_t *src, string_t *dst)
+app_action_t application_function_display_plot(app_params_t *parameters)
 {
 	bool rv;
 	unsigned int x, y, pixels;
 
 	if(!display_hooks_active)
 	{
-		string_append(dst, "display plot: no display detected\n");
+		string_append(parameters->dst, "display plot: no display detected\n");
 		goto error;
 	}
 
-	if((parse_uint(1, src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, src, &x, 0, ' ') != parse_ok) || (parse_uint(3, src, &y, 0, ' ') != parse_ok))
+	if((parse_uint(1, parameters->src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, parameters->src, &x, 0, ' ') != parse_ok) || (parse_uint(3, parameters->src, &y, 0, ' ') != parse_ok))
 	{
-		string_append(dst, "usage: display plot <pixels> <x> <y>");
+		string_append(parameters->dst, "usage: display plot <pixels> <x> <y>");
 		goto error;
 	}
 
 	rv = display_plot(pixels, x, y, &mailbox_socket_receive_buffer);
 
 	string_clear(&mailbox_socket_receive_buffer);
-	string_format(dst, "display plot success: %s\n", yesno(rv));
+	string_format(parameters->dst, "display plot success: %s\n", yesno(rv));
 
 	return(app_action_normal);
 
@@ -845,22 +845,22 @@ error:
 	return(app_action_error);
 }
 
-app_action_t application_function_display_freeze(string_t *src, string_t *dst)
+app_action_t application_function_display_freeze(app_params_t *parameters)
 {
 	unsigned int timeout;
 
 	if(!display_hooks_active)
 	{
-		string_append(dst, "display freeze: no display detected\n");
+		string_append(parameters->dst, "display freeze: no display detected\n");
 		return(app_action_error);
 	}
 
-	if(parse_uint(1, src, &timeout, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &timeout, 0, ' ') != parse_ok)
 	{
-		string_append(dst, "usage: display_freeze <timeout ms>");
+		string_append(parameters->dst, "usage: display_freeze <timeout ms>");
 		return(app_action_error);
 	}
 
-	string_format(dst, "display freeze success: %s", yesno(freeze(timeout)));
+	string_format(parameters->dst, "display freeze success: %s", yesno(freeze(timeout)));
 	return(app_action_normal);
 }

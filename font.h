@@ -2,7 +2,7 @@
 #define _font_h_
 
 #include "sys_string.h"
-#include "app_action.h"
+#include "dispatch.h"
 
 #include <stdbool.h>
 
@@ -28,6 +28,6 @@ bool font_get_info(font_info_t *);
 bool font_render(unsigned int code, font_cell_t cell);
 
 extern const char help_description_display_font_select[];
-app_action_t application_function_display_font_select(string_t *src, string_t *dst);
+app_action_t application_function_display_font_select(app_params_t *);
 
 #endif

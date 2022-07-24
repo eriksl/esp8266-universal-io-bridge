@@ -1494,30 +1494,30 @@ static bool bright(int brightness)
 roflash const char help_description_display_eastrising[] =
 		"display eastrising <mode=0=disabled|1=i2c|2=hspi-mosi-miso|3=hspi-mosi [<user cs io> <user cs pin>]";
 
-app_action_t application_function_display_eastrising(string_t *src, string_t *dst)
+app_action_t application_function_display_eastrising(app_params_t *parameters)
 {
 	display_mode_t mode;
 	int user_cs_io, user_cs_pin;
 
-	if(parse_uint(1, src, &mode, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &mode, 0, ' ') == parse_ok)
 	{
 		if(mode > display_mode_size)
 		{
-			string_append_cstr_flash(dst, help_description_display_eastrising);
+			string_append_cstr_flash(parameters->dst, help_description_display_eastrising);
 			return(app_action_error);
 		}
 
-		if((parse_int(2, src, &user_cs_io, 0, ' ') == parse_ok) && (parse_int(3, src, &user_cs_pin, 0, ' ') == parse_ok))
+		if((parse_int(2, parameters->src, &user_cs_io, 0, ' ') == parse_ok) && (parse_int(3, parameters->src, &user_cs_pin, 0, ' ') == parse_ok))
 		{
 			if(mode != 2)
 			{
-				string_append_cstr_flash(dst, help_description_display_eastrising);
+				string_append_cstr_flash(parameters->dst, help_description_display_eastrising);
 				return(app_action_error);
 			}
 
 			if((user_cs_io < 0) || (user_cs_io >= io_id_size) || (user_cs_pin < 0) || (user_cs_pin >= max_pins_per_io))
 			{
-				string_append_cstr_flash(dst, help_description_display_eastrising);
+				string_append_cstr_flash(parameters->dst, help_description_display_eastrising);
 				return(app_action_error);
 			}
 		}
@@ -1565,33 +1565,33 @@ app_action_t application_function_display_eastrising(string_t *src, string_t *ds
 
 	switch(mode)
 	{
-		case(display_mode_disabled): string_append(dst, "> mode 0 (disabled)"); break;
-		case(display_mode_i2c): string_append(dst, "> mode 1 (i2c)"); break;
+		case(display_mode_disabled): string_append(parameters->dst, "> mode 0 (disabled)"); break;
+		case(display_mode_i2c): string_append(parameters->dst, "> mode 1 (i2c)"); break;
 		case(display_mode_spi_mosi_miso):
 		case(display_mode_spi_mosi):
 		{
 			if(mode == display_mode_spi_mosi_miso)
-				string_append(dst, "> mode 2 (spi using output/mosi and input/miso), ");
+				string_append(parameters->dst, "> mode 2 (spi using output/mosi and input/miso), ");
 			else
-				string_append(dst, "> mode 3 (spi using output/mosi only), ");
+				string_append(parameters->dst, "> mode 3 (spi using output/mosi only), ");
 
 			if((user_cs_io >= 0) && (user_cs_pin >= 0))
-				string_format(dst, "user cs pin: %d/%d", user_cs_io, user_cs_pin);
+				string_format(parameters->dst, "user cs pin: %d/%d", user_cs_io, user_cs_pin);
 			else
-				string_append(dst, "default cs pin");
+				string_append(parameters->dst, "default cs pin");
 
 			break;
 		}
 
-		default: string_append(dst, "> unknown mode"); break;
+		default: string_append(parameters->dst, "> unknown mode"); break;
 	}
 
 	return(app_action_normal);
 
 config_error:
 	config_abort_write();
-	string_clear(dst);
-	string_append(dst, "> cannot set config\n");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> cannot set config\n");
 	return(app_action_error);
 }
 

@@ -302,12 +302,12 @@ io_error_t		io_traits(string_t *, unsigned int io, unsigned int pin, io_pin_mode
 void			io_config_dump(string_t *dst, int io_id, int pin_id, bool html);
 void			io_string_from_ll_mode(string_t *, io_pin_ll_mode_t, int pad);
 
-app_action_t application_function_io_mode(string_t *src, string_t *dst);
-app_action_t application_function_io_read(string_t *src, string_t *dst);
-app_action_t application_function_io_write(string_t *src, string_t *dst);
-app_action_t application_function_io_trigger(string_t *src, string_t *dst);
-app_action_t application_function_io_set_flag(string_t *src, string_t *dst);
-app_action_t application_function_io_clear_flag(string_t *src, string_t *dst);
-app_action_t application_function_io_set_mask(string_t *src, string_t *dst);
+app_action_t application_function_io_mode(app_params_t *);
+app_action_t application_function_io_read(app_params_t *);
+app_action_t application_function_io_write(app_params_t *);
+app_action_t application_function_io_trigger(app_params_t *);
+app_action_t application_function_io_set_flag(app_params_t *);
+app_action_t application_function_io_clear_flag(app_params_t *);
+app_action_t application_function_io_set_mask(app_params_t *);
 
 #endif

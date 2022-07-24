@@ -477,15 +477,15 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	return(true);
 }
 
-app_action_t application_function_display_ssd1306(string_t *src, string_t *dst)
+app_action_t application_function_display_ssd1306(app_params_t *parameters)
 {
 	unsigned int height;
 
-	if(parse_uint(1, src, &height, 0, ' ') == parse_ok)
+	if(parse_uint(1, parameters->src, &height, 0, ' ') == parse_ok)
 	{
 		if((height != 0) && (height != 32) && (height != 64))
 		{
-			string_append_cstr_flash(dst, help_description_display_ssd1306);
+			string_append_cstr_flash(parameters->dst, help_description_display_ssd1306);
 			return(app_action_error);
 		}
 
@@ -506,16 +506,16 @@ app_action_t application_function_display_ssd1306(string_t *src, string_t *dst)
 		height = 0;
 
 	if(height > 0)
-		string_format(dst, "> display ssd1306 height: %u\n", height);
+		string_format(parameters->dst, "> display ssd1306 height: %u\n", height);
 	else
-		string_append(dst, "> display ssd1306 disabled\n");
+		string_append(parameters->dst, "> display ssd1306 disabled\n");
 
 	return(app_action_normal);
 
 config_error:
 	config_abort_write();
-	string_clear(dst);
-	string_append(dst, "> cannot set config\n");
+	string_clear(parameters->dst);
+	string_append(parameters->dst, "> cannot set config\n");
 	return(app_action_error);
 }
 

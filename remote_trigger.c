@@ -128,28 +128,28 @@ void remote_trigger_send(unsigned int argument)
 		log("remote trigger send failed\n");
 }
 
-app_action_t application_function_trigger_remote(string_t *src, string_t *dst)
+app_action_t application_function_trigger_remote(app_params_t *parameters)
 {
 	unsigned int remote_index;
 	string_new(, remote_ip, 32);
 
-	if(parse_uint(1, src, &remote_index, 0, ' ') != parse_ok)
+	if(parse_uint(1, parameters->src, &remote_index, 0, ' ') != parse_ok)
 	{
-		string_format(dst, "usage: io-trigger-remote <index 0-%d> [ip address of remote]\n", remote_trigger_max_remotes - 1);
+		string_format(parameters->dst, "usage: io-trigger-remote <index 0-%d> [ip address of remote]\n", remote_trigger_max_remotes - 1);
 		return(app_action_error);
 	}
 
 	if(remote_index >= remote_trigger_max_remotes)
 	{
-		string_format(dst, "index must be [0 - %d]\n", remote_trigger_max_remotes - 1);
+		string_format(parameters->dst, "index must be [0 - %d]\n", remote_trigger_max_remotes - 1);
 		return(app_action_error);
 	}
 
-	if(parse_string(2, src, &remote_ip, ' ') == parse_ok)
+	if(parse_string(2, parameters->src, &remote_ip, ' ') == parse_ok)
 	{
 		if(!config_open_write())
 		{
-			string_append(dst, "cannot set config (open)\n");
+			string_append(parameters->dst, "cannot set config (open)\n");
 			return(app_action_error);
 		}
 
@@ -160,14 +160,14 @@ app_action_t application_function_trigger_remote(string_t *src, string_t *dst)
 			if(!config_set_string("trigger.remote.%u.%u", string_to_cstr(&remote_ip), 0, remote_index))
 			{
 				config_abort_write();
-				string_append(dst, "cannot set config\n");
+				string_append(parameters->dst, "cannot set config\n");
 				return(app_action_error);
 			}
 		}
 
 		if(!config_close_write())
 		{
-			string_append(dst, "cannot set config (close)\n");
+			string_append(parameters->dst, "cannot set config (close)\n");
 			return(app_action_error);
 		}
 	}
@@ -179,7 +179,7 @@ app_action_t application_function_trigger_remote(string_t *src, string_t *dst)
 		string_append(&remote_ip, "<unset>");
 	}
 
-	string_format(dst, "io-trigger-remote: index: %u, server: %s\n", remote_index, string_to_cstr(&remote_ip));
+	string_format(parameters->dst, "io-trigger-remote: index: %u, server: %s\n", remote_index, string_to_cstr(&remote_ip));
 
 	return(app_action_normal);
 }

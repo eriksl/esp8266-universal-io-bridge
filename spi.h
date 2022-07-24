@@ -63,11 +63,11 @@ attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 attr_result_used bool spi_receive(string_t *error, unsigned int receive_bytes, uint8_t *receive_data);
 attr_result_used bool spi_finish(string_t *error);
 
-attr_result_used app_action_t application_function_spi_configure(string_t *src, string_t *dst);
-attr_result_used app_action_t application_function_spi_start(string_t *src, string_t *dst);
-attr_result_used app_action_t application_function_spi_write(string_t *src, string_t *dst);
-attr_result_used app_action_t application_function_spi_transmit(string_t *src, string_t *dst);
-attr_result_used app_action_t application_function_spi_receive(string_t *src, string_t *dst);
-attr_result_used app_action_t application_function_spi_finish(string_t *src, string_t *dst);
+attr_result_used app_action_t application_function_spi_configure(app_params_t *);
+attr_result_used app_action_t application_function_spi_start(app_params_t *);
+attr_result_used app_action_t application_function_spi_write(app_params_t *);
+attr_result_used app_action_t application_function_spi_transmit(app_params_t *);
+attr_result_used app_action_t application_function_spi_receive(app_params_t *);
+attr_result_used app_action_t application_function_spi_finish(app_params_t *);
 
 #endif
