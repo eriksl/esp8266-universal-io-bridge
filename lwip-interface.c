@@ -48,7 +48,7 @@ static const char * const lwip_error_strings[lwip_error_strings_size] roflash =
 
 static void _log_error(const char *flash_message, err_t error)
 {
-	string_new(, message, 64);
+	string_new(, message, 128);
 
 	int ix = error;
 
