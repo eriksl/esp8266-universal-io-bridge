@@ -92,7 +92,7 @@ attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 	return(socket->sending_remaining > 0);
 }
 
-static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
+static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
 	unsigned int length;
@@ -101,8 +101,9 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	if(socket->receive_buffer_locked)
 	{
 		stat_cmd_receive_buffer_overflow++;
+		log("lwip-interface: receive buffer overflow\n");
 		pbuf_free(pbuf_received); // still processing previous buffer, drop the received data
-		return;
+		return(ERR_MEM);
 	}
 
 	if(((unsigned int)address >= 0x3ffe8000) && ((unsigned int)address < 0x40000000))
@@ -140,6 +141,8 @@ static void received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *p
 	socket->receive_buffer_locked = 1;
 
 	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
+
+	return(ERR_OK);
 }
 
 static void udp_received_callback(void *callback_arg, struct udp_pcb *pcb, struct pbuf *pbuf_received, ip_addr_t *address, u16_t port)
@@ -153,6 +156,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 {
 	lwip_if_socket_t *socket = (lwip_if_socket_t *)callback_arg;
 	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
+	err_t local_error;
 
 	/* connection closed */
 	if((pcb == (struct tcp_pcb *)0) || (pbuf == (struct pbuf *)0))
@@ -196,7 +200,8 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 	if(pcb != *pcb_tcp)
 		log("tcp received callback: pcb != *pcb_tcp\n");
 
-	received_callback(true, socket, pbuf, 0, 0);
+	if((local_error = received_callback(true, socket, pbuf, 0, 0)) != ERR_OK)
+		return(local_error);
 
 	tcp_recved(pcb, pbuf->tot_len);
 
