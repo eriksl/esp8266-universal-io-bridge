@@ -501,18 +501,21 @@ void logbuffer_clear(void)
 
 static void log_date_time(void)
 {
-	unsigned int month, day, hour, minute;
+	unsigned int month, day, hour, minute, second;
 
-	if(config_flags_match(flag_log_date | flag_log_time))
+	time_get(&hour, &minute, &second, (unsigned int *)0, &month, &day);
+
+	if(config_flags_match(flag_log_date) && config_flags_match(flag_log_time))
 	{
-		time_get(&hour, &minute, (unsigned int *)0, (unsigned int *)0, &month, &day);
-
-		if(config_flags_match(flag_log_date))
-			string_format(&logbuffer, "%02u/%02u ", month, day);
-
-		if(config_flags_match(flag_log_time))
-			string_format(&logbuffer, "%02u:%02u ", hour, minute);
+		string_format(&logbuffer, "%02u/%02u %02u:%02u ", month, day, hour, minute);
+		return;
 	}
+
+	if(config_flags_match(flag_log_date))
+		string_format(&logbuffer, "%02u/%02u ", month, day);
+
+	if(config_flags_match(flag_log_time))
+		string_format(&logbuffer, "%02u:%02u:%02u ", hour, minute, second);
 }
 
 static void log_finish(const string_t *from, string_t *to)
