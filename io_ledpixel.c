@@ -1,6 +1,5 @@
 #include "io_ledpixel.h"
 #include "util.h"
-#include "sys_string.h"
 #include "uart.h"
 #include "i2s.h"
 #include "io_gpio.h"

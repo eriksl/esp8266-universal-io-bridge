@@ -7,11 +7,9 @@
 #include "display_spitft.h"
 
 #include "util.h"
-#include "sys_string.h"
 #include "stats.h"
 #include "config.h"
 #include "sys_time.h"
-#include "sys_string.h"
 #include "mailbox.h"
 #include "dispatch.h"
 

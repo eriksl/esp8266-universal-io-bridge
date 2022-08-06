@@ -2,7 +2,6 @@
 
 #include "util.h"
 #include "init.h"
-#include "sys_string.h"
 #include "config.h"
 #include "sys_time.h"
 #include "i2c.h"

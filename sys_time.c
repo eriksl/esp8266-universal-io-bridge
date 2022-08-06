@@ -3,7 +3,6 @@
 #include "stats.h"
 #include "sdk.h"
 #include "util.h"
-#include "sys_string.h"
 #include "lwip-interface.h"
 
 #include <stdint.h>

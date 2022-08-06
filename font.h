@@ -1,7 +1,6 @@
 #ifndef _font_h_
 #define _font_h_
 
-#include "sys_string.h"
 #include "dispatch.h"
 
 #include <stdbool.h>

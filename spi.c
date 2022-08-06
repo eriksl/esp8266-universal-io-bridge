@@ -1,5 +1,4 @@
 #include "attribute.h"
-#include "sys_string.h"
 #include "application.h"
 #include "spi.h"
 #include "util.h"

@@ -1,6 +1,5 @@
 
 #include "util.h"
-#include "sys_string.h"
 #include "io.h"
 #include "i2c_sensor.h"
 #include "mailbox.h"

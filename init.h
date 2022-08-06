@@ -1,7 +1,6 @@
 #ifndef init_h
 #define init_h
 
-#include "sys_string.h"
 #include "util.h"
 
 #include <stdint.h>

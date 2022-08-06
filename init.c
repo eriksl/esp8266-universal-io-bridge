@@ -1,7 +1,6 @@
 #include "init.h"
 
 #include "util.h"
-#include "sys_string.h"
 #include "io.h"
 #include "stats.h"
 #include "sys_time.h"

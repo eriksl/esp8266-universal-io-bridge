@@ -1,6 +1,5 @@
 #include "font.h"
 #include "util.h"
-#include "sys_string.h"
 #include "sys_time.h"
 #include "stats.h"
 #include "application.h"

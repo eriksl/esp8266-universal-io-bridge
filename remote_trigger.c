@@ -1,5 +1,4 @@
 #include "attribute.h"
-#include "sys_string.h"
 #include "application.h"
 #include "io.h"
 #include "remote_trigger.h"

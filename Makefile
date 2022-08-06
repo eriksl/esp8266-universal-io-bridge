@@ -186,7 +186,7 @@ OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o displa
 						display_eastrising.o display_spitft.o display_ssd1306.o io_pcf.o \
 						http.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o \
 						mailbox.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
-						lwip-interface.o sys_string.o remote_trigger.o spi.o i2s.o rboot-interface.o font.o
+						lwip-interface.o remote_trigger.o spi.o i2s.o rboot-interface.o font.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
 						$(LWIP_SRC)/core/mem.o $(LWIP_SRC)/core/memp.o \
@@ -357,7 +357,6 @@ sequencer.o:			$(HEADERS)
 rboot-interface.o:		$(HEADERS)
 lwip-interface.o:		$(HEADERS)
 sys_time.o:				$(HEADERS)
-sys_string.o:			$(HEADERS)
 $(LINKMAP):				$(ELF_IMAGE)
 
 $(ESPTOOL2_BIN):

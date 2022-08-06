@@ -1,7 +1,6 @@
 #include "i2c_sensor.h"
 
 #include "util.h"
-#include "sys_string.h"
 #include "config.h"
 #include "sys_time.h"
 #include "dispatch.h"

@@ -1,6 +1,5 @@
 #include "rboot-interface.h"
 #include "util.h"
-#include "sys_string.h"
 #include "sdk.h"
 #include "dispatch.h"
 
