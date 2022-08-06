@@ -99,7 +99,7 @@ bool rboot_if_write_config(const rboot_if_config_t *config)
 		goto exit1;
 	}
 
-	if(!memcmp(buffer_cstr, config, sizeof(*config)))
+	if(!memory_compare(sizeof(*config), buffer_cstr, config))
 	{
 		log("rboot_if_write_config: skip write\n");
 		success = true;
@@ -129,7 +129,7 @@ bool rboot_if_write_config(const rboot_if_config_t *config)
 		goto exit1;
 	}
 
-	if(memcmp(buffer_cstr, config, sizeof(*config)))
+	if(memory_compare(sizeof(*config), buffer_cstr, config))
 	{
 		log("rboot_if_write_config: verify failed\n");
 		goto exit1;

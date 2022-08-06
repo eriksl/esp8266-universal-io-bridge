@@ -132,6 +132,8 @@ void power_save_enable(bool enable);
 
 ip_addr_t ip_addr(const char *);
 
+unsigned int attr_nonnull crc16(unsigned int, const uint8_t *);
+
 extern string_t logbuffer;
 extern unsigned int logbuffer_display_current;
 void logbuffer_clear(void);
@@ -140,7 +142,16 @@ const void *flash_cache_pointer(uint32_t offset);
 
 attr_result_used unsigned int utf8_to_unicode(const char *src, unsigned int dst_size, unsigned int *dst);
 
-unsigned char *SHA1(const unsigned char *src, unsigned int length, unsigned char *digest);
+enum
+{
+	MD5_DIGEST_LENGTH = 16,
+	SHA_DIGEST_LENGTH = 20,
+};
+
+unsigned char *MD5(const unsigned char *src, unsigned int length, uint8_t digest[MD5_DIGEST_LENGTH]);
+void MD5_text(const unsigned char *src, unsigned int length, string_t *digest_text);
+uint32_t MD5_trunc_32(const unsigned char *src, unsigned int length);
+unsigned char *SHA1(const unsigned char *src, unsigned int length, uint8_t digest[SHA_DIGEST_LENGTH]);
 void SHA1_text(const unsigned char *src, unsigned int length, string_t *digest_text);
 
 void attr_nonnull log_from_flash_0(const char *f);

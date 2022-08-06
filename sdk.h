@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <sys/types.h>
 
 enum
 {
@@ -477,8 +478,8 @@ attr_nonnull int SHA1Init(SHA_CTX *context);
 attr_nonnull int SHA1Update(SHA_CTX *context, const void *, unsigned int length);
 attr_nonnull int SHA1Final(unsigned char *md, SHA_CTX *context);
 
-enum { SHA_DIGEST_LENGTH = 20 };
-
+int					ets_memcmp(const void *, const void *, unsigned int);
+void *				ets_memcpy(void *, const void *, unsigned int);
 uint16_t			system_adc_read(void);
 uint32_t			system_get_chip_id(void);
 uint8_t				system_get_cpu_freq(void);

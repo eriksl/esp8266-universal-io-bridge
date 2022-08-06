@@ -205,7 +205,7 @@ bool config_close_write(void)
 
 		SHA1((const unsigned char *)config_buffer, SPI_FLASH_SEC_SIZE, sha_result2);
 
-		if(memcmp(sha_result1, sha_result2, SHA_DIGEST_LENGTH))
+		if(memory_compare(SHA_DIGEST_LENGTH, sha_result1, sha_result2))
 		{
 			log("config close write: write failed, sha mismatch\n");
 			flash_buffer_release(fsb_config_write_dirty, "config close write");

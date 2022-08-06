@@ -2078,6 +2078,177 @@ static app_action_t application_function_poke(app_params_t *parameters)
 	return(app_action_normal);
 }
 
+static app_action_t application_function_crypto_bench(app_params_t *parameters)
+{
+	unsigned int rounds, round;
+	uint8_t *buffer1 = (uint8_t *)string_buffer_nonconst(parameters->src);
+	uint8_t *buffer2 = (uint8_t *)string_buffer_nonconst(parameters->dst);
+	uint64_t start, stop;
+	unsigned int time_memcmp, time_ets_memcmp, time_memory_compare;
+	unsigned int time_memcpy = 0, time_ets_memcpy = 0;
+	unsigned int time_memcpy_dummy1a = 0, time_memcpy_dummy4a = 0;
+	unsigned int time_memcpy_dummy1b = 0, time_memcpy_dummy4b = 0;
+	int result_memcmp = 0, result_ets_memcmp = 0, result_memory_compare = 0;
+	unsigned int sector;
+	string_new(, digest_text, 64);
+	unsigned int crc = 0;
+
+	if((parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok))
+	{
+		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>");
+		return(app_action_error);
+	}
+
+	if((parse_uint(2, parameters->src, &rounds, 0, ' ') != parse_ok))
+	{
+		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>");
+		return(app_action_error);
+	}
+
+	spi_flash_read(sector * SPI_FLASH_SEC_SIZE, buffer1, SPI_FLASH_SEC_SIZE);
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		ets_memcpy(buffer2, buffer1, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	time_ets_memcpy = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		memcpy(buffer2, buffer1, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	time_memcpy = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		const uint32_t *a = (const unsigned int *)(const void *)buffer1;
+		uint32_t *b = (unsigned int *)(void *)buffer2;
+		for(unsigned int x = 0; x < (SPI_FLASH_SEC_SIZE / 4); x++)
+			b[x] = a[x];
+	}
+	stop = time_get_us();
+	time_memcpy_dummy4a = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		const uint32_t *a = (const unsigned int *)(const void *)buffer1;
+		uint32_t *b = (unsigned int *)(void *)buffer2;
+		for(unsigned int x = 0; x < (SPI_FLASH_SEC_SIZE / 4); x++)
+			*b++ = *a++;
+	}
+	stop = time_get_us();
+	time_memcpy_dummy4b = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		const uint8_t *a = (const uint8_t *)buffer1;
+		uint8_t *b = (uint8_t *)buffer2;
+		for(unsigned int x = 0; x < SPI_FLASH_SEC_SIZE; x++)
+			b[x] = a[x];
+	}
+	stop = time_get_us();
+	time_memcpy_dummy1a = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		const uint8_t *a = (const uint8_t *)buffer1;
+		uint8_t *b = (uint8_t *)buffer2;
+		for(unsigned int x = 0; x < SPI_FLASH_SEC_SIZE; x++)
+			*b++ = *a++;
+	}
+	stop = time_get_us();
+	time_memcpy_dummy1b = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_ets_memcmp = ets_memcmp(buffer1, buffer2, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	time_ets_memcmp = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_memcmp = memcmp(buffer1, buffer2, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	time_memcmp = stop - start;
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_memory_compare = memory_compare(SPI_FLASH_SEC_SIZE, buffer1, buffer2);
+	stop = time_get_us();
+	time_memory_compare = stop - start;
+
+	string_clear(parameters->dst);
+
+	string_format(parameters->dst, "> cryptograpic benchmark, sector %u, %u rounds\n", sector, rounds);
+	string_append(parameters->dst, "> \n");
+	string_append(parameters->dst, "> memory copy\n");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_ets_memcpy, "ets_memcpy");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy, "memcpy");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy4a, "dummy4a");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy4b, "dummy4b");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy1a, "dummy1a");
+	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy1b, "dummy1b");
+	string_append(parameters->dst, "> \n");
+	string_append(parameters->dst, "> memory compare, different pointers\n");
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_ets_memcmp, "ets_memcmp", result_ets_memcmp);
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_memcmp, "memcmp", result_memcmp);
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_memory_compare, "memory_compare", result_memory_compare);
+	string_append(parameters->dst, "> \n");
+	string_append(parameters->dst, "> memory compare, same pointers\n");
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_ets_memcmp = ets_memcmp(buffer1, buffer1, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "ets_memcmp", result_ets_memcmp);
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_memcmp = memcmp(buffer1, buffer1, SPI_FLASH_SEC_SIZE);
+	stop = time_get_us();
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "memcmp", result_memcmp);
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		result_memory_compare = memory_compare(SPI_FLASH_SEC_SIZE, buffer1, buffer1);
+	stop = time_get_us();
+	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "memory_compare", result_memory_compare);
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		string_clear(&digest_text);
+		MD5_text(buffer1, SPI_FLASH_SEC_SIZE, &digest_text);
+	}
+
+	stop = time_get_us();
+	string_append(parameters->dst, ">\n");
+	string_append(parameters->dst, "> hashing functions\n");
+	string_format(parameters->dst, ">    %5u %-16s = %s (%d) [trunc32 = 0x%04x]\n",
+			(unsigned int)(stop - start), "md5", string_to_cstr(&digest_text), string_length(&digest_text), MD5_trunc_32(buffer1, SPI_FLASH_SEC_SIZE));
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+	{
+		string_clear(&digest_text);
+		SHA1_text(buffer1, SPI_FLASH_SEC_SIZE, &digest_text);
+	}
+	stop = time_get_us();
+	string_format(parameters->dst, ">    %5u %-16s = %s (%d)\n", (unsigned int)(stop - start), "sha1", string_to_cstr(&digest_text), string_length(&digest_text));
+
+	start = time_get_us();
+	for(round = 0; round < rounds; round++)
+		crc = crc16(SPI_FLASH_SEC_SIZE, buffer1);
+	stop = time_get_us();
+	string_format(parameters->dst, ">    %5u %-16s = %04x (%d)\n", (unsigned int)(stop - start), "crc16", crc, 2);
+
+	return(app_action_normal);
+}
+
 roflash static const char help_description_help[] =					"help [command]";
 roflash static const char help_description_quit[] =					"quit";
 roflash static const char help_description_reset[] =				"reset";
@@ -2621,6 +2792,11 @@ roflash static const application_function_table_t application_function_table[] =
 	{
 		"mailbox-select", "mailbox-select",
 		application_function_mailbox_select,
+		(void *)0,
+	},
+	{
+		"cb", "crypto-bench",
+		application_function_crypto_bench,
 		(void *)0,
 	},
 	{
