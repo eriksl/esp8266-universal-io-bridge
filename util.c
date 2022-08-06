@@ -800,6 +800,227 @@ void SHA1_text(const unsigned char *src, unsigned int length, string_t *digest_t
 	string_bin_to_hex(digest_text, digest, SHA_DIGEST_LENGTH);
 }
 
+parse_error_t parse_string(int index, const string_t *src, string_t *dst, char delimiter)
+{
+	uint8_t current;
+	int offset;
+
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
+		return(parse_out_of_range);
+
+	for(; offset < src->length; offset++)
+	{
+		current = string_at(src, offset);
+
+		if(current == delimiter)
+			break;
+
+		if((current != '\r') && (current != '\n'))
+			string_append_char(dst, current);
+	}
+
+	return(parse_ok);
+}
+
+static parse_error_t parse_int_all(int index, const string_t *src, int64_t *dst, int base, char delimiter, bool do_signed)
+{
+	bool valid, negative;
+	int64_t value;
+	int offset;
+	char current;
+
+	negative = false;
+	value = 0;
+	valid = false;
+
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
+		return(parse_out_of_range);
+
+	if(do_signed && (offset < string_length(src)) && ((base == 0) || (base == 10)))
+	{
+		if(string_at(src, offset) == '-')
+		{
+			negative = true;
+			base = 10;
+			offset++;
+		}
+		else
+		{
+			if(string_at(src, offset) == '+')
+			{
+				negative = false;
+				base = 10;
+				offset++;
+			}
+		}
+	}
+
+	if(base == 0)
+	{
+		if(((offset + 1) < string_length(src)) &&
+				(string_at(src, offset) == '0') &&
+				(string_at(src, offset + 1) == 'x'))
+		{
+			base = 16;
+			offset += 2;
+		}
+		else
+			base = 10;
+	}
+
+	for(; offset < string_length(src); offset++)
+	{
+		current = string_at(src, offset);
+
+		if((current >= 'A') && (current <= 'Z'))
+			current |= 0x20;
+
+		if((current >= '0') && (current <= '9'))
+		{
+			value *= base;
+			value += current - '0';
+		}
+		else
+		{
+			if((base > 10) && (current >= 'a') && (current <= ('a' + base - 11)))
+			{
+				value *= base;
+				value += current - 'a' + 10;
+			}
+			else
+			{
+				if((current != '\0') && (current != delimiter) && (current != '\n') && (current != '\r'))
+					valid = false;
+
+				break;
+			}
+		}
+
+		valid = true;
+	}
+
+	if(!valid)
+		return(parse_invalid);
+
+	if(do_signed && negative)
+		*dst = 0 - value;
+	else
+		*dst = value;
+
+	return(parse_ok);
+}
+
+attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter)
+{
+	int64_t value;
+	parse_error_t error;
+
+	if((error = parse_int_all(index, src, &value, base, delimiter, false)) != parse_ok)
+	{
+		*dst = 0;
+		return(error);
+	}
+
+	*dst = (unsigned int)value;
+	return(parse_ok);
+}
+
+attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter)
+{
+	int64_t value;
+	parse_error_t error;
+
+	if((error = parse_int_all(index, src, &value, base, delimiter, true)) != parse_ok)
+	{
+		*dst = 0;
+		return(error);
+	}
+
+	*dst = (int)value;
+	return(parse_ok);
+}
+
+attr_nonnull parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter)
+{
+	int offset;
+	int decimal;
+	bool negative;
+	bool valid;
+	double result;
+	char current;
+
+	valid = false;
+	negative = false;
+	offset = 0;
+	result = 0;
+	decimal = 0;
+
+	if((offset = string_sep(src, 0, index, delimiter)) < 0)
+		return(parse_out_of_range);
+
+	if(offset < string_length(src))
+	{
+		if((string_at(src, offset) == '-'))
+		{
+			negative = true;
+			offset++;
+		}
+		else
+		{
+			if((string_at(src, offset) == '+'))
+			{
+				negative = false;
+				offset++;
+			}
+		}
+	}
+
+	for(; offset < string_length(src); offset++)
+	{
+		current = string_at(src, offset);
+
+		if((current == '.') || (current == ','))
+		{
+			if(decimal == 0)
+				decimal = 1;
+			else
+				break;
+		}
+		else
+		{
+			if((current < '0') || (current > '9'))
+			{
+				break;
+			}
+			else
+			{
+				valid = true;
+
+				if(decimal > 0)
+				{
+					decimal *= 10;
+					result += (double)(current - '0') / (double)decimal;
+				}
+				else
+				{
+					result *= 10;
+					result += (double)(current - '0');
+				}
+			}
+		}
+	}
+
+	if(!valid)
+		return(parse_invalid);
+
+	if(negative)
+		*dst = 0 - result;
+	else
+		*dst = result;
+
+	return(parse_ok);
+}
+
 // missing from libc
 
 void *_malloc_r(struct _reent *r, size_t sz)
