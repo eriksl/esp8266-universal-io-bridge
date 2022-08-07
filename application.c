@@ -2093,15 +2093,23 @@ static app_action_t application_function_crypto_bench(app_params_t *parameters)
 	string_new(, digest_text, 64);
 	unsigned int crc = 0;
 
+	union
+	{
+		uint8_t byte[4];
+		uint32_t word;
+	} byte_ordering;
+
+	assert_size(byte_ordering, 4);
+
 	if((parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok))
 	{
-		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>");
+		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>\n");
 		return(app_action_error);
 	}
 
 	if((parse_uint(2, parameters->src, &rounds, 0, ' ') != parse_ok))
 	{
-		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>");
+		string_append(parameters->dst, "> use crypto-bench <flash sector #> <rounds>\n");
 		return(app_action_error);
 	}
 
@@ -2183,20 +2191,22 @@ static app_action_t application_function_crypto_bench(app_params_t *parameters)
 
 	string_clear(parameters->dst);
 
+	byte_ordering.word = 0x01234567;
+	string_format(parameters->dst, "> byte ordering: %02x:%02x:%02x:%02x\n", byte_ordering.byte[0], byte_ordering.byte[1], byte_ordering.byte[2], byte_ordering.byte[3]);
 	string_format(parameters->dst, "> cryptograpic benchmark, sector %u, %u rounds\n", sector, rounds);
 	string_append(parameters->dst, "> \n");
 	string_append(parameters->dst, "> memory copy\n");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_ets_memcpy, "ets_memcpy");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy, "memcpy");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy4a, "dummy4a");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy4b, "dummy4b");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy1a, "dummy1a");
-	string_format(parameters->dst, ">    %5u %-16s\n", time_memcpy_dummy1b, "dummy1b");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_ets_memcpy, "ets_memcpy");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_memcpy, "memcpy");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_memcpy_dummy4a, "dummy4a");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_memcpy_dummy4b, "dummy4b");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_memcpy_dummy1a, "dummy1a");
+	string_format(parameters->dst, ">    %6u %-16s\n", time_memcpy_dummy1b, "dummy1b");
 	string_append(parameters->dst, "> \n");
 	string_append(parameters->dst, "> memory compare, different pointers\n");
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_ets_memcmp, "ets_memcmp", result_ets_memcmp);
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_memcmp, "memcmp", result_memcmp);
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", time_memory_compare, "memory_compare", result_memory_compare);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", time_ets_memcmp, "ets_memcmp", result_ets_memcmp);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", time_memcmp, "memcmp", result_memcmp);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", time_memory_compare, "memory_compare", result_memory_compare);
 	string_append(parameters->dst, "> \n");
 	string_append(parameters->dst, "> memory compare, same pointers\n");
 
@@ -2204,19 +2214,19 @@ static app_action_t application_function_crypto_bench(app_params_t *parameters)
 	for(round = 0; round < rounds; round++)
 		result_ets_memcmp = ets_memcmp(buffer1, buffer1, SPI_FLASH_SEC_SIZE);
 	stop = time_get_us();
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "ets_memcmp", result_ets_memcmp);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", (unsigned int)(stop - start), "ets_memcmp", result_ets_memcmp);
 
 	start = time_get_us();
 	for(round = 0; round < rounds; round++)
 		result_memcmp = memcmp(buffer1, buffer1, SPI_FLASH_SEC_SIZE);
 	stop = time_get_us();
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "memcmp", result_memcmp);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", (unsigned int)(stop - start), "memcmp", result_memcmp);
 
 	start = time_get_us();
 	for(round = 0; round < rounds; round++)
 		result_memory_compare = memory_compare(SPI_FLASH_SEC_SIZE, buffer1, buffer1);
 	stop = time_get_us();
-	string_format(parameters->dst, ">    %5u %-16s = %d\n", (unsigned int)(stop - start), "memory_compare", result_memory_compare);
+	string_format(parameters->dst, ">    %6u %-16s = %d\n", (unsigned int)(stop - start), "memory_compare", result_memory_compare);
 
 	start = time_get_us();
 	for(round = 0; round < rounds; round++)
@@ -2228,8 +2238,8 @@ static app_action_t application_function_crypto_bench(app_params_t *parameters)
 	stop = time_get_us();
 	string_append(parameters->dst, ">\n");
 	string_append(parameters->dst, "> hashing functions\n");
-	string_format(parameters->dst, ">    %5u %-16s = %s (%d) [trunc32 = 0x%04x]\n",
-			(unsigned int)(stop - start), "md5", string_to_cstr(&digest_text), string_length(&digest_text), MD5_trunc_32(buffer1, SPI_FLASH_SEC_SIZE));
+	string_format(parameters->dst, ">    %6u %-16s = %s (%d) [trunc32 = 0x%04x]\n",
+			(unsigned int)(stop - start), "md5", string_to_cstr(&digest_text), string_length(&digest_text), MD5_trunc_32(SPI_FLASH_SEC_SIZE, buffer1));
 
 	start = time_get_us();
 	for(round = 0; round < rounds; round++)
@@ -2238,13 +2248,13 @@ static app_action_t application_function_crypto_bench(app_params_t *parameters)
 		SHA1_text(buffer1, SPI_FLASH_SEC_SIZE, &digest_text);
 	}
 	stop = time_get_us();
-	string_format(parameters->dst, ">    %5u %-16s = %s (%d)\n", (unsigned int)(stop - start), "sha1", string_to_cstr(&digest_text), string_length(&digest_text));
+	string_format(parameters->dst, ">    %6u %-16s = %s (%d)\n", (unsigned int)(stop - start), "sha1", string_to_cstr(&digest_text), string_length(&digest_text));
 
 	start = time_get_us();
 	for(round = 0; round < rounds; round++)
 		crc = crc16(SPI_FLASH_SEC_SIZE, buffer1);
 	stop = time_get_us();
-	string_format(parameters->dst, ">    %5u %-16s = %04x (%d)\n", (unsigned int)(stop - start), "crc16", crc, 2);
+	string_format(parameters->dst, ">    %6u %-16s = %04x (%d)\n", (unsigned int)(stop - start), "crc16", crc, 2);
 
 	return(app_action_normal);
 }
