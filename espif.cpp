@@ -1,5 +1,15 @@
 #include "espif.h"
 
+extern "C" {
+#define __espif__
+#define assert_size(type, size) static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
+#define attr_packed __attribute__ ((__packed__))
+#define _Static_assert static_assert
+#include "ota.h"
+#undef assert_size
+#undef attr_packed
+}
+
 namespace po = boost::program_options;
 
 enum
@@ -7,18 +17,36 @@ enum
 	max_attempts = 16,
 	max_udp_packet_size = 1472,
 	flash_sector_size = 4096,
-	sha1_text_hash_size = 20,
+	md5_hash_size = 16,
+	sha1_hash_size = 20,
 };
 
 typedef std::vector<std::string> StringVector;
 
-static const std::string ack_string("ACK");
-static const std::string mailbox_info_reply
-		("OK mailbox function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px@([0-9]+))?.*");
-static const std::string mailbox_simulate_reply("OK mailbox-simulate: received sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)");
-static const std::string mailbox_write_reply("OK mailbox-write: written sector ([0-9]+), erased: ([0-9]), skipped ([0-9]), checksum: ([0-9a-f]+)");
-static const std::string mailbox_checksum_reply("OK mailbox-checksum: checksummed sectors: ([0-9]+), from sector: ([0-9]+), checksum: ([0-9a-f]+)");
-static const std::string mailbox_read_reply("OK mailbox-read: sending sector ([0-9]+), checksum: ([0-9a-f]+)");
+static const std::string flash_info_expect("OK flash function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\](?:, display: ([0-9]+)x([0-9]+)px@([0-9]+))?.*");
+static const std::string flash_read_expect("OK flash-read: read sector ([0-9]+)\n.*");
+static const std::string flash_write_expect("OK flash-write: written mode ([01]), sector ([0-9]+), same ([01]), erased ([01])\n");
+static const std::string flash_checksum_expect("OK flash-checksum: checksummed ([0-9]+) sectors from sector ([0-9]+), checksum: ([0-9a-f]+)\n");
+static const std::string flash_select_expect("OK flash-select: slot ([0-9]+) selected, sector ([0-9]+), permanent ([0-1])\n");
+
+static uint32_t MD5_trunc_32(unsigned int length, const uint8_t *data)
+{
+	uint8_t hash[md5_hash_size];
+	uint32_t checksum;
+	unsigned int hash_size;
+	EVP_MD_CTX *hash_ctx;
+
+	hash_ctx = EVP_MD_CTX_new();
+	EVP_DigestInit_ex(hash_ctx, EVP_md5(), (ENGINE *)0);
+	EVP_DigestUpdate(hash_ctx, data, length);
+	hash_size = md5_hash_size;
+	EVP_DigestFinal_ex(hash_ctx, hash, &hash_size);
+	EVP_MD_CTX_free(hash_ctx);
+
+	checksum = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | (hash[3] << 0);
+
+	return(checksum);
+}
 
 class GenericSocket
 {
@@ -29,26 +57,27 @@ class GenericSocket
 		std::string service;
 		bool use_udp, verbose, broadcast, multicast;
 		struct sockaddr_in saddr;
+		bool no_provide_checksum;
+		bool no_request_checksum;
 
 	public:
-		typedef enum
-		{
-			cooked,
-			raw
-		} process_t;
-
-		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, bool broadcast = false, bool multicast = false);
+		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, bool broadcast, bool multicast,
+				bool no_provide_checksum, bool no_request_checksum);
 		~GenericSocket();
 
-		bool send(std::string buffer, process_t how);
-		bool receive(std::string &buffer, process_t how, int expected = -1);
+		bool send_unicast(std::string buffer);
+		bool send_multicast(std::string buffer);
+		bool receive_unicast(std::string &buffer);
+		bool receive_multicast(std::string &buffer);
 		void drain();
 		void disconnect();
 		void connect();
 };
 
-GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, bool broadcast_in, bool multicast_in)
-		: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), broadcast(broadcast_in), multicast(multicast_in)
+GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, bool broadcast_in, bool multicast_in,
+		bool no_provide_checksum_in, bool no_request_checksum_in)
+	: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), broadcast(broadcast_in), multicast(multicast_in),
+		no_provide_checksum(no_provide_checksum_in), no_request_checksum(no_request_checksum_in)
 {
 	memset(&saddr, 0, sizeof(saddr));
 
@@ -139,282 +168,307 @@ void GenericSocket::disconnect()
 	socket_fd = -1;
 }
 
-bool GenericSocket::send(std::string buffer, GenericSocket::process_t how)
+bool GenericSocket::send_unicast(std::string buffer_text)
 {
 	struct pollfd pfd;
 	ssize_t chunk;
-	int run;
+	packet_header_t packet_header;
+	unsigned int new_length = buffer_text.length() + sizeof(packet_header);
 
-	if(how == raw)
+	packet_header.id = packet_header_id;
+	packet_header.length = new_length;
+	packet_header.checksum = packet_header_checksum_dummy;
+	packet_header.flags = 0;
+
+	if(!no_request_checksum)
+		packet_header.flags |= packet_header_flag_md5_32_requested;
+
+	if(!no_provide_checksum)
 	{
-		if(buffer.length() == 0)
-		{
-			if(use_udp)
-				::sendto(socket_fd, buffer.data(), 0, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr));
-			else
-				::send(socket_fd, buffer.data(), 0, 0);
-			return(true);
-		}
-	}
-	else
-		buffer += "\n";
-
-	if(broadcast || multicast)
-	{
-		chunk = (ssize_t)buffer.length();
-
-		if(use_udp && (chunk > max_udp_packet_size))
-			chunk = max_udp_packet_size;
-
-		for(run = 8; run > 0; run--)
-		{
-			if(::sendto(socket_fd, buffer.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
-				return(false);
-
-			usleep(50000);
-		}
-
-		return(true);
+		packet_header.flags |= packet_header_flag_md5_32_provided;
+		std::string buffer_packet_checksum((char *)&packet_header, sizeof(packet_header));
+		buffer_packet_checksum.append(buffer_text);
+		packet_header.checksum = MD5_trunc_32(buffer_packet_checksum.length(), (const uint8_t *)buffer_packet_checksum.data());
 	}
 
-	while(buffer.length() > 0)
+	std::string buffer_packet((char *)&packet_header, sizeof(packet_header));
+	buffer_packet.append(buffer_text);
+
+	while(buffer_packet.length() > 0)
 	{
 		pfd.fd = socket_fd;
 		pfd.events = POLLOUT | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
-		if(poll(&pfd, 1, 2000) != 1)
+		if(poll(&pfd, 1, 1000) != 1)
 			return(false);
 
 		if(pfd.revents & (POLLERR | POLLHUP))
 			return(false);
 
-		chunk = (ssize_t)buffer.length();
-
-		if(use_udp && (chunk > max_udp_packet_size))
-			chunk = max_udp_packet_size;
+		chunk = (ssize_t)buffer_packet.length();
 
 		if(use_udp)
 		{
-			if(::sendto(socket_fd, buffer.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
+			if((chunk > max_udp_packet_size))
+				chunk = max_udp_packet_size;
+
+			if(::sendto(socket_fd, buffer_packet.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 		}
 		else
-		{
-			if(::send(socket_fd, buffer.data(), chunk, 0) != chunk)
+			if(::send(socket_fd, buffer_packet.data(), chunk, 0) != chunk)
 				return(false);
-		}
 
-		buffer.erase(0, chunk);
+		buffer_packet.erase(0, chunk);
 	}
 
 	return(true);
 }
 
-bool GenericSocket::receive(std::string &reply, GenericSocket::process_t how, int expected)
+bool GenericSocket::send_multicast(std::string buffer)
 {
-	int attempt;
+	int run;
+
+	if(buffer.length() > max_udp_packet_size)
+		throw(std::string("multicast packet > max udp size"));
+
+	for(run = 8; run > 0; run--)
+	{
+		if(::sendto(socket_fd, buffer.data(), buffer.length(), 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != (int)buffer.length())
+			return(false);
+
+		usleep(50000);
+	}
+
+	return(true);
+}
+
+bool GenericSocket::receive_unicast(std::string &reply)
+{
 	int length;
+	int packet_length;
+	unsigned int fragment;
 	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
-	char buffer[flash_sector_size + 1];
-	enum { max_attempts = 4 };
+	char buffer[flash_sector_size + ota_data_offset + sizeof(packet_header_t) + 16];
+	enum { max_fragments = 32 };
+	uint32_t our_checksum, their_checksum;
+
+	packet_length = -1;
+	reply.clear();
+
+	for(fragment = 0; fragment < max_fragments; fragment++)
+	{
+		if(poll(&pfd, 1, 1000) != 1)
+		{
+			if(verbose)
+				std::cout << boost::format("receive: timeout, fragment: %u, length: %u\n") % fragment % reply.length();
+			return(false);
+		}
+
+		if(pfd.revents & POLLERR)
+		{
+			if(verbose)
+				std::cout << "receive: POLLERR" << std::endl;
+			return(false);
+		}
+
+		if(pfd.revents & POLLHUP)
+		{
+			if(verbose)
+				std::cout << "receive: POLLHUP" << std::endl;
+			break;
+		}
+
+		if(use_udp)
+		{
+			if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr *)0, 0)) < 0)
+			{
+				if(verbose)
+					std::cout << "udp receive: length < 0" << std::endl;
+				return(false);
+			}
+		}
+		else
+		{
+			if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) < 0)
+			{
+				if(verbose)
+					std::cout << "receive: length < 0" << std::endl;
+				return(false);
+			}
+		}
+
+		reply.append(buffer, (size_t)length);
+
+		if((packet_length < 0) && (reply.length() >= sizeof(packet_header_t)))
+		{
+			const packet_header_t *packet_header = (const packet_header_t *)reply.data();
+
+			if(packet_header->id == packet_header_id)
+			{
+				packet_length = packet_header->length;
+
+				if(packet_length >= (int)(sizeof(packet_header_t) + ota_data_offset + flash_sector_size + 16))
+				{
+					if(verbose)
+						std::cout << "receive: invalid packet length" << std::endl;
+					return(false);
+				}
+			}
+		}
+
+		if((int)reply.length() >= packet_length)
+			break;
+	}
+
+	if(reply.length() < sizeof(packet_header_t))
+		return(false);
+
+	packet_header_t *packet_header;
+
+	std::string packet_header_data = reply.substr(0, sizeof(packet_header_t));
+	packet_header = (packet_header_t *)packet_header_data.data();
+	reply.erase(0, sizeof(packet_header_t));
+
+	if(packet_header->flags & packet_header_flag_md5_32_provided)
+	{
+		std::string checksum_buffer;
+
+		their_checksum = packet_header->checksum;
+		packet_header->checksum = packet_header_checksum_dummy;
+		checksum_buffer = packet_header_data + reply;
+		our_checksum = MD5_trunc_32(checksum_buffer.length(), (const uint8_t *)checksum_buffer.data());
+
+		if(our_checksum != their_checksum)
+		{
+			if(verbose)
+				std::cout << boost::format("CRC mismatch, our CRC: %08x, their CRC: %08x\n") % our_checksum % their_checksum;
+
+			return(false);
+		}
+	}
+
+	return(true);
+}
+
+bool GenericSocket::receive_multicast(std::string &reply)
+{
+	int length;
+	unsigned int attempt;
+	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
+	char buffer[flash_sector_size + ota_data_offset + 16];
+	enum { max_attempts = 32 };
+	struct timeval tv_start, tv_now;
+	uint64_t start, now;
+	struct sockaddr_in remote_addr;
+	socklen_t remote_length;
+	char host_buffer[64];
+	char service[64];
+	std::string hostname;
+	std::stringstream text;
+	int gai_error;
+	std::string line;
+	uint32_t host_id;
+	typedef struct { int count; std::string hostname; std::string text; } multicast_reply_t;
+	typedef std::map<unsigned uint32_t, multicast_reply_t> multicast_replies_t;
+	multicast_replies_t multicast_replies;
+	int total_replies, total_hosts;
 
 	reply.clear();
 
-	if(broadcast || multicast)
+	total_replies = total_hosts = 0;
+
+	gettimeofday(&tv_start, nullptr);
+	start = (tv_start.tv_sec * 1000000) + tv_start.tv_usec;
+
+	for(attempt = 0; attempt < max_attempts; attempt++)
 	{
-		struct timeval tv_start, tv_now;
-		uint64_t start, now;
-		struct sockaddr_in remote_addr;
-		socklen_t remote_length;
-		char host_buffer[64];
-		char service[64];
-		std::string hostname;
-		std::stringstream text;
-		int gai_error;
-		std::string line;
-		uint32_t host_id;
-		typedef struct { int count; std::string hostname; std::string text; } multicast_reply_t;
-		typedef std::map<unsigned uint32_t, multicast_reply_t> multicast_replies_t;
-		multicast_replies_t multicast_replies;
-		int total_replies, total_hosts;
+		gettimeofday(&tv_now, nullptr);
+		now = (tv_now.tv_sec * 1000000) + tv_now.tv_usec;
 
-		total_replies = total_hosts = 0;
+		if(((now - start) / 1000ULL) > 2000)
+			break;
 
-		gettimeofday(&tv_start, nullptr);
-		start = (tv_start.tv_sec * 1000000) + tv_start.tv_usec;
+		if(poll(&pfd, 1, 100) != 1)
+			continue;
 
-		for(attempt = max_attempts; attempt > 0; attempt--)
-		{
-			gettimeofday(&tv_now, nullptr);
-			now = (tv_now.tv_sec * 1000000) + tv_now.tv_usec;
+		if(pfd.revents & POLLERR)
+			return(false);
 
-			if(((now - start) / 1000ULL) > 2000)
-				break;
+		if(pfd.revents & POLLHUP)
+			return(false);
 
-			if(poll(&pfd, 1, 100) != 1)
-				continue;
+		remote_length = sizeof(remote_addr);
+		if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
+			return(false);
 
-			if(pfd.revents & POLLERR)
-				return(false);
+		attempt = 0;
 
-			if(pfd.revents & POLLHUP)
-				return(false);
+		if(length == 0)
+			continue;
 
-			remote_length = sizeof(remote_addr);
-			if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer), 0, (struct sockaddr *)&remote_addr, &remote_length)) < 0)
-				return(false);
+		buffer[length] = '\0';
 
-			attempt = max_attempts;
-
-			if(length == 0)
-				continue;
-
-			buffer[length] = '\0';
+		if(length >= (int)sizeof(packet_header_t))
+			line = buffer + sizeof(packet_header_t);
+		else
 			line = buffer;
 
-			if((line.back() == '\n'))
-				line.pop_back();
+		host_id = ntohl(remote_addr.sin_addr.s_addr);
 
-			if((line.back() == '\r'))
-				line.pop_back();
+		gai_error = getnameinfo((struct sockaddr *)&remote_addr, sizeof(remote_addr), host_buffer, sizeof(host_buffer),
+				service, sizeof(service), NI_DGRAM | NI_NUMERICSERV | NI_NOFQDN);
 
-			host_id = ntohl(remote_addr.sin_addr.s_addr);
-
-			gai_error = getnameinfo((struct sockaddr *)&remote_addr, sizeof(remote_addr), host_buffer, sizeof(host_buffer),
-					service, sizeof(service), NI_DGRAM | NI_NUMERICSERV | NI_NOFQDN);
-
-			if(gai_error != 0)
-			{
-				if(verbose)
-					std::cout << "cannot resolve: " << gai_strerror(gai_error) << std::endl;
-
-				hostname = "0.0.0.0";
-			}
-			else
-				hostname = host_buffer;
-
-			total_replies++;
-
-			auto it = multicast_replies.find(host_id);
-
-			if(it != multicast_replies.end())
-				it->second.count++;
-			else
-			{
-				total_hosts++;
-				multicast_reply_t entry;
-
-				entry.count = 1;
-				entry.hostname = hostname;
-				entry.text = line;
-				multicast_replies[host_id] = entry;
-			}
-		}
-
-		text.str("");
-
-		for(auto &it : multicast_replies)
+		if(gai_error != 0)
 		{
-			std::stringstream host_id_text;
+			if(verbose)
+				std::cout << "cannot resolve: " << gai_strerror(gai_error) << std::endl;
 
-			host_id_text.str("");
-
-			host_id_text << ((it.first & 0xff000000) >> 24) << ".";
-			host_id_text << ((it.first & 0x00ff0000) >> 16) << ".";
-			host_id_text << ((it.first & 0x0000ff00) >>  8) << ".";
-			host_id_text << ((it.first & 0x000000ff) >>  0);
-			text << std::setw(12) << std::left << host_id_text.str();
-			text << " " << std::setw(2) << std::right << it.second.count << " ";
-			text << std::setw(12) << std::left << it.second.hostname;
-			text << " " << it.second.text << std::endl;
+			hostname = "0.0.0.0";
 		}
+		else
+			hostname = host_buffer;
 
-		text << std::endl << "Total of " << total_replies << " replies received, " << total_hosts << " hosts" << std::endl;
+		total_replies++;
 
-		reply = text.str();
+		auto it = multicast_replies.find(host_id);
+
+		if(it != multicast_replies.end())
+			it->second.count++;
+		else
+		{
+			total_hosts++;
+			multicast_reply_t entry;
+
+			entry.count = 1;
+			entry.hostname = hostname;
+			entry.text = line;
+			multicast_replies[host_id] = entry;
+		}
 	}
-	else
+
+	text.str("");
+
+	for(auto &it : multicast_replies)
 	{
-		for(attempt = max_attempts; attempt > 0; attempt--)
-		{
-			if(poll(&pfd, 1, 500) != 1)
-			{
-				if(reply.length() == 0)
-				{
-					if(verbose)
-						std::cout << std::endl << "receive: timeout" << std::endl;
-					return(false);
-				}
+		std::stringstream host_id_text;
 
-				break;
-			}
+		host_id_text.str("");
 
-			if(pfd.revents & POLLERR)
-			{
-				if(verbose)
-					std::cout << "receive: POLLERR" << std::endl;
-				return(false);
-			}
-
-			if(pfd.revents & POLLHUP)
-			{
-				if(verbose)
-					std::cout << "receive: POLLHUP" << std::endl;
-				break;
-			}
-
-			if(use_udp)
-			{
-				if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr *)0, 0)) < 0)
-				{
-					if(verbose)
-						std::cout << "udp receive: length < 0" << std::endl;
-					return(false);
-				}
-			}
-			else
-			{
-				if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) < 0)
-				{
-					if(verbose)
-						std::cout << "receive: length < 0" << std::endl;
-					return(false);
-				}
-			}
-
-			if((how == cooked) && (length == 0))
-			{
-				if(reply.length() == 0)
-					continue;
-
-				break;
-			}
-
-			reply.append(buffer, (size_t)length);
-
-			if((how == cooked) && (reply.back() == 0x04))
-			{
-				reply.pop_back();
-
-				if(reply.length() == 0)
-					continue;
-
-				break;
-			}
-
-			if((expected > 0) && (expected > length))
-				expected -= length;
-			else
-				break;
-		}
-
-		if((how == cooked) && (reply.back() == '\n'))
-			reply.pop_back();
-
-		if((how == cooked) && (reply.back() == '\r'))
-			reply.pop_back();
+		host_id_text << ((it.first & 0xff000000) >> 24) << ".";
+		host_id_text << ((it.first & 0x00ff0000) >> 16) << ".";
+		host_id_text << ((it.first & 0x0000ff00) >>  8) << ".";
+		host_id_text << ((it.first & 0x000000ff) >>  0);
+		text << std::setw(12) << std::left << host_id_text.str();
+		text << " " << std::setw(2) << std::right << it.second.count << " ";
+		text << std::setw(12) << std::left << it.second.hostname;
+		text << " " << it.second.text << std::endl;
 	}
+
+	text << std::endl << "Total of " << total_replies << " replies received, " << total_hosts << " hosts" << std::endl;
+
+	reply = text.str();
 
 	return(true);
 }
@@ -455,7 +509,7 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 	unsigned int current;
 	std::stringstream hash_string;
 
-	for(current = 0; current < sha1_text_hash_size; current++)
+	for(current = 0; current < sha1_hash_size; current++)
 		hash_string << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)hash[current];
 
 	return(hash_string.str());
@@ -469,15 +523,13 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 	unsigned int captures;
 	unsigned int attempt;
 
-	enum { max_attempts  = 5 };
-
 	reply_string.clear();
 
 	if(verbose)
 	{
 		int length = 0;
 
-		std::cout << "> send (" << send_string.length() << "): ";
+		std::cout << "> send (" << send_string.length() << "): \"";
 
 		for(const auto &it : send_string)
 		{
@@ -490,44 +542,48 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 				std::cout << it;
 		}
 
-		std::cout << std::endl;
+		std::cout << "\"" << std::endl;
 	}
 
-	for(attempt = max_attempts; attempt > 0; attempt--)
+	for(attempt = 0; attempt < 3; attempt++)
 	{
-		bool send_status, receive_status;
-
-		if((send_status = channel.send(send_string, GenericSocket::cooked)))
+		if(!channel.send_unicast(send_string))
 		{
-			receive_status = channel.receive(reply_string, GenericSocket::cooked);
+			if(verbose)
+				std::cout << "process: send failed #" << attempt << std::endl;
 
-			if(reply_string.length() == 0)
-			{
-				if(verbose)
-					std::cout << std::endl << "process: empty string received" << std::endl;
-				receive_status = false;
-			}
+			channel.drain();
+			continue;
 		}
-		else
-			receive_status = false;
 
-		if(send_status && receive_status)
-			break;
+		if(!channel.receive_unicast(reply_string))
+		{
+			if(verbose)
+				std::cout << "process: receive failed #" << attempt << std::endl;
 
-		if(verbose)
-			std::cout << std::endl << "process: " << (!send_status ? "send" : "receive") << " failed, retry #" << (max_attempts - attempt) << std::endl;
+			channel.drain();
+			continue;
+		}
 
-		channel.drain();
+		if(reply_string.length() == 0)
+		{
+			if(verbose)
+				std::cout << std::endl << "process: empty string received" << std::endl;
+
+			continue;
+		}
+
+		break;
 	}
 
-	if(attempt == 0)
-		throw(std::string("process: no more tries\n"));
+	if(attempt >= 3)
+		throw(std::string("process: receive failed"));
 
 	if(verbose)
-		std::cout << "< receive: " << reply_string << std::endl;
+		std::cout << "< receive (" << reply_string.length() << "): \"" << reply_string.substr(0, 160) << "\"" << std::endl;
 
 	if(!boost::regex_match(reply_string, capture, re))
-		throw(std::string("received string does not match: \"") + reply_string + "\"");
+		throw(std::string("received string does not match"));
 
 	string_value.clear();
 	int_value.clear();
@@ -551,31 +607,303 @@ static void process(GenericSocket &channel, const std::string &send_string, std:
 	}
 }
 
-void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string filename, unsigned int start,
-	int chunk_size, bool verbose, bool simulate, bool otawrite)
+static void read_sector(GenericSocket &command_channel, unsigned int sector, std::string &data, bool verbose)
 {
-	int file_fd;
+	unsigned int attempt;
+	std::string reply;
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+
+	for(attempt = 0; attempt < max_attempts; attempt++)
+	{
+		try
+		{
+			process(command_channel, std::string("flash-read ") + std::to_string(sector) + "\n", reply, flash_read_expect, string_value, int_value,
+					verbose);
+		}
+		catch(const std::string &error)
+		{
+			if(verbose)
+				std::cout << "flash sector read failed: " << error << ", attempt " << std::to_string(attempt) << ", reply: " << reply.substr(0, 80) << std::endl;
+
+			command_channel.drain();
+			continue;
+		}
+
+		if(reply.length() < (flash_sector_size + ota_data_offset))
+		{
+			if(verbose)
+			{
+				std::cout << "flash sector read failed: incorrect length, attempt " << std::to_string(attempt);
+				std::cout << ", expected: " << (flash_sector_size + ota_data_offset) << ", received: " << reply.length();
+				std::cout << ", reply: " << reply.substr(0, 80) << std::endl;
+			}
+
+			command_channel.drain();
+			continue;
+		}
+
+		if(int_value[0] != (int)sector)
+		{
+			if(verbose)
+				std::cout << "flash sector read failed: local sector (" << sector + ") != remote sector (" << int_value[0] << ")" << std::endl;
+
+			command_channel.drain();
+			continue;
+		}
+
+		data = reply.substr(ota_data_offset, flash_sector_size);
+		break;
+	}
+
+	if(attempt >= max_attempts)
+		throw(std::string("flash sector read failed"));
+}
+
+static void write_sector(GenericSocket &command_channel, unsigned int sector, const uint8_t *data,
+		unsigned int &written, unsigned int &erased, unsigned int &skipped, bool simulate, bool verbose)
+{
+	unsigned int attempt;
+	unsigned int length;
+	std::string command;
+	std::string reply;
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+
+	command = (boost::format("flash-write %u %u") % (simulate ? 0 : 1) % sector).str();
+
+	length = command.length();
+
+	if(length >= ota_data_offset)
+		throw(std::string("command > ota_data_offset"));
+
+	command.append(ota_data_offset - length, ' ');
+	command.append((const char *)data, flash_sector_size);
+
+	for(attempt = 0; attempt < max_attempts; attempt++)
+	{
+		try
+		{
+			process(command_channel, command, reply, flash_write_expect, string_value, int_value, verbose);
+		}
+		catch(const std::string &error)
+		{
+			if(verbose)
+				std::cout << "flash sector write failed: " << error << ", attempt " << std::to_string(attempt) << ", reply: " << reply.substr(0, 80) << std::endl;
+
+			command_channel.drain();
+			continue;
+		}
+
+		if(int_value[0] != (simulate ? 0 : 1))
+		{
+			if(verbose)
+				std::cout << boost::format("flash sector write failed: mode local: %u != mode remote %u\n") % (simulate ? 0 : 1) % int_value[0];
+
+			command_channel.drain();
+			continue;
+		}
+
+		if(int_value[1] != (int)sector)
+		{
+			if(verbose)
+				std::cout << boost::format("flash sector write failed: sector local: %u != sector remote %u\n") % sector % int_value[0];
+
+			command_channel.drain();
+			continue;
+		}
+
+		if(int_value[2] != 0)
+			skipped++;
+		else
+			written++;
+
+		if(int_value[3] != 0)
+			erased++;
+
+		break;
+	}
+
+	if(attempt >= max_attempts)
+		throw(std::string("flash sector write failed"));
+}
+
+static void get_checksum(GenericSocket &command_channel, unsigned int sector, unsigned int sectors, std::string &checksum, bool verbose)
+{
+	unsigned int attempt;
+	std::string reply;
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+
+	for(attempt = 0; attempt < max_attempts; attempt++)
+	{
+		try
+		{
+			process(command_channel, std::string("flash-checksum ") + std::to_string(sector) + " " + std::to_string(sectors) + "\n",
+					reply, flash_checksum_expect, string_value, int_value, verbose);
+		}
+		catch(const std::string &error)
+		{
+			if(verbose)
+				std::cout << "flash sector checksum failed: " << error << ", attempt " << std::to_string(attempt) << ", reply: " << reply << std::endl;
+
+			continue;
+		}
+
+		if(int_value[0] != (int)sectors)
+		{
+			if(verbose)
+				std::cout << "flash sector checksum failed: local sectors (" << sectors + ") != remote sectors (" << int_value[0] << ")" << std::endl;
+
+			continue;
+		}
+
+		if(int_value[1] != (int)sector)
+		{
+			if(verbose)
+				std::cout << "flash sector checksum failed: local start sector (" << sector << ") != remote start sector (" << int_value[1] << ")" << std::endl;
+
+			continue;
+		}
+
+		checksum = string_value[2];
+
+		break;
+	}
+
+	if(attempt >= max_attempts)
+		throw(std::string("flash sector verify failed"));
+}
+
+static void command_read(GenericSocket &command_channel, const std::string &filename, int sector, int sectors, bool verbose)
+{
 	int64_t file_offset;
-	struct stat stat;
-	unsigned char sector_buffer[flash_sector_size];
-	unsigned char sector_hash[sha1_text_hash_size];
-	unsigned char file_hash[sha1_text_hash_size];
-	unsigned int sector_length, sector_attempt;
-	unsigned int current, length;
-	int sectors_written, sectors_skipped, sectors_erased;
+	int file_fd;
+	int current;
 	struct timeval time_start, time_now;
+	std::string send_string;
+	std::string operation;
+	std::vector<int> int_value;
+	std::vector<std::string> string_value;
+	EVP_MD_CTX *hash_ctx;
+	unsigned int hash_size;
+	unsigned char hash[sha1_hash_size];
 	std::string sha_local_hash_text;
 	std::string sha_remote_hash_text;
+	std::string data;
+
+	if(filename.empty())
+		throw(std::string("file name required"));
+
+	if((file_fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666)) < 0)
+		throw(std::string("can't create file"));
+
+	try
+	{
+		gettimeofday(&time_start, 0);
+
+		std::cout << "start read from 0x" << std::hex << sector * flash_sector_size << " (" << std::dec << sector << ")";
+		std::cout << ", length: 0x" << std::hex << sectors * flash_sector_size << " (" << std::dec << sectors << ")";
+		std::cout << std::endl;
+
+		hash_ctx = EVP_MD_CTX_new();
+		EVP_DigestInit_ex(hash_ctx, EVP_sha1(), (ENGINE *)0);
+
+		for(current = sector; current < (sector + sectors); current++)
+		{
+			read_sector(command_channel, current, data, verbose);
+
+			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
+				throw(std::string("i/o error in seek"));
+
+			if(write(file_fd, data.data(), data.length()) <= 0)
+				throw(std::string("i/o error in write"));
+
+			EVP_DigestUpdate(hash_ctx, (const unsigned char *)data.data(), data.length());
+
+			if(!verbose)
+			{
+				int seconds, useconds;
+				double duration, rate;
+
+				gettimeofday(&time_now, 0);
+
+				seconds = time_now.tv_sec - time_start.tv_sec;
+				useconds = time_now.tv_usec - time_start.tv_usec;
+				duration = seconds + (useconds / 1000000.0);
+				rate = file_offset / 1024.0 / duration;
+
+				std::cout << std::setfill(' ');
+				std::cout << "received "	<< std::setw(3) << (file_offset / 1024) << " kbytes";
+				std::cout << " in "			<< std::setw(4) << std::setprecision(2) << std::fixed << duration << " seconds";
+				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+				std::cout << ", received "	<< std::setw(2) << (current - sector) << " sectors";
+				std::cout << ", "			<< std::setw(3) << (((file_offset + flash_sector_size) * 100) / (sectors * flash_sector_size)) << "%       \r";
+				std::cout.flush();
+			}
+		}
+	}
+	catch(const std::string &e)
+	{
+		if(!verbose)
+			std::cout << std::endl;
+
+		close(file_fd);
+		throw;
+	}
+
+	close(file_fd);
+
+	if(!verbose)
+		std::cout << std::endl;
+
+	std::cout << "checksumming " << sectors << " sectors from " << sector << "..." << std::endl;
+
+	hash_size = sha1_hash_size;
+	EVP_DigestFinal_ex(hash_ctx, hash, &hash_size);
+	EVP_MD_CTX_free(hash_ctx);
+
+	sha_local_hash_text = sha_hash_to_text(hash);
+	get_checksum(command_channel, sector, sectors, sha_remote_hash_text, verbose);
+
+	if(sha_local_hash_text != sha_remote_hash_text)
+	{
+		if(verbose)
+		{
+			std::cout << "! sector " << sector << "/" << sectors;
+			std::cout << ", address: 0x" << std::hex << (sector * flash_sector_size) << "/0x" << (sectors * flash_sector_size) << std::dec << " read";
+			std::cout << ", checksum failed";
+			std::cout << ", local hash: " << sha_local_hash_text;
+			std::cout << ", remote hash: " << sha_remote_hash_text;
+			std::cout << std::endl;
+		}
+
+		throw(std::string("checksum read failed"));
+	}
+
+	std::cout << "checksum OK" << std::endl;
+}
+
+void command_write(GenericSocket &command_channel, const std::string filename, int sector, bool verbose, bool simulate, bool otawrite)
+{
+	int64_t file_offset;
+	int file_fd;
+	int length;
+	int current;
+	struct timeval time_start, time_now;
 	std::string send_string;
 	std::string reply;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-	EVP_MD_CTX *sha_file_ctx;
-	unsigned int size;
-
-	sectors_skipped = 0;
-	sectors_erased = 0;
-	sectors_written = 0;
+	EVP_MD_CTX *hash_ctx;
+	unsigned int hash_size;
+	unsigned char hash[sha1_hash_size];
+	std::string sha_local_hash_text;
+	std::string sha_remote_hash_text;
+	std::string data;
+	unsigned int sectors_written, sectors_skipped, sectors_erased;
+	unsigned char sector_buffer[flash_sector_size];
+	struct stat stat;
 
 	if(filename.empty())
 		throw(std::string("file name required"));
@@ -586,6 +914,10 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	fstat(file_fd, &stat);
 	file_offset = stat.st_size;
 	length = (file_offset + (flash_sector_size - 1)) / flash_sector_size;
+
+	sectors_skipped = 0;
+	sectors_erased = 0;
+	sectors_written = 0;
 
 	try
 	{
@@ -605,107 +937,28 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 			std::cout << "write";
 		}
 
-		std::cout << " at address: 0x" << std::hex << std::setw(6) << std::setfill('0') << (start * flash_sector_size) << " (sector " << std::dec << start << ")";
+		std::cout << " at address: 0x" << std::hex << std::setw(6) << std::setfill('0') << (sector * flash_sector_size) << " (sector " << std::dec << sector << ")";
 		std::cout << ", length: " << std::dec << std::setw(0) << (length * flash_sector_size) << " (" << length << " sectors)";
-		std::cout << ", chunk size: " << chunk_size << std::endl;
+		std::cout << std::endl;
 
-		sha_file_ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
+		hash_ctx = EVP_MD_CTX_new();
+		EVP_DigestInit_ex(hash_ctx, EVP_sha1(), (ENGINE *)0);
 
-		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
-
-		for(current = start; current < (start + length); current++)
+		for(current = sector; current < (sector + length); current++)
 		{
 			memset(sector_buffer, 0xff, flash_sector_size);
 
-			if((sector_length = read(file_fd, sector_buffer, flash_sector_size)) <= 0)
+			if((read(file_fd, sector_buffer, flash_sector_size)) <= 0)
 				throw(std::string("i/o error in read"));
 
 			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
 
-			size = sha1_text_hash_size;
-			EVP_Digest(sector_buffer, flash_sector_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
-			sha_local_hash_text = sha_hash_to_text(sector_hash);
+			EVP_DigestUpdate(hash_ctx, sector_buffer, flash_sector_size);
 
-			EVP_DigestUpdate(sha_file_ctx, sector_buffer, flash_sector_size);
+			write_sector(command_channel, current, sector_buffer, sectors_written, sectors_erased, sectors_skipped, simulate, verbose);
 
-			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
-			{
-				try
-				{
-					if(verbose)
-					{
-						std::cout << "sending sector: " << current << ", #" << (current - start);
-						std::cout << ", offset: " << file_offset << ", try #" << (max_attempts - sector_attempt) << std::endl;
-					}
-
-					if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
-						throw(std::string("send failed"));
-
-					if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()))
-						throw(std::string("receive failed"));
-
-					if(verbose)
-						std::cout << "mailbox replied: \"" << reply << "\"" << std::endl;
-
-					if(reply != ack_string)
-						throw(std::string("ack failed"));
-
-					process(command_channel,
-							std::string(simulate ? "mailbox-simulate " : "mailbox-write ") + std::to_string(current), reply,
-							simulate ? mailbox_simulate_reply : mailbox_write_reply, string_value, int_value, verbose);
-
-					if(int_value[0] != (int)current)
-						throw(std::string("local sector (") + std::to_string(current) + ") != remote sector (" + std::to_string(int_value[0]) + ")");
-
-					if(int_value[1] == 0)
-						sectors_written++;
-					else
-						sectors_skipped++;
-
-					if(int_value[2] != 0)
-						sectors_erased++;
-
-					sha_remote_hash_text = string_value[3];
-
-					if(sha_local_hash_text != sha_remote_hash_text)
-						throw(std::string("local hash (") + sha_local_hash_text + ") != remote hash (" + sha_remote_hash_text + ") (2)");
-
-					if(verbose)
-					{
-						std::cout << "sector verified";
-						std::cout << ", local hash: " << sha_local_hash_text;
-						std::cout << ", remote hash: " << sha_remote_hash_text << std::endl;
-					}
-
-					break;
-				}
-				catch(const std::string &e)
-				{
-					if(!verbose)
-						std::cout << std::endl;
-
-					std::cout << "! send sector failed: " << e;
-					std::cout << ", sector #" << (current - start) << "/" << length;
-					std::cout << std::endl;
-
-					command_channel.drain();
-					process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
-				}
-			}
-
-			if(sector_attempt == 0)
-				throw(std::string("sending sector failed too many times"));
-
-			if(verbose)
-			{
-				std::cout << "sector written";
-				std::cout << ", local hash: " << sha_local_hash_text;
-				std::cout << ", remote hash: " << sha_remote_hash_text;
-				std::cout << ", try #" << (max_attempts - sector_attempt) << std::endl;
-			}
-			else
+			if(!verbose)
 			{
 				int seconds, useconds;
 				double duration, rate;
@@ -721,7 +974,7 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 				std::cout << "sent "		<< std::setw(4) << (file_offset / 1024) << " kbytes";
 				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
 				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", sent "		<< std::setw(3) << (current - start + 1) << " sectors";
+				std::cout << ", sent "		<< std::setw(3) << (current - sector + 1) << " sectors";
 				std::cout << ", written "	<< std::setw(3) << sectors_written << " sectors";
 				std::cout << ", erased "	<< std::setw(3) << sectors_erased << " sectors";
 				std::cout << ", skipped "	<< std::setw(3) << sectors_skipped << " sectors";
@@ -732,6 +985,9 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	}
 	catch(std::string &e)
 	{
+		if(!verbose)
+			std::cout << std::endl;
+
 		close(file_fd);
 		throw;
 	}
@@ -747,223 +1003,74 @@ void command_write(GenericSocket &command_channel, GenericSocket &mailbox_channe
 	{
 		std::cout << "checksumming " << length << " sectors..." << std::endl;
 
-		size = sha1_text_hash_size;
-		EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
-		EVP_MD_CTX_free(sha_file_ctx);
+		hash_size = sha1_hash_size;
+		EVP_DigestFinal_ex(hash_ctx, hash, &hash_size);
+		EVP_MD_CTX_free(hash_ctx);
 
-		sha_local_hash_text = sha_hash_to_text(file_hash);
+		sha_local_hash_text = sha_hash_to_text(hash);
 
-		send_string = std::string("mailbox-checksum ") + std::to_string(start) + " " + std::to_string(length);
-		process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
+		get_checksum(command_channel, sector, length, sha_remote_hash_text, verbose);
 
 		if(verbose)
 		{
 			std::cout << "local checksum:  " << sha_local_hash_text << std::endl;
-			std::cout << "remote checksum: " << string_value[2] << std::endl;
+			std::cout << "remote checksum: " << sha_remote_hash_text << std::endl;
 		}
 
-		if(int_value[0] != (int)length)
-			throw(std::string("checksum failed: length differs, local: ") + std::to_string(length) + ", remote: " + std::to_string(int_value[0]));
-
-		if((unsigned int)int_value[1] != start)
-			throw(std::string("checksum failed: start address differs, local: ") +  std::to_string(start) + ", remote: " + std::to_string(int_value[1]));
-
-		if(string_value[2] != sha_local_hash_text)
-			throw(std::string("checksum failed: SHA hash differs, local: ") +  sha_local_hash_text + ", remote: " + string_value[2]);
+		if(sha_local_hash_text != sha_remote_hash_text)
+			throw(std::string("checksum failed: SHA hash differs, local: ") +  sha_local_hash_text + ", remote: " + sha_remote_hash_text);
 
 		std::cout << "checksum OK" << std::endl;
 		std::cout << "write finished" << std::endl;
 	}
 }
 
-static void command_checksum(GenericSocket &command_channel, const std::string &filename, unsigned int start, bool verbose)
-{
-	int file_fd;
-	int64_t file_length;
-	struct stat stat;
-	uint8_t sector_buffer[flash_sector_size];
-	unsigned char file_hash[sha1_text_hash_size];
-	unsigned int current, length;
-	int sector_length;
-	std::string sha_local_hash_text;
-	std::string sha_remote_hash_text;
-	std::string send_string;
-	std::string reply;
-	std::string operation;
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
-	EVP_MD_CTX *sha_file_ctx;
-	unsigned int size;
-
-	if(filename.empty())
-		throw(std::string("file name required"));
-
-	if((file_fd = open(filename.c_str(), O_RDONLY, 0)) < 0)
-		throw(std::string("file not found"));
-
-	fstat(file_fd, &stat);
-	file_length = stat.st_size;
-	length = (file_length + (flash_sector_size - 1)) / flash_sector_size;
-
-	try
-	{
-		std::cout << "start checksum from 0x" << std::hex << (start * flash_sector_size) << " (sector " << std::dec << start;
-		std::cout << "), length: " << file_length << " (" << length << " sectors" << ")" << std::endl;
-
-		sha_file_ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
-
-		for(current  = 0; current < length; current++)
-		{
-			memset(sector_buffer, 0xff, flash_sector_size);
-
-			if((sector_length = read(file_fd, sector_buffer, flash_sector_size)) <= 0)
-				throw(std::string("i/o error in read"));
-
-			EVP_DigestUpdate(sha_file_ctx, sector_buffer, flash_sector_size);
-		}
-	}
-	catch(std::string &e)
-	{
-		close(file_fd);
-		throw;
-	}
-
-	close(file_fd);
-
-	std::cout << "checksumming " << length << " sectors..." << std::endl;
-
-	size = sha1_text_hash_size;
-	EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
-	EVP_MD_CTX_free(sha_file_ctx);
-
-	sha_local_hash_text = sha_hash_to_text(file_hash);
-
-	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
-	process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
-
-	if(verbose)
-	{
-		std::cout << "local checksum:  " << sha_local_hash_text << std::endl;
-		std::cout << "remote checksum: " << string_value[2] << std::endl;
-	}
-
-	if(int_value[0] != (int)length)
-		throw(std::string("checksum failed: checksummed bytes differs, local: ") + std::to_string(length) + ", remote: " + std::to_string(int_value[0]));
-
-	if((unsigned int)int_value[1] != start)
-		throw(std::string("checksum failed: start address differs, local: ") +  std::to_string(start) + ", remote: " + std::to_string(int_value[1]));
-
-	if(string_value[2] != sha_local_hash_text)
-		throw(std::string("checksum failed: SHA hash differs, local: ") + sha_local_hash_text + ", remote: " + string_value[2]);
-
-	std::cout << "checksum OK" << std::endl;
-}
-
-static void command_read(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, int start, int length, bool verbose)
+static void command_verify(GenericSocket &command_channel, const std::string &filename, int sector, bool verbose)
 {
 	int64_t file_offset;
 	int file_fd;
-	int sector_attempt, current;
+	int current, sectors;
 	struct timeval time_start, time_now;
 	std::string send_string;
-	std::string reply;
 	std::string operation;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
-	EVP_MD_CTX * sha_file_ctx;
-	unsigned int size;
-	unsigned char sector_hash[sha1_text_hash_size];
-	unsigned char file_hash[sha1_text_hash_size];
-	std::string sha_local_hash_text;
-	std::string sha_remote_hash_text;
+	std::string local_data, remote_data;
+	struct stat stat;
 
 	if(filename.empty())
 		throw(std::string("file name required"));
 
-	if((file_fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666)) < 0)
-		throw(std::string("can't create file"));
+	if((file_fd = open(filename.c_str(), O_RDONLY)) < 0)
+		throw(std::string("can't open file"));
+
+	fstat(file_fd, &stat);
+	file_offset = stat.st_size;
+	sectors = (file_offset + (flash_sector_size - 1)) / flash_sector_size;
 
 	try
 	{
 		gettimeofday(&time_start, 0);
 
-		std::cout << "start read from 0x" << std::hex << start * flash_sector_size;
-		std::cout << ", length: 0x" << std::hex << length * flash_sector_size << " (" << std::dec << length * flash_sector_size << ")";
+		std::cout << "start verify from 0x" << std::hex << sector * flash_sector_size << " (" << std::dec << sector << ")";
+		std::cout << ", length: 0x" << std::hex << sectors * flash_sector_size << " (" << std::dec << sectors << ")";
 		std::cout << std::endl;
 
-		sha_file_ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(sha_file_ctx, EVP_sha1(), (ENGINE *)0);
-
-		current = start;
-
-		for(current = start; current < (start + length); current++)
+		for(current = sector; current < (sector + sectors); current++)
 		{
-			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
-			{
-				send_string = std::string("mailbox-read ") + std::to_string(current);
+			local_data.resize(flash_sector_size);
+			memset(local_data.data(), 0xff, flash_sector_size);
 
-				try
-				{
-					process(command_channel, send_string, reply, mailbox_read_reply, string_value, int_value, verbose);
-				}
-				catch(const std::string &error)
-				{
-					if(verbose)
-						std::cout << "mailbox read failed: " << error << std::endl;
-
-					goto error;
-				}
-
-				if(int_value[0] != current)
-					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
-
-				sha_remote_hash_text = string_value[1];
-
-				reply.clear();
-
-				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
-				{
-					size = sha1_text_hash_size;
-					EVP_Digest((const unsigned char *)reply.data(), flash_sector_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
-					sha_local_hash_text = sha_hash_to_text(sector_hash);
-
-					if(verbose)
-					{
-						std::cout << "+ sector #" << (current - start) << ", " << current << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " read";
-						std::cout << ", try #" << (max_attempts - sector_attempt);
-						std::cout << ", local hash: " << sha_local_hash_text;
-						std::cout << ", remote hash: " << sha_remote_hash_text;
-						std::cout << std::endl;
-					}
-
-					if(sha_local_hash_text == sha_remote_hash_text)
-						break;
-
-					if(!verbose)
-						std::cout << std::endl;
-					std::cout << "! local hash (" << sha_local_hash_text << ") != remote hash (" << sha_remote_hash_text << ") (1)" << std::endl;
-				}
-error:
-				if(verbose)
-				{
-					std::cout << "! read receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt;
-					std::cout << std::endl;
-				}
-
-				command_channel.drain();
-			}
-
-			if(sector_attempt <= 0)
-				throw(std::string("! receiving sector failed too many times"));
+			if(read(file_fd, local_data.data(), flash_sector_size) <= 0)
+				throw(std::string("i/o error in read"));
 
 			if((file_offset = lseek(file_fd, 0, SEEK_CUR)) < 0)
 				throw(std::string("i/o error in seek"));
 
-			if(write(file_fd, reply.data(), flash_sector_size) <= 0)
-				throw(std::string("i/o error in write"));
+			read_sector(command_channel, current, remote_data, verbose);
 
-			EVP_DigestUpdate(sha_file_ctx, (const unsigned char *)reply.data(), flash_sector_size);
+			if(local_data != remote_data)
+				throw((boost::format("data mismatch, sector %u") % current).str());
 
 			if(!verbose)
 			{
@@ -981,185 +1088,17 @@ error:
 				std::cout << "received "	<< std::setw(3) << (file_offset / 1024) << " kbytes";
 				std::cout << " in "			<< std::setw(4) << std::setprecision(2) << std::fixed << duration << " seconds";
 				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", received "	<< std::setw(2) << (current - start) << " sectors";
-				std::cout << ", "			<< std::setw(3) << (((file_offset + flash_sector_size) * 100) / (length * flash_sector_size)) << "%       \r";
+				std::cout << ", received "	<< std::setw(2) << (current - sector) << " sectors";
+				std::cout << ", "			<< std::setw(3) << (((file_offset + flash_sector_size) * 100) / (sectors * flash_sector_size)) << "%       \r";
 				std::cout.flush();
 			}
 		}
 	}
 	catch(const std::string &e)
 	{
-		close(file_fd);
-		throw;
-	}
+		if(!verbose)
+			std::cout << std::endl;
 
-	close(file_fd);
-
-	if(!verbose)
-		std::cout << std::endl;
-
-	std::cout << "checksumming " << length << " sectors..." << std::endl;
-
-	size = sha1_text_hash_size;
-	EVP_DigestFinal_ex(sha_file_ctx, file_hash, &size);
-	EVP_MD_CTX_free(sha_file_ctx);
-
-	sha_local_hash_text = sha_hash_to_text(file_hash);
-
-	send_string = std::string("mailbox-checksum ") + std::to_string(start) +  " " + std::to_string(length);
-	process(command_channel, send_string, reply, mailbox_checksum_reply, string_value, int_value, verbose);
-
-	if(verbose)
-	{
-		std::cout << "local checksum:  " << sha_local_hash_text << std::endl;
-		std::cout << "remote checksum: " << string_value[2] << std::endl;
-	}
-
-	if(int_value[0] != length)
-		throw(std::string("checksum failed: checksummed bytes differs, local: ") + std::to_string(length) +  ", remote: " + std::to_string(int_value[0]));
-
-	if(int_value[1] != start)
-		throw(std::string("checksum failed: start address differs, local: ") +  std::to_string(start) + ", remote: " + std::to_string(int_value[1]));
-
-	if(string_value[2] != sha_local_hash_text)
-		throw(std::string("checksum failed: SHA hash differs, local: ") + sha_local_hash_text + ", remote: " + string_value[2]);
-
-	std::cout << "checksum OK" << std::endl;
-}
-
-static void command_verify(GenericSocket &command_channel, GenericSocket &mailbox_channel, const std::string &filename, int start, bool verbose)
-{
-	int64_t file_offset;
-	int file_fd;
-	struct stat stat;
-	unsigned int sector_attempt, current, length;
-	struct timeval time_start, time_now;
-	std::string send_string;
-	std::string reply;
-	std::string operation;
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
-	uint8_t sector_buffer[flash_sector_size];
-	unsigned char hash[sha1_text_hash_size];
-	unsigned int size;
-	std::string sha_local_hash_text;
-	std::string sha_remote_hash_text;
-
-	if(filename.empty())
-		throw(std::string("file name required"));
-
-	if((file_fd = open(filename.c_str(), O_RDONLY)) < 0)
-		throw(std::string("can't open file"));
-
-	try
-	{
-		fstat(file_fd, &stat);
-		file_offset = stat.st_size;
-		length = (file_offset + (flash_sector_size - 1)) / flash_sector_size;
-
-		gettimeofday(&time_start, 0);
-
-		std::cout << "start verify from 0x" << std::hex << start * flash_sector_size << " (sector " << std::dec << start << ")";
-		std::cout << ", length: " << length * flash_sector_size << " (" << std::dec << length << " sectors)";
-		std::cout << std::endl;
-
-		current = start;
-
-		for(current = start; current < (start + length); current++)
-		{
-			for(sector_attempt = max_attempts; sector_attempt > 0; sector_attempt--)
-			{
-				send_string = std::string("mailbox-read ") + std::to_string(current);
-
-				try
-				{
-					process(command_channel, send_string, reply, mailbox_read_reply, string_value, int_value, verbose);
-				}
-				catch(const std::string &error)
-				{
-					if(verbose)
-						std::cout << "mailbox read failed: " << error << std::endl;
-
-					goto error;
-				}
-
-				if(int_value[0] != (int)current)
-					throw(std::string("local address (") + std::to_string(current) + ") != remote address (" + std::to_string(int_value[1]) + ")");
-
-				sha_remote_hash_text = string_value[1];
-
-				reply.clear();
-
-				if(mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
-				{
-					if(verbose)
-					{
-						std::cout << "+ sector #" << (current - start) << ", " << current;
-						std::cout << ", address: 0x" << std::hex << (current * flash_sector_size) << std::dec << " verified";
-						std::cout << ", try #" << (max_attempts - sector_attempt);
-						std::cout << std::endl;
-					}
-
-					size = sha1_text_hash_size;
-					EVP_Digest((const unsigned char *)reply.data(), flash_sector_size, hash, &size, EVP_sha1(), (ENGINE *)0);
-					sha_local_hash_text = sha_hash_to_text(hash);
-
-					if(sha_remote_hash_text != sha_local_hash_text)
-					{
-						std::cout << std::endl << "! checksum mismatch, local: " << sha_local_hash_text << ", remote: " << sha_remote_hash_text << std::endl;
-						goto error;
-					}
-
-					if((file_offset = lseek(file_fd, (current - start) * flash_sector_size, SEEK_SET)) < 0)
-						throw(std::string("i/o error in seek"));
-
-					memset(sector_buffer, 0xff, sizeof(sector_buffer));
-
-					if(read(file_fd, sector_buffer, sizeof(sector_buffer)) <= 0)
-						throw(std::string("i/o error in read"));
-
-					if(memcmp(reply.data(), sector_buffer, sizeof(sector_buffer)))
-					{
-						std::cout << std::endl << "! data mismatch" << std::endl;
-						goto error;
-					}
-
-					break;
-				}
-error:
-				if(verbose)
-					std::cout << "! receive failed, sector #" << current << ", #" << (current - start) << ", attempt #" << max_attempts - sector_attempt << std::endl;
-
-				command_channel.drain();
-			}
-
-			if(sector_attempt == 0)
-				throw(std::string("! verify: receiving sector failed too many times"));
-
-			if(!verbose)
-			{
-				int seconds, useconds;
-				double duration, rate;
-
-				gettimeofday(&time_now, 0);
-
-				seconds = time_now.tv_sec - time_start.tv_sec;
-				useconds = time_now.tv_usec - time_start.tv_usec;
-				duration = seconds + (useconds / 1000000.0);
-				rate = file_offset / 1024.0 / duration;
-
-				std::cout << std::setfill(' ');
-				std::cout << "verified "	<< std::setw(3) << (file_offset / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(4) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", received "	<< std::setw(2) << (current - start) << " sectors";
-				std::cout << ", "			<< std::setw(3) << (((file_offset + flash_sector_size) * 100) / (length * flash_sector_size)) << "%       \r";
-				std::cout.flush();
-			}
-		}
-	}
-	catch(const std::string &e)
-	{
 		close(file_fd);
 		throw;
 	}
@@ -1172,10 +1111,12 @@ error:
 	std::cout << "verify OK" << std::endl;
 }
 
-void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_channel, bool verbose)
+void command_benchmark(GenericSocket &command_channel, int length, bool verbose)
 {
-	unsigned int phase, retries, attempt, length, current;
-	unsigned char sector_buffer[flash_sector_size];
+	unsigned int phase, retries, attempt, iterations, current;
+	uint8_t sector_buffer[flash_sector_size];
+	std::string command;
+	std::string expect;
 	std::string reply;
 	struct timeval time_start, time_now;
 	std::vector<int> int_value;
@@ -1183,7 +1124,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 	int seconds, useconds;
 	double duration, rate;
 
-	length = 1024;
+	iterations = 1024;
 	memset(sector_buffer, 0x00, flash_sector_size);
 
 	for(phase = 0; phase < 2; phase++)
@@ -1191,34 +1132,26 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 		retries = 0;
 		gettimeofday(&time_start, 0);
 
-		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
+		if(phase == 0)
+		{
+			command = (boost::format("flash-bench %u") % length).str();
+			expect = (boost::format("OK flash-bench: sending %u bytes\n.*") % length).str();
+		}
+		else
+		{
+			command = "flash-bench 0";
+			command.append(ota_data_offset - command.length(), ' ');
+			command.append((const char *)sector_buffer, length);
+			expect = "OK flash-bench: sending 0 bytes\n.*";
+		}
 
-		for(current = 0; current < length; current++)
+		for(current = 0; current < iterations; current++)
 		{
 			for(attempt = max_attempts; attempt > 0; attempt--)
 			{
 				try
 				{
-					if(phase == 0)
-					{
-						if(!mailbox_channel.send(std::string((const char *)sector_buffer, flash_sector_size), GenericSocket::raw))
-							throw(std::string("send failed"));
-
-						if(!mailbox_channel.receive(reply, GenericSocket::cooked, ack_string.length()))
-							throw(std::string("receive failed"));
-
-						if(reply != ack_string)
-							throw(std::string("ack failed"));
-
-						process(command_channel, "mailbox-bench 1", reply, "OK mailbox-bench: received one sector", string_value, int_value, verbose);
-					}
-					else
-					{
-						process(command_channel, "mailbox-bench 0", reply, "OK mailbox-bench: sending one sector", string_value, int_value, verbose);
-
-						if(!mailbox_channel.receive(reply, GenericSocket::raw, flash_sector_size))
-							throw(std::string("receive failed"));
-					}
+					process(command_channel, command, reply, expect, string_value, int_value, verbose);
 
 					gettimeofday(&time_now, 0);
 
@@ -1236,7 +1169,7 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 						std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
 						std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
 						std::cout << ", retries "	<< std::setw(2) << retries;
-						std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / length) << "%       \r";
+						std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / iterations) << "%       \r";
 						std::cout.flush();
 					}
 				}
@@ -1246,7 +1179,6 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 						std::cout << e << std::endl;
 
 					command_channel.drain();
-					process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 
 					retries++;
 					continue;
@@ -1264,117 +1196,53 @@ void command_benchmark(GenericSocket &command_channel, GenericSocket &mailbox_ch
 	}
 }
 
-static void command_image_send_sector(GenericSocket &command_channel, GenericSocket &mailbox_channel,
-		int current_sector, const unsigned char *buffer, unsigned int buffer_size, unsigned int length,
+static void command_image_send_sector(GenericSocket &command_channel,
+		int current_sector, const unsigned char *buffer, unsigned int length,
 		unsigned int current_x, unsigned int current_y, unsigned int depth, bool verbose)
 {
 	enum { attempts =  8 };
-	unsigned int attempt;
+	std::string command;
 	std::vector<int> int_value;
 	std::vector<std::string> string_value;
 	std::string reply;
-	unsigned char sector_hash[sha1_text_hash_size];
-	std::string sha_local_hash_text;
 	unsigned int pixels;
-	unsigned int size;
 
-	size = sha1_text_hash_size;
-	EVP_Digest(buffer, buffer_size, sector_hash, &size, EVP_sha1(), (ENGINE *)0);
-	sha_local_hash_text = sha_hash_to_text(sector_hash);
-
-	for(attempt = 0; attempt < attempts; attempt++)
+	if(current_sector < 0)
 	{
-		try
+		switch(depth)
 		{
-			if(!mailbox_channel.send(std::string((const char *)buffer, flash_sector_size), GenericSocket::raw))
+			case(1):
 			{
-				if(verbose)
-					std::cout << "send failed, attempt: " << attempt << std::endl;
-
-				goto error;
+				pixels = length * 8;
+				break;
 			}
 
-			if(!mailbox_channel.receive(reply, GenericSocket::raw, ack_string.length()) || (reply != ack_string))
+			case(16):
 			{
-				if(verbose)
-					std::cout << "receive ack failed, attempt: " << attempt << std::endl;
-
-				goto error;
+				pixels = length / 2;
+				break;
 			}
 
-			if(current_sector < 0)
+			default:
 			{
-				switch(depth)
-				{
-					case(1):
-					{
-						pixels = length * 8;
-						break;
-					}
-
-					case(16):
-					{
-						pixels = length / 2;
-						break;
-					}
-
-					default:
-					{
-						throw(std::string("unknown display colour depth"));
-					}
-				}
-
-				process(command_channel, std::string("display-plot ") +
-						std::to_string(pixels) + " " +
-						std::to_string(current_x) + " " +
-						std::to_string(current_y),
-						reply,
-						"display plot success: yes",
-						string_value, int_value, verbose);
-			}
-			else
-			{
-				process(command_channel,
-							std::string("mailbox-write ") + std::to_string(current_sector), reply,
-							mailbox_write_reply, string_value, int_value, verbose);
-
-				if(int_value[0] != current_sector)
-				{
-					if(verbose)
-						std::cout << "invalid sector: " << int_value[0] << "/" << current_sector << std::endl;
-
-					goto error;
-				}
-
-				if(string_value[3] != sha_local_hash_text)
-				{
-					if(verbose)
-						std::cout << "invalid checksum: " << string_value[3] << "/" << sha_local_hash_text << std::endl;
-
-					goto error;
-				}
+				throw(std::string("unknown display colour depth"));
 			}
 		}
-		catch(const std::string &e)
-		{
-			if(verbose)
-				std::cout << "send failed, attempt: " << attempt << ", reason: " << e << std::endl;
 
-			goto error;
-		}
+		command = (boost::format("display-plot %u %u %u\n") % pixels % current_x % current_y).str();
+		command.append(ota_data_offset - command.length(), ' ');
+		command.append((const char *)buffer, length);
 
-		break;
-
-error:
-		command_channel.drain();
-		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
+		process(command_channel, command, reply, "display plot success: yes\n", string_value, int_value, verbose);
 	}
-
-	if(attempt >= attempts)
-		throw(std::string("send failed, max attempts reached"));
+	else
+	{
+		unsigned int sectors_written, sectors_erased, sectors_skipped;
+		write_sector(command_channel, current_sector, buffer, sectors_written, sectors_erased, sectors_skipped, false, verbose);
+	}
 }
 
-static void command_image(GenericSocket &command_channel, GenericSocket &mailbox_channel, int image_slot, const std::string &filename, unsigned chunk_size,
+static void command_image(GenericSocket &command_channel, int image_slot, const std::string &filename,
 		unsigned int dim_x, unsigned int dim_y, unsigned int depth, int image_timeout, bool verbose)
 {
 	std::vector<int> int_value;
@@ -1425,7 +1293,6 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 		start_x = 0;
 		start_y = 0;
 
-		process(command_channel, "mailbox-reset", reply, "OK mailbox-reset", string_value, int_value, verbose);
 		memset(sector_buffer, 0xff, flash_sector_size);
 
 		for(y = 0; y < dim_y; y++)
@@ -1438,9 +1305,9 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 				{
 					case(1):
 					{
-						if((current_buffer / 8) + 1 > chunk_size)
+						if((current_buffer / 8) + 1 > flash_sector_size)
 						{
-							command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer / 8,
+							command_image_send_sector(command_channel, current_sector, sector_buffer, current_buffer / 8,
 									start_x, start_y, depth, verbose);
 							memset(sector_buffer, 0xff, flash_sector_size);
 							current_buffer -= (current_buffer / 8) * 8;
@@ -1466,9 +1333,9 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 						g = colour.greenQuantum() >> 10;
 						b = colour.blueQuantum() >> 11;
 
-						if((current_buffer + 2) > chunk_size)
+						if((current_buffer + 2) > flash_sector_size)
 						{
-							command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer), current_buffer,
+							command_image_send_sector(command_channel, current_sector, sector_buffer, current_buffer,
 									start_x, start_y, depth, verbose);
 							memset(sector_buffer, 0xff, flash_sector_size);
 
@@ -1520,8 +1387,8 @@ static void command_image(GenericSocket &command_channel, GenericSocket &mailbox
 				current_buffer /= 8;
 			}
 
-			command_image_send_sector(command_channel, mailbox_channel, current_sector, sector_buffer, sizeof(sector_buffer),
-					current_buffer, start_x, start_y, depth, verbose);
+			command_image_send_sector(command_channel, current_sector, sector_buffer, current_buffer,
+					start_x, start_y, depth, verbose);
 		}
 
 		std::cout << std::endl;
@@ -1754,7 +1621,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 	}
 }
 
-static void command_send(const std::string &host, const std::string &port, bool udp, bool verbose, bool dont_wait, std::string args)
+static void command_send(GenericSocket &send_socket, bool verbose, bool dont_wait, std::string args)
 {
 	std::string reply;
 	unsigned int attempt;
@@ -1769,8 +1636,6 @@ static void command_send(const std::string &host, const std::string &port, bool 
 			return;
 		}
 	}
-
-	GenericSocket send_socket(host, port, udp, verbose);
 
 	while(args.length() > 0)
 	{
@@ -1787,7 +1652,7 @@ static void command_send(const std::string &host, const std::string &port, bool 
 
 		for(attempt = 0; attempt < 3; attempt++)
 		{
-			if(!send_socket.send(arg, GenericSocket::cooked))
+			if(!send_socket.send_unicast(arg))
 			{
 				if(verbose)
 					std::cout << "send failed, attempt #" << attempt << std::endl;
@@ -1795,7 +1660,7 @@ static void command_send(const std::string &host, const std::string &port, bool 
 				goto retry;
 			}
 
-			if(!send_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+			if(!send_socket.receive_unicast(reply))
 			{
 				if(verbose)
 					std::cout << "receive failed, attempt #" << attempt << std::endl;
@@ -1804,72 +1669,74 @@ static void command_send(const std::string &host, const std::string &port, bool 
 			}
 
 			attempt = 0;
-			break;
+			goto exit;
 
-	retry:
+retry:
 			send_socket.drain();
 		}
+exit:
 
 		if(attempt != 0)
 			throw(std::string("send/receive failed"));
 
-		std::cout << reply << std::endl;
+		std::cout << reply;
 	}
 }
 
-void command_broadcast(const std::string &host, const std::string &port, bool verbose, bool dontwait, const std::string &args)
+void command_broadcast(GenericSocket &broadcast_socket, bool dontwait, const std::string &args)
 {
 	std::string reply;
-	GenericSocket broadcast_socket(host, port, true, verbose, true, false);
 
-	if(!broadcast_socket.send(args, GenericSocket::cooked))
+	if(!broadcast_socket.send_multicast(args))
 		throw(std::string("broadcast send failed"));
 
 	if(!dontwait)
 	{
-		if(!broadcast_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+		if(!broadcast_socket.receive_multicast(reply))
 			throw(std::string("broadcast receive failed"));
 
 		std::cout << reply << std::endl;
 	}
 }
 
-void command_multicast(const std::string &host, const std::string &port, bool verbose, bool dontwait, const std::string &args)
+void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std::string &args)
 {
 	std::string reply;
-	GenericSocket multicast_socket(host, port, true, verbose, false, true);
 
-	if(!multicast_socket.send(args, GenericSocket::cooked))
+	if(!multicast_socket.send_multicast(args))
 		throw(std::string("mulicast send failed"));
 
 	if(!dontwait)
 	{
-		if(!multicast_socket.receive(reply, GenericSocket::cooked, flash_sector_size))
+		if(!multicast_socket.receive_multicast(reply))
 			throw(std::string("multicast receive failed"));
 
 		std::cout << reply << std::endl;
 	}
 }
 
-void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash_slot, bool reset, bool permanent)
+void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash_slot, unsigned int sector, bool reset, bool notemp)
 {
 	std::string send_string;
 	std::string reply;
 	std::vector<std::string> string_value;
 	std::vector<int> int_value;
 
-	send_string = std::string("mailbox-select ") + std::to_string(flash_slot) + " " + (permanent ? "1" : "0");
-	process(command_channel, send_string, reply, "OK mailbox-select: slot ([0-9]+), permanent ([0-1])", string_value, int_value, verbose);
+	send_string = (boost::format("flash-select %u %u") % flash_slot % (notemp ? 1 : 0)).str();
+	process(command_channel, send_string, reply, flash_select_expect, string_value, int_value, verbose);
 
-	if((unsigned int)int_value[0] != flash_slot)
-		throw(std::string("mailbox-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
+	if(int_value[0] != (int)flash_slot)
+		throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
 
-	if(int_value[1] != (permanent ? 1 : 0))
-		throw(std::string("mailbox-select failed, local permanent != remote permanent"));
+	if(int_value[1] != (int)sector)
+		throw(std::string("flash-select failed, local sector != remote sector"));
+
+	if(int_value[2] != notemp ? 1 : 0)
+		throw(std::string("flash-select failed, local permanent != remote permanent"));
 
 	std::cout << "selected ";
 
-	if(!permanent)
+	if(!notemp)
 		std::cout << "one time";
 
 	std::cout << " boot slot" << std::endl;
@@ -1878,7 +1745,7 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 		return;
 
 	std::cout << "rebooting" << std::endl;
-	command_channel.send(std::string("reset"), GenericSocket::cooked);
+	command_channel.send_unicast(std::string("reset"));
 	usleep(200000);
 	command_channel.drain();
 	command_channel.disconnect();
@@ -1886,23 +1753,26 @@ void commit_ota(GenericSocket &command_channel, bool verbose, unsigned int flash
 	command_channel.connect();
 	std::cout << "reboot finished" << std::endl;
 
-	process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
+	process(command_channel, "flash-info", reply, flash_info_expect, string_value, int_value, verbose);
 
 	if(int_value[0] != (int)flash_slot)
 		throw(std::string("boot failed, requested slot: ") + std::to_string(flash_slot) + ", active slot: " + std::to_string(int_value[0]));
 
-	if(!permanent)
+	if(!notemp)
 	{
 		std::cout << "boot succeeded, permanently selecting boot slot: " << flash_slot << std::endl;
 
-		send_string = std::string("mailbox-select ") + std::to_string(flash_slot) + " 1";
-		process(command_channel, send_string, reply, "OK mailbox-select: slot ([0-9]+), permanent ([0-1])", string_value, int_value, verbose);
+		send_string = (boost::format("flash-select %u 1") % flash_slot).str();
+		process(command_channel, send_string, reply, flash_select_expect, string_value, int_value, verbose);
 
-		if((unsigned int)int_value[0] != flash_slot)
-			throw(std::string("mailbox-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
+		if(int_value[0] != (int)flash_slot)
+			throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
 
-		if(int_value[1] != 1)
-			throw(std::string("mailbox-select failed, local permanent != remote permanent"));
+		if(int_value[1] != (int)sector)
+			throw(std::string("flash-select failed, local sector != remote sector"));
+
+		if(int_value[2] != 1)
+			throw(std::string("flash-select failed, local permanent != remote permanent"));
 	}
 
 	process(command_channel, "stats", reply, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", string_value, int_value, verbose);
@@ -1919,7 +1789,6 @@ int main(int argc, const char **argv)
 		std::string host;
 		std::string args;
 		std::string command_port;
-		std::string mailbox_port;
 		std::string filename;
 		std::string start_string;
 		std::string length_string;
@@ -1928,7 +1797,6 @@ int main(int argc, const char **argv)
 		int image_timeout;
 		int dim_x, dim_y, depth;
 		unsigned int length;
-		unsigned int chunk_size;
 		bool use_udp = false;
 		bool dont_wait = false;
 		bool verbose = false;
@@ -1939,7 +1807,6 @@ int main(int argc, const char **argv)
 		bool cmd_write = false;
 		bool cmd_simulate = false;
 		bool cmd_verify = false;
-		bool cmd_checksum = false;
 		bool cmd_benchmark = false;
 		bool cmd_image = false;
 		bool cmd_image_epaper = false;
@@ -1947,12 +1814,13 @@ int main(int argc, const char **argv)
 		bool cmd_multicast = false;
 		bool cmd_read = false;
 		bool cmd_info = false;
+		bool no_provide_checksum = false;
+		bool no_request_checksum = false;
 		unsigned int selected;
 
 		options.add_options()
 			("info,i",			po::bool_switch(&cmd_info)->implicit_value(true),					"INFO")
 			("read,R",			po::bool_switch(&cmd_read)->implicit_value(true),					"READ")
-			("checksum,C",		po::bool_switch(&cmd_checksum)->implicit_value(true),				"CHECKSUM")
 			("verify,V",		po::bool_switch(&cmd_verify)->implicit_value(true),					"VERIFY")
 			("simulate,S",		po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
 			("write,W",			po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
@@ -1968,13 +1836,15 @@ int main(int argc, const char **argv)
 			("start,s",			po::value<std::string>(&start_string)->default_value("-1"),			"send/receive start address (OTA is default)")
 			("length,l",		po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
 			("command-port,p",	po::value<std::string>(&command_port)->default_value("24"),			"command port to connect to")
-			("mailbox-port,P",	po::value<std::string>(&mailbox_port)->default_value("26"),			"mailbox port to connect to")
 			("nocommit,n",		po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
 			("noreset,N",		po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
 			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
 			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on message")
 			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer")
-			("image_timeout,y",	po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending");
+			("image_timeout,y",	po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending")
+			("no-provide-checksum,1", po::bool_switch(&no_provide_checksum)->implicit_value(true),	"do not provide checksum")
+			("no-request-checksum,2", po::bool_switch(&no_request_checksum)->implicit_value(true),	"do not request checksum");
+
 
 		po::positional_options_description positional_options;
 		positional_options.add("host", -1);
@@ -1998,6 +1868,9 @@ int main(int argc, const char **argv)
 
 		selected = 0;
 
+		if(cmd_read)
+			selected++;
+
 		if(cmd_write)
 			selected++;
 
@@ -2007,9 +1880,6 @@ int main(int argc, const char **argv)
 		if(cmd_verify)
 			selected++;
 
-		if(cmd_checksum)
-			selected++;
-
 		if(cmd_benchmark)
 			selected++;
 
@@ -2017,9 +1887,6 @@ int main(int argc, const char **argv)
 			selected++;
 
 		if(cmd_image_epaper)
-			selected++;
-
-		if(cmd_read)
 			selected++;
 
 		if(cmd_info)
@@ -2032,21 +1899,22 @@ int main(int argc, const char **argv)
 			selected++;
 
 		if(selected > 1)
-			throw(std::string("specify one of write/simulate/verify/checksum/image/epaper-image/read/info"));
+			throw(std::string("specify one of write/simulate/verify/image/epaper-image/read/info"));
+
+		GenericSocket command_channel(host, command_port, use_udp, verbose, !!cmd_broadcast, !!cmd_multicast, no_provide_checksum, no_request_checksum);
 
 		if(selected == 0)
-			command_send(host, command_port, use_udp, verbose, dont_wait, args);
+			command_send(command_channel, verbose, dont_wait, args);
 		else
 		{
 			if(cmd_broadcast)
-				command_broadcast(host, command_port, verbose, dont_wait, args);
+				command_broadcast(command_channel, dont_wait, args);
 			else
 				if(cmd_multicast)
-					command_multicast(host, command_port, verbose, dont_wait, args);
+					command_multicast(command_channel, dont_wait, args);
 				else
 				{
 					start = -1;
-					chunk_size = use_udp ? 1024 : flash_sector_size;
 
 					try
 					{
@@ -2055,13 +1923,6 @@ int main(int argc, const char **argv)
 					catch(...)
 					{
 						throw(std::string("invalid value for start argument"));
-					}
-
-					if(start != -1)
-					{
-						if(((start % flash_sector_size) != 0) || (start < 0))
-							throw(std::string("invalid start address"));
-						start /= flash_sector_size;
 					}
 
 					try
@@ -2073,27 +1934,18 @@ int main(int argc, const char **argv)
 						throw(std::string("invalid value for length argument"));
 					}
 
-					if((length % flash_sector_size) != 0)
-						length = length / flash_sector_size + 1;
-					else
-						length = length / flash_sector_size;
-
 					std::string reply;
 					std::vector<int> int_value;
 					std::vector<std::string> string_value;
 					unsigned int flash_slot, flash_address[2];
 
-					GenericSocket command_channel(host, command_port, use_udp, verbose);
-					GenericSocket mailbox_channel(host, mailbox_port, true, verbose);
-					mailbox_channel.send(std::string(" "), GenericSocket::raw);
-
 					try
 					{
-						process(command_channel, "mailbox-info", reply, mailbox_info_reply, string_value, int_value, verbose);
+						process(command_channel, "flash-info", reply, flash_info_expect, string_value, int_value, verbose);
 					}
 					catch(std::string &e)
 					{
-						throw(std::string("MAILBOX incompatible image: ") + e);
+						throw(std::string("flash incompatible image: ") + e);
 					}
 
 					flash_slot = int_value[0];
@@ -2103,15 +1955,15 @@ int main(int argc, const char **argv)
 					dim_y = int_value[4];
 					depth = int_value[5];
 
-					std::cout << "MAILBOX update available, current slot: " << flash_slot;
+					std::cout << "flash update available, current slot: " << flash_slot;
 					std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
 					std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
-					std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px @" << depth;
+					std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px at depth " << depth;
 					std::cout << std::endl;
 
 					if(start == -1)
 					{
-						if(cmd_write || cmd_simulate || cmd_verify || cmd_checksum || cmd_info)
+						if(cmd_write || cmd_simulate || cmd_verify || cmd_info)
 						{
 							flash_slot++;
 
@@ -2127,35 +1979,30 @@ int main(int argc, const char **argv)
 					}
 
 					if(cmd_read)
-						command_read(command_channel, mailbox_channel, filename, start, length, verbose);
+						command_read(command_channel, filename, start, length, verbose);
 					else
 						if(cmd_verify)
-							command_verify(command_channel, mailbox_channel, filename, start, verbose);
+							command_verify(command_channel, filename, start, verbose);
 						else
-							if(cmd_checksum)
-								command_checksum(command_channel, filename, start, verbose);
+							if(cmd_simulate)
+								command_write(command_channel, filename, start, verbose, true, false);
 							else
-								if(cmd_simulate)
-									command_write(command_channel, mailbox_channel, filename, start,
-											chunk_size, verbose, true, false);
-								else
-									if(cmd_write)
-									{
-										command_write(command_channel, mailbox_channel, filename, start,
-												chunk_size, verbose, false, otawrite);
+								if(cmd_write)
+								{
+									command_write(command_channel, filename, start, verbose, false, otawrite);
 
-										if(otawrite && !nocommit)
-											commit_ota(command_channel, verbose, flash_slot, !noreset, notemp);
-									}
+									if(otawrite && !nocommit)
+										commit_ota(command_channel, verbose, flash_slot, start, !noreset, notemp);
+								}
+								else
+									if(cmd_benchmark)
+										command_benchmark(command_channel, length, verbose);
 									else
-										if(cmd_benchmark)
-											command_benchmark(command_channel, mailbox_channel, verbose);
+										if(cmd_image)
+											command_image(command_channel, image_slot, filename, dim_x, dim_y, depth, image_timeout, verbose);
 										else
-											if(cmd_image)
-												command_image(command_channel, mailbox_channel, image_slot, filename, chunk_size, dim_x, dim_y, depth, image_timeout, verbose);
-											else
-												if(cmd_image_epaper)
-													command_image_epaper(command_channel, filename, verbose);
+											if(cmd_image_epaper)
+												command_image_epaper(command_channel, filename, verbose);
 				}
 		}
 	}

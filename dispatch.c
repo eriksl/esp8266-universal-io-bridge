@@ -13,7 +13,7 @@
 #include "config.h"
 #include "lwip-interface.h"
 #include "remote_trigger.h"
-#include "mailbox.h"
+#include "ota.h"
 #include "font.h"
 
 #include <stdint.h>
@@ -32,12 +32,24 @@ assert_size(telnet_strip_state_t, 1);
 enum
 {
 	task_queue_length = 10,
+	command_input_state_timeout = 50,
 };
+
+typedef struct
+{
+	unsigned int expected;
+	unsigned int timeout;
+	unsigned int fragments;
+} command_input_state_t;
+
+static command_input_state_t command_input_state;
+
+assert_size(command_input_state, 12);
 
 static os_event_t task_queue[3][task_queue_length];
 
-string_new(static attr_flash_align, command_socket_receive_buffer, 4096 + 64);
-string_new(static attr_flash_align, command_socket_send_buffer, 4096 + 64);
+string_new(static attr_flash_align, command_socket_receive_buffer, sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2);
+string_new(static attr_flash_align, command_socket_send_buffer,    sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2);
 static lwip_if_socket_t command_socket;
 
 string_new(static, uart_socket_receive_buffer, 128);
@@ -81,7 +93,7 @@ static void background_task_bridge_uart(void)
 
 			if(byte == '\n')
 			{
-				dispatch_post_task(1, task_received_command, 1);
+				dispatch_post_task(1, task_received_command, task_received_command_uart);
 				uart_clear_receive_queue(0);
 			}
 		}
@@ -166,8 +178,10 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 		{
 			app_params_t parameters;
 			app_action_t action;
+			string_t cooked_src, cooked_dst;
+			bool checksum_requested;
 
-			if(argument) // commands from uart enabled
+			if(argument == task_received_command_uart)
 			{
 				string_init(static, uart_prompt, "\r\n>> ");
 
@@ -194,8 +208,48 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 			string_clear(&command_socket_send_buffer);
 
-			parameters.src = &command_socket_receive_buffer;
-			parameters.dst = &command_socket_send_buffer;
+			if(argument == task_received_command_packet)
+			{
+				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_receive_buffer);
+
+				checksum_requested = !!(packet_header->flags & packet_header_flag_md5_32_requested);
+
+				if(packet_header->flags & packet_header_flag_md5_32_provided)
+				{
+					uint32_t our_checksum, their_checksum;
+
+					their_checksum = packet_header->checksum;
+					packet_header->checksum = packet_header_checksum_dummy;
+
+					our_checksum = MD5_trunc_32(string_length(&command_socket_receive_buffer), (const uint8_t *)string_buffer(&command_socket_receive_buffer));
+
+					if(our_checksum != their_checksum)
+					{
+						stat_dispatch_command_input_checksum_error++;
+						string_clear(&command_socket_receive_buffer);
+						lwip_if_receive_buffer_unlock(&command_socket);
+						return;
+					}
+				}
+
+				string_set(&cooked_src,
+						string_buffer_nonconst(&command_socket_receive_buffer) + sizeof(packet_header_t),
+						string_size(&command_socket_receive_buffer) - sizeof(packet_header_t),
+						string_length(&command_socket_receive_buffer) - sizeof(packet_header_t));
+				parameters.src = &cooked_src;
+
+				string_set(&cooked_dst,
+						string_buffer_nonconst(&command_socket_send_buffer) + sizeof(packet_header_t),
+						string_size(&command_socket_send_buffer) - sizeof(packet_header_t),
+						0);
+
+				parameters.dst = &cooked_dst;
+			}
+			else
+			{
+				parameters.src = &command_socket_receive_buffer;
+				parameters.dst = &command_socket_send_buffer;
+			}
 
 			action = application_content(&parameters);
 
@@ -204,44 +258,45 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 			if(action == app_action_empty)
 			{
-				string_clear(&command_socket_send_buffer);
-				string_append(&command_socket_send_buffer, "> empty command\n");
+				string_clear(parameters.dst);
+				string_append(parameters.dst, "> empty command\n");
 			}
 
 			if(action == app_action_disconnect)
 			{
-				string_clear(&command_socket_send_buffer);
-				string_append(&command_socket_send_buffer, "> disconnect\n");
+				string_clear(parameters.dst);
+				string_append(parameters.dst, "> disconnect\n");
 			}
 
 			if(action == app_action_reset)
 			{
-				string_clear(&command_socket_send_buffer);
-				string_append(&command_socket_send_buffer, "> reset\n");
+				string_clear(parameters.dst);
+				string_append(parameters.dst, "> reset\n");
 			}
 
-			if(argument) // commands from uart enabled
-				uart_send_string(0, &command_socket_send_buffer);
+			if(argument == task_received_command_uart) // commands from uart enabled
+				uart_send_string(0, parameters.dst);
 
-			if(config_flags_match(flag_terminate_output) && lwip_if_received_tcp(&command_socket))
+			if(argument == task_received_command_packet)
 			{
-				if(!string_space(&command_socket_send_buffer))
-					string_trim(&command_socket_send_buffer, 2); // final character and space for trailing zero
+				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_send_buffer);
+				unsigned int packet_length = sizeof(packet_header_t) + string_length(parameters.dst);
 
-				string_append(&command_socket_send_buffer, "\x04");
+				string_setlength(&command_socket_send_buffer, packet_length);
+				packet_header->id = packet_header_id;
+				packet_header->length = packet_length;
+				packet_header->checksum = packet_header_checksum_dummy;
+				packet_header->flags = 0;
+
+				if(checksum_requested)
+				{
+					packet_header->flags |= packet_header_flag_md5_32_provided;
+					packet_header->checksum = MD5_trunc_32(packet_length, (const uint8_t *)string_buffer(&command_socket_send_buffer));
+				}
 			}
 
 			if(!lwip_if_send(&command_socket))
 				log("dispatch: lwip send failed\n");
-
-			if(config_flags_match(flag_terminate_output) && lwip_if_received_udp(&command_socket))
-			{
-				string_clear(&command_socket_send_buffer);
-				string_append(&command_socket_send_buffer, "\x04");
-
-				if(!lwip_if_send(&command_socket))
-					log("dispatch terminate output: lwip send failed\n");
-			}
 
 			if(action == app_action_disconnect)
 				lwip_if_close(&command_socket);
@@ -372,6 +427,20 @@ static void slow_timer_callback(void *arg)
 
 	stat_slow_timer++;
 
+	if(command_input_state.timeout > 0)
+	{
+		command_input_state.timeout--;
+
+		if(command_input_state.timeout == 0)
+		{
+			stat_dispatch_command_input_timeout++;
+			command_input_state.expected = 0;
+			command_input_state.fragments = 0;
+			string_clear(&command_socket_receive_buffer);
+			lwip_if_receive_buffer_unlock(&command_socket);
+		}
+	}
+
 	if(config_flags_match(flag_wlan_power_save))
 		fast_timer_run(10);
 
@@ -438,8 +507,57 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
-	if(string_full(&command_socket_receive_buffer) || string_trim_nl(&command_socket_receive_buffer) || lwip_if_received_udp(socket))
-		dispatch_post_task(1, task_received_command, 0);
+	command_input_state.fragments++;
+
+	if(string_full(&command_socket_receive_buffer))
+	{
+		log("dispatch: overrun, %d %d %u\n", string_length(&command_socket_receive_buffer), string_size(&command_socket_receive_buffer), length);
+		string_clear(&command_socket_receive_buffer);
+		lwip_if_receive_buffer_unlock(&command_socket);
+		command_input_state.expected = 0;
+		command_input_state.timeout = 0;
+		command_input_state.fragments = 0;
+		return;
+	}
+
+	if((command_input_state.fragments == 1) && (length >= sizeof(packet_header_t)))
+	{
+		const packet_header_t *packet_header = (const packet_header_t *)string_buffer(&command_socket_receive_buffer);
+
+		if(packet_header->id == packet_header_id)
+		{
+			unsigned int packet_length = packet_header->length;
+
+			if(packet_length < (sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2))
+			{
+				command_input_state.expected = packet_length;
+				command_input_state.timeout = command_input_state_timeout;
+			}
+		}
+	}
+
+	if((command_input_state.expected > 0) && (command_input_state.timeout > 0))
+	{
+		if(string_length(&command_socket_receive_buffer) >= (int)command_input_state.expected)
+		{
+			command_input_state.expected = 0;
+			command_input_state.timeout = 0;
+			command_input_state.fragments = 0;
+			dispatch_post_task(1, task_received_command, task_received_command_packet);
+		}
+		else
+			lwip_if_receive_buffer_unlock(&command_socket);
+
+		return;
+	}
+
+	if(string_trim_nl(&command_socket_receive_buffer))
+	{
+		command_input_state.expected = 0;
+		command_input_state.timeout = 0;
+		command_input_state.fragments = 0;
+		dispatch_post_task(1, task_received_command, task_received_command_text);
+	}
 	else
 		lwip_if_receive_buffer_unlock(&command_socket);
 }
@@ -506,7 +624,11 @@ void dispatch_init1(void)
 void dispatch_init2(void)
 {
 	int io, pin;
-	unsigned int cmd_port, uart_port, mailbox_port;
+	unsigned int cmd_port, uart_port;
+
+	command_input_state.expected = 0;
+	command_input_state.timeout = 0;
+	command_input_state.fragments = 0;
 
 	if(config_get_int("trigger.status.io", &io, -1, -1) &&
 			config_get_int("trigger.status.pin", &pin, -1, -1))
@@ -528,9 +650,6 @@ void dispatch_init2(void)
 	if(!config_get_uint("bridge.port", &uart_port, -1, -1))
 		uart_port = 0;
 
-	if(!config_get_uint("mailbox.port", &mailbox_port, -1, -1))
-		mailbox_port = 26;
-
 	wifi_set_event_handler_cb(wlan_event_handler);
 
 	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
@@ -545,8 +664,6 @@ void dispatch_init2(void)
 	}
 
 	font_init();
-
-	mailbox_init(mailbox_port);
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
 	os_timer_arm(&slow_timer, 100, 0);

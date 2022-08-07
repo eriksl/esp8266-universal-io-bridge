@@ -27,7 +27,6 @@ enum
 	flag_log_to_buffer =		1 << 8,
 	flag_auto_sequencer =		1 << 9,
 	flag_pwm1_extend =			1 << 10,
-	flag_terminate_output =		1 << 15,
 	flag_cmd_from_uart =		1 << 17,
 	flag_log_to_display =		1 << 18,
 	flag_ssd_height_32 =		1 << 19,

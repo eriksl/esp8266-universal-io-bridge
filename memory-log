@@ -14842,3 +14842,519 @@ Sun Jul 24 11:58:10 CEST 2022 f9478fb Resize input and output buffer back to 4k.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  74617, free:   5648,  7 %
     irom:    available: 784 k, used: 443856, free: 358960, 44 %
+Sun Jul 24 12:22:03 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74617, free:   5648,  7 %
+    irom:    available: 784 k, used: 443872, free: 358944, 44 %
+Sun Jul 24 12:40:26 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74625, free:   5640,  7 %
+    irom:    available: 784 k, used: 443904, free: 358912, 44 %
+Sat Jul 30 13:20:10 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444128, free: 358688, 44 %
+Sat Jul 30 14:21:00 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444144, free: 358672, 44 %
+Sat Jul 30 14:22:20 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444160, free: 358656, 44 %
+Sat Jul 30 14:24:29 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444144, free: 358672, 44 %
+Sat Jul 30 14:25:55 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444160, free: 358656, 44 %
+Sat Jul 30 14:27:33 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444128, free: 358688, 44 %
+Sat Jul 30 14:36:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444240, free: 358576, 44 %
+Sat Jul 30 14:43:51 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444304, free: 358512, 44 %
+Sat Jul 30 14:47:11 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444208, free: 358608, 44 %
+Sat Jul 30 14:51:27 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444304, free: 358512, 44 %
+Sat Jul 30 14:54:26 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444336, free: 358480, 44 %
+Sat Jul 30 14:59:40 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444304, free: 358512, 44 %
+Sat Jul 30 15:02:38 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444352, free: 358464, 44 %
+Sat Jul 30 15:05:00 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444384, free: 358432, 44 %
+Sat Jul 30 15:13:51 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74633, free:   5632,  7 %
+    irom:    available: 784 k, used: 444352, free: 358464, 44 %
+Sat Jul 30 15:24:25 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444384, free: 358432, 44 %
+Sat Jul 30 16:04:49 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444112, free: 358704, 44 %
+Sat Jul 30 16:23:31 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444000, free: 358816, 44 %
+Sat Jul 30 17:47:29 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445024, free: 357792, 44 %
+Sun Jul 31 12:44:44 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445104, free: 357712, 44 %
+Sun Jul 31 16:30:11 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445200, free: 357616, 44 %
+Sun Jul 31 16:31:33 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445184, free: 357632, 44 %
+Sun Jul 31 16:37:35 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445200, free: 357616, 44 %
+Sun Jul 31 16:46:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445232, free: 357584, 44 %
+Sun Jul 31 16:48:35 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445200, free: 357616, 44 %
+Sun Jul 31 17:18:00 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 445040, free: 357776, 44 %
+Sun Jul 31 17:35:14 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444448, free: 358368, 44 %
+Sun Jul 31 17:41:43 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444416, free: 358400, 44 %
+Sun Jul 31 17:45:46 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444384, free: 358432, 44 %
+Mon Aug  1 13:19:03 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444416, free: 358400, 44 %
+Mon Aug  1 13:39:18 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444480, free: 358336, 44 %
+Mon Aug  1 13:44:22 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74641, free:   5624,  7 %
+    irom:    available: 784 k, used: 444464, free: 358352, 44 %
+Mon Aug  1 13:52:23 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444464, free: 358352, 44 %
+Mon Aug  1 13:58:13 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444528, free: 358288, 44 %
+Mon Aug  1 14:00:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444576, free: 358240, 44 %
+Mon Aug  1 14:17:51 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444608, free: 358208, 44 %
+Mon Aug  1 14:40:30 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444656, free: 358160, 44 %
+Mon Aug  1 15:33:07 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444528, free: 358288, 44 %
+Mon Aug  1 16:59:35 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444560, free: 358256, 44 %
+Mon Aug  1 17:17:26 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444624, free: 358192, 44 %
+Mon Aug  1 17:20:46 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444560, free: 358256, 44 %
+Mon Aug  1 18:35:19 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444544, free: 358272, 44 %
+Mon Aug  1 18:43:07 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74865, free:   5400,  6 %
+    irom:    available: 784 k, used: 444560, free: 358256, 44 %
+Tue Aug  2 17:59:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74861, free:   5404,  6 %
+    irom:    available: 784 k, used: 444736, free: 358080, 44 %
+Wed Aug  3 10:30:41 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74877, free:   5388,  6 %
+    irom:    available: 784 k, used: 445120, free: 357696, 44 %
+Wed Aug  3 11:01:10 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74877, free:   5388,  6 %
+    irom:    available: 784 k, used: 445504, free: 357312, 44 %
+Wed Aug  3 11:15:20 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  74877, free:   5388,  6 %
+    irom:    available: 784 k, used: 445584, free: 357232, 44 %
+Wed Aug  3 17:09:45 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  66501, free:  13764, 17 %
+    irom:    available: 784 k, used: 439360, free: 363456, 45 %
+Wed Aug  3 17:14:39 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67597, free:  12668, 15 %
+    irom:    available: 784 k, used: 439376, free: 363440, 45 %
+Wed Aug  3 17:16:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67453, free:  12812, 15 %
+    irom:    available: 784 k, used: 439376, free: 363440, 45 %
+Wed Aug  3 17:24:46 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67293, free:  12972, 16 %
+    irom:    available: 784 k, used: 439376, free: 363440, 45 %
+Wed Aug  3 17:35:55 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67301, free:  12964, 16 %
+    irom:    available: 784 k, used: 440672, free: 362144, 45 %
+Wed Aug  3 17:36:06 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67293, free:  12972, 16 %
+    irom:    available: 784 k, used: 439376, free: 363440, 45 %
+Wed Aug  3 17:37:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68829, free:  11436, 14 %
+    irom:    available: 784 k, used: 439392, free: 363424, 45 %
+Wed Aug  3 17:39:22 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68861, free:  11404, 14 %
+    irom:    available: 784 k, used: 439392, free: 363424, 45 %
+Wed Aug  3 17:40:09 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68893, free:  11372, 14 %
+    irom:    available: 784 k, used: 439392, free: 363424, 45 %
+Wed Aug  3 17:41:12 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69021, free:  11244, 14 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:44:54 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70557, free:   9708, 12 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:45:03 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72093, free:   8172, 10 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:45:23 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69021, free:  11244, 14 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:45:38 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67997, free:  12268, 15 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:48:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  67917, free:  12348, 15 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:48:27 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68941, free:  11324, 14 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:48:58 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69021, free:  11244, 14 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:50:23 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69181, free:  11084, 13 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:51:38 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69021, free:  11244, 14 %
+    irom:    available: 784 k, used: 439408, free: 363408, 45 %
+Wed Aug  3 17:56:21 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439392, free: 363424, 45 %
+Fri Aug  5 10:00:54 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439424, free: 363392, 45 %
+Fri Aug  5 10:08:50 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439536, free: 363280, 45 %
+Fri Aug  5 10:29:11 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439584, free: 363232, 45 %
+Fri Aug  5 10:31:16 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439648, free: 363168, 45 %
+Fri Aug  5 10:35:39 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439664, free: 363152, 45 %
+Fri Aug  5 10:38:57 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439696, free: 363120, 45 %
+Fri Aug  5 10:44:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439712, free: 363104, 45 %
+Fri Aug  5 10:44:56 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69005, free:  11260, 14 %
+    irom:    available: 784 k, used: 439696, free: 363120, 45 %
+Fri Aug  5 13:09:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69021, free:  11244, 14 %
+    irom:    available: 784 k, used: 440064, free: 362752, 45 %
+Fri Aug  5 13:12:25 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440096, free: 362720, 45 %
+Fri Aug  5 13:14:40 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440160, free: 362656, 45 %
+Fri Aug  5 13:16:33 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440144, free: 362672, 45 %
+Fri Aug  5 13:17:11 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440128, free: 362688, 45 %
+Fri Aug  5 13:17:37 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440144, free: 362672, 45 %
+Fri Aug  5 13:18:31 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440112, free: 362704, 45 %
+Fri Aug  5 13:23:31 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440400, free: 362416, 45 %
+Fri Aug  5 13:25:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69037, free:  11228, 13 %
+    irom:    available: 784 k, used: 440384, free: 362432, 45 %
+Fri Aug  5 13:32:15 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 440656, free: 362160, 45 %
+Fri Aug  5 13:34:50 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 440704, free: 362112, 45 %
+Fri Aug  5 13:36:27 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 440784, free: 362032, 45 %
+Fri Aug  5 13:41:56 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 440768, free: 362048, 45 %
+Fri Aug  5 13:56:51 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 441008, free: 361808, 45 %
+Fri Aug  5 13:59:08 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 441024, free: 361792, 45 %
+Fri Aug  5 14:10:28 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69053, free:  11212, 13 %
+    irom:    available: 784 k, used: 441296, free: 361520, 45 %
+Fri Aug  5 14:18:29 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 784 k, used: 441552, free: 361264, 44 %
+Fri Aug  5 14:20:25 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 784 k, used: 441568, free: 361248, 44 %
+Fri Aug  5 14:23:19 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 784 k, used: 441536, free: 361280, 45 %
+Fri Aug  5 18:28:49 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 784 k, used: 441664, free: 361152, 44 %
+Fri Aug  5 18:32:21 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69069, free:  11196, 13 %
+    irom:    available: 784 k, used: 441648, free: 361168, 44 %
+Fri Aug  5 20:17:01 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441776, free: 361040, 44 %
+Fri Aug  5 20:24:31 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441744, free: 361072, 44 %
+Fri Aug  5 20:26:30 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441776, free: 361040, 44 %
+Fri Aug  5 20:27:53 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441792, free: 361024, 44 %
+Fri Aug  5 20:28:36 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441776, free: 361040, 44 %
+Fri Aug  5 20:32:01 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441840, free: 360976, 44 %
+Fri Aug  5 20:32:29 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441760, free: 361056, 44 %
+Fri Aug  5 20:33:09 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441776, free: 361040, 44 %
+Fri Aug  5 20:33:47 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441760, free: 361056, 44 %
+Sat Aug  6 10:06:17 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69085, free:  11180, 13 %
+    irom:    available: 784 k, used: 441744, free: 361072, 44 %
+Sat Aug  6 10:13:38 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 441968, free: 360848, 44 %
+Sat Aug  6 10:24:16 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442048, free: 360768, 44 %
+Sat Aug  6 10:29:01 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442080, free: 360736, 44 %
+Sat Aug  6 10:34:22 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442112, free: 360704, 44 %
+Sat Aug  6 10:38:04 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442192, free: 360624, 44 %
+Sat Aug  6 10:42:06 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442208, free: 360608, 44 %
+Sat Aug  6 11:22:53 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442192, free: 360624, 44 %
+Sat Aug  6 11:29:03 CEST 2022 fc56474 Change applications parameters into struct, more flexible.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442288, free: 360528, 44 %
+Sat Aug  6 12:46:42 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69101, free:  11164, 13 %
+    irom:    available: 784 k, used: 442352, free: 360464, 44 %
+Sat Aug  6 13:08:10 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69133, free:  11132, 13 %
+    irom:    available: 784 k, used: 442352, free: 360464, 44 %
+Sat Aug  6 13:42:53 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69133, free:  11132, 13 %
+    irom:    available: 784 k, used: 442480, free: 360336, 44 %
+Sat Aug  6 16:39:00 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69133, free:  11132, 13 %
+    irom:    available: 784 k, used: 442576, free: 360240, 44 %
+Sat Aug  6 17:30:05 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69389, free:  10876, 13 %
+    irom:    available: 784 k, used: 442576, free: 360240, 44 %
+Sat Aug  6 17:34:10 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69389, free:  10876, 13 %
+    irom:    available: 784 k, used: 442672, free: 360144, 44 %
+Sat Aug  6 17:35:38 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69389, free:  10876, 13 %
+    irom:    available: 784 k, used: 442704, free: 360112, 44 %
+Sat Aug  6 17:43:18 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68877, free:  11388, 14 %
+    irom:    available: 784 k, used: 442704, free: 360112, 44 %
+Sat Aug  6 17:45:26 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68885, free:  11380, 14 %
+    irom:    available: 784 k, used: 442704, free: 360112, 44 %
+Sat Aug  6 17:46:50 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 784 k, used: 442704, free: 360112, 44 %
+Sat Aug  6 17:49:49 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 784 k, used: 442464, free: 360352, 44 %
+Sun Aug  7 10:50:51 CEST 2022 afb4c96 util: revert from using strto(u)l to own implementation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 784 k, used: 442480, free: 360336, 44 %
+Sun Aug  7 17:29:02 CEST 2022 3f9262b crypto-bench: small improvements/additions.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 784 k, used: 442464, free: 360352, 44 %

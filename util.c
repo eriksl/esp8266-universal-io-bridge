@@ -1,7 +1,6 @@
 #include "util.h"
 #include "sys_time.h"
 #include "uart.h"
-#include "mailbox.h"
 #include "config.h"
 
 #include <stdlib.h>
@@ -762,7 +761,7 @@ unsigned char *MD5(const unsigned char *src, unsigned int length, uint8_t digest
 	return(digest);
 }
 
-uint32_t MD5_trunc_32(const unsigned char *src, unsigned int length)
+uint32_t MD5_trunc_32(unsigned int length, const unsigned char *src)
 {
 	uint32_t checksum;
 	uint8_t digest[MD5_DIGEST_LENGTH];

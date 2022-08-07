@@ -185,7 +185,7 @@ HOSTCPPFLAGS	:= -O3 -Wall -Wextra -Werror -Wframe-larger-than=65536 -Wno-error=i
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o \
 						display_eastrising.o display_spitft.o display_ssd1306.o io_pcf.o \
 						http.o io.o io_gpio.o io_aux.o io_mcp.o io_ledpixel.o \
-						mailbox.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
+						ota.o queue.o stats.o sys_time.o uart.o dispatch.o util.o sequencer.o init.o i2c.o i2c_sensor.o \
 						lwip-interface.o remote_trigger.o spi.o i2s.o rboot-interface.o font.o
 
 LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/init.o \
@@ -203,7 +203,7 @@ LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/in
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h \
 						display_eastrising.h display_spitft.h display_ssd1306.h \
 						http.h i2c.h i2c_sensor.h io.h io_gpio.h remote_trigger.h spi.h i2s.h \
-						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h mailbox.h \
+						io_aux.h io_mcp.h io_ledpixel.h io_pcf.h ota.h \
 						queue.h stats.h uart.h user_config.h dispatch.h util.h sequencer.h init.h \
 						rboot-interface.h lwip-interface.h eagle.h sdk.h
 
@@ -345,7 +345,7 @@ io_gpio.o:				$(HEADERS)
 io_mcp.o:				$(HEADERS)
 io_ledpixel.o:			$(HEADERS)
 io_pcf.o:				$(HEADERS)
-mailbox.o:				$(HEADERS)
+ota.o:					$(HEADERS)
 queue.o:				queue.h
 spi.o:					$(HEADERS)
 stats.o:				$(HEADERS) always
@@ -469,7 +469,14 @@ txtest:
 						$(OTA_FLASH) --simulate --host $(OTA_HOST) --file $(FIRMWARE_IMG)
 
 benchmark:
-						$(OTA_FLASH) --benchmark --host $(OTA_HOST)
+						$(VECHO) "TCP - with checksums"
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST)
+						$(VECHO) "TCP - without checksums"
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --no-provide-checksum --no-request-checksum
+						$(VECHO) "UDP - with checksums"
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --udp
+						$(VECHO) "UDP - without checksums"
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --udp --no-provide-checksum --no-request-checksum
 
 wvtest:
 						$(OTA_FLASH) --write   --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm

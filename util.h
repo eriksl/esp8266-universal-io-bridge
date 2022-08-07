@@ -57,7 +57,6 @@ typedef enum
 	fsb_config_write,
 	fsb_config_write_dirty,
 	fsb_config_cache,
-	fsb_mailbox,
 	fsb_sequencer,
 	fsb_display_picture,
 	fsb_rboot,
@@ -150,7 +149,7 @@ enum
 
 unsigned char *MD5(const unsigned char *src, unsigned int length, uint8_t digest[MD5_DIGEST_LENGTH]);
 void MD5_text(const unsigned char *src, unsigned int length, string_t *digest_text);
-uint32_t MD5_trunc_32(const unsigned char *src, unsigned int length);
+uint32_t MD5_trunc_32(unsigned int length, const unsigned char *src);
 unsigned char *SHA1(const unsigned char *src, unsigned int length, uint8_t digest[SHA_DIGEST_LENGTH]);
 void SHA1_text(const unsigned char *src, unsigned int length, string_t *digest_text);
 

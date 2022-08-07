@@ -2,7 +2,6 @@
 #include "util.h"
 #include "io.h"
 #include "i2c_sensor.h"
-#include "mailbox.h"
 #include "dispatch.h"
 #include "sdk.h"
 
@@ -31,7 +30,6 @@ roflash static const config_flag_name_t config_flag_names[] =
 	{	flag_log_to_buffer,			"log-to-buffer",			},
 	{	flag_auto_sequencer,		"auto-sequencer",			},
 	{	flag_pwm1_extend,			"pwm1-extend",				},
-	{	flag_terminate_output,		"terminate-output",			},
 	{	flag_cmd_from_uart,			"cmd-from-uart",			},
 	{	flag_log_to_display,		"log-to-display",			},
 	{	flag_ssd_height_32,			"ssd-height-32",			},

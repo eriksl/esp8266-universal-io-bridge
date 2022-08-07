@@ -31,6 +31,8 @@ unsigned int stat_update_command_udp;
 unsigned int stat_update_command_tcp;
 unsigned int stat_update_command_uart;
 unsigned int stat_update_display;
+unsigned int stat_dispatch_command_input_timeout;
+unsigned int stat_dispatch_command_input_checksum_error;
 unsigned int stat_display_picture_load_worker_called;
 unsigned int stat_task_posted[3];
 unsigned int stat_task_executed[3];
@@ -349,8 +351,8 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> COMMANDS PROCESSED\n"
-			">  udp: %u, tcp: %u, uart: %u\n",
-				stat_update_command_udp, stat_update_command_tcp, stat_update_command_uart);
+			">  udp: %u, tcp: %u, uart: %u, timeout: %u, checksum error: %u\n",
+				stat_update_command_udp, stat_update_command_tcp, stat_update_command_uart, stat_dispatch_command_input_timeout, stat_dispatch_command_input_checksum_error);
 
 	string_format(dst,
 			">\n> BUFFER OVERFLOWS\n"

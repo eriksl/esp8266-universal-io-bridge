@@ -1,8 +1,8 @@
 // lwip core
 
 #define MEM_SIZE					(6 * 1024)
-#define MEMP_NUM_PBUF				16
-#define MEMP_NUM_UDP_PCB			8
+#define MEMP_NUM_PBUF				8
+#define MEMP_NUM_UDP_PCB			4
 #define MEMP_NUM_TCP_PCB			2
 #define MEMP_NUM_TCP_PCB_LISTEN		2
 #define MEMP_NUM_TCP_SEG			TCP_SND_QUEUELEN
@@ -26,15 +26,15 @@
 #define LWIP_DNS					0
 #define DHCP_DOES_ARP_CHECK			0
 #define TCP_QUEUE_OOSEQ				0
-#define TCP_MSS						(1460 / 4)
-#define TCP_WND						(1 * TCP_MSS)
-#define TCP_SND_BUF					(2 * TCP_MSS)
-#define TCP_SND_QUEUELEN			(2 * TCP_SND_BUF / TCP_MSS)
+#define TCP_MSS						1460
+#define TCP_WND						(2 * TCP_MSS)
+#define TCP_SND_BUF					(4 * TCP_MSS)
+#define TCP_SND_QUEUELEN			(4 * TCP_SND_BUF / TCP_MSS)
 #define TCP_SNDLOWAT				1
 #define TCP_SNDQUEUELOWAT			(TCP_SND_QUEUELEN - 1)
 #define TCP_OVERSIZE				TCP_MSS
 #define TCP_MAXRTX					2
-#define PBUF_POOL_SIZE				1
+#define PBUF_POOL_SIZE				2
 #define LWIP_NETIF_HOSTNAME			1
 #define LWIP_NETCONN				0
 #define LWIP_SOCKET					0

@@ -35,6 +35,13 @@ typedef enum
 	task_remote_trigger,
 } task_id_t;
 
+enum
+{
+	task_received_command_text,
+	task_received_command_packet,
+	task_received_command_uart
+};
+
 typedef struct
 {
 	string_t *src;

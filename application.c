@@ -10,7 +10,6 @@
 #include "io.h"
 #include "io_gpio.h"
 #include "sys_time.h"
-#include "mailbox.h"
 #include "sequencer.h"
 #include "init.h"
 #include "remote_trigger.h"
@@ -22,6 +21,7 @@
 #include "display_cfa634.h"
 #include "display_orbital.h"
 #include "font.h"
+#include "ota.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -2765,43 +2765,33 @@ roflash static const application_function_table_t application_function_table[] =
 		(void *)0,
 	},
 	{
-		"mailbox-info", "mailbox-info",
-		application_function_mailbox_info,
+		"flash-info", "flash-info",
+		application_function_flash_info,
 		(void *)0,
 	},
 	{
-		"mailbox-reset", "mailbox-reset",
-		application_function_mailbox_reset,
+		"flash-read", "flash-read",
+		application_function_flash_read,
 		(void *)0,
 	},
 	{
-		"mailbox-read", "mailbox-read",
-		application_function_mailbox_read,
+		"flash-write", "flash-write",
+		application_function_flash_write,
 		(void *)0,
 	},
 	{
-		"mailbox-bench", "mailbox-bench",
-		application_function_mailbox_bench,
+		"flash-checksum", "flash-checksum",
+		application_function_flash_checksum,
 		(void *)0,
 	},
 	{
-		"mailbox-checksum", "mailbox-checksum",
-		application_function_mailbox_checksum,
+		"flash-bench", "flash-bench",
+		application_function_flash_bench,
 		(void *)0,
 	},
 	{
-		"mailbox-simulate", "mailbox-simulate",
-		application_function_mailbox_simulate,
-		(void *)0,
-	},
-	{
-		"mailbox-write", "mailbox-write",
-		application_function_mailbox_write,
-		(void *)0,
-	},
-	{
-		"mailbox-select", "mailbox-select",
-		application_function_mailbox_select,
+		"flash-select", "flash-select",
+		application_function_flash_select,
 		(void *)0,
 	},
 	{

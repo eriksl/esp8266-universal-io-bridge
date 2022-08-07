@@ -10,7 +10,7 @@
 #include "stats.h"
 #include "config.h"
 #include "sys_time.h"
-#include "mailbox.h"
+#include "ota.h"
 #include "dispatch.h"
 
 #include <stdio.h>
@@ -818,29 +818,36 @@ app_action_t application_function_display_plot(app_params_t *parameters)
 {
 	bool rv;
 	unsigned int x, y, pixels;
+	string_t data;
+	int data_length;
 
 	if(!display_hooks_active)
 	{
 		string_append(parameters->dst, "display plot: no display detected\n");
-		goto error;
+		return(app_action_error);
 	}
 
 	if((parse_uint(1, parameters->src, &pixels, 0, ' ') != parse_ok) || (parse_uint(2, parameters->src, &x, 0, ' ') != parse_ok) || (parse_uint(3, parameters->src, &y, 0, ' ') != parse_ok))
 	{
-		string_append(parameters->dst, "usage: display plot <pixels> <x> <y>");
-		goto error;
+		string_append(parameters->dst, "usage: display plot <pixels> <x> <y>\n");
+		return(app_action_error);
 	}
 
-	rv = display_plot(pixels, x, y, &mailbox_socket_receive_buffer);
+	data_length = string_length(parameters->src) - ota_data_offset;
 
-	string_clear(&mailbox_socket_receive_buffer);
+	if(data_length < 0)
+	{
+		string_append(parameters->dst, "display-plot: missing data\n");
+		return(app_action_error);
+	}
+
+	string_set(&data, string_buffer_nonconst(parameters->src) + ota_data_offset, string_size(parameters->src) - ota_data_offset, data_length);
+
+	rv = display_plot(pixels, x, y, &data);
+
 	string_format(parameters->dst, "display plot success: %s\n", yesno(rv));
 
 	return(app_action_normal);
-
-error:
-	string_clear(&mailbox_socket_receive_buffer);
-	return(app_action_error);
 }
 
 app_action_t application_function_display_freeze(app_params_t *parameters)

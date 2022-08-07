@@ -7,6 +7,8 @@
 #include <sstream>
 #include <boost/regex.hpp>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
+#include <boost/crc.hpp>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/poll.h>
