@@ -37,7 +37,7 @@ static lwip_if_socket_t trigger_socket;
 static ip_addr_t		remote_trigger_address[remote_trigger_max_remotes];
 static bool				remote_trigger_active;
 
-static void socket_remote_trigger_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
+static void socket_remote_trigger_callback_data_received(lwip_if_socket_t *socket, unsigned int received, bool broadcast, bool multicast)
 {
 	string_clear(&remote_trigger_socket_receive_buffer);
     lwip_if_receive_buffer_unlock(socket);

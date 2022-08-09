@@ -59,13 +59,18 @@ class GenericSocket
 		struct sockaddr_in saddr;
 		bool no_provide_checksum;
 		bool no_request_checksum;
+		bool raw;
+		int broadcast_group;
+
+		void send_prepare(const std::string &src, std::string &dst);
 
 	public:
-		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose, bool broadcast, bool multicast,
-				bool no_provide_checksum, bool no_request_checksum);
+		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool verbose,
+				bool broadcast, bool multicast,
+				bool no_provide_checksum, bool no_request_checksum, bool raw, int broadcast_group);
 		~GenericSocket();
 
-		bool send_unicast(std::string buffer);
+		bool send_unicast(const std::string &buffer);
 		bool send_multicast(std::string buffer);
 		bool receive_unicast(std::string &buffer);
 		bool receive_multicast(std::string &buffer);
@@ -74,10 +79,13 @@ class GenericSocket
 		void connect();
 };
 
-GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in, bool broadcast_in, bool multicast_in,
-		bool no_provide_checksum_in, bool no_request_checksum_in)
-	: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in), broadcast(broadcast_in), multicast(multicast_in),
-		no_provide_checksum(no_provide_checksum_in), no_request_checksum(no_request_checksum_in)
+GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in, bool verbose_in,
+		bool broadcast_in, bool multicast_in,
+		bool no_provide_checksum_in, bool no_request_checksum_in, bool raw_in, int broadcast_group_in)
+	: socket_fd(-1), service(service_in), use_udp(use_udp_in), verbose(verbose_in),
+		broadcast(broadcast_in), multicast(multicast_in),
+		no_provide_checksum(no_provide_checksum_in), no_request_checksum(no_request_checksum_in),
+		raw(raw_in), broadcast_group(broadcast_group_in)
 {
 	memset(&saddr, 0, sizeof(saddr));
 
@@ -85,6 +93,9 @@ GenericSocket::GenericSocket(const std::string &host_in, const std::string &serv
 		host = std::string("239.255.255.") + host_in;
 	else
 		host = host_in;
+
+	if(multicast || broadcast)
+		use_udp = true;
 
 	this->connect();
 }
@@ -99,7 +110,7 @@ void GenericSocket::connect()
 	struct addrinfo hints;
 	struct addrinfo *res = nullptr;
 
-	if((socket_fd = socket(AF_INET, (use_udp || broadcast || multicast) ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
+	if((socket_fd = socket(AF_INET, use_udp ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
 		throw(std::string("socket failed"));
 
 	memset(&hints, 0, sizeof(hints));
@@ -168,74 +179,95 @@ void GenericSocket::disconnect()
 	socket_fd = -1;
 }
 
-bool GenericSocket::send_unicast(std::string buffer_text)
+void GenericSocket::send_prepare(const std::string &src, std::string &dst)
+{
+	dst = src;
+
+	if(raw)
+		dst.append("\n");
+	else
+	{
+		packet_header_t packet_header;
+
+		packet_header.id = packet_header_id;
+		packet_header.length = src.length() + sizeof(packet_header);
+		packet_header.checksum = packet_header_checksum_dummy;
+		packet_header.flags = 0;
+
+		if(!no_request_checksum)
+			packet_header.flags |= packet_header_flag_md5_32_requested;
+
+		if((broadcast_group >= 0) && (broadcast_group < 8))
+		{
+			packet_header.flags |= packet_header_flag_use_bc_group;
+			packet_header.flags |= (1 << broadcast_group) << packet_header_flag_bc_group_shift;
+		}
+
+		if(!no_provide_checksum)
+		{
+			packet_header.flags |= packet_header_flag_md5_32_provided;
+			std::string buffer_packet_checksum = src;
+			buffer_packet_checksum.insert(0, (const char *)&packet_header, sizeof(packet_header));
+			packet_header.checksum = MD5_trunc_32(buffer_packet_checksum.length(), (const uint8_t *)buffer_packet_checksum.data());
+		}
+
+		dst.insert(0, (const char *)&packet_header, sizeof(packet_header));
+	}
+}
+
+bool GenericSocket::send_unicast(const std::string &text)
 {
 	struct pollfd pfd;
-	ssize_t chunk;
-	packet_header_t packet_header;
-	unsigned int new_length = buffer_text.length() + sizeof(packet_header);
+	int chunk;
+	std::string data;
 
-	packet_header.id = packet_header_id;
-	packet_header.length = new_length;
-	packet_header.checksum = packet_header_checksum_dummy;
-	packet_header.flags = 0;
+	send_prepare(text, data);
 
-	if(!no_request_checksum)
-		packet_header.flags |= packet_header_flag_md5_32_requested;
-
-	if(!no_provide_checksum)
-	{
-		packet_header.flags |= packet_header_flag_md5_32_provided;
-		std::string buffer_packet_checksum((char *)&packet_header, sizeof(packet_header));
-		buffer_packet_checksum.append(buffer_text);
-		packet_header.checksum = MD5_trunc_32(buffer_packet_checksum.length(), (const uint8_t *)buffer_packet_checksum.data());
-	}
-
-	std::string buffer_packet((char *)&packet_header, sizeof(packet_header));
-	buffer_packet.append(buffer_text);
-
-	while(buffer_packet.length() > 0)
+	while(data.length() > 0)
 	{
 		pfd.fd = socket_fd;
 		pfd.events = POLLOUT | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
-		if(poll(&pfd, 1, 1000) != 1)
+		if(poll(&pfd, 1, 500) != 1)
 			return(false);
 
 		if(pfd.revents & (POLLERR | POLLHUP))
 			return(false);
 
-		chunk = (ssize_t)buffer_packet.length();
+		chunk = data.length();
 
 		if(use_udp)
 		{
 			if((chunk > max_udp_packet_size))
 				chunk = max_udp_packet_size;
 
-			if(::sendto(socket_fd, buffer_packet.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
+			if(::sendto(socket_fd, data.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 		}
 		else
-			if(::send(socket_fd, buffer_packet.data(), chunk, 0) != chunk)
+			if(::send(socket_fd, data.data(), chunk, 0) != chunk)
 				return(false);
 
-		buffer_packet.erase(0, chunk);
+		data.erase(0, chunk);
 	}
 
 	return(true);
 }
 
-bool GenericSocket::send_multicast(std::string buffer)
+bool GenericSocket::send_multicast(std::string text)
 {
 	int run;
+	std::string data;
 
-	if(buffer.length() > max_udp_packet_size)
+	send_prepare(text, data);
+
+	if(data.length() > max_udp_packet_size)
 		throw(std::string("multicast packet > max udp size"));
 
-	for(run = 8; run > 0; run--)
+	for(run = 0; run < 8; run++)
 	{
-		if(::sendto(socket_fd, buffer.data(), buffer.length(), 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != (int)buffer.length())
+		if(::sendto(socket_fd, data.data(), data.length(), 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != (int)data.length())
 			return(false);
 
 		usleep(50000);
@@ -259,7 +291,7 @@ bool GenericSocket::receive_unicast(std::string &reply)
 
 	for(fragment = 0; fragment < max_fragments; fragment++)
 	{
-		if(poll(&pfd, 1, 1000) != 1)
+		if(poll(&pfd, 1, 500) != 1)
 		{
 			if(verbose)
 				std::cout << boost::format("receive: timeout, fragment: %u, length: %u\n") % fragment % reply.length();
@@ -294,26 +326,34 @@ bool GenericSocket::receive_unicast(std::string &reply)
 			if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) < 0)
 			{
 				if(verbose)
-					std::cout << "receive: length < 0" << std::endl;
+					std::cout << "tcp receive: length < 0" << std::endl;
 				return(false);
 			}
 		}
 
 		reply.append(buffer, (size_t)length);
 
-		if((packet_length < 0) && (reply.length() >= sizeof(packet_header_t)))
+		if(raw)
 		{
-			const packet_header_t *packet_header = (const packet_header_t *)reply.data();
-
-			if(packet_header->id == packet_header_id)
+			if(reply.back() == '\n')
+				break;
+		}
+		else
+		{
+			if((packet_length < 0) && (reply.length() >= sizeof(packet_header_t)))
 			{
-				packet_length = packet_header->length;
+				const packet_header_t *packet_header = (const packet_header_t *)reply.data();
 
-				if(packet_length >= (int)(sizeof(packet_header_t) + ota_data_offset + flash_sector_size + 16))
+				if(packet_header->id == packet_header_id)
 				{
-					if(verbose)
-						std::cout << "receive: invalid packet length" << std::endl;
-					return(false);
+					packet_length = packet_header->length;
+
+					if(packet_length >= (int)(sizeof(packet_header_t) + ota_data_offset + flash_sector_size + 16))
+					{
+						if(verbose)
+							std::cout << "receive: invalid packet length" << std::endl;
+						return(false);
+					}
 				}
 			}
 		}
@@ -322,30 +362,33 @@ bool GenericSocket::receive_unicast(std::string &reply)
 			break;
 	}
 
-	if(reply.length() < sizeof(packet_header_t))
-		return(false);
-
-	packet_header_t *packet_header;
-
-	std::string packet_header_data = reply.substr(0, sizeof(packet_header_t));
-	packet_header = (packet_header_t *)packet_header_data.data();
-	reply.erase(0, sizeof(packet_header_t));
-
-	if(packet_header->flags & packet_header_flag_md5_32_provided)
+	if(!raw)
 	{
-		std::string checksum_buffer;
-
-		their_checksum = packet_header->checksum;
-		packet_header->checksum = packet_header_checksum_dummy;
-		checksum_buffer = packet_header_data + reply;
-		our_checksum = MD5_trunc_32(checksum_buffer.length(), (const uint8_t *)checksum_buffer.data());
-
-		if(our_checksum != their_checksum)
-		{
-			if(verbose)
-				std::cout << boost::format("CRC mismatch, our CRC: %08x, their CRC: %08x\n") % our_checksum % their_checksum;
-
+		if(reply.length() < sizeof(packet_header_t))
 			return(false);
+
+		packet_header_t *packet_header;
+
+		std::string packet_header_data = reply.substr(0, sizeof(packet_header_t));
+		packet_header = (packet_header_t *)packet_header_data.data();
+		reply.erase(0, sizeof(packet_header_t));
+
+		if(packet_header->flags & packet_header_flag_md5_32_provided)
+		{
+			std::string checksum_buffer;
+
+			their_checksum = packet_header->checksum;
+			packet_header->checksum = packet_header_checksum_dummy;
+			checksum_buffer = packet_header_data + reply;
+			our_checksum = MD5_trunc_32(checksum_buffer.length(), (const uint8_t *)checksum_buffer.data());
+
+			if(our_checksum != their_checksum)
+			{
+				if(verbose)
+					std::cout << boost::format("CRC mismatch, our CRC: %08x, their CRC: %08x\n") % our_checksum % their_checksum;
+
+				return(false);
+			}
 		}
 	}
 
@@ -410,10 +453,29 @@ bool GenericSocket::receive_multicast(std::string &reply)
 
 		buffer[length] = '\0';
 
-		if(length >= (int)sizeof(packet_header_t))
-			line = buffer + sizeof(packet_header_t);
-		else
-			line = buffer;
+		if(!raw)
+		{
+			if((length >= (int)sizeof(packet_header_t)))
+			{
+				packet_header_t *packet_header = (packet_header_t *)buffer;
+				line = "";
+
+				if(packet_header->flags & packet_header_flag_md5_32_provided)
+				{
+					unsigned int their_checksum;
+
+					their_checksum = packet_header->checksum;
+					packet_header->checksum = packet_header_checksum_dummy;
+
+					if(their_checksum != MD5_trunc_32(length, (const uint8_t *)buffer))
+						line = " <checksum invalid>";
+				}
+
+				line = std::string(&buffer[sizeof(packet_header_t)]) + line;
+			}
+			else
+				line = std::string(buffer) + " <missing packet header>";
+		}
 
 		host_id = ntohl(remote_addr.sin_addr.s_addr);
 
@@ -485,7 +547,7 @@ void GenericSocket::drain()
 		pfd.events = POLLIN | POLLERR | POLLHUP;
 		pfd.revents = 0;
 
-		if(poll(&pfd, 1, 200) != 1)
+		if(poll(&pfd, 1, 500) != 1)
 			return;
 
 		if(pfd.revents & (POLLERR | POLLHUP))
@@ -1683,22 +1745,6 @@ exit:
 	}
 }
 
-void command_broadcast(GenericSocket &broadcast_socket, bool dontwait, const std::string &args)
-{
-	std::string reply;
-
-	if(!broadcast_socket.send_multicast(args))
-		throw(std::string("broadcast send failed"));
-
-	if(!dontwait)
-	{
-		if(!broadcast_socket.receive_multicast(reply))
-			throw(std::string("broadcast receive failed"));
-
-		std::cout << reply << std::endl;
-	}
-}
-
 void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std::string &args)
 {
 	std::string reply;
@@ -1796,6 +1842,7 @@ int main(int argc, const char **argv)
 		int image_slot;
 		int image_timeout;
 		int dim_x, dim_y, depth;
+		int broadcast_group;
 		unsigned int length;
 		bool use_udp = false;
 		bool dont_wait = false;
@@ -1816,35 +1863,37 @@ int main(int argc, const char **argv)
 		bool cmd_info = false;
 		bool no_provide_checksum = false;
 		bool no_request_checksum = false;
+		bool raw = false;
 		unsigned int selected;
 
 		options.add_options()
-			("info,i",			po::bool_switch(&cmd_info)->implicit_value(true),					"INFO")
-			("read,R",			po::bool_switch(&cmd_read)->implicit_value(true),					"READ")
-			("verify,V",		po::bool_switch(&cmd_verify)->implicit_value(true),					"VERIFY")
-			("simulate,S",		po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
-			("write,W",			po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
-			("benchmark,B",		po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
-			("image,I",			po::bool_switch(&cmd_image)->implicit_value(true),					"SEND IMAGE")
-			("epaper-image,e",	po::bool_switch(&cmd_image_epaper)->implicit_value(true),			"SEND EPAPER IMAGE (uc8151d connected to host)")
-			("broadcast,b",		po::bool_switch(&cmd_broadcast)->implicit_value(true),				"BROADCAST SENDER send broadcast message")
-			("multicast,M",		po::bool_switch(&cmd_multicast)->implicit_value(true),				"MULTICAST SENDER send multicast message")
-			("host,h",			po::value<std::vector<std::string> >(&host_args)->required(),		"host or broadcast address or multicast group to use")
-			("verbose,v",		po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
-			("udp,u",			po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
-			("filename,f",		po::value<std::string>(&filename),									"file name")
-			("start,s",			po::value<std::string>(&start_string)->default_value("-1"),			"send/receive start address (OTA is default)")
-			("length,l",		po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
-			("command-port,p",	po::value<std::string>(&command_port)->default_value("24"),			"command port to connect to")
-			("nocommit,n",		po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
-			("noreset,N",		po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
-			("notemp,t",		po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
-			("dontwait,d",		po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on message")
-			("image_slot,x",	po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer")
-			("image_timeout,y",	po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending")
-			("no-provide-checksum,1", po::bool_switch(&no_provide_checksum)->implicit_value(true),	"do not provide checksum")
-			("no-request-checksum,2", po::bool_switch(&no_request_checksum)->implicit_value(true),	"do not request checksum");
-
+			("info,i",					po::bool_switch(&cmd_info)->implicit_value(true),					"INFO")
+			("read,R",					po::bool_switch(&cmd_read)->implicit_value(true),					"READ")
+			("verify,V",				po::bool_switch(&cmd_verify)->implicit_value(true),					"VERIFY")
+			("simulate,S",				po::bool_switch(&cmd_simulate)->implicit_value(true),				"WRITE simulate")
+			("write,W",					po::bool_switch(&cmd_write)->implicit_value(true),					"WRITE")
+			("benchmark,B",				po::bool_switch(&cmd_benchmark)->implicit_value(true),				"BENCHMARK")
+			("image,I",					po::bool_switch(&cmd_image)->implicit_value(true),					"SEND IMAGE")
+			("epaper-image,e",			po::bool_switch(&cmd_image_epaper)->implicit_value(true),			"SEND EPAPER IMAGE (uc8151d connected to host)")
+			("broadcast,b",				po::bool_switch(&cmd_broadcast)->implicit_value(true),				"BROADCAST SENDER send broadcast message")
+			("multicast,M",				po::bool_switch(&cmd_multicast)->implicit_value(true),				"MULTICAST SENDER send multicast message")
+			("host,h",					po::value<std::vector<std::string> >(&host_args)->required(),		"host or broadcast address or multicast group to use")
+			("verbose,v",				po::bool_switch(&verbose)->implicit_value(true),					"verbose output")
+			("udp,u",					po::bool_switch(&use_udp)->implicit_value(true),					"use UDP instead of TCP")
+			("filename,f",				po::value<std::string>(&filename),									"file name")
+			("start,s",					po::value<std::string>(&start_string)->default_value("-1"),			"send/receive start address (OTA is default)")
+			("length,l",				po::value<std::string>(&length_string)->default_value("0x1000"),	"read length")
+			("command-port,p",			po::value<std::string>(&command_port)->default_value("24"),			"command port to connect to")
+			("nocommit,n",				po::bool_switch(&nocommit)->implicit_value(true),					"don't commit after writing")
+			("noreset,N",				po::bool_switch(&noreset)->implicit_value(true),					"don't reset after commit")
+			("notemp,t",				po::bool_switch(&notemp)->implicit_value(true),						"don't commit temporarily, commit to flash")
+			("dontwait,d",				po::bool_switch(&dont_wait)->implicit_value(true),					"don't wait for reply on message")
+			("image_slot,x",			po::value<int>(&image_slot)->default_value(-1),						"send image to flash slot x instead of frame buffer")
+			("image_timeout,y",			po::value<int>(&image_timeout)->default_value(5000),				"freeze frame buffer for y ms after sending")
+			("no-provide-checksum,1",	po::bool_switch(&no_provide_checksum)->implicit_value(true),		"do not provide checksum")
+			("no-request-checksum,2",	po::bool_switch(&no_request_checksum)->implicit_value(true),		"do not request checksum")
+			("raw,r",					po::bool_switch(&raw)->implicit_value(true),						"do not use packet encapsulation")
+			("broadcast-group,g",		po::value<int>(&broadcast_group)->default_value(-1),				"select broadcast group");
 
 		po::positional_options_description positional_options;
 		positional_options.add("host", -1);
@@ -1901,109 +1950,106 @@ int main(int argc, const char **argv)
 		if(selected > 1)
 			throw(std::string("specify one of write/simulate/verify/image/epaper-image/read/info"));
 
-		GenericSocket command_channel(host, command_port, use_udp, verbose, !!cmd_broadcast, !!cmd_multicast, no_provide_checksum, no_request_checksum);
+		GenericSocket command_channel(host, command_port, use_udp, verbose, !!cmd_broadcast, !!cmd_multicast, no_provide_checksum, no_request_checksum, raw, broadcast_group);
 
 		if(selected == 0)
 			command_send(command_channel, verbose, dont_wait, args);
 		else
 		{
-			if(cmd_broadcast)
-				command_broadcast(command_channel, dont_wait, args);
+			if(cmd_broadcast || cmd_multicast)
+				command_multicast(command_channel, dont_wait, args);
 			else
-				if(cmd_multicast)
-					command_multicast(command_channel, dont_wait, args);
-				else
+			{
+				start = -1;
+
+				try
 				{
-					start = -1;
-
-					try
-					{
-						start = std::stoi(start_string, 0, 0);
-					}
-					catch(...)
-					{
-						throw(std::string("invalid value for start argument"));
-					}
-
-					try
-					{
-						length = std::stoi(length_string, 0, 0);
-					}
-					catch(...)
-					{
-						throw(std::string("invalid value for length argument"));
-					}
-
-					std::string reply;
-					std::vector<int> int_value;
-					std::vector<std::string> string_value;
-					unsigned int flash_slot, flash_address[2];
-
-					try
-					{
-						process(command_channel, "flash-info", reply, flash_info_expect, string_value, int_value, verbose);
-					}
-					catch(std::string &e)
-					{
-						throw(std::string("flash incompatible image: ") + e);
-					}
-
-					flash_slot = int_value[0];
-					flash_address[0] = int_value[1];
-					flash_address[1] = int_value[2];
-					dim_x = int_value[3];
-					dim_y = int_value[4];
-					depth = int_value[5];
-
-					std::cout << "flash update available, current slot: " << flash_slot;
-					std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
-					std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
-					std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px at depth " << depth;
-					std::cout << std::endl;
-
-					if(start == -1)
-					{
-						if(cmd_write || cmd_simulate || cmd_verify || cmd_info)
-						{
-							flash_slot++;
-
-							if(flash_slot >= 2)
-								flash_slot = 0;
-
-							start = flash_address[flash_slot];
-							otawrite = true;
-						}
-						else
-							if(!cmd_benchmark && !cmd_image && !cmd_image_epaper)
-								throw(std::string("start address not set"));
-					}
-
-					if(cmd_read)
-						command_read(command_channel, filename, start, length, verbose);
-					else
-						if(cmd_verify)
-							command_verify(command_channel, filename, start, verbose);
-						else
-							if(cmd_simulate)
-								command_write(command_channel, filename, start, verbose, true, false);
-							else
-								if(cmd_write)
-								{
-									command_write(command_channel, filename, start, verbose, false, otawrite);
-
-									if(otawrite && !nocommit)
-										commit_ota(command_channel, verbose, flash_slot, start, !noreset, notemp);
-								}
-								else
-									if(cmd_benchmark)
-										command_benchmark(command_channel, length, verbose);
-									else
-										if(cmd_image)
-											command_image(command_channel, image_slot, filename, dim_x, dim_y, depth, image_timeout, verbose);
-										else
-											if(cmd_image_epaper)
-												command_image_epaper(command_channel, filename, verbose);
+					start = std::stoi(start_string, 0, 0);
 				}
+				catch(...)
+				{
+					throw(std::string("invalid value for start argument"));
+				}
+
+				try
+				{
+					length = std::stoi(length_string, 0, 0);
+				}
+				catch(...)
+				{
+					throw(std::string("invalid value for length argument"));
+				}
+
+				std::string reply;
+				std::vector<int> int_value;
+				std::vector<std::string> string_value;
+				unsigned int flash_slot, flash_address[2];
+
+				try
+				{
+					process(command_channel, "flash-info", reply, flash_info_expect, string_value, int_value, verbose);
+				}
+				catch(std::string &e)
+				{
+					throw(std::string("flash incompatible image: ") + e);
+				}
+
+				flash_slot = int_value[0];
+				flash_address[0] = int_value[1];
+				flash_address[1] = int_value[2];
+				dim_x = int_value[3];
+				dim_y = int_value[4];
+				depth = int_value[5];
+
+				std::cout << "flash update available, current slot: " << flash_slot;
+				std::cout << ", address[0]: 0x" << std::hex << (flash_address[0] * flash_sector_size) << " (sector " << std::dec << flash_address[0] << ")";
+				std::cout << ", address[1]: 0x" << std::hex << (flash_address[1] * flash_sector_size) << " (sector " << std::dec << flash_address[1] << ")";
+				std::cout << ", display graphical dimensions: " << dim_x << "x" << dim_y << " px at depth " << depth;
+				std::cout << std::endl;
+
+				if(start == -1)
+				{
+					if(cmd_write || cmd_simulate || cmd_verify || cmd_info)
+					{
+						flash_slot++;
+
+						if(flash_slot >= 2)
+							flash_slot = 0;
+
+						start = flash_address[flash_slot];
+						otawrite = true;
+					}
+					else
+						if(!cmd_benchmark && !cmd_image && !cmd_image_epaper)
+							throw(std::string("start address not set"));
+				}
+
+				if(cmd_read)
+					command_read(command_channel, filename, start, length, verbose);
+				else
+					if(cmd_verify)
+						command_verify(command_channel, filename, start, verbose);
+					else
+						if(cmd_simulate)
+							command_write(command_channel, filename, start, verbose, true, false);
+						else
+							if(cmd_write)
+							{
+								command_write(command_channel, filename, start, verbose, false, otawrite);
+
+								if(otawrite && !nocommit)
+									commit_ota(command_channel, verbose, flash_slot, start, !noreset, notemp);
+							}
+							else
+								if(cmd_benchmark)
+									command_benchmark(command_channel, length, verbose);
+								else
+									if(cmd_image)
+										command_image(command_channel, image_slot, filename, dim_x, dim_y, depth, image_timeout, verbose);
+									else
+										if(cmd_image_epaper)
+											command_image_epaper(command_channel, filename, verbose);
+			}
 		}
 	}
 	catch(const po::error &e)

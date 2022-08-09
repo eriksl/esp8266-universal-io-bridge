@@ -55,6 +55,8 @@ unsigned int stat_lwip_udp_received_packets;
 unsigned int stat_lwip_udp_received_bytes;
 unsigned int stat_lwip_udp_sent_packets;
 unsigned int stat_lwip_udp_sent_bytes;
+unsigned int stat_broadcast_received;
+unsigned int stat_broadcast_group_received;
 unsigned int stat_init_display_time_us;
 unsigned int stat_init_io_time_us;
 unsigned int stat_init_associate_time_us;
@@ -378,7 +380,8 @@ void stats_counters(string_t *dst)
 			">  tcp sent     packets: %6u, bytes: %u\n"
 			">  tcp send segmentation events: %u\n"
 			">  tcp error events: %u\n"
-			">  udp send error events: %u\n",
+			">  udp send error events: %u\n"
+			">  broadcast received: %u, group included: %u\n",
 				stat_lwip_udp_received_packets,
 				stat_lwip_udp_received_bytes,
 				stat_lwip_tcp_received_packets,
@@ -389,7 +392,9 @@ void stats_counters(string_t *dst)
 				stat_lwip_tcp_sent_bytes,
 				stat_lwip_tcp_send_segmentation,
 				stat_lwip_tcp_send_error,
-				stat_lwip_udp_send_error);
+				stat_lwip_udp_send_error,
+				stat_broadcast_received,
+				stat_broadcast_group_received);
 
 	string_format(dst,
 			">\n> INIT TIME\n"

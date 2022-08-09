@@ -57,6 +57,8 @@ extern unsigned int stat_lwip_udp_received_packets;
 extern unsigned int stat_lwip_udp_received_bytes;
 extern unsigned int stat_lwip_udp_sent_packets;
 extern unsigned int stat_lwip_udp_sent_bytes;
+extern unsigned int stat_broadcast_received;
+extern unsigned int stat_broadcast_group_received;
 extern unsigned int stat_init_display_time_us;
 extern unsigned int stat_init_io_time_us;
 extern unsigned int stat_init_associate_time_us;

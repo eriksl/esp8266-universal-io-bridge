@@ -1912,6 +1912,68 @@ static app_action_t application_function_multicast_group_set(app_params_t *param
 	return(app_action_normal);
 }
 
+static app_action_t application_function_broadcast_group_set(app_params_t *parameters)
+{
+	unsigned int group, old_groups, new_groups, enable;
+
+	if((parse_uint(1, parameters->src, &group, 0, ' ') == parse_ok) && (parse_uint(2, parameters->src, &enable, 0, ' ') == parse_ok))
+	{
+		if(group > 7)
+		{
+			string_append(parameters->dst, "group must be between 0 and 7\n");
+			return(app_action_error);
+		}
+
+		if(!config_get_uint("broadcast-groups", &old_groups, -1, -1))
+			old_groups = 0x00;
+
+		if(enable)
+			new_groups = old_groups | (1 << group);
+		else
+			new_groups = old_groups & ~(1 << group);
+
+		if(old_groups != new_groups)
+		{
+			if(!config_open_write())
+			{
+				string_append(parameters->dst, "cannot set config (open)\n");
+				return(app_action_error);
+			}
+
+			config_delete("broadcast-groups", false, -1, -1);
+
+			if(new_groups != 0)
+			{
+				if(!config_set_uint("broadcast-groups", new_groups, -1, -1))
+				{
+					config_abort_write();
+					string_append(parameters->dst, "cannot set config (set broadcast group entry)\n");
+					return(app_action_error);
+				}
+			}
+
+			if(!config_close_write())
+			{
+				string_append(parameters->dst, "cannot set config (close)\n");
+				return(app_action_error);
+			}
+		}
+	}
+
+	if(!config_get_uint("broadcast-groups", &old_groups, -1, -1))
+		old_groups = 0x00;
+
+	string_format(parameters->dst, "broadcast groups:");
+
+	for(group = 0; group < 8; group++)
+		if(old_groups & (1 << group))
+			string_format(parameters->dst, " %u", group);
+
+	string_append(parameters->dst, "\n");
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_gpio_status_set(app_params_t *parameters)
 {
 	int trigger_io, trigger_pin;
@@ -2305,6 +2367,7 @@ roflash static const char help_description_log_display[] =			"display log";
 roflash static const char help_description_log_clear[] =			"display and clear the log";
 roflash static const char help_description_log_write[] =			"write to the log";
 roflash static const char help_description_multicast_group_set[] =	"set multicast group, entry 0-7, ip address";
+roflash static const char help_description_broadcast_group_set[] =	"set broadcast group, entry 0-7, 0=disable 1=enable";
 roflash static const char help_description_sntp_set[] =				"set sntp <ip addr>";
 roflash static const char help_description_time_set[] =				"set time base using <h> <m> [<s>]";
 roflash static const char help_description_time_stamp_set[] =		"set time base using unix epoch timestamp";
@@ -2598,6 +2661,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"mgs", "multicast-group-set",
 		application_function_multicast_group_set,
 		help_description_multicast_group_set,
+	},
+	{
+		"bgs", "broadcast-group-set",
+		application_function_broadcast_group_set,
+		help_description_broadcast_group_set,
 	},
 	{
 		"sns", "sntp-set",

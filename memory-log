@@ -15358,3 +15358,27 @@ Sun Aug  7 17:29:02 CEST 2022 3f9262b crypto-bench: small improvements/additions
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68693, free:  11572, 14 %
     irom:    available: 784 k, used: 442464, free: 360352, 44 %
+Mon Aug  8 13:21:50 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68693, free:  11572, 14 %
+    irom:    available: 784 k, used: 442512, free: 360304, 44 %
+Mon Aug  8 13:51:01 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68709, free:  11556, 14 %
+    irom:    available: 784 k, used: 443232, free: 359584, 44 %
+Mon Aug  8 13:59:30 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68709, free:  11556, 14 %
+    irom:    available: 784 k, used: 443312, free: 359504, 44 %
+Tue Aug  9 13:37:33 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68717, free:  11548, 14 %
+    irom:    available: 784 k, used: 443392, free: 359424, 44 %
+Tue Aug  9 14:02:55 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68717, free:  11548, 14 %
+    irom:    available: 784 k, used: 443408, free: 359408, 44 %
+Tue Aug  9 14:07:01 CEST 2022 d800bbd flash: revert from mailbox to inline data, but securely encapsulated with a packet header.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68717, free:  11548, 14 %
+    irom:    available: 784 k, used: 443440, free: 359376, 44 %

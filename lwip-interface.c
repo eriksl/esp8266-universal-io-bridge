@@ -97,6 +97,8 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 	struct pbuf *pbuf;
 	unsigned int length;
 	ip_addr_t _ip_addr_any = { IPADDR_ANY };
+	bool broadcast = false;
+	bool multicast = false;
 
 	if(socket->receive_buffer_locked)
 	{
@@ -123,6 +125,12 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	for(pbuf = pbuf_received; pbuf; pbuf = pbuf->next)
 	{
+		if(pbuf->flags & PBUF_FLAG_LLBCAST)
+			broadcast = true;
+
+		if(pbuf->flags & PBUF_FLAG_LLMCAST)
+			multicast = true;
+
 		if(tcp)
 		{
 			stat_lwip_tcp_received_packets++;
@@ -140,7 +148,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	socket->receive_buffer_locked = 1;
 
-	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
+	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length, broadcast, multicast);
 
 	return(ERR_OK);
 }

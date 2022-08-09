@@ -32,7 +32,7 @@ assert_size(telnet_strip_state_t, 1);
 enum
 {
 	task_queue_length = 10,
-	command_input_state_timeout = 50,
+	command_input_state_timeout = 10,
 };
 
 typedef struct
@@ -69,6 +69,8 @@ typedef struct
 
 static trigger_t trigger_alert = { -1, -1 };
 static trigger_t assoc_alert = { -1, -1 };
+
+unsigned int broadcast_groups;
 
 static void background_task_bridge_uart(void)
 {
@@ -230,6 +232,20 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 						lwip_if_receive_buffer_unlock(&command_socket);
 						return;
 					}
+				}
+
+				if(packet_header->flags & packet_header_flag_use_bc_group)
+				{
+					unsigned int packet_broadcast_groups = (packet_header->flags >> packet_header_flag_bc_group_shift) & packet_header_flag_bc_group_bits;
+
+					if(!(packet_broadcast_groups & broadcast_groups))
+					{
+						string_clear(&command_socket_receive_buffer);
+						lwip_if_receive_buffer_unlock(&command_socket);
+						break;
+					}
+					else
+						stat_broadcast_group_received++;
 				}
 
 				string_set(&cooked_src,
@@ -505,9 +521,12 @@ static void wlan_event_handler(System_Event_t *event)
 	}
 }
 
-static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
+static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length, bool broadcast, bool multicast)
 {
 	command_input_state.fragments++;
+
+	if(broadcast)
+		stat_broadcast_received++;
 
 	if(string_full(&command_socket_receive_buffer))
 	{
@@ -562,7 +581,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 		lwip_if_receive_buffer_unlock(&command_socket);
 }
 
-static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
+static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received, bool broadcast, bool multicast)
 {
 	int current, length;
 	uint8_t byte;
@@ -629,6 +648,9 @@ void dispatch_init2(void)
 	command_input_state.expected = 0;
 	command_input_state.timeout = 0;
 	command_input_state.fragments = 0;
+
+	if(!config_get_uint("broadcast-groups", &broadcast_groups, -1, -1))
+		broadcast_groups = 0x00;
 
 	if(config_get_int("trigger.status.io", &io, -1, -1) &&
 			config_get_int("trigger.status.pin", &pin, -1, -1))
