@@ -531,11 +531,11 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 	if(string_full(&command_socket_receive_buffer))
 	{
 		log("dispatch: overrun, %d %d %u\n", string_length(&command_socket_receive_buffer), string_size(&command_socket_receive_buffer), length);
-		string_clear(&command_socket_receive_buffer);
-		lwip_if_receive_buffer_unlock(&command_socket);
 		command_input_state.expected = 0;
 		command_input_state.timeout = 0;
 		command_input_state.fragments = 0;
+		string_clear(&command_socket_receive_buffer);
+		lwip_if_receive_buffer_unlock(&command_socket);
 		return;
 	}
 
