@@ -525,7 +525,7 @@ bool GenericSocket::receive_multicast(std::string &reply)
 		text << std::setw(12) << std::left << host_id_text.str();
 		text << " " << std::setw(2) << std::right << it.second.count << " ";
 		text << std::setw(12) << std::left << it.second.hostname;
-		text << " " << it.second.text << std::endl;
+		text << " " << it.second.text;
 	}
 
 	text << std::endl << "Total of " << total_replies << " replies received, " << total_hosts << " hosts" << std::endl;
