@@ -198,6 +198,7 @@ LWIP_OBJS		:= $(LWIP_SRC)/core/def.o $(LWIP_SRC)/core/dhcp.o $(LWIP_SRC)/core/in
 						$(LWIP_SRC)/core/ipv4/igmp.o \
 						$(LWIP_SRC)/core/ipv4/inet.o $(LWIP_SRC)/core/ipv4/inet_chksum.o \
 						$(LWIP_SRC)/core/ipv4/ip.o $(LWIP_SRC)/core/ipv4/ip_addr.o \
+						$(LWIP_SRC)/core/ipv4/ip_frag.o \
 						$(LWIP_SRC)/netif/etharp.o
 
 HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h display_orbital.h \

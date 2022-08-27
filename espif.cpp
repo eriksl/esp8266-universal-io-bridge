@@ -239,9 +239,6 @@ bool GenericSocket::send_unicast(const std::string &text)
 
 		if(use_udp)
 		{
-			if((chunk > max_udp_packet_size))
-				chunk = max_udp_packet_size;
-
 			if(::sendto(socket_fd, data.data(), chunk, 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr)) != chunk)
 				return(false);
 		}

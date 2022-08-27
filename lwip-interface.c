@@ -13,11 +13,7 @@
 
 enum
 {
-	lwip_ethernet_max_payload =	1500,
-	lwip_ip_header_size =		20,
-	lwip_udp_header_size = 		8,
-	lwip_tcp_header_size =		20,
-	lwip_udp_max_payload =		lwip_ethernet_max_payload - lwip_ip_header_size - lwip_udp_header_size,
+	lwip_udp_max_payload = 4800,
 };
 
 enum

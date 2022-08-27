@@ -15382,3 +15382,27 @@ Tue Aug  9 14:07:01 CEST 2022 d800bbd flash: revert from mailbox to inline data,
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68717, free:  11548, 14 %
     irom:    available: 784 k, used: 443440, free: 359376, 44 %
+Tue Aug  9 14:21:50 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68717, free:  11548, 14 %
+    irom:    available: 784 k, used: 443424, free: 359392, 44 %
+Sat Aug 27 17:32:38 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68717, free:  11548, 14 %
+    irom:    available: 784 k, used: 443408, free: 359408, 44 %
+Sat Aug 27 17:42:20 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68785, free:  11480, 14 %
+    irom:    available: 784 k, used: 445184, free: 357632, 44 %
+Sat Aug 27 17:42:42 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68785, free:  11480, 14 %
+    irom:    available: 784 k, used: 445552, free: 357264, 44 %
+Sat Aug 27 17:51:52 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68785, free:  11480, 14 %
+    irom:    available: 784 k, used: 445440, free: 357376, 44 %
+Sat Aug 27 17:57:01 CEST 2022 2edfe48 add broadcast groups (comparable to multicast groups, but in userland).
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68785, free:  11480, 14 %
+    irom:    available: 784 k, used: 445536, free: 357280, 44 %
