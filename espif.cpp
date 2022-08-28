@@ -195,17 +195,17 @@ void GenericSocket::send_prepare(const std::string &src, std::string &dst)
 		packet_header.flags = 0;
 
 		if(!no_request_checksum)
-			packet_header.flags |= packet_header_flag_md5_32_requested;
+			packet_header.flags |= packet_header_flags_md5_32_requested;
 
 		if((broadcast_group >= 0) && (broadcast_group < 8))
 		{
-			packet_header.flags |= packet_header_flag_use_bc_group;
+			packet_header.flags |= packet_header_flags_use_bc_group;
 			packet_header.flags |= (1 << broadcast_group) << packet_header_flag_bc_group_shift;
 		}
 
 		if(!no_provide_checksum)
 		{
-			packet_header.flags |= packet_header_flag_md5_32_provided;
+			packet_header.flags |= packet_header_flags_md5_32_provided;
 			std::string buffer_packet_checksum = src;
 			buffer_packet_checksum.insert(0, (const char *)&packet_header, sizeof(packet_header));
 			packet_header.checksum = MD5_trunc_32(buffer_packet_checksum.length(), (const uint8_t *)buffer_packet_checksum.data());
@@ -370,7 +370,7 @@ bool GenericSocket::receive_unicast(std::string &reply)
 		packet_header = (packet_header_t *)packet_header_data.data();
 		reply.erase(0, sizeof(packet_header_t));
 
-		if(packet_header->flags & packet_header_flag_md5_32_provided)
+		if(packet_header->flags & packet_header_flags_md5_32_provided)
 		{
 			std::string checksum_buffer;
 
@@ -457,7 +457,7 @@ bool GenericSocket::receive_multicast(std::string &reply)
 				packet_header_t *packet_header = (packet_header_t *)buffer;
 				line = "";
 
-				if(packet_header->flags & packet_header_flag_md5_32_provided)
+				if(packet_header->flags & packet_header_flags_md5_32_provided)
 				{
 					unsigned int their_checksum;
 

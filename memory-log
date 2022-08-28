@@ -15406,3 +15406,7 @@ Sat Aug 27 17:57:01 CEST 2022 2edfe48 add broadcast groups (comparable to multic
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68785, free:  11480, 14 %
     irom:    available: 784 k, used: 445536, free: 357280, 44 %
+Sun Aug 28 12:01:20 CEST 2022 6687a3e lwip: enable ip packet fragmentation.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68785, free:  11480, 14 %
+    irom:    available: 784 k, used: 445504, free: 357312, 44 %

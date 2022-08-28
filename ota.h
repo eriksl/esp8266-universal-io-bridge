@@ -21,11 +21,10 @@ enum
 	packet_header_id2 = 0xfb,
 
 	packet_header_id = ((uint32_t)packet_header_id2 << 24) | ((uint32_t)packet_header_id1 << 16) | ((uint32_t)packet_header_version << 8) | ((uint32_t)packet_header_soh << 0),
-	packet_header_checksum_dummy = 0xffffffff,
 
-	packet_header_flag_md5_32_requested =	(1UL << 0),
-	packet_header_flag_md5_32_provided =	(1UL << 1),
-	packet_header_flag_use_bc_group =		(1UL << 2),
+	packet_header_flags_md5_32_requested =	(1UL << 0),
+	packet_header_flags_md5_32_provided =	(1UL << 1),
+	packet_header_flags_use_bc_group =		(1UL << 2),
 
 	packet_header_flag_bc_group_shift =		24,
 	packet_header_flag_bc_group_bits =		0xff,
@@ -37,6 +36,8 @@ enum
 	packet_header_flag_bc_group_5 =			(1UL << 29),
 	packet_header_flag_bc_group_6 =			(1UL << 30),
 	packet_header_flag_bc_group_7 =			(1UL << 31),
+
+	packet_header_checksum_dummy = 0xffffffff,
 };
 
 typedef struct attr_packed

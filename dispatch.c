@@ -214,9 +214,9 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			{
 				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_receive_buffer);
 
-				checksum_requested = !!(packet_header->flags & packet_header_flag_md5_32_requested);
+				checksum_requested = !!(packet_header->flags & packet_header_flags_md5_32_requested);
 
-				if(packet_header->flags & packet_header_flag_md5_32_provided)
+				if(packet_header->flags & packet_header_flags_md5_32_provided)
 				{
 					uint32_t our_checksum, their_checksum;
 
@@ -234,7 +234,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					}
 				}
 
-				if(packet_header->flags & packet_header_flag_use_bc_group)
+				if(packet_header->flags & packet_header_flags_use_bc_group)
 				{
 					unsigned int packet_broadcast_groups = (packet_header->flags >> packet_header_flag_bc_group_shift) & packet_header_flag_bc_group_bits;
 
@@ -306,7 +306,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				if(checksum_requested)
 				{
-					packet_header->flags |= packet_header_flag_md5_32_provided;
+					packet_header->flags |= packet_header_flags_md5_32_provided;
 					packet_header->checksum = MD5_trunc_32(packet_length, (const uint8_t *)string_buffer(&command_socket_send_buffer));
 				}
 			}
