@@ -818,8 +818,6 @@ app_action_t application_function_display_plot(app_params_t *parameters)
 {
 	bool rv;
 	unsigned int x, y, pixels;
-	string_t data;
-	int data_length;
 
 	if(!display_hooks_active)
 	{
@@ -833,17 +831,13 @@ app_action_t application_function_display_plot(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	data_length = string_length(parameters->src) - ota_data_offset;
-
-	if(data_length < 0)
+	if(string_length(parameters->src_oob) == 0)
 	{
 		string_append(parameters->dst, "display-plot: missing data\n");
 		return(app_action_error);
 	}
 
-	string_set(&data, string_buffer_nonconst(parameters->src) + ota_data_offset, string_size(parameters->src) - ota_data_offset, data_length);
-
-	rv = display_plot(pixels, x, y, &data);
+	rv = display_plot(pixels, x, y, parameters->src_oob);
 
 	string_format(parameters->dst, "display plot success: %s\n", yesno(rv));
 

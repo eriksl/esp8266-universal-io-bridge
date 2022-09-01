@@ -15410,3 +15410,151 @@ Sun Aug 28 12:01:20 CEST 2022 6687a3e lwip: enable ip packet fragmentation.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  68785, free:  11480, 14 %
     irom:    available: 784 k, used: 445504, free: 357312, 44 %
+Sun Aug 28 12:10:07 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68793, free:  11472, 14 %
+    irom:    available: 784 k, used: 445520, free: 357296, 44 %
+Sun Aug 28 12:13:36 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68793, free:  11472, 14 %
+    irom:    available: 784 k, used: 445504, free: 357312, 44 %
+Sun Aug 28 13:26:09 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68817, free:  11448, 14 %
+    irom:    available: 784 k, used: 445504, free: 357312, 44 %
+Sun Aug 28 14:39:11 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68817, free:  11448, 14 %
+    irom:    available: 784 k, used: 445360, free: 357456, 44 %
+Wed Aug 31 17:41:35 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445440, free: 357376, 44 %
+Wed Aug 31 17:47:01 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445488, free: 357328, 44 %
+Wed Aug 31 18:01:09 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445600, free: 357216, 44 %
+Wed Aug 31 18:04:50 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445680, free: 357136, 44 %
+Wed Aug 31 18:05:44 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Wed Aug 31 18:06:43 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445664, free: 357152, 44 %
+Wed Aug 31 18:11:22 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445776, free: 357040, 44 %
+Wed Aug 31 18:14:09 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445680, free: 357136, 44 %
+Wed Aug 31 18:17:20 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Wed Aug 31 18:27:16 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445632, free: 357184, 44 %
+Wed Aug 31 19:49:29 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445680, free: 357136, 44 %
+Wed Aug 31 19:54:00 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445776, free: 357040, 44 %
+Wed Aug 31 19:58:44 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 446048, free: 356768, 44 %
+Wed Aug 31 19:59:26 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 446064, free: 356752, 44 %
+Wed Aug 31 20:00:26 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 446080, free: 356736, 44 %
+Wed Aug 31 20:01:20 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 446128, free: 356688, 44 %
+Wed Aug 31 20:04:52 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445808, free: 357008, 44 %
+Wed Aug 31 21:04:34 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445680, free: 357136, 44 %
+Thu Sep  1 10:03:17 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445760, free: 357056, 44 %
+Thu Sep  1 10:04:13 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445776, free: 357040, 44 %
+Thu Sep  1 10:46:10 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445728, free: 357088, 44 %
+Thu Sep  1 11:00:11 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445872, free: 356944, 44 %
+Thu Sep  1 11:24:35 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445888, free: 356928, 44 %
+Thu Sep  1 11:32:06 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  68889, free:  11376, 14 %
+    irom:    available: 784 k, used: 445952, free: 356864, 44 %
+Thu Sep  1 12:13:24 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70937, free:   9328, 11 %
+    irom:    available: 784 k, used: 445952, free: 356864, 44 %
+Thu Sep  1 12:14:06 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  69913, free:  10352, 12 %
+    irom:    available: 784 k, used: 445952, free: 356864, 44 %
+Thu Sep  1 16:35:39 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70937, free:   9328, 11 %
+    irom:    available: 784 k, used: 445952, free: 356864, 44 %
+Thu Sep  1 16:48:39 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445792, free: 357024, 44 %
+Thu Sep  1 16:51:33 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445936, free: 356880, 44 %
+Thu Sep  1 16:57:12 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Thu Sep  1 17:00:26 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Thu Sep  1 17:01:03 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Thu Sep  1 17:09:52 CEST 2022 dee38c9 ota: conform packet header enum field values to field names.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445712, free: 357104, 44 %

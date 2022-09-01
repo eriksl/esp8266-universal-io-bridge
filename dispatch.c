@@ -39,7 +39,7 @@ typedef struct
 {
 	unsigned int expected;
 	unsigned int timeout;
-	unsigned int fragments;
+	unsigned int segments;
 } command_input_state_t;
 
 static command_input_state_t command_input_state;
@@ -48,8 +48,8 @@ assert_size(command_input_state, 12);
 
 static os_event_t task_queue[3][task_queue_length];
 
-string_new(static attr_flash_align, command_socket_receive_buffer, sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2);
-string_new(static attr_flash_align, command_socket_send_buffer,    sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2);
+string_new(static attr_flash_align, command_socket_receive_buffer, sizeof(packet_header_t) + 64 + SPI_FLASH_SEC_SIZE);
+string_new(static attr_flash_align, command_socket_send_buffer,    sizeof(packet_header_t) + 64 + SPI_FLASH_SEC_SIZE);
 static lwip_if_socket_t command_socket;
 
 string_new(static, uart_socket_receive_buffer, 128);
@@ -180,7 +180,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 		{
 			app_params_t parameters;
 			app_action_t action;
-			string_t cooked_src, cooked_dst;
+			string_t cooked_src, cooked_src_oob, cooked_dst;
 			bool checksum_requested;
 
 			if(argument == task_received_command_uart)
@@ -214,14 +214,20 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			{
 				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_receive_buffer);
 
-				checksum_requested = !!(packet_header->flags & packet_header_flags_md5_32_requested);
+				if(packet_header->version != packet_header_version)
+				{
+					log("dispatch: wrong version packet received: %u\n", packet_header->version);
+					return;
+				}
 
-				if(packet_header->flags & packet_header_flags_md5_32_provided)
+				checksum_requested = !!(packet_header->flag.md5_32_requested);
+
+				if(packet_header->flag.md5_32_provided)
 				{
 					uint32_t our_checksum, their_checksum;
 
 					their_checksum = packet_header->checksum;
-					packet_header->checksum = packet_header_checksum_dummy;
+					packet_header->checksum = 0;
 
 					our_checksum = MD5_trunc_32(string_length(&command_socket_receive_buffer), (const uint8_t *)string_buffer(&command_socket_receive_buffer));
 
@@ -234,38 +240,91 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					}
 				}
 
-				if(packet_header->flags & packet_header_flags_use_bc_group)
+				if(packet_header->broadcast_groups != 0)
 				{
-					unsigned int packet_broadcast_groups = (packet_header->flags >> packet_header_flag_bc_group_shift) & packet_header_flag_bc_group_bits;
-
-					if(!(packet_broadcast_groups & broadcast_groups))
+					if(!(packet_header->broadcast_groups & broadcast_groups))
 					{
 						string_clear(&command_socket_receive_buffer);
 						lwip_if_receive_buffer_unlock(&command_socket);
-						break;
+						return;
 					}
 					else
 						stat_broadcast_group_received++;
 				}
 
+				if((packet_header->oob_data_offset != packet_header->length) && ((packet_header->oob_data_offset % 4) != 0))
+				{
+					log("dispatch: oob data unaligned: %u %u %u %u\n", packet_header->length, packet_header->data_offset,
+							packet_header->data_pad_offset, packet_header->oob_data_offset);
+
+					return;
+				}
+
 				string_set(&cooked_src,
-						string_buffer_nonconst(&command_socket_receive_buffer) + sizeof(packet_header_t),
-						string_size(&command_socket_receive_buffer) - sizeof(packet_header_t),
-						string_length(&command_socket_receive_buffer) - sizeof(packet_header_t));
-				parameters.src = &cooked_src;
+						string_buffer_nonconst(&command_socket_receive_buffer) + packet_header->data_offset,
+						string_size(&command_socket_receive_buffer) - packet_header->data_offset,
+						packet_header->data_pad_offset - packet_header->data_offset);
+
+				string_set(&cooked_src_oob,
+						string_buffer_nonconst(&command_socket_receive_buffer) + packet_header->oob_data_offset,
+						string_size(&command_socket_receive_buffer) - packet_header->oob_data_offset,
+						packet_header->length - packet_header->oob_data_offset);
 
 				string_set(&cooked_dst,
 						string_buffer_nonconst(&command_socket_send_buffer) + sizeof(packet_header_t),
 						string_size(&command_socket_send_buffer) - sizeof(packet_header_t),
 						0);
-
-				parameters.dst = &cooked_dst;
 			}
 			else
 			{
-				parameters.src = &command_socket_receive_buffer;
-				parameters.dst = &command_socket_send_buffer;
+				int delimiter = string_find(&command_socket_receive_buffer, 0, '\0');
+
+				if((delimiter > 0) && ((delimiter + 1) < string_length(&command_socket_receive_buffer)))
+				{
+					string_set(&cooked_src,
+							string_buffer_nonconst(&command_socket_receive_buffer),
+							delimiter - 1,
+							delimiter - 1);
+
+					do
+						delimiter++;
+					while((delimiter % 4) != 0);
+
+					if(delimiter >= string_length(&command_socket_receive_buffer))
+					{
+						log("dispatch: raw data oob padding invalid: %d %d\n", string_length(&command_socket_receive_buffer), delimiter);
+						return;
+					}
+
+					string_set(&cooked_src_oob,
+							string_buffer_nonconst(&command_socket_receive_buffer) + delimiter,
+							string_size(&command_socket_receive_buffer) - delimiter,
+							string_length(&command_socket_receive_buffer) - delimiter);
+				}
+				else
+				{
+					string_set(&cooked_src,
+							string_buffer_nonconst(&command_socket_receive_buffer),
+							string_size(&command_socket_receive_buffer),
+							string_length(&command_socket_receive_buffer));
+
+					string_set(&cooked_src_oob,
+							string_buffer_nonconst(&command_socket_receive_buffer),
+							0,
+							0);
+				}
+
+				string_set(&cooked_dst,
+						string_buffer_nonconst(&command_socket_send_buffer),
+						string_size(&command_socket_send_buffer),
+						0);
 			}
+
+			parameters.src = &cooked_src;
+			parameters.src_oob = &cooked_src_oob;
+			parameters.dst = &cooked_dst;
+			parameters.dst_data_pad_offset = -1;
+			parameters.dst_data_oob_offset = -1;
 
 			action = application_content(&parameters);
 
@@ -297,18 +356,49 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			{
 				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_send_buffer);
 				unsigned int packet_length = sizeof(packet_header_t) + string_length(parameters.dst);
-
 				string_setlength(&command_socket_send_buffer, packet_length);
+
+				packet_header->soh = packet_header_soh;
+				packet_header->version = packet_header_version;
 				packet_header->id = packet_header_id;
 				packet_header->length = packet_length;
-				packet_header->checksum = packet_header_checksum_dummy;
+				packet_header->data_offset = sizeof(packet_header_t);
+
+				if((parameters.dst_data_pad_offset >= 0) && (parameters.dst_data_oob_offset >= 0))
+				{
+					packet_header->data_pad_offset = sizeof(packet_header_t) + parameters.dst_data_pad_offset;
+					packet_header->oob_data_offset = sizeof(packet_header_t) + parameters.dst_data_oob_offset;
+				}
+				else
+				{
+					packet_header->data_pad_offset = packet_length;
+					packet_header->oob_data_offset = packet_length;
+				}
+
+				packet_header->broadcast_groups = 0;
 				packet_header->flags = 0;
+				packet_header->spare_0 = 0;
+				packet_header->spare_1 = 0;
+				packet_header->spare_2 = 0;
+				packet_header->checksum = 0;
 
 				if(checksum_requested)
 				{
-					packet_header->flags |= packet_header_flags_md5_32_provided;
+					packet_header->flag.md5_32_provided = 1;
 					packet_header->checksum = MD5_trunc_32(packet_length, (const uint8_t *)string_buffer(&command_socket_send_buffer));
 				}
+
+				string_setlength(&command_socket_send_buffer, string_length(parameters.dst) + sizeof(packet_header_t));
+			}
+			else
+			{
+				if((parameters.dst_data_oob_offset > 0) && (parameters.dst_data_pad_offset > 0))
+				{
+					char *buffer = string_buffer_nonconst(&command_socket_send_buffer);
+					buffer[parameters.dst_data_pad_offset - 1] = '\0';
+				}
+
+				string_setlength(&command_socket_send_buffer, string_length(parameters.dst));
 			}
 
 			if(!lwip_if_send(&command_socket))
@@ -451,7 +541,7 @@ static void slow_timer_callback(void *arg)
 		{
 			stat_dispatch_command_input_timeout++;
 			command_input_state.expected = 0;
-			command_input_state.fragments = 0;
+			command_input_state.segments = 0;
 			string_clear(&command_socket_receive_buffer);
 			lwip_if_receive_buffer_unlock(&command_socket);
 		}
@@ -523,7 +613,7 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length, bool broadcast, bool multicast)
 {
-	command_input_state.fragments++;
+	command_input_state.segments++;
 
 	if(broadcast)
 		stat_broadcast_received++;
@@ -533,21 +623,22 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 		log("dispatch: overrun, %d %d %u\n", string_length(&command_socket_receive_buffer), string_size(&command_socket_receive_buffer), length);
 		command_input_state.expected = 0;
 		command_input_state.timeout = 0;
-		command_input_state.fragments = 0;
+		command_input_state.segments = 0;
 		string_clear(&command_socket_receive_buffer);
 		lwip_if_receive_buffer_unlock(&command_socket);
 		return;
 	}
 
-	if((command_input_state.fragments == 1) && (length >= sizeof(packet_header_t)))
+	if((command_input_state.segments == 1) && (length >= sizeof(packet_header_t)))
 	{
 		const packet_header_t *packet_header = (const packet_header_t *)string_buffer(&command_socket_receive_buffer);
 
-		if(packet_header->id == packet_header_id)
+		if((packet_header->soh == packet_header_soh) &&
+				packet_header->id == packet_header_id)
 		{
 			unsigned int packet_length = packet_header->length;
 
-			if(packet_length < (sizeof(packet_header_t) + ota_data_offset + SPI_FLASH_SEC_SIZE + 2))
+			if((int)packet_length < string_size(&command_socket_receive_buffer))
 			{
 				command_input_state.expected = packet_length;
 				command_input_state.timeout = command_input_state_timeout;
@@ -561,7 +652,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 		{
 			command_input_state.expected = 0;
 			command_input_state.timeout = 0;
-			command_input_state.fragments = 0;
+			command_input_state.segments = 0;
 			dispatch_post_task(1, task_received_command, task_received_command_packet);
 		}
 		else
@@ -570,15 +661,25 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 		return;
 	}
 
-	if(string_trim_nl(&command_socket_receive_buffer))
+	if(lwip_if_received_tcp(&command_socket))
+	{
+		if(string_trim_nl(&command_socket_receive_buffer))
+		{
+			command_input_state.expected = 0;
+			command_input_state.timeout = 0;
+			command_input_state.segments = 0;
+			dispatch_post_task(1, task_received_command, task_received_command_text);
+		}
+		else
+			lwip_if_receive_buffer_unlock(&command_socket);
+	}
+	else
 	{
 		command_input_state.expected = 0;
 		command_input_state.timeout = 0;
-		command_input_state.fragments = 0;
+		command_input_state.segments = 0;
 		dispatch_post_task(1, task_received_command, task_received_command_text);
 	}
-	else
-		lwip_if_receive_buffer_unlock(&command_socket);
 }
 
 static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received, bool broadcast, bool multicast)
@@ -647,7 +748,7 @@ void dispatch_init2(void)
 
 	command_input_state.expected = 0;
 	command_input_state.timeout = 0;
-	command_input_state.fragments = 0;
+	command_input_state.segments = 0;
 
 	if(!config_get_uint("broadcast-groups", &broadcast_groups, -1, -1))
 		broadcast_groups = 0x00;

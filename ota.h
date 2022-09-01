@@ -4,55 +4,72 @@
 #ifndef __espif__
 #include "util.h"
 #include "dispatch.h"
+#include "attribute.h"
 #endif
 
 #include <stdint.h>
 
 enum
 {
-	ota_data_offset = 32,
-};
-
-enum
-{
 	packet_header_soh = 0x01,
-	packet_header_version = 1,
-	packet_header_id1 = 0x4a,
-	packet_header_id2 = 0xfb,
-
-	packet_header_id = ((uint32_t)packet_header_id2 << 24) | ((uint32_t)packet_header_id1 << 16) | ((uint32_t)packet_header_version << 8) | ((uint32_t)packet_header_soh << 0),
-
-	packet_header_flags_md5_32_requested =	(1UL << 0),
-	packet_header_flags_md5_32_provided =	(1UL << 1),
-	packet_header_flags_use_bc_group =		(1UL << 2),
-
-	packet_header_flag_bc_group_shift =		24,
-	packet_header_flag_bc_group_bits =		0xff,
-	packet_header_flag_bc_group_0 =			(1UL << 24),
-	packet_header_flag_bc_group_1 =			(1UL << 25),
-	packet_header_flag_bc_group_2 =			(1UL << 26),
-	packet_header_flag_bc_group_3 =			(1UL << 27),
-	packet_header_flag_bc_group_4 =			(1UL << 28),
-	packet_header_flag_bc_group_5 =			(1UL << 29),
-	packet_header_flag_bc_group_6 =			(1UL << 30),
-	packet_header_flag_bc_group_7 =			(1UL << 31),
-
-	packet_header_checksum_dummy = 0xffffffff,
+	packet_header_version = 2,
+	packet_header_id = 0x4afb,
 };
 
 typedef struct attr_packed
 {
-	uint32_t	id;
-	uint32_t	length;
-	uint32_t	flags;
-	uint32_t	checksum;
+	uint8_t soh;						// 0
+	uint8_t version;					// 1
+	uint16_t id;						// 2
+	uint16_t length;					// 4
+	uint16_t data_offset;				// 6
+	uint16_t data_pad_offset;			// 8
+	uint16_t oob_data_offset;			// 10
+	uint16_t broadcast_groups;			// 12
+	union
+	{
+		struct attr_packed
+		{
+			unsigned int md5_32_requested:1;
+			unsigned int md5_32_provided:1;
+			unsigned int spare_2:1;
+			unsigned int spare_3:1;
+			unsigned int spare_4:1;
+			unsigned int spare_5:1;
+			unsigned int spare_6:1;
+			unsigned int spare_7:1;
+			unsigned int spare_8:1;
+			unsigned int spare_9:1;
+			unsigned int spare_10:1;
+			unsigned int spare_11:1;
+			unsigned int spare_12:1;
+			unsigned int spare_13:1;
+			unsigned int spare_14:1;
+			unsigned int spare_15:1;
+		} flag;							// 14
+		uint16_t flags;					// 14
+	};
+	uint32_t spare_0;					// 16
+	uint32_t spare_1;					// 20
+	uint32_t spare_2;					// 24
+	uint32_t checksum;					// 28
 } packet_header_t;
 
-_Static_assert(offsetof(packet_header_t, id) == 0);
-_Static_assert(offsetof(packet_header_t, length) == 4);
-_Static_assert(offsetof(packet_header_t, flags) == 8);
-_Static_assert(offsetof(packet_header_t, checksum) == 12);
-assert_size(packet_header_t, 16);
+assert_field(packet_header_t, soh, 0);
+assert_field(packet_header_t, version, 1);
+assert_field(packet_header_t, id, 2);
+assert_field(packet_header_t, length, 4);
+assert_field(packet_header_t, data_offset, 6);
+assert_field(packet_header_t, data_pad_offset, 8);
+assert_field(packet_header_t, oob_data_offset, 10);
+assert_field(packet_header_t, broadcast_groups, 12);
+assert_field(packet_header_t, flag, 14);
+assert_field(packet_header_t, flags, 14);
+assert_field(packet_header_t, spare_0, 16);
+assert_field(packet_header_t, spare_1, 20);
+assert_field(packet_header_t, spare_2, 24);
+assert_field(packet_header_t, checksum, 28);
+assert_size(packet_header_t, 32);
 
 #ifndef __espif__
 app_action_t application_function_flash_info(app_params_t *);

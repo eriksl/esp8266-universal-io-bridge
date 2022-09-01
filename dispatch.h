@@ -45,7 +45,10 @@ enum
 typedef struct
 {
 	string_t *src;
+	string_t *src_oob;
 	string_t *dst;
+	int dst_data_pad_offset;
+	int dst_data_oob_offset;
 } app_params_t;
 
 extern bool uart_bridge_active;

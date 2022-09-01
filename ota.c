@@ -11,35 +11,26 @@
 
 static app_action_t flash_all_finish(string_t *dst,
 		SpiFlashOpResult result, unsigned int sector,
-		const char /*flash*/ *tag, const char /*flash*/ *action)
+		const char *tag, const char *action)
 {
-	roflash static const char cause_error[] = "error";
-	roflash static const char cause_timeout[] = "timeout";
-	roflash static const char cause_unknown[] = "unknown";
-
-	const char /*flash*/ *cause = (const char *)0;
+	const char *cause = (const char *)0;
 
 	if(result == SPI_FLASH_RESULT_OK)
 		cause = (const char *)0;
 	else
 		if(result == SPI_FLASH_RESULT_ERR)
-			cause = cause_error;
+			cause = "error";
 		else
 			if(result == SPI_FLASH_RESULT_TIMEOUT)
-				cause = cause_timeout;
+				cause = "timeout";
 			else
-				cause = cause_unknown;
+				cause = "unknown";
 
 	if(cause)
 	{
 		string_clear(dst);
-		string_append(dst, "ERROR: ");
-		string_append_cstr_flash(dst, tag);
-		string_append(dst, ": flash ");
-		string_append_cstr_flash(dst, action);
-		string_append(dst, " ");
-		string_append_cstr_flash(dst, cause);
-		string_format(dst, " at %x\n", sector);
+		string_format(dst, "ERROR: %s: %s flash %s at %x\n",
+				tag, action, cause, sector);
 
 		return(app_action_error);
 	}
@@ -49,35 +40,29 @@ static app_action_t flash_all_finish(string_t *dst,
 
 static app_action_t flash_read(unsigned int sector, void *dst, const char *tag, string_t *str_dst)
 {
-	roflash static const char action_read[] = "read";
-
 	SpiFlashOpResult result;
 
 	result = spi_flash_read(sector * SPI_FLASH_SEC_SIZE, dst, SPI_FLASH_SEC_SIZE);
 
-	return(flash_all_finish(str_dst, result, sector, tag, action_read));
+	return(flash_all_finish(str_dst, result, sector, tag, "read"));
 }
 
 static app_action_t flash_write(unsigned int sector, const void *src, const char *tag, string_t *str_dst)
 {
-	roflash static const char action_write[] = "write";
-
 	SpiFlashOpResult result;
 
 	result = spi_flash_write(sector * SPI_FLASH_SEC_SIZE, src, SPI_FLASH_SEC_SIZE);
 
-	return(flash_all_finish(str_dst, result, sector, tag, action_write));
+	return(flash_all_finish(str_dst, result, sector, tag, "write"));
 }
 
 static app_action_t flash_erase(unsigned int sector, const char *tag, string_t *str_dst)
 {
-	roflash static const char action_erase[] = "erase";
-
 	SpiFlashOpResult result;
 
 	result = spi_flash_erase_sector(sector);
 
-	return(flash_all_finish(str_dst, result, sector, tag, action_erase));
+	return(flash_all_finish(str_dst, result, sector, tag, "erase"));
 }
 
 app_action_t application_function_flash_info(app_params_t *parameters)
@@ -135,19 +120,15 @@ app_action_t application_function_flash_info(app_params_t *parameters)
 
 app_action_t application_function_flash_read(app_params_t *parameters)
 {
-	roflash static const char tag_flash_read[] = "flash read";
-
-	unsigned int sector;
+	unsigned int sector, pad_offset, oob_offset;
 	uint8_t *sector_dst;
 	app_action_t rv;
 
-	if(string_size(parameters->dst) < (SPI_FLASH_SEC_SIZE + ota_data_offset))
+	if(string_size(parameters->dst) < (int)(SPI_FLASH_SEC_SIZE + 64))
 	{
 		string_format(parameters->dst, "ERROR flash-read: flash sector buffer too small: %d\n", string_size(parameters->dst));
 		return(app_action_error);
 	}
-
-	sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + ota_data_offset;
 
 	if(parse_uint(1, parameters->src, &sector, 0, ' ') != parse_ok)
 	{
@@ -155,19 +136,29 @@ app_action_t application_function_flash_read(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	if((rv = flash_read(sector, sector_dst, tag_flash_read, parameters->dst)) != app_action_normal)
+	string_format(parameters->dst, "OK flash-read: read sector %u\n", sector);
+	oob_offset = pad_offset = string_length(parameters->dst);
+	sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + pad_offset;
+
+	while((oob_offset % 4 != 0))
+	{
+		*sector_dst++ = '\0';
+		oob_offset++;
+	}
+
+	if((rv = flash_read(sector, sector_dst, "flash read", parameters->dst)) != app_action_normal)
 		return(rv);
 
-	string_format(parameters->dst, "OK flash-read: read sector %u\n", sector);
-	string_setlength(parameters->dst, SPI_FLASH_SEC_SIZE + ota_data_offset);
+	string_setlength(parameters->dst, oob_offset + SPI_FLASH_SEC_SIZE);
+
+	parameters->dst_data_pad_offset = pad_offset;
+	parameters->dst_data_oob_offset = oob_offset;
 
 	return(app_action_normal);
 }
 
 app_action_t application_function_flash_write(app_params_t *parameters)
 {
-	static roflash const char tag_flash_write[] = "flash-write";
-
 	unsigned int mode;
 	unsigned int sector;
 	unsigned int word;
@@ -196,16 +187,16 @@ app_action_t application_function_flash_write(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	if(string_length(parameters->src) != (SPI_FLASH_SEC_SIZE + ota_data_offset))
+	if(string_length(parameters->src_oob) != SPI_FLASH_SEC_SIZE)
 	{
-		string_format(parameters->dst, "ERROR flash-write: flash sector data length mismatch: %d != %d\n", string_length(parameters->src) + ota_data_offset, SPI_FLASH_SEC_SIZE);
+		string_format(parameters->dst, "ERROR flash-write: flash sector data length mismatch: %d != %d\n", string_length(parameters->src_oob), SPI_FLASH_SEC_SIZE);
 		return(app_action_error);
 	}
 
 	old = (uint8_t *)string_buffer_nonconst(parameters->dst);
-	new = (const uint8_t *)string_buffer(parameters->src) + ota_data_offset;
+	new = (const uint8_t *)string_buffer(parameters->src_oob);
 
-	if((rv = flash_read(sector, old, tag_flash_write, parameters->dst)) != app_action_normal)
+	if((rv = flash_read(sector, old, "flash_write", parameters->dst)) != app_action_normal)
 		return(rv);
 
 	same = !memory_compare(SPI_FLASH_SEC_SIZE, old, new);
@@ -224,10 +215,10 @@ app_action_t application_function_flash_write(app_params_t *parameters)
 
 		if(mode == 1)
 		{
-			if(erase && ((rv = flash_erase(sector, tag_flash_write, parameters->dst)) != app_action_normal))
+			if(erase && ((rv = flash_erase(sector, "flash_write", parameters->dst)) != app_action_normal))
 				return(rv);
 
-			if((rv = flash_write(sector, new, tag_flash_write, parameters->dst)) != app_action_normal)
+			if((rv = flash_write(sector, new, "flash_write", parameters->dst)) != app_action_normal)
 				return(rv);
 		}
 	}
@@ -240,7 +231,6 @@ app_action_t application_function_flash_write(app_params_t *parameters)
 
 app_action_t application_function_flash_checksum(app_params_t *parameters)
 {
-	static roflash const char tag_checksum[] = "flash checksum";
 	app_action_t result;
 	unsigned int sector, sectors, current, done;
 	char *buffer;
@@ -272,7 +262,7 @@ app_action_t application_function_flash_checksum(app_params_t *parameters)
 
 	for(current = sector, done = 0; done < sectors; current++, done++)
 	{
-		if((result = flash_read(current, buffer, tag_checksum, parameters->dst)) != app_action_normal)
+		if((result = flash_read(current, buffer, "flash_checksum", parameters->dst)) != app_action_normal)
 			return(result);
 
 		SHA1Update(&sha_context, buffer, SPI_FLASH_SEC_SIZE);
@@ -291,7 +281,7 @@ app_action_t application_function_flash_checksum(app_params_t *parameters)
 
 app_action_t application_function_flash_bench(app_params_t *parameters)
 {
-	unsigned int bytes;
+	unsigned int bytes, pad_offset, oob_offset;
 	uint8_t *sector_dst;
 
 	if(string_size(parameters->dst) < SPI_FLASH_SEC_SIZE)
@@ -312,11 +302,21 @@ app_action_t application_function_flash_bench(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + ota_data_offset;
-	memset(sector_dst, 0xff, SPI_FLASH_SEC_SIZE);
-
 	string_format(parameters->dst, "OK flash-bench: sending %u bytes\n", bytes);
-	string_setlength(parameters->dst, ota_data_offset + bytes);
+	oob_offset = pad_offset = string_length(parameters->dst);
+	sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + pad_offset;
+
+	while((oob_offset % 4) != 0)
+	{
+		*sector_dst++ = '\0';
+		oob_offset++;
+	}
+
+	memset(sector_dst, 0xff, bytes);
+	string_setlength(parameters->dst, oob_offset + bytes);
+
+	parameters->dst_data_pad_offset = pad_offset;
+	parameters->dst_data_oob_offset = oob_offset;
 
 	return(app_action_normal);
 }

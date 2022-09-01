@@ -16,5 +16,5 @@
 #define assert_size(type, size) _Static_assert(sizeof(type) == size, "sizeof(" #type ") != " #size)
 #define assert_size_le(type1, type2) _Static_assert(sizeof(type1) <= sizeof(type2), "sizeof(" #type1 ") > sizeof(" #type2 ")")
 #define assert_enum(name, value) _Static_assert((name) == (value), "enum value for " #name " != " #value)
-
+#define assert_field(name, field, offset) _Static_assert(offsetof(name, field) == offset)
 #endif
