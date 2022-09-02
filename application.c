@@ -1920,7 +1920,7 @@ static app_action_t application_function_broadcast_group_set(app_params_t *param
 	{
 		if(group > 7)
 		{
-			string_append(parameters->dst, "group must be between 0 and 7\n");
+			string_append(parameters->dst, "group must be between 0 and 15\n");
 			return(app_action_error);
 		}
 
@@ -2367,7 +2367,7 @@ roflash static const char help_description_log_display[] =			"display log";
 roflash static const char help_description_log_clear[] =			"display and clear the log";
 roflash static const char help_description_log_write[] =			"write to the log";
 roflash static const char help_description_multicast_group_set[] =	"set multicast group, entry 0-7, ip address";
-roflash static const char help_description_broadcast_group_set[] =	"set broadcast group, entry 0-7, 0=disable 1=enable";
+roflash static const char help_description_broadcast_group_set[] =	"set broadcast group, entry 0-15, 0=disable 1=enable";
 roflash static const char help_description_sntp_set[] =				"set sntp <ip addr>";
 roflash static const char help_description_time_set[] =				"set time base using <h> <m> [<s>]";
 roflash static const char help_description_time_stamp_set[] =		"set time base using unix epoch timestamp";
