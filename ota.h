@@ -49,9 +49,9 @@ typedef struct attr_packed
 		} flag;							// 14
 		uint16_t flags;					// 14
 	};
-	uint32_t spare_0;					// 16
-	uint32_t spare_1;					// 20
-	uint32_t spare_2;					// 24
+	uint32_t transaction_id;			// 16
+	uint32_t spare_0;					// 20
+	uint32_t spare_1;					// 24
 	uint32_t checksum;					// 28
 } packet_header_t;
 
@@ -65,9 +65,9 @@ assert_field(packet_header_t, oob_data_offset, 10);
 assert_field(packet_header_t, broadcast_groups, 12);
 assert_field(packet_header_t, flag, 14);
 assert_field(packet_header_t, flags, 14);
-assert_field(packet_header_t, spare_0, 16);
-assert_field(packet_header_t, spare_1, 20);
-assert_field(packet_header_t, spare_2, 24);
+assert_field(packet_header_t, transaction_id, 16);
+assert_field(packet_header_t, spare_0, 20);
+assert_field(packet_header_t, spare_1, 24);
 assert_field(packet_header_t, checksum, 28);
 assert_size(packet_header_t, 32);
 

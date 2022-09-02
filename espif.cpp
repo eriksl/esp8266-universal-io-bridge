@@ -308,8 +308,8 @@ class Packet
 		void clear();
 		void append_data(const std::string &);
 		void append_oob_data(const std::string &);
-		std::string encapsulate(bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask);
-		bool decapsulate(std::string *data = nullptr, std::string *oob_data = nullptr, bool *raw = nullptr);
+		std::string encapsulate(uint32_t &transaction_id, bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask);
+		bool decapsulate(uint32_t transaction_id, std::string *data = nullptr, std::string *oob_data = nullptr, bool *raw = nullptr);
 		bool complete();
 
 	private:
@@ -331,9 +331,9 @@ void Packet::clear_packet_header()
 	packet_header.oob_data_offset = 0;
 	packet_header.broadcast_groups = 0;
 	packet_header.flags = 0;
+	packet_header.transaction_id = 0;
 	packet_header.spare_0 = 0;
 	packet_header.spare_1 = 0;
-	packet_header.spare_2 = 0;
 	packet_header.checksum = 0;
 }
 
@@ -369,10 +369,13 @@ void Packet::append_oob_data(const std::string &oob_data_in)
 	oob_data.append(oob_data_in);
 }
 
-std::string Packet::encapsulate(bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask)
+std::string Packet::encapsulate(uint32_t &transaction_id, bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask)
 {
 	std::string pad;
 	std::string packet;
+	struct timeval tv;
+	gettimeofday(&tv, nullptr);
+	boost::random::mt19937 prg(tv.tv_usec);
 
 	if(raw)
 	{
@@ -406,6 +409,7 @@ std::string Packet::encapsulate(bool raw, bool provide_checksum, bool request_ch
 		packet_header.data_offset = sizeof(packet_header);
 		packet_header.data_pad_offset = sizeof(packet_header) + data.length();
 		packet_header.oob_data_offset = sizeof(packet_header) + data.length() + pad.length();
+		packet_header.transaction_id = transaction_id = prg();
 
 		if(request_checksum)
 			packet_header.flag.md5_32_requested = 1;
@@ -425,7 +429,7 @@ std::string Packet::encapsulate(bool raw, bool provide_checksum, bool request_ch
 	return(packet);
 }
 
-bool Packet::decapsulate(std::string *data_in, std::string *oob_data_in, bool *rawptr)
+bool Packet::decapsulate(uint32_t transaction_id, std::string *data_in, std::string *oob_data_in, bool *rawptr)
 {
 	bool raw = false;
 	unsigned int our_checksum;
@@ -500,6 +504,14 @@ bool Packet::decapsulate(std::string *data_in, std::string *oob_data_in, bool *r
 			}
 		}
 
+		if(packet_header.transaction_id != transaction_id)
+		{
+			if(option_verbose)
+				std::cout << "duplicate packet" << std::endl;
+
+			return(false);
+		}
+
 		if((packet_header.oob_data_offset != packet_header.length) && ((packet_header.oob_data_offset % 4) != 0))
 		{
 			if(option_verbose)
@@ -569,8 +581,10 @@ static int process(GenericSocket &channel, const std::string &data, const std::s
 	unsigned int attempt;
 	Packet send_packet(&data, oob_data);
 	std::string send_data;
+	std::string packet;
 	Packet receive_packet;
 	std::string receive_data;
+	uint32_t transaction_id;
 
 	if(option_verbose)
 	{
@@ -592,9 +606,11 @@ static int process(GenericSocket &channel, const std::string &data, const std::s
 		std::cout << "\"" << std::endl;
 	}
 
+	packet = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+
 	for(attempt = 0; attempt < 4; attempt++)
 	{
-		send_data = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+		send_data = packet;
 
 		while(send_data.length() > 0)
 		{
@@ -624,7 +640,7 @@ static int process(GenericSocket &channel, const std::string &data, const std::s
 			receive_packet.append_data(receive_data);
 		}
 
-		if(!receive_packet.decapsulate(&reply_data, reply_oob_data))
+		if(!receive_packet.decapsulate(transaction_id, &reply_data, reply_oob_data))
 			goto retry;
 
 		break;
@@ -1648,6 +1664,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 	std::string send_data;
 	Packet receive_packet;
 	std::string receive_data;
+	uint32_t transaction_id;
 
 	if(dont_wait)
 	{
@@ -1674,7 +1691,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 		send_packet.clear();
 		send_packet.append_data(arg);
 
-		send_data = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+		send_data = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
 
 		while(send_data.length() > 0)
 			if(!send_socket.send(send_data))
@@ -1692,7 +1709,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 			receive_packet.append_data(receive_data);
 		}
 
-		if(!receive_packet.decapsulate(&reply, &reply_oob))
+		if(!receive_packet.decapsulate(transaction_id, &reply, &reply_oob))
 			throw("command send: decapsulate failed");
 
 		std::cout << reply;
@@ -1743,8 +1760,9 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 	multicast_replies_t multicast_replies;
 	int total_replies, total_hosts;
 	int run;
+	uint32_t transaction_id;
 
-	packet = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+	packet = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
 
 	if(dontwait)
 	{
@@ -1783,7 +1801,7 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 			receive_packet.clear();
 			receive_packet.append_data(reply_data);
 
-			if(!receive_packet.decapsulate(&reply_data, nullptr))
+			if(!receive_packet.decapsulate(transaction_id, &reply_data, nullptr))
 			{
 				if(option_verbose)
 					std::cout << "multicast: cannot decapsulate" << std::endl;
@@ -1849,6 +1867,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	std::vector<std::string> string_value;
 	std::vector<int> int_value;
 	std::string send_data;
+	uint32_t transaction_id;
 
 	send_data = (boost::format("flash-select %u %u") % flash_slot % (notemp ? 1 : 0)).str();
 	process(command_channel, send_data, nullptr, reply, nullptr, flash_select_expect, string_value, int_value);
@@ -1875,7 +1894,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	std::cout << "rebooting" << std::endl;
 	send_data = "reset";
 	Packet send_packet(&send_data, nullptr);
-	send_data = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+	send_data = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
 	command_channel.send(send_data);
 	usleep(200000);
 	command_channel.drain();

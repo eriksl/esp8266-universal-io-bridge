@@ -9,6 +9,7 @@
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
 #include <boost/crc.hpp>
+#include <boost/random/mersenne_twister.hpp>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/poll.h>

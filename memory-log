@@ -15582,3 +15582,27 @@ Fri Sep  2 15:47:51 CEST 2022 e0b3b63 espif: fix a few timeouts.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70993, free:   9272, 11 %
     irom:    available: 784 k, used: 445840, free: 356976, 44 %
+Fri Sep  2 16:06:15 CEST 2022 6a5fb0e add counters for broadcast/multicast received and dropped.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70993, free:   9272, 11 %
+    irom:    available: 784 k, used: 445872, free: 356944, 44 %
+Fri Sep  2 16:24:57 CEST 2022 6a5fb0e add counters for broadcast/multicast received and dropped.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70993, free:   9272, 11 %
+    irom:    available: 784 k, used: 445920, free: 356896, 44 %
+Fri Sep  2 16:31:13 CEST 2022 6a5fb0e add counters for broadcast/multicast received and dropped.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 446048, free: 356768, 44 %
+Fri Sep  2 16:39:53 CEST 2022 6a5fb0e add counters for broadcast/multicast received and dropped.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 446064, free: 356752, 44 %
+Fri Sep  2 16:47:20 CEST 2022 682868b Implement transaction id to be able to drop duplicate packets.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 446016, free: 356800, 44 %
+Fri Sep  2 18:02:09 CEST 2022 682868b Implement transaction id to be able to drop duplicate packets.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 446032, free: 356784, 44 %

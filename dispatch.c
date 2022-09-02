@@ -46,6 +46,8 @@ static command_input_state_t command_input_state;
 
 assert_size(command_input_state, 12);
 
+static uint32_t previous_transaction_id[2];
+
 static os_event_t task_queue[3][task_queue_length];
 
 string_new(static attr_flash_align, command_socket_receive_buffer, sizeof(packet_header_t) + 64 + SPI_FLASH_SEC_SIZE);
@@ -182,6 +184,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			app_action_t action;
 			string_t cooked_src, cooked_src_oob, cooked_dst;
 			bool checksum_requested;
+			uint32_t transaction_id = 0;
 
 			if(argument == task_received_command_uart)
 			{
@@ -253,6 +256,13 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					goto error;
 				}
 
+				transaction_id = packet_header->transaction_id;
+
+				if((transaction_id != 0) &&
+						((transaction_id == previous_transaction_id[0]) || (transaction_id == previous_transaction_id[1])))
+				{
+					stat_dispatch_command_duplicate++;
+					goto error;
 				}
 
 				string_set(&cooked_src,
@@ -372,10 +382,13 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				packet_header->broadcast_groups = 0;
 				packet_header->flags = 0;
+				packet_header->transaction_id = transaction_id;
 				packet_header->spare_0 = 0;
 				packet_header->spare_1 = 0;
-				packet_header->spare_2 = 0;
 				packet_header->checksum = 0;
+
+				previous_transaction_id[1] = previous_transaction_id[0];
+				previous_transaction_id[0] = transaction_id;
 
 				if(checksum_requested)
 				{
@@ -734,6 +747,9 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigne
 void dispatch_init1(void)
 {
 	flash_buffer_release(fsb_free, "init");
+
+	previous_transaction_id[0] = 0;
+	previous_transaction_id[1] = 0;
 
 	system_os_task(user_task_prio_0_handler, USER_TASK_PRIO_0, task_queue[0], task_queue_length);
 	system_os_task(user_task_prio_1_handler, USER_TASK_PRIO_1, task_queue[1], task_queue_length);

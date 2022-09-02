@@ -39,6 +39,7 @@ extern unsigned int stat_update_command_uart;
 extern unsigned int stat_update_display;
 extern unsigned int stat_dispatch_command_input_timeout;
 extern unsigned int stat_dispatch_command_input_checksum_error;
+extern unsigned int stat_dispatch_command_duplicate;
 extern unsigned int stat_display_picture_load_worker_called;
 extern unsigned int stat_task_posted[3];
 extern unsigned int stat_task_executed[3];
