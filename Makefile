@@ -117,7 +117,7 @@ endif
 
 ALL_IMAGE_TARGETS	:= $(FIRMWARE_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_IMG)
 ALL_BUILD_TARGET	:= ctng lwip lwip_espressif
-ALL_FLASH_TARGETS	:= espflash espif
+ALL_FLASH_TARGETS	:= espif
 ALL_TOOL_TARGETS	:= resetserial
 ALL_EXTRA_TARGETS	:= free
 
@@ -228,7 +228,7 @@ clean:
 
 realclean:		clean
 				$(VECHO) "REALCLEAN"
-				-$(Q) rm -f espif.h.gch resetserial espflash 2> /dev/null
+				-$(Q) rm -f espif.h.gch resetserial 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -459,7 +459,6 @@ wipe-config:
 						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) -c -x c++-header $< -o $@
 
 espif:					espif.cpp espif.h.gch
-espflash:				espflash.cpp
 resetserial:			resetserial.cpp
 
 
