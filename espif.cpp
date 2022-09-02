@@ -494,21 +494,8 @@ bool Packet::decapsulate(std::string *data_in, std::string *oob_data_in, bool *r
 			if(our_checksum != packet_header.checksum)
 			{
 				if(option_verbose)
-				{
 					std::cout << "decapsulate: invalid checksum, ours: " << std::hex << our_checksum << ", theirs: " << packet_header.checksum << std::dec << std::endl;
 
-					std::cout << "length: " << data.length() << std::endl;
-
-					std::cout << "1length: " << packet_header.length << std::endl;
-					std::cout << "1data: " << packet_header.data_offset << std::endl;
-					std::cout << "1pad: " << packet_header.data_pad_offset << std::endl;
-					std::cout << "1oob: " << packet_header.oob_data_offset << std::endl;
-
-					std::cout << "2length: " << packet_header_checksum.length << std::endl;
-					std::cout << "2data: " << packet_header_checksum.data_offset << std::endl;
-					std::cout << "2pad: " << packet_header_checksum.data_pad_offset << std::endl;
-					std::cout << "2oob: " << packet_header_checksum.oob_data_offset << std::endl;
-				}
 				return(false);
 			}
 		}
