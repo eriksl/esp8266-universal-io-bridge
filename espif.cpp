@@ -24,6 +24,7 @@ static bool option_raw = false;
 static bool option_verbose = false;
 static bool option_no_provide_checksum = false;
 static bool option_no_request_checksum = false;
+static bool option_use_tcp = false;
 static unsigned int option_broadcast_group_mask = 0;
 
 static const std::string flash_info_expect("OK flash function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\], display: ([0-9]+)x([0-9]+)px@([0-9]+)");
@@ -56,10 +57,10 @@ class GenericSocket
 		std::string host;
 		std::string service;
 		struct sockaddr_in saddr;
-		bool use_udp, broadcast, multicast;
+		bool tcp, broadcast, multicast;
 
 	public:
-		GenericSocket(const std::string &host, const std::string &port, bool use_udp, bool broadcast, bool multicast);
+		GenericSocket(const std::string &host, const std::string &port, bool tcp, bool broadcast, bool multicast);
 		~GenericSocket();
 
 		bool send(std::string &data, int timeout = -1);
@@ -69,9 +70,9 @@ class GenericSocket
 		void disconnect();
 };
 
-GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool use_udp_in,
+GenericSocket::GenericSocket(const std::string &host_in, const std::string &service_in, bool tcp_in,
 		bool broadcast_in, bool multicast_in)
-	: socket_fd(-1), service(service_in), use_udp(use_udp_in), broadcast(broadcast_in), multicast(multicast_in)
+	: socket_fd(-1), service(service_in), tcp(tcp_in), broadcast(broadcast_in), multicast(multicast_in)
 {
 	memset(&saddr, 0, sizeof(saddr));
 
@@ -81,7 +82,7 @@ GenericSocket::GenericSocket(const std::string &host_in, const std::string &serv
 		host = host_in;
 
 	if(multicast || broadcast)
-		use_udp = true;
+		tcp = false;
 
 	this->connect();
 }
@@ -96,12 +97,12 @@ void GenericSocket::connect()
 	struct addrinfo hints;
 	struct addrinfo *res = nullptr;
 
-	if((socket_fd = socket(AF_INET, use_udp ? SOCK_DGRAM : SOCK_STREAM, 0)) < 0)
+	if((socket_fd = socket(AF_INET, tcp ? SOCK_STREAM : SOCK_DGRAM, 0)) < 0)
 		throw(std::string("socket failed"));
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
-	hints.ai_socktype = use_udp ? SOCK_DGRAM : SOCK_STREAM;
+	hints.ai_socktype = tcp ? SOCK_STREAM : SOCK_DGRAM;
 	hints.ai_flags = AI_NUMERICSERV;
 
 	if(getaddrinfo(host.c_str(), service.c_str(), &hints, &res))
@@ -149,7 +150,7 @@ void GenericSocket::connect()
 			throw(std::string("multicast: cannot join mc group"));
 	}
 
-	if(!use_udp && ::connect(socket_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
+	if(tcp && ::connect(socket_fd, (const struct sockaddr *)&saddr, sizeof(saddr)))
 		throw(std::string("connect failed"));
 }
 
@@ -192,14 +193,14 @@ bool GenericSocket::send(std::string &data, int timeout)
 	if(pfd.revents & (POLLERR | POLLHUP))
 		return(false);
 
-	if(use_udp)
+	if(tcp)
 	{
-		if((length = ::sendto(socket_fd, data.data(), data.length(), 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr))) <= 0)
+		if((length = ::send(socket_fd, data.data(), data.length(), 0)) <= 0)
 			return(false);
 	}
 	else
 	{
-		if((length = ::send(socket_fd, data.data(), data.length(), 0)) <= 0)
+		if((length = ::sendto(socket_fd, data.data(), data.length(), 0, (const struct sockaddr *)&this->saddr, sizeof(this->saddr))) <= 0)
 			return(false);
 	}
 
@@ -216,7 +217,7 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 
 	if(timeout < 0)
-		timeout = use_udp ? 200 : 2000;
+		timeout = tcp ? 2000 : 200;
 
 	if(poll(&pfd, 1, timeout) != 1)
 	{
@@ -239,21 +240,21 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 		return(false);
 	}
 
-	if(use_udp)
-	{
-		if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (sockaddr *)remote_host, &remote_host_length)) <= 0)
-		{
-			if(option_verbose)
-				std::cout << "udp receive: length <= 0" << std::endl;
-			return(false);
-		}
-	}
-	else
+	if(tcp)
 	{
 		if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) <= 0)
 		{
 			if(option_verbose)
 				std::cout << "tcp receive: length <= 0" << std::endl;
+			return(false);
+		}
+	}
+	else
+	{
+		if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (sockaddr *)remote_host, &remote_host_length)) <= 0)
+		{
+			if(option_verbose)
+				std::cout << "udp receive: length <= 0" << std::endl;
 			return(false);
 		}
 	}
@@ -277,20 +278,20 @@ void GenericSocket::drain()
 	pfd.events = POLLIN | POLLERR | POLLHUP;
 	pfd.revents = 0;
 
-	if(poll(&pfd, 1, use_udp ? 200 : 10000) != 1)
+	if(poll(&pfd, 1, tcp ? 10000 : 200) != 1)
 		return;
 
 	if(pfd.revents & (POLLERR | POLLHUP))
 		return;
 
-	if(use_udp)
+	if(tcp)
 	{
-		if((length = ::recvfrom(socket_fd, buffer, flash_sector_size * drain_packets, 0, (struct sockaddr *)0, 0)) < 0)
+		if((length = ::recv(socket_fd, buffer, flash_sector_size * drain_packets, 0)) < 0)
 			return;
 	}
 	else
 	{
-		if((length = ::recv(socket_fd, buffer, flash_sector_size * drain_packets, 0)) < 0)
+		if((length = ::recvfrom(socket_fd, buffer, flash_sector_size * drain_packets, 0, (struct sockaddr *)0, 0)) < 0)
 			return;
 	}
 
@@ -1940,7 +1941,6 @@ int main(int argc, const char **argv)
 		int image_timeout;
 		int dim_x, dim_y, depth;
 		unsigned int length;
-		bool use_udp = false;
 		bool dont_wait = false;
 		bool nocommit = false;
 		bool noreset = false;
@@ -1971,14 +1971,14 @@ int main(int argc, const char **argv)
 			("multicast,M",				po::bool_switch(&cmd_multicast)->implicit_value(true),						"MULTICAST SENDER send multicast message")
 			("host,h",					po::value<std::vector<std::string> >(&host_args)->required(),				"host or broadcast address or multicast group to use")
 			("verbose,v",				po::bool_switch(&option_verbose)->implicit_value(true),						"verbose output")
-			("udp,u",					po::bool_switch(&use_udp)->implicit_value(true),							"use UDP instead of TCP")
+			("tcp,t",					po::bool_switch(&option_use_tcp)->implicit_value(true),						"use TCP instead of UDP")
 			("filename,f",				po::value<std::string>(&filename),											"file name")
 			("start,s",					po::value<std::string>(&start_string)->default_value("-1"),					"send/receive start address (OTA is default)")
 			("length,l",				po::value<std::string>(&length_string)->default_value("0x1000"),			"read length")
 			("command-port,p",			po::value<std::string>(&command_port)->default_value("24"),					"command port to connect to")
 			("nocommit,n",				po::bool_switch(&nocommit)->implicit_value(true),							"don't commit after writing")
 			("noreset,N",				po::bool_switch(&noreset)->implicit_value(true),							"don't reset after commit")
-			("notemp,t",				po::bool_switch(&notemp)->implicit_value(true),								"don't commit temporarily, commit to flash")
+			("notemp,T",				po::bool_switch(&notemp)->implicit_value(true),								"don't commit temporarily, commit to flash")
 			("dontwait,d",				po::bool_switch(&dont_wait)->implicit_value(true),							"don't wait for reply on message")
 			("image_slot,x",			po::value<int>(&image_slot)->default_value(-1),								"send image to flash slot x instead of frame buffer")
 			("image_timeout,y",			po::value<int>(&image_timeout)->default_value(5000),						"freeze frame buffer for y ms after sending")
@@ -2042,7 +2042,7 @@ int main(int argc, const char **argv)
 		if(selected > 1)
 			throw(std::string("specify one of write/simulate/verify/image/epaper-image/read/info"));
 
-		GenericSocket command_channel(host, command_port, use_udp, !!cmd_broadcast, !!cmd_multicast);
+		GenericSocket command_channel(host, command_port, option_use_tcp, !!cmd_broadcast, !!cmd_multicast);
 
 		if(selected == 0)
 			command_send(command_channel, dont_wait, args);

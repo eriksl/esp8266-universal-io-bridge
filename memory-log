@@ -15558,3 +15558,7 @@ Thu Sep  1 17:09:52 CEST 2022 dee38c9 ota: conform packet header enum field valu
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70969, free:   9296, 11 %
     irom:    available: 784 k, used: 445712, free: 357104, 44 %
+Fri Sep  2 11:31:00 CEST 2022 e6f41a0 implement packet header version 2 (more flexible) and oob data without packet.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445728, free: 357088, 44 %
