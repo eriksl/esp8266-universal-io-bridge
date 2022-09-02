@@ -217,7 +217,7 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 
 	if(timeout < 0)
-		timeout = tcp ? 2000 : 200;
+		timeout = tcp ? 2000 : 500;
 
 	if(poll(&pfd, 1, timeout) != 1)
 	{
@@ -278,7 +278,7 @@ void GenericSocket::drain()
 	pfd.events = POLLIN | POLLERR | POLLHUP;
 	pfd.revents = 0;
 
-	if(poll(&pfd, 1, tcp ? 10000 : 200) != 1)
+	if(poll(&pfd, 1, tcp ? 10000 : 500) != 1)
 		return;
 
 	if(pfd.revents & (POLLERR | POLLHUP))

@@ -15562,3 +15562,7 @@ Fri Sep  2 11:31:00 CEST 2022 e6f41a0 implement packet header version 2 (more fl
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70969, free:   9296, 11 %
     irom:    available: 784 k, used: 445728, free: 357088, 44 %
+Fri Sep  2 11:50:56 CEST 2022 58eea0b switch to udp by default which gives better control.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445696, free: 357120, 44 %
