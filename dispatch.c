@@ -217,7 +217,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 				if(packet_header->version != packet_header_version)
 				{
 					log("dispatch: wrong version packet received: %u\n", packet_header->version);
-					return;
+					goto error;
 				}
 
 				checksum_requested = !!(packet_header->flag.md5_32_requested);
@@ -234,20 +234,14 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					if(our_checksum != their_checksum)
 					{
 						stat_dispatch_command_input_checksum_error++;
-						string_clear(&command_socket_receive_buffer);
-						lwip_if_receive_buffer_unlock(&command_socket);
-						return;
+						goto error;
 					}
 				}
 
 				if(packet_header->broadcast_groups != 0)
 				{
 					if(!(packet_header->broadcast_groups & broadcast_groups))
-					{
-						string_clear(&command_socket_receive_buffer);
-						lwip_if_receive_buffer_unlock(&command_socket);
-						return;
-					}
+						goto error;
 					else
 						stat_broadcast_group_received++;
 				}
@@ -256,8 +250,9 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 				{
 					log("dispatch: oob data unaligned: %u %u %u %u\n", packet_header->length, packet_header->data_offset,
 							packet_header->data_pad_offset, packet_header->oob_data_offset);
+					goto error;
+				}
 
-					return;
 				}
 
 				string_set(&cooked_src,
@@ -293,7 +288,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					if(delimiter >= string_length(&command_socket_receive_buffer))
 					{
 						log("dispatch: raw data oob padding invalid: %d %d\n", string_length(&command_socket_receive_buffer), delimiter);
-						return;
+						goto error;
 					}
 
 					string_set(&cooked_src_oob,
@@ -421,6 +416,13 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			if(action == app_action_reset)
 				if(!lwip_if_reboot(&command_socket))
 					dispatch_post_task(0, task_reset, 0);
+
+			break;
+
+error:
+			string_clear(&command_socket_receive_buffer);
+			lwip_if_receive_buffer_unlock(&command_socket);
+			string_clear(&command_socket_send_buffer);
 
 			break;
 		}
