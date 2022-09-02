@@ -405,6 +405,12 @@ static app_action_t application_function_stats_counters(app_params_t *parameters
 	return(app_action_normal);
 }
 
+static app_action_t application_function_stats_lwip(app_params_t *parameters)
+{
+	stats_lwip(parameters->dst);
+	return(app_action_normal);
+}
+
 static app_action_t application_function_stats_i2c(app_params_t *parameters)
 {
 	stats_i2c(parameters->dst);
@@ -2328,6 +2334,7 @@ roflash static const char help_description_identification[] =		"hostname/identif
 roflash static const char help_description_statistics[] =			"generic info and statistics";
 roflash static const char help_description_stats_flash[] =			"statistics about flash use";
 roflash static const char help_description_stats_counters[] =		"statistics from counters";
+roflash static const char help_description_stats_lwip[] =			"statistics from lwip";
 roflash static const char help_description_stats_i2c[] =			"statistics from i2c subsystem";
 roflash static const char help_description_stats_sequencer[] =		"statistics from the sequencer";
 roflash static const char help_description_stats_time[] =			"statistics from the time subsystem";
@@ -2431,6 +2438,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"sc", "stats-counters",
 		application_function_stats_counters,
 		help_description_stats_counters,
+	},
+	{
+		"sl", "stats-lwip",
+		application_function_stats_lwip,
+		help_description_stats_lwip,
 	},
 	{
 		"si", "stats-i2c",

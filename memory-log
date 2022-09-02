@@ -15566,3 +15566,19 @@ Fri Sep  2 11:50:56 CEST 2022 58eea0b switch to udp by default which gives bette
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70969, free:   9296, 11 %
     irom:    available: 784 k, used: 445696, free: 357120, 44 %
+Fri Sep  2 15:16:45 CEST 2022 e0b3b63 espif: fix a few timeouts.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445680, free: 357136, 44 %
+Fri Sep  2 15:20:34 CEST 2022 e0b3b63 espif: fix a few timeouts.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70969, free:   9296, 11 %
+    irom:    available: 784 k, used: 445664, free: 357152, 44 %
+Fri Sep  2 15:34:10 CEST 2022 e0b3b63 espif: fix a few timeouts.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70977, free:   9288, 11 %
+    irom:    available: 784 k, used: 445776, free: 357040, 44 %
+Fri Sep  2 15:47:51 CEST 2022 e0b3b63 espif: fix a few timeouts.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70993, free:   9272, 11 %
+    irom:    available: 784 k, used: 445840, free: 356976, 44 %

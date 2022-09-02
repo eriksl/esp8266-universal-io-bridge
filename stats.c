@@ -22,7 +22,6 @@ unsigned int stat_timer_interrupts;
 unsigned int stat_pwm_timer_interrupts;
 unsigned int stat_pwm_timer_interrupts_while_nmi_masked;
 unsigned int stat_pc_counts;
-unsigned int stat_cmd_receive_buffer_overflow;
 unsigned int stat_cmd_send_buffer_overflow;
 unsigned int stat_uart_receive_buffer_overflow;
 unsigned int stat_uart_send_buffer_overflow;
@@ -55,7 +54,11 @@ unsigned int stat_lwip_udp_received_packets;
 unsigned int stat_lwip_udp_received_bytes;
 unsigned int stat_lwip_udp_sent_packets;
 unsigned int stat_lwip_udp_sent_bytes;
-unsigned int stat_broadcast_received;
+unsigned int stat_lwip_broadcast_received;
+unsigned int stat_lwip_multicast_received;
+unsigned int stat_lwip_broadcast_dropped;
+unsigned int stat_lwip_multicast_dropped;
+unsigned int stat_lwip_receive_buffer_overflow;
 unsigned int stat_broadcast_group_received;
 unsigned int stat_init_display_time_us;
 unsigned int stat_init_io_time_us;
@@ -358,9 +361,9 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> BUFFER OVERFLOWS\n"
-			">  cmd receive:  %4u, send: %u\n"
+			">  cmd: send: %u\n"
 			">  uart receive: %4u, send: %u\n",
-				stat_cmd_receive_buffer_overflow, stat_cmd_send_buffer_overflow,
+				stat_cmd_send_buffer_overflow,
 				stat_uart_receive_buffer_overflow, stat_uart_send_buffer_overflow);
 
 	string_format(dst,
@@ -371,30 +374,6 @@ void stats_counters(string_t *dst)
 				stat_config_read_requests,
 				stat_config_read_loads,
 				stat_config_write_requests, stat_config_write_saved, stat_config_write_aborted);
-
-	string_format(dst,
-			">\n> LWIP\n"
-			">  udp received packets: %6u, bytes: %u\n"
-			">  tcp received packets: %6u, bytes: %u\n"
-			">  udp sent     packets: %6u, bytes: %u\n"
-			">  tcp sent     packets: %6u, bytes: %u\n"
-			">  tcp send segmentation events: %u\n"
-			">  tcp error events: %u\n"
-			">  udp send error events: %u\n"
-			">  broadcast received: %u, group included: %u\n",
-				stat_lwip_udp_received_packets,
-				stat_lwip_udp_received_bytes,
-				stat_lwip_tcp_received_packets,
-				stat_lwip_tcp_received_bytes,
-				stat_lwip_udp_sent_packets,
-				stat_lwip_udp_sent_bytes,
-				stat_lwip_tcp_sent_packets,
-				stat_lwip_tcp_sent_bytes,
-				stat_lwip_tcp_send_segmentation,
-				stat_lwip_tcp_send_error,
-				stat_lwip_udp_send_error,
-				stat_broadcast_received,
-				stat_broadcast_group_received);
 
 	string_format(dst,
 			">\n> INIT TIME\n"
@@ -437,6 +416,36 @@ void stats_counters(string_t *dst)
 			">  max font render time: %u usec\n", stat_font_render_time);
 
 	system_print_meminfo();
+}
+
+void stats_lwip(string_t *dst)
+{
+	string_format(dst,
+			"> LWIP\n"
+			">  udp received packets: %6u, bytes: %u\n"
+			">  tcp received packets: %6u, bytes: %u\n"
+			">  udp sent     packets: %6u, bytes: %u\n"
+			">  tcp sent     packets: %6u, bytes: %u\n"
+			">  tcp send segmentation events: %u\n"
+			">  udp errors: %u\n"
+			">  tcp errors: %u\n"
+			">  receive buffer overflows: %u\n"
+			">  broadcast received: %u, dropped: %u, group included: %u\n"
+			">  multicast received: %u, dropped: %u\n",
+				stat_lwip_udp_received_packets,
+				stat_lwip_udp_received_bytes,
+				stat_lwip_tcp_received_packets,
+				stat_lwip_tcp_received_bytes,
+				stat_lwip_udp_sent_packets,
+				stat_lwip_udp_sent_bytes,
+				stat_lwip_tcp_sent_packets,
+				stat_lwip_tcp_sent_bytes,
+				stat_lwip_tcp_send_segmentation,
+				stat_lwip_udp_send_error,
+				stat_lwip_tcp_send_error,
+				stat_lwip_receive_buffer_overflow,
+				stat_lwip_broadcast_received, stat_lwip_broadcast_dropped, stat_broadcast_group_received,
+				stat_lwip_multicast_received, stat_lwip_multicast_dropped);
 }
 
 void stats_i2c(string_t *dst)

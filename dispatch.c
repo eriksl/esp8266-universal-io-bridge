@@ -611,12 +611,9 @@ static void wlan_event_handler(System_Event_t *event)
 	}
 }
 
-static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length, bool broadcast, bool multicast)
+static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
 	command_input_state.segments++;
-
-	if(broadcast)
-		stat_broadcast_received++;
 
 	if(string_full(&command_socket_receive_buffer))
 	{
@@ -682,7 +679,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 	}
 }
 
-static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received, bool broadcast, bool multicast)
+static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
 {
 	int current, length;
 	uint8_t byte;

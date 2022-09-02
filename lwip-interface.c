@@ -96,10 +96,31 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 	bool broadcast = false;
 	bool multicast = false;
 
+	if(pbuf_received->flags & PBUF_FLAG_LLBCAST)
+	{
+		stat_lwip_broadcast_received++;
+		broadcast = true;
+	}
+
+	if(pbuf_received->flags & PBUF_FLAG_LLMCAST)
+	{
+		stat_lwip_multicast_received++;
+		multicast = true;
+	}
+
 	if(socket->receive_buffer_locked)
 	{
-		stat_cmd_receive_buffer_overflow++;
-		log("lwip-interface: receive buffer overflow\n");
+		if(broadcast)
+			stat_lwip_broadcast_dropped++;
+		else
+			if(multicast)
+				stat_lwip_multicast_dropped++;
+			else
+			{
+				stat_lwip_receive_buffer_overflow++;
+				log("lwip-interface: receive buffer overflow\n");
+			}
+
 		pbuf_free(pbuf_received); // still processing previous buffer, drop the received data
 		return(ERR_MEM);
 	}
@@ -121,12 +142,6 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	for(pbuf = pbuf_received; pbuf; pbuf = pbuf->next)
 	{
-		if(pbuf->flags & PBUF_FLAG_LLBCAST)
-			broadcast = true;
-
-		if(pbuf->flags & PBUF_FLAG_LLMCAST)
-			multicast = true;
-
 		if(tcp)
 		{
 			stat_lwip_tcp_received_packets++;
@@ -144,7 +159,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	socket->receive_buffer_locked = 1;
 
-	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length, broadcast, multicast);
+	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
 
 	return(ERR_OK);
 }

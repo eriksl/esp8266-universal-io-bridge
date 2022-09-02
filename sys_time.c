@@ -187,7 +187,7 @@ attr_inline void timer_periodic(void)
 	}
 }
 
-static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length, bool broadcast, bool multicast)
+static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
 {
 	sntp_network_t *received_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_receive_buffer);
 
