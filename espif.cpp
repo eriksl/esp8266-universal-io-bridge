@@ -20,15 +20,14 @@ enum
 	sha1_hash_size = 20,
 };
 
+static const char *flash_info_expect = "OK flash function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\], display: ([0-9]+)x([0-9]+)px@([0-9]+)";
+
 static bool option_raw = false;
 static bool option_verbose = false;
 static bool option_no_provide_checksum = false;
 static bool option_no_request_checksum = false;
 static bool option_use_tcp = false;
 static unsigned int option_broadcast_group_mask = 0;
-
-static const std::string flash_info_expect("OK flash function available, slots: 2, current: ([0-9]+), sectors: \\[ ([0-9]+), ([0-9]+) \\], display: ([0-9]+)x([0-9]+)px@([0-9]+)");
-static const std::string flash_select_expect("OK flash-select: slot ([0-9]+) selected, sector ([0-9]+), permanent ([0-1])");
 
 static uint32_t MD5_trunc_32(const std::string &data)
 {
@@ -572,12 +571,9 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 	return(hash_string.str());
 }
 
-static int process(GenericSocket &channel, const std::string &data, const std::string *oob_data, std::string &reply_data, std::string *reply_oob_data, const std::string &match,
-		std::vector<std::string> &string_value, std::vector<int> &int_value)
+static int process(GenericSocket &channel, const std::string &data, const std::string *oob_data, std::string &reply_data, std::string *reply_oob_data,
+		const char *match = nullptr, std::vector<std::string> *string_value = nullptr, std::vector<int> *int_value = nullptr)
 {
-	boost::regex re(match);
-	boost::smatch capture;
-	unsigned int captures;
 	unsigned int attempt;
 	Packet send_packet(&data, oob_data);
 	std::string send_data;
@@ -660,27 +656,45 @@ retry:
 	if(option_verbose)
 		std::cout << "< received (" << reply_data.length() << "): \"" << reply_data << "\"" << std::endl;
 
-	if(!boost::regex_match(reply_data, capture, re))
-		throw(std::string("received string does not match"));
-
-	string_value.clear();
-	int_value.clear();
-	captures = 0;
-
-	for(const auto &it : capture)
+	if(match)
 	{
-		if(captures++ == 0)
-			continue;
+		boost::smatch capture;
+		unsigned int captures;
+		boost::regex re(match);
 
-		string_value.push_back(std::string(it));
+		if(!boost::regex_match(reply_data, capture, re))
+			throw(std::string("received string does not match"));
 
-		try
+		if(string_value || int_value)
 		{
-			int_value.push_back(stoi(it, 0, 0));
-		}
-		catch(...)
-		{
-			int_value.push_back(0);
+			if(string_value)
+				string_value->clear();
+
+			if(int_value)
+				int_value->clear();
+
+			captures = 0;
+
+			for(const auto &it : capture)
+			{
+				if(captures++ == 0)
+					continue;
+
+				if(string_value)
+					string_value->push_back(std::string(it));
+
+				if(int_value)
+				{
+					try
+					{
+						int_value->push_back(stoi(it, 0, 0));
+					}
+					catch(...)
+					{
+						int_value->push_back(0);
+					}
+				}
+			}
 		}
 	}
 
@@ -697,7 +711,7 @@ static int read_sector(GenericSocket &command_channel, unsigned int sector, std:
 	try
 	{
 		retries = process(command_channel, std::string("flash-read ") + std::to_string(sector) + "\n", nullptr, reply, &data,
-				"OK flash-read: read sector ([0-9]+)", string_value, int_value);
+				"OK flash-read: read sector ([0-9]+)", &string_value, &int_value);
 	}
 	catch(std::string &error)
 	{
@@ -741,7 +755,7 @@ static int write_sector(GenericSocket &command_channel, unsigned int sector, con
 
 	try
 	{
-		retries = process(command_channel, command, &data, reply, nullptr, "OK flash-write: written mode ([01]), sector ([0-9]+), same ([01]), erased ([01])", string_value, int_value);
+		retries = process(command_channel, command, &data, reply, nullptr, "OK flash-write: written mode ([01]), sector ([0-9]+), same ([01]), erased ([01])", &string_value, &int_value);
 	}
 	catch(std::string &error)
 	{
@@ -788,7 +802,7 @@ static void get_checksum(GenericSocket &command_channel, unsigned int sector, un
 	try
 	{
 		process(command_channel, std::string("flash-checksum ") + std::to_string(sector) + " " + std::to_string(sectors) + "\n", nullptr,
-				reply, nullptr, "OK flash-checksum: checksummed ([0-9]+) sectors from sector ([0-9]+), checksum: ([0-9a-f]+)", string_value, int_value);
+				reply, nullptr, "OK flash-checksum: checksummed ([0-9]+) sectors from sector ([0-9]+), checksum: ([0-9a-f]+)", &string_value, &int_value);
 	}
 	catch(std::string &error)
 	{
@@ -1171,8 +1185,6 @@ void command_benchmark(GenericSocket &command_channel, int length)
 	std::string expect;
 	std::string reply;
 	struct timeval time_start, time_now;
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
 	int seconds, useconds;
 	double duration, rate;
 
@@ -1192,16 +1204,14 @@ void command_benchmark(GenericSocket &command_channel, int length)
 						&data,
 						reply,
 						nullptr,
-						"OK flash-bench: sending 0 bytes",
-						string_value, int_value);
+						"OK flash-bench: sending 0 bytes");
 			else
 				retries += process(command_channel,
 						std::string("flash-bench ") + std::to_string(length),
 						nullptr,
 						reply,
 						&data,
-						std::string("OK flash-bench: sending ") + std::to_string(length) + " bytes",
-						string_value, int_value);
+						(std::string("OK flash-bench: sending ") + std::to_string(length) + " bytes").c_str());
 
 			gettimeofday(&time_now, 0);
 
@@ -1234,8 +1244,6 @@ static void command_image_send_sector(GenericSocket &command_channel,
 		unsigned int current_x, unsigned int current_y, unsigned int depth)
 {
 	std::string command;
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
 	std::string reply;
 	unsigned int pixels;
 
@@ -1262,7 +1270,7 @@ static void command_image_send_sector(GenericSocket &command_channel,
 		}
 
 		command = (boost::format("display-plot %u %u %u\n") % pixels % current_x % current_y).str();
-		process(command_channel, command, &data, reply, nullptr, "display plot success: yes", string_value, int_value);
+		process(command_channel, command, &data, reply, nullptr, "display plot success: yes");
 	}
 	else
 	{
@@ -1278,8 +1286,6 @@ static void command_image_send_sector(GenericSocket &command_channel,
 static void command_image(GenericSocket &command_channel, int image_slot, const std::string &filename,
 		unsigned int dim_x, unsigned int dim_y, unsigned int depth, int image_timeout)
 {
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
 	std::string reply;
 	unsigned char sector_buffer[flash_sector_size];
 	unsigned int start_x, start_y;
@@ -1321,7 +1327,7 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 
 		if(image_slot < 0)
 			process(command_channel, std::string("display-freeze ") + std::to_string(10000), nullptr, reply, nullptr,
-					"display freeze success: yes", string_value, int_value);
+					"display freeze success: yes");
 
 		current_buffer = 0;
 		start_x = 0;
@@ -1426,11 +1432,11 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 
 		if(image_slot < 0)
 			process(command_channel, std::string("display-freeze ") + std::to_string(0), nullptr, reply, nullptr,
-					"display freeze success: yes", string_value, int_value);
+					"display freeze success: yes");
 
 		if((image_slot < 0) && (image_timeout > 0))
 			process(command_channel, std::string("display-freeze ") + std::to_string(image_timeout), nullptr, reply, nullptr,
-					"display freeze success: yes", string_value, int_value);
+					"display freeze success: yes");
 	}
 	catch(const Magick::Error &error)
 	{
@@ -1442,13 +1448,11 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 	}
 }
 
-static void cie_spi_write(GenericSocket &command_channel, const std::string &data, const std::string &match)
+static void cie_spi_write(GenericSocket &command_channel, const std::string &data, const char *match)
 {
-	std::vector<int> int_value;
-	std::vector<std::string> string_value;
 	std::string reply;
 
-	process(command_channel, data, nullptr, reply, nullptr, match, string_value, int_value);
+	process(command_channel, data, nullptr, reply, nullptr, match);
 }
 
 static void cie_uc_cmd_data(GenericSocket &command_channel, bool isdata, unsigned int data_value)
@@ -1461,7 +1465,7 @@ static void cie_uc_cmd_data(GenericSocket &command_channel, bool isdata, unsigne
 	data = text.str();
 
 	cie_spi_write(command_channel, "sps", "spi start ok");
-	cie_spi_write(command_channel, std::string("iw 1 0 ") + (isdata ? "1" : "0"), std::string("digital output: \\[") + (isdata ? "1" : "0") + "\\]");
+	cie_spi_write(command_channel, std::string("iw 1 0 ") + (isdata ? "1" : "0"), (std::string("digital output: \\[") + (isdata ? "1" : "0") + "\\]").c_str());
 	cie_spi_write(command_channel, data, "spi transmit ok");
 	cie_spi_write(command_channel, "spf", "spi finish ok");
 }
@@ -1656,15 +1660,15 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 
 static void command_send(GenericSocket &send_socket, bool dont_wait, std::string args)
 {
-	std::string reply;
-	std::string reply_oob;
 	std::string arg;
 	size_t current;
 	Packet send_packet;
 	std::string send_data;
 	Packet receive_packet;
 	std::string receive_data;
-	uint32_t transaction_id;
+	std::string reply;
+	std::string reply_oob;
+	int retries;
 
 	if(dont_wait)
 	{
@@ -1688,29 +1692,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 			args.clear();
 		}
 
-		send_packet.clear();
-		send_packet.append_data(arg);
-
-		send_data = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
-
-		while(send_data.length() > 0)
-			if(!send_socket.send(send_data))
-				throw("command send: send failed");
-
-		receive_packet.clear();
-
-		while(!receive_packet.complete())
-		{
-			receive_data.clear();
-
-			if(!send_socket.receive(receive_data))
-				throw("command send: receive failed");
-
-			receive_packet.append_data(receive_data);
-		}
-
-		if(!receive_packet.decapsulate(transaction_id, &reply, &reply_oob))
-			throw("command send: decapsulate failed");
+		retries = process(send_socket, arg, nullptr, reply, &reply_oob);
 
 		std::cout << reply;
 
@@ -1732,6 +1714,9 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 		}
 		else
 			std::cout << std::endl;
+
+		if(retries > 0)
+			std::cout << retries << " retries" << std::endl;
 	}
 }
 
@@ -1868,9 +1853,10 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	std::vector<int> int_value;
 	std::string send_data;
 	uint32_t transaction_id;
+	static const char *flash_select_expect = "OK flash-select: slot ([0-9]+) selected, sector ([0-9]+), permanent ([0-1])";
 
 	send_data = (boost::format("flash-select %u %u") % flash_slot % (notemp ? 1 : 0)).str();
-	process(command_channel, send_data, nullptr, reply, nullptr, flash_select_expect, string_value, int_value);
+	process(command_channel, send_data, nullptr, reply, nullptr, flash_select_expect, &string_value, &int_value);
 
 	if(int_value[0] != (int)flash_slot)
 		throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
@@ -1903,7 +1889,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	command_channel.connect();
 	std::cout << "reboot finished" << std::endl;
 
-	process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, string_value, int_value);
+	process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, &string_value, &int_value);
 
 	if(int_value[0] != (int)flash_slot)
 		throw(std::string("boot failed, requested slot: ") + std::to_string(flash_slot) + ", active slot: " + std::to_string(int_value[0]));
@@ -1913,7 +1899,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 		std::cout << "boot succeeded, permanently selecting boot slot: " << flash_slot << std::endl;
 
 		send_data = (boost::format("flash-select %u 1") % flash_slot).str();
-		process(command_channel, send_data, nullptr, reply, nullptr, flash_select_expect, string_value, int_value);
+		process(command_channel, send_data, nullptr, reply, nullptr, flash_select_expect, &string_value, &int_value);
 
 		if(int_value[0] != (int)flash_slot)
 			throw(std::string("flash-select failed, local slot (") + std::to_string(flash_slot) + ") != remote slot (" + std::to_string(int_value[0]) + ")");
@@ -1925,7 +1911,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 			throw(std::string("flash-select failed, local permanent != remote permanent"));
 	}
 
-	process(command_channel, "stats", nullptr, reply, nullptr, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", string_value, int_value);
+	process(command_channel, "stats", nullptr, reply, nullptr, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*");
 	std::cout << "firmware version: " << string_value[0] << std::endl;
 }
 
@@ -2085,7 +2071,7 @@ int main(int argc, const char **argv)
 
 				try
 				{
-					process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, string_value, int_value);
+					process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, &string_value, &int_value);
 				}
 				catch(std::string &e)
 				{
