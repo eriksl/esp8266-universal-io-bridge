@@ -15606,3 +15606,15 @@ Fri Sep  2 18:02:09 CEST 2022 682868b Implement transaction id to be able to dro
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71009, free:   9256, 11 %
     irom:    available: 784 k, used: 446032, free: 356784, 44 %
+Sat Sep  3 09:57:48 CEST 2022 5f59b8a implement transaction id to be able to detect duplicates.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 446064, free: 356752, 44 %
+Sat Sep  3 10:25:15 CEST 2022 5f59b8a implement transaction id to be able to detect duplicates.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70157, free:  10108, 12 %
+    irom:    available: 784 k, used: 433344, free: 369472, 46 %
+Sat Sep  3 10:35:41 CEST 2022 5f59b8a implement transaction id to be able to detect duplicates.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71009, free:   9256, 11 %
+    irom:    available: 784 k, used: 445968, free: 356848, 44 %

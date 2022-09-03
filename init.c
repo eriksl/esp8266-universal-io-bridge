@@ -84,6 +84,8 @@ void user_init(void)
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
 	power_save_enable(config_flags_match(flag_wlan_power_save));
+	wifi_station_ap_number_set(2);
+	wifi_set_phy_mode(PHY_MODE_11G);
 	system_init_done_cb(user_init2);
 }
 
@@ -114,9 +116,6 @@ static void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const 
 {
 	struct station_config cconf;
 	struct softap_config saconf;
-
-	if(!wifi_station_ap_number_set(1))
-		log("wifi_station_ap_number_set failed\n");
 
 	switch(wlan_mode)
 	{

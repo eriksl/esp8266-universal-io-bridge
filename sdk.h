@@ -353,6 +353,88 @@ enum
 	REASON_HANDSHAKE_TIMEOUT,
 };
 
+enum RATE_11B_ID
+{
+	RATE_11B_B11M = 0,
+	RATE_11B_B5M = 1,
+	RATE_11B_B2M = 2,
+	RATE_11B_B1M = 3,
+};
+
+enum RATE_11G_ID
+{
+	RATE_11G_G54M = 0,
+	RATE_11G_G48M = 1,
+	RATE_11G_G36M = 2,
+	RATE_11G_G24M = 3,
+	RATE_11G_G18M = 4,
+	RATE_11G_G12M = 5,
+	RATE_11G_G9M = 6,
+	RATE_11G_G6M = 7,
+	RATE_11G_B5M = 8,
+	RATE_11G_B2M = 9,
+	RATE_11G_B1M = 10,
+};
+
+enum RATE_11N_ID
+{
+	RATE_11N_MCS7S = 0,
+	RATE_11N_MCS7 = 1,
+	RATE_11N_MCS6 = 2,
+	RATE_11N_MCS5 = 3,
+	RATE_11N_MCS4 = 4,
+	RATE_11N_MCS3 = 5,
+	RATE_11N_MCS2 = 6,
+	RATE_11N_MCS1 = 7,
+	RATE_11N_MCS0 = 8,
+	RATE_11N_B5M = 9,
+	RATE_11N_B2M = 10,
+	RATE_11N_B1M = 11,
+};
+
+enum
+{
+	RC_LIMIT_11B = 0,
+	RC_LIMIT_11G = 1,
+	RC_LIMIT_11N = 2,
+};
+
+enum support_rate
+{
+	sr_RATE_11B5M	=	0,
+	sr_RATE_11B11M	=	1,
+	sr_RATE_11B1M	=	2,
+	sr_RATE_11B2M	=	3,
+	sr_RATE_11G6M	=	4,
+	sr_RATE_11G12M	=	5,
+	sr_RATE_11G24M	=	6,
+	sr_RATE_11G48M	=	7,
+	sr_RATE_11G54M	=	8,
+	sr_RATE_11G9M	=	9,
+	sr_RATE_11G18M	=	10,
+	sr_RATE_11G36M	=	11,
+};
+
+enum FIXED_RATE
+{
+	PHY_RATE_48 =	0x08,
+	PHY_RATE_24 =	0x09,
+	PHY_RATE_12 =	0x0a,
+	PHY_RATE_6 =	0x0b,
+	PHY_RATE_54 =	0x0c,
+	PHY_RATE_36 =	0x0d,
+	PHY_RATE_18 =	0x0e,
+	PHY_RATE_9 =	0x0f,
+};
+
+enum
+{
+	FIXED_RATE_MASK_NONE =	0x00,
+	FIXED_RATE_MASK_STA	=	0x01,
+	FIXED_RATE_MASK_AP	=	0x02,
+	FIXED_RATE_MASK_ALL	=	0x03,
+};
+
 typedef struct
 {
 	char	ssid[32];
@@ -537,8 +619,12 @@ bool				wifi_set_ip_info(uint8_t index, struct ip_info *info);
 bool				wifi_set_listen_interval(uint8_t interval);
 bool				wifi_set_opmode(uint8_t opmode);
 bool				wifi_set_opmode_current(uint8_t);
+bool				wifi_set_phy_mode(enum phy_mode mode);
 bool				wifi_set_sleep_level(enum sleep_level);
 bool				wifi_set_sleep_type(enum sleep_type);
+int					wifi_set_user_fixed_rate(uint8_t enable_mask, uint8_t rate);
+bool				wifi_set_user_rate_limit(uint8_t mode, uint8_t ifidx, uint8_t max, uint8_t min);
+int					wifi_set_user_sup_rate(uint8_t min, uint8_t max);
 enum dhcp_status	wifi_softap_dhcps_status(void);
 uint32_t			wifi_softap_get_dhcps_lease_time(void);
 bool				wifi_softap_get_dhcps_lease(struct dhcps_lease *);
