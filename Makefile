@@ -470,13 +470,13 @@ txtest:
 
 benchmark:
 						$(VECHO) "TCP - with checksums"
-						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST)
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --tcp
 						$(VECHO) "TCP - without checksums"
-						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --no-provide-checksum --no-request-checksum
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --tcp --no-provide-checksum --no-request-checksum
 						$(VECHO) "UDP - with checksums"
-						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --udp
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST)
 						$(VECHO) "UDP - without checksums"
-						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --udp --no-provide-checksum --no-request-checksum
+						$(Q) $(OTA_FLASH) --benchmark --host $(OTA_HOST) --no-provide-checksum --no-request-checksum
 
 wvtest:
 						$(OTA_FLASH) --write   --host $(OTA_HOST) --start $(PICTURE_FLASH_OFFSET_0) --file testpicture.ppm
