@@ -463,7 +463,7 @@ resetserial:			resetserial.cpp
 
 
 rxtest:
-						$(OTA_FLASH) --read --host $(OTA_HOST) --file test --length 390352 --start 0x002000
+						$(OTA_FLASH) --read --host $(OTA_HOST) --file test --length 100 --start 2
 
 txtest:
 						$(OTA_FLASH) --simulate --host $(OTA_HOST) --file $(FIRMWARE_IMG)
