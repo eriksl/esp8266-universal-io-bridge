@@ -48,6 +48,8 @@ typedef struct _lwip_if_socket_t
 	int			sending_remaining;
 	int			sent_unacked;
 
+	char		name[8];
+
 	callback_data_received_fn_t callback_data_received;
 
 } lwip_if_socket_t;
@@ -62,7 +64,7 @@ bool	attr_nonnull lwip_if_send(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port);
 bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
-bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
+bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, const char *name, string_t *receive_buffer, string_t *send_buffer,
 			unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received);
 bool	attr_nonnull lwip_if_join_mc(ip_addr_t);
 #endif

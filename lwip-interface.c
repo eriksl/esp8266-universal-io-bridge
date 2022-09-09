@@ -192,7 +192,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 		if(*pcb_tcp)
 		{
 			if((error = tcp_close(*pcb_tcp)) != ERR_OK)
-				log_error("tcp received callback: tcp close: error", error);
+				log_error(socket->name, "tcp received callback: tcp close: error", error);
 		}
 
 		*pcb_tcp = (struct tcp_pcb *)0;
@@ -203,7 +203,7 @@ static err_t tcp_received_callback(void *callback_arg, struct tcp_pcb *pcb, stru
 
 	if(error != ERR_OK)
 	{
-		log_error("tcp received callback: error", error);
+		log_error(socket->name, "tcp received callback: error", error);
 
 		if(pbuf)
 			pbuf_free(pbuf);
@@ -268,7 +268,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 		else
 		{
 			stat_lwip_tcp_send_error++;
-			log_error("lwip tcp write: error", error);
+			log_error(socket->name, "lwip tcp write: error", error);
 		}
 	}
 	else
@@ -281,7 +281,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 	}
 
 	if((error = tcp_output(pcb_tcp)) != ERR_OK)
-		log_error("lwip: tcp send: tcp_output: error", error);
+		log_error(socket->name, "lwip: tcp send: tcp_output: error", error);
 
 	return(success);
 }
@@ -316,7 +316,7 @@ static void tcp_error_callback(void *callback_arg, err_t error)
 	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
 
 	if(error != ERR_ISCONN)
-		log_error("tcp error callback", error);
+		log_error(socket->name, "tcp error callback", error);
 
 	if(socket->reboot_pending)
 		reset();
@@ -331,7 +331,7 @@ static err_t tcp_accepted_callback(void *callback_arg, struct tcp_pcb *pcb, err_
 	struct tcp_pcb **pcb_tcp = (struct tcp_pcb **)&socket->tcp.pcb;
 
 	if(error != ERR_OK)
-		log_error("tcp accepted callback", error);
+		log_error(socket->name, "tcp accepted callback", error);
 
 	if(*pcb_tcp != (struct tcp_pcb *)0)
 	{
@@ -373,7 +373,7 @@ attr_nonnull bool lwip_if_close(lwip_if_socket_t *socket)
 	if(socket->reboot_pending)
 	{
 		if((error = tcp_close(socket->tcp.pcb)) != ERR_OK)
-			log_error("lwip if close: tcp_close failed", error);
+			log_error(socket->name, "lwip if close: tcp_close failed", error);
 	}
 	else
 		tcp_abort(socket->tcp.pcb);
@@ -406,7 +406,7 @@ attr_nonnull bool lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *addr
 		if((error = udp_sendto(pcb_udp, pbuf, &address, port)) != ERR_OK)
 		{
 			stat_lwip_udp_send_error++;
-			log_error("lwip if sendto: udp send failed", error);
+			log_error(socket->name, "lwip if sendto: udp send failed", error);
 			return(false);
 		}
 	}
@@ -448,7 +448,7 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 			if((error = udp_sendto(pcb_udp, pbuf, &socket->peer.address, socket->peer.port)) != ERR_OK)
 			{
 				stat_lwip_udp_send_error++;
-				log_error("lwip if send: udp send failed", error);
+				log_error(socket->name, "lwip if send: udp send failed", error);
 			}
 
 			stat_lwip_udp_sent_packets++;
@@ -494,7 +494,7 @@ attr_nonnull bool lwip_if_reboot(lwip_if_socket_t *socket)
 	return(true);
 }
 
-attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *receive_buffer, string_t *send_buffer,
+attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, const char *name, string_t *receive_buffer, string_t *send_buffer,
 		unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received)
 {
 	err_t error;
@@ -511,6 +511,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 	socket->sent_unacked = 0;
 	socket->receive_buffer_locked = 0;
 	socket->reboot_pending = 0;
+	strecpy(socket->name, name, sizeof(socket->name));
 	socket->callback_data_received = callback_data_received;
 
 	if(!(socket->udp.pbuf_send = pbuf_alloc(PBUF_TRANSPORT, 0, PBUF_ROM)))
@@ -529,7 +530,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 
 	if((error = udp_bind(socket->udp.pcb, &_ip_addr_any, port)) != ERR_OK)
 	{
-		log_error("lwip if socket create: udp_bind failed", error);
+		log_error(socket->name, "lwip if socket create: udp_bind failed", error);
 		return(false);
 	}
 
@@ -543,7 +544,7 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, string_t *rece
 
 		if((error = tcp_bind(socket->tcp.listen_pcb, &_ip_addr_any, port)) != ERR_OK)
 		{
-			log_error("lwip if socket create: tcp_bind failed", error);
+			log_error(socket->name, "lwip if socket create: tcp_bind failed", error);
 			return(false);
 		}
 

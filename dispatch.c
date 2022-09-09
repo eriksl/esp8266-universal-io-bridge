@@ -791,12 +791,12 @@ void dispatch_init2(void)
 
 	wifi_set_event_handler_cb(wlan_event_handler);
 
-	lwip_if_socket_create(&command_socket, &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
+	lwip_if_socket_create(&command_socket, "command", &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
 			true, socket_command_callback_data_received);
 
 	if(uart_port > 0)
 	{
-		lwip_if_socket_create(&uart_socket, &uart_socket_receive_buffer, &uart_socket_send_buffer, uart_port,
+		lwip_if_socket_create(&uart_socket, "uart", &uart_socket_receive_buffer, &uart_socket_send_buffer, uart_port,
 			true, socket_uart_callback_data_received);
 
 		uart_bridge_active = true;
