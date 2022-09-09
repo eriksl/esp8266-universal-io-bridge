@@ -2387,11 +2387,6 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_wlan_scan,
 	},
 	{
-		"wst", "wlan-scan-terse",
-		application_function_wlan_scan_terse,
-		help_description_wlan_scan_terse,
-	},
-	{
 		"cqs", "config-query-string",
 		application_function_config_query_string,
 		help_description_config_query_string,
