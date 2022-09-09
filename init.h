@@ -1,10 +1,9 @@
-#ifndef init_h
-#define init_h
+#ifndef _init_h_
+#define _init_h_
 
 #include "util.h"
 
 #include <stdint.h>
-#include <stdbool.h>
 
 enum
 {
@@ -17,9 +16,5 @@ extern volatile uint32_t *stack_stack_sp_initial;
 extern int stack_stack_painted;
 
 void stack_paint_stack(void);
-bool wlan_init_from_config(void);
-void wlan_init_start_recovery(void);
-bool wlan_ap_switch(const mac_addr_t);
-void multicast_init_groups(void);
 
 #endif

@@ -15,6 +15,7 @@
 #include "remote_trigger.h"
 #include "ota.h"
 #include "font.h"
+#include "wlan.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -604,7 +605,7 @@ static void wlan_event_handler(System_Event_t *event)
 			if(stat_init_ip_time_us == 0)
 				stat_init_ip_time_us = time_get_us();
 
-			multicast_init_groups();
+			wlan_multicast_init_groups();
 			time_sntp_start();
 
 			[[fallthrough]];

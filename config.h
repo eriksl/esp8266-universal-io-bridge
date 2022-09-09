@@ -8,12 +8,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef enum
-{
-	config_wlan_mode_client,
-	config_wlan_mode_ap
-} config_wlan_mode_t;
-
 enum
 {
 	flag_none =					0 << 0,

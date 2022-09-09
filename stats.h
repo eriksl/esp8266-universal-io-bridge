@@ -98,5 +98,4 @@ void stats_time(string_t *dst);
 void stats_counters(string_t *dst);
 void stats_lwip(string_t *dst);
 void stats_i2c(string_t *dst);
-void stats_wlan(string_t *dst);
 #endif

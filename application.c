@@ -22,6 +22,7 @@
 #include "display_orbital.h"
 #include "font.h"
 #include "ota.h"
+#include "wlan.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -414,12 +415,6 @@ static app_action_t application_function_stats_lwip(app_params_t *parameters)
 static app_action_t application_function_stats_i2c(app_params_t *parameters)
 {
 	stats_i2c(parameters->dst);
-	return(app_action_normal);
-}
-
-static app_action_t application_function_stats_wlan(app_params_t *parameters)
-{
-	stats_wlan(parameters->dst);
 	return(app_action_normal);
 }
 
@@ -1400,354 +1395,6 @@ static app_action_t application_function_time_zone_set(app_params_t *parameters)
 	return(app_action_normal);
 }
 
-static void wlan_scan_done_callback(void *arg, STATUS status)
-{
-	roflash static const char status_msg[][16] =
-	{
-		"OK",
-		"FAIL",
-		"PENDING",
-		"BUSY",
-		"CANCEL"
-	};
-
-	roflash static const char auth_mode_msg[][16] =
-	{
-		"OTHER",
-		"WEP",
-		"WPA1-PSK",
-		"WPA2-PSK",
-		"WPA1/2-PSK"
-	};
-
-	roflash static const char cipher_type[][16] =
-	{
-		"NONE",
-		"WEP40",
-		"WEP104",
-		"TKIP",
-		"AES",
-		"TKIP/AES",
-		"UNKNOWN",
-	};
-
-	roflash static const char fmt_string_1[] = "> %-16s %-3s %-4s %-10s %-9s %-9s %-4s %s\n";
-	roflash static const char fmt_string_2[] = "> %-16s %3u %4d %-10s %-9s %-9s %4d %02x:%02x:%02x:%02x:%02x:%02x\n";
-
-	struct bss_info *bss;
-	const char *ssid;
-	char status_string[32];
-	char auth_mode_string[32];
-	char pairwise_cipher_string[32];
-	char groupwise_cipher_string[32];
-
-	flash_to_dram(true, status <= CANCEL ? status_msg[status] : "<invalid>", status_string, sizeof(status_string));
-
-	logbuffer_clear(); // make sure as much room is available as is possible
-
-	log("wlan scan result: %s\n", status_string);
-	log_from_flash_n(fmt_string_1, "SSID", "CHN", "RSSI", "AUTH", "PAIR", "GROUP", "OFFS", "BSSID");
-
-	for(bss = arg; bss; bss = bss->next.stqe_next)
-	{
-		if(!strcmp((const char *)bss->ssid, ""))
-			ssid = "<hidden>";
-		else
-			ssid = (const char *)bss->ssid;
-
-		flash_to_dram(true, bss->authmode < AUTH_MAX ? auth_mode_msg[bss->authmode] : "<invalid>", auth_mode_string, sizeof(auth_mode_string));
-		flash_to_dram(true, cipher_type[bss->pairwise_cipher], pairwise_cipher_string, sizeof(pairwise_cipher_string));
-		flash_to_dram(true, cipher_type[bss->group_cipher], groupwise_cipher_string, sizeof(groupwise_cipher_string));
-
-		log_from_flash_n(fmt_string_2,
-				ssid,
-				bss->channel,
-				bss->rssi,
-				auth_mode_string,
-				pairwise_cipher_string, groupwise_cipher_string,
-				bss->freq_offset,
-				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
-	}
-}
-
-static void wlan_scan_terse_done_callback(void *arg, STATUS status)
-{
-	roflash static const char fmt_string_1[] = "> %-16s %-3s %-4s %s\n";
-	roflash static const char fmt_string_2[] = "> %-16s %3u %4d %02x:%02x:%02x:%02x:%02x:%02x\n";
-
-	struct bss_info *bss;
-
-	logbuffer_clear(); // make sure as much room is available as is possible
-
-	log_from_flash_n(fmt_string_1, "SSID", "CHN", "RSSI", "BSSID");
-
-	for(bss = arg; bss; bss = bss->next.stqe_next)
-	{
-		log_from_flash_n(fmt_string_2,
-				bss->ssid,
-				bss->channel,
-				bss->rssi,
-				bss->bssid[0], bss->bssid[1], bss->bssid[2],
-				bss->bssid[3], bss->bssid[4], bss->bssid[5]);
-	}
-}
-
-static app_action_t application_function_wlan_ap_configure(app_params_t *parameters)
-{
-	unsigned int channel;
-	string_new(, ssid, 64);
-	string_new(, passwd, 64);
-
-	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok) &&
-			(parse_uint(3, parameters->src, &channel, 0, ' ') == parse_ok))
-	{
-		if((channel < 1) || (channel > 13))
-		{
-			string_format(parameters->dst, "> channel %u out of range (1-13)\n", channel);
-			return(app_action_error);
-		}
-
-		if(string_length(&passwd) < 8)
-		{
-			string_format(parameters->dst, "> passwd \"%s\" too short (length must be >= 8)\n",
-					string_to_cstr(&passwd));
-			return(app_action_error);
-		}
-
-		if(!config_open_write())
-		{
-			string_append(parameters->dst, "> cannot set config (open)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.ap.ssid", string_to_cstr(&ssid), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (set ssid)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.ap.passwd", string_to_cstr(&passwd), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (passwd)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_int("wlan.ap.channel", channel, -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (channel)\n");
-			return(app_action_error);
-		}
-
-		if(!config_open_write())
-		{
-			string_append(parameters->dst, "> cannot set config (close)\n");
-			return(app_action_error);
-		}
-	}
-
-	string_clear(&ssid);
-	string_clear(&passwd);
-
-	if(!config_get_string("wlan.ap.ssid", &ssid, -1, -1))
-	{
-		string_clear(&ssid);
-		string_append(&ssid, "<empty>");
-	}
-
-	if(!config_get_string("wlan.ap.passwd", &passwd, -1, -1))
-	{
-		string_clear(&passwd);
-		string_append(&passwd, "<empty>");
-	}
-
-	if(!config_get_uint("wlan.ap.channel", &channel, -1, -1))
-		channel = 0;
-
-	string_format(parameters->dst, "> ssid: \"%s\", passwd: \"%s\", channel: %u\n",
-			string_to_cstr(&ssid), string_to_cstr(&passwd), channel);
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_wlan_client_configure(app_params_t *parameters)
-{
-	string_new(, ssid, 64);
-	string_new(, passwd, 64);
-
-	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok))
-	{
-		if(string_length(&passwd) < 8)
-		{
-			string_format(parameters->dst, "> passwd \"%s\" too short (length must be >= 8)\n", string_to_cstr(&passwd));
-			return(app_action_error);
-		}
-
-		if(!config_open_write())
-		{
-			string_append(parameters->dst, "> cannot set config (open)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (write ssid)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (write passwd)\n");
-			return(app_action_error);
-		}
-
-		if(!config_close_write())
-		{
-			string_append(parameters->dst, "> cannot set config (close)\n");
-			return(app_action_error);
-		}
-	}
-
-	string_clear(&ssid);
-	string_clear(&passwd);
-
-	if(!config_get_string("wlan.client.ssid", &ssid, -1, -1))
-	{
-		string_clear(&ssid);
-		string_append(&ssid, "<empty>");
-	}
-
-	if(!config_get_string("wlan.client.passwd", &passwd, -1, -1))
-	{
-		string_clear(&passwd);
-		string_append(&passwd, "<empty>");
-	}
-
-	string_format(parameters->dst, "> ssid: \"%s\", passwd: \"%s\"\n",
-			string_to_cstr(&ssid), string_to_cstr(&passwd));
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_wlan_ap_switch(app_params_t *parameters)
-{
-	mac_addr_t mac;
-	string_new(, mac_string, 32);
-
-	if(parse_string(1, parameters->src, &mac_string, ' ') != parse_ok)
-	{
-		string_append(parameters->dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
-		return(app_action_error);
-	}
-
-	if(!string_to_mac(&mac, &mac_string))
-	{
-		string_append(parameters->dst, "usage: wlan-ap-switch BSSID<hex int>x6:\n");
-		return(app_action_error);
-	}
-
-	string_clear(&mac_string);
-
-	string_mac(&mac_string, mac);
-
-	if(!wlan_ap_switch(mac))
-	{
-		string_format(parameters->dst, "> wlan-ap-switch to %s failed\n", string_to_cstr(&mac_string));
-		return(app_action_error);
-	}
-
-	string_format(parameters->dst, "> wlan-ap-switch to %s OK\n", string_to_cstr(&mac_string));
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_wlan_mode(app_params_t *parameters)
-{
-	unsigned int int_mode;
-	config_wlan_mode_t mode;
-
-	if(parse_string(1, parameters->src, parameters->dst, ' ') == parse_ok)
-	{
-		if(string_match_cstr(parameters->dst, "client"))
-		{
-			string_clear(parameters->dst);
-
-			if(!config_open_write() ||
-					!config_set_int("wlan.mode", config_wlan_mode_client, -1, -1) ||
-					!config_close_write())
-			{
-				config_abort_write();
-				string_append(parameters->dst, "> cannot set config\n");
-				return(app_action_error);
-			}
-
-			wlan_init_from_config();
-
-			return(app_action_disconnect);
-		}
-
-		if(string_match_cstr(parameters->dst, "ap"))
-		{
-			string_clear(parameters->dst);
-
-			if(!config_open_write() ||
-					!config_set_int("wlan.mode", config_wlan_mode_ap, -1, -1) ||
-					!config_close_write())
-			{
-				config_abort_write();
-				string_append(parameters->dst, "> cannot set config\n");
-				return(app_action_error);
-			}
-
-			wlan_init_from_config();
-
-			return(app_action_disconnect);
-		}
-
-		string_append(parameters->dst, ": invalid wlan mode\n");
-		return(app_action_error);
-	}
-
-	string_clear(parameters->dst);
-	string_append(parameters->dst, "> current mode: ");
-
-	if(config_get_uint("wlan.mode", &int_mode, -1, -1))
-	{
-		mode = (config_wlan_mode_t)int_mode;
-
-		switch(mode)
-		{
-			case(config_wlan_mode_client):
-			{
-				string_append(parameters->dst, "client mode");
-				break;
-			}
-
-			case(config_wlan_mode_ap):
-			{
-				string_append(parameters->dst, "ap mode");
-				break;
-			}
-
-			default:
-			{
-				string_append(parameters->dst, "unknown mode");
-				break;
-			}
-		}
-	}
-	else
-		string_append(parameters->dst, "mode unset");
-
-	string_append(parameters->dst, "\n");
-
-	return(app_action_normal);
-}
-
 static app_action_t application_function_log_display(app_params_t *parameters)
 {
 	if(string_length(&logbuffer) == 0)
@@ -1789,44 +1436,6 @@ static app_action_t application_function_log_write(app_params_t *parameters)
 	}
 
 	string_append(parameters->dst, "log write ok\n");
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_wlan_scan(app_params_t *parameters)
-{
-	struct scan_config sc =
-	{
-		.ssid = (char *)0,
-		.bssid = (char *)0,
-		.channel = 0,
-		.show_hidden = 1,
-		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
-		.scan_time.active.min = 100,
-		.scan_time.active.max = 1000,
-	};
-
-	wifi_station_scan(&sc, wlan_scan_done_callback);
-	string_append(parameters->dst, "wlan scan started, see log to retrieve the results\n");
-
-	return(app_action_normal);
-}
-
-static app_action_t application_function_wlan_scan_terse(app_params_t *parameters)
-{
-	struct scan_config sc =
-	{
-		.ssid = (char *)0,
-		.bssid = (char *)0,
-		.channel = 0,
-		.show_hidden = 0,
-		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
-		.scan_time.active.min = 100,
-		.scan_time.active.max = 1000,
-	};
-
-	wifi_station_scan(&sc, wlan_scan_terse_done_callback);
-	string_append(parameters->dst, "terse wlan scan started, see log to retrieve the results\n");
 
 	return(app_action_normal);
 }
@@ -1899,7 +1508,7 @@ static app_action_t application_function_multicast_group_set(app_params_t *param
 			return(app_action_error);
 		}
 
-		multicast_init_groups();
+		wlan_multicast_init_groups();
 	}
 
 	for(entry = 0, entries = 0; entry < 8; entry++)
@@ -2338,7 +1947,6 @@ roflash static const char help_description_stats_lwip[] =			"statistics from lwi
 roflash static const char help_description_stats_i2c[] =			"statistics from i2c subsystem";
 roflash static const char help_description_stats_sequencer[] =		"statistics from the sequencer";
 roflash static const char help_description_stats_time[] =			"statistics from the time subsystem";
-roflash static const char help_description_stats_wlan[] =			"statistics from the wlan subsystem";
 roflash static const char help_description_bridge_port[] =			"set uart bridge tcp/udp port (default 23)";
 roflash static const char help_description_command_port[] =			"set command tcp/udp port (default 24)";
 roflash static const char help_description_dump_config[] =			"dump config contents (as stored in flash)";
@@ -2391,12 +1999,6 @@ roflash static const char help_description_uart_stop[] =			"set uart stop bits [
 roflash static const char help_description_uart_parity[] =			"set uart parity [none/even/odd]";
 roflash static const char help_description_uart_loopback[] =		"set uart loopback mode [0/1]";
 roflash static const char help_description_uart_write[] =			"write text to uart";
-roflash static const char help_description_wlan_ap_config[] =		"configure access point mode wlan params, supply ssid, passwd and channel";
-roflash static const char help_description_wlan_client_config[] =	"configure client mode wlan params, supply ssid and passwd";
-roflash static const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
-roflash static const char help_description_wlan_scan[] =			"scan wlan, see log to retrieve the results";
-roflash static const char help_description_wlan_scan_terse[] =		"scan wlan terse, see log to retrieve the results";
-roflash static const char help_description_wlan_ap_switch[] =		"switch client to new access point, supply BSSID";
 roflash static const char help_description_config_query_string[] =	"query config string";
 roflash static const char help_description_config_query_int[] =		"query config int";
 roflash static const char help_description_config_set[] =			"set config entry";

@@ -6,6 +6,7 @@
 #include "i2c_sensor.h"
 #include "dispatch.h"
 #include "io_gpio.h"
+#include "wlan.h"
 
 typedef struct
 {
