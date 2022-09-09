@@ -39,7 +39,6 @@ typedef union
 	uint8_t		byte[4];
 } ip_addr_to_bytes_t;
 
-
 enum
 {
 	off = 0,
@@ -216,7 +215,7 @@ attr_nonnull int string_trim(string_t *dst, int amount);
 attr_nonnull bool string_trim_nl(string_t *dst);
 attr_nonnull void string_bin_to_hex(string_t *dst, const unsigned char *src, int length);
 attr_nonnull void string_ip(string_t *dst, ip_addr_t);
-attr_nonnull void string_mac(string_t *dst, mac_addr_t);
+attr_nonnull void mac_to_string(string_t *dst, const mac_addr_t);
 attr_nonnull bool string_to_mac(mac_addr_t *addr, const string_t *src);
 
 #define string_new(_attributes, _name, _size) \

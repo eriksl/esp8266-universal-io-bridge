@@ -22,7 +22,6 @@ extern roflash const char help_description_wlan_ap_switch[];
 void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_t *password, unsigned int channel);
 bool wlan_init_from_config(void);
 void wlan_init_start_recovery(void);
-bool wlan_ap_switch(const mac_addr_t, int channel);
 void wlan_multicast_init_groups(void);
 void stats_wlan(string_t *dst);
 

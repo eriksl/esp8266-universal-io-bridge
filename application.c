@@ -2482,6 +2482,11 @@ roflash static const application_function_table_t application_function_table[] =
 		(void *)0,
 	},
 	{
+		"wr", "wlan-reset",
+		application_function_wlan_reset,
+		(void *)0,
+	},
+	{
 		"pe", "peek",
 		application_function_peek,
 		(void *)0,

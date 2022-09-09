@@ -16026,3 +16026,23 @@ Fri Sep  9 10:43:48 CEST 2022 047e839 Makefile: fix read test.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70301, free:   9964, 12 %
     irom:    available: 784 k, used: 435152, free: 367664, 45 %
+Fri Sep  9 11:52:06 CEST 2022 f31de33 Move all wlan related code to new source files.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435216, free: 367600, 45 %
+Fri Sep  9 11:54:07 CEST 2022 f31de33 Move all wlan related code to new source files.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435280, free: 367536, 45 %
+Fri Sep  9 12:00:09 CEST 2022 f31de33 Move all wlan related code to new source files.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435136, free: 367680, 45 %
+Fri Sep  9 12:09:18 CEST 2022 f31de33 Move all wlan related code to new source files.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435264, free: 367552, 45 %
+Fri Sep  9 12:10:49 CEST 2022 f31de33 Move all wlan related code to new source files.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435168, free: 367648, 45 %

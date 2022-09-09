@@ -581,6 +581,7 @@ bool				system_rtc_mem_write(uint8_t, const void *, uint16_t);
 void				system_restart(void);
 void				system_restart_local(void); // skip ap/sta disconnect
 void				system_restart_core(void);
+void				system_restore(void);
 void				system_set_os_print(uint8_t onoff);
 void				system_phy_set_powerup_option(uint8_t);
 uint32_t			system_rtc_clock_cali_proc(void);
@@ -637,7 +638,7 @@ bool				wifi_station_ap_number_set(uint8_t);
 bool				wifi_station_connect(void);
 bool				wifi_station_dhcpc_stop(void);
 bool				wifi_station_disconnect(void);
-int8_t				wifi_station_get_ap_info(struct station_config []);
+uint8_t				wifi_station_get_ap_info(struct station_config []);
 uint8_t				wifi_station_get_auto_connect(void);
 uint8_t				wifi_station_get_current_ap_id(void);
 bool				wifi_station_get_config_default(struct station_config *);

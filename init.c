@@ -82,7 +82,7 @@ void user_init(void)
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
 	power_save_enable(config_flags_match(flag_wlan_power_save));
-	wifi_station_ap_number_set(2);
+	wifi_station_ap_number_set(5);
 	wifi_set_phy_mode(PHY_MODE_11G);
 	system_init_done_cb(user_init2);
 }

@@ -333,7 +333,7 @@ bool string_to_mac(mac_addr_t *addr, const string_t *src)
 	return(true);
 }
 
-void string_mac(string_t *dst, mac_addr_t addr)
+void mac_to_string(string_t *dst, const mac_addr_t addr)
 {
 	int ix;
 	mac_addr_to_bytes_t mac_addr_to_bytes;
