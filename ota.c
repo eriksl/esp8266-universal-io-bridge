@@ -29,7 +29,7 @@ static app_action_t flash_all_finish(string_t *dst,
 	if(cause)
 	{
 		string_clear(dst);
-		string_format(dst, "ERROR: %s: %s flash %s at %x\n",
+		string_format(dst, "ERROR: %s: %s flash %s at 0x%x\n",
 				tag, action, cause, sector);
 
 		return(app_action_error);
