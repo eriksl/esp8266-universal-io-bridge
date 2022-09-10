@@ -8,6 +8,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum
+{
+	lwip_if_proto_tcp = 1 << 0,
+	lwip_if_proto_udp = 1 << 1,
+	lwip_if_proto_all = lwip_if_proto_tcp | lwip_if_proto_udp,
+} lwip_if_proto_t;
+
 struct _lwip_if_socket_t;
 
 typedef struct
@@ -44,8 +51,13 @@ typedef struct _lwip_if_socket_t
 
 	struct
 	{
-		unsigned int receive_buffer_locked:1;
 		unsigned int reboot_pending:1;
+
+		struct
+		{
+			unsigned int tcp:1;
+			unsigned int udp:1;
+		} receive_buffer_locked;
 	};
 
 	struct
@@ -70,11 +82,12 @@ typedef struct _lwip_if_socket_t
 
 } lwip_if_socket_t;
 
-assert_size(lwip_if_socket_t, 52);
+assert_size(lwip_if_socket_t, 64);
 
 bool	attr_nonnull lwip_if_received_tcp(lwip_if_socket_t *);
 bool	attr_nonnull lwip_if_received_udp(lwip_if_socket_t *);
-void	attr_nonnull lwip_if_receive_buffer_unlock(lwip_if_socket_t *);
+void	attr_nonnull lwip_if_receive_buffer_lock(lwip_if_socket_t *, lwip_if_proto_t);
+void	attr_nonnull lwip_if_receive_buffer_unlock(lwip_if_socket_t *, lwip_if_proto_t);
 bool	attr_nonnull lwip_if_send_buffer_locked(lwip_if_socket_t *);
 bool	attr_nonnull lwip_if_send(lwip_if_socket_t *socket);
 bool	attr_nonnull lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port);

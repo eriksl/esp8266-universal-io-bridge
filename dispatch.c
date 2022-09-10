@@ -208,7 +208,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			{
 				stat_cmd_send_buffer_overflow++;
 				string_clear(&command_socket_receive_buffer);
-				lwip_if_receive_buffer_unlock(&command_socket);
+				lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
 				break;
 			}
 
@@ -335,7 +335,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			action = application_content(&parameters);
 
 			string_clear(&command_socket_receive_buffer);
-			lwip_if_receive_buffer_unlock(&command_socket);
+			lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
 
 			if(action == app_action_empty)
 			{
@@ -432,11 +432,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					dispatch_post_task(0, task_reset, 0);
 
 			break;
-
-error:
-			string_clear(&command_socket_receive_buffer);
-			lwip_if_receive_buffer_unlock(&command_socket);
-			string_clear(&command_socket_send_buffer);
+			lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
 
 			break;
 		}
@@ -559,7 +555,7 @@ static void slow_timer_callback(void *arg)
 			command_input_state.expected = 0;
 			command_input_state.segments = 0;
 			string_clear(&command_socket_receive_buffer);
-			lwip_if_receive_buffer_unlock(&command_socket);
+			lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
 		}
 	}
 
@@ -741,7 +737,7 @@ static void socket_uart_callback_data_received(lwip_if_socket_t *socket, const l
 	}
 
 	string_clear(&uart_socket_receive_buffer);
-	lwip_if_receive_buffer_unlock(socket);
+	lwip_if_receive_buffer_unlock(socket, lwip_if_proto_all);
 	uart_flush(0);
 }
 

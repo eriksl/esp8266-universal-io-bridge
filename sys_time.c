@@ -206,7 +206,7 @@ static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, const l
 	}
 
 	string_clear(&sntp_socket_receive_buffer);
-	lwip_if_receive_buffer_unlock(socket);
+	lwip_if_receive_buffer_unlock(socket, lwip_if_proto_all);
 }
 
 static void time_sntp_init(void)

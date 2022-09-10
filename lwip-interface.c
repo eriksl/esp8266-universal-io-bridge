@@ -80,9 +80,22 @@ bool attr_nonnull attr_pure lwip_if_received_udp(lwip_if_socket_t *socket)
 	return(socket->peer.port != 0);
 }
 
-attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket)
+attr_nonnull void lwip_if_receive_buffer_lock(lwip_if_socket_t *socket, lwip_if_proto_t proto)
 {
-	socket->receive_buffer_locked = 0;
+	if(proto & lwip_if_proto_tcp)
+		socket->receive_buffer_locked.tcp = 1;
+
+	if(proto & lwip_if_proto_udp)
+		socket->receive_buffer_locked.udp = 1;
+}
+
+attr_nonnull void lwip_if_receive_buffer_unlock(lwip_if_socket_t *socket, lwip_if_proto_t proto)
+{
+	if(proto & lwip_if_proto_tcp)
+		socket->receive_buffer_locked.tcp = 0;
+
+	if(proto & lwip_if_proto_udp)
+		socket->receive_buffer_locked.udp = 0;
 }
 
 attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
@@ -95,6 +108,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 	struct pbuf *pbuf;
 	ip_addr_t _ip_addr_any = { IPADDR_ANY };
 	lwip_if_callback_context_t context;
+	bool locked = false;
 	int size;
 
 	context.tcp = !!tcp;
@@ -122,23 +136,29 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 			stat_lwip_unicast_received++;
 	}
 
-	if(pbuf_received->flags & PBUF_FLAG_LLMCAST)
+	if(tcp && socket->receive_buffer_locked.tcp)
 	{
 		stat_lwip_multicast_received++;
-		multicast = true;
+		locked = true;
 	}
 
-	if(socket->receive_buffer_locked)
+	if(!tcp && socket->receive_buffer_locked.udp)
 	{
-		if(broadcast)
+		stat_lwip_udp_locked++;
+		locked = true;
+	}
+
+	if(locked)
+	{
+		if(context.broadcast)
 			stat_lwip_broadcast_dropped++;
 		else
 			if(context.multicast)
 				stat_lwip_multicast_dropped++;
 			else
 			{
-				stat_lwip_receive_buffer_overflow++;
-				log("lwip-interface: receive buffer overflow\n");
+				stat_lwip_unicast_dropped++;
+				log("lwip-interface: %s receive buffer locked\n", tcp ? "tcp" : "udp");
 			}
 
 		pbuf_free(pbuf_received); // still processing previous buffer, drop the received data
@@ -174,12 +194,17 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 			stat_lwip_udp_received_packets++;
 			stat_lwip_udp_received_bytes += pbuf->len;
 		}
-		string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
+
+		if((pbuf->len + string_length(socket->receive_buffer)) >= size)
+			context.overflow += pbuf->len;
+		else
+			string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
 	}
 
     pbuf_free(pbuf_received);
 
-	socket->receive_buffer_locked = 1;
+	socket->receive_buffer_locked.tcp = 1;
+	socket->receive_buffer_locked.udp = 1;
 
 	context.length = string_length(socket->receive_buffer);
 	context.buffer_string = socket->receive_buffer;
@@ -536,7 +561,8 @@ attr_nonnull bool lwip_if_socket_create(lwip_if_socket_t *socket, const char *na
 	socket->send_buffer = send_buffer;
 	socket->sending_remaining = 0;
 	socket->sent_unacked = 0;
-	socket->receive_buffer_locked = 0;
+	socket->receive_buffer_locked.tcp = 0;
+	socket->receive_buffer_locked.udp = 0;
 	socket->reboot_pending = 0;
 	strecpy(socket->name, name, sizeof(socket->name));
 	socket->callback_data_received = callback_data_received;

@@ -40,7 +40,7 @@ static bool				remote_trigger_active;
 static void socket_remote_trigger_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
 	string_clear(&remote_trigger_socket_receive_buffer);
-    lwip_if_receive_buffer_unlock(socket);
+    lwip_if_receive_buffer_unlock(socket, lwip_if_proto_all);
 }
 
 bool remote_trigger_init(void)
