@@ -195,7 +195,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 			stat_lwip_udp_received_bytes += pbuf->len;
 		}
 
-		if((pbuf->len + string_length(socket->receive_buffer)) >= size)
+		if((pbuf->len + string_length(socket->receive_buffer)) > size)
 			context.overflow += pbuf->len;
 		else
 			string_append_bytes(socket->receive_buffer, pbuf->payload, pbuf->len);
