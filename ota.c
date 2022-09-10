@@ -303,17 +303,23 @@ app_action_t application_function_flash_bench(app_params_t *parameters)
 	}
 
 	string_format(parameters->dst, "OK flash-bench: sending %u bytes\n", bytes);
-	oob_offset = pad_offset = string_length(parameters->dst);
-	sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + pad_offset;
 
-	while((oob_offset % 4) != 0)
+	if(bytes > 0)
 	{
-		*sector_dst++ = '\0';
-		oob_offset++;
-	}
+		oob_offset = pad_offset = string_length(parameters->dst);
+		sector_dst = (uint8_t *)string_buffer_nonconst(parameters->dst) + pad_offset;
 
-	memset(sector_dst, 0xff, bytes);
-	string_setlength(parameters->dst, oob_offset + bytes);
+		while((oob_offset % 4) != 0)
+		{
+			*sector_dst++ = '\0';
+			oob_offset++;
+		}
+
+		memset(sector_dst, 0xff, bytes);
+		string_setlength(parameters->dst, oob_offset + bytes);
+	}
+	else
+		oob_offset = pad_offset = 0;
 
 	parameters->dst_data_pad_offset = pad_offset;
 	parameters->dst_data_oob_offset = oob_offset;
