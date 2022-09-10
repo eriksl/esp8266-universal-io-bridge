@@ -161,8 +161,8 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 				log("lwip-interface: %s receive buffer locked\n", tcp ? "tcp" : "udp");
 			}
 
-		pbuf_free(pbuf_received); // still processing previous buffer, drop the received data
-		return(ERR_MEM);
+		pbuf_free(pbuf_received); // still processing previous buffer, simply drop the received data
+		return(ERR_OK);
 	}
 
 	if(((unsigned int)address >= 0x3ffe8000) && ((unsigned int)address < 0x40000000))
