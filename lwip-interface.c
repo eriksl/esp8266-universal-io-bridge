@@ -342,14 +342,8 @@ static err_t tcp_sent_callback(void *callback_arg, struct tcp_pcb *pcb, u16_t le
 	else
 		socket->sent_unacked -= len;
 
-	if(socket->sending_remaining > 0)
-	{
-		if(!tcp_try_send_buffer(socket))
-		{
-			log("tcp send callback: tcp_try_send_buffer returns error\n");
-			socket->sending_remaining = 0;
-		}
-	}
+	if((socket->sending_remaining > 0) && (!tcp_try_send_buffer(socket)))
+		socket->sending_remaining = 0;
 
 	return(ERR_OK);
 }
