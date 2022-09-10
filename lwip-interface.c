@@ -93,15 +93,33 @@ attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
-	unsigned int length;
 	ip_addr_t _ip_addr_any = { IPADDR_ANY };
-	bool broadcast = false;
-	bool multicast = false;
+	lwip_if_callback_context_t context;
+	int size;
+
+	context.tcp = !!tcp;
+	context.udp = !tcp;
+	context.multicast = false;
+	context.broadcast = false;
+	context.overflow = 0;
+	context.length = 0;
+	context.original_length = string_length(socket->receive_buffer);
+	context.parts = 0;
 
 	if(pbuf_received->flags & PBUF_FLAG_LLBCAST)
 	{
 		stat_lwip_broadcast_received++;
-		broadcast = true;
+		context.broadcast = true;
+	}
+	else
+	{
+		if(pbuf_received->flags & PBUF_FLAG_LLMCAST)
+		{
+			stat_lwip_multicast_received++;
+			context.multicast = true;
+		}
+		else
+			stat_lwip_unicast_received++;
 	}
 
 	if(pbuf_received->flags & PBUF_FLAG_LLMCAST)
@@ -115,7 +133,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 		if(broadcast)
 			stat_lwip_broadcast_dropped++;
 		else
-			if(multicast)
+			if(context.multicast)
 				stat_lwip_multicast_dropped++;
 			else
 			{
@@ -140,10 +158,12 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 		socket->peer.port = 0;
 	}
 
-	length = string_length(socket->receive_buffer);
+	size = string_size(socket->receive_buffer);
 
 	for(pbuf = pbuf_received; pbuf; pbuf = pbuf->next)
 	{
+		context.parts++;
+
 		if(tcp)
 		{
 			stat_lwip_tcp_received_packets++;
@@ -161,7 +181,12 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	socket->receive_buffer_locked = 1;
 
-	socket->callback_data_received(socket, string_length(socket->receive_buffer) - length);
+	context.length = string_length(socket->receive_buffer);
+	context.buffer_string = socket->receive_buffer;
+	context.buffer_size = string_size(socket->receive_buffer);
+	context.buffer = string_buffer_nonconst(socket->receive_buffer);
+
+	socket->callback_data_received(socket, &context);
 
 	return(ERR_OK);
 }

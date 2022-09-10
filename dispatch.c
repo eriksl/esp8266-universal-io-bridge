@@ -627,7 +627,7 @@ static void wlan_event_handler(System_Event_t *event)
 	}
 }
 
-static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
+static void socket_command_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
 	command_input_state.segments++;
 
@@ -695,7 +695,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, unsi
 	}
 }
 
-static void socket_uart_callback_data_received(lwip_if_socket_t *socket, unsigned int received)
+static void socket_uart_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
 	int current, length;
 	uint8_t byte;

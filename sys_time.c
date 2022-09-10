@@ -187,11 +187,11 @@ attr_inline void timer_periodic(void)
 	}
 }
 
-static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, unsigned int length)
+static void socket_sntp_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
 	sntp_network_t *received_packet = (sntp_network_t *)string_buffer_nonconst(&sntp_socket_receive_buffer);
 
-	if(length == sizeof(sntp_network_t))
+	if(context->length == sizeof(sntp_network_t))
 	{
 		sntp_received++;
 		time_flags.sntp_regular_mode = 1;

@@ -16046,3 +16046,83 @@ Fri Sep  9 12:10:49 CEST 2022 f31de33 Move all wlan related code to new source f
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  70301, free:   9964, 12 %
     irom:    available: 784 k, used: 435168, free: 367648, 45 %
+Fri Sep  9 16:40:17 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435184, free: 367632, 45 %
+Fri Sep  9 18:03:05 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435424, free: 367392, 45 %
+Sat Sep 10 10:54:36 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Sat Sep 10 11:51:34 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435664, free: 367152, 45 %
+Sat Sep 10 11:56:48 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435696, free: 367120, 45 %
+Sat Sep 10 12:58:48 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 12:59:08 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72349, free:   7916,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:07:27 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72269, free:   7996,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:09:24 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72197, free:   8068, 10 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:10:27 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72229, free:   8036, 10 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:14:17 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72349, free:   7916,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:15:38 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72477, free:   7788,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:15:46 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72605, free:   7660,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:16:20 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  72349, free:   7916,  9 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:25:08 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sat Sep 10 13:27:04 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70301, free:   9964, 12 %
+    irom:    available: 784 k, used: 435440, free: 367376, 45 %
+Sat Sep 10 13:28:49 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  70293, free:   9972, 12 %
+    irom:    available: 784 k, used: 435392, free: 367424, 45 %
+Sat Sep 10 13:30:59 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 435392, free: 367424, 45 %
+Sat Sep 10 13:39:25 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 435408, free: 367408, 45 %
+Sat Sep 10 13:46:15 CEST 2022 ca2fbea lwip: add identifier to socket for logging/debugging purposes.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %

@@ -10,7 +10,23 @@
 
 struct _lwip_if_socket_t;
 
-typedef void (*callback_data_received_fn_t)(struct _lwip_if_socket_t *, unsigned int);
+typedef struct
+{
+	bool		tcp;
+	bool		udp;
+	bool		multicast;
+	bool		broadcast;
+	int			length;
+	int			overflow;
+	int			original_length;
+	int			parts;
+	string_t	*buffer_string;
+	int			buffer_size;
+	char		*buffer;
+	const char	*name;
+} lwip_if_callback_context_t;
+
+typedef void (*callback_data_received_fn_t)(struct _lwip_if_socket_t *, const lwip_if_callback_context_t *context);
 
 typedef struct _lwip_if_socket_t
 {
