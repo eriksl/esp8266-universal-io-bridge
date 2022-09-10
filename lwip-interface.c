@@ -42,7 +42,7 @@ static const char * const lwip_error_strings[lwip_error_strings_size] roflash =
 	"unknown",
 };
 
-static void _log_error(const char *flash_message, err_t error)
+static void _log_error(const char *name, const char *flash_message, err_t error)
 {
 	string_new(, message, 128);
 
@@ -54,6 +54,8 @@ static void _log_error(const char *flash_message, err_t error)
 	if(ix >= lwip_error_strings_size)
 		ix = lwip_error_strings_size - 1;
 
+	string_append_cstr(&message, name);
+	string_append(&message, ": ");
 	string_append_cstr_flash(&message, flash_message);
 	string_append(&message, ", lwip_error: ");
 	string_append_cstr_flash(&message, lwip_error_strings[ix]);
@@ -62,10 +64,10 @@ static void _log_error(const char *flash_message, err_t error)
 	log_from_flash_0(string_to_cstr(&message));
 }
 
-#define log_error(s, e) \
+#define log_error(n, s, e) \
 do { \
 	static roflash const char log_str_flash[] = s; \
-	_log_error(log_str_flash, e); \
+	_log_error(n, log_str_flash, e); \
 } while(0)
 
 bool attr_nonnull attr_pure lwip_if_received_tcp(lwip_if_socket_t *socket)
