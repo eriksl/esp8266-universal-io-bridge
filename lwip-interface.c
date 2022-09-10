@@ -312,16 +312,8 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 
 	if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
 	{
-		if(error == ERR_MEM)
-		{
-			stat_lwip_tcp_send_segmentation++;
-			log("lwip tcp write: out of memory\n");
-		}
-		else
-		{
-			stat_lwip_tcp_send_error++;
-			log_error(socket->name, "lwip tcp write: error", error);
-		}
+		stat_lwip_tcp_send_error++;
+		log_error(socket->name, "lwip tcp write: error", error);
 	}
 	else
 	{
