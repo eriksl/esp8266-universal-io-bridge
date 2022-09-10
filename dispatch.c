@@ -118,10 +118,7 @@ static void background_task_bridge_uart(void)
 		return;
 
 	if(!lwip_if_send(&uart_socket))
-	{
 		stat_uart_send_buffer_overflow++;
-		log("lwip uart send failed\n");
-	}
 }
 
 static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)
@@ -193,15 +190,15 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				uart_send_string(0, &uart_prompt);
 				uart_send_string(0, &command_socket_receive_buffer);
-				stat_update_command_uart++;
+				stat_cmd_uart++;
 			}
 			else
 			{
 				if(lwip_if_received_tcp(&command_socket))
-					stat_update_command_tcp++;
+					stat_cmd_tcp++;
 
 				if(lwip_if_received_udp(&command_socket))
-					stat_update_command_udp++;
+					stat_cmd_udp++;
 			}
 
 			if(lwip_if_send_buffer_locked(&command_socket))
@@ -237,8 +234,8 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 					if(our_checksum != their_checksum)
 					{
-						stat_dispatch_command_input_checksum_error++;
 						goto error;
+						stat_cmd_checksum_error++;
 					}
 				}
 
@@ -551,7 +548,8 @@ static void slow_timer_callback(void *arg)
 
 		if(command_input_state.timeout == 0)
 		{
-			stat_dispatch_command_input_timeout++;
+			log("dispatch: tcp input timeout\n");
+			stat_cmd_timeout++;
 			command_input_state.expected = 0;
 			command_input_state.segments = 0;
 			string_clear(&command_socket_receive_buffer);

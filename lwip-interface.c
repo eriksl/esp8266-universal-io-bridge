@@ -138,7 +138,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 
 	if(tcp && socket->receive_buffer_locked.tcp)
 	{
-		stat_lwip_multicast_received++;
+		stat_lwip_tcp_locked++;
 		locked = true;
 	}
 
