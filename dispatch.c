@@ -38,9 +38,9 @@ enum
 
 typedef struct
 {
-	unsigned int expected;
-	unsigned int timeout;
-	unsigned int segments;
+	int expected;
+	int timeout;
+	int parts;
 } command_input_state_t;
 
 static command_input_state_t command_input_state;
@@ -181,7 +181,8 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 			app_params_t parameters;
 			app_action_t action;
 			string_t cooked_src, cooked_src_oob, cooked_dst;
-			bool checksum_requested;
+			bool checksum_requested = false;
+			bool transaction_id_provided = false;
 			uint32_t transaction_id = 0;
 
 			if(argument == task_received_command_uart)
@@ -218,7 +219,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 				if(packet_header->version != packet_header_version)
 				{
 					log("dispatch: wrong version packet received: %u\n", packet_header->version);
-					goto error;
+					goto drop;
 				}
 
 				checksum_requested = !!(packet_header->flag.md5_32_requested);
@@ -234,15 +235,15 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 					if(our_checksum != their_checksum)
 					{
-						goto error;
 						stat_cmd_checksum_error++;
+						goto drop;
 					}
 				}
 
 				if(packet_header->broadcast_groups != 0)
 				{
 					if(!(packet_header->broadcast_groups & broadcast_groups))
-						goto error;
+						goto drop;
 					else
 						stat_broadcast_group_received++;
 				}
@@ -251,16 +252,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 				{
 					log("dispatch: oob data unaligned: %u %u %u %u\n", packet_header->length, packet_header->data_offset,
 							packet_header->data_pad_offset, packet_header->oob_data_offset);
-					goto error;
-				}
-
-				transaction_id = packet_header->transaction_id;
-
-				if((transaction_id != 0) &&
-						((transaction_id == previous_transaction_id[0]) || (transaction_id == previous_transaction_id[1])))
-				{
-					stat_dispatch_command_duplicate++;
-					goto error;
+					goto drop;
 				}
 
 				string_set(&cooked_src,
@@ -277,6 +269,16 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 						string_buffer_nonconst(&command_socket_send_buffer) + sizeof(packet_header_t),
 						string_size(&command_socket_send_buffer) - sizeof(packet_header_t),
 						0);
+
+				transaction_id_provided = packet_header->flag.transaction_id_provided;
+				transaction_id = packet_header->transaction_id;
+
+				if(transaction_id_provided &&
+						((transaction_id == previous_transaction_id[0]) || (transaction_id == previous_transaction_id[1])))
+				{
+					stat_cmd_duplicate++;
+					goto drop;
+				}
 			}
 			else
 			{
@@ -296,7 +298,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 					if(delimiter >= string_length(&command_socket_receive_buffer))
 					{
 						log("dispatch: raw data oob padding invalid: %d %d\n", string_length(&command_socket_receive_buffer), delimiter);
-						goto error;
+						goto drop;
 					}
 
 					string_set(&cooked_src_oob,
@@ -354,82 +356,94 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 			if(argument == task_received_command_uart) // commands from uart enabled
 				uart_send_string(0, parameters.dst);
-
-			if(argument == task_received_command_packet)
+			else
 			{
-				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_send_buffer);
-				unsigned int packet_length = sizeof(packet_header_t) + string_length(parameters.dst);
-				string_setlength(&command_socket_send_buffer, packet_length);
-
-				packet_header->soh = packet_header_soh;
-				packet_header->version = packet_header_version;
-				packet_header->id = packet_header_id;
-				packet_header->length = packet_length;
-				packet_header->data_offset = sizeof(packet_header_t);
-
-				if((parameters.dst_data_pad_offset >= 0) && (parameters.dst_data_oob_offset >= 0))
+				if(argument == task_received_command_packet)
 				{
-					packet_header->data_pad_offset = sizeof(packet_header_t) + parameters.dst_data_pad_offset;
-					packet_header->oob_data_offset = sizeof(packet_header_t) + parameters.dst_data_oob_offset;
+					packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_send_buffer);
+					unsigned int packet_length = sizeof(packet_header_t) + string_length(parameters.dst);
+					string_setlength(&command_socket_send_buffer, packet_length);
+
+					packet_header->soh = packet_header_soh;
+					packet_header->version = packet_header_version;
+					packet_header->id = packet_header_id;
+					packet_header->length = packet_length;
+					packet_header->data_offset = sizeof(packet_header_t);
+
+					if((parameters.dst_data_pad_offset > 0) && (parameters.dst_data_oob_offset > 0))
+					{
+						packet_header->data_pad_offset = sizeof(packet_header_t) + parameters.dst_data_pad_offset;
+						packet_header->oob_data_offset = sizeof(packet_header_t) + parameters.dst_data_oob_offset;
+					}
+					else
+					{
+						packet_header->data_pad_offset = packet_length;
+						packet_header->oob_data_offset = packet_length;
+					}
+
+					packet_header->broadcast_groups = 0;
+					packet_header->flags = 0;
+					packet_header->spare_0 = 0;
+					packet_header->spare_1 = 0;
+					packet_header->checksum = 0;
+
+					if(transaction_id_provided)
+					{
+						previous_transaction_id[1] = previous_transaction_id[0];
+						previous_transaction_id[0] = transaction_id;
+
+						packet_header->flag.transaction_id_provided = 1;
+						packet_header->transaction_id = transaction_id;
+					}
+
+					if(checksum_requested)
+					{
+						packet_header->flag.md5_32_provided = 1;
+						packet_header->checksum = MD5_trunc_32(packet_length, (const uint8_t *)string_buffer(&command_socket_send_buffer));
+					}
+
+					string_setlength(&command_socket_send_buffer, string_length(parameters.dst) + sizeof(packet_header_t));
 				}
 				else
 				{
-					packet_header->data_pad_offset = packet_length;
-					packet_header->oob_data_offset = packet_length;
+					if((parameters.dst_data_oob_offset > 0) && (parameters.dst_data_pad_offset > 0))
+					{
+						char *buffer = string_buffer_nonconst(&command_socket_send_buffer);
+						buffer[parameters.dst_data_pad_offset - 1] = '\0';
+					}
+
+					string_setlength(&command_socket_send_buffer, string_length(parameters.dst));
 				}
 
-				packet_header->broadcast_groups = 0;
-				packet_header->flags = 0;
-				packet_header->transaction_id = transaction_id;
-				packet_header->spare_0 = 0;
-				packet_header->spare_1 = 0;
-				packet_header->checksum = 0;
-
-				previous_transaction_id[1] = previous_transaction_id[0];
-				previous_transaction_id[0] = transaction_id;
-
-				if(checksum_requested)
-				{
-					packet_header->flag.md5_32_provided = 1;
-					packet_header->checksum = MD5_trunc_32(packet_length, (const uint8_t *)string_buffer(&command_socket_send_buffer));
-				}
-
-				string_setlength(&command_socket_send_buffer, string_length(parameters.dst) + sizeof(packet_header_t));
+				lwip_if_send(&command_socket);
 			}
-			else
-			{
-				if((parameters.dst_data_oob_offset > 0) && (parameters.dst_data_pad_offset > 0))
-				{
-					char *buffer = string_buffer_nonconst(&command_socket_send_buffer);
-					buffer[parameters.dst_data_pad_offset - 1] = '\0';
-				}
-
-				string_setlength(&command_socket_send_buffer, string_length(parameters.dst));
-			}
-
-			if(!lwip_if_send(&command_socket))
-				log("dispatch: lwip send failed\n");
 
 			if(action == app_action_disconnect)
 				lwip_if_close(&command_socket);
 
 			/*
-			 * === ugly workaround ===
-			 *
-			 * For tcp connections we can use the "sent" callback to make sure all
-			 * of our data has been sent before rebooting. For udp there is no such
-			 * callback and waiting for it to happen does not work (need a return to
-			 * SDK code to achieve it). So lwip_if_reboot will take care for it itself
-			 * when possible (tcp), otherwise (udp) it will return false here and the
-			 * application needs to finish the operation via a task call.
-			 */
+			* === ugly workaround ===
+			*
+			* For tcp connections we can use the "sent" callback to make sure all
+			* of our data has been sent before rebooting. For udp there is no such
+			* callback and waiting for it to happen does not work (need a return to
+			* SDK code to achieve it). So lwip_if_reboot will take care for it itself
+			* when possible (tcp), otherwise (udp) it will return false here and the
+			* application needs to finish the operation via a task call.
+			*/
 
 			if(action == app_action_reset)
 				if(!lwip_if_reboot(&command_socket))
 					dispatch_post_task(0, task_reset, 0);
 
 			break;
-			lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
+drop:
+			if(argument != task_received_command_uart)
+			{
+				string_clear(&command_socket_receive_buffer);
+				lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
+				string_clear(&command_socket_send_buffer);
+			}
 
 			break;
 		}
@@ -551,7 +565,8 @@ static void slow_timer_callback(void *arg)
 			log("dispatch: tcp input timeout\n");
 			stat_cmd_timeout++;
 			command_input_state.expected = 0;
-			command_input_state.segments = 0;
+			command_input_state.timeout = 0;
+			command_input_state.parts = 0;
 			string_clear(&command_socket_receive_buffer);
 			lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
 		}
@@ -623,70 +638,210 @@ static void wlan_event_handler(System_Event_t *event)
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
-	command_input_state.segments++;
+	const packet_header_t *packet_header;
 
-	if(string_full(&command_socket_receive_buffer))
+	if(context->tcp)
+		command_input_state.parts += context->parts;
+	else
+		command_input_state.parts++;
+
+	if(context->overflow > 0)
 	{
-		log("dispatch: overrun, %d %d %u\n", string_length(&command_socket_receive_buffer), string_size(&command_socket_receive_buffer), length);
-		command_input_state.expected = 0;
-		command_input_state.timeout = 0;
-		command_input_state.segments = 0;
-		string_clear(&command_socket_receive_buffer);
-		lwip_if_receive_buffer_unlock(&command_socket);
-		return;
+		log("dispatch: socket buffer overflow: %d ", context->overflow);
+		log("[%d %d %d: %d]", context->original_length, context->length, context->buffer_size, context->parts);
+		log("[%d %d %d]\n", command_input_state.expected, command_input_state.timeout, command_input_state.parts);
+		stat_cmd_receive_buffer_overflow++;
+		goto drop_and_reset;
 	}
 
-	if((command_input_state.segments == 1) && (length >= sizeof(packet_header_t)))
+	if(context->tcp)
 	{
-		const packet_header_t *packet_header = (const packet_header_t *)string_buffer(&command_socket_receive_buffer);
-
-		if((packet_header->soh == packet_header_soh) &&
-				packet_header->id == packet_header_id)
+		if(command_input_state.parts > 3)
 		{
-			unsigned int packet_length = packet_header->length;
+			stat_cmd_tcp_too_many_segments++;
+			goto drop_and_reset;
+		}
 
-			if((int)packet_length < string_size(&command_socket_receive_buffer))
+		if(command_input_state.timeout > 0) // expecting more tcp segments ...
+		{
+			if(command_input_state.expected == 0) // ... raw data ...
 			{
-				command_input_state.expected = packet_length;
-				command_input_state.timeout = command_input_state_timeout;
+				if(context->length > SPI_FLASH_SEC_SIZE)
+				{
+					command_input_state.timeout = 0;
+					command_input_state.parts = 0;
+					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+					dispatch_post_task(1, task_received_command, task_received_command_text);
+				}
+				else // ... no eol -> unlock and continue receiving
+					lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
+			}
+			else // ... packet data ...
+			{
+				if(context->length == command_input_state.expected) // ... packet complete -> push
+				{
+					command_input_state.expected = 0;
+					command_input_state.timeout = 0;
+					command_input_state.parts = 0;
+					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+					dispatch_post_task(1, task_received_command, task_received_command_packet);
+				}
+				else
+				{
+					if(context->length < command_input_state.expected) // ... packet incomplete -> unlock and continue receiving
+						lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
+					else // ... more data than packet -> overrun -> drop
+					{
+						stat_cmd_invalid_packet_length++;
+						goto drop_and_reset;
+					}
+				}
+			}
+
+			return;
+		}
+
+		packet_header = (const packet_header_t *)context->buffer;
+
+		if(command_input_state.parts == 1) // first segment ...
+		{
+			if((context->length >= (int)sizeof(packet_header_t)) && // ... contains packet header ...
+				(packet_header->soh == packet_header_soh) &&
+				(packet_header->id == packet_header_id))
+			{
+				if((command_input_state.expected != 0) || (command_input_state.timeout != 0))
+				{
+					log("dispatch: already waiting for another session: %d %d, drop\n", command_input_state.expected, command_input_state.timeout);
+					goto drop_and_reset;
+				}
+
+				if(context->length == packet_header->length) // ... packet already complete -> push
+				{
+					command_input_state.timeout = 0;
+					command_input_state.expected = 0;
+					command_input_state.parts = 0;
+					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+					dispatch_post_task(1, task_received_command, task_received_command_packet);
+				}
+				else
+				{
+					if(context->length < packet_header->length) // ... packet incomplete -> unlock and continue
+					{
+						command_input_state.expected = packet_header->length;
+						command_input_state.timeout = command_input_state_timeout;
+						lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
+					}
+					else // ... payload bigger than length field -> drop
+					{
+						stat_cmd_invalid_packet_length++;
+						goto drop_and_reset;
+					}
+				}
+			}
+			else // ... contains raw data ...
+			{
+				if(context->length != 1460 /* tcp mss */)
+				{
+					string_trim_nl(context->buffer_string);
+					command_input_state.timeout = 0;
+					command_input_state.parts = 0;
+					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+					dispatch_post_task(1, task_received_command, task_received_command_text);
+				}
+				else // ... no eol -> unlock and continue receiving
+				{
+					command_input_state.timeout = command_input_state_timeout;
+					command_input_state.expected = 0;
+					lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
+				}
+			}
+
+			return;
+		}
+
+		log("dispatch: tcp invalid state\n");
+		log("parts: %d\n", command_input_state.parts);
+		log("length: %d\n", context->length);
+		log("packet size: %u\n", sizeof(packet_header_t));
+		log("packet soh: %d\n", packet_header->soh);
+		log("packet id: %04x\n", packet_header->id);
+		log("expected: %d\n", command_input_state.expected);
+		log("timeout: %d\n", command_input_state.timeout);
+
+		goto drop_and_reset;
+	}
+
+	if(context->udp)
+	{
+		if(command_input_state.parts > 1)
+		{
+			log("dispatch: packet fragmented\n");
+			goto drop_and_reset;
+		}
+
+		if(command_input_state.expected > 0)
+		{
+			log("dispatch: drop udp while expecting packet data\n");
+			goto drop_and_reset;
+		}
+
+		if(command_input_state.timeout > 0)
+		{
+			log("dispatch: drop udp while expecting tcp raw data\n");
+			goto drop_and_reset;
+		}
+
+		packet_header = (const packet_header_t *)context->buffer;
+
+		// packet contains new packet header ...
+
+		if((command_input_state.parts == 1) && (context->length >= (int)sizeof(packet_header_t)) &&
+				(packet_header->soh == packet_header_soh) && (packet_header->id == packet_header_id))
+		{
+			if(context->length == packet_header->length) // ... packet complete -> push
+			{
+				command_input_state.timeout = 0;
+				command_input_state.expected = 0;
+				command_input_state.parts = 0;
+				lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+				dispatch_post_task(1, task_received_command, task_received_command_packet);
+			}
+			else
+			{
+				if(context->length < packet_header->length) // ... packet incomplete -> error, drop
+				{
+					stat_cmd_udp_packet_incomplete++;
+					goto drop_and_reset;
+				}
+				else // ... payload bigger than length field -> error, drop
+				{
+					stat_cmd_invalid_packet_length++;
+					goto drop_and_reset;
+				}
 			}
 		}
-	}
-
-	if((command_input_state.expected > 0) && (command_input_state.timeout > 0))
-	{
-		if(string_length(&command_socket_receive_buffer) >= (int)command_input_state.expected)
+		else // packet contains raw data -> push
 		{
 			command_input_state.expected = 0;
 			command_input_state.timeout = 0;
-			command_input_state.segments = 0;
-			dispatch_post_task(1, task_received_command, task_received_command_packet);
+			command_input_state.parts = 0;
+			lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
+			dispatch_post_task(1, task_received_command, task_received_command_text);
 		}
-		else
-			lwip_if_receive_buffer_unlock(&command_socket);
 
 		return;
 	}
 
-	if(lwip_if_received_tcp(&command_socket))
-	{
-		if(string_trim_nl(&command_socket_receive_buffer))
-		{
-			command_input_state.expected = 0;
-			command_input_state.timeout = 0;
-			command_input_state.segments = 0;
-			dispatch_post_task(1, task_received_command, task_received_command_text);
-		}
-		else
-			lwip_if_receive_buffer_unlock(&command_socket);
-	}
-	else
-	{
-		command_input_state.expected = 0;
-		command_input_state.timeout = 0;
-		command_input_state.segments = 0;
-		dispatch_post_task(1, task_received_command, task_received_command_text);
-	}
+	log("dispatch: invalid state\n");
+	goto drop_and_reset;
+
+drop_and_reset:
+	command_input_state.expected = 0;
+	command_input_state.timeout = 0;
+	command_input_state.parts = 0;
+
+	string_clear(context->buffer_string);
+	lwip_if_receive_buffer_unlock(socket, lwip_if_proto_all);
 }
 
 static void socket_uart_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
@@ -758,7 +913,7 @@ void dispatch_init2(void)
 
 	command_input_state.expected = 0;
 	command_input_state.timeout = 0;
-	command_input_state.segments = 0;
+	command_input_state.parts = 0;
 
 	if(!config_get_uint("broadcast-groups", &broadcast_groups, -1, -1))
 		broadcast_groups = 0x00;

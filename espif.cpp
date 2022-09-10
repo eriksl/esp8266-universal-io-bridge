@@ -24,10 +24,15 @@ static const char *flash_info_expect = "OK flash function available, slots: 2, c
 
 static bool option_raw = false;
 static bool option_verbose = false;
+static bool option_debug = false;
 static bool option_no_provide_checksum = false;
 static bool option_no_request_checksum = false;
 static bool option_use_tcp = false;
+static bool option_dontwait = false;
 static unsigned int option_broadcast_group_mask = 0;
+static unsigned int option_multicast_burst = 1;
+
+static boost::random::mt19937 prn;
 
 static uint32_t MD5_trunc_32(const std::string &data)
 {
@@ -48,6 +53,29 @@ static uint32_t MD5_trunc_32(const std::string &data)
 	return(checksum);
 }
 
+static std::string debug_string(const char *id, const std::string text)
+{
+	int ix;
+	char current;
+	std::string out;
+
+	out = (boost::format("%s[%d]: \"") % id % text.length()).str();
+
+	for(ix = 0; (ix < (int)text.length()) && (ix < 96); ix++)
+	{
+		current = text.at(ix);
+
+		if((current >= ' ') && (current <= '~'))
+			out.append(1, current);
+		else
+			out.append((boost::format("[%02x]") % ((unsigned int)current & 0xff)).str());
+	}
+
+	out.append("\"");
+
+	return(out);
+}
+
 class GenericSocket
 {
 	private:
@@ -62,9 +90,9 @@ class GenericSocket
 		GenericSocket(const std::string &host, const std::string &port, bool tcp, bool broadcast, bool multicast);
 		~GenericSocket();
 
-		bool send(std::string &data, int timeout = -1);
-		bool receive(std::string &data, int timeout = -1, struct sockaddr_in *remote_host = nullptr);
-		void drain();
+		bool send(std::string &data, int timeout = 500);
+		bool receive(std::string &data, int timeout = 500, struct sockaddr_in *remote_host = nullptr);
+		void drain(int timeout = 500);
 		void connect();
 		void disconnect();
 };
@@ -166,9 +194,6 @@ bool GenericSocket::send(std::string &data, int timeout)
 	struct pollfd pfd;
 	int length;
 
-	if(timeout < 0)
-		timeout = 0;
-
 	pfd.fd = socket_fd;
 	pfd.events = POLLOUT | POLLERR | POLLHUP;
 	pfd.revents = 0;
@@ -177,7 +202,6 @@ bool GenericSocket::send(std::string &data, int timeout)
 	{
 		if(option_verbose)
 			std::cout << "send: empty buffer" << std::endl;
-
 		return(true);
 	}
 
@@ -185,12 +209,15 @@ bool GenericSocket::send(std::string &data, int timeout)
 	{
 		if(option_verbose)
 			std::cout << "send: timeout" << std::endl;
-
 		return(false);
 	}
 
 	if(pfd.revents & (POLLERR | POLLHUP))
+	{
+		if(option_verbose)
+			std::cout << "send: socket error" << std::endl;
 		return(false);
+	}
 
 	if(tcp)
 	{
@@ -215,27 +242,24 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 	socklen_t remote_host_length = sizeof(*remote_host);
 	struct pollfd pfd = { .fd = socket_fd, .events = POLLIN | POLLERR | POLLHUP, .revents = 0 };
 
-	if(timeout < 0)
-		timeout = tcp ? 2000 : 500;
-
 	if(poll(&pfd, 1, timeout) != 1)
 	{
 		if(option_verbose)
-			std::cout << std::string("receive: timeout, length: ") << std::to_string(data.length()) << std::endl;
+			std::cout << std::endl << std::string("receive: timeout, length: ") << std::to_string(data.length()) << std::endl;
 		return(false);
 	}
 
 	if(pfd.revents & POLLERR)
 	{
 		if(option_verbose)
-			std::cout << "receive: POLLERR" << std::endl;
+			std::cout << std::endl << "receive: POLLERR" << std::endl;
 		return(false);
 	}
 
 	if(pfd.revents & POLLHUP)
 	{
 		if(option_verbose)
-			std::cout << "receive: POLLHUP" << std::endl;
+			std::cout << std::endl << "receive: POLLHUP" << std::endl;
 		return(false);
 	}
 
@@ -244,7 +268,7 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 		if((length = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0)) <= 0)
 		{
 			if(option_verbose)
-				std::cout << "tcp receive: length <= 0" << std::endl;
+				std::cout << std::endl << "tcp receive: length <= 0" << std::endl;
 			return(false);
 		}
 	}
@@ -253,7 +277,7 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 		if((length = ::recvfrom(socket_fd, buffer, sizeof(buffer) - 1, 0, (sockaddr *)remote_host, &remote_host_length)) <= 0)
 		{
 			if(option_verbose)
-				std::cout << "udp receive: length <= 0" << std::endl;
+				std::cout << std::endl << "udp receive: length <= 0" << std::endl;
 			return(false);
 		}
 	}
@@ -263,39 +287,49 @@ bool GenericSocket::receive(std::string &data, int timeout, struct sockaddr_in *
 	return(true);
 }
 
-void GenericSocket::drain()
+void GenericSocket::drain(int timeout)
 {
 	struct pollfd pfd;
-	enum { drain_packets = 4 };
-	char *buffer = (char *)alloca(flash_sector_size * drain_packets);
+	enum { drain_packets_buffer_size = 4, drain_packets = 16 };
+	char *buffer = (char *)alloca(flash_sector_size * drain_packets_buffer_size);
 	int length;
+	int bytes = 0;
+	int packet = 0;
 
 	if(option_verbose)
-		std::cout << "draining..." << std::endl;
+		std::cout << "draining " << timeout << "..." << std::endl;
 
-	pfd.fd = socket_fd;
-	pfd.events = POLLIN | POLLERR | POLLHUP;
-	pfd.revents = 0;
-
-	if(poll(&pfd, 1, tcp ? 10000 : 500) != 1)
-		return;
-
-	if(pfd.revents & (POLLERR | POLLHUP))
-		return;
-
-	if(tcp)
+	for(packet = 0; packet < drain_packets; packet++)
 	{
-		if((length = ::recv(socket_fd, buffer, flash_sector_size * drain_packets, 0)) < 0)
-			return;
-	}
-	else
-	{
-		if((length = ::recvfrom(socket_fd, buffer, flash_sector_size * drain_packets, 0, (struct sockaddr *)0, 0)) < 0)
-			return;
+		pfd.fd = socket_fd;
+		pfd.events = POLLIN | POLLERR | POLLHUP;
+		pfd.revents = 0;
+
+		if(poll(&pfd, 1, timeout) != 1)
+			break;
+
+		if(pfd.revents & (POLLERR | POLLHUP))
+			break;
+
+		if(tcp)
+		{
+			if((length = ::recv(socket_fd, buffer, flash_sector_size * drain_packets_buffer_size, 0)) < 0)
+				break;
+		}
+		else
+		{
+			if((length = ::recvfrom(socket_fd, buffer, flash_sector_size * drain_packets_buffer_size, 0, (struct sockaddr *)0, 0)) < 0)
+				break;
+		}
+
+		if(option_verbose)
+			std::cout << debug_string("drain", std::string(buffer, length)) << std::endl;
+
+		bytes += length;
 	}
 
-	if(option_verbose)
-		std::cout << "drained " << length << " bytes" << std::endl;
+	if(option_verbose && (packet > 0))
+		std::cout << "drained " << bytes << " bytes in " << packet << " packets" << std::endl;
 }
 
 class Packet
@@ -307,8 +341,8 @@ class Packet
 		void clear();
 		void append_data(const std::string &);
 		void append_oob_data(const std::string &);
-		std::string encapsulate(uint32_t &transaction_id, bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask);
-		bool decapsulate(uint32_t transaction_id, std::string *data = nullptr, std::string *oob_data = nullptr, bool *raw = nullptr);
+		std::string encapsulate(bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask, uint32_t *transaction_id = nullptr);
+		bool decapsulate(std::string *data = nullptr, std::string *oob_data = nullptr, bool *raw = nullptr, const uint32_t *transaction_id = nullptr);
 		bool complete();
 
 	private:
@@ -368,13 +402,10 @@ void Packet::append_oob_data(const std::string &oob_data_in)
 	oob_data.append(oob_data_in);
 }
 
-std::string Packet::encapsulate(uint32_t &transaction_id, bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask)
+std::string Packet::encapsulate(bool raw, bool provide_checksum, bool request_checksum, unsigned int broadcast_group_mask, uint32_t *transaction_id)
 {
 	std::string pad;
 	std::string packet;
-	struct timeval tv;
-	gettimeofday(&tv, nullptr);
-	boost::random::mt19937 prg(tv.tv_usec);
 
 	if(raw)
 	{
@@ -408,7 +439,12 @@ std::string Packet::encapsulate(uint32_t &transaction_id, bool raw, bool provide
 		packet_header.data_offset = sizeof(packet_header);
 		packet_header.data_pad_offset = sizeof(packet_header) + data.length();
 		packet_header.oob_data_offset = sizeof(packet_header) + data.length() + pad.length();
-		packet_header.transaction_id = transaction_id = prg();
+
+		if(transaction_id)
+		{
+			packet_header.flag.transaction_id_provided = 1;
+			packet_header.transaction_id = *transaction_id = prn();
+		}
 
 		if(request_checksum)
 			packet_header.flag.md5_32_requested = 1;
@@ -428,7 +464,7 @@ std::string Packet::encapsulate(uint32_t &transaction_id, bool raw, bool provide
 	return(packet);
 }
 
-bool Packet::decapsulate(uint32_t transaction_id, std::string *data_in, std::string *oob_data_in, bool *rawptr)
+bool Packet::decapsulate(std::string *data_in, std::string *oob_data_in, bool *rawptr, const uint32_t *transaction_id)
 {
 	bool raw = false;
 	unsigned int our_checksum;
@@ -503,11 +539,10 @@ bool Packet::decapsulate(uint32_t transaction_id, std::string *data_in, std::str
 			}
 		}
 
-		if(packet_header.transaction_id != transaction_id)
+		if(transaction_id && packet_header.flag.transaction_id_provided && (packet_header.transaction_id != *transaction_id))
 		{
 			if(option_verbose)
 				std::cout << "duplicate packet" << std::endl;
-
 			return(false);
 		}
 
@@ -515,7 +550,6 @@ bool Packet::decapsulate(uint32_t transaction_id, std::string *data_in, std::str
 		{
 			if(option_verbose)
 				std::cout << "packet oob data padding invalid: " << packet_header.oob_data_offset << std::endl;
-
 			oob_data.clear();
 		}
 		else
@@ -553,11 +587,13 @@ bool Packet::complete()
 
 	packet_header = *(packet_header_t *)data.data();
 
-	if((packet_header.soh != packet_header_soh) ||
-			(packet_header.id != packet_header_id))
-		return((data.find('\0') != std::string::npos) || (data.back() == '\n'));
+	if((packet_header.soh == packet_header_soh) &&
+			(packet_header.id == packet_header_id))
+	{
+		return(data.length() >= packet_header.length);
+	}
 
-	return(data.length() >= packet_header.length);
+	return((data.length() < 1460 /* tcp mss initial segment */) || (data.length() > 4096));
 }
 
 static std::string sha_hash_to_text(const unsigned char *hash)
@@ -574,129 +610,107 @@ static std::string sha_hash_to_text(const unsigned char *hash)
 static int process(GenericSocket &channel, const std::string &data, const std::string *oob_data, std::string &reply_data, std::string *reply_oob_data,
 		const char *match = nullptr, std::vector<std::string> *string_value = nullptr, std::vector<int> *int_value = nullptr)
 {
+	enum { max_attempts = 4 };
 	unsigned int attempt;
 	Packet send_packet(&data, oob_data);
 	std::string send_data;
 	std::string packet;
 	Packet receive_packet;
 	std::string receive_data;
-	uint32_t transaction_id;
+	boost::smatch capture;
+	boost::regex re(match ? match : "");
+	unsigned int captures;
+	int timeout;
 
-	if(option_verbose)
+	if(option_debug)
+		std::cout << std::endl << debug_string("data", data) << std::endl;
+
+	packet = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+
+	timeout = 200;
+
+	for(attempt = 0; attempt < max_attempts; attempt++)
 	{
-		int length = 0;
-
-		std::cout << "> send (" << data.length() << "): \"";
-
-		for(const auto &it : data)
+		try
 		{
-			if(length++ > 80)
-				break;
+			send_data = packet;
 
-			if((it < ' ') || (it > '~'))
-				std::cout << '.';
-			else
-				std::cout << it;
+			while(send_data.length() > 0)
+				if(!channel.send(send_data))
+					throw(std::string("send failed"));
+
+			receive_packet.clear();
+
+			while(!receive_packet.complete())
+			{
+				receive_data.clear();
+
+				if(!channel.receive(receive_data))
+					throw(std::string("receive failed"));
+
+				receive_packet.append_data(receive_data);
+			}
+
+			if(!receive_packet.decapsulate(&reply_data, reply_oob_data))
+				throw(std::string("decapsulation failed"));
+
+			if(match && !boost::regex_match(reply_data, capture, re))
+				throw(std::string("received string does not match: ") + debug_string("reply", reply_data) + " vs. \"" + match + "\"");
+
+			break;
 		}
+		catch(const std::string &exception)
+		{
+			if(option_verbose)
+				std::cout << exception << ", attempt #" << attempt << ", backoff " << timeout << " ms" << std::endl;
 
-		std::cout << "\"" << std::endl;
+			channel.drain(timeout);
+			timeout *= 2;
+
+			continue;
+		}
 	}
 
-	packet = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
-
-	for(attempt = 0; attempt < 4; attempt++)
+	if(string_value || int_value)
 	{
-		send_data = packet;
+		if(string_value)
+			string_value->clear();
 
-		while(send_data.length() > 0)
+		if(int_value)
+			int_value->clear();
+
+		captures = 0;
+
+		for(const auto &it : capture)
 		{
-			if(!channel.send(send_data))
-			{
-				if(option_verbose)
-					std::cout << "process: send failed #" << attempt << std::endl;
+			if(captures++ == 0)
+				continue;
 
-				goto retry;
+			if(string_value)
+				string_value->push_back(std::string(it));
+
+			if(int_value)
+			{
+				try
+				{
+					int_value->push_back(stoi(it, 0, 0));
+				}
+				catch(...)
+				{
+					int_value->push_back(0);
+				}
 			}
 		}
-
-		receive_packet.clear();
-
-		while(!receive_packet.complete())
-		{
-			receive_data.clear();
-
-			if(!channel.receive(receive_data))
-			{
-				if(option_verbose)
-					std::cout << "process: receive failed #" << attempt << std::endl;
-
-				goto retry;
-			}
-
-			receive_packet.append_data(receive_data);
-		}
-
-		if(!receive_packet.decapsulate(transaction_id, &reply_data, reply_oob_data))
-			goto retry;
-
-		break;
-retry:
-		if(option_verbose)
-			std::cout << "retry " << attempt << "..." << std::endl;
-
-		channel.drain();
 	}
 
 	if(option_verbose && (attempt > 0))
 		std::cout << "success at attempt " << attempt << std::endl;
 
-	if(attempt >= 4)
+	if(attempt >= max_attempts)
 		throw(std::string("process: receive failed"));
 
-	if(option_verbose)
-		std::cout << "< received (" << reply_data.length() << "): \"" << reply_data << "\"" << std::endl;
-
-	if(match)
-	{
-		boost::smatch capture;
-		unsigned int captures;
-		boost::regex re(match);
-
-		if(!boost::regex_match(reply_data, capture, re))
-			throw(std::string("received string does not match"));
-
-		if(string_value || int_value)
-		{
-			if(string_value)
-				string_value->clear();
-
-			if(int_value)
-				int_value->clear();
-
-			captures = 0;
-
-			for(const auto &it : capture)
-			{
-				if(captures++ == 0)
-					continue;
-
-				if(string_value)
-					string_value->push_back(std::string(it));
-
-				if(int_value)
-				{
-					try
-					{
-						int_value->push_back(stoi(it, 0, 0));
-					}
-					catch(...)
-					{
-						int_value->push_back(0);
-					}
-				}
-			}
-		}
-	}
+	if(option_debug)
+		std::cout << std::endl << debug_string("reply", reply_data) << std::endl;
 
 	return(attempt);
 }
@@ -770,7 +784,6 @@ static int write_sector(GenericSocket &command_channel, unsigned int sector, con
 	{
 		if(option_verbose)
 			std::cout << boost::format("flash sector write failed: mode local: %u != mode remote %u\n") % (simulate ? 0 : 1) % int_value[0];
-
 		throw("write_sector failed");
 	}
 
@@ -778,7 +791,6 @@ static int write_sector(GenericSocket &command_channel, unsigned int sector, con
 	{
 		if(option_verbose)
 			std::cout << boost::format("flash sector write failed: sector local: %u != sector remote %u\n") % sector % int_value[0];
-
 		throw("write_sector failed");
 	}
 
@@ -817,7 +829,6 @@ static void get_checksum(GenericSocket &command_channel, unsigned int sector, un
 	{
 		if(option_verbose)
 			std::cout << "flash sector checksum failed: local sectors (" << sectors + ") != remote sectors (" << int_value[0] << ")" << std::endl;
-
 		throw("get_checksum failed");
 	}
 
@@ -825,7 +836,6 @@ static void get_checksum(GenericSocket &command_channel, unsigned int sector, un
 	{
 		if(option_verbose)
 			std::cout << "flash sector checksum failed: local start sector (" << sector << ") != remote start sector (" << int_value[1] << ")" << std::endl;
-
 		throw("get_checksum failed");
 	}
 
@@ -857,7 +867,7 @@ static void command_read(GenericSocket &command_channel, const std::string &file
 	{
 		gettimeofday(&time_start, 0);
 
-		if(option_verbose)
+		if(option_debug)
 		{
 			std::cout << "start read from 0x" << std::hex << sector * flash_sector_size << " (" << std::dec << sector << ")";
 			std::cout << ", length: 0x" << std::hex << sectors * flash_sector_size << " (" << std::dec << sectors << ")";
@@ -880,33 +890,29 @@ static void command_read(GenericSocket &command_channel, const std::string &file
 
 			offset += data.length();
 
-			if(!option_verbose)
-			{
-				int seconds, useconds;
-				double duration, rate;
+			int seconds, useconds;
+			double duration, rate;
 
-				gettimeofday(&time_now, 0);
+			gettimeofday(&time_now, 0);
 
-				seconds = time_now.tv_sec - time_start.tv_sec;
-				useconds = time_now.tv_usec - time_start.tv_usec;
-				duration = seconds + (useconds / 1000000.0);
-				rate = offset / 1024.0 / duration;
+			seconds = time_now.tv_sec - time_start.tv_sec;
+			useconds = time_now.tv_usec - time_start.tv_usec;
+			duration = seconds + (useconds / 1000000.0);
+			rate = offset / 1024.0 / duration;
 
-				std::cout << std::setfill(' ');
-				std::cout << "received "	<< std::setw(3) << (offset / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(3) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", received "	<< std::setw(3) << (current - sector) << " sectors";
-				std::cout << ", retries "   << std::setw(2) << retries;
-				std::cout << ", "			<< std::setw(3) << ((offset * 100) / (sectors * flash_sector_size)) << "%       \r";
-				std::cout.flush();
-			}
+			std::cout << std::setfill(' ');
+			std::cout << "received "	<< std::setw(3) << (offset / 1024) << " kbytes";
+			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+			std::cout << " at rate "	<< std::setw(3) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+			std::cout << ", received "	<< std::setw(3) << (current - sector) << " sectors";
+			std::cout << ", retries "   << std::setw(2) << retries;
+			std::cout << ", "			<< std::setw(3) << ((offset * 100) / (sectors * flash_sector_size)) << "%       \r";
+			std::cout.flush();
 		}
 	}
 	catch(const std::string &e)
 	{
-		if(!option_verbose)
-			std::cout << std::endl;
+		std::cout << std::endl;
 
 		close(file_fd);
 		throw;
@@ -914,10 +920,7 @@ static void command_read(GenericSocket &command_channel, const std::string &file
 
 	close(file_fd);
 
-	if(!option_verbose)
-		std::cout << std::endl;
-
-	std::cout << "checksumming " << sectors << " sectors from " << sector << "..." << std::endl;
+	std::cout << std::endl << "checksumming " << sectors << " sectors from " << sector << "..." << std::endl;
 
 	hash_size = sha1_hash_size;
 	EVP_DigestFinal_ex(hash_ctx, hash, &hash_size);
@@ -1016,36 +1019,32 @@ void command_write(GenericSocket &command_channel, const std::string filename, i
 
 			offset += flash_sector_size;
 
-			if(!option_verbose)
-			{
-				int seconds, useconds;
-				double duration, rate;
+			int seconds, useconds;
+			double duration, rate;
 
-				gettimeofday(&time_now, 0);
+			gettimeofday(&time_now, 0);
 
-				seconds = time_now.tv_sec - time_start.tv_sec;
-				useconds = time_now.tv_usec - time_start.tv_usec;
-				duration = seconds + (useconds / 1000000.0);
-				rate = offset / 1024.0 / duration;
+			seconds = time_now.tv_sec - time_start.tv_sec;
+			useconds = time_now.tv_usec - time_start.tv_usec;
+			duration = seconds + (useconds / 1000000.0);
+			rate = offset / 1024.0 / duration;
 
-				std::cout << std::setfill(' ');
-				std::cout << "sent "		<< std::setw(4) << (offset / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", sent "		<< std::setw(3) << (current - sector + 1) << " sectors";
-				std::cout << ", written "	<< std::setw(3) << sectors_written << " sectors";
-				std::cout << ", erased "	<< std::setw(3) << sectors_erased << " sectors";
-				std::cout << ", skipped "	<< std::setw(3) << sectors_skipped << " sectors";
-				std::cout << ", retries "   << std::setw(2) << retries;
-				std::cout << ", "			<< std::setw(3) << (((offset + flash_sector_size) * 100) / (length * flash_sector_size)) << "%       \r";
-				std::cout.flush();
-			}
+			std::cout << std::setfill(' ');
+			std::cout << "sent "		<< std::setw(4) << (offset / 1024) << " kbytes";
+			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+			std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+			std::cout << ", sent "		<< std::setw(3) << (current - sector + 1) << " sectors";
+			std::cout << ", written "	<< std::setw(3) << sectors_written << " sectors";
+			std::cout << ", erased "	<< std::setw(3) << sectors_erased << " sectors";
+			std::cout << ", skipped "	<< std::setw(3) << sectors_skipped << " sectors";
+			std::cout << ", retries "   << std::setw(2) << retries;
+			std::cout << ", "			<< std::setw(3) << (((offset + flash_sector_size) * 100) / (length * flash_sector_size)) << "%       \r";
+			std::cout.flush();
 		}
 	}
 	catch(std::string &e)
 	{
-		if(!option_verbose)
-			std::cout << std::endl;
+		std::cout << std::endl;
 
 		close(file_fd);
 		throw;
@@ -1053,8 +1052,7 @@ void command_write(GenericSocket &command_channel, const std::string filename, i
 
 	close(file_fd);
 
-	if(!option_verbose)
-		std::cout << std::endl;
+	std::cout << std::endl;
 
 	if(simulate)
 		std::cout << "simulate finished" << std::endl;
@@ -1070,10 +1068,10 @@ void command_write(GenericSocket &command_channel, const std::string filename, i
 
 		get_checksum(command_channel, sector, length, sha_remote_hash_text);
 
-		if(option_verbose)
+		if(option_debug)
 		{
-			std::cout << "local checksum:  " << sha_local_hash_text << std::endl;
-			std::cout << "remote checksum: " << sha_remote_hash_text << std::endl;
+			std::cout << std::endl << "local checksum:  " << sha_local_hash_text << std::endl;
+			std::cout << std::endl << "remote checksum: " << sha_remote_hash_text << std::endl;
 		}
 
 		if(sha_local_hash_text != sha_remote_hash_text)
@@ -1112,7 +1110,7 @@ static void command_verify(GenericSocket &command_channel, const std::string &fi
 	{
 		gettimeofday(&time_start, 0);
 
-		if(option_verbose)
+		if(option_debug)
 		{
 			std::cout << "start verify from 0x" << std::hex << sector * flash_sector_size << " (" << std::dec << sector << ")";
 			std::cout << ", length: 0x" << std::hex << sectors * flash_sector_size << " (" << std::dec << sectors << ")";
@@ -1137,44 +1135,36 @@ static void command_verify(GenericSocket &command_channel, const std::string &fi
 
 			offset += sizeof(sector_buffer);
 
-			if(!option_verbose)
-			{
-				int seconds, useconds;
-				double duration, rate;
+			int seconds, useconds;
+			double duration, rate;
 
-				gettimeofday(&time_now, 0);
+			gettimeofday(&time_now, 0);
 
-				seconds = time_now.tv_sec - time_start.tv_sec;
-				useconds = time_now.tv_usec - time_start.tv_usec;
-				duration = seconds + (useconds / 1000000.0);
-				rate = offset / 1024.0 / duration;
+			seconds = time_now.tv_sec - time_start.tv_sec;
+			useconds = time_now.tv_usec - time_start.tv_usec;
+			duration = seconds + (useconds / 1000000.0);
+			rate = offset / 1024.0 / duration;
 
-				std::cout << std::setfill(' ');
-				std::cout << "received "	<< std::setw(3) << (offset / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(3) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", received "	<< std::setw(3) << (current - sector) << " sectors";
-				std::cout << ", retries "   << std::setw(2) << retries;
-				std::cout << ", "			<< std::setw(3) << ((offset * 100) / (sectors * flash_sector_size)) << "%       \r";
-				std::cout.flush();
-			}
+			std::cout << std::setfill(' ');
+			std::cout << "received "	<< std::setw(3) << (offset / 1024) << " kbytes";
+			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+			std::cout << " at rate "	<< std::setw(3) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+			std::cout << ", received "	<< std::setw(3) << (current - sector) << " sectors";
+			std::cout << ", retries "   << std::setw(2) << retries;
+			std::cout << ", "			<< std::setw(3) << ((offset * 100) / (sectors * flash_sector_size)) << "%       \r";
+			std::cout.flush();
 		}
 	}
 	catch(const std::string &e)
 	{
-		if(!option_verbose)
-			std::cout << std::endl;
-
+		std::cout << std::endl;
 		close(file_fd);
 		throw;
 	}
 
 	close(file_fd);
 
-	if(!option_verbose)
-		std::cout << std::endl;
-
-	std::cout << "verify OK" << std::endl;
+	std::cout << std::endl << "verify OK" << std::endl;
 }
 
 void command_benchmark(GenericSocket &command_channel, int length)
@@ -1220,18 +1210,15 @@ void command_benchmark(GenericSocket &command_channel, int length)
 			duration = seconds + (useconds / 1000000.0);
 			rate = current * 4.0 / duration;
 
-			if(!option_verbose)
-			{
-				std::cout << std::setfill(' ');
-				std::cout << ((phase == 0) ? "sent     " : "received ");
-				std::cout << std::setw(4) << (current * flash_sector_size / 1024) << " kbytes";
-				std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
-				std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
-				std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
-				std::cout << ", retries "	<< std::setw(2) << retries;
-				std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / iterations) << "%       \r";
-				std::cout.flush();
-			}
+			std::cout << std::setfill(' ');
+			std::cout << ((phase == 0) ? "sent     " : "received ");
+			std::cout << std::setw(4) << (current * flash_sector_size / 1024) << " kbytes";
+			std::cout << " in "			<< std::setw(5) << std::setprecision(2) << std::fixed << duration << " seconds";
+			std::cout << " at rate "	<< std::setw(4) << std::setprecision(0) << std::fixed << rate << " kbytes/s";
+			std::cout << ", sent "		<< std::setw(4) << (current + 1) << " sectors";
+			std::cout << ", retries "	<< std::setw(2) << retries;
+			std::cout << ", "			<< std::setw(3) << (((current + 1) * 100) / iterations) << "%       \r";
+			std::cout.flush();
 		}
 
 		usleep(200000);
@@ -1317,7 +1304,7 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 
 		image.read(filename);
 
-		if(option_verbose)
+		if(option_debug)
 			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
 
 		image.resize(newsize);
@@ -1533,7 +1520,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 
 		image.read(filename);
 
-		if(option_verbose)
+		if(option_debug)
 			std::cout << "image loaded from " << filename << ", " << image.columns() << "x" << image.rows() << ", " << image.magick() << std::endl;
 
 		image.resize(newsize);
@@ -1638,7 +1625,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 		std::cout << "image epaper: " << warning.what();
 	}
 
-	if(option_verbose)
+	if(option_debug)
 	{
 		for(y = 0; y < 104; y++)
 		{
@@ -1658,7 +1645,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 	}
 }
 
-static void command_send(GenericSocket &send_socket, bool dont_wait, std::string args)
+static void command_send(GenericSocket &send_socket, std::string args)
 {
 	std::string arg;
 	size_t current;
@@ -1670,7 +1657,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 	std::string reply_oob;
 	int retries;
 
-	if(dont_wait)
+	if(option_dontwait)
 	{
 		if(daemon(0, 0))
 		{
@@ -1720,7 +1707,7 @@ static void command_send(GenericSocket &send_socket, bool dont_wait, std::string
 	}
 }
 
-void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std::string &args)
+void command_multicast(GenericSocket &multicast_socket, const std::string &args)
 {
 	Packet send_packet(&args, nullptr);
 	Packet receive_packet;
@@ -1728,7 +1715,6 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 	std::string receive_data;
 	std::string reply_data;
 	std::string packet;
-	enum { probes = 8 };
 	struct timeval tv_start, tv_now;
 	uint64_t start, now;
 	struct sockaddr_in remote_host;
@@ -1747,14 +1733,15 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 	int run;
 	uint32_t transaction_id;
 
-	packet = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+	packet = send_packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask, &transaction_id);
 
-	if(dontwait)
+	if(option_dontwait)
 	{
-		for(run = 0; run < probes; run++)
+		for(run = 0; run < (int)option_multicast_burst; run++)
 		{
 			send_data = packet;
-			multicast_socket.send(send_data, 200);
+			multicast_socket.send(send_data);
+			usleep(100000);
 		}
 
 		return;
@@ -1765,7 +1752,7 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 	gettimeofday(&tv_start, nullptr);
 	start = (tv_start.tv_sec * 1000000) + tv_start.tv_usec;
 
-	for(run = 0; run < probes; run++)
+	for(run = 0; run < (int)option_multicast_burst; run++)
 	{
 		gettimeofday(&tv_now, nullptr);
 		now = (tv_now.tv_sec * 1000000) + tv_now.tv_usec;
@@ -1774,7 +1761,7 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 			break;
 
 		send_data = packet;
-		multicast_socket.send(send_data, 0);
+		multicast_socket.send(send_data, 100);
 
 		for(;;)
 		{
@@ -1786,7 +1773,7 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 			receive_packet.clear();
 			receive_packet.append_data(reply_data);
 
-			if(!receive_packet.decapsulate(transaction_id, &reply_data, nullptr))
+			if(!receive_packet.decapsulate(&reply_data, nullptr, nullptr, &transaction_id))
 			{
 				if(option_verbose)
 					std::cout << "multicast: cannot decapsulate" << std::endl;
@@ -1843,7 +1830,7 @@ void command_multicast(GenericSocket &multicast_socket, bool dontwait, const std
 		std::cout << std::endl;
 	}
 
-	std::cout << std::endl << probes << " probes sent, " << total_replies << " replies received, " << total_hosts << " hosts" << std::endl;
+	std::cout << std::endl << option_multicast_burst << " probes sent, " << total_replies << " replies received, " << total_hosts << " hosts" << std::endl;
 }
 
 void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigned int sector, bool reset, bool notemp)
@@ -1852,7 +1839,6 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	std::vector<std::string> string_value;
 	std::vector<int> int_value;
 	std::string send_data;
-	uint32_t transaction_id;
 	static const char *flash_select_expect = "OK flash-select: slot ([0-9]+) selected, sector ([0-9]+), permanent ([0-1])";
 
 	send_data = (boost::format("flash-select %u %u") % flash_slot % (notemp ? 1 : 0)).str();
@@ -1878,12 +1864,8 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 		return;
 
 	std::cout << "rebooting" << std::endl;
-	send_data = "reset";
-	Packet send_packet(&send_data, nullptr);
-	send_data = send_packet.encapsulate(transaction_id, option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
-	command_channel.send(send_data);
-	usleep(200000);
-	command_channel.drain();
+	process(command_channel, "reset", nullptr, reply, nullptr, "> reset", nullptr, nullptr);
+
 	command_channel.disconnect();
 	usleep(1000000);
 	command_channel.connect();
@@ -1911,7 +1893,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 			throw(std::string("flash-select failed, local permanent != remote permanent"));
 	}
 
-	process(command_channel, "stats", nullptr, reply, nullptr, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*");
+	process(command_channel, "stats", nullptr, reply, nullptr, "\\s*>\\s*firmware\\s*>\\s*date:\\s*([a-zA-Z0-9: ]+).*", &string_value, &int_value);
 	std::cout << "firmware version: " << string_value[0] << std::endl;
 }
 
@@ -1933,7 +1915,6 @@ int main(int argc, const char **argv)
 		int image_timeout;
 		int dim_x, dim_y, depth;
 		unsigned int length;
-		bool dont_wait = false;
 		bool nocommit = false;
 		bool noreset = false;
 		bool notemp = false;
@@ -1949,6 +1930,10 @@ int main(int argc, const char **argv)
 		bool cmd_read = false;
 		bool cmd_info = false;
 		unsigned int selected;
+		struct timeval tv;
+
+		gettimeofday(&tv, nullptr);
+		prn.seed(tv.tv_usec);
 
 		options.add_options()
 			("info,i",					po::bool_switch(&cmd_info)->implicit_value(true),							"INFO")
@@ -1963,6 +1948,7 @@ int main(int argc, const char **argv)
 			("multicast,M",				po::bool_switch(&cmd_multicast)->implicit_value(true),						"MULTICAST SENDER send multicast message")
 			("host,h",					po::value<std::vector<std::string> >(&host_args)->required(),				"host or broadcast address or multicast group to use")
 			("verbose,v",				po::bool_switch(&option_verbose)->implicit_value(true),						"verbose output")
+			("debug,D",					po::bool_switch(&option_debug)->implicit_value(true),						"packet trace etc.")
 			("tcp,t",					po::bool_switch(&option_use_tcp)->implicit_value(true),						"use TCP instead of UDP")
 			("filename,f",				po::value<std::string>(&filename),											"file name")
 			("start,s",					po::value<std::string>(&start_string)->default_value("-1"),					"send/receive start address (OTA is default)")
@@ -1971,13 +1957,14 @@ int main(int argc, const char **argv)
 			("nocommit,n",				po::bool_switch(&nocommit)->implicit_value(true),							"don't commit after writing")
 			("noreset,N",				po::bool_switch(&noreset)->implicit_value(true),							"don't reset after commit")
 			("notemp,T",				po::bool_switch(&notemp)->implicit_value(true),								"don't commit temporarily, commit to flash")
-			("dontwait,d",				po::bool_switch(&dont_wait)->implicit_value(true),							"don't wait for reply on message")
+			("dontwait,d",				po::bool_switch(&option_dontwait)->implicit_value(true),					"don't wait for reply on message")
 			("image_slot,x",			po::value<int>(&image_slot)->default_value(-1),								"send image to flash slot x instead of frame buffer")
 			("image_timeout,y",			po::value<int>(&image_timeout)->default_value(5000),						"freeze frame buffer for y ms after sending")
 			("no-provide-checksum,1",	po::bool_switch(&option_no_provide_checksum)->implicit_value(true),			"do not provide checksum")
 			("no-request-checksum,2",	po::bool_switch(&option_no_request_checksum)->implicit_value(true),			"do not request checksum")
 			("raw,r",					po::bool_switch(&option_raw)->implicit_value(true),							"do not use packet encapsulation")
-			("broadcast-groups,g",		po::value<unsigned int>(&option_broadcast_group_mask)->default_value(0),	"select broadcast groups (bitfield)");
+			("broadcast-groups,g",		po::value<unsigned int>(&option_broadcast_group_mask)->default_value(0),	"select broadcast groups (bitfield)")
+			("multicast-burst,m",		po::value<unsigned int>(&option_multicast_burst)->default_value(1),			"burst broadcast and multicast packets multiple times");
 
 		po::positional_options_description positional_options;
 		positional_options.add("host", -1);
@@ -2037,11 +2024,11 @@ int main(int argc, const char **argv)
 		GenericSocket command_channel(host, command_port, option_use_tcp, !!cmd_broadcast, !!cmd_multicast);
 
 		if(selected == 0)
-			command_send(command_channel, dont_wait, args);
+			command_send(command_channel, args);
 		else
 		{
 			if(cmd_broadcast || cmd_multicast)
-				command_multicast(command_channel, dont_wait, args);
+				command_multicast(command_channel, args);
 			else
 			{
 				start = -1;

@@ -365,6 +365,21 @@ attr_inline attr_nonnull char string_at(const string_t *s, int at)
 		return('\0');
 }
 
+attr_inline attr_nonnull bool string_printable(const string_t *s, int at)
+{
+	char value;
+
+	if(at >= s->length)
+		return(false);
+
+	value = s->buffer[at];
+
+	if((value >= ' ') && (value <= '~'))
+		return(true);
+
+	return(false);
+}
+
 attr_inline attr_nonnull void string_append_char(string_t *dst, char c)
 {
 	if((dst->length + 2) < dst->size)

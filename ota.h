@@ -32,7 +32,7 @@ typedef struct attr_packed
 		{
 			unsigned int md5_32_requested:1;
 			unsigned int md5_32_provided:1;
-			unsigned int spare_2:1;
+			unsigned int transaction_id_provided:1;
 			unsigned int spare_3:1;
 			unsigned int spare_4:1;
 			unsigned int spare_5:1;

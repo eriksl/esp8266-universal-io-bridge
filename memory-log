@@ -16126,3 +16126,27 @@ Sat Sep 10 13:46:15 CEST 2022 ca2fbea lwip: add identifier to socket for logging
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71325, free:   8940, 11 %
     irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Sat Sep 10 14:40:15 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435424, free: 367392, 45 %
+Sat Sep 10 15:05:58 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435440, free: 367376, 45 %
+Sat Sep 10 15:07:18 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435424, free: 367392, 45 %
+Sat Sep 10 15:33:05 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435440, free: 367376, 45 %
+Sat Sep 10 20:38:31 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435488, free: 367328, 45 %
+Sat Sep 10 20:43:42 CEST 2022 dc4de89 ota: small cosmetic.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435552, free: 367264, 45 %
