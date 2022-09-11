@@ -16150,3 +16150,7 @@ Sat Sep 10 20:43:42 CEST 2022 dc4de89 ota: small cosmetic.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71325, free:   8940, 11 %
     irom:    available: 784 k, used: 435552, free: 367264, 45 %
+Sun Sep 11 11:00:14 CEST 2022 ce177a0 lwip-if: remove extra logging for tcp-try-send.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %
