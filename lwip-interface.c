@@ -156,10 +156,7 @@ static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *
 			if(context.multicast)
 				stat_lwip_multicast_dropped++;
 			else
-			{
 				stat_lwip_unicast_dropped++;
-				log("lwip-interface: %s receive buffer locked\n", tcp ? "tcp" : "udp");
-			}
 
 		pbuf_free(pbuf_received); // still processing previous buffer, simply drop the received data
 		return(ERR_OK);

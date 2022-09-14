@@ -16154,3 +16154,7 @@ Sun Sep 11 11:00:14 CEST 2022 ce177a0 lwip-if: remove extra logging for tcp-try-
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71325, free:   8940, 11 %
     irom:    available: 784 k, used: 435456, free: 367360, 45 %
+Sun Sep 11 12:38:19 CEST 2022 25145f8 espif: change long option name <<multicast-burst>> to just <<burst>>.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71325, free:   8940, 11 %
+    irom:    available: 784 k, used: 435488, free: 367328, 45 %
