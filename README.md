@@ -493,4 +493,37 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
 ### I2C related commands
  | command | alternate (long) command | parameters | description |
  | --- | --- | --- | --- |
- | i2a | i2c-address | address | Set I2C slave's address to use for other commands. Specify hex number from 0 to 7a. Don't include the r/w bit and don't include 0x.
+ | i2a | i2c-address | address | Set I2C slave's address to use for other commands. Specify hex number from 0 to 7a. Don't include the r/w bit and don't include 0x. | 
+ | i2r | i2c-read | number_of_bytes_to_read | Read this amount of bytes from the current I2C slave. |
+ | i2w | i2c-write | byte_to_write, ... | Write these bytes to the current I2C slave. Bytes can be specified in either decimal or hexadecimal, in which case they should be prefixed with 0x. |
+ | i2rst | i2c-reset | | Reset the I2C bus. This also attempts to convince “stuck” slaves to release the bus, it may or may not work. |
+
+### I2C sensor related commands
+ | command | alternate (long) command | parameters | description |
+ | --- | --- | --- | --- |
+ | isd | i2c-sensor-dump | verbosity | List all detected sensors. Use the id's from this list to query the value (using isr). If verbosity is 0 or missing, only show found sensors. If it's 1, show all known sensors. If it's 2, show all known sensors including verbose error reporting. |
+ | isr | i2c-sensor-read | sensor_id | Read a sensor. |
+ | isc | i2c-sensor-calibrate | sensor_id factor offset | Calibrate a sensor. Specify a value (float) to multiply the value by (factor) and a value to be added (or subtracted...) from the value (offset). The calibration is saved in flash together with the config using config-write. If the parameters are left out, list all current calibrations. |
+  
+### Display control related commands
+ | command | alternate (long) command | parameters | description |
+ | --- | --- | --- | --- |
+ | db | display-brightness | brightness_value | Set / show display brightness. 0 = off, 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%. |
+ | dd | display-dump | | Show all available information on the connected display. |
+ | ddm | display-default-message | message | Set the default message, i.e. the message that is shown when the user hasn't set any slots (yet). |
+ | dft | display-flip-timeout | timeout | Set / show the timeout in seconds between slot “flips”, i.e. how long each message slot is shown. |
+ | ds | display-set | slot timeout tag text | Set a message in a slot. After timeout seconds, the slot is released or use 0 to have a message linger forever. The tag is show on row 0 of the display, along with the current time. Use “-” as the tag to skip the tag completely and use all four rows for your message. Then finally the message which can have spaces and newlines inside. Use %%%% as message content to have the default message (= display type + time). |
+  
+### OTA commands
+Note: these commands are not meant to be used directly. They're meant to be used in concerto with a host-side application
+that uploads a new image. See otapush.c for an example.
+ | command | alternate (long) command | parameters | description |
+ | --- | --- | --- | --- |
+ | ow | ota-write | image_length | Start a firmware upload cycle. Specify the total amount of bytes that will be sent. |
+ | ov | ota-verify | image_length | Start a firmware verify cycle. Specify the total amount of bytes that will be sent. |
+ | os | ota-send | chunk_length crc bytes... | Send the next chunk. A chunk should be 256, 512 or 1024 bytes in size. If a transer using 1024 bytes doesn't succeed, try lower values. Also send the CRC32 of the chunk and then the data as raw binary content. Don't add newlines. Repeat until all data is sent or call ota-finish to either finish (when done) or cancel (when not complete). Every time a complete flash sector has been received, it will be written to flash and verified to both the received data and the received CRC32. If the chunk went well, the word “ACK” followed by the chunk ordinal will be replied. |
+ | of | ota-finish | md5_sum | Finish up. Send the md5_sum over the complete file as hex string. If everything went well, the string “VERIFY_OK” or “WRITE_OK” will be replied (depending on the requested operation). | 
+ | oc | ota-commit |  | If everything went well, toggle the current boot bank and reset. Replies “OTA commit slot” + the new slot number if all went well. |
+  
+See here for latest news and join the discussion: http://www.esp8266.com/viewtopic.php?t=3959, old topic:
+http://www.esp8266.com/viewtopic.php?&t=3212.
