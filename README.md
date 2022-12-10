@@ -7,15 +7,19 @@
 (wireless) network. This more or less assumes the use of an (possibly always-on) server that frequently contacts the
 ESP8266 to fetch the current data or to send control commands. It is not intended to program automated actions or to
 automatically upload results "to the cloud".
+
 Currently the available I/O's are: all of the built-in GPIO's (such as digital input, digital output or PWM), I2C (emulated by
 software bit-banging), the ADC (analog input) and the UART. External GPIO's (well-known I2C I/O expanders) are currently
 being implemented. It also features external displays, using SAA1064 or Hitachi HD44780 type LCD displays (4x20).
+
 The software listens at tcp port 24, and that is where the configuration and commands should be entered. Type telnet
 <ip_address> 24 and type ? for help. No need for flashing when the configuration changes, just change the config and write
 it.
+
 There is also an very bare bones http server on board, which currently only shows the I/O status, but may be extended quite
 easily in the future. Use the http interface simply by pointing your browser to your ESP's IP address and add the port number
 24 to it.
+
 If the requirements are met, the OTA-version can be used, which means that updates can be programmed over the network
 instead of using the UART.
 
@@ -23,24 +27,30 @@ instead of using the UART.
 All I/O pins can be configured to work as plain digital input, plain digital output, "timer" mode (this means trigger once, either
 manually or at startup, or toggle continuously) or "pwm" mode (16 bits PWM mode, running at 330 Hz, suitable for driving
 lighting, maybe servo motors as well, not tested). The ADC input and the RTC GPIO are also supported.
+
 Pins are organised in devices of at most 16 pins. Each pin must be configured to a mode it will be used in. That goes even for
 pins that can only have one function (e.g. the adc input). If a pin is not configured (i.e. set to mode “disabled”), it won't be
 used and not even initialised, thereby keeping it's original function (e.g. UART) or remaining floating (HiZ).
+
 Two devices are always present, device 0 = the internal GPIO's 0-15 and device 1 = the other I/O pins: the RTC GPIO and
 the ADC input. Other devices can be added using I2C I/O expanders. Currently supported are MCP23017 and PCF8574.
 
 ### UART bridge
 The UART pins (TXD/RXD) are available and are bridged to the ESP8266's ip address at port 23, unless they are re-
 assigned as GPIO pins.
+
 The UART bridge accepts connections on tcp port 23, gets all data from it, sends it to the UART (serial port) and the other
 way around. This is the way to go to make your non-networking microcontroller WiFi-ready. If you add an RS-232C buffer
 (something like a MAX232 or similar), you can even make your non-networking peripherals like printers etc. available over
 the wireless lan.
+
 The UART driver is heavily optimised and is completely interrupt driven, which makes it very efficient.
+
 ### I2C
 The ESP8266 does not have a hardware I2C module (as opposed to most microcontrollers), so the protocol needs to be
 implemented using a bit-banging software emulation. Espressif supplies code that does exactly that, but it's rubbish. So I
 wrote my own protocol handler from scratch and it already proved to be quite robust.
+
 All off the internal GPIO pins can be selected to work as I2C/SMBus pins (SDA+SCL). You can use the "raw" I2C send and
 receive commands to send/receive arbitrary commands/data to arbitrary slaves. For a number of I2C sensors there is built-in
 support, which allows you to read them out directly, where a temperature etc. is given as result.
@@ -49,7 +59,9 @@ support, which allows you to read them out directly, where a temperature etc. is
 Currently the SAA1064 is supported, it's a 4x7 led display multiplexer, controlled over I2C. Recently added is LCD text
 displays using the well-known Hitachi HD44780 LCD controller. See the command reference, display section, on how to
 connect these display and how to configure them.
+
 Support for Orbital Matrix I2C-controlled VFD/LCD screens is planned.
+
 The system consists of multiple "slots" of messages that will be shown in succession. You can set a timeout on a message
 and it will be deleted automatically after that time. If no slots are left, it will show the current time (from RTC). Use 0 as
 timeout to not auto-expire slots.
@@ -61,15 +73,16 @@ both cases you will need to use a suitable flashing device (CP210x or similar US
 I am using esptool.py for that and the Makefile also expects it to be present. It's not required though, you can use any flashing
 tool and do the flashing manually. The flashing process itself has been described at numerous places, I am not going to
 repeat it here.
-Image types
+### Image types
 There are two types of images:
- | name | type | update using | files | flash size requirements |
+ | **name** | **type** | **update using** | **files** | **flash size requirements** |
  | ---- | ---- | ------------ | ----- | ----------------------- |
  | PLAIN | plain/normal | UART flash mechanism | IROM image, IRAM image | 4 Mbit |
  | OTA | over the air updating | OTA flash mechanism (network) | rboot, rboot config, image | 16 Mbit |
  
 The plain images have very little requirements. They will run in less than 256 kbytes, so a 4 Mbit flash chip that's found on
 most “simple” ESP8266 break-out-boards will suffice.
+
 The over-the-air (“OTA”) upgradable image needs 1 Mbyte each because of the address mapping/banking mechanism of
 the ESP8266 used. This means the usual 4 Mbit flash chip won't be sufficient, you will need a 16 Mbit flash chip at least.
 Some break-out-boards already have this amount of flash memory, others can be upgraded. I have had success with the
@@ -77,26 +90,32 @@ Winbond W25Q16DVSSIG and W25Q16DVSNIG. They're almost the same, the first is 208
 is important, because they need to fit on the pads of the PCB. The ESP-201 for instance, requires a 150 mil flash chip, the
 ESP-01 as well, but newer issues of the ESP-01, which come with 8 Mbits of flash instead of 4 Mbits, actually require a 208
 mil IC.
+
 The default image for the Makefile is always OTA. So if you're going to flash, config, etc, a plain image, always include
-IMAGE=plain on the make command line or add it in the Makefile. Also, always make clean if you switch from plain to ota
+**IMAGE=plain** on the make command line or add it in the Makefile. Also, always **make clean** if you switch from plain to ota
 image and v.v.
+
 If you're going to use the pre-compiled images, you can skip the next section “building the software”.
 
-## Building the software
+### Building the software
 For building the software you'll need to get and install the opensdk building environment. Get it here:
 http://github.com/pfalcon/esp-open-sdk. You can use the latest version and you can also make it install the latest sdk from
 Espressif, there are no known issues there. Change the Makefile to point SDKROOT to the root of the opendsk directory.
+
 The build process also uses the ESPTOOL2 tool from Richard Burton. The Makefile will fetch and build it automatically in a
-make session if you do git submodule init and git submodule update first.
-Now you can start build the “plain” (as opposed to “ota”, “over the air” flash) version. Type make IMAGE=plain and wait
+make session if you first do: `git submodule init` and `git submodule update`
+
+Now you can start build the “plain” (as opposed to “ota”, “over the air” flash) version. Type `make IMAGE=plain` and wait
 for completion. The process will yield two files: espiobridge-plain-iram-0x000000.bin and espiobridge-plain-irom-
 0x010000.bin, just like the precompiled images. They can be flashed as usual.
-If you're going to build the OTA image, use make IMAGE=ota (or leave out the IMAGE=ota part, it's default). The build
-process uses part of RBOOT by Richard Burton in addition to the ESPTOOL2 tool. If you properly typed the above git
+
+If you're going to build the OTA image, use **make IMAGE=ota** (or leave out the **IMAGE=ota part**, it's default). The build
+process uses part of RBOOT by Richard Burton in addition to the ESPTOOL2 tool. If you properly typed the above **git**
 commands, the submodule will be present and RBOOT will be built automatically during the build process. After the build
 has finished, you will have (a.o.) these files: espiobridge-rboot-boot.bin: the rboot binary, rboot-config.bin: the rboot
 configuration (no need to make one yourself), espiobridge-rboot-image: the actual Universal I/O bridge firmware. These files
 can be flashed like the precompiled OTA images. See further down the page for more detailed description.
+
 There will also be a binary called “otapush” which is compiled with your host compiler. It's the program that needs to be run
 to push new firmware to the ESP8266. It's tested on Linux, but it's quite simple, so I guess it will work on any more-or-less
 POSIX-compliant operating system. The protocol is very simple anyway, but uses CRC and MD5 for data protection. There
@@ -107,14 +126,14 @@ The “plain” image consists of two files: espiobridge-plain-iram-0x000000.bin
 These can be flashed to address 0x000000 and address 0x010000 respectively, using your flash tool of choice.
 
 The “ota” image consists of three files:
- | file | use | flash to address |
+ | **file** | **use** | **flash to address** |
  | ---- | ---- | ------------ |
  | espiobridge-rboot-boot.bin | the rboot binary | 0x000000 |
  | rboot-config.bin | the rboot configuration (no need to make one yourself) | 0x001000 |
  | espiobridge-rboot-image | the actual Universal I/O bridge firmware  | 0x002000 |
  
-Or use make flash but for that you'll need to have esptool.py installed and you need to adjust ESPTOOL in the Makefile.
-The make flash command will also flash default and blank configuration sectors. They're not used by the I/O bridge
+Or use **make flash** but for that you'll need to have esptool.py installed and you need to adjust ESPTOOL in the Makefile.
+The **make flash** command will also flash default and blank configuration sectors. They're not used by the I/O bridge
 though, it's just to make the SDK code happy.
 
 ### Configuring WLAN
@@ -183,7 +202,7 @@ PCF8574 (8 I/O pins). Each pin of these needs to be configured in the same way a
 ESP8266 itself). PWM is not supported.
   
 The following I/O pin modes are supported (depending on each device and pin), using the io-mode command:
- | I/O function | mode name for im command etc. | function | available on device |
+ | **I/O function** | **mode name for im command etc.** | **function** | **available on device** |
  | ---- | ---- | ------------ | ----- |
  | disabled | disabled | pin isn't touched | all devices |
  | digital input  | inputd | digital two state input | most devices |
@@ -195,16 +214,16 @@ The following I/O pin modes are supported (depending on each device and pin), us
  | i2c | i2c | set pin to i2c sda or scl mode  | GPIO pins on device 0 only |
   
 For each pin some flags can be (indepently) set or cleared, using the io-set-flag and io-clear-flag commands:
- | I/O additional feature | flags name for isf and icf etc. | function | available on mode |
+ | **I/O additional feature** | **flags name for isf and icf etc.** | **function** | **available on mode** |
  | ---- | ---- | ------------ | ----- |
- | autostart | autostart | <p> digital output: set the output to on after start (otherwise it's set to off) <p>timer: trigger automatically after start, otherwise wait for explicit trigger <p> analog output: trigger the modulation feature, otherwise wait for explicit trigger. | digital output, timer, analog output |
+ | autostart | autostart | <p> **digital output**: set the output to on after start (otherwise it's set to off) <p>**timer**: trigger automatically after start, otherwise wait for explicit trigger <p> **analog output**: trigger the modulation feature, otherwise wait for explicit trigger. | digital output, timer, analog output |
  | repeat | repeat | repeat the trigger after one cycle | timer, analog output |
  | pull-up | pullup | activate internal (weak) pull-up resistors | digital input, counter |
  | reset on read | reset-on-read | reset the counter when it's read  | counter |
   
 ### Configuring and using I2C
-To use I2C, first configure two GPIO's as sda and scl lines using the im .. mode i2c sda and im .. mode i2c scl
-<delay> commands. The <delay> needs to 5 to able to communicate with generic I2C devices, it makes the bus run at just
+To use I2C, first configure two GPIO's as sda and scl lines using the **im .. mode i2c sda** and **im .. mode i2c scl
+<delay>** commands. The <delay> needs to **5** to able to communicate with generic I2C devices, it makes the bus run at just
 below 100 kHz. If you double the speed of the CPU, increase this value accordingly. Some devices can run at much higher
 speeds (Fastmode, Fastmode+, etc.), in that case, the delay can be lower and the bus speed will increas, but make sure it's
 never faster than the slowest device on the bus. Some devices may proof difficult to communicate with. In that case, an
@@ -239,16 +258,16 @@ During startup, available displays are probed. There is no need to configure the
 properly functioning I2C bus, though, so make sure it works. Hitaci-type LCD's are controlled over I2C I/O expanders, so they
 can't be detected automatically, make sure the configuration is active and correct and it will be detected as such.
   
-All displays have 8 slots for messages that can be set using the ds (display-set) command: Use dd (display-dump) to show
-all detected displays, you may want to add a verbosity value (0-2) to see more detail. Finally the db (display-bright)
-command controls the brightness of the display. Valid values are 0 (off), 1, 2, 3, 4 (max).
+All displays have 8 slots for messages that can be set using the **ds** (display-set) command: Use **dd** (display-dump) to show
+all detected displays, you may want to add a verbosity value (**0-2**) to see more detail. Finally the **db** (display-bright)
+command controls the brightness of the display. Valid values are **0** (off), **1**, **2**, **3**, **4** (max).
   
 Note the SAA1064 runs at 5V or higher. It cannot be connected to the ESP8266 directly, it must have it's own 5V power
 supply and may or may not need I2C level shifters. I am using level shifters, but it may not be necessary, YMMV.
   
 ## COMMAND REFERENCE
 ### General, status and informational commands
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | ---- | ---- | ------------ | ----- |
  | ccd | current-config-dump |  | Show currently used config (not saved to flash). |
  | cd | config-dump |  | Show config from flash (active after next restart). |
@@ -273,10 +292,10 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
  <table>
   <thead>
    <tr>
-    <th>command</th>
-    <th>alternate (long) command / submode</th>
-    <th>parameters</th>
-    <th>description</th>
+    <th>**command**</th>
+    <th>**alternate (long) command / submode**</th>
+    <th>**parameters**</th>
+    <th>**description**</th>
    </tr>
   </thead>
   
@@ -481,7 +500,7 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
  </table
   
 ### UART configuration and related commands
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | --- | --- | --- | --- |
  | btp | bridge-tcp-port | tcp_port | Set / show the tcp port the UART is listening to. |
  | btt | bridge-tcp-timeout | timeout_in_seconds | Set / show the UART tcp port disconnect timeout (0 = no timeout) |
@@ -491,7 +510,7 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
  | up | uart-parity | parity | Set parity (none/even/odd). |
   
 ### I2C related commands
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | --- | --- | --- | --- |
  | i2a | i2c-address | address | Set I2C slave's address to use for other commands. Specify hex number from 0 to 7a. Don't include the r/w bit and don't include 0x. | 
  | i2r | i2c-read | number_of_bytes_to_read | Read this amount of bytes from the current I2C slave. |
@@ -499,14 +518,14 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
  | i2rst | i2c-reset | | Reset the I2C bus. This also attempts to convince “stuck” slaves to release the bus, it may or may not work. |
 
 ### I2C sensor related commands
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | --- | --- | --- | --- |
  | isd | i2c-sensor-dump | verbosity | List all detected sensors. Use the id's from this list to query the value (using isr). If verbosity is 0 or missing, only show found sensors. If it's 1, show all known sensors. If it's 2, show all known sensors including verbose error reporting. |
  | isr | i2c-sensor-read | sensor_id | Read a sensor. |
  | isc | i2c-sensor-calibrate | sensor_id factor offset | Calibrate a sensor. Specify a value (float) to multiply the value by (factor) and a value to be added (or subtracted...) from the value (offset). The calibration is saved in flash together with the config using config-write. If the parameters are left out, list all current calibrations. |
   
 ### Display control related commands
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | --- | --- | --- | --- |
  | db | display-brightness | brightness_value | Set / show display brightness. 0 = off, 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%. |
  | dd | display-dump | | Show all available information on the connected display. |
@@ -517,7 +536,7 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
 ### OTA commands
 Note: these commands are not meant to be used directly. They're meant to be used in concerto with a host-side application
 that uploads a new image. See otapush.c for an example.
- | command | alternate (long) command | parameters | description |
+ | **command** | **alternate (long) command** | **parameters** | **description** |
  | --- | --- | --- | --- |
  | ow | ota-write | image_length | Start a firmware upload cycle. Specify the total amount of bytes that will be sent. |
  | ov | ota-verify | image_length | Start a firmware verify cycle. Specify the total amount of bytes that will be sent. |
