@@ -272,7 +272,7 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
 ### I/O configuration and related commands
  | command | alternate (long) command / submode | parameters | description |
  | ---- | ---- | ------------ | ----- |
- | im | io-mode <hr> mode=inputd  | <p>io_device io_pin mode <p>mode_parameters <hr> inputd | Configure pin mode. <hr> Set pin to digital input mode.|
+ | im | io-mode <hr> mode=inputd <hr> mode=counter <hr> mode=outputd <hr> mode=timer <hr> mode=inputa <hr> mode=outputa (1) <hr> mode=outputa (2) <hr> mode=outputa (3) <hr> mode=i2c <hr> mode=lcd <hr>   | <p>io_device io_pin mode <p>mode_parameters <hr> inputd <hr> counter debounce <hr> outputd <hr> timer direction delay <hr> <hr> <hr> default_value  <hr> lower_bound upper_bound delay <hr> sda <hr> | Configure pin mode. <hr> Set pin to digital input mode.|
  | ? | help |   | Show all commands and usage in brief. |
  | ? | help |   | Show all commands and usage in brief. |
  | ? | help |   | Show all commands and usage in brief. |
