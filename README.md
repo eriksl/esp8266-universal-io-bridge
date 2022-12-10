@@ -270,16 +270,227 @@ supply and may or may not need I2C level shifters. I am using level shifters, bu
  | wm | wlan-mode | client|ap | Set wlan mode. This command will be effective immediately. See text for details. |
   
 ### I/O configuration and related commands
- | command | alternate (long) command / submode | parameters | description |
- | ---- | ---- | ------------ | ----- |
- | im | io-mode <hr> mode=inputd <hr> mode=counter <hr> mode=outputd <hr> mode=timer <hr> mode=inputa <hr> mode=outputa (1) <hr> mode=outputa (2) <hr> mode=outputa (3) <hr> mode=i2c <hr> mode=lcd <hr>   | <p>io_device io_pin mode <p>mode_parameters <hr> inputd <hr> counter debounce <hr> outputd <hr> timer direction delay <hr> <hr> <hr> default_value  <hr> lower_bound upper_bound delay <hr> sda <hr> | Configure pin mode. <hr> Set pin to digital input mode.|
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
- | ? | help |   | Show all commands and usage in brief. |
+ <table>
+  <thead>
+   <tr>
+    <th>command</th>
+    <th>alternate (long) command / submode</th>
+    <th>parameters</th>
+    <th>description</th>
+   </tr>
+  </thead>
+  
+  <tbody>
+   <tr>
+    <td rowspan=23>im</td>
+    <td>io-mode</td>
+    <td><p>io_device io_pin mode <p>mode_parameters</td>
+    <td>Configure pin mode.</td>
+   </tr>
+
+   <tr>
+    <td>mode=inputd </td>
+    <td>inputd</td>
+    <td>Set pin to digital input mode.</td>
+   </tr>
+
+   <tr>
+    <td>mode=counter</td>
+    <td>counter debounce</td>
+    <td>Set pin to digital input mode, count downward transitions. Set debounce in milliseconds.</td>
+   </tr>
+
+   <tr>
+    <td>mode=outputd </td>
+    <td>outputd</td>
+    <td>Set pin to digital output mode.</td>
+   </tr>
+
+   <tr>
+    <td>mode=timer</td>
+    <td>timer direction delay</td>
+    <td>Set pin to timer mode. Direction is up or down and specifies the default state and triggered state (down: default up, triggered down, up: default down, triggerend up). Delay is time before state is set to default after trigger.</td>
+   </tr>
+
+   <tr>
+    <td>mode=inputa</td>
+    <td>Set pin to analog input mode.</td>
+   </tr>
+
+   <tr>
+    <td>mode=outputa (1) </td>
+    <td>Select analog output (or PWM). Default value is 0.</td>
+   </tr>
+
+   <tr>
+    <td>mode=outputa (2)</td>
+    <td>default_value </td>
+    <td>Select analog output (or PWM). Default value set to argument (0 - 65535).</td>
+   </tr>
+
+   <tr>
+    <td>mode=outputa (3)</td>
+    <td>lower_bound upper_bound delay</td>
+    <td>Select analog output (or PWM). After (auto-)trigger start to modulate between lower_bound and upper_bound at specified speed (ms / 10000).</td>
+   </tr>
+
+   <tr>
+    <td rowspan=2>mode=i2c</td>
+    <td>sda</td>
+    <td>Configure built-in GPIO for I2C/sda use.</td>
+   </tr>
+
+   <tr>
+    <td>scl bus_delay</td>
+    <td>Configure built-in GPIO for I2C/scl use. Set bus_delay to 5 for standard 100 khz bus, lower value is higher bus speed and v.v.</td>
+   </tr>
+
+   <tr>
+    <td rowspan=12>mode=lcd</td>
+    <td>rs io pin</td>
+    <td>Set I/O and pin for R/S signaling. Can be any digital capable pin. Required.</td>
+   </tr>
+
+   <tr>
+    <td>rw io pin</td>
+    <td>Set I/O and pin for R/W signaling. Can be any digital capable pin. Not required, is only always set to low(write).</td>
+   </tr>
+
+   <tr>
+    <td>e io pin </td>
+    <td>Set I/O and pin for E signaling. Can be any digital capable pin. Required.</td>
+   </tr>
+
+   <tr>
+    <td>d0 io pin</td>
+    <td>Set I/O and pin for the D0 data line. Can be any digital capable pin. Required for 8 bit operation, not required for 4 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d1 io pin</td>
+    <td>Set I/O and pin for the D1 data line. Can be any digital capable pin. Required for 8 bit operation, not required for 4 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d2 io pin</td>
+    <td>Set I/O and pin for the D2 data line. Can be any digital capable pin. Required for 8 bit operation, not required for 4 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d3 io pin</td>
+    <td>Set I/O and pin for the D3 data line. Can be any digital capable pin. Required for 8 bit operation, not required for 4 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d4 io pin</td>
+    <td>Set I/O and pin for the D4 data line. Can be any digital capable pin. Required for both 4 bit and 8 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d5 io pin</td>
+    <td>Set I/O and pin for the D5 data line. Can be any digital capable pin. Required for both 4 bit and 8 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d6 io pin</td>
+    <td>Set I/O and pin for the D6 data line. Can be any digital capable pin. Required for both 4 bit and 8 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>d7 io pin</td>
+    <td>Set I/O and pin for the D7 data line. Can be any digital capable pin. Required for both 4 bit and 8 bit operation.</td>
+   </tr>
+
+   <tr>
+    <td>bl io pin</td>
+    <td>Set I/O and pin for controlling the backlight. Can be an analog output for dimming or a digital output (on/off only). Optional.</td>
+   </tr>
+
+   <tr>
+    <td>ir</td>
+    <td>io-read</td>
+    <td>io_device io_pin</td>
+    <td>Read pin. Source of the value depends on the mode of the pin. Counter e.g. returns the current counter value. Outputs can also be read, they return the actual pin state, not that of the output latch.</td>
+   </tr>
+
+   <tr>
+    <td rowspan=8>iw</td>
+    <td>io-write</td>
+    <td rowspan=8>io_device io_pin value</td>
+    <td>Write pin. Semantics differ for various pin modes.</td>
+   </tr>
+
+   <tr>
+    <td>mode=inputd </td>
+    <td>Not implemented.</td>
+   </tr>
+
+   <tr>
+    <td>mode=counter</td>
+    <td>Write counter value directly.</td>
+   </tr>
+   <tr>
+    <td>mode=outputd </td>
+    <td>Write value. 0 is off, any other value is on</td>
+   </tr>
+
+   <tr>
+    <td>mode=timer </td>
+    <td>Control counter output. 0 is set pin to default, other value is trigger timer (set to active and start timer).</td>
+   </tr>
+   <tr>
+    <td>mode=inputa </td>
+    <td>Not implemented.</td>
+   </tr>
+
+   <tr>
+    <td>mode=outputa</td>
+    <td>Write analog output. If -1 is given and the this is a auto-modulating analog output (see mode=outputa (3)), start modulating. Otherwise just set the current value of the output.</td>
+   </tr>
+   <tr>
+    <td>mode=i2c </td>
+    <td>Not implemented.</td>
+   </tr>
+
+   <tr>
+    <td rowspan=6>isf or icf</td>
+    <td>io-set-flag or io-clear_flag</td>
+    <td rowspan=6>io_device io_pin flag</td>
+    <td>Set or clear flags for a pin</td>
+   </tr>
+
+   <tr>
+    <td>flag\=autostart</td>
+    <td>Automatically start this pin at start. For a digital output pin this means set to “on” instead of default “off”. For a timer or a modulated analog output this means trigger automatically at start. Otherwise these types of pins need to be triggered automatically by writing to them.</td>
+   </tr>
+
+   <tr>
+    <td>flag=repeat</td>
+    <td>For a timer or a modulated analog output this mean repeat after the first cycle. Otherwise stop after one cycle.</td>
+   </tr>
+   <tr>
+    <td>flag=pullup </td>
+    <td>For a digital input or counter, activate the built-in weak pull-up.</td>
+   </tr>
+
+   <tr>
+    <td>flag=reset_on_read</td>
+    <td>For a timer, when it's read, also reset it automatically.</td>
+   </tr>
+  </tbody>
+ </table
+  
+### UART configuration and related commands
+ | command | alternate (long) command | parameters | description |
+ | --- | --- | --- | --- |
+ | btp | bridge-tcp-port | tcp_port | Set / show the tcp port the UART is listening to. |
+ | btt | bridge-tcp-timeout | timeout_in_seconds | Set / show the UART tcp port disconnect timeout (0 = no timeout) |
+ | ub | uart-baud | baud_rate | Set baud rate. |
+ | ud | uart-data | data_bits | Set data bits (6, 7 or 8). |
+ | us | uart-stop | stop_bits | Set stop bits (1 or 2). |
+ | up | uart-parity | parity | Set parity (none/even/odd). |
+  
+### I2C related commands
+ | command | alternate (long) command | parameters | description |
+ | --- | --- | --- | --- |
+ | i2a | i2c-address | address | Set I2C slave's address to use for other commands. Specify hex number from 0 to 7a. Don't include the r/w bit and don't include 0x.
