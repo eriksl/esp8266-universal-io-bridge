@@ -649,6 +649,7 @@ bool				wifi_station_scan(struct scan_config *config, scan_done_cb_t);
 bool				wifi_station_set_auto_connect(uint8_t);
 bool				wifi_station_set_config(struct station_config *);
 bool				wifi_station_set_config_current(struct station_config *);
+bool				wifi_station_set_reconnect_policy(bool);
 
 void				gpio_init(void);
 void				gpio_pin_intr_state_set(uint32_t, GPIO_INT_TYPE);
