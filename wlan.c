@@ -184,7 +184,7 @@ void wlan_init_start_recovery(void)
 				"  after that, issue a reset command to restore temporarily changed flags.\n");
 }
 
-static bool wlan_ap_switch(const mac_addr_t mac, int channel)
+static bool wlan_ap_switch(int channel)
 {
 	unsigned int mode_int;
 	config_wlan_mode_t mode;
@@ -207,27 +207,19 @@ static bool wlan_ap_switch(const mac_addr_t mac, int channel)
 	memset(&cconf, 0, sizeof(cconf));
 	strecpy((char *)cconf.ssid, string_buffer(&ssid), sizeof(cconf.ssid));
 	strecpy((char *)cconf.password, string_buffer(&password), sizeof(cconf.password));
-	cconf.bssid[0] = mac[0];
-	cconf.bssid[1] = mac[1];
-	cconf.bssid[2] = mac[2];
-	cconf.bssid[3] = mac[3];
-	cconf.bssid[4] = mac[4];
-	cconf.bssid[5] = mac[5];
+	cconf.bssid[0] = 0xff;
+	cconf.bssid[1] = 0xff;
+	cconf.bssid[2] = 0xff;
+	cconf.bssid[3] = 0xff;
+	cconf.bssid[4] = 0xff;
+	cconf.bssid[5] = 0xff;
 	cconf.bssid_set = 1;
 	cconf.channel = channel;
 	cconf.all_channel_scan = channel == 0;
 	cconf.threshold.rssi = -70;
 	cconf.threshold.authmode = AUTH_OPEN;
 
-	wifi_station_disconnect();
-	wifi_set_opmode(STATION_MODE);
-	wifi_station_set_config(&cconf);
-
-	if(!wifi_station_connect())
-	{
-		log("wlan_channel_switch: set config current failed\n");
-		return(false);
-	}
+	wifi_station_set_config_current(&cconf);
 
 	return(true);
 }
@@ -689,39 +681,27 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 
 app_action_t application_function_wlan_ap_switch(app_params_t *parameters)
 {
-	string_new(, mac_string, 32);
-	int max, ix;
-	const ap_cache_t *max_entry;
+	unsigned int channel;
 
-	if(ap_cache.entries == 0)
+	if(parse_uint(1, parameters->src, &channel, 0, ' ') != parse_ok)
 	{
-		string_format(parameters->dst, "ap cache empty, run wireless scan first\n");
+		string_format(parameters->dst, "> usage: wlan-ap-switch <channel>\n");
 		return(app_action_error);
 	}
 
-	max = 0;
-	max_entry = &ap_cache.ap[0];
-
-	for(ix = 0; ix < ap_cache.entries; ix++)
+	if(channel >13)
 	{
-		if(ap_cache.ap[ix].rssi > max_entry->rssi)
-		{
-			max = ix;
-			max_entry = &ap_cache.ap[ix];
-		}
-	}
-
-	mac_to_string(&mac_string, max_entry->mac);
-
-	string_format(parameters->dst, "switch to ap with highest rssi %d, channel %d in entry %d\n", max_entry->rssi, max_entry->channel, max);
-
-	if(!wlan_ap_switch(max_entry->mac, max_entry->channel))
-	{
-		string_format(parameters->dst, "> wlan-ap-switch to %s[%d] failed\n", string_to_cstr(&mac_string), max_entry->channel);
+		string_format(parameters->dst, "> channel %u out of range (1-13)\n", channel);
 		return(app_action_error);
 	}
 
-	string_format(parameters->dst, "> wlan-ap-switch to %s[%d] OK\n", string_to_cstr(&mac_string), max_entry->channel);
+	if(!wlan_ap_switch(channel))
+	{
+		string_format(parameters->dst, "> wlan-ap-switch to %u failed\n", channel);
+		return(app_action_error);
+	}
+
+	string_format(parameters->dst, "> wlan-ap-switch to %u OK\n", channel);
 
 	return(app_action_normal);
 }

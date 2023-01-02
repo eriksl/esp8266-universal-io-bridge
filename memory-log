@@ -16190,3 +16190,19 @@ Sun Jan  1 12:57:27 CET 2023 39ff3cf Update EPS8266_NONOS_SDK
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71317, free:   8948, 11 %
     irom:    available: 784 k, used: 434960, free: 367856, 45 %
+Mon Jan  2 11:17:20 CET 2023 01e2f4e Memory stats.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434912, free: 367904, 45 %
+Mon Jan  2 11:24:41 CET 2023 01e2f4e Memory stats.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434736, free: 368080, 45 %
+Mon Jan  2 11:28:52 CET 2023 01e2f4e Memory stats.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434672, free: 368144, 45 %
+Mon Jan  2 11:37:36 CET 2023 01e2f4e Memory stats.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434736, free: 368080, 45 %
