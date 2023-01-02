@@ -585,9 +585,9 @@ static void slow_timer_callback(void *arg)
 
 	dispatch_post_task(2, task_periodic_i2c_sensors, 0);
 
-	// fallback to config-ap-mode when not connected or no ip within 30 seconds
+	// fallback to config-ap-mode when not connected or no ip within 60 seconds
 
-	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 300) && (wifi_station_get_connect_status() != STATION_GOT_IP))
+	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 600) && (wifi_station_get_connect_status() != STATION_GOT_IP))
 		dispatch_post_task(1, task_fallback_wlan, 0);
 
 	io_periodic_slow(10);
