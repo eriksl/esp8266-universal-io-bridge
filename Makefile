@@ -56,12 +56,15 @@ FONT_FLASH_SIZE				:= 0x30000
 PICTURE_FLASH_OFFSET_0		:= 0x200000
 PICTURE_FLASH_OFFSET_1		:= 0x280000
 PICTURE_FLASH_SIZE			:= 0x80000
+RFCAL_SECTOR				:= 0xfb
 RFCAL_OFFSET				:= 0xfb000
 RFCAL_SIZE					:= 0x1000
 RFCAL_FILE					:= blank1.bin
+PHYDATA_SECTOR				:= 0x1fc
 PHYDATA_OFFSET				:= 0x1fc000
 PHYDATA_SIZE				:= 0x1000
 PHYDATA_FILE				:= esp_init_data_default_v08.bin
+SYSTEM_CONFIG_SECTOR		:= 0x1fd
 SYSTEM_CONFIG_OFFSET		:= 0x1fd000
 SYSTEM_CONFIG_SIZE			:= 0x3000
 SYSTEM_CONFIG_FILE			:= blank3.bin
@@ -411,11 +414,11 @@ ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_EX
 ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "OTA DEFAULTS"
 						$(VECHO) "* rf config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_OFFSET) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_SECTOR) -W
 						$(VECHO) "* system_config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_OFFSET) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_SECTOR) -W
 						$(VECHO) "* rf calibiration"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_OFFSET) -W
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_SECTOR) -W
 
 ota-rboot-update:		$(FIRMWARE_RBOOT) ota-default $(FIRMWARE_IMG) $(ALL_EXTRA_TARGETS)
 						$(VECHO) "FLASH RBOOT"
