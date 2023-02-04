@@ -744,19 +744,25 @@ void i2c_get_info(i2c_info_t *i2c_info)
 
 void i2c_error_format_string(string_t *dst, i2c_error_t error)
 {
+	if(!dst)
+	{
+		log("i2c_error_format_string: dst == null\n");
+		return;
+	}
+
 	if(error != i2c_error_ok)
 		string_append(dst, ": i2c bus error: ");
 	else
 		string_append(dst, ": ");
 
-	if(error < i2c_error_size)
+	if((error >= 0) && (error < i2c_error_size))
 		string_append_cstr_flash(dst, roflash_error_strings[error]);
 	else
 		string_append(dst, "<unknown error>");
 
 	string_append(dst, " (in bus state: ");
 
-	if(error_state < i2c_state_size)
+	if((error_state >= 0) && (error_state < i2c_state_size))
 		string_append_cstr_flash(dst, roflash_state_strings[error_state]);
 	else
 		string_format(dst, "<unknown state %u>", error_state);
