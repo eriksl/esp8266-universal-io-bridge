@@ -411,15 +411,6 @@ ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_EX
 						$(VECHO) "OTA"
 						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -W
 
-ota-default:			$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
-						$(VECHO) "OTA DEFAULTS"
-						$(VECHO) "* rf config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_SECTOR) -W
-						$(VECHO) "* system_config"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_SECTOR) -W
-						$(VECHO) "* rf calibiration"
-						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_SECTOR) -W
-
 ota-rboot-update:		$(FIRMWARE_RBOOT) ota-default $(FIRMWARE_IMG) $(ALL_EXTRA_TARGETS)
 						$(VECHO) "FLASH RBOOT"
 						$(Q) $(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(FIRMWARE_RBOOT) -s $(OFFSET_BOOT) -W
@@ -441,6 +432,24 @@ wipe-config:
 						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
 							$(USER_CONFIG_OFFSET) wipe-config.bin
 						rm wipe-config.bin
+
+flash-rf-defaults:		$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
+						$(VECHO) "FLASH RF DEFAULTS"
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(PHYDATA_OFFSET) $(PHYDATA_FILE)
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(SYSTEM_CONFIG_OFFSET) $(SYSTEM_CONFIG_FILE)
+						$(Q) $(ESPTOOL) write_flash --flash_size $(FLASH_SIZE_ESPTOOL) --flash_mode $(SPI_FLASH_MODE) \
+							$(RFCAL_OFFSET) $(RFCAL_FILE)
+
+ota-rf-defaults:		$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
+						$(VECHO) "OTA RF DEFAULTS"
+						$(VECHO) "* rf config"
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(PHYDATA_FILE) -s $(PHYDATA_SECTOR) -W
+						$(VECHO) "* system_config"
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(SYSTEM_CONFIG_FILE) -s $(SYSTEM_CONFIG_SECTOR) -W
+						$(VECHO) "* rf calibiration"
+						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_SECTOR) -W
 
 %.o:					%.c
 						$(VECHO) "CC $<"
