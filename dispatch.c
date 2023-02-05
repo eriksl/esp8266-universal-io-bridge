@@ -502,6 +502,13 @@ drop:
 			remote_trigger_send(argument);
 			break;
 		}
+
+		case(task_wlan_reconnect):
+		{
+			if(!wlan_start())
+				log("[dispatch] wlan start failed\n");
+			break;
+		}
 	}
 }
 

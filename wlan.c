@@ -24,6 +24,15 @@ roflash static const char *const slp[] =
 	"unknown"
 };
 
+roflash static const char status_msg[][16] =
+{
+	"OK",
+	"FAIL",
+	"PENDING",
+	"BUSY",
+	"CANCEL"
+};
+
 typedef struct
 {
 	mac_addr_t mac;
@@ -41,13 +50,16 @@ enum
 typedef struct
 {
 	int entries;
+	int selected;
+	int scanning;
 	char ssid[32];
+	char password[32];
 	access_point_t ap[access_points_size];
 } access_points_t;
 
 static access_points_t access_points;
 
-assert_size(ap_caches_t, 116);
+assert_size(access_points_t, 156);
 
 roflash const char help_description_stats_wlan[] =			"statistics from the wlan subsystem";
 roflash const char help_description_wlan_ap_config[] =		"configure access point mode wlan params, supply ssid, passwd and channel";
@@ -123,55 +135,148 @@ static void wlan_associate_callback(void *arg, STATUS status)
 	struct bss_info *bss;
 	char status_string[32];
 	struct station_config cconf;
+	access_point_t *ap;
+	int ix;
+
+	if(access_points.scanning > 0)
+		access_points.scanning--;
+
+	flash_to_dram(true, status <= CANCEL ? status_msg[status] : "<invalid>", status_string, sizeof(status_string));
+	log("[wlan] scan callback result: %s\n", status_string);
+
+	for(bss = arg; bss; bss = bss->next.stqe_next)
+	{
+		ap = &access_points.ap[access_points.entries];
+
+		ap->channel = bss->channel;
+		ap->rssi = bss->rssi;
+		ap->mac[0] = bss->bssid[0];
+		ap->mac[1] = bss->bssid[1];
+		ap->mac[2] = bss->bssid[2];
+		ap->mac[3] = bss->bssid[3];
+		ap->mac[4] = bss->bssid[4];
+		ap->mac[5] = bss->bssid[5];
+
+		if(bss->rssi > access_points.ap[access_points.selected].rssi)
+			access_points.selected = access_points.entries;
+
+		access_points.entries++;
+	}
+
+	log("[wlan] access points found: \n");
+
+	for(ix = 0; ix < access_points.entries; ix++)
+	{
+		string_new(, line, 64);
+
+		ap = &access_points.ap[ix];
+
+		string_format(&line, "%c ch: %2d, rssi: %3d, bssid: %02x:%02x:%02x:%02x:%02x:%02x\n",
+				ix == access_points.selected ? '*' : ' ',
+				ap->channel,
+				ap->rssi,
+				ap->mac[0],
+				ap->mac[1],
+				ap->mac[2],
+				ap->mac[3],
+				ap->mac[4],
+				ap->mac[5]);
+
+		log("%s", string_to_cstr(&line));
+	}
+
+	if(access_points.entries == 0)
+	{
+		log("[wlan] no access points found\n");
+		return;
+	}
+
+	ap = &access_points.ap[access_points.selected];
+	memset(&cconf, 0, sizeof(cconf));
+	strecpy((char *)cconf.ssid, access_points.ssid, sizeof(cconf.ssid));
+	strecpy((char *)cconf.password, access_points.password, sizeof(cconf.password));
+	cconf.bssid_set = 1;
+	cconf.bssid[0] = ap->mac[0];
+	cconf.bssid[1] = ap->mac[1];
+	cconf.bssid[2] = ap->mac[2];
+	cconf.bssid[3] = ap->mac[3];
+	cconf.bssid[4] = ap->mac[4];
+	cconf.bssid[5] = ap->mac[5];
+	cconf.channel = ap->channel;
+	cconf.all_channel_scan = 0;
+	cconf.threshold.rssi = 0;
+	cconf.threshold.authmode = AUTH_OPEN;
+	wifi_station_set_config_current(&cconf);
+	wifi_station_connect();
+}
+
+static bool wlan_associate(string_t *ssid, string_t *password)
+{
+	struct scan_config sc =
+	{
+		.ssid = (char *)0,
+		.bssid = (char *)0,
+		.channel = 0,
+		.show_hidden = 0,
+		.scan_type = WIFI_SCAN_TYPE_ACTIVE,
+		.scan_time.active.min = 500,
+		.scan_time.active.max = 2000,
+	};
+
+	access_points.scanning++;
+
+	if(access_points.scanning > 1)
+	{
+		access_points.scanning--;
+		log("[wlan] duplicate association request\n");
+		return(true);
+	}
+
+	wlan_deassociate();
+
+	if(!wifi_set_opmode_current(STATION_MODE))
+		return(false);
+
+	access_points.entries = 0;
+	access_points.selected = 0;
+	strecpy(access_points.ssid, string_to_cstr(ssid), sizeof(access_points.ssid));
+	strecpy(access_points.password, string_to_cstr(password), sizeof(access_points.password));
+
+	string_to_cstr(ssid);
+	sc.ssid = string_buffer_nonconst(ssid);
+
+	log("[wlan] start scan for %s\n", access_points.ssid);
+
+	if(!wifi_station_scan(&sc, wlan_associate_callback))
+		return(false);
+
+	return(true);
+}
+
+static bool wlan_access_point(const string_t *ssid, const string_t *password, unsigned int channel)
+{
 	struct softap_config saconf;
 
-	switch(wlan_mode)
-	{
-		case(config_wlan_mode_client):
-		{
-			if((wifi_get_opmode() != STATION_MODE) ||
-					!wifi_station_get_config(&cconf) ||
-					!wifi_station_get_auto_connect() ||
-					!string_match_cstr(ssid, (const char *)cconf.ssid) ||
-					!string_match_cstr(password, (const char *)cconf.password))
-			{
-				memset(&cconf, 0, sizeof(cconf));
-				strecpy((char *)cconf.ssid, string_buffer(ssid), sizeof(cconf.ssid));
-				strecpy((char *)cconf.password, string_buffer(password), sizeof(cconf.password));
-				cconf.bssid_set = 0;
-				cconf.channel = 0;
+	memset(&saconf, 0, sizeof(saconf));
+	strecpy(saconf.ssid, string_buffer(ssid), sizeof(saconf.ssid));
+	strecpy(saconf.password, string_buffer(password), sizeof(saconf.password));
 
-				wifi_station_disconnect();
-				wifi_set_opmode(STATION_MODE);
-				wifi_station_set_config(&cconf);
-				wifi_station_connect();
-				wifi_station_set_auto_connect(1);
-			}
+	saconf.ssid_len = strlen(saconf.ssid);
+	saconf.channel = channel;
+	saconf.authmode = AUTH_WPA_WPA2_PSK;
+	saconf.ssid_hidden = 0;
+	saconf.max_connection = 1;
+	saconf.beacon_interval = 100;
 
-			break;
-		}
+	wlan_deassociate();
 
-		default:
-		{
-			memset(&saconf, 0, sizeof(saconf));
+	if(wifi_set_opmode_current(SOFTAP_MODE))
+		return(false);
 
-			strecpy(saconf.ssid, string_buffer(ssid), sizeof(saconf.ssid));
-			strecpy(saconf.password, string_buffer(password), sizeof(saconf.password));
+	if(!wifi_softap_set_config_current(&saconf))
+		return(false);
 
-			saconf.ssid_len = strlen(saconf.ssid);
-			saconf.channel = channel;
-			saconf.authmode = AUTH_WPA_WPA2_PSK;
-			saconf.ssid_hidden = 0;
-			saconf.max_connection = 1;
-			saconf.beacon_interval = 100;
-
-			wifi_station_disconnect();
-			wifi_set_opmode_current(SOFTAP_MODE);
-			wifi_softap_set_config_current(&saconf);
-
-			break;
-		}
-	}
+	return(true);
 }
 
 bool wlan_start(void)
@@ -197,7 +302,8 @@ bool wlan_start(void)
 					!config_get_string("wlan.client.passwd", &password, -1, -1))
 				return(false);
 
-			break;
+			stat_flags.wlan_recovery_mode_active = 0;
+			return(wlan_associate(&ssid, &password));
 		}
 
 		case(config_wlan_mode_ap):
@@ -207,18 +313,12 @@ bool wlan_start(void)
 					!config_get_uint("wlan.ap.channel", &channel, -1, -1))
 				return(false);
 
-			break;
-		}
-
-		default:
-		{
-			return(false);
+			stat_flags.wlan_recovery_mode_active = 0;
+			return(wlan_access_point(&ssid, &password, channel));
 		}
 	}
 
-	stat_flags.wlan_recovery_mode_active = 0;
-	wlan_init(mode, &ssid, &password, channel);
-	return(true);
+	return(false);
 }
 
 void wlan_start_recovery(void)
@@ -236,7 +336,7 @@ void wlan_start_recovery(void)
 
 	stat_flags.wlan_recovery_mode_active = 1;
 
-	wlan_init(config_wlan_mode_ap, &wlan_default_ssid, &wlan_default_password, 1);
+	wlan_access_point(&wlan_default_ssid, &wlan_default_password, 1);
 
 	log("* WLAN CAN'T CONNECT, entering recovery mode. *\n"
 				"  now, to configure wlan parameters\n"
@@ -281,6 +381,7 @@ void stats_wlan(string_t *dst)
 	struct station_config sc[5], *scp;
 	unsigned int scn, scni, scnc;
 	wifi_country_t wc;
+	int ix;
 
 	roflash static const char auth_mode[][20] =
 	{
@@ -389,6 +490,24 @@ void stats_wlan(string_t *dst)
 			string_format(dst, "\n");
 		}
 	}
+
+	string_append(dst, ">\n> access points selection\n>\n");
+
+	for(ix = 0; ix < access_points.entries; ix++)
+	{
+		const access_point_t *ap = &access_points.ap[ix];
+
+		string_format(dst, "> %c ch: %2d, rssi: %3d, bssid: %02x:%02x:%02x:%02x:%02x:%02x\n",
+				(ix == access_points.selected) ? '*' : ' ',
+				ap->channel,
+				ap->rssi,
+				ap->mac[0],
+				ap->mac[1],
+				ap->mac[2],
+				ap->mac[3],
+				ap->mac[4],
+				ap->mac[5]);
+	}
 }
 
 app_action_t application_function_stats_wlan(app_params_t *parameters)
@@ -399,15 +518,6 @@ app_action_t application_function_stats_wlan(app_params_t *parameters)
 
 static void wlan_scan_done_callback(void *arg, STATUS status)
 {
-	roflash static const char status_msg[][16] =
-	{
-		"OK",
-		"FAIL",
-		"PENDING",
-		"BUSY",
-		"CANCEL"
-	};
-
 	roflash static const char auth_mode_msg[][16] =
 	{
 		"OTHER",

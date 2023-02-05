@@ -33,6 +33,7 @@ typedef enum
 	task_wlan_recovery,
 	task_update_time,
 	task_remote_trigger,
+	task_wlan_reconnect,
 } task_id_t;
 
 enum
