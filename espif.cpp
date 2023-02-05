@@ -1863,11 +1863,28 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	if(!reset)
 		return;
 
-	std::cout << "rebooting" << std::endl;
-	process(command_channel, "reset", nullptr, reply, nullptr, "> reset", nullptr, nullptr);
+	std::cout << "rebooting... ";
+
+	try
+	{
+		process(command_channel, "reset", nullptr, reply, nullptr, "> reset", nullptr, nullptr);
+	}
+	catch(...)
+	{
+		std::cout << "* ";
+	}
 
 	command_channel.disconnect();
-	usleep(1000000);
+
+	for(unsigned int ix = 10; ix > 0; ix--)
+	{
+		std::cout << ix << " ";
+		std::flush(std::cout);
+		usleep(1000000);
+	}
+
+	std::cout << std::endl;
+
 	command_channel.connect();
 	std::cout << "reboot finished" << std::endl;
 
