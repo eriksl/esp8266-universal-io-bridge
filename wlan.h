@@ -19,9 +19,9 @@ extern roflash const char help_description_wlan_mode[];
 extern roflash const char help_description_wlan_scan[];
 extern roflash const char help_description_wlan_ap_switch[];
 
-void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_t *password, unsigned int channel);
-bool wlan_init_from_config(void);
-void wlan_init_start_recovery(void);
+void wlan_init(void);
+bool wlan_start(void);
+void wlan_start_recovery(void);
 void wlan_multicast_init_groups(void);
 void stats_wlan(string_t *dst);
 

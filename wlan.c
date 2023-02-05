@@ -109,7 +109,7 @@ void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_
 	}
 }
 
-bool wlan_init_from_config(void)
+bool wlan_start(void)
 {
 	unsigned int mode_int;
 	config_wlan_mode_t mode;
@@ -156,7 +156,7 @@ bool wlan_init_from_config(void)
 	return(true);
 }
 
-void wlan_init_start_recovery(void)
+void wlan_start_recovery(void)
 {
 	config_flag_change_nosave(flag_log_to_uart, true);
 	config_flag_change_nosave(flag_log_to_buffer, true);
@@ -726,7 +726,7 @@ app_action_t application_function_wlan_mode(app_params_t *parameters)
 				return(app_action_error);
 			}
 
-			wlan_init_from_config();
+			wlan_start();
 
 			return(app_action_disconnect);
 		}
@@ -744,7 +744,7 @@ app_action_t application_function_wlan_mode(app_params_t *parameters)
 				return(app_action_error);
 			}
 
-			wlan_init_from_config();
+			wlan_start();
 
 			return(app_action_disconnect);
 		}

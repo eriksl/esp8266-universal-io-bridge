@@ -455,9 +455,9 @@ drop:
 			break;
 		}
 
-		case(task_fallback_wlan):
+		case(task_wlan_recovery):
 		{
-			wlan_init_start_recovery();
+			wlan_start_recovery();
 			break;
 		}
 
@@ -588,7 +588,7 @@ static void slow_timer_callback(void *arg)
 	// fallback to config-ap-mode when not connected or no ip within 60 seconds
 
 	if(!stat_flags.wlan_recovery_mode_active && (stat_slow_timer == 600) && (wifi_station_get_connect_status() != STATION_GOT_IP))
-		dispatch_post_task(1, task_fallback_wlan, 0);
+		dispatch_post_task(1, task_wlan_recovery, 0);
 
 	io_periodic_slow(10);
 

@@ -30,7 +30,7 @@ typedef enum
 	task_init_displays,
 	task_received_command,
 	task_display_update,
-	task_fallback_wlan,
+	task_wlan_recovery,
 	task_update_time,
 	task_remote_trigger,
 } task_id_t;
