@@ -105,7 +105,7 @@ static void user_init2(void)
 	time_init();
 	io_init();
 
-	log("* boot done\n");
+	log("[system] boot done\n");
 
 	if(config_flags_match(flag_auto_sequencer))
 		sequencer_start(0, 1);

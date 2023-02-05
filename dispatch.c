@@ -128,7 +128,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 	if(stat_task_current_queue[prio] > 0)
 		stat_task_current_queue[prio]--;
 	else
-		log("task queue %u underrun\n", prio);
+		log("[dispatch] task queue %u underrun\n", prio);
 
 	switch(command)
 	{
@@ -218,7 +218,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				if(packet_header->version != packet_header_version)
 				{
-					log("dispatch: wrong version packet received: %u\n", packet_header->version);
+					log("[dispatch] wrong version packet received: %u\n", packet_header->version);
 					goto drop;
 				}
 
@@ -250,7 +250,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 				if((packet_header->oob_data_offset != packet_header->length) && ((packet_header->oob_data_offset % 4) != 0))
 				{
-					log("dispatch: oob data unaligned: %u %u %u %u\n", packet_header->length, packet_header->data_offset,
+					log("[dispatch] oob data unaligned: %u %u %u %u\n", packet_header->length, packet_header->data_offset,
 							packet_header->data_pad_offset, packet_header->oob_data_offset);
 					goto drop;
 				}
@@ -297,7 +297,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 					if(delimiter >= string_length(&command_socket_receive_buffer))
 					{
-						log("dispatch: raw data oob padding invalid: %d %d\n", string_length(&command_socket_receive_buffer), delimiter);
+						log("[dispatch] raw data oob padding invalid: %d %d\n", string_length(&command_socket_receive_buffer), delimiter);
 						goto drop;
 					}
 
@@ -567,7 +567,7 @@ static void slow_timer_callback(void *arg)
 
 		if(command_input_state.timeout == 0)
 		{
-			log("dispatch: tcp input timeout\n");
+			log("[dispatch] tcp input timeout\n");
 			stat_cmd_timeout++;
 			command_input_state.expected = 0;
 			command_input_state.timeout = 0;
@@ -647,7 +647,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 
 	if(context->overflow > 0)
 	{
-		log("dispatch: socket buffer overflow: %d ", context->overflow);
+		log("[dispatch] socket buffer overflow: %d ", context->overflow);
 		log("[%d %d %d: %d]", context->original_length, context->length, context->buffer_size, context->parts);
 		log("[%d %d %d]\n", command_input_state.expected, command_input_state.timeout, command_input_state.parts);
 		stat_cmd_receive_buffer_overflow++;
@@ -711,7 +711,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 			{
 				if((command_input_state.expected != 0) || (command_input_state.timeout != 0))
 				{
-					log("dispatch: already waiting for another session: %d %d, drop\n", command_input_state.expected, command_input_state.timeout);
+					log("[dispatch] already waiting for another session: %d %d, drop\n", command_input_state.expected, command_input_state.timeout);
 					goto drop_and_reset;
 				}
 
@@ -759,7 +759,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 			return;
 		}
 
-		log("dispatch: tcp invalid state\n");
+		log("[dispatch] tcp invalid state\n");
 		log("parts: %d\n", command_input_state.parts);
 		log("length: %d\n", context->length);
 		log("packet size: %u\n", sizeof(packet_header_t));
@@ -775,19 +775,19 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 	{
 		if(command_input_state.parts > 1)
 		{
-			log("dispatch: packet fragmented\n");
+			log("[dispatch] packet fragmented\n");
 			goto drop_and_reset;
 		}
 
 		if(command_input_state.expected > 0)
 		{
-			log("dispatch: drop udp while expecting packet data\n");
+			log("[dispatch] drop udp while expecting packet data\n");
 			goto drop_and_reset;
 		}
 
 		if(command_input_state.timeout > 0)
 		{
-			log("dispatch: drop udp while expecting tcp raw data\n");
+			log("[dispatch] drop udp while expecting tcp raw data\n");
 			goto drop_and_reset;
 		}
 
@@ -832,7 +832,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 		return;
 	}
 
-	log("dispatch: invalid state\n");
+	log("[dispatch] invalid state\n");
 	goto drop_and_reset;
 
 drop_and_reset:

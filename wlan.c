@@ -243,7 +243,7 @@ void wlan_multicast_init_groups(void)
 					(addr.byte[2] > 0) &&
 					(addr.byte[3] > 0))
 				if(!lwip_if_join_mc(addr.ip_addr))
-					log("join mc group failed\n");
+					log("[wlan] join mc group failed\n");
 		}
 	}
 }
@@ -335,7 +335,7 @@ void stats_wlan(string_t *dst)
 
 	string_append(dst, "> station ip netmask: ");
 	string_ip(dst, ip_addr_info.netmask);
-	string_append(dst, "\n\n");
+	string_append(dst, "\n>\n");
 
 	memset(sc, 0, sizeof(sc));
 
@@ -797,4 +797,3 @@ app_action_t application_function_wlan_reset(app_params_t *parameters)
 
 	return(app_action_normal);
 }
-

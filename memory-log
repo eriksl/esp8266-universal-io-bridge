@@ -16206,3 +16206,243 @@ Mon Jan  2 11:37:36 CET 2023 01e2f4e Memory stats.
     iram:    available:  32 k, used:  29977, free:   2791,  8 %
     dram:    available:  78 k, used:  71317, free:   8948, 11 %
     irom:    available: 784 k, used: 434736, free: 368080, 45 %
+Mon Jan  2 11:41:46 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434720, free: 368096, 45 %
+Fri Jan 13 20:32:11 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  29977, free:   2791,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 10:58:07 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  29973, free:   2795,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:03:11 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30001, free:   2767,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:06:27 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30025, free:   2743,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:11:37 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30029, free:   2739,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:29:55 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  29997, free:   2771,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:53:02 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30073, free:   2695,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:56:31 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30081, free:   2687,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 11:59:51 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30089, free:   2679,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 12:08:33 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30081, free:   2687,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 12:12:25 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30077, free:   2691,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 13:11:22 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30061, free:   2707,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 13:15:10 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30045, free:   2723,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 13:27:25 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 17:29:01 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30029, free:   2739,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sun Jan 15 17:36:13 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Tue Jan 24 21:00:44 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 491995, free: 310821, 38 %
+Tue Jan 24 21:03:47 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Tue Jan 24 21:07:57 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  74673, free:   5592,  6 %
+    irom:    available: 784 k, used: 492395, free: 310421, 38 %
+Tue Jan 24 21:08:13 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492395, free: 310421, 38 %
+Tue Jan 24 21:08:31 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Tue Jan 24 21:08:55 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76097, free:   4168,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Tue Jan 24 21:09:17 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Tue Jan 24 21:09:52 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  74177, free:   6088,  7 %
+    irom:    available: 784 k, used: 492395, free: 310421, 38 %
+Tue Jan 24 21:10:12 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 16:23:06 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Thu Jan 26 16:31:55 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 16:50:42 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Thu Jan 26 16:51:46 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 16:52:44 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Thu Jan 26 16:53:32 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 16:53:45 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Thu Jan 26 16:55:04 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76177, free:   4088,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 17:05:18 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Thu Jan 26 17:12:56 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76193, free:   4072,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 17:22:43 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76193, free:   4072,  5 %
+    irom:    available: 784 k, used: 492299, free: 310517, 38 %
+Thu Jan 26 17:27:50 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76193, free:   4072,  5 %
+    irom:    available: 784 k, used: 492427, free: 310389, 38 %
+Thu Jan 26 17:32:04 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30161, free:   2607,  7 %
+    dram:    available:  78 k, used:  76193, free:   4072,  5 %
+    irom:    available: 784 k, used: 492331, free: 310485, 38 %
+Fri Jan 27 09:58:14 CET 2023 c34eb7f Change semantics of wireless-change-accesspoint command.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434768, free: 368048, 45 %
+Sat Feb  4 17:19:36 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434656, free: 368160, 45 %
+Sat Feb  4 17:24:06 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434672, free: 368144, 45 %
+Sat Feb  4 18:48:34 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434656, free: 368160, 45 %
+Sat Feb  4 18:51:55 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434624, free: 368192, 45 %
+Sat Feb  4 18:53:00 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434672, free: 368144, 45 %
+Sat Feb  4 19:04:18 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434688, free: 368128, 45 %
+Sat Feb  4 19:13:09 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71317, free:   8948, 11 %
+    irom:    available: 784 k, used: 434672, free: 368144, 45 %
+Sat Feb  4 19:50:01 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 434848, free: 367968, 45 %
+Sat Feb  4 19:53:52 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71349, free:   8916, 11 %
+    irom:    available: 784 k, used: 434320, free: 368496, 45 %
+Sat Feb  4 19:57:36 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71349, free:   8916, 11 %
+    irom:    available: 784 k, used: 434864, free: 367952, 45 %
+Sat Feb  4 19:59:34 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 434832, free: 367984, 45 %
+Sat Feb  4 20:07:24 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 434752, free: 368064, 45 %
+Sat Feb  4 20:15:11 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 434816, free: 368000, 45 %
+Sat Feb  4 20:28:23 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 434976, free: 367840, 45 %
+Sat Feb  4 20:35:28 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435024, free: 367792, 45 %
+Sun Feb  5 09:41:08 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435136, free: 367680, 45 %
+Sun Feb  5 09:43:22 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71365, free:   8900, 11 %
+    irom:    available: 784 k, used: 434528, free: 368288, 45 %
+Sun Feb  5 09:58:21 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71365, free:   8900, 11 %
+    irom:    available: 784 k, used: 434576, free: 368240, 45 %
+Sun Feb  5 10:01:39 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71365, free:   8900, 11 %
+    irom:    available: 784 k, used: 434608, free: 368208, 45 %
+Sun Feb  5 10:12:54 CET 2023 c0f250e i2c: fix for rare crashing.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 434688, free: 368128, 45 %
