@@ -28,23 +28,23 @@ typedef struct
 	mac_addr_t mac;
 	int channel;
 	int rssi;
-} ap_cache_t;
+} access_point_t;
 
-assert_size(ap_cache_t, 16);
+assert_size(access_point_t, 16);
 
 enum
 {
-	ap_cache_entries = 5,
+	access_points_size = 5,
 };
 
 typedef struct
 {
 	int entries;
 	char ssid[32];
-	ap_cache_t ap[ap_cache_entries];
-} ap_caches_t;
+	access_point_t ap[access_points_size];
+} access_points_t;
 
-static ap_caches_t ap_cache;
+static access_points_t access_points;
 
 assert_size(ap_caches_t, 116);
 
@@ -53,7 +53,6 @@ roflash const char help_description_wlan_ap_config[] =		"configure access point 
 roflash const char help_description_wlan_client_config[] =	"configure client mode wlan params, supply ssid and passwd";
 roflash const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
 roflash const char help_description_wlan_scan[] =			"scan wlan, see log to retrieve the results";
-roflash const char help_description_wlan_ap_switch[] =		"switch client to new access point, supply BSSID";
 
 void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_t *password, unsigned int channel)
 {
@@ -182,46 +181,6 @@ void wlan_start_recovery(void)
 				"      wcc <ssid> <passwd>\n"
 				"      wm client\n"
 				"  after that, issue a reset command to restore temporarily changed flags.\n");
-}
-
-static bool wlan_ap_switch(int channel)
-{
-	unsigned int mode_int;
-	config_wlan_mode_t mode;
-	string_new(, ssid, 64);
-	string_new(, password, 64);
-	struct station_config cconf;
-
-	if(config_get_uint("wlan.mode", &mode_int, -1, -1))
-		mode = (config_wlan_mode_t)mode_int;
-	else
-		mode = config_wlan_mode_client;
-
-	if(mode != config_wlan_mode_client)
-		return(false);
-
-	if(!config_get_string("wlan.client.ssid", &ssid, -1, -1) ||
-			!config_get_string("wlan.client.passwd", &password, -1, -1))
-		return(false);
-
-	memset(&cconf, 0, sizeof(cconf));
-	strecpy((char *)cconf.ssid, string_buffer(&ssid), sizeof(cconf.ssid));
-	strecpy((char *)cconf.password, string_buffer(&password), sizeof(cconf.password));
-	cconf.bssid[0] = 0xff;
-	cconf.bssid[1] = 0xff;
-	cconf.bssid[2] = 0xff;
-	cconf.bssid[3] = 0xff;
-	cconf.bssid[4] = 0xff;
-	cconf.bssid[5] = 0xff;
-	cconf.bssid_set = 1;
-	cconf.channel = channel;
-	cconf.all_channel_scan = channel == 0;
-	cconf.threshold.rssi = -70;
-	cconf.threshold.authmode = AUTH_OPEN;
-
-	wifi_station_set_config_current(&cconf);
-
-	return(true);
 }
 
 void wlan_multicast_init_groups(void)
@@ -413,7 +372,6 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 	char pairwise_cipher_string[32];
 	char groupwise_cipher_string[32];
 	bool selected;
-	int ix;
 
 	flash_to_dram(true, status <= CANCEL ? status_msg[status] : "<invalid>", status_string, sizeof(status_string));
 
@@ -422,25 +380,10 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 	log("wlan scan result: %s\n", status_string);
 	log_from_flash_n(fmt_string_1, "SSID", "CHN", "RSSI", "AUTH", "PAIR", "GROUP", "OFFS", "BSSID");
 
-	ap_cache.entries = 0;
-
 	for(bss = arg; bss; bss = bss->next.stqe_next)
 	{
-		if(strcmp(ap_cache.ssid, "") && !strncmp((const char *)bss->ssid, ap_cache.ssid, sizeof(ap_cache.ssid)))
-		{
+		if(strcmp(access_points.ssid, "") && !strncmp((const char *)bss->ssid, access_points.ssid, sizeof(access_points.ssid)))
 			selected = true;
-
-			ap_cache.ap[ap_cache.entries].mac[0] = bss->bssid[0];
-			ap_cache.ap[ap_cache.entries].mac[1] = bss->bssid[1];
-			ap_cache.ap[ap_cache.entries].mac[2] = bss->bssid[2];
-			ap_cache.ap[ap_cache.entries].mac[3] = bss->bssid[3];
-			ap_cache.ap[ap_cache.entries].mac[4] = bss->bssid[4];
-			ap_cache.ap[ap_cache.entries].mac[5] = bss->bssid[5];
-			ap_cache.ap[ap_cache.entries].rssi = bss->rssi;
-			ap_cache.ap[ap_cache.entries].channel = bss->channel;
-
-			ap_cache.entries++;
-		}
 		else
 			selected = false;
 
@@ -463,31 +406,10 @@ static void wlan_scan_done_callback(void *arg, STATUS status)
 				bss->freq_offset,
 				bss->bssid[0], bss->bssid[1], bss->bssid[2], bss->bssid[3], bss->bssid[4], bss->bssid[5]);
 	}
-
-	log("> access point cache\n");
-
-	for(ix = 0; ix < ap_cache.entries; ix++)
-	{
-		string_new(, line, 64);
-
-		string_format(&line, "> ch: %2d, rssi: %3d, bssid: %02x:%02x:%02x:%02x:%02x:%02x",
-				ap_cache.ap[ix].channel,
-				ap_cache.ap[ix].rssi,
-				ap_cache.ap[ix].mac[0],
-				ap_cache.ap[ix].mac[1],
-				ap_cache.ap[ix].mac[2],
-				ap_cache.ap[ix].mac[3],
-				ap_cache.ap[ix].mac[4],
-				ap_cache.ap[ix].mac[5]);
-
-		log("%s\n", string_to_cstr(&line));
-	}
 }
 
 app_action_t application_function_wlan_scan(app_params_t *parameters)
 {
-	int ix;
-
 	struct scan_config sc =
 	{
 		.ssid = (char *)0,
@@ -500,36 +422,17 @@ app_action_t application_function_wlan_scan(app_params_t *parameters)
 	};
 	string_new(, ssid, 64);
 
-	strcpy(ap_cache.ssid, "");
-
-	if(config_get_string("wlan.client.ssid", &ssid, -1, -1))
-		strlcpy(ap_cache.ssid, string_to_cstr(&ssid), sizeof(ap_cache.ssid));
-
 	string_clear(&ssid);
 
 	if(parse_string(1, parameters->src, &ssid, ' ') == parse_ok)
 	{
 		if(string_match_cstr(&ssid, "-"))
-			sc.ssid = ap_cache.ssid;
+			sc.ssid = access_points.ssid;
 		else
 		{
 			string_to_cstr(&ssid); // ensure \0
 			sc.ssid = string_buffer_nonconst(&ssid);
 		}
-	}
-
-	ap_cache.entries = 0;
-
-	for(ix = 0; ix < ap_cache_entries; ix++)
-	{
-		ap_cache.ap[ix].mac[0] = 0xff;
-		ap_cache.ap[ix].mac[1] = 0xff;
-		ap_cache.ap[ix].mac[2] = 0xff;
-		ap_cache.ap[ix].mac[3] = 0xff;
-		ap_cache.ap[ix].mac[4] = 0xff;
-		ap_cache.ap[ix].mac[5] = 0xff;
-		ap_cache.ap[ix].rssi = 0;
-		ap_cache.ap[ix].channel = 0;
 	}
 
 	wifi_station_scan(&sc, wlan_scan_done_callback);
@@ -675,33 +578,6 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 
 	string_format(parameters->dst, "> ssid: \"%s\", passwd: \"%s\"\n",
 			string_to_cstr(&ssid), string_to_cstr(&passwd));
-
-	return(app_action_normal);
-}
-
-app_action_t application_function_wlan_ap_switch(app_params_t *parameters)
-{
-	unsigned int channel;
-
-	if(parse_uint(1, parameters->src, &channel, 0, ' ') != parse_ok)
-	{
-		string_format(parameters->dst, "> usage: wlan-ap-switch <channel>\n");
-		return(app_action_error);
-	}
-
-	if(channel >13)
-	{
-		string_format(parameters->dst, "> channel %u out of range (1-13)\n", channel);
-		return(app_action_error);
-	}
-
-	if(!wlan_ap_switch(channel))
-	{
-		string_format(parameters->dst, "> wlan-ap-switch to %u failed\n", channel);
-		return(app_action_error);
-	}
-
-	string_format(parameters->dst, "> wlan-ap-switch to %u OK\n", channel);
 
 	return(app_action_normal);
 }

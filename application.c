@@ -2372,11 +2372,6 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_wlan_client_config,
 	},
 	{
-		"was", "wlan-ap-switch",
-		application_function_wlan_ap_switch,
-		help_description_wlan_ap_switch,
-	},
-	{
 		"wm", "wlan-mode",
 		application_function_wlan_mode,
 		help_description_wlan_mode,
