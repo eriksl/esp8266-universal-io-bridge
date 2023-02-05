@@ -33,6 +33,16 @@ roflash static const char status_msg[][16] =
 	"CANCEL"
 };
 
+static unsigned int association_state_time;
+
+static struct attr_packed
+{
+	unsigned int associated:1;
+	unsigned int recovery_mode:1;
+} flags;
+
+assert_size(flags, 1);
+
 typedef struct
 {
 	mac_addr_t mac;
@@ -85,6 +95,8 @@ static void wlan_event_handler(System_Event_t *event)
 
 			wlan_multicast_init_groups();
 			time_sntp_start();
+			flags.associated = 1;
+			association_state_time = 0;
 
 			[[fallthrough]];
 		}
@@ -95,8 +107,15 @@ static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_STAMODE_DISCONNECTED):
 		{
-			log("[wlan] deassociate\n");
+			if(flags.associated)
+				log("[wlan] deassociate\n");
+			else
+				log("[wlan] deassociate from unassociated state\n");
+
+			flags.associated = 0;
+			association_state_time = 0;
 			dispatch_post_task(1, task_wlan_reconnect, 0);
+
 			[[fallthrough]];
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
@@ -109,15 +128,36 @@ static void wlan_event_handler(System_Event_t *event)
 
 void wlan_init(void)
 {
+	access_points.entries = 0;
+	access_points.selected = 0;
+	access_points.scanning = 0;
+	flags.recovery_mode = 0;
+	flags.associated = 0;
+	association_state_time = 0;
 	power_save_enable(config_flags_match(flag_wlan_power_save));
 	wifi_station_ap_number_set(0);
 	wifi_station_set_auto_connect(false);
 	wifi_station_set_reconnect_policy(false);
 	wifi_set_phy_mode(PHY_MODE_11N);
-	access_points.entries = 0;
-	access_points.selected = 0;
-	access_points.scanning = 0;
 	wifi_set_event_handler_cb(wlan_event_handler);
+}
+
+void wlan_periodic(void)
+{
+	// called once per second
+
+	association_state_time++;
+
+	// fallback to config-ap-mode when not connected or no ip within 60 seconds, reset after 5 minutes.
+
+	if(!flags.associated)
+	{
+		if(!flags.recovery_mode && (association_state_time > 60))
+			dispatch_post_task(1, task_wlan_recovery, 0);
+		else
+			if(association_state_time > 300)
+				dispatch_post_task(0, task_reset, 0);
+	}
 }
 
 static void wlan_deassociate(void)
@@ -163,6 +203,12 @@ static void wlan_associate_callback(void *arg, STATUS status)
 		access_points.entries++;
 	}
 
+	if(access_points.entries == 0)
+	{
+		log("[wlan] no access points found, giving up\n");
+		return;
+	}
+
 	log("[wlan] access points found: \n");
 
 	for(ix = 0; ix < access_points.entries; ix++)
@@ -183,12 +229,6 @@ static void wlan_associate_callback(void *arg, STATUS status)
 				ap->mac[5]);
 
 		log("%s", string_to_cstr(&line));
-	}
-
-	if(access_points.entries == 0)
-	{
-		log("[wlan] no access points found\n");
-		return;
 	}
 
 	ap = &access_points.ap[access_points.selected];
@@ -302,7 +342,7 @@ bool wlan_start(void)
 					!config_get_string("wlan.client.passwd", &password, -1, -1))
 				return(false);
 
-			stat_flags.wlan_recovery_mode_active = 0;
+			flags.recovery_mode = 0;
 			return(wlan_associate(&ssid, &password));
 		}
 
@@ -313,7 +353,7 @@ bool wlan_start(void)
 					!config_get_uint("wlan.ap.channel", &channel, -1, -1))
 				return(false);
 
-			stat_flags.wlan_recovery_mode_active = 0;
+			flags.recovery_mode = 0;
 			return(wlan_access_point(&ssid, &password, channel));
 		}
 	}
@@ -334,7 +374,8 @@ void wlan_start_recovery(void)
 	string_init(static, wlan_default_ssid, "esp");
 	string_init(static, wlan_default_password, "espespesp");
 
-	stat_flags.wlan_recovery_mode_active = 1;
+	flags.recovery_mode = 1;
+	association_state_time = 0;
 
 	wlan_access_point(&wlan_default_ssid, &wlan_default_password, 1);
 
@@ -395,18 +436,29 @@ void stats_wlan(string_t *dst)
 	wifi_station_get_config_default(&config);
 	wifi_get_country(&wc);
 
-	string_format(dst, "> ssid flash: \"%s\", passwd: \"%s\"\n",
+	string_append(dst, "> current wlan state: ");
+
+	if(flags.recovery_mode)
+		string_append(dst, "in recovery mode");
+	else
+		if(flags.associated)
+			string_append(dst, "associated");
+		else
+			string_append(dst, "not associated");
+
+	string_format(dst, " for %u sec\n", association_state_time);
+
+	string_format(dst, "> ssid in flash: \"%s\", passwd: \"%s\"\n",
 			config.ssid, config.password);
 
 	wifi_station_get_config(&config);
 	wc.cc[2] = '\0';
 
-	string_format(dst, "> current ssid: \"%s\", passwd: \"%s\"\n",
+	string_format(dst, "> ssid active: \"%s\", passwd: \"%s\"\n",
 			config.ssid, config.password);
 
 	string_format(dst,
 			"> channel: %u\n"
-			"> autoconnect: %s\n"
 			"> phy mode: %s\n"
 			"> sleep mode: %s\n"
 			"> max sleep level: %s\n"
@@ -415,7 +467,6 @@ void stats_wlan(string_t *dst)
 			"> country: %s [%d - %d]\n"
 			">\n",
 				wifi_get_channel(),
-				onoff(wifi_station_get_auto_connect()),
 				phy[wifi_get_phy_mode()],
 				slp[wifi_get_sleep_type()],
 				onoff(wifi_get_sleep_level()),

@@ -16446,3 +16446,27 @@ Sun Feb  5 10:12:54 CET 2023 c0f250e i2c: fix for rare crashing.
     iram:    available:  32 k, used:  30085, free:   2683,  8 %
     dram:    available:  78 k, used:  71373, free:   8892, 11 %
     irom:    available: 784 k, used: 434688, free: 368128, 45 %
+Sun Feb  5 10:40:45 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 434704, free: 368112, 45 %
+Sun Feb  5 10:42:37 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 434736, free: 368080, 45 %
+Sun Feb  5 10:56:40 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 434832, free: 367984, 45 %
+Sun Feb  5 11:01:02 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 434848, free: 367968, 45 %
+Sun Feb  5 11:36:17 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435072, free: 367744, 45 %
+Sun Feb  5 11:43:42 CET 2023 7ed10d2 wlan: implement own scanning+association code.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435120, free: 367696, 45 %

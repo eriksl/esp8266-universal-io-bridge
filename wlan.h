@@ -20,6 +20,7 @@ extern roflash const char help_description_wlan_scan[];
 
 void wlan_init(void);
 bool wlan_start(void);
+void wlan_periodic(void);
 void wlan_start_recovery(void);
 void wlan_multicast_init_groups(void);
 void stats_wlan(string_t *dst);
