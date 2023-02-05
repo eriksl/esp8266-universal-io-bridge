@@ -598,44 +598,6 @@ static void slow_timer_callback(void *arg)
 	os_timer_arm(&slow_timer, 100, 0);
 }
 
-static void wlan_event_handler(System_Event_t *event)
-{
-	switch(event->event)
-	{
-		case(EVENT_STAMODE_CONNECTED):
-		{
-			if(stat_init_associate_time_us == 0)
-				stat_init_associate_time_us = time_get_us();
-
-			break;
-		}
-		case(EVENT_STAMODE_GOT_IP):
-		{
-			if(stat_init_ip_time_us == 0)
-				stat_init_ip_time_us = time_get_us();
-
-			wlan_multicast_init_groups();
-			time_sntp_start();
-
-			[[fallthrough]];
-		}
-		case(EVENT_SOFTAPMODE_STACONNECTED):
-		{
-			dispatch_post_task(2, task_alert_association, 0);
-			break;
-		}
-		case(EVENT_STAMODE_DISCONNECTED):
-		{
-			[[fallthrough]];
-		}
-		case(EVENT_SOFTAPMODE_STADISCONNECTED):
-		{
-			dispatch_post_task(2, task_alert_disassociation, 0);
-			break;
-		}
-	}
-}
-
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
 {
 	const packet_header_t *packet_header;
@@ -937,8 +899,6 @@ void dispatch_init2(void)
 
 	if(!config_get_uint("bridge.port", &uart_port, -1, -1))
 		uart_port = 0;
-
-	wifi_set_event_handler_cb(wlan_event_handler);
 
 	lwip_if_socket_create(&command_socket, "command", &command_socket_receive_buffer, &command_socket_send_buffer, cmd_port,
 			true, socket_command_callback_data_received);

@@ -3,6 +3,7 @@
 #include "util.h"
 #include "config.h"
 #include "stats.h"
+#include "sys_time.h"
 #include "lwip-interface.h"
 
 #include <stdbool.h>
@@ -54,8 +55,73 @@ roflash const char help_description_wlan_client_config[] =	"configure client mod
 roflash const char help_description_wlan_mode[] =			"set wlan mode: client or ap";
 roflash const char help_description_wlan_scan[] =			"scan wlan, see log to retrieve the results";
 
-void wlan_init(config_wlan_mode_t wlan_mode, const string_t *ssid, const string_t *password, unsigned int channel)
+static void wlan_event_handler(System_Event_t *event)
 {
+	switch(event->event)
+	{
+		case(EVENT_STAMODE_CONNECTED):
+		{
+			if(stat_init_associate_time_us == 0)
+				stat_init_associate_time_us = time_get_us();
+
+			break;
+		}
+		case(EVENT_STAMODE_GOT_IP):
+		{
+			if(stat_init_ip_time_us == 0)
+				stat_init_ip_time_us = time_get_us();
+
+			wlan_multicast_init_groups();
+			time_sntp_start();
+
+			[[fallthrough]];
+		}
+		case(EVENT_SOFTAPMODE_STACONNECTED):
+		{
+			dispatch_post_task(2, task_alert_association, 0);
+			break;
+		}
+		case(EVENT_STAMODE_DISCONNECTED):
+		{
+			log("[wlan] deassociate\n");
+			dispatch_post_task(1, task_wlan_reconnect, 0);
+			[[fallthrough]];
+		}
+		case(EVENT_SOFTAPMODE_STADISCONNECTED):
+		{
+			dispatch_post_task(2, task_alert_disassociation, 0);
+			break;
+		}
+	}
+}
+
+void wlan_init(void)
+{
+	power_save_enable(config_flags_match(flag_wlan_power_save));
+	wifi_station_ap_number_set(0);
+	wifi_station_set_auto_connect(false);
+	wifi_station_set_reconnect_policy(false);
+	wifi_set_phy_mode(PHY_MODE_11N);
+	access_points.entries = 0;
+	access_points.selected = 0;
+	access_points.scanning = 0;
+	wifi_set_event_handler_cb(wlan_event_handler);
+}
+
+static void wlan_deassociate(void)
+{
+	struct station_config cconf;
+
+	wifi_station_disconnect();
+	memset(&cconf, 0, sizeof(cconf));
+	wifi_station_set_config(&cconf);
+	wifi_station_set_config_current(&cconf);
+}
+
+static void wlan_associate_callback(void *arg, STATUS status)
+{
+	struct bss_info *bss;
+	char status_string[32];
 	struct station_config cconf;
 	struct softap_config saconf;
 

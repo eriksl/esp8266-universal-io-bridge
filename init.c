@@ -81,10 +81,7 @@ void user_init(void)
 	uart_set_initial(1);
 	os_install_putc1(&logchar);
 	system_set_os_print(1);
-	power_save_enable(config_flags_match(flag_wlan_power_save));
-	wifi_station_ap_number_set(0);
-	wifi_station_set_reconnect_policy(true);
-	wifi_set_phy_mode(PHY_MODE_11G);
+	wlan_init();
 	system_init_done_cb(user_init2);
 }
 
