@@ -16470,3 +16470,39 @@ Sun Feb  5 11:43:42 CET 2023 7ed10d2 wlan: implement own scanning+association co
     iram:    available:  32 k, used:  30085, free:   2683,  8 %
     dram:    available:  78 k, used:  71381, free:   8884, 11 %
     irom:    available: 784 k, used: 435120, free: 367696, 45 %
+Sun Feb  5 12:58:08 CET 2023 3ed562e wlan: after 60 seconds no association go to recovery mode. After 5 minutes, reset.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435152, free: 367664, 45 %
+Sun Feb  5 14:25:19 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435136, free: 367680, 45 %
+Sat Feb 25 13:07:10 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71381, free:   8884, 11 %
+    irom:    available: 784 k, used: 435200, free: 367616, 45 %
+Sat Feb 25 13:11:40 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435344, free: 367472, 45 %
+Sat Feb 25 13:19:31 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Sat Feb 25 13:32:08 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435568, free: 367248, 45 %
+Sat Feb 25 13:36:06 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435552, free: 367264, 45 %
+Sat Feb 25 13:39:00 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435520, free: 367296, 45 %
+Sat Feb 25 13:42:38 CET 2023 8a8e32c espif: new boot sequence (including scanning) needs longer reboot time.
+    iram:    available:  32 k, used:  30085, free:   2683,  8 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435456, free: 367360, 45 %

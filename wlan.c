@@ -4,6 +4,7 @@
 #include "config.h"
 #include "stats.h"
 #include "sys_time.h"
+#include "string.h"
 #include "lwip-interface.h"
 
 #include <stdbool.h>
@@ -293,13 +294,13 @@ static bool wlan_associate(string_t *ssid, string_t *password)
 	return(true);
 }
 
-static bool wlan_access_point(const string_t *ssid, const string_t *password, unsigned int channel)
+static bool wlan_access_point(string_t *ssid, string_t *password, unsigned int channel)
 {
 	struct softap_config saconf;
 
 	memset(&saconf, 0, sizeof(saconf));
-	strecpy(saconf.ssid, string_buffer(ssid), sizeof(saconf.ssid));
-	strecpy(saconf.password, string_buffer(password), sizeof(saconf.password));
+	strecpy(saconf.ssid, string_to_cstr(ssid), sizeof(saconf.ssid));
+	strecpy(saconf.password, string_to_cstr(password), sizeof(saconf.password));
 
 	saconf.ssid_len = strlen(saconf.ssid);
 	saconf.channel = channel;
@@ -310,7 +311,7 @@ static bool wlan_access_point(const string_t *ssid, const string_t *password, un
 
 	wlan_deassociate();
 
-	if(wifi_set_opmode_current(SOFTAP_MODE))
+	if(!wifi_set_opmode_current(SOFTAP_MODE))
 		return(false);
 
 	if(!wifi_softap_set_config_current(&saconf))
@@ -363,6 +364,9 @@ bool wlan_start(void)
 
 void wlan_start_recovery(void)
 {
+	string_init(, wlan_default_ssid, "esp");
+	string_init(, wlan_default_password, "espespesp");
+
 	config_flag_change_nosave(flag_log_to_uart, true);
 	config_flag_change_nosave(flag_log_to_buffer, true);
 	config_flag_change_nosave(flag_cmd_from_uart, true);
@@ -371,23 +375,28 @@ void wlan_start_recovery(void)
 	uart_invert(0, uart_dir_rx, false);
 	uart_loopback(0, false);
 
-	string_init(static, wlan_default_ssid, "esp");
-	string_init(static, wlan_default_password, "espespesp");
-
 	flags.recovery_mode = 1;
 	association_state_time = 0;
 
 	wlan_access_point(&wlan_default_ssid, &wlan_default_password, 1);
 
-	log("* WLAN CAN'T CONNECT, entering recovery mode. *\n"
-				"  now, to configure wlan parameters\n"
-				"  - EITHER associate to SSID \"esp\" using passwd \"espespesp\"\n"
-				"      and then connect to 192.168.4.1:22 using telnet or browser\n"
-				"  - OR connect to UART\n"
-				"  - THEN issue these commands:\n"
-				"      wcc <ssid> <passwd>\n"
-				"      wm client\n"
-				"  after that, issue a reset command to restore temporarily changed flags.\n");
+	log("* WLAN CAN'T CONNECT, entering recovery mode. *\n");
+	msleep(10);
+	log("  configure wlan parameters\n");
+	msleep(10);
+	log("  - EITHER associate to SSID \"%s\" using passwd \"%s\"\n", string_to_cstr(&wlan_default_ssid), string_to_cstr(&wlan_default_password));
+	msleep(10);
+	log("    and then connect to 192.168.4.1:22 using telnet or browser\n");
+	msleep(10);
+	log("  - OR connect to UART\n");
+	msleep(10);
+	log("  - THEN issue these commands:\n");
+	msleep(10);
+	log("    wcc <ssid> <passwd>\n");
+	msleep(10);
+	log("    wm client\n");
+	msleep(10);
+	log("  after that, issue a reset command to restore temporarily changed flags.\n");
 }
 
 void wlan_multicast_init_groups(void)
