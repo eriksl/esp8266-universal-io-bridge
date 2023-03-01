@@ -84,16 +84,17 @@ typedef struct _lwip_if_socket_t
 
 assert_size(lwip_if_socket_t, 64);
 
-bool	attr_nonnull lwip_if_received_tcp(lwip_if_socket_t *);
-bool	attr_nonnull lwip_if_received_udp(lwip_if_socket_t *);
-void	attr_nonnull lwip_if_receive_buffer_lock(lwip_if_socket_t *, lwip_if_proto_t);
-void	attr_nonnull lwip_if_receive_buffer_unlock(lwip_if_socket_t *, lwip_if_proto_t);
-bool	attr_nonnull lwip_if_send_buffer_locked(lwip_if_socket_t *);
-bool	attr_nonnull lwip_if_send(lwip_if_socket_t *socket);
-bool	attr_nonnull lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port);
-bool	attr_nonnull lwip_if_close(lwip_if_socket_t *socket);
-bool	attr_nonnull lwip_if_reboot(lwip_if_socket_t *socket);
-bool	attr_nonnull lwip_if_socket_create(lwip_if_socket_t *socket, const char *name, string_t *receive_buffer, string_t *send_buffer,
-			unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received);
-bool	attr_nonnull lwip_if_join_mc(ip_addr_t);
+attr_nonnull bool			lwip_if_received_tcp(lwip_if_socket_t *);
+attr_nonnull bool			lwip_if_received_udp(lwip_if_socket_t *);
+attr_nonnull void			lwip_if_receive_buffer_lock(lwip_if_socket_t *, lwip_if_proto_t);
+attr_nonnull void			lwip_if_receive_buffer_unlock(lwip_if_socket_t *, lwip_if_proto_t);
+attr_nonnull bool			lwip_if_send_buffer_locked(lwip_if_socket_t *);
+attr_nonnull unsigned int	lwip_if_send_buffer_unacked(lwip_if_socket_t *);
+attr_nonnull bool			lwip_if_send(lwip_if_socket_t *socket);
+attr_nonnull bool			lwip_if_sendto(lwip_if_socket_t *socket, const ip_addr_t *address, unsigned int port);
+attr_nonnull bool			lwip_if_close(lwip_if_socket_t *socket);
+attr_nonnull bool			lwip_if_reboot(lwip_if_socket_t *socket);
+attr_nonnull bool			lwip_if_socket_create(lwip_if_socket_t *socket, const char *name, string_t *receive_buffer, string_t *send_buffer,
+								unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received);
+attr_nonnull bool			lwip_if_join_mc(ip_addr_t);
 #endif

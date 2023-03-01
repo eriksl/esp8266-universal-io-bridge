@@ -109,16 +109,19 @@ static void background_task_bridge_uart(void)
 	if(lwip_if_send_buffer_locked(&uart_socket))
 		return;
 
-	string_clear(&uart_socket_send_buffer);
+	if(lwip_if_send_buffer_unacked(&uart_socket) == 0)
+	{
+		string_clear(&uart_socket_send_buffer);
 
-	while(!uart_empty(0) && string_space(&uart_socket_send_buffer))
-		string_append_byte(&uart_socket_send_buffer, uart_receive(0));
+		while(!uart_empty(0) && string_space(&uart_socket_send_buffer))
+			string_append_byte(&uart_socket_send_buffer, uart_receive(0));
 
-	if(string_empty(&uart_socket_send_buffer))
-		return;
-
-	if(!lwip_if_send(&uart_socket))
-		stat_uart_send_buffer_overflow++;
+		if(!string_empty(&uart_socket_send_buffer))
+		{
+			if(!lwip_if_send(&uart_socket))
+				stat_uart_send_buffer_overflow++;
+		}
+	}
 }
 
 static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)

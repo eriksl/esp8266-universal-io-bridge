@@ -103,6 +103,11 @@ attr_nonnull attr_pure bool lwip_if_send_buffer_locked(lwip_if_socket_t *socket)
 	return(socket->sending_remaining > 0);
 }
 
+attr_nonnull unsigned int lwip_if_send_buffer_unacked(lwip_if_socket_t *socket)
+{
+	return(socket->sent_unacked);
+}
+
 static err_t received_callback(bool tcp, lwip_if_socket_t *socket, struct pbuf *pbuf_received, const ip_addr_t *address, u16_t port)
 {
 	struct pbuf *pbuf;
