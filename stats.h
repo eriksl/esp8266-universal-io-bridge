@@ -5,6 +5,11 @@
 #include "dispatch.h"
 #include "util.h"
 
+enum
+{
+	uarts = 2
+};
+
 typedef struct
 {
 	unsigned int user_pre_init_called:1;
@@ -13,10 +18,27 @@ typedef struct
 
 extern stat_flags_t stat_flags;
 
-extern unsigned int stat_uart_spurious;
-extern unsigned int stat_uart0_rx_interrupts;
-extern unsigned int stat_uart0_tx_interrupts;
-extern unsigned int stat_uart1_tx_interrupts;
+typedef struct
+{
+	unsigned int rx_interrupts;
+	unsigned int rx_posted;
+	unsigned int rx_posted_max;
+	unsigned int rx_posted_skipped;
+	unsigned int tx_interrupts;
+	unsigned int tx_posted;
+	unsigned int tx_posted_max;
+	unsigned int tx_posted_skipped;
+} stat_uart_instance_t;
+
+typedef struct
+{
+	unsigned int spurious;
+
+	stat_uart_instance_t instance[uarts];
+} stat_uart_t;
+
+extern stat_uart_t stat_uart;
+
 extern unsigned int stat_fast_timer;
 extern unsigned int stat_slow_timer;
 extern unsigned int stat_pwm_cycles;;
@@ -104,4 +126,5 @@ void stats_time(string_t *dst);
 void stats_counters(string_t *dst);
 void stats_lwip(string_t *dst);
 void stats_i2c(string_t *dst);
+void stats_uart(string_t *dst);
 #endif

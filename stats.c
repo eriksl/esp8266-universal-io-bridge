@@ -10,11 +10,9 @@
 #include "sdk.h"
 
 stat_flags_t stat_flags;
+stat_uart_t stat_uart;
 
 unsigned int stat_uart_spurious;
-unsigned int stat_uart0_rx_interrupts;
-unsigned int stat_uart0_tx_interrupts;
-unsigned int stat_uart1_tx_interrupts;
 unsigned int stat_fast_timer;
 unsigned int stat_slow_timer;
 unsigned int stat_pwm_cycles;
@@ -320,14 +318,8 @@ void stats_counters(string_t *dst)
 {
 	string_format(dst,
 			"> INTERRUPTS\n"
-			">   uart spurious: %8u\n"
-			">   uart0 rx:      %8u, tx: %u\n"
-			">   uart1 tx:      %8u\n"
 			">   nonmaskable:   %u, while masked: %u\n"
 			">   spi slave/i2s: %u, i2s: %u\n",
-				stat_uart_spurious,
-				stat_uart0_rx_interrupts, stat_uart0_tx_interrupts,
-				stat_uart1_tx_interrupts,
 				stat_pwm_timer_interrupts, stat_pwm_timer_interrupts_while_nmi_masked,
 				stat_spi_slave_interrupts, stat_spi_slave_i2s_interrupts);
 
@@ -405,8 +397,23 @@ void stats_counters(string_t *dst)
 	string_format(dst,
 			">\n> FONT\n"
 			">  max font render time: %u usec\n", stat_font_render_time);
+}
 
 	system_print_meminfo();
+void stats_uart(string_t *dst)
+{
+	unsigned int ix;
+
+	string_format(dst,
+			"> * spurious interrupts: %u\n", stat_uart_spurious);
+
+	for(ix = 0; ix < uarts; ix++)
+		string_format(dst,
+			"> %u rx: %8u, tx: %8u, RX posted: %4u, max: %4u, skipped: %4u, TX posted: %4u, max: %4u, skipped: %4u\n",
+				ix,
+				stat_uart.instance[ix].rx_interrupts, stat_uart.instance[ix].tx_interrupts,
+				stat_uart.instance[ix].rx_posted, stat_uart.instance[ix].rx_posted_max, stat_uart.instance[ix].rx_posted_skipped,
+				stat_uart.instance[ix].tx_posted, stat_uart.instance[ix].tx_posted_max, stat_uart.instance[ix].tx_posted_skipped);
 }
 
 void stats_lwip(string_t *dst)

@@ -418,6 +418,12 @@ static app_action_t application_function_stats_i2c(app_params_t *parameters)
 	return(app_action_normal);
 }
 
+static app_action_t application_function_stats_uart(app_params_t *parameters)
+{
+	stats_uart(parameters->dst);
+	return(app_action_normal);
+}
+
 static app_action_t application_function_bridge_port(app_params_t *parameters)
 {
 	unsigned int port;
@@ -1947,6 +1953,7 @@ roflash static const char help_description_stats_lwip[] =			"statistics from lwi
 roflash static const char help_description_stats_i2c[] =			"statistics from i2c subsystem";
 roflash static const char help_description_stats_sequencer[] =		"statistics from the sequencer";
 roflash static const char help_description_stats_time[] =			"statistics from the time subsystem";
+roflash static const char help_description_stats_uart[] =			"statistics from the uarts";
 roflash static const char help_description_bridge_port[] =			"set uart bridge tcp/udp port (default 23)";
 roflash static const char help_description_command_port[] =			"set command tcp/udp port (default 24)";
 roflash static const char help_description_dump_config[] =			"dump config contents (as stored in flash)";
@@ -2065,6 +2072,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"sw", "stats-wlan",
 		application_function_stats_wlan,
 		help_description_stats_wlan,
+	},
+	{
+		"su", "stats-uart",
+		application_function_stats_uart,
+		help_description_stats_uart,
 	},
 	{
 		"bp", "bridge-port",

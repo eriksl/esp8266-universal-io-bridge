@@ -72,25 +72,64 @@ iram static void uart_callback(void *p)
 	uart0_int_status = read_peri_reg(UART_INT_ST(0));
 	uart1_int_status = read_peri_reg(UART_INT_ST(1));
 
+	stat_uart_instance_t *uart0 = &stat_uart.instance[0];
+	stat_uart_instance_t *uart1 = &stat_uart.instance[1];
+
 	if(uart0_int_status & (UART_RXFIFO_TOUT_INT_ST | UART_RXFIFO_FULL_INT_ST)) // data in input fifo of uart0
 	{
-		stat_uart0_rx_interrupts++;
+		uart0->rx_interrupts++;
 		enable_receive_int(0, false); // disable input info data available interrupts while the fifo is not empty
-		dispatch_post_task(0, task_uart_fetch_fifo, 0);
+
+		if(uart0->rx_posted > 0)
+			uart0->rx_posted_skipped++;
+		else
+		{
+			if(dispatch_post_task(task_prio_medium, task_uart_fetch_fifo, 0))
+			{
+				uart0->rx_posted++;
+
+				if(uart0->rx_posted > uart0->rx_posted_max)
+					uart0->rx_posted_max = uart0->rx_posted;
+			}
+		}
 	}
 
 	if(uart0_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart0
 	{
-		stat_uart0_tx_interrupts++;
+		uart0->tx_interrupts++;
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 0);
+
+		if(uart0->tx_posted > 0)
+			uart0->tx_posted_skipped++;
+		else
+		{
+			if(dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 0))
+			{
+				uart0->tx_posted++;
+
+				if(uart0->tx_posted > uart0->tx_posted_max)
+					uart0->tx_posted_max = uart0->tx_posted;
+			}
+		}
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
-		stat_uart1_tx_interrupts++;
+		uart1->tx_interrupts++;
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 1);
+
+		if(uart1->tx_posted > 0)
+			uart1->tx_posted_skipped++;
+		else
+		{
+			if(dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 1))
+			{
+				uart1->tx_posted++;
+
+				if(uart1->tx_posted > uart1->tx_posted_max)
+					uart1->tx_posted_max = uart1->tx_posted;
+			}
+		}
 	}
 
 	// acknowledge all uart interrupts
@@ -105,7 +144,7 @@ iram attr_pure bool uart_full(unsigned int uart)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return(true);
 	}
 
@@ -116,12 +155,14 @@ iram void uart_send(unsigned int uart, unsigned int byte)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
 	if(!queue_full(&uart_send_queue[uart]))
 		queue_push(&uart_send_queue[uart], byte);
+
+	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
 iram void uart_send_string(unsigned int uart, const string_t *string)
@@ -130,21 +171,21 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
 	for(current = 0, length = string_length(string); (current < length) && !queue_full(&uart_send_queue[uart]); current++)
 		queue_push(&uart_send_queue[uart], string_at(string, current));
 
-	uart_flush(uart);
+	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
 iram void uart_flush(unsigned int uart)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
@@ -155,7 +196,7 @@ iram attr_pure bool uart_empty(unsigned int uart)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return(false);
 	}
 
@@ -166,7 +207,7 @@ iram unsigned int uart_receive(unsigned int uart)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return(0);
 	}
 
@@ -177,7 +218,7 @@ iram void uart_clear_receive_queue(unsigned int uart)
 {
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
@@ -187,10 +228,13 @@ iram void uart_clear_receive_queue(unsigned int uart)
 void uart_task_handler_fetch_fifo(unsigned int uart)
 {
 	unsigned int byte;
+	stat_uart_instance_t *uart_instance = &stat_uart.instance[uart];
+
+	uart_instance->rx_posted--;
 
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
@@ -205,35 +249,36 @@ void uart_task_handler_fetch_fifo(unsigned int uart)
 			queue_push(&uart_receive_queue, byte);
 	}
 
-	clear_interrupts(uart);
 	enable_receive_int(uart, true);
 
 	if(uart_bridge_active)
-		dispatch_post_task(0, task_uart_bridge, 0);
+		dispatch_post_task(task_prio_medium, task_uart_bridge, 0);
 }
 
 void uart_task_handler_fill_fifo(unsigned int uart)
 {
+	stat_uart_instance_t *uart_instance = &stat_uart.instance[uart];
+
+	uart_instance->tx_posted--;
+
 	if(!queues_alive)
 	{
-		stat_uart_spurious++;
+		stat_uart.spurious++;
 		return;
 	}
 
 	if(autofill_info[uart].enabled)
 	{
-		while(tx_fifo_length(uart) < 64)
+		while(tx_fifo_length(uart) < 127)
 			write_peri_reg(UART_FIFO(uart), autofill_info[uart].character);
 
-		clear_interrupts(uart);
 		enable_transmit_int(uart, true);
 	}
 	else
 	{
-		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 64))
+		while(!queue_empty(&uart_send_queue[uart]) && (tx_fifo_length(uart) < 127))
 			write_peri_reg(UART_FIFO(uart), queue_pop(&uart_send_queue[uart]));
 
-		clear_interrupts(uart);
 		enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 	}
 }
@@ -395,10 +440,10 @@ void uart_init(void)
 			((2 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S) |
 			UART_RX_TOUT_EN |
 			((8 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
-			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((120 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	write_peri_reg(UART_CONF1(1),
-			((64 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
+			((120 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S));
 
 	// Don't enable the send fifo interrupt here but enable it when the fifo has
 	// something in it that should be written to the uart's fifo
