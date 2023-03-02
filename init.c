@@ -97,7 +97,7 @@ static void user_init2(void)
 		system_update_cpu_freq(80);
 
 	if(!wlan_start())
-		dispatch_post_task(1, task_wlan_recovery, 0);
+		dispatch_post_task(task_prio_high, task_wlan_recovery, 0);
 
 	application_init();
 	time_init();

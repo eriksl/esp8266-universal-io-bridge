@@ -98,7 +98,7 @@ static void background_task_bridge_uart(void)
 
 			if(byte == '\n')
 			{
-				dispatch_post_task(1, task_received_command, task_received_command_uart);
+				dispatch_post_task(task_prio_high, task_received_command, task_received_command_uart);
 				uart_clear_receive_queue(0);
 			}
 		}
@@ -437,7 +437,7 @@ static void generic_task_handler(unsigned int prio, task_id_t command, unsigned 
 
 			if(action == app_action_reset)
 				if(!lwip_if_reboot(&command_socket))
-					dispatch_post_task(0, task_reset, 0);
+					dispatch_post_task(task_prio_high, task_reset, 0);
 
 			break;
 drop:
@@ -461,12 +461,6 @@ drop:
 		case(task_wlan_recovery):
 		{
 			wlan_start_recovery();
-			break;
-		}
-
-		case(task_update_time):
-		{
-			time_periodic();
 			break;
 		}
 
@@ -515,26 +509,50 @@ drop:
 	}
 }
 
-static void user_task_prio_2_handler(struct ETSEventTag *event)
+iram static void user_task_prio_0_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(0, (task_id_t)event->sig, event->par);
 }
 
-static void user_task_prio_1_handler(struct ETSEventTag *event)
+iram static void user_task_prio_1_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(1, (task_id_t)event->sig, event->par);
 }
 
-static void user_task_prio_0_handler(struct ETSEventTag *event)
+iram static void user_task_prio_2_handler(struct ETSEventTag *event)
 {
 	generic_task_handler(2, (task_id_t)event->sig, event->par);
 }
 
-void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argument)
+iram bool dispatch_post_task(task_prio_t prio, task_id_t command, unsigned int argument)
 {
-	static roflash const unsigned int sdk_task_id[3] = { USER_TASK_PRIO_2, USER_TASK_PRIO_1, USER_TASK_PRIO_0 };
+	int system_prio;
 
-	if(system_os_post(sdk_task_id[prio], command, argument))
+	switch(prio)
+	{
+		case(task_prio_low):
+		{
+			system_prio = USER_TASK_PRIO_0;
+			break;
+		}
+		case(task_prio_medium):
+		{
+			system_prio = USER_TASK_PRIO_1;
+			break;
+		}
+		case(task_prio_high):
+		{
+			system_prio = USER_TASK_PRIO_2;
+			break;
+		}
+		default:
+		{
+			log("dispatch_post_task: invalid prio: %u\n", (unsigned int)prio);
+			return(false);
+		}
+	}
+
+	if(system_os_post(system_prio, command, argument))
 	{
 		stat_task_posted[prio]++;
 		stat_task_current_queue[prio]++;
@@ -543,7 +561,12 @@ void dispatch_post_task(unsigned int prio, task_id_t command, unsigned int argum
 			stat_task_max_queue[prio] = stat_task_current_queue[prio];
 	}
 	else
+	{
 		stat_task_post_failed[prio]++;
+		return(false);
+	}
+
+	return(true);
 }
 
 iram static void fast_timer_run(unsigned int period)
@@ -569,7 +592,7 @@ static void slow_timer_callback(void *arg)
 	if(config_flags_match(flag_wlan_power_save))
 		fast_timer_run(10);
 
-	dispatch_post_task(1, task_update_time, 0);
+	time_periodic();
 
 	if(command_input_state.timeout > 0)
 	{
@@ -588,12 +611,12 @@ static void slow_timer_callback(void *arg)
 	}
 
 	if(uart_bridge_active || config_flags_match(flag_cmd_from_uart))
-		dispatch_post_task(0, task_uart_bridge, 0);
+		dispatch_post_task(task_prio_medium, task_uart_bridge, 0);
 
 	if(display_detected())
-		dispatch_post_task(2, task_display_update, 0);
+		dispatch_post_task(task_prio_medium, task_display_update, 0);
 
-	dispatch_post_task(2, task_periodic_i2c_sensors, 0);
+	dispatch_post_task(task_prio_medium, task_periodic_i2c_sensors, 0);
 
 	io_periodic_slow(10);
 
@@ -641,7 +664,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(1, task_received_command, task_received_command_text);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
 				}
 				else // ... no eol -> unlock and continue receiving
 					lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
@@ -654,7 +677,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(1, task_received_command, task_received_command_packet);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
 				}
 				else
 				{
@@ -691,7 +714,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.expected = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(1, task_received_command, task_received_command_packet);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
 				}
 				else
 				{
@@ -716,7 +739,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(1, task_received_command, task_received_command_text);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
 				}
 				else // ... no eol -> unlock and continue receiving
 				{
@@ -774,7 +797,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 				command_input_state.expected = 0;
 				command_input_state.parts = 0;
 				lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-				dispatch_post_task(1, task_received_command, task_received_command_packet);
+				dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
 			}
 			else
 			{
@@ -796,7 +819,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 			command_input_state.timeout = 0;
 			command_input_state.parts = 0;
 			lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-			dispatch_post_task(1, task_received_command, task_received_command_text);
+			dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
 		}
 
 		return;
@@ -930,5 +953,5 @@ void dispatch_init2(void)
 		os_timer_arm(&fast_timer, 10, 0);
 	}
 
-	dispatch_post_task(2, task_init_displays, 0);
+	dispatch_post_task(task_prio_medium, task_init_displays, 0);
 }

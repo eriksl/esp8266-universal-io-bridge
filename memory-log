@@ -16558,3 +16558,127 @@ Wed Mar  1 10:39:05 CET 2023 11da74e Fix recovery SSID parameters.
     iram:    available:  32 k, used:  30221, free:   2547,  7 %
     dram:    available:  78 k, used:  71357, free:   8908, 11 %
     irom:    available: 784 k, used: 435232, free: 367584, 45 %
+Wed Mar  1 10:48:14 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30221, free:   2547,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435280, free: 367536, 45 %
+Wed Mar  1 10:48:25 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30301, free:   2467,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435232, free: 367584, 45 %
+Wed Mar  1 10:48:45 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30377, free:   2391,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435152, free: 367664, 45 %
+Wed Mar  1 10:50:51 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30369, free:   2399,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435136, free: 367680, 45 %
+Wed Mar  1 10:52:48 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30385, free:   2383,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435168, free: 367648, 45 %
+Wed Mar  1 11:09:00 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30389, free:   2379,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435184, free: 367632, 45 %
+Wed Mar  1 11:28:58 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30425, free:   2343,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435184, free: 367632, 45 %
+Wed Mar  1 11:47:33 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30545, free:   2223,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 11:53:56 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30469, free:   2299,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 11:55:46 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30481, free:   2287,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 11:58:10 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30509, free:   2259,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 12:01:00 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30517, free:   2251,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 12:35:56 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30513, free:   2255,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 12:36:56 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30517, free:   2251,  6 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 434944, free: 367872, 45 %
+Wed Mar  1 12:41:59 CET 2023 76b9cf9 uart bridge: move moving data from the UART rx buffer out of the task system.
+    iram:    available:  32 k, used:  30333, free:   2435,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435184, free: 367632, 45 %
+Thu Mar  2 09:42:00 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30197, free:   2571,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Thu Mar  2 09:45:10 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30245, free:   2523,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Thu Mar  2 10:16:26 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30273, free:   2495,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435328, free: 367488, 45 %
+Thu Mar  2 10:27:07 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30273, free:   2495,  7 %
+    dram:    available:  78 k, used:  71357, free:   8908, 11 %
+    irom:    available: 784 k, used: 435312, free: 367504, 45 %
+Thu Mar  2 12:27:29 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30265, free:   2503,  7 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 435296, free: 367520, 45 %
+Thu Mar  2 12:29:47 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30265, free:   2503,  7 %
+    dram:    available:  78 k, used:  71373, free:   8892, 11 %
+    irom:    available: 784 k, used: 435360, free: 367456, 45 %
+Thu Mar  2 12:33:55 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30265, free:   2503,  7 %
+    dram:    available:  78 k, used:  71389, free:   8876, 11 %
+    irom:    available: 784 k, used: 435408, free: 367408, 45 %
+Thu Mar  2 12:40:46 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30261, free:   2507,  7 %
+    dram:    available:  78 k, used:  71397, free:   8868, 11 %
+    irom:    available: 784 k, used: 435408, free: 367408, 45 %
+Thu Mar  2 12:48:50 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30261, free:   2507,  7 %
+    dram:    available:  78 k, used:  71413, free:   8852, 11 %
+    irom:    available: 784 k, used: 435488, free: 367328, 45 %
+Thu Mar  2 12:51:12 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30261, free:   2507,  7 %
+    dram:    available:  78 k, used:  71413, free:   8852, 11 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Thu Mar  2 13:01:31 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30309, free:   2459,  7 %
+    dram:    available:  78 k, used:  71413, free:   8852, 11 %
+    irom:    available: 784 k, used: 435472, free: 367344, 45 %
+Thu Mar  2 13:06:13 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30309, free:   2459,  7 %
+    dram:    available:  78 k, used:  71413, free:   8852, 11 %
+    irom:    available: 784 k, used: 435504, free: 367312, 45 %
+Thu Mar  2 13:09:14 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30309, free:   2459,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435536, free: 367280, 45 %
+Thu Mar  2 13:11:27 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30361, free:   2407,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435536, free: 367280, 45 %
+Thu Mar  2 13:20:04 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30353, free:   2415,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435536, free: 367280, 45 %
+Thu Mar  2 13:30:44 CET 2023 3702f0c dispatch: rework task post.
+    iram:    available:  32 k, used:  30413, free:   2355,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435488, free: 367328, 45 %

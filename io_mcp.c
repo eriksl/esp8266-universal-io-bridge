@@ -210,7 +210,7 @@ void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_en
 				{
 					mcp_pin_data->counter++;
 					mcp_pin_data->debounce = pin_config->speed;
-					dispatch_post_task(1, task_alert_pin_changed, 0);
+					dispatch_post_task(task_prio_medium, task_alert_pin_changed, 0);
 				}
 			}
 		}

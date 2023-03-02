@@ -83,14 +83,14 @@ iram static void uart_callback(void *p)
 	{
 		stat_uart0_tx_interrupts++;
 		enable_transmit_int(0, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_task(0, task_uart_fill_fifo, 0);
+		dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 0);
 	}
 
 	if(uart1_int_status & UART_TXFIFO_EMPTY_INT_ST) // space available in the output fifo of uart1
 	{
 		stat_uart1_tx_interrupts++;
 		enable_transmit_int(1, false); // disable output fifo space available interrupts while the fifo hasn't been filled
-		dispatch_post_task(0, task_uart_fill_fifo, 1);
+		dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 1);
 	}
 
 	// acknowledge all uart interrupts

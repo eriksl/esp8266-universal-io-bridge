@@ -96,7 +96,7 @@ iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_da
 					if(!pin_value)
 					{
 						io_aux_data_pin->counter.counter++;
-						dispatch_post_task(1, task_alert_pin_changed, 0);
+						dispatch_post_task(task_prio_medium, task_alert_pin_changed, 0);
 					}
 				}
 			}

@@ -103,7 +103,7 @@ static void wlan_event_handler(System_Event_t *event)
 		}
 		case(EVENT_SOFTAPMODE_STACONNECTED):
 		{
-			dispatch_post_task(2, task_alert_association, 0);
+			dispatch_post_task(task_prio_medium, task_alert_association, 0);
 			break;
 		}
 		case(EVENT_STAMODE_DISCONNECTED):
@@ -115,13 +115,13 @@ static void wlan_event_handler(System_Event_t *event)
 
 			flags.associated = 0;
 			association_state_time = 0;
-			dispatch_post_task(1, task_wlan_reconnect, 0);
+			dispatch_post_task(task_prio_high, task_wlan_reconnect, 0);
 
 			[[fallthrough]];
 		}
 		case(EVENT_SOFTAPMODE_STADISCONNECTED):
 		{
-			dispatch_post_task(2, task_alert_disassociation, 0);
+			dispatch_post_task(task_prio_high, task_alert_disassociation, 0);
 			break;
 		}
 	}
@@ -154,10 +154,10 @@ void wlan_periodic(void)
 	if(!flags.associated)
 	{
 		if(!flags.recovery_mode && (association_state_time > 60))
-			dispatch_post_task(1, task_wlan_recovery, 0);
+			dispatch_post_task(task_prio_high, task_wlan_recovery, 0);
 		else
 			if(association_state_time > 300)
-				dispatch_post_task(0, task_reset, 0);
+				dispatch_post_task(task_prio_high, task_reset, 0);
 	}
 }
 

@@ -2,6 +2,7 @@
 #define stats_h
 
 #include <stdint.h>
+#include "dispatch.h"
 #include "util.h"
 
 typedef struct
@@ -44,11 +45,11 @@ extern unsigned int stat_update_uart;
 extern unsigned int stat_update_longop;
 extern unsigned int stat_update_display;
 extern unsigned int stat_display_picture_load_worker_called;
-extern unsigned int stat_task_posted[3];
-extern unsigned int stat_task_executed[3];
-extern unsigned int stat_task_post_failed[3];
-extern unsigned int stat_task_current_queue[3];
-extern unsigned int stat_task_max_queue[3];
+extern unsigned int stat_task_posted[task_prio_size];
+extern unsigned int stat_task_executed[task_prio_size];
+extern unsigned int stat_task_post_failed[task_prio_size];
+extern unsigned int stat_task_current_queue[task_prio_size];
+extern unsigned int stat_task_max_queue[task_prio_size];
 extern unsigned int stat_lwip_tcp_send_error;
 extern unsigned int stat_lwip_udp_send_error;
 extern unsigned int stat_lwip_tcp_received_packets;

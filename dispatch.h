@@ -1,7 +1,7 @@
 #ifndef dispatch_h
 #define dispatch_h
 
-#include "config.h"
+#include "util.h"
 
 typedef enum
 {
@@ -14,6 +14,14 @@ typedef enum
 } app_action_t;
 
 assert_size(app_action_t, 4);
+
+typedef enum
+{
+	task_prio_low = 0,
+	task_prio_medium,
+	task_prio_high,
+	task_prio_size,
+} task_prio_t;
 
 typedef enum
 {
@@ -31,7 +39,6 @@ typedef enum
 	task_received_command,
 	task_display_update,
 	task_wlan_recovery,
-	task_update_time,
 	task_remote_trigger,
 	task_wlan_reconnect,
 } task_id_t;
@@ -56,5 +63,5 @@ extern bool uart_bridge_active;
 
 void dispatch_init1(void);
 void dispatch_init2(void);
-void dispatch_post_task(unsigned int prio, task_id_t, unsigned int argument);
+bool dispatch_post_task(task_prio_t, task_id_t, unsigned int argument);
 #endif

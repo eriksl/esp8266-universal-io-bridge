@@ -7844,7 +7844,7 @@ void i2c_sensors_periodic(void)
 			repost = i2c_sensors_detect();
 
 	if(repost)
-		dispatch_post_task(2, task_periodic_i2c_sensors, 0);
+		dispatch_post_task(task_prio_low, task_periodic_i2c_sensors, 0);
 }
 
 bool i2c_sensor_read(string_t *dst, int bus, i2c_sensor_t sensor, bool verbose, bool html)
