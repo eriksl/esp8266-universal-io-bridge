@@ -16682,3 +16682,51 @@ Thu Mar  2 13:30:44 CET 2023 3702f0c dispatch: rework task post.
     iram:    available:  32 k, used:  30413, free:   2355,  7 %
     dram:    available:  78 k, used:  71429, free:   8836, 11 %
     irom:    available: 784 k, used: 435488, free: 367328, 45 %
+Thu Mar  2 13:51:47 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30413, free:   2355,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435536, free: 367280, 45 %
+Thu Mar  2 14:01:42 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30429, free:   2339,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:03:37 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30449, free:   2319,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:05:12 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30429, free:   2339,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:08:53 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30413, free:   2355,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:11:06 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30433, free:   2335,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:13:51 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30413, free:   2355,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:15:33 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30433, free:   2335,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 14:18:25 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30361, free:   2407,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 15:33:41 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30389, free:   2379,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 15:39:19 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30389, free:   2379,  7 %
+    dram:    available:  78 k, used:  71429, free:   8836, 11 %
+    irom:    available: 784 k, used: 435616, free: 367200, 45 %
+Thu Mar  2 15:42:23 CET 2023 cb27972 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30389, free:   2379,  7 %
+    dram:    available:  78 k, used:  69381, free:  10884, 13 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
