@@ -55,8 +55,8 @@ string_new(static attr_flash_align, command_socket_receive_buffer, sizeof(packet
 string_new(static attr_flash_align, command_socket_send_buffer,    sizeof(packet_header_t) + 64 + SPI_FLASH_SEC_SIZE);
 static lwip_if_socket_t command_socket;
 
-string_new(static, uart_socket_receive_buffer, 256);
-string_new(static, uart_socket_send_buffer, 256);
+string_new(static, uart_socket_receive_buffer, 128);
+string_new(static, uart_socket_send_buffer, 128);
 static lwip_if_socket_t uart_socket;
 
 bool uart_bridge_active = false;

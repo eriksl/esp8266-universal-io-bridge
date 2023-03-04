@@ -16754,3 +16754,23 @@ Sat Mar  4 19:45:22 CET 2023 c6a652f lwip: remove some debugging log message tha
     iram:    available:  32 k, used:  30345, free:   2423,  7 %
     dram:    available:  78 k, used:  69429, free:  10836, 13 %
     irom:    available: 784 k, used: 436080, free: 366736, 45 %
+Sat Mar  4 19:55:32 CET 2023 ce7990b application: add functions to read from UART, read/write from/to UART in hex/binary.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69685, free:  10580, 13 %
+    irom:    available: 784 k, used: 436112, free: 366704, 45 %
+Sat Mar  4 19:59:04 CET 2023 ce7990b application: add functions to read from UART, read/write from/to UART in hex/binary.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69557, free:  10708, 13 %
+    irom:    available: 784 k, used: 436112, free: 366704, 45 %
+Sat Mar  4 20:00:01 CET 2023 ce7990b application: add functions to read from UART, read/write from/to UART in hex/binary.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69685, free:  10580, 13 %
+    irom:    available: 784 k, used: 436112, free: 366704, 45 %
+Sat Mar  4 20:00:54 CET 2023 ce7990b application: add functions to read from UART, read/write from/to UART in hex/binary.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  70581, free:   9684, 12 %
+    irom:    available: 784 k, used: 436112, free: 366704, 45 %
+Sat Mar  4 20:02:40 CET 2023 ce7990b application: add functions to read from UART, read/write from/to UART in hex/binary.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69685, free:  10580, 13 %
+    irom:    available: 784 k, used: 436112, free: 366704, 45 %

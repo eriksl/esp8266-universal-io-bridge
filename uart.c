@@ -401,9 +401,9 @@ void uart_is_autofill(unsigned int uart, bool *enable, unsigned int *character)
 
 void uart_init(void)
 {
-	static char uart_send_queue_buffer0[256];
-	static char uart_send_queue_buffer1[256];
-	static char uart_receive_queue_buffer[256];
+	static char uart_send_queue_buffer0[1024];
+	static char uart_send_queue_buffer1[128];
+	static char uart_receive_queue_buffer[128];
 
 	ets_isr_mask(1 << ETS_UART_INUM);
 	ets_isr_attach(ETS_UART_INUM, uart_callback, 0);
