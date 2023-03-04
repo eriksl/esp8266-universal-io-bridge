@@ -459,7 +459,7 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(parse_string(1, &param2, &passwd, '=') != parse_ok)
 		goto parameter_error;
 
-	if((string_length(&ssid) < 4) || (string_length(&passwd) < 8))
+	if((string_length(&ssid) < 1) || (string_length(&passwd) < 8))
 		goto parameter_error;
 
 	if(!config_open_write())
