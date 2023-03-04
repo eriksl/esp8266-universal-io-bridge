@@ -942,6 +942,55 @@ static app_action_t application_function_uart_write(app_params_t *parameters)
 	return(app_action_normal);
 }
 
+static app_action_t application_function_uart_read(app_params_t *parameters)
+{
+	string_append(parameters->dst, "> uart receive: ");
+
+	while(!uart_empty())
+		string_format(parameters->dst, "%c", (int)uart_receive());
+
+	string_append(parameters->dst, "\n");
+
+	return(app_action_normal);
+}
+
+static app_action_t application_function_uart_write_hex(app_params_t *parameters) // FIXME
+{
+	unsigned int uart, current, byte;
+
+	if(parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok)
+	{
+		string_append(parameters->dst, "> usage: uart-write <uart id> <hex byte> [<hex byte>]\n");
+		return(app_action_error);
+	}
+
+	for(current = 2; current < 128; current++)
+	{
+		if(parse_uint(current, parameters->src, &byte, 16, ' ') != parse_ok)
+			break;
+
+		uart_send(uart, byte);
+	}
+
+	uart_flush(uart);
+
+	string_append(parameters->dst, "> uart-write-hex ok\n");
+
+	return(app_action_normal);
+}
+
+static app_action_t application_function_uart_read_hex(app_params_t *parameters) // FIXME
+{
+	string_append(parameters->dst, "> uart receive hex: ");
+
+	while(!uart_empty())
+		string_format(parameters->dst, "%02x ", uart_receive());
+
+	string_append(parameters->dst, "\n");
+
+	return(app_action_normal);
+}
+
 static int i2c_address = 0;
 static int i2c_bus = 0;
 
@@ -2006,6 +2055,9 @@ roflash static const char help_description_uart_stop[] =			"set uart stop bits [
 roflash static const char help_description_uart_parity[] =			"set uart parity [none/even/odd]";
 roflash static const char help_description_uart_loopback[] =		"set uart loopback mode [0/1]";
 roflash static const char help_description_uart_write[] =			"write text to uart";
+roflash static const char help_description_uart_read[] =			"read text from uart";
+roflash static const char help_description_uart_write_hex[] =		"write hex bytes to uart";
+roflash static const char help_description_uart_read_hex[] =		"read hex bytes from uart";
 roflash static const char help_description_config_query_string[] =	"query config string";
 roflash static const char help_description_config_query_int[] =		"query config int";
 roflash static const char help_description_config_set[] =			"set config entry";
@@ -2369,9 +2421,24 @@ roflash static const application_function_table_t application_function_table[] =
 		help_description_uart_loopback,
 	},
 	{
+		"ur", "uart-read",
+		application_function_uart_read,
+		help_description_uart_read,
+	},
+	{
 		"uw", "uart-write",
 		application_function_uart_write,
 		help_description_uart_write,
+	},
+	{
+		"urh", "uart-read-hex",
+		application_function_uart_read_hex,
+		help_description_uart_read_hex,
+	},
+	{
+		"uwh", "uart-write-hex",
+		application_function_uart_write_hex,
+		help_description_uart_write_hex,
 	},
 	{
 		"wac", "wlan-ap-configure",
