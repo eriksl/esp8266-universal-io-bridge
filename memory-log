@@ -16738,3 +16738,19 @@ Sat Mar  4 17:36:08 CET 2023 23f9041 dispatch/uart: fix overflowing the task que
     iram:    available:  32 k, used:  30345, free:   2423,  7 %
     dram:    available:  78 k, used:  69381, free:  10884, 13 %
     irom:    available: 784 k, used: 435440, free: 367376, 45 %
+Sat Mar  4 17:41:18 CET 2023 c6a652f lwip: remove some debugging log message that clog the logging.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69381, free:  10884, 13 %
+    irom:    available: 784 k, used: 435424, free: 367392, 45 %
+Sat Mar  4 18:04:16 CET 2023 c6a652f lwip: remove some debugging log message that clog the logging.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69397, free:  10868, 13 %
+    irom:    available: 784 k, used: 435600, free: 367216, 45 %
+Sat Mar  4 18:21:48 CET 2023 c6a652f lwip: remove some debugging log message that clog the logging.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69429, free:  10836, 13 %
+    irom:    available: 784 k, used: 436144, free: 366672, 45 %
+Sat Mar  4 19:45:22 CET 2023 c6a652f lwip: remove some debugging log message that clog the logging.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69429, free:  10836, 13 %
+    irom:    available: 784 k, used: 436080, free: 366736, 45 %

@@ -79,14 +79,14 @@ static void background_task_bridge_uart(void)
 {
 	unsigned int byte;
 
-	if(uart_empty(0))
+	if(uart_empty())
 		return;
 
 	if(config_flags_match(flag_cmd_from_uart))
 	{
-		while(!uart_empty(0))
+		while(!uart_empty())
 		{
-			byte = uart_receive(0);
+			byte = uart_receive();
 
 			if((byte != '\r') && (byte != '\n') && (byte != ' ') && !isprint(byte))
 				continue;
@@ -113,8 +113,8 @@ static void background_task_bridge_uart(void)
 	{
 		string_clear(&uart_socket_send_buffer);
 
-		while(!uart_empty(0) && string_space(&uart_socket_send_buffer))
-			string_append_byte(&uart_socket_send_buffer, uart_receive(0));
+		while(!uart_empty() && string_space(&uart_socket_send_buffer))
+			string_append_byte(&uart_socket_send_buffer, uart_receive());
 
 		if(!string_empty(&uart_socket_send_buffer))
 		{

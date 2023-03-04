@@ -189,18 +189,18 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
-iram attr_pure bool uart_empty(unsigned int uart)
+iram attr_pure bool uart_empty(void)
 {
 	if(!queues_alive)
 	{
 		stat_uart.spurious++;
-		return(false);
+		return(true);
 	}
 
 	return(queue_empty(&uart_receive_queue));
 }
 
-iram unsigned int uart_receive(unsigned int uart)
+iram unsigned int uart_receive(void)
 {
 	if(!queues_alive)
 	{
