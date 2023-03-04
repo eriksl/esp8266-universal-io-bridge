@@ -16730,3 +16730,11 @@ Thu Mar  2 15:42:23 CET 2023 cb27972 dispatch/uart: fix overflowing the task que
     iram:    available:  32 k, used:  30389, free:   2379,  7 %
     dram:    available:  78 k, used:  69381, free:  10884, 13 %
     irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Thu Mar  2 15:49:22 CET 2023 23f9041 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69381, free:  10884, 13 %
+    irom:    available: 784 k, used: 435584, free: 367232, 45 %
+Sat Mar  4 17:36:08 CET 2023 23f9041 dispatch/uart: fix overflowing the task queues with spurious <uart tx empty> tasks.
+    iram:    available:  32 k, used:  30345, free:   2423,  7 %
+    dram:    available:  78 k, used:  69381, free:  10884, 13 %
+    irom:    available: 784 k, used: 435440, free: 367376, 45 %

@@ -313,10 +313,7 @@ static bool tcp_try_send_buffer(lwip_if_socket_t *socket)
 	offset = string_length(socket->send_buffer) - socket->sending_remaining;
 
 	if((error = tcp_write(pcb_tcp, string_buffer(socket->send_buffer) + offset, chunk_size, apiflags)) != ERR_OK)
-	{
 		stat_lwip_tcp_send_error++;
-		log_error(socket->name, "lwip tcp write: error", error);
-	}
 	else
 	{
 		stat_lwip_tcp_sent_packets++;
@@ -501,7 +498,6 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 
 		if(pcb_tcp == (struct tcp_pcb *)0)
 		{
-			log("lwip if send: tcp send: disconnected\n");
 			socket->sending_remaining = 0;
 			socket->sent_unacked = 0;
 			return(false);
@@ -511,7 +507,6 @@ attr_nonnull bool lwip_if_send(lwip_if_socket_t *socket)
 
 		if(!tcp_try_send_buffer(socket))
 		{
-			log("lwip if send: tcp try send buffer failed\n");
 			socket->sending_remaining = 0;
 			return(false);
 		}
