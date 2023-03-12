@@ -397,9 +397,10 @@ void stats_counters(string_t *dst)
 	string_format(dst,
 			">\n> FONT\n"
 			">  max font render time: %u usec\n", stat_font_render_time);
-}
 
 	system_print_meminfo();
+}
+
 void stats_uart(string_t *dst)
 {
 	unsigned int ix;

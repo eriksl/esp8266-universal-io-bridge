@@ -16774,3 +16774,7 @@ Sat Mar  4 20:02:40 CET 2023 ce7990b application: add functions to read from UAR
     iram:    available:  32 k, used:  30345, free:   2423,  7 %
     dram:    available:  78 k, used:  69685, free:  10580, 13 %
     irom:    available: 784 k, used: 436112, free: 366704, 45 %
+Sun Mar 12 14:47:21 CET 2023 088ac47 uart/bridge: optimise buffer sizes.
+    iram:    available:  32 k, used:  30297, free:   2471,  7 %
+    dram:    available:  78 k, used:  69685, free:  10580, 13 %
+    irom:    available: 784 k, used: 436064, free: 366752, 45 %
