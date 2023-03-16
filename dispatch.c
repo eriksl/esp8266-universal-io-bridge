@@ -124,14 +124,14 @@ static void background_task_bridge_uart(void)
 	}
 }
 
-static void generic_task_handler(unsigned int prio, task_id_t command, unsigned int argument)
+static void generic_task_handler(unsigned int task_queue_index, task_id_t command, unsigned int argument)
 {
-	stat_task_executed[prio]++;
+	stat_task_executed[task_queue_index]++;
 
-	if(stat_task_current_queue[prio] > 0)
-		stat_task_current_queue[prio]--;
+	if(stat_task_current_queue[task_queue_index] > 0)
+		stat_task_current_queue[task_queue_index]--;
 	else
-		log("[dispatch] task queue %u underrun\n", prio);
+		log("[dispatch] task queue %u underrun\n", task_queue_index);
 
 	switch(command)
 	{
