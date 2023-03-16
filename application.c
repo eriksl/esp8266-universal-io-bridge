@@ -954,7 +954,7 @@ static app_action_t application_function_uart_read(app_params_t *parameters)
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_write_hex(app_params_t *parameters) // FIXME
+static app_action_t application_function_uart_write_hex(app_params_t *parameters)
 {
 	unsigned int uart, current, byte;
 
@@ -979,7 +979,7 @@ static app_action_t application_function_uart_write_hex(app_params_t *parameters
 	return(app_action_normal);
 }
 
-static app_action_t application_function_uart_read_hex(app_params_t *parameters) // FIXME
+static app_action_t application_function_uart_read_hex(app_params_t *parameters)
 {
 	string_append(parameters->dst, "> uart receive hex: ");
 
