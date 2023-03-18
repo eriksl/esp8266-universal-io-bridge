@@ -535,7 +535,7 @@ static void trigger_usage(string_t *dst)
 
 static void iomode_trigger_usage(string_t *dst, const char *info)
 {
-	string_append(dst, "usage: io-mode <io> <pin> trigger <debounce_ms> <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
+	string_append(dst, "usage: io-mode <io> <pin> trigger <action1> <io1> <pin1> [<action2> <io2> <pin2>]\n");
 	string_append(dst, "    action: ");
 	trigger_actions_to_string(dst);
 	string_format(dst, "\nerror in <%s>\n", info);
@@ -1248,7 +1248,6 @@ void io_init(void)
 	int i2c_scl = -1;
 	unsigned int i2c_set_speed_delay;
 	int trigger;
-	unsigned int debounce;
 	int trigger_io, trigger_pin, trigger_type;
 	unsigned int spi_pin;
 	uint64_t start = time_get_us();
@@ -1301,26 +1300,12 @@ void io_init(void)
 
 			switch(mode)
 			{
-				case(io_pin_counter):
-				{
-					if(!config_get_uint("io.%u.%u.counter.debounce", &debounce, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
-
-					pin_config->speed = debounce;
-
-					break;
-				}
-
 				case(io_pin_rotary_encoder):
 				{
 					unsigned int pin_type;
 					int remote_index;
 
-					if(!config_get_uint("io.%u.%u.renc.debounce", &debounce, io, pin) || !config_get_uint("io.%u.%u.renc.pintype", &pin_type, io, pin))
+					if(!config_get_uint("io.%u.%u.renc.pintype", &pin_type, io, pin))
 					{
 						pin_config->mode = io_pin_disabled;
 						pin_config->llmode = io_pin_ll_disabled;
@@ -1362,7 +1347,6 @@ void io_init(void)
 						pin_config->shared.renc.trigger_pin.remote = -1;
 					}
 
-					pin_config->speed = debounce;
 					pin_config->shared.renc.pin_type = pin_type;
 
 					break;
@@ -1376,15 +1360,6 @@ void io_init(void)
 						pin_config->llmode = io_pin_ll_disabled;
 						continue;
 					}
-
-					if(!config_get_uint("io.%u.%u.trigger.debounce", &debounce, io, pin))
-					{
-						pin_config->mode = io_pin_disabled;
-						pin_config->llmode = io_pin_ll_disabled;
-						continue;
-					}
-
-					pin_config->speed = debounce;
 
 					for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
 					{
@@ -1849,7 +1824,6 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 	io_pin_mode_t			mode;
 	io_pin_ll_mode_t		llmode;
 	unsigned int			io, pin;
-	unsigned int			debounce;
 	int						trigger_io, trigger_pin;
 	io_trigger_t			trigger_type;
 
@@ -1944,20 +1918,11 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 				return(app_action_error);
 			}
 
-			if((parse_uint(4, parameters->src, &debounce, 0, ' ') != parse_ok))
-			{
-				config_abort_write();
-				string_append(parameters->dst, "counter: <debounce ms>\n");
-				return(app_action_error);
-			}
-
-			pin_config->speed = debounce;
 			llmode = io_pin_ll_counter;
 
 			config_delete("io.%u.%u.", true, io, pin);
 			config_set_int("io.%u.%u.mode", mode, io, pin);
 			config_set_int("io.%u.%u.llmode", io_pin_ll_counter, io, pin);
-			config_set_int("io.%u.%u.counter.debounce", debounce, io, pin);
 
 			break;
 		}
@@ -1982,11 +1947,8 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 
 			string_clear(parameters->dst);
 
-			if(parse_uint(5, parameters->src, &debounce, 0, ' ') != parse_ok)
-				goto renc_error;
-
-			if((parse_int(6, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(7, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
-				if(parse_int(8, parameters->src, &trigger_remote_index, 0, ' ') == parse_ok)
+			if((parse_int(5, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(6, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
+				if(parse_int(7, parameters->src, &trigger_remote_index, 0, ' ') == parse_ok)
 					(void)0;
 				else
 					trigger_remote_index = -1;
@@ -2022,13 +1984,11 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 			pin_config->shared.renc.trigger_pin.remote = trigger_remote_index;
 			pin_config->shared.renc.trigger_pin.io = trigger_io;
 			pin_config->shared.renc.trigger_pin.pin = trigger_pin;
-			pin_config->speed = debounce;
 			llmode = io_pin_ll_counter;
 
 			config_delete("io.%u.%u.", true, io, pin);
 			config_set_int("io.%u.%u.mode", mode, io, pin);
 			config_set_int("io.%u.%u.llmode", io_pin_ll_counter, io, pin);
-			config_set_int("io.%u.%u.renc.debounce", debounce, io, pin);
 			config_set_int("io.%u.%u.renc.pintype", pin_type, io, pin);
 
 			if(trigger_remote_index >= 0)
@@ -2043,7 +2003,7 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 			break;
 renc_error:
 			string_clear(parameters->dst);
-			string_append(parameters->dst, "rotary encoder: <pin mode> <debounce ms> [<trigger io> <trigger pin> [<remote index>]], <pin mode>=1a|1b|2a|2b\n");
+			string_append(parameters->dst, "rotary encoder: <pin mode> [<trigger io> <trigger pin> [<remote index>]], <pin mode>=1a|1b|2a|2b\n");
 renc_error1:
 			config_abort_write();
 			return(app_action_error);
@@ -2058,16 +2018,7 @@ renc_error1:
 				return(app_action_error);
 			}
 
-			if((parse_uint(4, parameters->src, &debounce, 0, ' ') != parse_ok))
-			{
-				config_abort_write();
-				iomode_trigger_usage(parameters->dst, "debounce");
-				return(app_action_error);
-			}
-
-			pin_config->speed = debounce;
-
-			if((parse_string(5, parameters->src, parameters->dst, ' ') != parse_ok))
+			if((parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
 				config_abort_write();
 				string_clear(parameters->dst);
@@ -2083,14 +2034,14 @@ renc_error1:
 				return(app_action_error);
 			}
 
-			if((parse_int(6, parameters->src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(5, parameters->src, &trigger_io, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
 				iomode_trigger_usage(parameters->dst, "io");
 				return(app_action_error);
 			}
 
-			if((parse_int(7, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_int(6, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
 			{
 				config_abort_write();
 				iomode_trigger_usage(parameters->dst, "pin");
@@ -2105,7 +2056,7 @@ renc_error1:
 			pin_config->shared.trigger[1].io.pin = -1;
 			pin_config->shared.trigger[1].action = io_trigger_none;
 
-			if((parse_string(8, parameters->src, parameters->dst, ' ') != parse_ok))
+			if((parse_string(7, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
 				string_clear(parameters->dst);
 				goto skip;
@@ -2119,10 +2070,10 @@ renc_error1:
 				goto skip;
 			}
 
-			if((parse_int(9, parameters->src, &trigger_io, 0, ' ') != parse_ok))
+			if((parse_int(8, parameters->src, &trigger_io, 0, ' ') != parse_ok))
 				goto skip;
 
-			if((parse_int(10, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
+			if((parse_int(9, parameters->src, &trigger_pin, 0, ' ') != parse_ok))
 				goto skip;
 
 			pin_config->shared.trigger[1].io.io = trigger_io;
@@ -2135,7 +2086,6 @@ skip:
 			config_delete("io.%u.%u.", true, io, pin);
 			config_set_int("io.%u.%u.mode", mode, io, pin);
 			config_set_int("io.%u.%u.llmode", io_pin_ll_counter, io, pin);
-			config_set_int("io.%u.%u.trigger.debounce", debounce, io, pin);
 
 			config_set_int("io.%u.%u.trigger.0.io", pin_config->shared.trigger[0].io.io, io, pin);
 			config_set_int("io.%u.%u.trigger.0.pin", pin_config->shared.trigger[0].io.pin, io, pin);
@@ -2973,10 +2923,10 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_mode_2 */			"",
 		/* ds_id_disabled */		"",
 		/* ds_id_input */			"state: %s",
-		/* ds_id_counter */			"counter: %d, debounce: %d",
+		/* ds_id_counter */			"counter: %d",
 		/* ds_id_rotary_encoder_1 */"pin ",
-		/* ds_id_rotary_encoder_2 */", counter: %d, debounce: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d",
-		/* ds_id_trigger_1 */		"trigger, counter: %d, debounce: %d\n",
+		/* ds_id_rotary_encoder_2 */", counter: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d",
+		/* ds_id_trigger_1 */		"trigger, counter: %d\n",
 		/* ds_id_trigger_2 */		"             action #%d: io: %d, pin: %d, action: ",
 		/* ds_id_trigger_3 */		"",
 		/* ds_id_output */			"output, state: %s",
@@ -3013,10 +2963,10 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_mode_2 */			"</td>",
 		/* ds_id_disabled */		"<td></td>",
 		/* ds_id_input */			"<td>state: %s</td>",
-		/* ds_id_counter */			"<td><td>counter: %d</td><td>debounce: %d</td>",
+		/* ds_id_counter */			"<td><td>counter: %d</td>",
 		/* ds_id_rotary_encoder_1 */"<td>pin ",
-		/* ds_id_rotary_encoder_2 */", counter: %d, debounce: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d</td>",
-		/* ds_id_trigger_1 */		"<td>counter: %d, debounce: %d, ",
+		/* ds_id_rotary_encoder_2 */", counter: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d</td>",
+		/* ds_id_trigger_1 */		"<td>counter: %d, ",
 		/* ds_id_trigger_2 */		"action: #%d, io: %d, pin: %d, trigger action: ",
 		/* ds_id_trigger_3 */		"</td>",
 		/* ds_id_output */			"<td>output</td><td>state: %s</td>",
@@ -3148,7 +3098,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_counter):
 				{
 					if(error == io_ok)
-						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_counter], value, pin_config->speed);
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_counter], value);
 					else
 						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
@@ -3161,7 +3111,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 					{
 						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_rotary_encoder_1]);
 						io_string_from_renc_pin(dst, pin_config->shared.renc.pin_type);
-						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_rotary_encoder_2], value, pin_config->speed, pin_config->shared.renc.partner,
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_rotary_encoder_2], value, pin_config->shared.renc.partner,
 								pin_config->shared.renc.trigger_pin.io, pin_config->shared.renc.trigger_pin.pin, pin_config->shared.renc.trigger_pin.remote);
 					}
 					else
@@ -3174,7 +3124,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				{
 					if(error == io_ok)
 					{
-						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_1], value, pin_config->speed);
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_1], value);
 						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_trigger_2], 0,
 								pin_config->shared.trigger[0].io.io,
 								pin_config->shared.trigger[0].io.pin);

@@ -882,35 +882,6 @@ attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info,
 	return(value);
 }
 
-iram void io_gpio_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int period)
-{
-	int pin;
-
-	for(pin = 0; pin < io_gpio_pin_size; pin++)
-	{
-		io_config_pin_entry_t *pin_config = &io_config[io][pin];
-
-		if(pin_config->llmode != io_pin_ll_counter)
-			continue;
-
-		gpio_data_pin_t *gpio_pin_data = &gpio_data[pin];
-
-		if((pin_config->mode == io_pin_rotary_encoder) && (gpio_pin_data->counter.timeout > 0))
-			gpio_pin_data->counter.timeout--;
-
-		if(gpio_pin_data->counter.debounce > 0)
-		{
-			if(gpio_pin_data->counter.debounce >= (1000 / period))
-				gpio_pin_data->counter.debounce -= 1000 / period;
-			else
-			{
-				gpio_pin_data->counter.debounce = 0;
-				pin_arm_counter(pin, pin_config->flags & io_flag_invert, true);
-			}
-		}
-	}
-}
-
 io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_info_t *gpio_info;
@@ -950,12 +921,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_read, pin_config->flags & io_flag_pullup ? io_gpio_enable_pullup : io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
 
 			if(pin_config->llmode == io_pin_ll_counter)
-			{
-				gpio_pin_data->counter.counter = 0;
-				gpio_pin_data->counter.debounce = 0;
-
-				pin_arm_counter(pin, pin_config->flags & io_flag_invert, true);
-			}
+				pin_arm_counter(pin, true);
 
 			break;
 		}
@@ -1070,8 +1036,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 		{
 			case(io_pin_ll_counter):
 			{
-				string_format(dst, "current state: %s, debounce delay: %u/%u",
-						onoff(gpio_get(pin)), gpio_pin_data->counter.debounce, gpio_pin_data->counter.timeout);
+				string_format(dst, "current state: %s", onoff(gpio_get(pin)));
 
 				break;
 			}

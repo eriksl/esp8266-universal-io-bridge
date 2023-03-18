@@ -209,12 +209,7 @@ io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	{
 		case(io_pin_ll_counter):
 		{
-			io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
-
-			string_format(dst, ", current state: %s, prev state: %s, debounce delay: %u ms",
-					onoff(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01),
-					onoff(io_aux_data_pin->counter.last_value),
-					io_aux_data_pin->counter.debounce);
+			string_format(dst, ", state: %s", onoff(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01));
 			break;
 		}
 
