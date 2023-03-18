@@ -92,12 +92,12 @@ attr_inline void gpio_reg_write(int reg, uint32_t value)
 
 attr_inline uint32_t gpio_get_all(void)
 {
-	return(gpio_reg_read(GPIO_IN_ADDRESS));
+	return(gpio_reg_read(GPIO_IN_ADDRESS) & 0x0000ffff);
 }
 
-attr_inline int gpio_get(int io)
+attr_inline unsigned int gpio_get(int io)
 {
-	return((gpio_get_all() & (1 << io)) ? 1 : 0);
+	return(!!(gpio_reg_read(GPIO_IN_ADDRESS) & (1 << io)));
 }
 
 // set output low / high
