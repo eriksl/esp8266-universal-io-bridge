@@ -1785,7 +1785,7 @@ iram void io_periodic_fast(unsigned int period)
 	}
 
 	if((sequencer_get_repeats() > 0) && ((time_get_us() / 1000) > sequencer_get_current_end_time()))
-		dispatch_post_task(task_prio_high, task_run_sequencer, 0);
+		dispatch_post_task(task_prio_high, task_run_sequencer, 0, 0, 0);
 }
 
 void io_periodic_slow(unsigned int period)

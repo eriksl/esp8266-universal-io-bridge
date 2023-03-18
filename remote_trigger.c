@@ -86,7 +86,7 @@ bool remote_trigger_add(unsigned int remote_index, unsigned int io, unsigned int
 	trigger.pin = pin;
 	trigger.action = action;
 
-	dispatch_post_task(task_prio_medium, task_remote_trigger, trigger.int_value);
+	dispatch_post_task(task_prio_medium, task_remote_trigger, trigger.int_value, 0, 0);
 
 	return(true);
 }

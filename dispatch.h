@@ -25,7 +25,6 @@ typedef enum
 
 typedef enum
 {
-	task_invalid,
 	task_uart_fetch_fifo,
 	task_uart_fill_fifo,
 	task_uart_bridge,
@@ -41,6 +40,8 @@ typedef enum
 	task_wlan_recovery,
 	task_remote_trigger,
 	task_wlan_reconnect,
+	task_invalid,
+	task_size = task_invalid,
 } task_id_t;
 
 enum
@@ -63,5 +64,5 @@ extern bool uart_bridge_active;
 
 void dispatch_init1(void);
 void dispatch_init2(void);
-bool dispatch_post_task(task_prio_t, task_id_t, unsigned int argument);
+bool dispatch_post_task(task_prio_t, task_id_t, uint32_t parameter_32, uint16_t parameter_16, uint8_t parameter_8);
 #endif

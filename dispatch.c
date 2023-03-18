@@ -98,7 +98,7 @@ static void background_task_bridge_uart(void)
 
 			if(byte == '\n')
 			{
-				dispatch_post_task(task_prio_high, task_received_command, task_received_command_uart);
+				dispatch_post_task(task_prio_high, task_received_command, task_received_command_uart, 0, 0);
 				uart_clear_receive_queue(0);
 			}
 		}
@@ -124,8 +124,18 @@ static void background_task_bridge_uart(void)
 	}
 }
 
-static void generic_task_handler(unsigned int task_queue_index, task_id_t command, unsigned int argument)
+static void generic_task_handler(unsigned int task_queue_index, const struct ETSEventTag *event)
 {
+	task_id_t command;
+	uint32_t parameter_1;
+	uint16_t parameter_2;
+	uint8_t parameter_3;
+
+	parameter_1 = event->par;
+	parameter_2 = (event->sig & 0xffff0000) >> 16;
+	parameter_3 = (event->sig & 0x0000ff00) >> 8;
+	command = (task_id_t)(event->sig & 0x000000ff) >> 0;
+
 	stat_task_executed[task_queue_index]++;
 
 	if(stat_task_current_queue[task_queue_index] > 0)
@@ -135,20 +145,15 @@ static void generic_task_handler(unsigned int task_queue_index, task_id_t comman
 
 	switch(command)
 	{
-		case(task_invalid):
-		{
-			break;
-		}
-
 		case(task_uart_fetch_fifo):
 		{
-			uart_task_handler_fetch_fifo(argument);
+			uart_task_handler_fetch_fifo(parameter_1);
 			break;
 		}
 
 		case(task_uart_fill_fifo):
 		{
-			uart_task_handler_fill_fifo(argument);
+			uart_task_handler_fill_fifo(parameter_1);
 			break;
 		}
 
@@ -188,7 +193,7 @@ static void generic_task_handler(unsigned int task_queue_index, task_id_t comman
 			bool transaction_id_provided = false;
 			uint32_t transaction_id = 0;
 
-			if(argument == task_received_command_uart)
+			if(parameter_1 == task_received_command_uart)
 			{
 				string_init(static, uart_prompt, "\r\n>> ");
 
@@ -215,7 +220,7 @@ static void generic_task_handler(unsigned int task_queue_index, task_id_t comman
 
 			string_clear(&command_socket_send_buffer);
 
-			if(argument == task_received_command_packet)
+			if(parameter_1 == task_received_command_packet)
 			{
 				packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_receive_buffer);
 
@@ -357,11 +362,11 @@ static void generic_task_handler(unsigned int task_queue_index, task_id_t comman
 				string_append(parameters.dst, "> reset\n");
 			}
 
-			if(argument == task_received_command_uart) // commands from uart enabled
+			if(parameter_1 == task_received_command_uart) // commands from uart enabled
 				uart_send_string(0, parameters.dst);
 			else
 			{
-				if(argument == task_received_command_packet)
+				if(parameter_1 == task_received_command_packet)
 				{
 					packet_header_t *packet_header = (packet_header_t *)string_buffer_nonconst(&command_socket_send_buffer);
 					unsigned int packet_length = sizeof(packet_header_t) + string_length(parameters.dst);
@@ -437,11 +442,11 @@ static void generic_task_handler(unsigned int task_queue_index, task_id_t comman
 
 			if(action == app_action_reset)
 				if(!lwip_if_reboot(&command_socket))
-					dispatch_post_task(task_prio_high, task_reset, 0);
+					dispatch_post_task(task_prio_high, task_reset, 0, 0, 0);
 
 			break;
 drop:
-			if(argument != task_received_command_uart)
+			if(parameter_1 != task_received_command_uart)
 			{
 				string_clear(&command_socket_receive_buffer);
 				lwip_if_receive_buffer_unlock(&command_socket, lwip_if_proto_all);
@@ -496,7 +501,7 @@ drop:
 
 		case(task_remote_trigger):
 		{
-			remote_trigger_send(argument);
+			remote_trigger_send(parameter_1);
 			break;
 		}
 
@@ -506,25 +511,31 @@ drop:
 				log("[dispatch] wlan start failed\n");
 			break;
 		}
+
+		default:
+		{
+			log("[dispatch] invalid commmand in task\n");
+			break;
+		}
 	}
 }
 
 iram static void user_task_prio_0_handler(struct ETSEventTag *event)
 {
-	generic_task_handler(0, (task_id_t)event->sig, event->par);
+	generic_task_handler(0, event);
 }
 
 iram static void user_task_prio_1_handler(struct ETSEventTag *event)
 {
-	generic_task_handler(1, (task_id_t)event->sig, event->par);
+	generic_task_handler(1, event);
 }
 
 iram static void user_task_prio_2_handler(struct ETSEventTag *event)
 {
-	generic_task_handler(2, (task_id_t)event->sig, event->par);
+	generic_task_handler(2, event);
 }
 
-iram bool dispatch_post_task(task_prio_t prio, task_id_t command, unsigned int argument)
+iram bool dispatch_post_task(task_prio_t prio, task_id_t command, uint32_t parameter_1, uint16_t parameter_2, uint8_t parameter_3)
 {
 	int system_prio;
 
@@ -547,12 +558,18 @@ iram bool dispatch_post_task(task_prio_t prio, task_id_t command, unsigned int a
 		}
 		default:
 		{
-			log("dispatch_post_task: invalid prio: %u\n", (unsigned int)prio);
+			log("[dispatch] post: invalid prio: %u\n", (unsigned int)prio);
 			return(false);
 		}
 	}
 
-	if(system_os_post(system_prio, command, argument))
+	if((command < 0) || (command >= task_size))
+	{
+		log("[dispatch] post: invalid command\n");
+		return(false);
+	}
+
+	if(system_os_post(system_prio, (parameter_2 << 16) | (parameter_3 << 8) | command, parameter_1))
 	{
 		stat_task_posted[prio]++;
 		stat_task_current_queue[prio]++;
@@ -611,12 +628,12 @@ static void slow_timer_callback(void *arg)
 	}
 
 	if(uart_bridge_active || config_flags_match(flag_cmd_from_uart))
-		dispatch_post_task(task_prio_medium, task_uart_bridge, 0);
+		dispatch_post_task(task_prio_medium, task_uart_bridge, 0, 0, 0);
 
 	if(display_detected())
-		dispatch_post_task(task_prio_medium, task_display_update, 0);
+		dispatch_post_task(task_prio_medium, task_display_update, 0, 0, 0);
 
-	dispatch_post_task(task_prio_medium, task_periodic_i2c_sensors, 0);
+	dispatch_post_task(task_prio_medium, task_periodic_i2c_sensors, 0, 0, 0);
 
 	io_periodic_slow(10);
 
@@ -664,7 +681,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text, 0, 0);
 				}
 				else // ... no eol -> unlock and continue receiving
 					lwip_if_receive_buffer_unlock(socket, lwip_if_proto_tcp);
@@ -677,7 +694,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet, 0, 0);
 				}
 				else
 				{
@@ -714,7 +731,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.expected = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet, 0, 0);
 				}
 				else
 				{
@@ -739,7 +756,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 					command_input_state.timeout = 0;
 					command_input_state.parts = 0;
 					lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
+					dispatch_post_task(task_prio_high, task_received_command, task_received_command_text, 0, 0);
 				}
 				else // ... no eol -> unlock and continue receiving
 				{
@@ -797,7 +814,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 				command_input_state.expected = 0;
 				command_input_state.parts = 0;
 				lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-				dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet);
+				dispatch_post_task(task_prio_high, task_received_command, task_received_command_packet, 0, 0);
 			}
 			else
 			{
@@ -819,7 +836,7 @@ static void socket_command_callback_data_received(lwip_if_socket_t *socket, cons
 			command_input_state.timeout = 0;
 			command_input_state.parts = 0;
 			lwip_if_receive_buffer_lock(socket, lwip_if_proto_all);
-			dispatch_post_task(task_prio_high, task_received_command, task_received_command_text);
+			dispatch_post_task(task_prio_high, task_received_command, task_received_command_text, 0, 0);
 		}
 
 		return;
@@ -953,5 +970,5 @@ void dispatch_init2(void)
 		os_timer_arm(&fast_timer, 10, 0);
 	}
 
-	dispatch_post_task(task_prio_medium, task_init_displays, 0);
+	dispatch_post_task(task_prio_medium, task_init_displays, 0, 0, 0);
 }
