@@ -1661,7 +1661,7 @@ void io_init(void)
 	stat_init_io_time_us = time_get_us() - start;
 }
 
-iram void io_periodic_fast(unsigned int period)
+iram void io_periodic_fast(unsigned int rate_ms)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1788,7 +1788,7 @@ iram void io_periodic_fast(unsigned int period)
 		dispatch_post_task(task_prio_high, task_run_sequencer, 0, 0, 0);
 }
 
-void io_periodic_slow(unsigned int period)
+void io_periodic_slow(unsigned int rate_ms)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
@@ -1807,7 +1807,7 @@ void io_periodic_slow(unsigned int period)
 			info->post_init_fn(info);
 
 		if(info->periodic_slow_fn)
-			info->periodic_slow_fn(io, info, data, period);
+			info->periodic_slow_fn(io, info, data, rate_ms);
 	}
 
 	post_init_run = true;

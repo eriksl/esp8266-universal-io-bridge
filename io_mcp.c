@@ -170,7 +170,7 @@ attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int period)
+void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];

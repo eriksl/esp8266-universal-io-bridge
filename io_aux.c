@@ -64,7 +64,7 @@ attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int period)
+iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	unsigned int pin;
 

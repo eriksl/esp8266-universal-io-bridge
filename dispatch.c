@@ -32,6 +32,8 @@ assert_size(telnet_strip_state_t, 1);
 
 enum
 {
+	fast_timer_rate_ms = 1,
+	slow_timer_rate_ms = 100,
 	task_queue_length = 10,
 	command_input_state_timeout = 10,
 };
@@ -580,28 +582,24 @@ iram bool dispatch_post_task(task_prio_t prio, task_id_t command, uint32_t param
 	return(true);
 }
 
-iram static void fast_timer_run(unsigned int period)
+iram static void fast_timer_run(unsigned int rate_ms)
 {
 	stat_fast_timer++;
-	io_periodic_fast(period);
+	io_periodic_fast(rate_ms);
 }
 
 iram static void fast_timer_callback(void *arg)
 {
-	// timer runs every 10 ms = 100 Hz
-
-	fast_timer_run(100);
-	os_timer_arm(&fast_timer, 10, 0);
+	fast_timer_run(fast_timer_rate_ms);
+	os_timer_arm(&fast_timer, fast_timer_rate_ms, 0);
 }
 
 static void slow_timer_callback(void *arg)
 {
-	// run background task every ~100 ms = ~10 Hz
-
 	stat_slow_timer++;
 
 	if(config_flags_match(flag_wlan_power_save))
-		fast_timer_run(10);
+		fast_timer_run(slow_timer_rate_ms);
 
 	time_periodic();
 
@@ -629,15 +627,15 @@ static void slow_timer_callback(void *arg)
 
 	dispatch_post_task(task_prio_medium, task_periodic_i2c_sensors, 0, 0, 0);
 
-	io_periodic_slow(10);
+	io_periodic_slow(slow_timer_rate_ms);
 
 	if(stack_stack_painted <= 0)
 		stack_paint_stack();
 
-	if((stat_slow_timer % 10) == 0)
+	if((stat_slow_timer % (1000 / slow_timer_rate_ms)) == 0)
 		wlan_periodic();
 
-	os_timer_arm(&slow_timer, 100, 0);
+	os_timer_arm(&slow_timer, slow_timer_rate_ms, 0);
 }
 
 static void socket_command_callback_data_received(lwip_if_socket_t *socket, const lwip_if_callback_context_t *context)
@@ -956,12 +954,12 @@ void dispatch_init2(void)
 	font_init();
 
 	os_timer_setfn(&slow_timer, slow_timer_callback, (void *)0);
-	os_timer_arm(&slow_timer, 100, 0);
+	os_timer_arm(&slow_timer, slow_timer_rate_ms, 0);
 
 	if(!config_flags_match(flag_wlan_power_save))
 	{
 		os_timer_setfn(&fast_timer, fast_timer_callback, (void *)0);
-		os_timer_arm(&fast_timer, 10, 0);
+		os_timer_arm(&fast_timer, fast_timer_rate_ms, 0);
 	}
 
 	dispatch_post_task(task_prio_medium, task_init_displays, 0, 0, 0);
