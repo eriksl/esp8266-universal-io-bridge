@@ -60,6 +60,16 @@ typedef struct
 	int dst_data_oob_offset;
 } app_params_t;
 
+typedef struct attr_packed
+{
+	int16_t	io;
+	int16_t	pin;
+} trigger_t;
+
+assert_size(trigger_t, 4);
+
+extern trigger_t trigger_alert;
+
 extern bool uart_bridge_active;
 
 void dispatch_init1(void);

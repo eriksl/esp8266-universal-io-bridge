@@ -64,13 +64,7 @@ bool uart_bridge_active = false;
 static os_timer_t fast_timer;
 static os_timer_t slow_timer;
 
-typedef struct
-{
-	int	io;
-	int	pin;
-} trigger_t;
-
-static trigger_t trigger_alert = { -1, -1 };
+trigger_t trigger_alert = { -1, -1 };
 static trigger_t assoc_alert = { -1, -1 };
 
 unsigned int broadcast_groups;
