@@ -20,6 +20,7 @@ unsigned int stat_timer_interrupts;
 unsigned int stat_pwm_timer_interrupts;
 unsigned int stat_pwm_timer_interrupts_while_nmi_masked;
 unsigned int stat_pc_counts;
+unsigned int stat_renc_invalid_state;
 unsigned int stat_uart_receive_buffer_overflow;
 unsigned int stat_uart_send_buffer_overflow;
 unsigned int stat_update_uart;
@@ -367,16 +368,18 @@ void stats_counters(string_t *dst)
 
 	string_format(dst,
 			">\n> MISCELLANUOUS\n"
-			">  pin change counts:   %u\n"
-			">  display updated:     %u\n"
-			">  picture load worker: %u\n"
-			">  primary PWM cycles:  %u\n"
-			">  uart data processed: %u\n"
-			">  spi wait cycles:     %u\n"
-			">  spi max chunk size:  %u\n"
-			">  write_8 used:        %u\n"
-			">  write_16 used:       %u\n",
+			">  gpio pin change counts: %u\n"
+			">  invalid encoder states: %u\n"
+			">  display updated:        %u\n"
+			">  picture load worker:    %u\n"
+			">  primary PWM cycles:     %u\n"
+			">  uart data processed:    %u\n"
+			">  spi wait cycles:        %u\n"
+			">  spi max chunk size:     %u\n"
+			">  write_8 used:           %u\n"
+			">  write_16 used:          %u\n",
 				stat_pc_counts,
+				stat_renc_invalid_state,
 				stat_update_display,
 				stat_display_picture_load_worker_called,
 				stat_pwm_cycles,

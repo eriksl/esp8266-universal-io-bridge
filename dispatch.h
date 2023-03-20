@@ -28,7 +28,6 @@ typedef enum
 	task_uart_fetch_fifo,
 	task_uart_fill_fifo,
 	task_uart_bridge,
-	task_alert_pin_changed,
 	task_alert_association,
 	task_alert_disassociation,
 	task_reset,
@@ -40,6 +39,10 @@ typedef enum
 	task_wlan_recovery,
 	task_remote_trigger,
 	task_wlan_reconnect,
+	task_pins_changed_gpio,
+	task_pins_changed_aux,
+	task_pins_changed_mcp,
+	task_pins_changed_pcf,
 	task_invalid,
 	task_size = task_invalid,
 } task_id_t;

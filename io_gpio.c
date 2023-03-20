@@ -4,6 +4,7 @@
 #include "util.h"
 #include "dispatch.h"
 #include "eagle.h"
+#include "sys_time.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,7 +14,6 @@ enum
 {
 	io_gpio_pin_size = 16,
 	io_gpio_pwm_max_channels = 4,
-	io_gpio_rotary_encoder_timeout = 10,
 };
 
 typedef enum
@@ -94,19 +94,12 @@ typedef union
 {
 	struct
 	{
-		unsigned int counter;
-		unsigned int debounce:16;
-		unsigned int timeout:16;
-	} counter;
-
-	struct
-	{
-		int pwm_next;
-		unsigned int pwm_duty;
+		int pwm_next:8;
+		unsigned int pwm_duty:24;
 	} pwm;
 } gpio_data_pin_t;
 
-assert_size(gpio_data_pin_t, 8);
+assert_size(gpio_data_pin_t, 4);
 
 static gpio_data_pin_t gpio_data[io_gpio_pin_size];
 
@@ -616,7 +609,7 @@ iram static void pwm_go(void)
 		if(pin1_data->pwm.pwm_duty == 0)
 			phase_data->static_pins_off_mask |= 1 << pin1;
 		else
-			if((pin1_data->pwm.pwm_duty + 1) >= pwm1_period())
+			if(((unsigned int)pin1_data->pwm.pwm_duty + 1) >= pwm1_period())
 				phase_data->static_pins_on_mask |= 1 << pin1;
 			else
 				if(pwm_head < 0)
@@ -731,81 +724,40 @@ iram static void pwm_go(void)
 
 // other
 
-attr_inline void pin_arm_counter(int pin, bool inverted, bool enable)
+attr_inline void pin_arm_counter(int pin, bool enable)
 {
-	if(inverted)
-		gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_POSEDGE : GPIO_PIN_INTR_DISABLE);
-	else
-		gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_NEGEDGE : GPIO_PIN_INTR_DISABLE);
+	gpio_pin_intr_state_set(pin, enable ? GPIO_PIN_INTR_ANYEDGE : GPIO_PIN_INTR_DISABLE);
 }
 
 iram static void pc_int_isr(void *arg)
 {
-	io_config_pin_entry_t *pin_config;
-	gpio_data_pin_t *gpio_pin_data;
-	int pin;
-	uint32_t pin_status;
+	uint32_t pin_value_mask;
+	uint32_t pin_interrupt_status_mask;
 
-	ets_isr_mask(1 << ETS_GPIO_INUM);
-	pin_status = gpio_reg_read(GPIO_STATUS_ADDRESS);
-	gpio_reg_write(GPIO_STATUS_W1TC_ADDRESS, pin_status);
-
+	pin_value_mask = gpio_get_all();
 	stat_pc_counts++;
+	pin_interrupt_status_mask = gpio_reg_read(GPIO_STATUS_ADDRESS);
+	gpio_reg_write(GPIO_STATUS_W1TC_ADDRESS, pin_interrupt_status_mask);
+	dispatch_post_task(task_prio_medium, task_pins_changed_gpio, pin_interrupt_status_mask, pin_value_mask & 0x0000ffff, 0);
+}
+
+void io_gpio_pins_changed(uint32_t pin_interrupt_status_mask, uint16_t pin_value_mask)
+{
+	io_config_pin_entry_t *pin_config;
+	unsigned int pin;
 
 	for(pin = 0; pin < io_gpio_pin_size; pin++)
 	{
-		if(!(pin_status & (1 << pin)))
+		if(!(pin_interrupt_status_mask & (1 << pin)))
 			continue;
 
-		pin_config = &io_config[0][pin];
+		pin_config = &io_config[io_id_gpio][pin];
 
 		if(pin_config->llmode != io_pin_ll_counter)
 			continue;
 
-		gpio_pin_data = &gpio_data[pin];
-
-		if(pin_config->speed != 0)
-		{
-			pin_arm_counter(pin, false, false);
-			gpio_pin_data->counter.debounce = pin_config->speed;
-		}
-
-		dispatch_post_task(1, task_alert_pin_changed, 0);
-
-		if(pin_config->mode != io_pin_rotary_encoder)
-		{
-			gpio_pin_data->counter.counter++;
-			continue;
-		}
-
-		unsigned int partner_pin = pin_config->shared.renc.partner;
-
-		if(partner_pin >= io_gpio_pin_size)
-			continue;
-
-		gpio_data_pin_t *gpio_partner_pin_data = &gpio_data[partner_pin];
-		gpio_pin_data->counter.timeout = io_gpio_rotary_encoder_timeout;
-
-		if(gpio_partner_pin_data->counter.timeout == 0)
-			continue;
-
-		if((pin_config->shared.renc.pin_type == io_renc_1a) || (pin_config->shared.renc.pin_type == io_renc_2a))
-		{
-			gpio_pin_data->counter.counter++;
-			gpio_partner_pin_data->counter.counter++;
-		}
-		else
-		{
-			gpio_pin_data->counter.counter--;
-			gpio_partner_pin_data->counter.counter--;
-		}
-
-		gpio_pin_data->counter.timeout = 0;
-		gpio_partner_pin_data->counter.timeout = 0;
+		io_pin_changed(io_id_gpio, pin, pin_value_mask);
 	}
-
-	ets_isr_unmask(1 << ETS_GPIO_INUM);
-	return;
 }
 
 io_error_t io_gpio_init(const struct io_info_entry_T *info)
@@ -910,7 +862,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 		return(io_error);
 	}
 
-	pin_arm_counter(pin, false, false);
+	pin_arm_counter(pin, false);
 	gpio_pin_data = &gpio_data[pin];
 
 	switch(pin_config->llmode)
@@ -1199,13 +1151,6 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 			break;
 		}
 
-		case(io_pin_ll_counter):
-		{
-			*value = gpio_pin_data->counter.counter;
-
-			break;
-		}
-
 		case(io_pin_ll_output_pwm1):
 		{
 			*value = gpio_pin_data->pwm.pwm_duty;
@@ -1283,12 +1228,6 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 
 	switch(pin_config->llmode)
 	{
-		case(io_pin_ll_counter):
-		{
-			gpio_pin_data->counter.counter = value;
-			break;
-		}
-
 		case(io_pin_ll_output_digital):
 		{
 			if(pin_config->flags & io_flag_invert)

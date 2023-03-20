@@ -432,6 +432,7 @@ attr_inline attr_nonnull void string_copy_string(string_t *dst, const string_t *
 	string_append_string(dst, src);
 }
 
+attr_nonnull void string_word_to_bin(string_t *dst, unsigned int word, unsigned int bits);
 attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t *out, char delim);
 attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter);
 attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter);

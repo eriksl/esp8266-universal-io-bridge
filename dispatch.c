@@ -16,6 +16,9 @@
 #include "ota.h"
 #include "font.h"
 #include "wlan.h"
+#include "io_aux.h"
+#include "io_mcp.h"
+#include "io_pcf.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -471,14 +474,6 @@ drop:
 			break;
 		}
 
-		case(task_alert_pin_changed):
-		{
-			if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
-				io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
-
-			break;
-		}
-
 		case(task_alert_association):
 		{
 			if((assoc_alert.io >= 0) && (assoc_alert.pin >= 0))
@@ -505,6 +500,30 @@ drop:
 		{
 			if(!wlan_start())
 				log("[dispatch] wlan start failed\n");
+			break;
+		}
+
+		case(task_pins_changed_gpio):
+		{
+			io_gpio_pins_changed(parameter_1, parameter_2);
+			break;
+		}
+
+		case(task_pins_changed_aux):
+		{
+			io_aux_pins_changed(parameter_1, parameter_2);
+			break;
+		}
+
+		case(task_pins_changed_mcp):
+		{
+			io_mcp_pins_changed(parameter_1, parameter_2, parameter_3);
+			break;
+		}
+
+		case(task_pins_changed_pcf):
+		{
+			io_pcf_pins_changed(parameter_1, parameter_2, parameter_3);
 			break;
 		}
 

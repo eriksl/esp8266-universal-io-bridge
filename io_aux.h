@@ -8,7 +8,7 @@
 
 typedef enum
 {
-	io_aux_pin_rtc = 0,
+	io_aux_pin_gpio = 0,
 	io_aux_pin_adc,
 	io_aux_pin_error,
 	io_aux_pin_size = io_aux_pin_error
@@ -17,6 +17,7 @@ typedef enum
 assert_size(io_aux_pin_t, 4);
 
 void			io_aux_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, unsigned int rate_ms);
+void			io_aux_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask);
 io_error_t		io_aux_init(const struct io_info_entry_T *);
 io_error_t		io_aux_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 unsigned int	io_aux_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin);

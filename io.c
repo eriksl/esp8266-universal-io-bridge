@@ -64,7 +64,7 @@ roflash static const io_info_t io_info =
 		(void *)0, // postinit
 		io_gpio_pin_max_value,
 		(void *)0, // periodic slow
-		io_gpio_periodic_fast,
+		(void *)0, // periodic fast
 		io_gpio_init_pin_mode,
 		io_gpio_get_pin_info,
 		io_gpio_read_pin,
@@ -100,13 +100,14 @@ roflash static const io_info_t io_info =
 		caps_input_digital |
 			caps_counter |
 			caps_output_digital |
-			caps_pullup,
+			caps_pullup |
+			caps_rotary_encoder,
 		"MCP23017 I2C I/O expander #1",
 		io_mcp_init,
 		(void *)0, // postinit
 		io_mcp_pin_max_value,
-		io_mcp_periodic_slow,
-		(void *)0, // periodic fast
+		(void *)0, // periodic slow
+		io_mcp_periodic_fast,
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -121,13 +122,14 @@ roflash static const io_info_t io_info =
 		caps_input_digital |
 			caps_counter |
 			caps_output_digital |
-			caps_pullup,
+			caps_pullup |
+			caps_rotary_encoder,
 		"MCP23017 I2C I/O expander #2",
 		io_mcp_init,
 		(void *)0, // postinit
 		io_mcp_pin_max_value,
-		io_mcp_periodic_slow,
-		(void *)0, // periodic fast
+		(void *)0, // periodic slow
+		io_mcp_periodic_fast,
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -142,13 +144,14 @@ roflash static const io_info_t io_info =
 		caps_input_digital |
 			caps_counter |
 			caps_output_digital |
-			caps_pullup,
+			caps_pullup |
+			caps_rotary_encoder,
 		"MCP23017 I2C I/O expander #3",
 		io_mcp_init,
 		(void *)0, // postinit
 		io_mcp_pin_max_value,
-		io_mcp_periodic_slow,
-		(void *)0, // periodic fast
+		(void *)0, // periodic slow,
+		io_mcp_periodic_fast,
 		io_mcp_init_pin_mode,
 		io_mcp_get_pin_info,
 		io_mcp_read_pin,
@@ -161,18 +164,20 @@ roflash static const io_info_t io_info =
 		io_pcf_instance_3a,
 		8,
 		caps_input_digital |
-			caps_output_digital,
+			caps_counter |
+			caps_output_digital |
+			caps_rotary_encoder,
 		"PCF8574A I2C I/O expander",
 		io_pcf_init,
 		(void *)0, // postinit
 		io_pcf_pin_max_value,
 		(void *)0, // periodic slow
-		(void *)0, // periodic fast
+		io_pcf_periodic_fast,
 		io_pcf_init_pin_mode,
 		(void *)0, // get pin info
 		io_pcf_read_pin,
 		io_pcf_write_pin,
-		io_mcp_set_mask,
+		io_pcf_set_mask,
 	},
 	{
 		io_id_ledpixel, /* = 6 */
@@ -606,10 +611,9 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 			return(io_error);
 		}
 
-		case(io_pin_ledpixel):
+		case(io_pin_counter):
 		{
-			*value = 0;
-
+			*value = pin_data->value;
 			break;
 		}
 
@@ -648,6 +652,12 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 				string_append(errormsg, "cannot write to this pin");
 
 			return(io_error);
+		}
+
+		case(io_pin_counter):
+		{
+			pin_data->value = value;
+			break;
 		}
 
 		case(io_pin_ledpixel):
@@ -1264,7 +1274,9 @@ void io_init(void)
 			pin_data = &data->pin[pin];
 			pin_data->direction = io_dir_none;
 			pin_data->speed = 0;
+			pin_data->value = 0;
 			pin_data->saved_value = 0;
+			pin_data->previous = 0;
 
 			pin_config = &io_config[io][pin];
 
@@ -1661,15 +1673,161 @@ void io_init(void)
 	stat_init_io_time_us = time_get_us() - start;
 }
 
+void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
+{
+	const io_config_pin_entry_t *pin_config;
+	io_data_pin_entry_t *pin_data;
+	unsigned int trigger;
+	int remote_trigger;
+	unsigned int partner_pin;
+	unsigned int primary_pin, secondary_pin;
+	unsigned int state;
+	io_trigger_t trigger_action;
+
+	if(io >= io_id_size)
+	{
+		log("[io] pin_change: io invalid\n");
+		return;
+	}
+
+	if(pin >= io_pin_size)
+	{
+		log("[io] pin_change: pin invalid\n");
+		return;
+	}
+
+	if(!io_data[io].detected)
+	{
+		log("[io] pin_change: io inactive\n");
+		return;
+	}
+
+	pin_config = &io_config[io][pin];
+	pin_data = &io_data[io].pin[pin];
+
+	switch(pin_config->mode)
+	{
+		case(io_pin_counter):
+		{
+			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+				pin_data->value++;
+
+			break;
+		}
+
+		case(io_pin_trigger): // FIXME: add remote trigger to normal triggers
+		{
+			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+				for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
+					if(pin_config->shared.trigger[trigger].action != io_trigger_none)
+						io_trigger_pin((string_t *)0,
+								pin_config->shared.trigger[trigger].io.io,
+								pin_config->shared.trigger[trigger].io.pin,
+								pin_config->shared.trigger[trigger].action);
+
+			break;
+		}
+
+		case(io_pin_rotary_encoder):
+		{
+			partner_pin = pin_config->shared.renc.partner;
+
+			if(partner_pin >= io_pin_size)
+			{
+				log("[io] pin_change: invalid partner pin\n");
+				break;
+			}
+
+			if(pin > partner_pin)
+			{
+				primary_pin = partner_pin;
+				secondary_pin = pin;
+			}
+			else
+			{
+				primary_pin = pin;
+				secondary_pin = partner_pin;
+			}
+
+			state =
+				(io_data[io].pin[primary_pin].previous << 3) |
+				(io_data[io].pin[secondary_pin].previous << 2) |
+				((!!(pin_value_mask & (1 << primary_pin))) << 1) |
+				((!!(pin_value_mask & (1 << secondary_pin))) << 0);
+
+			trigger_action = io_trigger_none;
+
+			switch(state)
+			{
+				case(0b1101):
+				case(0b0100):
+				case(0b0010):
+				case(0b1011):
+				{
+					trigger_action = io_trigger_up;
+					break;
+				}
+
+				case(0b1000):
+				case(0b0001):
+				case(0b0111):
+				case(0b1110):
+				{
+					trigger_action = io_trigger_down;
+					break;
+				}
+
+				default:
+				{
+#if 0
+					string_new(, state_string, 32);
+					string_clear(&state_string);
+					string_word_to_bin(&state_string, state, 4);
+					log("invalid state: %s\n", string_to_cstr(&state_string));
+#endif
+					stat_renc_invalid_state++;
+					break;
+				}
+			}
+
+			if(trigger_action != io_trigger_none)
+			{
+				if((remote_trigger = pin_config->shared.renc.trigger_pin.remote) >= 0)
+					remote_trigger_add((unsigned int)remote_trigger,
+							pin_config->shared.renc.trigger_pin.io,
+							pin_config->shared.renc.trigger_pin.pin,
+							trigger_action);
+				else
+					io_trigger_pin((string_t *)0,
+							pin_config->shared.renc.trigger_pin.io,
+							pin_config->shared.renc.trigger_pin.pin,
+							trigger_action);
+			}
+
+			break;
+		}
+
+		default:
+		{
+			log("[io] pin change on invalid pin type: %u\n", pin);
+			log("   io: %u pin: %u value mask: %x\n", io, pin, pin_value_mask); // FIXME
+			break;
+		}
+	}
+
+	if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
+		io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
+
+	pin_data->previous = !!(pin_value_mask & (1 << pin));
+}
+
 iram void io_periodic_fast(unsigned int rate_ms)
 {
 	const io_info_entry_t *info;
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	unsigned int io, pin, trigger;
-	unsigned int value;
-	int remote_trigger;
+	unsigned int io, pin;
 	io_trigger_t trigger_action;
 
 	for(io = 0; io < io_id_size; io++)
@@ -1681,105 +1839,78 @@ iram void io_periodic_fast(unsigned int rate_ms)
 			continue;
 
 		if(info->periodic_fast_fn)
-			info->periodic_fast_fn(io, info, data, period);
+			info->periodic_fast_fn(io, info, data, rate_ms);
 
 		for(pin = 0; pin < info->pins; pin++)
 		{
 			pin_config = &io_config[io][pin];
 			pin_data = &data->pin[pin];
 
-			if((pin_config->mode == io_pin_timer) && (pin_data->direction != io_dir_none))
+			switch(pin_config->mode)
 			{
-				if(pin_data->speed > (1000 / period))
-					pin_data->speed -= 1000 / period;
-				else
+				case(io_pin_timer):
 				{
-					pin_data->speed = 0;
-
-					switch(pin_data->direction)
+					if(pin_data->direction != io_dir_none)
 					{
-						case(io_dir_up):
+						if(pin_data->speed > rate_ms)
+							pin_data->speed -= rate_ms;
+						else
 						{
-							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
-							pin_data->direction = io_dir_down;
-							break;
-						}
+							pin_data->speed = 0;
 
-						case(io_dir_down):
-						{
-							info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
-							pin_data->direction = io_dir_up;
-							break;
-						}
+							switch(pin_data->direction)
+							{
+								case(io_dir_up):
+								{
+									info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 1);
+									pin_data->direction = io_dir_down;
+									break;
+								}
 
-						default:
-						{
+								case(io_dir_down):
+								{
+									info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
+									pin_data->direction = io_dir_up;
+									break;
+								}
+
+								case(io_dir_none):
+								{
+									break;
+								}
+							}
+
+							if(pin_config->flags & io_flag_repeat)
+								pin_data->speed = pin_config->speed;
+							else
+							{
+								pin_data->speed = 0;
+								pin_data->direction = io_dir_none;
+							}
 						}
 					}
 
-					if(pin_config->flags & io_flag_repeat)
-						pin_data->speed = pin_config->speed;
-					else
-					{
-						pin_data->speed = 0;
-						pin_data->direction = io_dir_none;
-					}
+					break;
 				}
-			}
 
-			if((pin_config->mode == io_pin_rotary_encoder) &&
-					((pin_config->shared.renc.pin_type == io_renc_1b) || (pin_config->shared.renc.pin_type == io_renc_2b)) &&
-					(info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) &&
-					(value != 0))
-			{
-				if(value > 0x7fffffff)
+				case(io_pin_output_pwm1):
+				case(io_pin_output_pwm2):
 				{
-					value = 0xffffffff - value + 1;
-					trigger_action = io_trigger_down;
+					if((pin_config->shared.output_pwm.upper_bound > pin_config->shared.output_pwm.lower_bound) &&
+							(pin_config->speed > 0) &&
+							(pin_data->direction != io_dir_none))
+					{
+						trigger_action = (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down;
+						io_trigger_pin((string_t *)0, io, pin, trigger_action);
+					}
+
+					break;
 				}
-				else
-					if(value > 0)
-						trigger_action = io_trigger_up;
-					else
-						trigger_action = io_trigger_none;
 
-				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
-				io_write_pin((string_t *)0, io, pin_config->shared.renc.partner, 0);
-
-				remote_trigger = pin_config->shared.renc.trigger_pin.remote;
-
-				for(; value > 0; value--)
-					if(remote_trigger >= 0)
-						remote_trigger_add((unsigned int)remote_trigger,
-								pin_config->shared.renc.trigger_pin.io,
-								pin_config->shared.renc.trigger_pin.pin,
-								trigger_action);
-					else
-						io_trigger_pin((string_t *)0,
-								pin_config->shared.renc.trigger_pin.io,
-								pin_config->shared.renc.trigger_pin.pin,
-								trigger_action);
-			}
-
-			if((pin_config->mode == io_pin_trigger) && (info->read_pin_fn((string_t *)0, info, pin_data, pin_config, pin, &value) == io_ok) && (value != 0))
-			{
-				info->write_pin_fn((string_t *)0, info, pin_data, pin_config, pin, 0);
-
-				for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
-					if(pin_config->shared.trigger[trigger].action != io_trigger_none)
-						io_trigger_pin((string_t *)0,
-								pin_config->shared.trigger[trigger].io.io,
-								pin_config->shared.trigger[trigger].io.pin,
-								pin_config->shared.trigger[trigger].action);
-			}
-
-			if(((pin_config->mode == io_pin_output_pwm1) || (pin_config->mode == io_pin_output_pwm2)) &&
-					(pin_config->shared.output_pwm.upper_bound > pin_config->shared.output_pwm.lower_bound) &&
-					(pin_config->speed > 0) &&
-					(pin_data->direction != io_dir_none))
-			{
-				trigger_action = (pin_data->direction == io_dir_up) ? io_trigger_up : io_trigger_down;
-				io_trigger_pin((string_t *)0, io, pin, trigger_action);
+				default:
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -1797,11 +1928,12 @@ void io_periodic_slow(unsigned int rate_ms)
 
 	for(io = 0; io < io_id_size; io++)
 	{
-		info = &io_info[io];
 		data = &io_data[io];
 
 		if(!data->detected)
 			continue;
+
+		info = &io_info[io];
 
 		if(!post_init_run && info->post_init_fn)
 			info->post_init_fn(info);
@@ -3054,14 +3186,12 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			{
 				case(io_pin_input_digital):
 				case(io_pin_counter):
-				case(io_pin_rotary_encoder):
 				case(io_pin_output_digital):
 				case(io_pin_timer):
 				case(io_pin_input_analog):
 				case(io_pin_output_pwm1):
 				case(io_pin_output_pwm2):
 				case(io_pin_i2c):
-				case(io_pin_trigger):
 				{
 					if((error = io_read_pin_x(dst, info, pin_data, pin_config, pin, &value)) != io_ok)
 						string_append(dst, "\n");

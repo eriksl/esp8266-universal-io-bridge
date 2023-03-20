@@ -6,6 +6,11 @@
 
 #include <stdint.h>
 
+enum
+{
+	io_mcp_pin_size = 16,
+};
+
 typedef enum
 {
 	io_mcp_instance_20 = 0,
@@ -16,7 +21,8 @@ typedef enum
 	io_mcp_instance_size
 } io_mcp_instance_t;
 
-void			io_mcp_periodic_slow(int io, const struct io_info_entry_T *, io_data_entry_t *, unsigned int rate_ms);
+void			io_mcp_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, unsigned int rate_ms);
+void			io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t id);
 unsigned int	io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin);
 io_error_t		io_mcp_init(const struct io_info_entry_T *);
 io_error_t		io_mcp_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);

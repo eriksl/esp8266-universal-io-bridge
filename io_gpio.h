@@ -19,7 +19,7 @@ typedef enum
 	gpio_i2s_pin_output_data,
 } gpio_i2s_pin_t;
 
-void			io_gpio_periodic_fast(int io, const struct io_info_entry_T *, io_data_entry_t *, unsigned int period);
+void			io_gpio_pins_changed(uint32_t pin_interrupt_status, uint16_t pin_value);
 io_error_t		io_gpio_init(const struct io_info_entry_T *);
 unsigned int	io_gpio_pin_max_value(const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
 io_error_t		io_gpio_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);

@@ -45,6 +45,7 @@ extern unsigned int stat_pwm_cycles;;
 extern unsigned int stat_pwm_timer_interrupts;
 extern unsigned int stat_pwm_timer_interrupts_while_nmi_masked;
 extern unsigned int stat_pc_counts;
+extern unsigned int stat_renc_invalid_state;
 extern unsigned int stat_cmd_udp;
 extern unsigned int stat_cmd_tcp;
 extern unsigned int stat_cmd_uart;

@@ -6,29 +6,8 @@
 
 #include <stdlib.h>
 
-typedef union
-{
-	struct
-	{
-		unsigned int counter;
-		unsigned int debounce;
-		unsigned int last_value;
-	} counter;
-} io_aux_data_pin_t;
-
-static io_aux_data_pin_t aux_pin_data[io_aux_pin_size];
-
 attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
 {
-	int pin;
-
-	for(pin = io_aux_pin_rtc; pin < io_aux_pin_size; pin++)
-	{
-		aux_pin_data[pin].counter.counter = 0;
-		aux_pin_data[pin].counter.debounce = 0;
-		aux_pin_data[pin].counter.last_value = 0;
-	}
-
 	return(io_ok);
 }
 
@@ -66,49 +45,32 @@ attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, 
 
 iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
-	unsigned int pin;
+	const io_config_pin_entry_t *pin_config = &io_config[io][io_aux_pin_gpio];
+	static uint32_t last_value_mask = 0;
+	uint32_t pin_value_mask;
 
-	for(pin = io_aux_pin_rtc; pin < io_aux_pin_size; pin++)
+	if(pin_config->llmode != io_pin_ll_counter)
+		return;
+
+	pin_value_mask = read_peri_reg(RTC_GPIO_IN_DATA) & 0x01;
+
+	if(pin_value_mask != last_value_mask)
 	{
-		io_config_pin_entry_t *pin_config = &io_config[io][pin];
-
-		if(pin_config->llmode == io_pin_ll_counter)
-		{
-			io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
-
-			// debouncing on input requested && debouncing period active
-			if((pin_config->speed != 0) && (io_aux_data_pin->counter.debounce != 0))
-			{
-				if(io_aux_data_pin->counter.debounce > (1000 / period))
-					io_aux_data_pin->counter.debounce -= 1000 / period;
-				else
-					io_aux_data_pin->counter.debounce = 0;
-			}
-			else
-			{
-				unsigned int pin_value = !!(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01);
-
-				if(pin_value != io_aux_data_pin->counter.last_value)
-				{
-					io_aux_data_pin->counter.last_value = pin_value;
-					io_aux_data_pin->counter.debounce = pin_config->speed;
-
-					if(!pin_value)
-					{
-						io_aux_data_pin->counter.counter++;
-						dispatch_post_task(task_prio_medium, task_alert_pin_changed, 0);
-					}
-				}
-			}
-		}
+		last_value_mask = pin_value_mask;
+		dispatch_post_task(task_prio_medium, task_pins_changed_aux, (1 << 0), pin_value_mask & 0x0000ffff, 0);
 	}
+}
+
+void io_aux_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask)
+{
+	io_pin_changed(io_id_aux, io_aux_pin_gpio, pin_value_mask);
 }
 
 io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	switch(pin)
 	{
-		case(io_aux_pin_rtc):
+		case(io_aux_pin_gpio):
 		{
 			switch(pin_config->llmode)
 			{
@@ -186,7 +148,7 @@ io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 {
 	switch(pin)
 	{
-		case(io_aux_pin_rtc):
+		case(io_aux_pin_gpio):
 		{
 			string_append(dst, "builtin rtc gpio");
 			break;
@@ -226,7 +188,7 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 {
 	switch(pin)
 	{
-		case(io_aux_pin_rtc):
+		case(io_aux_pin_gpio):
 		{
 			switch(pin_config->llmode)
 			{
@@ -238,13 +200,6 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 					if(pin_config->flags & io_flag_invert)
 						*value = !*value;
 
-					break;
-				}
-
-				case(io_pin_ll_counter):
-				{
-					io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
-					*value = io_aux_data_pin->counter.counter;
 					break;
 				}
 
@@ -299,7 +254,7 @@ iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 {
 	switch(pin)
 	{
-		case(io_aux_pin_rtc):
+		case(io_aux_pin_gpio):
 		{
 			switch(pin_config->llmode)
 			{
@@ -316,13 +271,6 @@ iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 						value = !value;
 
 					clear_set_peri_reg_mask(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);
-					break;
-				}
-
-				case(io_pin_ll_counter):
-				{
-					io_aux_data_pin_t *io_aux_data_pin = &aux_pin_data[pin];
-					io_aux_data_pin->counter.counter = value;
 					break;
 				}
 

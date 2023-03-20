@@ -199,12 +199,14 @@ assert_size(io_caps_t, 4);
 
 typedef struct attr_packed
 {
-	unsigned int	saved_value;
-	unsigned int	speed:22;
+	uint32_t		value;
+	uint32_t		saved_value;
+	uint32_t		speed;
 	io_direction_t	direction:2;
+	unsigned int	previous:1;
 } io_data_pin_entry_t;
 
-assert_size(io_data_pin_entry_t, 7);
+assert_size(io_data_pin_entry_t, 13);
 
 typedef struct
 {
@@ -291,6 +293,7 @@ typedef const io_info_entry_t io_info_t[io_id_size];
 extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
 void			io_init(void);
+void			io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask);
 void			io_periodic_slow(unsigned int period);
 void			io_periodic_fast(unsigned int period);
 unsigned int	io_pin_max_value(unsigned int io, unsigned int pin);

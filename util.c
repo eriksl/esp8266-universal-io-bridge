@@ -279,6 +279,17 @@ bool string_trim_nl(string_t *dst)
 	return(trimmed);
 }
 
+attr_nonnull void string_word_to_bin(string_t *dst, unsigned int word, unsigned int bits)
+{
+	int ix;
+
+	for(ix = bits - 1; ix >= 0; ix--)
+		if(word & (1 << ix))
+			string_append_char(dst, '1');
+		else
+			string_append_char(dst, '0');
+}
+
 void string_bin_to_hex(string_t *dst, const unsigned char *src, int length)
 {
 	int offset;

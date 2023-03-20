@@ -6,14 +6,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef struct attr_packed
-{
-	unsigned int counter:16;
-	unsigned int debounce:16;
-} mcp_data_pin_t;
-
-assert_size(mcp_data_pin_t, 4);
-
 enum
 {
 	UNUSED = 0,
@@ -26,8 +18,8 @@ enum
 	BANK
 };
 
+static uint32_t counters[io_mcp_instance_size];
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
-static mcp_data_pin_t mcp_data_pin_table[io_mcp_instance_size][16];
 
 attr_inline int IODIR(int s)		{ return(0x00 + s);	}
 attr_inline int IPOL(int s)			{ return(0x02 + s);	}
@@ -109,10 +101,10 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 
 io_error_t io_mcp_init(const struct io_info_entry_T *info)
 {
-	unsigned int pin;
 	unsigned int iocon_value = (1 << DISSLW) | (1 << INTPOL | (0 << BANK));
 	uint8_t i2c_buffer[1];
-	mcp_data_pin_t *mcp_pin_data;
+
+	counters[info->instance] = 0;
 
 	// switch to linear mode, assuming config is in banked mode
 	// if config was in linear mode already, GPINTENB will be written instead of IOCON, but that's ok (value == 0)
@@ -130,13 +122,6 @@ io_error_t io_mcp_init(const struct io_info_entry_T *info)
 
 	if(i2c_buffer[0] != iocon_value)
 		return(io_error);
-
-	for(pin = 0; pin < 16; pin++)
-	{
-		mcp_pin_data = &mcp_data_pin_table[info->instance - io_mcp_instance_first][pin];
-		mcp_pin_data->counter = 0;
-		mcp_pin_data->debounce = 0;
-	}
 
 	pin_output_cache[instance_index(info)][0] = 0;
 	pin_output_cache[instance_index(info)][1] = 0;
@@ -170,14 +155,14 @@ attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+void io_mcp_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
 	unsigned int intcap[2];
-	unsigned int pin, bank, bankpin;
-	mcp_data_pin_t *mcp_pin_data;
-	io_config_pin_entry_t *pin_config;
+
+	if(!counters[info->instance])
+		return;
 
 	if(i2c_send1_receive(info->address, INTF(0), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok) // INTFA, INTFB, INTCAPA, INTCAPB
 		return;
@@ -187,33 +172,33 @@ void io_mcp_periodic_slow(int io, const struct io_info_entry_T *info, io_data_en
 	intcap[0] = i2c_buffer[2];
 	intcap[1] = i2c_buffer[3];
 
-	for(pin = 0; pin < 16; pin++)
-	{
-		bank = (pin & 0x08) >> 3;
-		bankpin = pin & 0x07;
+	if((intf[0] != 0) || (intf[1] != 0))
+		dispatch_post_task(task_prio_low, task_pins_changed_mcp,
+				(intf[1] << 8) | (intf[0] << 0),  (intcap[1] << 8) | (intcap[0] << 0), info->id);
+}
 
-		mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
+void io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t io)
+{
+	io_config_pin_entry_t *pin_config;
+	unsigned int pin;
+
+	if(io >= io_id_size)
+	{
+		log("[mcp] pin change: invalid io\n");
+		return;
+	}
+
+	for(pin = 0; pin < io_mcp_pin_size; pin++)
+	{
+		if(!(pin_status_mask & (1 << pin)))
+			continue;
+
 		pin_config = &io_config[io][pin];
 
-		if(pin_config->llmode == io_pin_ll_counter)
-		{
-			if(mcp_pin_data->debounce != 0)
-			{
-				if(mcp_pin_data->debounce > (1000 / period))
-					mcp_pin_data->debounce -= 1000 / period;
-				else
-					mcp_pin_data->debounce = 0;
-			}
-			else
-			{
-				if((intf[bank] & (1 << bankpin)) && !(intcap[bank] & (1 << bankpin))) // only count downward edge, counter is mostly pull-up
-				{
-					mcp_pin_data->counter++;
-					mcp_pin_data->debounce = pin_config->speed;
-					dispatch_post_task(task_prio_medium, task_alert_pin_changed, 0);
-				}
-			}
-		}
+		if(pin_config->llmode != io_pin_ll_counter)
+			continue;
+
+		io_pin_changed(io, pin, pin_value_mask);
 	}
 }
 
@@ -223,6 +208,7 @@ io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_en
 
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
+	counters[info->instance] &= ~(1 << pin);
 
 	if((pin_config->llmode == io_pin_ll_input_digital) && (pin_config->flags & io_flag_invert))
 	{
@@ -260,8 +246,13 @@ io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_en
 			break;
 		}
 
-		case(io_pin_ll_input_digital):
 		case(io_pin_ll_counter):
+		{
+			counters[info->instance] |= (1 << pin);
+			[[fallthrough]];
+		}
+
+		case(io_pin_ll_input_digital):
 		{
 			if(clear_set_register(error_message, info->address, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
 				return(io_error);
@@ -299,12 +290,9 @@ io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 {
 	int bank, bankpin, tv;
 	int io, olat, cached;
-	mcp_data_pin_t *mcp_pin_data;
 
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
-
-	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
 	tv = 0;
 
@@ -359,12 +347,9 @@ io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	int bank, bankpin, tv;
-	mcp_data_pin_t *mcp_pin_data;
 
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
-
-	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
 	tv = 0;
 
@@ -384,13 +369,6 @@ io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T
 			break;
 		}
 
-		case(io_pin_ll_counter):
-		{
-			*value = mcp_pin_data->counter;
-
-			break;
-		}
-
 		default:
 		{
 			if(error_message)
@@ -406,12 +384,9 @@ io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T
 io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	int bank, bankpin;
-	mcp_data_pin_t *mcp_pin_data;
 
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
-
-	mcp_pin_data = &mcp_data_pin_table[info->instance][pin];
 
 	if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->flags & io_flag_invert))
 		value = !value;
@@ -428,13 +403,6 @@ io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_
 			if(write_register(error_message, info->address, GPIO(bank),
 						pin_output_cache[instance_index(info)][bank]) != io_ok)
 				return(io_error);
-
-			break;
-		}
-
-		case(io_pin_ll_counter):
-		{
-			mcp_pin_data->counter = value;
 
 			break;
 		}
