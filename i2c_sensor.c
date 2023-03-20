@@ -362,7 +362,6 @@ typedef enum
 	veml6075_id_device =			0x26,
 } veml6075_id_t;
 
-
 static i2c_error_t sensor_veml6075_uvindex_detect(i2c_sensor_data_t *data)
 {
 	i2c_error_t	error;
