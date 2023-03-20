@@ -17234,3 +17234,7 @@ Mon Mar 20 19:19:39 CET 2023 422fb87 dispatch: make timer periods (compile-time)
     iram:    available:  32 k, used:  29377, free:   3391, 10 %
     dram:    available:  78 k, used:  70561, free:   9704, 12 %
     irom:    available: 784 k, used: 436736, free: 366080, 45 %
+Mon Mar 20 19:29:20 CET 2023 422fb87 dispatch: make timer periods (compile-time) configurable and change fast timer 10 ms -> 1 ms.
+    iram:    available:  32 k, used:  29377, free:   3391, 10 %
+    dram:    available:  78 k, used:  70561, free:   9704, 12 %
+    irom:    available: 784 k, used: 436688, free: 366128, 45 %

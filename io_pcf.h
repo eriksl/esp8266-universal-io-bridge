@@ -9,6 +9,7 @@
 typedef enum
 {
 	io_pcf_instance_3a = 0,
+	io_pcf_instance_26,
 	io_pcf_instance_size
 } io_pcf_instance_t;
 

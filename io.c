@@ -197,6 +197,27 @@ roflash static const io_info_t io_info =
 		io_ledpixel_write_pin,
 		(void *)0, // set_mask // FIXME this can be implemented, but may not be very useful
 	},
+	{
+		io_id_pcf_26, /* = 7 */
+		0x26,
+		io_pcf_instance_26,
+		8,
+		caps_input_digital |
+			caps_counter |
+			caps_output_digital |
+			caps_rotary_encoder,
+		"PCF8574A I2C I/O expander",
+		io_pcf_init,
+		(void *)0, // postinit
+		io_pcf_pin_max_value,
+		(void *)0, // periodic slow
+		io_pcf_periodic_fast,
+		io_pcf_init_pin_mode,
+		(void *)0, // get pin info
+		io_pcf_read_pin,
+		io_pcf_write_pin,
+		io_pcf_set_mask,
+	},
 };
 
 static io_data_t io_data;
