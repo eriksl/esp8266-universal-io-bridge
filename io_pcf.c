@@ -18,7 +18,7 @@ static io_error_t init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	static uint8_t previous_data[io_pcf_instance_size] = { 0xff, 0xff };
 	uint8_t current_data[io_pcf_instance_size];
@@ -40,6 +40,11 @@ static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_en
 		dispatch_post_task(task_prio_low, task_pins_changed_pcf, *current ^ *previous, *current, info->id);
 
 	*previous = *current;
+}
+
+static void pin_change_int_handler(int io, const io_info_entry_t *info, io_data_entry_t *data)
+{
+	periodic_slow(io, info, data, 0);
 }
 
 void io_pcf_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t io)
@@ -241,9 +246,9 @@ roflash const io_info_entry_t io_info_entry_pcf_3a =
 	init,
 	(void *)0, // postinit
 	max_value,
-	(void *)0, // periodic slow
-	periodic_fast,
-	(void *)0, // pin change handler
+	periodic_slow,
+	(void *)0, // periodic_fast
+	pin_change_int_handler,
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
@@ -265,9 +270,9 @@ roflash const io_info_entry_t io_info_entry_pcf_26 =
 	init,
 	(void *)0, // postinit
 	max_value,
-	(void *)0, // periodic slow
-	periodic_fast,
-	(void *)0, // pin change handler
+	periodic_slow,
+	(void *)0, // periodic_fast
+	pin_change_int_handler,
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
