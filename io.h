@@ -24,6 +24,7 @@ enum
 
 typedef enum
 {
+	io_id_first = 0,
 	io_id_gpio = 0,
 	io_id_aux,
 	io_id_mcp_20,
@@ -88,6 +89,7 @@ typedef enum
 	io_pin_output_pwm2,
 	io_pin_rotary_encoder,
 	io_pin_spi,
+	io_pin_pcint,
 	io_pin_error,
 	io_pin_size = io_pin_error,
 } io_pin_mode_t;
@@ -194,6 +196,7 @@ typedef enum
 	caps_pullup =			1 << 9,
 	caps_rotary_encoder =	1 << 10,
 	caps_spi =				1 << 11,
+	caps_pin_change_int =	1 << 12,
 } io_caps_t;
 
 assert_size(io_caps_t, 4);
@@ -280,6 +283,7 @@ typedef const struct io_info_entry_T
 	attr_flash_align	unsigned int(* const pin_max_value_fn)	(					const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
 	attr_flash_align	void		(* const periodic_slow_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, unsigned int period);
 	attr_flash_align	void		(* const periodic_fast_fn)	(int io,			const struct io_info_entry_T *, io_data_entry_t *, unsigned int period);
+	attr_flash_align	void		(* const pin_change_int_fn)	(int io, 			const struct io_info_entry_T *, io_data_entry_t *);
 	attr_flash_align	io_error_t	(* const init_pin_mode_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	attr_flash_align	io_error_t	(* const get_pin_info_fn)	(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
 	attr_flash_align	io_error_t	(* const read_pin_fn)		(string_t *error,	const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
@@ -287,7 +291,7 @@ typedef const struct io_info_entry_T
 	attr_flash_align	io_error_t	(* const set_mask_fn)		(string_t *error,	const struct io_info_entry_T *, unsigned int mask, unsigned int pins);
 } io_info_entry_t;
 
-assert_size(io_info_entry_t, 64);
+assert_size(io_info_entry_t, 68);
 
 extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 

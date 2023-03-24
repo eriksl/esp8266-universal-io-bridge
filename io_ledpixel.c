@@ -385,6 +385,7 @@ roflash const io_info_entry_t io_info_entry_ledpixel =
 	pin_max_value,
 	(void *)0, // periodic slow
 	(void *)0, // periodic fast
+	(void *)0, // pin change handler
 	init_pin_mode,
 	(void *)0, // get pin info
 	read_pin,

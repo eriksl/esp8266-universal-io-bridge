@@ -340,6 +340,7 @@ roflash const io_info_entry_t io_info_entry_aux =
 	pin_max_value,
 	(void *)0, // periodic slow
 	periodic_fast,
+	(void *)0, // pin change handler
 	init_pin_mode,
 	get_pin_info,
 	read_pin,

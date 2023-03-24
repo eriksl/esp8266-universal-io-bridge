@@ -82,6 +82,7 @@ roflash static const io_mode_trait_t io_mode_traits[io_pin_size] =
 	{ io_pin_output_pwm2,		"pwm2",			"secondary pwm output"	},
 	{ io_pin_rotary_encoder,	"renc",			"rotary encoder input"	},
 	{ io_pin_spi,				"spi",			"spi"					},
+	{ io_pin_pcint,				"pcint",		"pin change interrupt"	},
 };
 
 static io_pin_mode_t io_mode_from_string(const string_t *src)
@@ -1430,6 +1431,18 @@ void io_init(void)
 					break;
 				}
 
+				case(io_pin_pcint):
+				{
+					if(!(info->caps & caps_pin_change_int))
+					{
+						pin_config->mode = io_pin_disabled;
+						pin_config->llmode = io_pin_ll_disabled;
+						continue;
+					}
+
+					break;
+				}
+
 				default:
 				{
 					break;
@@ -1565,6 +1578,29 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 		{
 			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
 				pin_data->value++;
+
+			break;
+		}
+
+		case(io_pin_pcint):
+		{
+			const io_info_entry_t* info_entry;
+			io_data_entry_t *data_entry;
+			io_id_t id;
+
+			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+			{
+				for(id = io_id_first; id < io_id_size; id++)
+				{
+					info_entry = io_info[(unsigned int)id];
+
+					if(info_entry->pin_change_int_fn)
+					{
+						data_entry = &io_data[(int)id];
+						info_entry->pin_change_int_fn((int)id, info_entry, data_entry);
+					}
+				}
+			}
 
 			break;
 		}
@@ -2480,6 +2516,24 @@ skip:
 			break;
 		}
 
+		case(io_pin_pcint):
+		{
+			if(!(info->caps & caps_pin_change_int))
+			{
+				config_abort_write();
+				string_append(parameters->dst, "pin change interrupt mode invalid for this io\n");
+				return(app_action_error);
+			}
+
+			llmode = io_pin_ll_counter;
+
+			config_delete("io.%u.%u.", true, io, pin);
+			config_set_int("io.%u.%u.mode", mode, io, pin);
+			config_set_int("io.%u.%u.llmode", io_pin_ll_counter, io, pin);
+
+			break;
+		}
+
 		case(io_pin_disabled):
 		{
 			llmode = io_pin_ll_disabled;
@@ -2874,6 +2928,7 @@ typedef enum
 	ds_id_cfa634,
 	ds_id_lcd,
 	ds_id_spi,
+	ds_id_pcint,
 	ds_id_unknown,
 	ds_id_max_value,
 	ds_id_info_1,
@@ -2926,6 +2981,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"cfa634",
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_spi */				"spi",
+		/* ds_id_pcint */			"pcint",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_max_value */		", max value: %u",
 		/* ds_id_info_1 */			", info: ",
@@ -2966,6 +3022,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"<td>cfa634</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_spi */				"<td>spi</td>",
+		/* ds_id_pcint */			"<td>pcint</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_max_value */		"<td>%u</td>",
 		/* ds_id_info_1 */			"<td>",
@@ -3232,7 +3289,14 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 					break;
 				}
 
-				default:
+				case(io_pin_pcint):
+				{
+					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_pcint]);
+
+					break;
+				}
+
+				case(io_pin_error):
 				{
 					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_unknown]);
 

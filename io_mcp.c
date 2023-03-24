@@ -451,6 +451,7 @@ roflash const io_info_entry_t io_info_entry_mcp_20 =
 	pin_max_value,
 	(void *)0, // periodic slow
 	periodic_fast,
+	(void *)0, // pin change handler
 	pin_mode,
 	get_pin_info,
 	read_pin,
@@ -475,6 +476,7 @@ roflash const io_info_entry_t io_info_entry_mcp_21 =
 	pin_max_value,
 	(void *)0, // periodic slow
 	periodic_fast,
+	(void *)0, // pin change handler
 	pin_mode,
 	get_pin_info,
 	read_pin,
@@ -499,6 +501,7 @@ roflash const io_info_entry_t io_info_entry_mcp_22 =
 	pin_max_value,
 	(void *)0, // periodic slow,
 	periodic_fast,
+	(void *)0, // pin change handler
 	pin_mode,
 	get_pin_info,
 	read_pin,

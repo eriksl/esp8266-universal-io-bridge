@@ -35,7 +35,7 @@ assert_size(telnet_strip_state_t, 1);
 
 enum
 {
-	fast_timer_rate_ms = 1,
+	fast_timer_rate_ms = 10,
 	slow_timer_rate_ms = 100,
 	task_queue_length = 10,
 	command_input_state_timeout = 10,

@@ -17266,3 +17266,71 @@ Fri Mar 24 11:50:45 CET 2023 609996e i2c-sensors: cosmetic: remove unused empty 
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  70609, free:   9656, 12 %
     irom:    available: 784 k, used: 436576, free: 366240, 45 %
+Fri Mar 24 17:41:10 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70609, free:   9656, 12 %
+    irom:    available: 784 k, used: 436624, free: 366192, 45 %
+Fri Mar 24 18:01:35 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70577, free:   9688, 12 %
+    irom:    available: 784 k, used: 436624, free: 366192, 45 %
+Fri Mar 24 18:02:43 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70577, free:   9688, 12 %
+    irom:    available: 784 k, used: 436720, free: 366096, 45 %
+Fri Mar 24 18:14:07 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437760, free: 365056, 45 %
+Fri Mar 24 18:25:53 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437776, free: 365040, 45 %
+Fri Mar 24 19:15:40 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437840, free: 364976, 45 %
+Fri Mar 24 19:25:14 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437904, free: 364912, 45 %
+Fri Mar 24 19:31:17 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437792, free: 365024, 45 %
+Fri Mar 24 19:33:22 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437776, free: 365040, 45 %
+Fri Mar 24 19:37:09 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437920, free: 364896, 45 %
+Fri Mar 24 19:40:06 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437776, free: 365040, 45 %
+Fri Mar 24 19:41:40 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437920, free: 364896, 45 %
+Fri Mar 24 19:49:15 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437968, free: 364848, 45 %
+Fri Mar 24 19:50:54 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 438000, free: 364816, 45 %
+Fri Mar 24 19:54:59 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 438032, free: 364784, 45 %
+Fri Mar 24 19:56:47 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 438048, free: 364768, 45 %
+Fri Mar 24 19:58:25 CET 2023 af954bf io: move io_info entries out of io.c to the hardware modules.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437856, free: 364960, 45 %

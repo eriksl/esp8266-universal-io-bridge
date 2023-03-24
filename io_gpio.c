@@ -1395,13 +1395,15 @@ roflash const io_info_entry_t io_info_entry_gpio =
 		caps_ledpixel |
 		caps_pullup |
 		caps_rotary_encoder |
-		caps_spi,
+		caps_spi |
+		caps_pin_change_int,
 	"Internal GPIO",
 	init,
 	(void *)0, // postinit
 	pin_max_value,
 	(void *)0, // periodic slow
 	(void *)0, // periodic fast
+	(void *)0, // pin change handler
 	init_pin_mode,
 	get_pin_info,
 	read_pin,

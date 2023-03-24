@@ -243,6 +243,7 @@ roflash const io_info_entry_t io_info_entry_pcf_3a =
 	max_value,
 	(void *)0, // periodic slow
 	periodic_fast,
+	(void *)0, // pin change handler
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
@@ -266,6 +267,7 @@ roflash const io_info_entry_t io_info_entry_pcf_26 =
 	max_value,
 	(void *)0, // periodic slow
 	periodic_fast,
+	(void *)0, // pin change handler
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
