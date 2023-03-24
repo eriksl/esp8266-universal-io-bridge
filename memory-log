@@ -17334,3 +17334,7 @@ Fri Mar 24 19:58:25 CET 2023 af954bf io: move io_info entries out of io.c to the
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  70593, free:   9672, 12 %
     irom:    available: 784 k, used: 437856, free: 364960, 45 %
+Fri Mar 24 20:27:50 CET 2023 4b4da71 io: add pin-change-interrupt for external io's.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437840, free: 364976, 45 %

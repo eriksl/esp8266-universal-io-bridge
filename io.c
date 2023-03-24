@@ -455,17 +455,6 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 
 	switch(pin_config->mode)
 	{
-		case(io_pin_disabled):
-		case(io_pin_error):
-		case(io_pin_cfa634):
-		case(io_pin_spi):
-		{
-			if(errormsg)
-				string_append(errormsg, "cannot read from this pin");
-
-			return(io_error);
-		}
-
 		case(io_pin_counter):
 		{
 			*value = pin_data->value;
@@ -498,17 +487,6 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 
 	switch(pin_config->mode)
 	{
-		case(io_pin_disabled):
-		case(io_pin_error):
-		case(io_pin_cfa634):
-		case(io_pin_spi):
-		{
-			if(errormsg)
-				string_append(errormsg, "cannot write to this pin");
-
-			return(io_error);
-		}
-
 		case(io_pin_counter):
 		{
 			pin_data->value = value;
@@ -1700,7 +1678,7 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 		default:
 		{
 			log("[io] pin change on invalid pin type: %u\n", pin);
-			log("   io: %u pin: %u value mask: %x\n", io, pin, pin_value_mask); // FIXME
+			log("   io: %u pin: %u value mask: %x\n", io, pin, pin_value_mask);
 			break;
 		}
 	}
