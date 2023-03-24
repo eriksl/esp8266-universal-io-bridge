@@ -2888,7 +2888,8 @@ typedef enum
 	ds_id_mode_1,
 	ds_id_mode_2,
 	ds_id_disabled,
-	ds_id_input,
+	ds_id_input_digital,
+	ds_id_input_analog,
 	ds_id_counter,
 	ds_id_rotary_encoder_1,
 	ds_id_rotary_encoder_2,
@@ -2941,7 +2942,8 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_mode_1 */			"mode: ",
 		/* ds_id_mode_2 */			"",
 		/* ds_id_disabled */		"",
-		/* ds_id_input */			"state: %s",
+		/* ds_id_input_digital */	"state: %s",
+		/* ds_id_input_analog */	"value: %s",
 		/* ds_id_counter */			"counter: %d",
 		/* ds_id_rotary_encoder_1 */"pin ",
 		/* ds_id_rotary_encoder_2 */", counter: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d",
@@ -2982,7 +2984,8 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_mode_1 */			"<td>",
 		/* ds_id_mode_2 */			"</td>",
 		/* ds_id_disabled */		"<td></td>",
-		/* ds_id_input */			"<td>state: %s</td>",
+		/* ds_id_input_digital */	"<td>state: %s</td>",
+		/* ds_id_input_analog */	"<td>value: %s</td>",
 		/* ds_id_counter */			"<td><td>counter: %d</td>",
 		/* ds_id_rotary_encoder_1 */"<td>pin ",
 		/* ds_id_rotary_encoder_2 */", counter: %d, partner pin: %u, trigger io: %d, pin: %d, remote: %d</td>",
@@ -3107,7 +3110,17 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 				case(io_pin_input_digital):
 				{
 					if(error == io_ok)
-						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_input], onoff(value));
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_input_digital], onoff(value));
+					else
+						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
+
+					break;
+				}
+
+				case(io_pin_input_analog):
+				{
+					if(error == io_ok)
+						string_format_flash_ptr(dst, (*roflash_strings)[ds_id_input_analog], value);
 					else
 						string_append_cstr_flash(dst, (*roflash_strings)[ds_id_error]);
 
