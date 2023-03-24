@@ -6,12 +6,12 @@
 
 #include <stdlib.h>
 
-attr_const io_error_t io_aux_init(const struct io_info_entry_T *info)
+static attr_const io_error_t init(const struct io_info_entry_T *info)
 {
 	return(io_ok);
 }
 
-attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -43,7 +43,7 @@ attr_pure unsigned int io_aux_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-iram void io_aux_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+iram static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	const io_config_pin_entry_t *pin_config = &io_config[io][io_aux_pin_gpio];
 	static uint32_t last_value_mask = 0;
@@ -66,7 +66,7 @@ void io_aux_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask)
 	io_pin_changed(io_id_aux, io_aux_pin_gpio, pin_value_mask);
 }
 
-io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	switch(pin)
 	{
@@ -144,7 +144,7 @@ io_error_t io_aux_init_pin_mode(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	switch(pin)
 	{
@@ -184,7 +184,7 @@ io_error_t io_aux_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	return(io_ok);
 }
 
-iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+iram static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	switch(pin)
 	{
@@ -250,7 +250,7 @@ iram io_error_t io_aux_read_pin(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+iram static io_error_t write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	switch(pin)
 	{
@@ -323,3 +323,26 @@ iram io_error_t io_aux_write_pin(string_t *error_message, const struct io_info_e
 
 	return(io_ok);
 }
+
+roflash const io_info_entry_t io_info_entry_aux =
+{
+	io_id_aux,/* = 1 */
+	0x01,
+	0,
+	2,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_input_analog,
+	"Auxilliary GPIO (RTC+ADC)",
+	init,
+	(void *)0, // postinit
+	pin_max_value,
+	(void *)0, // periodic slow
+	periodic_fast,
+	init_pin_mode,
+	get_pin_info,
+	read_pin,
+	write_pin,
+	(void *)0, // set_mask
+};

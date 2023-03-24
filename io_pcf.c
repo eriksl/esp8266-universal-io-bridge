@@ -7,7 +7,7 @@
 static uint32_t counters[io_pcf_instance_size];
 static uint8_t output_pin_cache[io_pcf_instance_size];
 
-io_error_t io_pcf_init(const struct io_info_entry_T *info)
+static io_error_t init(const struct io_info_entry_T *info)
 {
 	counters[info->instance] = 0;
 	output_pin_cache[info->instance] = 0xff;
@@ -18,7 +18,7 @@ io_error_t io_pcf_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-void io_pcf_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	static uint8_t previous_data[io_pcf_instance_size] = { 0xff, 0xff };
 	uint8_t current_data[io_pcf_instance_size];
@@ -67,7 +67,7 @@ void io_pcf_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint
 	}
 }
 
-attr_pure unsigned int io_pcf_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+static attr_pure unsigned int max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -93,7 +93,7 @@ attr_pure unsigned int io_pcf_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	i2c_error_t error;
 
@@ -139,7 +139,7 @@ io_error_t io_pcf_init_pin_mode(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	uint8_t i2c_data[1];
 	i2c_error_t error;
@@ -175,7 +175,7 @@ io_error_t io_pcf_read_pin(string_t *error_message, const struct io_info_entry_T
 	return(io_ok);
 }
 
-io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+static io_error_t write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	i2c_error_t error;
 
@@ -212,7 +212,7 @@ io_error_t io_pcf_write_pin(string_t *error_message, const struct io_info_entry_
 	return(io_ok);
 }
 
-io_error_t io_pcf_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
 {
 	i2c_error_t error;
 
@@ -226,3 +226,49 @@ io_error_t io_pcf_set_mask(string_t *error_message, const struct io_info_entry_T
 
 	return(io_ok);
 }
+
+roflash const io_info_entry_t io_info_entry_pcf_3a =
+{
+	io_id_pcf_3a, /* = 5 */
+	0x3a,
+	io_pcf_instance_3a,
+	8,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_rotary_encoder,
+	"PCF8574A I2C I/O expander",
+	init,
+	(void *)0, // postinit
+	max_value,
+	(void *)0, // periodic slow
+	periodic_fast,
+	pin_mode,
+	(void *)0, // get pin info
+	read_pin,
+	write_pin,
+	set_mask,
+};
+
+roflash const io_info_entry_t io_info_entry_pcf_26 =
+{
+	io_id_pcf_26, /* = 7 */
+	0x26,
+	io_pcf_instance_26,
+	8,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_rotary_encoder,
+	"PCF8574 I2C I/O expander",
+	init,
+	(void *)0, // postinit
+	max_value,
+	(void *)0, // periodic slow
+	periodic_fast,
+	pin_mode,
+	(void *)0, // get pin info
+	read_pin,
+	write_pin,
+	set_mask,
+};

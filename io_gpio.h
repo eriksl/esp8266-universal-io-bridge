@@ -19,14 +19,9 @@ typedef enum
 	gpio_i2s_pin_output_data,
 } gpio_i2s_pin_t;
 
+extern const io_info_entry_t io_info_entry_gpio;
+
 void			io_gpio_pins_changed(uint32_t pin_interrupt_status, uint16_t pin_value);
-io_error_t		io_gpio_init(const struct io_info_entry_T *);
-unsigned int	io_gpio_pin_max_value(const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, unsigned int pin);
-io_error_t		io_gpio_init_pin_mode(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-io_error_t		io_gpio_get_pin_info(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int);
-io_error_t		io_gpio_read_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int *);
-io_error_t		io_gpio_write_pin(string_t *, const struct io_info_entry_T *, io_data_pin_entry_t *, const io_config_pin_entry_t *, int, unsigned int);
-io_error_t		io_gpio_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins);
 int				io_gpio_get_uart_from_pin(unsigned int pin);
 gpio_i2s_pin_t	io_gpio_get_i2s_from_pin(unsigned int pin);
 bool			io_gpio_pin_usable(unsigned int pin);

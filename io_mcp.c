@@ -99,7 +99,7 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 	return(io_ok);
 }
 
-io_error_t io_mcp_init(const struct io_info_entry_T *info)
+static io_error_t init(const struct io_info_entry_T *info)
 {
 	unsigned int iocon_value = (1 << DISSLW) | (1 << INTPOL | (0 << BANK));
 	uint8_t i2c_buffer[1];
@@ -129,7 +129,7 @@ io_error_t io_mcp_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -155,7 +155,7 @@ attr_pure unsigned int io_mcp_pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-void io_mcp_periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
@@ -202,7 +202,7 @@ void io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint
 	}
 }
 
-io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin;
 
@@ -286,7 +286,7 @@ io_error_t io_mcp_init_pin_mode(string_t *error_message, const struct io_info_en
 	return(io_ok);
 }
 
-io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin, tv;
 	int io, olat, cached;
@@ -344,7 +344,7 @@ io_error_t io_mcp_get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	return(io_ok);
 }
 
-io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	int bank, bankpin, tv;
 
@@ -381,7 +381,7 @@ io_error_t io_mcp_read_pin(string_t *error_message, const struct io_info_entry_T
 	return(io_ok);
 }
 
-io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+static io_error_t write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	int bank, bankpin;
 
@@ -419,7 +419,7 @@ io_error_t io_mcp_write_pin(string_t *error_message, const struct io_info_entry_
 	return(io_ok);
 }
 
-io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
 {
 	unsigned int index = instance_index(info);
 
@@ -433,3 +433,75 @@ io_error_t io_mcp_set_mask(string_t *error_message, const struct io_info_entry_T
 
 	return(io_ok);
 }
+
+roflash const io_info_entry_t io_info_entry_mcp_20 =
+{
+	io_id_mcp_20, /* = 2 */
+	0x20,
+	io_mcp_instance_20,
+	16,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_pullup |
+		caps_rotary_encoder,
+	"MCP23017 I2C I/O expander #1",
+	init,
+	(void *)0, // postinit
+	pin_max_value,
+	(void *)0, // periodic slow
+	periodic_fast,
+	pin_mode,
+	get_pin_info,
+	read_pin,
+	write_pin,
+	set_mask,
+};
+
+roflash const io_info_entry_t io_info_entry_mcp_21 =
+{
+	io_id_mcp_21, /* = 3 */
+	0x21,
+	io_mcp_instance_21,
+	16,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_pullup |
+		caps_rotary_encoder,
+	"MCP23017 I2C I/O expander #2",
+	init,
+	(void *)0, // postinit
+	pin_max_value,
+	(void *)0, // periodic slow
+	periodic_fast,
+	pin_mode,
+	get_pin_info,
+	read_pin,
+	write_pin,
+	set_mask,
+};
+
+roflash const io_info_entry_t io_info_entry_mcp_22 =
+{
+	io_id_mcp_22, /* = 4 */
+	0x22,
+	io_mcp_instance_22,
+	16,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_pullup |
+		caps_rotary_encoder,
+	"MCP23017 I2C I/O expander #3",
+	init,
+	(void *)0, // postinit
+	pin_max_value,
+	(void *)0, // periodic slow,
+	periodic_fast,
+	pin_mode,
+	get_pin_info,
+	read_pin,
+	write_pin,
+	set_mask,
+};

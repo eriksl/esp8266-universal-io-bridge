@@ -289,8 +289,6 @@ typedef const struct io_info_entry_T
 
 assert_size(io_info_entry_t, 64);
 
-typedef const io_info_entry_t io_info_t[io_id_size];
-
 extern io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
 void			io_init(void);

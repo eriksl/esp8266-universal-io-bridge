@@ -760,7 +760,7 @@ void io_gpio_pins_changed(uint32_t pin_interrupt_status_mask, uint16_t pin_value
 	}
 }
 
-io_error_t io_gpio_init(const struct io_info_entry_T *info)
+static io_error_t init(const struct io_info_entry_T *info)
 {
 	unsigned int entry;
 	bool cpu_high_speed = config_flags_match(flag_cpu_high_speed);
@@ -791,7 +791,7 @@ io_error_t io_gpio_init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -834,7 +834,7 @@ attr_pure unsigned int io_gpio_pin_max_value(const struct io_info_entry_T *info,
 	return(value);
 }
 
-io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t init_pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_info_t *gpio_info;
 	gpio_data_pin_t *gpio_pin_data;
@@ -971,7 +971,7 @@ io_error_t io_gpio_init_pin_mode(string_t *error_message, const struct io_info_e
 	return(io_ok);
 }
 
-io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1124,7 +1124,7 @@ io_error_t io_gpio_get_pin_info(string_t *dst, const struct io_info_entry_T *inf
 	return(io_ok);
 }
 
-io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1213,7 +1213,7 @@ io_error_t io_gpio_read_pin(string_t *error_message, const struct io_info_entry_
 	return(io_ok);
 }
 
-io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+static io_error_t write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	gpio_data_pin_t *gpio_pin_data;
 
@@ -1332,7 +1332,7 @@ io_error_t io_gpio_write_pin(string_t *error_message, const struct io_info_entry
 	return(io_ok);
 }
 
-io_error_t io_gpio_set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
 {
 	unsigned int current;
 
@@ -1378,3 +1378,33 @@ attr_const bool io_gpio_pin_usable(unsigned int pin)
 
 	return(gpio_info_table[pin].flags == gi_valid);
 }
+
+roflash const io_info_entry_t io_info_entry_gpio =
+{
+	io_id_gpio, /* = 0 */
+	0x00,
+	0,
+	16,
+	caps_input_digital |
+		caps_counter |
+		caps_output_digital |
+		caps_output_pwm1 |
+		caps_output_pwm2 |
+		caps_i2c |
+		caps_uart |
+		caps_ledpixel |
+		caps_pullup |
+		caps_rotary_encoder |
+		caps_spi,
+	"Internal GPIO",
+	init,
+	(void *)0, // postinit
+	pin_max_value,
+	(void *)0, // periodic slow
+	(void *)0, // periodic fast
+	init_pin_mode,
+	get_pin_info,
+	read_pin,
+	write_pin,
+	set_mask,
+};

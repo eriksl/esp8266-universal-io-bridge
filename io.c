@@ -41,183 +41,16 @@ roflash static const io_flag_name_t io_flag_names[] =
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
 
-roflash static const io_info_t io_info =
+static const io_info_entry_t *const io_info[io_id_size] =
 {
-	{
-		io_id_gpio, /* = 0 */
-		0x00,
-		0,
-		16,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_output_pwm1 |
-			caps_output_pwm2 |
-			caps_i2c |
-			caps_uart |
-			caps_ledpixel |
-			caps_pullup |
-			caps_rotary_encoder |
-			caps_spi,
-		"Internal GPIO",
-		io_gpio_init,
-		(void *)0, // postinit
-		io_gpio_pin_max_value,
-		(void *)0, // periodic slow
-		(void *)0, // periodic fast
-		io_gpio_init_pin_mode,
-		io_gpio_get_pin_info,
-		io_gpio_read_pin,
-		io_gpio_write_pin,
-		io_gpio_set_mask,
-	},
-	{
-		io_id_aux,/* = 1 */
-		0x01,
-		0,
-		2,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_input_analog,
-		"Auxilliary GPIO (RTC+ADC)",
-		io_aux_init,
-		(void *)0, // postinit
-		io_aux_pin_max_value,
-		(void *)0, // periodic slow
-		io_aux_periodic_fast,
-		io_aux_init_pin_mode,
-		io_aux_get_pin_info,
-		io_aux_read_pin,
-		io_aux_write_pin,
-		(void *)0, // set_mask
-	},
-	{
-		io_id_mcp_20, /* = 2 */
-		0x20,
-		io_mcp_instance_20,
-		16,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_pullup |
-			caps_rotary_encoder,
-		"MCP23017 I2C I/O expander #1",
-		io_mcp_init,
-		(void *)0, // postinit
-		io_mcp_pin_max_value,
-		(void *)0, // periodic slow
-		io_mcp_periodic_fast,
-		io_mcp_init_pin_mode,
-		io_mcp_get_pin_info,
-		io_mcp_read_pin,
-		io_mcp_write_pin,
-		io_mcp_set_mask,
-	},
-	{
-		io_id_mcp_21, /* = 3 */
-		0x21,
-		io_mcp_instance_21,
-		16,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_pullup |
-			caps_rotary_encoder,
-		"MCP23017 I2C I/O expander #2",
-		io_mcp_init,
-		(void *)0, // postinit
-		io_mcp_pin_max_value,
-		(void *)0, // periodic slow
-		io_mcp_periodic_fast,
-		io_mcp_init_pin_mode,
-		io_mcp_get_pin_info,
-		io_mcp_read_pin,
-		io_mcp_write_pin,
-		io_mcp_set_mask,
-	},
-	{
-		io_id_mcp_22, /* = 4 */
-		0x22,
-		io_mcp_instance_22,
-		16,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_pullup |
-			caps_rotary_encoder,
-		"MCP23017 I2C I/O expander #3",
-		io_mcp_init,
-		(void *)0, // postinit
-		io_mcp_pin_max_value,
-		(void *)0, // periodic slow,
-		io_mcp_periodic_fast,
-		io_mcp_init_pin_mode,
-		io_mcp_get_pin_info,
-		io_mcp_read_pin,
-		io_mcp_write_pin,
-		io_mcp_set_mask,
-	},
-	{
-		io_id_pcf_3a, /* = 5 */
-		0x3a,
-		io_pcf_instance_3a,
-		8,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_rotary_encoder,
-		"PCF8574A I2C I/O expander",
-		io_pcf_init,
-		(void *)0, // postinit
-		io_pcf_pin_max_value,
-		(void *)0, // periodic slow
-		io_pcf_periodic_fast,
-		io_pcf_init_pin_mode,
-		(void *)0, // get pin info
-		io_pcf_read_pin,
-		io_pcf_write_pin,
-		io_pcf_set_mask,
-	},
-	{
-		io_id_ledpixel, /* = 6 */
-		0x00,
-		0,
-		16,
-		caps_output_pwm1,
-		"led string",
-		io_ledpixel_init,
-		io_ledpixel_post_init,
-		io_ledpixel_pin_max_value,
-		(void *)0, // periodic slow
-		(void *)0, // periodic fast
-		io_ledpixel_init_pin_mode,
-		(void *)0, // get pin info
-		io_ledpixel_read_pin,
-		io_ledpixel_write_pin,
-		(void *)0, // set_mask // FIXME this can be implemented, but may not be very useful
-	},
-	{
-		io_id_pcf_26, /* = 7 */
-		0x26,
-		io_pcf_instance_26,
-		8,
-		caps_input_digital |
-			caps_counter |
-			caps_output_digital |
-			caps_rotary_encoder,
-		"PCF8574A I2C I/O expander",
-		io_pcf_init,
-		(void *)0, // postinit
-		io_pcf_pin_max_value,
-		(void *)0, // periodic slow
-		io_pcf_periodic_fast,
-		io_pcf_init_pin_mode,
-		(void *)0, // get pin info
-		io_pcf_read_pin,
-		io_pcf_write_pin,
-		io_pcf_set_mask,
-	},
+	&io_info_entry_gpio,
+	&io_info_entry_aux,
+	&io_info_entry_mcp_20,
+	&io_info_entry_mcp_21,
+	&io_info_entry_mcp_22,
+	&io_info_entry_pcf_3a,
+	&io_info_entry_ledpixel,
+	&io_info_entry_pcf_26,
 };
 
 static io_data_t io_data;
@@ -1042,7 +875,7 @@ unsigned int io_pin_max_value(unsigned int io, unsigned int pin)
 	if(io >= io_id_size)
 		return(0);
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -1072,7 +905,7 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 		return(io_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -1116,7 +949,7 @@ io_error_t io_write_pin(string_t *error, unsigned int io, unsigned int pin, unsi
 		return(io_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -1151,7 +984,7 @@ io_error_t io_set_mask(string_t *error, int io, unsigned int mask, unsigned int 
 		return(io_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -1178,7 +1011,7 @@ io_error_t io_trigger_pin(string_t *error, unsigned int io, unsigned int pin, io
 		return(io_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -1216,7 +1049,7 @@ io_error_t io_traits(string_t *errormsg, unsigned int io, unsigned int pin, io_p
 		return(io_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(pin >= info->pins)
@@ -1285,7 +1118,7 @@ void io_init(void)
 
 	for(io = 0; io < io_id_size; io++)
 	{
-		info = &io_info[io];
+		info = io_info[io];
 		data = &io_data[io];
 
 		spi_pin = 0;
@@ -1853,7 +1686,7 @@ iram void io_periodic_fast(unsigned int rate_ms)
 
 	for(io = 0; io < io_id_size; io++)
 	{
-		info = &io_info[io];
+		info = io_info[io];
 		data = &io_data[io];
 
 		if(!data->detected)
@@ -1954,7 +1787,7 @@ void io_periodic_slow(unsigned int rate_ms)
 		if(!data->detected)
 			continue;
 
-		info = &io_info[io];
+		info = io_info[io];
 
 		if(!post_init_run && info->post_init_fn)
 			info->post_init_fn(info);
@@ -1992,7 +1825,7 @@ app_action_t application_function_io_mode(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(!data->detected)
@@ -2707,7 +2540,7 @@ app_action_t application_function_io_read(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 
 	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
@@ -2771,7 +2604,7 @@ app_action_t application_function_io_write(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 
 	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
@@ -2875,7 +2708,7 @@ app_action_t application_function_io_trigger(app_params_t *parameters)
 		return(app_action_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 
 	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
 	{
@@ -2943,7 +2776,7 @@ static app_action_t application_function_io_clear_set_flag(app_params_t *paramet
 		return(app_action_error);
 	}
 
-	info = &io_info[io];
+	info = io_info[io];
 	data = &io_data[io];
 
 	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
@@ -3168,7 +3001,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 		if((io_id >= 0) && (io_id != (int)io))
 			continue;
 
-		info = &io_info[io];
+		info = io_info[io];
 		data = &io_data[io];
 
 		string_format_flash_ptr(dst, (*roflash_strings)[ds_id_io], data->detected ? '*' : ' ', io, info->name, info->address);
