@@ -17446,3 +17446,15 @@ Sat Mar 25 18:14:10 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c i
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  71001, free:   9264, 11 %
     irom:    available: 784 k, used: 440016, free: 362800, 45 %
+Sat Mar 25 19:50:50 CET 2023 80454d5 io: make counters for triggers and rotary encoders available.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440048, free: 362768, 45 %
+Sat Mar 25 19:52:24 CET 2023 80454d5 io: make counters for triggers and rotary encoders available.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440064, free: 362752, 45 %
+Sat Mar 25 19:55:04 CET 2023 80454d5 io: make counters for triggers and rotary encoders available.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440016, free: 362800, 45 %

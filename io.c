@@ -458,6 +458,9 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 	switch(pin_config->mode)
 	{
 		case(io_pin_counter):
+		case(io_pin_trigger):
+		case(io_pin_rotary_encoder):
+		case(io_pin_pcint):
 		{
 			*value = pin_data->value;
 			break;
@@ -490,6 +493,9 @@ static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info
 	switch(pin_config->mode)
 	{
 		case(io_pin_counter):
+		case(io_pin_trigger):
+		case(io_pin_rotary_encoder):
+		case(io_pin_pcint):
 		{
 			pin_data->value = value;
 			break;
@@ -1570,6 +1576,8 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 
 			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
 			{
+				pin_data->value++;
+
 				for(id = io_id_first; id < io_id_size; id++)
 				{
 					info_entry = io_info[(unsigned int)id];
@@ -1590,12 +1598,17 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 		case(io_pin_trigger): // FIXME: add remote trigger to normal triggers
 		{
 			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+			{
+				pin_data->value++;
+
 				for(trigger = 0; trigger < max_triggers_per_pin; trigger++)
 					if(pin_config->shared.trigger[trigger].action != io_trigger_none)
 						io_trigger_pin((string_t *)0,
 								pin_config->shared.trigger[trigger].io.io,
 								pin_config->shared.trigger[trigger].io.pin,
 								pin_config->shared.trigger[trigger].action);
+
+			}
 
 			break;
 		}
@@ -1664,6 +1677,8 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 
 			if(trigger_action != io_trigger_none)
 			{
+				pin_data->value++;
+
 				if((remote_trigger = pin_config->shared.renc.trigger_pin.remote) >= 0)
 					remote_trigger_add((unsigned int)remote_trigger,
 							pin_config->shared.renc.trigger_pin.io,
@@ -2965,7 +2980,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"cfa634",
 		/* ds_id_lcd */				"lcd",
 		/* ds_id_spi */				"spi",
-		/* ds_id_pcint */			"pcint",
+		/* ds_id_pcint */			"pcint, counter: %u",
 		/* ds_id_unknown */			"unknown",
 		/* ds_id_max_value */		", max value: %u",
 		/* ds_id_info_1 */			", info: ",
@@ -3007,7 +3022,7 @@ static const roflash dump_string_t roflash_dump_strings =
 		/* ds_id_cfa634 */			"<td>cfa634</td>",
 		/* ds_id_lcd */				"<td>lcd</td>",
 		/* ds_id_spi */				"<td>spi</td>",
-		/* ds_id_pcint */			"<td>pcint</td>",
+		/* ds_id_pcint */			"<td>pcint, counter: %u</td>",
 		/* ds_id_unknown */			"<td>unknown</td>",
 		/* ds_id_max_value */		"<td>%u</td>",
 		/* ds_id_info_1 */			"<td>",
@@ -3082,6 +3097,9 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 			{
 				case(io_pin_input_digital):
 				case(io_pin_counter):
+				case(io_pin_trigger):
+				case(io_pin_rotary_encoder):
+				case(io_pin_pcint):
 				case(io_pin_output_digital):
 				case(io_pin_timer):
 				case(io_pin_input_analog):
@@ -3097,6 +3115,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 
 				default:
 				{
+					value = 0;
 					error = io_ok;
 					break;
 				}
@@ -3286,7 +3305,7 @@ void io_config_dump(string_t *dst, int io_id, int pin_id, bool html)
 
 				case(io_pin_pcint):
 				{
-					string_append_cstr_flash(dst, (*roflash_strings)[ds_id_pcint]);
+					string_format_flash_ptr(dst, (*roflash_strings)[ds_id_pcint], value);
 
 					break;
 				}
