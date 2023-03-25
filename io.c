@@ -1575,7 +1575,9 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 					if(info_entry->pin_change_int_fn)
 					{
 						data_entry = &io_data[(int)id];
-						info_entry->pin_change_int_fn((int)id, info_entry, data_entry);
+
+						if(data_entry->detected)
+							info_entry->pin_change_int_fn((int)id, info_entry, data_entry);
 					}
 				}
 			}
