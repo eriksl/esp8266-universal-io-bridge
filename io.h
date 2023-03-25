@@ -33,6 +33,7 @@ typedef enum
 	io_id_pcf_3a,
 	io_id_ledpixel,
 	io_id_pcf_26,
+	io_id_mcp_spi,
 	io_id_size,
 } io_id_t;
 

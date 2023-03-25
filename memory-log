@@ -17358,3 +17358,91 @@ Sat Mar 25 12:12:04 CET 2023 2dc2687 io_mcp: add external pin change interrupt.
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  70593, free:   9672, 12 %
     irom:    available: 784 k, used: 437744, free: 365072, 45 %
+Sat Mar 25 12:28:15 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 438048, free: 364768, 45 %
+Sat Mar 25 12:29:25 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 438000, free: 364816, 45 %
+Sat Mar 25 14:43:38 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 438992, free: 363824, 45 %
+Sat Mar 25 14:49:31 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439008, free: 363808, 45 %
+Sat Mar 25 14:54:46 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 438928, free: 363888, 45 %
+Sat Mar 25 14:56:03 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439008, free: 363808, 45 %
+Sat Mar 25 15:01:33 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439152, free: 363664, 45 %
+Sat Mar 25 15:13:45 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439136, free: 363680, 45 %
+Sat Mar 25 15:31:48 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439360, free: 363456, 45 %
+Sat Mar 25 15:36:36 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439344, free: 363472, 45 %
+Sat Mar 25 15:50:28 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439472, free: 363344, 45 %
+Sat Mar 25 15:54:47 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439584, free: 363232, 45 %
+Sat Mar 25 15:57:15 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439552, free: 363264, 45 %
+Sat Mar 25 16:07:09 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439744, free: 363072, 45 %
+Sat Mar 25 16:11:28 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439776, free: 363040, 45 %
+Sat Mar 25 17:50:05 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439840, free: 362976, 45 %
+Sat Mar 25 17:53:18 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 439856, free: 362960, 45 %
+Sat Mar 25 18:01:44 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440016, free: 362800, 45 %
+Sat Mar 25 18:08:08 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440080, free: 362736, 45 %
+Sat Mar 25 18:09:55 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440016, free: 362800, 45 %
+Sat Mar 25 18:11:06 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440032, free: 362784, 45 %
+Sat Mar 25 18:14:10 CET 2023 d0438b3 io_mcp: add hardware abstraction from i2c interface.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71001, free:   9264, 11 %
+    irom:    available: 784 k, used: 440016, free: 362800, 45 %

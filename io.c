@@ -13,6 +13,7 @@
 #include "dispatch.h"
 #include "remote_trigger.h"
 #include "spi.h"
+#include "io_mcp.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -51,6 +52,7 @@ static const io_info_entry_t *const io_info[io_id_size] =
 	&io_info_entry_pcf_3a,
 	&io_info_entry_ledpixel,
 	&io_info_entry_pcf_26,
+	&io_info_entry_mcp_spi,
 };
 
 static io_data_t io_data;

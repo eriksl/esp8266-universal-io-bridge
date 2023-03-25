@@ -23,6 +23,7 @@
 #include "font.h"
 #include "ota.h"
 #include "wlan.h"
+#include "io_mcp.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -2504,6 +2505,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"dp", "display-plot",
 		application_function_display_plot,
 		(void *)0,
+	},
+	{
+		"ims", "io-mcp-spi",
+		application_function_io_mcp_spi,
+		help_description_io_mcp_spi,
 	},
 	{
 		"flash-info", "flash-info",
