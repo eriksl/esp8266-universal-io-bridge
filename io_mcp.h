@@ -14,10 +14,8 @@ enum
 typedef enum
 {
 	io_mcp_instance_20 = 0,
-	io_mcp_instance_first = io_mcp_instance_20,
 	io_mcp_instance_21,
 	io_mcp_instance_22,
-	io_mcp_instance_last = io_mcp_instance_22,
 	io_mcp_instance_size
 } io_mcp_instance_t;
 

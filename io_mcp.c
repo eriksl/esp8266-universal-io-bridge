@@ -6,17 +6,23 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-enum
+typedef enum
 {
-	UNUSED = 0,
-	INTPOL,
-	ODR,
-	HAEN,
-	DISSLW,
-	SEQOP,
-	MIRROR,
-	BANK
-};
+	iocon_intpol_low =			0 << 1,
+	iocon_intpol_high =			1 << 1,
+	iocon_int_no_open_drain =	0 << 2,
+	iocon_int_open_drain =		1 << 2,
+	iocon_no_haen =				0 << 3,
+	iocon_haen =				1 << 3,
+	iocon_no_disslw =			0 << 4,
+	iocon_disslw =				1 << 4,
+	iocon_no_seqop =			1 << 5,
+	iocon_seqop =				0 << 5,
+	iocon_no_int_mirror =		0 << 6,
+	iocon_int_mirror =			1 << 6,
+	iocon_nobank =				0 << 7,
+	iocon_bank =				1 << 7,
+} iocon_bit_t;
 
 static uint32_t counters[io_mcp_instance_size];
 static uint8_t pin_output_cache[io_mcp_instance_size][2];
@@ -33,11 +39,6 @@ attr_inline int INTF(int s)			{ return(0x0e + s);	}
 attr_inline int INTCAP(int s)		{ return(0x10 + s);	}
 attr_inline int GPIO(int s)			{ return(0x12 + s);	}
 attr_inline int OLAT(int s)			{ return(0x14 + s);	}
-
-attr_inline int instance_index(const struct io_info_entry_T *info)
-{
-	return(info->instance - io_mcp_instance_first);
-}
 
 attr_inline io_error_t read_register(string_t *error_message, int address, int reg, int *value)
 {
@@ -101,15 +102,16 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 
 static io_error_t init(const struct io_info_entry_T *info)
 {
-	unsigned int iocon_value = (1 << DISSLW) | (1 << INTPOL | (0 << BANK));
+	static const unsigned int iocon_value = iocon_intpol_low | iocon_int_open_drain | iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
 	uint8_t i2c_buffer[1];
 
 	counters[info->instance] = 0;
 
 	// switch to linear mode, assuming config is in banked mode
-	// if config was in linear mode already, GPINTENB will be written instead of IOCON, but that's ok (value == 0)
+	// if config was in linear mode already, GPINTEN(1) will be written instead of IOCON
+	// fix this after the config is in lineair mode
 
-	if(i2c_send2(info->address, IOCON_banked(0), 0 << BANK) != i2c_error_ok)
+	if(i2c_send2(info->address, IOCON_banked(0), iocon_value) != i2c_error_ok)
 		return(io_error);
 
 	// config should be in linear mode now
@@ -123,8 +125,14 @@ static io_error_t init(const struct io_info_entry_T *info)
 	if(i2c_buffer[0] != iocon_value)
 		return(io_error);
 
-	pin_output_cache[instance_index(info)][0] = 0;
-	pin_output_cache[instance_index(info)][1] = 0;
+	if(i2c_send2(info->address, GPINTEN(0), 0x00) != i2c_error_ok)
+		return(io_error);
+
+	if(i2c_send2(info->address, GPINTEN(1), 0x00) != i2c_error_ok)
+		return(io_error);
+
+	pin_output_cache[info->instance][0] = 0;
+	pin_output_cache[info->instance][1] = 0;
 
 	return(io_ok);
 }
@@ -329,7 +337,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 				return(io_error);
 
 			olat = tv & (1 << bankpin);
-			cached = pin_output_cache[instance_index(info)][bank] & (1 << bankpin);
+			cached = pin_output_cache[info->instance][bank] & (1 << bankpin);
 
 			string_format(dst, "latch: %s, io: %s, cache: %s", onoff(io), onoff(olat), onoff(cached));
 
@@ -392,16 +400,16 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 		value = !value;
 
 	if(value)
-		pin_output_cache[instance_index(info)][bank] |= 1 << bankpin;
+		pin_output_cache[info->instance][bank] |= 1 << bankpin;
 	else
-		pin_output_cache[instance_index(info)][bank] &= ~(1 << bankpin);
+		pin_output_cache[info->instance][bank] &= ~(1 << bankpin);
 
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_output_digital):
 		{
 			if(write_register(error_message, info->address, GPIO(bank),
-						pin_output_cache[instance_index(info)][bank]) != io_ok)
+						pin_output_cache[info->instance][bank]) != io_ok)
 				return(io_error);
 
 			break;
@@ -421,7 +429,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 
 static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
 {
-	unsigned int index = instance_index(info);
+	unsigned int index = info->instance;
 
 	pin_output_cache[index][0] &= ~((mask & 0x00ff) >> 0);
 	pin_output_cache[index][1] &= ~((mask & 0xff00) >> 8);
