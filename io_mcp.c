@@ -40,12 +40,12 @@ attr_inline int INTCAP(int s)		{ return(0x10 + s);	}
 attr_inline int GPIO(int s)			{ return(0x12 + s);	}
 attr_inline int OLAT(int s)			{ return(0x14 + s);	}
 
-attr_inline io_error_t read_register(string_t *error_message, int address, int reg, int *value)
+static io_error_t read_register(string_t *error_message, const io_info_entry_t *info, unsigned int reg, unsigned int *value)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(info->address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -58,11 +58,33 @@ attr_inline io_error_t read_register(string_t *error_message, int address, int r
 	return(io_ok);
 }
 
-attr_inline io_error_t write_register(string_t *error_message, int address, int reg, int value)
+static io_error_t read_register_4(string_t *error_message, const io_info_entry_t *info, unsigned int reg,
+		unsigned int *value_0, unsigned int *value_1, unsigned int *value_2, unsigned int *value_3)
+{
+	uint8_t i2c_buffer[4];
+	i2c_error_t error;
+
+	if((error = i2c_send1_receive(info->address, reg, sizeof(i2c_buffer), i2c_buffer)) != i2c_error_ok)
+	{
+		if(error_message)
+			i2c_error_format_string(error_message, error);
+
+		return(io_error);
+	}
+
+	*value_0 = i2c_buffer[0];
+	*value_1 = i2c_buffer[1];
+	*value_2 = i2c_buffer[2];
+	*value_3 = i2c_buffer[3];
+
+	return(io_ok);
+}
+
+static io_error_t write_register(string_t *error_message, const io_info_entry_t *info, unsigned int reg, unsigned int value)
 {
 	i2c_error_t error;
 
-	if((error = i2c_send2(address, reg, value)) != i2c_error_ok)
+	if((error = i2c_send2(info->address, reg, value)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -73,12 +95,27 @@ attr_inline io_error_t write_register(string_t *error_message, int address, int 
 	return(io_ok);
 }
 
-attr_inline io_error_t clear_set_register(string_t *error_message, int address, int reg, int clearmask, int setmask)
+static io_error_t write_register_2(string_t *error_message, const io_info_entry_t *info, unsigned int reg, unsigned int value_0, unsigned int value_1)
+{
+	i2c_error_t error;
+
+	if((error = i2c_send3(info->address, reg, value_0, value_1)) != i2c_error_ok)
+	{
+		if(error_message)
+			i2c_error_format_string(error_message, error);
+
+		return(io_error);
+	}
+
+	return(io_ok);
+}
+
+static io_error_t clear_set_register(string_t *error_message, const io_info_entry_t *info, unsigned int reg, unsigned int clearmask, unsigned int setmask)
 {
 	uint8_t i2cbuffer[1];
 	i2c_error_t error;
 
-	if((error = i2c_send1_receive(address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
+	if((error = i2c_send1_receive(info->address, reg, sizeof(i2cbuffer), i2cbuffer)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -89,7 +126,7 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 	i2cbuffer[0] &= ~clearmask;
 	i2cbuffer[0] |= setmask;
 
-	if((error = i2c_send2(address, reg, i2cbuffer[0])) != i2c_error_ok)
+	if((error = i2c_send2(info->address, reg, i2cbuffer[0])) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -100,10 +137,10 @@ attr_inline io_error_t clear_set_register(string_t *error_message, int address, 
 	return(io_ok);
 }
 
-static io_error_t init(const struct io_info_entry_T *info)
+static io_error_t init(const io_info_entry_t *info)
 {
 	static const unsigned int iocon_value = iocon_intpol_low | iocon_int_open_drain | iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
-	uint8_t i2c_buffer[1];
+	unsigned int value;
 
 	counters[info->instance] = 0;
 
@@ -111,24 +148,24 @@ static io_error_t init(const struct io_info_entry_T *info)
 	// if config was in linear mode already, GPINTEN(1) will be written instead of IOCON
 	// fix this after the config is in lineair mode
 
-	if(i2c_send2(info->address, IOCON_banked(0), iocon_value) != i2c_error_ok)
+	if(write_register((string_t *)0, info, IOCON_banked(0), iocon_value) != io_ok)
 		return(io_error);
 
 	// config should be in linear mode now
 
-	if(i2c_send2(info->address, IOCON_linear(0), iocon_value) != i2c_error_ok)
+	if(write_register((string_t *)0, info, IOCON_linear(0), iocon_value) != io_ok)
 		return(io_error);
 
-	if(i2c_send1_receive(info->address, IOCON_linear(1), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok)
+	if(read_register((string_t *)0, info, IOCON_linear(1), &value) != io_ok)
 		return(io_error);
 
-	if(i2c_buffer[0] != iocon_value)
+	if(value != iocon_value)
 		return(io_error);
 
-	if(i2c_send2(info->address, GPINTEN(0), 0x00) != i2c_error_ok)
+	if(write_register((string_t *)0, info, GPINTEN(0), 0x00) != io_ok)
 		return(io_error);
 
-	if(i2c_send2(info->address, GPINTEN(1), 0x00) != i2c_error_ok)
+	if(write_register((string_t *)0, info, GPINTEN(1), 0x00) != io_ok)
 		return(io_error);
 
 	pin_output_cache[info->instance][0] = 0;
@@ -137,7 +174,7 @@ static io_error_t init(const struct io_info_entry_T *info)
 	return(io_ok);
 }
 
-static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
+static attr_pure unsigned int pin_max_value(const io_info_entry_t *info, io_data_pin_entry_t *data, const io_config_pin_entry_t *pin_config, unsigned int pin)
 {
 	unsigned int value = 0;
 
@@ -163,22 +200,16 @@ static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-static void periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
 {
-	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
 	unsigned int intcap[2];
 
 	if(!counters[info->instance])
 		return;
 
-	if(i2c_send1_receive(info->address, INTF(0), sizeof(i2c_buffer), i2c_buffer) != i2c_error_ok) // INTFA, INTFB, INTCAPA, INTCAPB
+	if(read_register_4((string_t *)0, info, INTF(0), &intf[0], &intf[1], &intcap[0], &intcap[1]) != io_ok) // INTFA, INTFB, INTCAPA, INTCAPB
 		return;
-
-	intf[0] = i2c_buffer[0];
-	intf[1] = i2c_buffer[1];
-	intcap[0] = i2c_buffer[2];
-	intcap[1] = i2c_buffer[3];
 
 	if((intf[0] != 0) || (intf[1] != 0))
 		dispatch_post_task(task_prio_low, task_pins_changed_mcp,
@@ -215,7 +246,7 @@ void io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint
 	}
 }
 
-static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t pin_mode(string_t *error_message, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
 	int bank, bankpin;
 
@@ -225,34 +256,34 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 
 	if((pin_config->llmode == io_pin_ll_input_digital) && (pin_config->flags & io_flag_invert))
 	{
-		if(clear_set_register(error_message, info->address, IPOL(bank), 0, 1 << bankpin) != io_ok) // input polarity inversion = 1
+		if(clear_set_register(error_message, info, IPOL(bank), 0, 1 << bankpin) != io_ok) // input polarity inversion = 1
 			return(io_error);
 	}
 	else
 	{
-		if(clear_set_register(error_message, info->address, IPOL(bank), 1 << bankpin, 0) != io_ok) // input polarity inversion = 0
+		if(clear_set_register(error_message, info, IPOL(bank), 1 << bankpin, 0) != io_ok) // input polarity inversion = 0
 			return(io_error);
 	}
 
-	if(clear_set_register(error_message, info->address, GPINTEN(bank), 1 << bankpin, 0) != io_ok) // pc int enable = 0
+	if(clear_set_register(error_message, info, GPINTEN(bank), 1 << bankpin, 0) != io_ok) // pc int enable = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, DEFVAL(bank), 1 << bankpin, 0) != io_ok) // compare value = 0
+	if(clear_set_register(error_message, info, DEFVAL(bank), 1 << bankpin, 0) != io_ok) // compare value = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, INTCON(bank), 1 << bankpin, 0) != io_ok) // compare source = 0
+	if(clear_set_register(error_message, info, INTCON(bank), 1 << bankpin, 0) != io_ok) // compare source = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, GPPU(bank), 1 << bankpin, 0) != io_ok) // pullup = 0
+	if(clear_set_register(error_message, info, GPPU(bank), 1 << bankpin, 0) != io_ok) // pullup = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, GPIO(bank), 1 << bankpin, 0) != io_ok) // gpio = 0
+	if(clear_set_register(error_message, info, GPIO(bank), 1 << bankpin, 0) != io_ok) // gpio = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, OLAT(bank), 1 << bankpin, 0) != io_ok) // latch = 0
+	if(clear_set_register(error_message, info, OLAT(bank), 1 << bankpin, 0) != io_ok) // latch = 0
 		return(io_error);
 
-	if(clear_set_register(error_message, info->address, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
+	if(clear_set_register(error_message, info, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
 		return(io_error);
 
 	switch(pin_config->llmode)
@@ -270,10 +301,10 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 
 		case(io_pin_ll_input_digital):
 		{
-			if((pin_config->flags & io_flag_pullup) && (clear_set_register(error_message, info->address, GPPU(bank), 0, 1 << bankpin) != io_ok))
+			if((pin_config->flags & io_flag_pullup) && (clear_set_register(error_message, info, GPPU(bank), 0, 1 << bankpin) != io_ok))
 				return(io_error);
 
-			if((pin_config->llmode == io_pin_ll_counter) && (clear_set_register(error_message, info->address, GPINTEN(bank), 0, 1 << bankpin) != io_ok)) // pc int enable = 1
+			if((pin_config->llmode == io_pin_ll_counter) && (clear_set_register(error_message, info, GPINTEN(bank), 0, 1 << bankpin) != io_ok)) // pc int enable = 1
 				return(io_error);
 
 			break;
@@ -281,7 +312,7 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 
 		case(io_pin_ll_output_digital):
 		{
-			if(clear_set_register(error_message, info->address, IODIR(bank), 1 << bankpin, 0) != io_ok) // direction = 0
+			if(clear_set_register(error_message, info, IODIR(bank), 1 << bankpin, 0) != io_ok) // direction = 0
 				return(io_error);
 
 			break;
@@ -299,9 +330,10 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 	return(io_ok);
 }
 
-static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
+static io_error_t get_pin_info(string_t *dst, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
 {
-	int bank, bankpin, tv;
+	int bank, bankpin;
+	unsigned int tv;
 	int io, olat, cached;
 
 	bank = (pin & 0x08) >> 3;
@@ -313,7 +345,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	{
 		case(io_pin_ll_input_analog):
 		{
-			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
+			if(read_register(dst, info, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
 			string_format(dst, "current io: %s", onoff(tv & (1 << bankpin)));
@@ -323,7 +355,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 
 		case(io_pin_ll_counter):
 		{
-			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
+			if(read_register(dst, info, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
 			string_format(dst, "current io: %s", onoff(tv & (1 << bankpin)));
@@ -333,12 +365,12 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 
 		case(io_pin_ll_output_digital):
 		{
-			if(read_register(dst, info->address, GPIO(bank), &tv) != io_ok)
+			if(read_register(dst, info, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
 			io = tv & (1 << bankpin);
 
-			if(read_register(dst, info->address, OLAT(bank), &tv) != io_ok)
+			if(read_register(dst, info, OLAT(bank), &tv) != io_ok)
 				return(io_error);
 
 			olat = tv & (1 << bankpin);
@@ -357,9 +389,10 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 	return(io_ok);
 }
 
-static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
+static io_error_t read_pin(string_t *error_message, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int *value)
 {
-	int bank, bankpin, tv;
+	int bank, bankpin;
+	unsigned int tv;
 
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
@@ -371,7 +404,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 		case(io_pin_ll_input_digital):
 		case(io_pin_ll_output_digital):
 		{
-			if(read_register(error_message, info->address, GPIO(bank), &tv) != io_ok)
+			if(read_register(error_message, info, GPIO(bank), &tv) != io_ok)
 				return(io_error);
 
 			*value = !!(tv & (1 << bankpin));
@@ -394,7 +427,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 	return(io_ok);
 }
 
-static io_error_t write_pin(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
+static io_error_t write_pin(string_t *error_message, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin, unsigned int value)
 {
 	int bank, bankpin;
 
@@ -413,7 +446,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 	{
 		case(io_pin_ll_output_digital):
 		{
-			if(write_register(error_message, info->address, GPIO(bank),
+			if(write_register(error_message, info, GPIO(bank),
 						pin_output_cache[info->instance][bank]) != io_ok)
 				return(io_error);
 
@@ -432,7 +465,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 	return(io_ok);
 }
 
-static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T *info, unsigned int mask, unsigned int pins)
+static io_error_t set_mask(string_t *error_message, const io_info_entry_t *info, unsigned int mask, unsigned int pins)
 {
 	unsigned int index = info->instance;
 
@@ -441,7 +474,7 @@ static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T
 	pin_output_cache[index][0] |= (pins & 0x00ff) >> 0;
 	pin_output_cache[index][1] |= (pins & 0xff00) >> 8;
 
-	if(i2c_send3(info->address, GPIO(0), pin_output_cache[index][0], pin_output_cache[index][1]) != i2c_error_ok)
+	if(write_register_2(error_message, info, GPIO(0), pin_output_cache[index][0], pin_output_cache[index][1]) != io_ok)
 		return(io_error);
 
 	return(io_ok);
