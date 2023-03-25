@@ -163,7 +163,7 @@ static attr_pure unsigned int pin_max_value(const struct io_info_entry_T *info, 
 	return(value);
 }
 
-static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
+static void periodic_slow(int io, const struct io_info_entry_T *info, io_data_entry_t *data, unsigned int rate_ms)
 {
 	uint8_t i2c_buffer[4];
 	unsigned int intf[2];
@@ -183,6 +183,11 @@ static void periodic_fast(int io, const struct io_info_entry_T *info, io_data_en
 	if((intf[0] != 0) || (intf[1] != 0))
 		dispatch_post_task(task_prio_low, task_pins_changed_mcp,
 				(intf[1] << 8) | (intf[0] << 0),  (intcap[1] << 8) | (intcap[0] << 0), info->id);
+}
+
+static void pin_change_handler(int io, io_info_entry_t *info, io_data_entry_t *data)
+{
+	periodic_slow(io, info, data, 0);
 }
 
 void io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t io)
@@ -247,6 +252,9 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 	if(clear_set_register(error_message, info->address, OLAT(bank), 1 << bankpin, 0) != io_ok) // latch = 0
 		return(io_error);
 
+	if(clear_set_register(error_message, info->address, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
+		return(io_error);
+
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_disabled):
@@ -262,9 +270,6 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 
 		case(io_pin_ll_input_digital):
 		{
-			if(clear_set_register(error_message, info->address, IODIR(bank), 0, 1 << bankpin) != io_ok) // direction = 1
-				return(io_error);
-
 			if((pin_config->flags & io_flag_pullup) && (clear_set_register(error_message, info->address, GPPU(bank), 0, 1 << bankpin) != io_ok))
 				return(io_error);
 
@@ -457,9 +462,9 @@ roflash const io_info_entry_t io_info_entry_mcp_20 =
 	init,
 	(void *)0, // postinit
 	pin_max_value,
-	(void *)0, // periodic slow
-	periodic_fast,
-	(void *)0, // pin change handler
+	periodic_slow,
+	(void *)0, // periodic fast
+	pin_change_handler,
 	pin_mode,
 	get_pin_info,
 	read_pin,
@@ -482,9 +487,9 @@ roflash const io_info_entry_t io_info_entry_mcp_21 =
 	init,
 	(void *)0, // postinit
 	pin_max_value,
-	(void *)0, // periodic slow
-	periodic_fast,
-	(void *)0, // pin change handler
+	periodic_slow,
+	(void *)0, // periodic fast
+	pin_change_handler,
 	pin_mode,
 	get_pin_info,
 	read_pin,
@@ -507,9 +512,9 @@ roflash const io_info_entry_t io_info_entry_mcp_22 =
 	init,
 	(void *)0, // postinit
 	pin_max_value,
-	(void *)0, // periodic slow,
-	periodic_fast,
-	(void *)0, // pin change handler
+	periodic_slow,
+	(void *)0, // periodic fast
+	pin_change_handler,
 	pin_mode,
 	get_pin_info,
 	read_pin,

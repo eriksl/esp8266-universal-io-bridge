@@ -17342,3 +17342,11 @@ Sat Mar 25 11:10:01 CET 2023 1066323 io_pcf: implement pin-change-interrupt.
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  70593, free:   9672, 12 %
     irom:    available: 784 k, used: 437872, free: 364944, 45 %
+Sat Mar 25 11:38:59 CET 2023 ee63ef0 io_mcp: make output interrupt pins open drain and mirrored.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437904, free: 364912, 45 %
+Sat Mar 25 11:39:55 CET 2023 ee63ef0 io_mcp: make output interrupt pins open drain and mirrored.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  70593, free:   9672, 12 %
+    irom:    available: 784 k, used: 437920, free: 364896, 45 %
