@@ -613,7 +613,7 @@ iram void logchar_sdk(char c)
 	}
 }
 
-void msleep(int msec)
+iram void msleep(int msec)
 {
 	while(msec-- > 0)
 	{
