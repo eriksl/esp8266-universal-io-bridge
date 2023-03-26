@@ -1135,7 +1135,8 @@ void io_init(void)
 
 			if((mode == io_pin_disabled) || (llmode == io_pin_ll_disabled))
 			{
-				if((io == 0) && (pin == 1))		// emergency mode if no config present, make sure serial output works
+				if(((io == 0) && (pin == 1)) ||		// emergency mode if no config present,
+					((io == 0) && (pin == 3)))		// make sure serial input and output works
 				{
 					mode = io_pin_uart;
 					llmode = io_pin_ll_uart;
