@@ -38,8 +38,9 @@ static unsigned int association_state_time;
 
 static struct attr_packed
 {
-	unsigned int associated:1;
+	unsigned int bootstrap_mode:1;
 	unsigned int recovery_mode:1;
+	unsigned int associated:1;
 } flags;
 
 assert_size(flags, 1);
@@ -96,6 +97,8 @@ static void wlan_event_handler(System_Event_t *event)
 
 			wlan_multicast_init_groups();
 			time_sntp_start();
+
+			flags.recovery_mode = 0;
 			flags.associated = 1;
 			association_state_time = 0;
 
@@ -115,7 +118,6 @@ static void wlan_event_handler(System_Event_t *event)
 
 			flags.associated = 0;
 			association_state_time = 0;
-			dispatch_post_task(task_prio_high, task_wlan_reconnect, 0, 0, 0);
 
 			[[fallthrough]];
 		}
@@ -132,13 +134,14 @@ void wlan_init(void)
 	access_points.entries = 0;
 	access_points.selected = 0;
 	access_points.scanning = 0;
+	flags.bootstrap_mode = 1;
 	flags.recovery_mode = 0;
 	flags.associated = 0;
 	association_state_time = 0;
 	power_save_enable(config_flags_match(flag_wlan_power_save));
 	wifi_station_ap_number_set(0);
-	wifi_station_set_auto_connect(false);
-	wifi_station_set_reconnect_policy(false);
+	wifi_station_set_auto_connect(true);
+	wifi_station_set_reconnect_policy(true);
 	wifi_set_phy_mode(PHY_MODE_11N);
 	wifi_set_event_handler_cb(wlan_event_handler);
 }
@@ -149,26 +152,24 @@ void wlan_periodic(void)
 
 	association_state_time++;
 
-	// fallback to config-ap-mode when not connected or no ip within 60 seconds, reset after 5 minutes.
-
-	if(!flags.associated)
+	if(flags.associated)
 	{
+		if(flags.bootstrap_mode && (association_state_time > 60))
+		{
+			flags.bootstrap_mode = 0;
+			dispatch_post_task(task_prio_high, task_wlan_reconnect, 0, 0, 0);
+		}
+	}
+	else
+	{
+		// fallback to config-ap-mode when not connected or no ip within 60 seconds, reset after 5 minutes.
+
 		if(!flags.recovery_mode && (association_state_time > 60))
 			dispatch_post_task(task_prio_high, task_wlan_recovery, 0, 0, 0);
 		else
 			if(association_state_time > 300)
 				dispatch_post_task(task_prio_high, task_reset, 0, 0, 0);
 	}
-}
-
-static void wlan_deassociate(void)
-{
-	struct station_config cconf;
-
-	wifi_station_disconnect();
-	memset(&cconf, 0, sizeof(cconf));
-	wifi_station_set_config(&cconf);
-	wifi_station_set_config_current(&cconf);
 }
 
 static void wlan_associate_callback(void *arg, STATUS status)
@@ -233,22 +234,30 @@ static void wlan_associate_callback(void *arg, STATUS status)
 	}
 
 	ap = &access_points.ap[access_points.selected];
-	memset(&cconf, 0, sizeof(cconf));
-	strecpy((char *)cconf.ssid, access_points.ssid, sizeof(cconf.ssid));
-	strecpy((char *)cconf.password, access_points.password, sizeof(cconf.password));
-	cconf.bssid_set = 1;
-	cconf.bssid[0] = ap->mac[0];
-	cconf.bssid[1] = ap->mac[1];
-	cconf.bssid[2] = ap->mac[2];
-	cconf.bssid[3] = ap->mac[3];
-	cconf.bssid[4] = ap->mac[4];
-	cconf.bssid[5] = ap->mac[5];
-	cconf.channel = ap->channel;
-	cconf.all_channel_scan = 0;
-	cconf.threshold.rssi = 0;
-	cconf.threshold.authmode = AUTH_OPEN;
-	wifi_station_set_config_current(&cconf);
-	wifi_station_connect();
+
+	if(flags.associated && (wifi_get_channel() == ap->channel))
+		log("[wlan] already associated to optimal access point\n");
+	else
+	{
+		log("[wlan] reconnecting to optimal access point\n");
+
+		memset(&cconf, 0, sizeof(cconf));
+		strecpy((char *)cconf.ssid, access_points.ssid, sizeof(cconf.ssid));
+		strecpy((char *)cconf.password, access_points.password, sizeof(cconf.password));
+		cconf.bssid_set = 1;
+		cconf.bssid[0] = ap->mac[0];
+		cconf.bssid[1] = ap->mac[1];
+		cconf.bssid[2] = ap->mac[2];
+		cconf.bssid[3] = ap->mac[3];
+		cconf.bssid[4] = ap->mac[4];
+		cconf.bssid[5] = ap->mac[5];
+		cconf.channel = ap->channel;
+		cconf.all_channel_scan = 0;
+		cconf.threshold.rssi = 0;
+		cconf.threshold.authmode = AUTH_OPEN;
+		wifi_station_set_config(&cconf);
+		wifi_station_connect();
+	}
 }
 
 static bool wlan_associate(string_t *ssid, string_t *password)
@@ -272,8 +281,6 @@ static bool wlan_associate(string_t *ssid, string_t *password)
 		log("[wlan] duplicate association request\n");
 		return(true);
 	}
-
-	wlan_deassociate();
 
 	if(!wifi_set_opmode_current(STATION_MODE))
 		return(false);
@@ -309,7 +316,7 @@ static bool wlan_access_point(string_t *ssid, string_t *password, unsigned int c
 	saconf.max_connection = 1;
 	saconf.beacon_interval = 100;
 
-	wlan_deassociate();
+	wifi_station_disconnect();
 
 	if(!wifi_set_opmode_current(SOFTAP_MODE))
 		return(false);
@@ -320,13 +327,15 @@ static bool wlan_access_point(string_t *ssid, string_t *password, unsigned int c
 	return(true);
 }
 
-bool wlan_start(void)
+bool wlan_reconnect(void)
 {
 	unsigned int mode_int;
 	config_wlan_mode_t mode;
 	string_new(, ssid, 64);
 	string_new(, password, 64);
 	unsigned int channel;
+
+	log("[wlan] start reconnect\n");
 
 	if(config_get_uint("wlan.mode", &mode_int, -1, -1))
 		mode = (config_wlan_mode_t)mode_int;
@@ -375,7 +384,9 @@ void wlan_start_recovery(void)
 	uart_invert(0, uart_dir_rx, false);
 	uart_loopback(0, false);
 
+	flags.bootstrap_mode = 0;
 	flags.recovery_mode = 1;
+	flags.associated = 0;
 	association_state_time = 0;
 
 	wlan_access_point(&wlan_default_ssid, &wlan_default_password, 1);
@@ -454,6 +465,9 @@ void stats_wlan(string_t *dst)
 			string_append(dst, "associated");
 		else
 			string_append(dst, "not associated");
+
+	if(flags.bootstrap_mode)
+		string_append(dst, ", in bootstrap mode");
 
 	string_format(dst, " for %u sec\n", association_state_time);
 
@@ -838,7 +852,7 @@ app_action_t application_function_wlan_mode(app_params_t *parameters)
 				return(app_action_error);
 			}
 
-			wlan_start();
+			wlan_reconnect();
 
 			return(app_action_disconnect);
 		}
@@ -856,7 +870,7 @@ app_action_t application_function_wlan_mode(app_params_t *parameters)
 				return(app_action_error);
 			}
 
-			wlan_start();
+			wlan_reconnect();
 
 			return(app_action_disconnect);
 		}

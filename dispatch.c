@@ -498,7 +498,7 @@ drop:
 
 		case(task_wlan_reconnect):
 		{
-			if(!wlan_start())
+			if(!wlan_reconnect())
 				log("[dispatch] wlan start failed\n");
 			break;
 		}

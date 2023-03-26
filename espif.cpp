@@ -1839,6 +1839,7 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 	std::vector<std::string> string_value;
 	std::vector<int> int_value;
 	std::string send_data;
+	Packet packet;
 	static const char *flash_select_expect = "OK flash-select: slot ([0-9]+) selected, sector ([0-9]+), permanent ([0-1])";
 
 	send_data = (boost::format("flash-select %u %u") % flash_slot % (notemp ? 1 : 0)).str();
@@ -1865,27 +1866,32 @@ void commit_ota(GenericSocket &command_channel, unsigned int flash_slot, unsigne
 
 	std::cout << "rebooting... ";
 
-	try
-	{
-		process(command_channel, "reset", nullptr, reply, nullptr, "> reset", nullptr, nullptr);
-	}
-	catch(...)
-	{
-		std::cout << "* ";
-	}
+	packet.clear();
+	packet.append_data("reset\n");
+	send_data = packet.encapsulate(option_raw, !option_no_provide_checksum, !option_no_request_checksum, option_broadcast_group_mask);
+	command_channel.send(send_data);
 
-	command_channel.disconnect();
-
-	for(unsigned int ix = 10; ix > 0; ix--)
+	for(unsigned int ix = 0; ix < 30; ix++)
 	{
-		std::cout << ix << " ";
-		std::flush(std::cout);
-		usleep(1000000);
+		try
+		{
+			command_channel.disconnect();
+			command_channel.connect();
+			process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, &string_value, &int_value);
+		}
+		catch(std::string &e)
+		{
+			std::cout << ix << " ";
+			std::flush(std::cout);
+			usleep(100000);
+			continue;
+		}
+
+		break;
 	}
 
 	std::cout << std::endl;
 
-	command_channel.connect();
 	std::cout << "reboot finished" << std::endl;
 
 	process(command_channel, "flash-info", nullptr, reply, nullptr, flash_info_expect, &string_value, &int_value);
