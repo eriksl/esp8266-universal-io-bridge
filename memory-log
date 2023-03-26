@@ -17458,3 +17458,87 @@ Sat Mar 25 19:55:04 CET 2023 80454d5 io: make counters for triggers and rotary e
     iram:    available:  32 k, used:  29385, free:   3383, 10 %
     dram:    available:  78 k, used:  71065, free:   9200, 11 %
     irom:    available: 784 k, used: 440016, free: 362800, 45 %
+Sun Mar 26 10:58:23 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440000, free: 362816, 45 %
+Sun Mar 26 11:00:42 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71033, free:   9232, 11 %
+    irom:    available: 784 k, used: 438976, free: 363840, 45 %
+Sun Mar 26 11:01:51 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71033, free:   9232, 11 %
+    irom:    available: 784 k, used: 438912, free: 363904, 45 %
+Sun Mar 26 11:04:15 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71033, free:   9232, 11 %
+    irom:    available: 784 k, used: 438880, free: 363936, 45 %
+Sun Mar 26 11:05:19 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71033, free:   9232, 11 %
+    irom:    available: 784 k, used: 438832, free: 363984, 45 %
+Sun Mar 26 11:24:18 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440016, free: 362800, 45 %
+Sun Mar 26 11:27:48 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440032, free: 362784, 45 %
+Sun Mar 26 11:38:28 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440176, free: 362640, 45 %
+Sun Mar 26 11:41:33 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29385, free:   3383, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440160, free: 362656, 45 %
+Sun Mar 26 11:56:47 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29481, free:   3287, 10 %
+    dram:    available:  78 k, used:  71069, free:   9196, 11 %
+    irom:    available: 784 k, used: 440192, free: 362624, 45 %
+Sun Mar 26 11:59:47 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29473, free:   3295, 10 %
+    dram:    available:  78 k, used:  71069, free:   9196, 11 %
+    irom:    available: 784 k, used: 440192, free: 362624, 45 %
+Sun Mar 26 12:00:29 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29329, free:   3439, 10 %
+    dram:    available:  78 k, used:  71069, free:   9196, 11 %
+    irom:    available: 784 k, used: 440192, free: 362624, 45 %
+Sun Mar 26 12:02:54 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29333, free:   3435, 10 %
+    dram:    available:  78 k, used:  71069, free:   9196, 11 %
+    irom:    available: 784 k, used: 440192, free: 362624, 45 %
+Sun Mar 26 12:23:41 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29333, free:   3435, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440224, free: 362592, 45 %
+Sun Mar 26 12:37:45 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29429, free:   3339, 10 %
+    dram:    available:  78 k, used:  71065, free:   9200, 11 %
+    irom:    available: 784 k, used: 440224, free: 362592, 45 %
+Sun Mar 26 12:38:14 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29429, free:   3339, 10 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440192, free: 362624, 45 %
+Sun Mar 26 12:40:53 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29961, free:   2807,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440288, free: 362528, 45 %
+Sun Mar 26 12:46:11 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29985, free:   2783,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440288, free: 362528, 45 %
+Sun Mar 26 12:47:38 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29989, free:   2779,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440288, free: 362528, 45 %
+Sun Mar 26 12:48:43 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29993, free:   2775,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440288, free: 362528, 45 %
+Sun Mar 26 12:56:36 CEST 2023 d95061b io: when booted without config, make sure both serial input and output are enabled.
+    iram:    available:  32 k, used:  29993, free:   2775,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440304, free: 362512, 45 %

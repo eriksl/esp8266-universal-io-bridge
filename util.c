@@ -126,16 +126,28 @@ iram unsigned int flash_to_dram(bool cstr, const void *src_flash_unaligned, char
 	return(dst_dram_index);
 }
 
-void string_format_cstr(string_t *dst, const char *fmt, ...)
+iram void string_format_cstr(string_t *dst, const char *fmt, ...)
 {
 	va_list ap;
+	int rendered_length, buffer_remaining;
+
+	// no space left at all, do nothing
+
+	if((buffer_remaining = dst->size - dst->length - 1) <= 0)
+		return;
 
 	va_start(ap, fmt);
-	dst->length += vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
+	rendered_length = vsnprintf(dst->buffer + dst->length, dst->size - dst->length - 1, fmt, ap);
 	va_end(ap);
 
-	if(dst->length > (dst->size - 1))
-		dst->length = dst->size - 1;
+	// some snprintf implementations can return -1 when output doesn't fit the output buffer
+	// some snprintf implementations can return the original buffer size when the output doesn't fit the output buffer
+	// this means we can't always rely on the return value, assume vsnprintf filled all of the buffer_remaining space in those cases
+
+	if((rendered_length < 0) || (rendered_length > buffer_remaining))
+		rendered_length = buffer_remaining;
+
+	dst->length += rendered_length;
 
 	dst->buffer[dst->length] = '\0';
 }
@@ -466,7 +478,6 @@ bool flash_buffer_using_3(flash_sector_buffer_use_t one, flash_sector_buffer_use
 }
 
 unsigned int logbuffer_display_current = 0;
-static bool newline_logged = true;
 
 string_t logbuffer =
 {
@@ -509,62 +520,60 @@ void logbuffer_clear(void)
 	string_clear(&logbuffer);
 }
 
-static void log_date_time(void)
+static iram void log_finish(const string_t *from)
 {
-	unsigned int month, day, hour, minute, second;
+	static bool newline_logged = true;
+	string_new(, timedate, 32);
 
-	time_get(&hour, &minute, &second, (unsigned int *)0, &month, &day);
-
-	if(config_flags_match(flag_log_date) && config_flags_match(flag_log_time))
-	{
-		string_format(&logbuffer, "%02u/%02u %02u:%02u ", month, day, hour, minute);
+	if(newline_logged && string_front(from) == '\n')
 		return;
-	}
 
-	if(config_flags_match(flag_log_date))
-		string_format(&logbuffer, "%02u/%02u ", month, day);
-
-	if(config_flags_match(flag_log_time))
-		string_format(&logbuffer, "%02u:%02u:%02u ", hour, minute, second);
-}
-
-static void log_finish(const string_t *from, string_t *to)
-{
 	if(config_flags_match(flag_log_to_uart))
 		uart_send_string(0, from);
 
 	if(config_flags_match(flag_log_to_buffer))
 	{
-		if((string_length(to) + string_length(from)) >= string_size(to))
+		if(newline_logged && (config_flags_match(flag_log_date) || config_flags_match(flag_log_time)))
+		{
+			unsigned int month, day, hour, minute, second;
+
+			time_get(&hour, &minute, &second, (unsigned int *)0, &month, &day);
+
+			if(config_flags_match(flag_log_date) && config_flags_match(flag_log_time))
+				string_format_cstr(&timedate, "%02u/%02u %02u:%02u ", month, day, hour, minute);
+			else
+				if(config_flags_match(flag_log_date))
+					string_format_cstr(&timedate, "%02u/%02u ", month, day);
+				else
+					if(config_flags_match(flag_log_time))
+						string_format_cstr(&timedate, "%02u:%02u:%02u ", hour, minute, second);
+		}
+
+		if((string_length(from) + string_length(&timedate) + string_length(&logbuffer)) >= string_size(&logbuffer))
 			logbuffer_clear();
 
-		string_append_string(to, from);
+		string_append_string(&logbuffer, &timedate);
+		string_append_string(&logbuffer, from);
 	}
 
-	newline_logged = string_at(from, string_length(from) - 1);
+	newline_logged = string_back(from) == '\n';
 }
 
-void log_from_flash_0(const char *data_in_flash)
+iram void log_from_flash_0(const char *data_in_flash)
 {
 	int length;
-
-	if(config_flags_match(flag_log_to_buffer) && newline_logged)
-		log_date_time();
 
 	length = flash_to_dram(true, data_in_flash, string_buffer_nonconst(&flash_dram), string_size(&flash_dram));
 	string_setlength(&flash_dram, length);
 
-	log_finish(&flash_dram, &logbuffer);
+	log_finish(&flash_dram);
 }
 
-void log_from_flash_n(const char *fmt_in_flash, ...)
+iram void log_from_flash_n(const char *fmt_in_flash, ...)
 {
 	int length;
 	va_list ap;
 	char fmt_in_dram[128];
-
-	if(config_flags_match(flag_log_to_buffer) && newline_logged)
-		log_date_time();
 
 	flash_to_dram(true, fmt_in_flash, fmt_in_dram, sizeof(fmt_in_dram));
 
@@ -577,28 +586,30 @@ void log_from_flash_n(const char *fmt_in_flash, ...)
 
 	string_setlength(&flash_dram, length);
 
-	log_finish(&flash_dram, &logbuffer);
+	log_finish(&flash_dram);
 }
 
-iram void logchar(char c)
+iram void logchar_sdk(char c)
 {
-	if(config_flags_match(flag_log_to_uart))
+	static bool nl_seen = true;
+
+	if(c == '\n')
 	{
-		uart_send(0, c);
-		uart_flush(0);
+		nl_seen = true;
+		log("\n");
 	}
-
-	if(config_flags_match(flag_log_to_buffer))
+	else
 	{
-		if(newline_logged)
-			log_date_time();
+		if((c < ' ') || (c > '~'))
+			c = ' ';
 
-		if((logbuffer.length + 1) >= logbuffer.size)
-			logbuffer_clear();
-
-		string_append_char(&logbuffer, c);
-
-		newline_logged = (c == '\n');
+		if(nl_seen)
+		{
+			nl_seen = false;
+			log("[sdk] %c", c);
+		}
+		else
+			log("%c", c);
 	}
 }
 

@@ -79,7 +79,7 @@ void user_init(void)
 	uart_init();
 	uart_set_initial(0);
 	uart_set_initial(1);
-	os_install_putc1(&logchar);
+	os_install_putc1(&logchar_sdk);
 	system_set_os_print(1);
 	wlan_init();
 	system_init_done_cb(user_init2);

@@ -189,7 +189,7 @@ do { \
 	log_from_flash_n(log_fmt_flash, p1, p2, p3, p4); \
 } while(0)
 
-void logchar(char c);
+void logchar_sdk(char c);
 
 extern char		flash_dram_buffer[1024];
 extern string_t flash_dram;
@@ -363,6 +363,22 @@ attr_inline attr_nonnull char string_at(const string_t *s, int at)
 		return(s->buffer[at]);
 	else
 		return('\0');
+}
+
+attr_inline attr_nonnull char string_front(const string_t *s)
+{
+	if((s->size < s->length) || (s->length == 0))
+		return('\0');
+
+	return(s->buffer[0]);
+}
+
+attr_inline attr_nonnull char string_back(const string_t *s)
+{
+	if((s->size < s->length) || (s->length == 0))
+		return('\0');
+
+	return(s->buffer[s->length - 1]);
 }
 
 attr_inline attr_nonnull bool string_printable(const string_t *s, int at)

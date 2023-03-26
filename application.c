@@ -1468,17 +1468,12 @@ static app_action_t application_function_log_clear(app_params_t *parameters)
 static app_action_t application_function_log_write(app_params_t *parameters)
 {
 	string_new(, text, 64);
-	unsigned int start, current, length;
+	unsigned int start;
 
 	if((start = string_sep(parameters->src, 0, 1, ' ')) > 0)
 	{
 		string_splice(&text, 0, parameters->src, start, -1);
-		length = string_length(&text);
-
-		for(current = 0; current < length; current++)
-			logchar(string_at(&text, current));
-
-		logchar('\n');
+		log("%s\n", string_to_cstr(&text));
 	}
 
 	string_append(parameters->dst, "log write ok\n");
