@@ -913,6 +913,12 @@ static app_action_t application_function_uart_write(app_params_t *parameters)
 		return(app_action_error);
 	}
 
+	if(uart > 1)
+	{
+		string_append(parameters->dst, "> uart-write: uart should be 0 or 1\n");
+		return(app_action_error);
+	}
+
 	length = string_length(parameters->src) - start;
 
 	if(length > 0)
@@ -951,7 +957,13 @@ static app_action_t application_function_uart_write_hex(app_params_t *parameters
 
 	if(parse_uint(1, parameters->src, &uart, 0, ' ') != parse_ok)
 	{
-		string_append(parameters->dst, "> usage: uart-write <uart id> <hex byte> [<hex byte>]\n");
+		string_append(parameters->dst, "> usage: uart-write-hex <uart id> <hex byte> [<hex byte>]\n");
+		return(app_action_error);
+	}
+
+	if(uart > 1)
+	{
+		string_append(parameters->dst, "> uart-write-hex: uart should be 0 or 1\n");
 		return(app_action_error);
 	}
 

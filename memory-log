@@ -17542,3 +17542,15 @@ Sun Mar 26 12:56:36 CEST 2023 d95061b io: when booted without config, make sure 
     iram:    available:  32 k, used:  29993, free:   2775,  8 %
     dram:    available:  78 k, used:  71113, free:   9152, 11 %
     irom:    available: 784 k, used: 440304, free: 362512, 45 %
+Sun Apr  2 13:02:01 CEST 2023 f19e1cf util: move msleep to iram.
+    iram:    available:  32 k, used:  29993, free:   2775,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440256, free: 362560, 45 %
+Tue Apr  4 15:30:09 CEST 2023 f19e1cf util: move msleep to iram.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440592, free: 362224, 45 %
+Fri Apr 21 14:19:18 CEST 2023 f19e1cf util: move msleep to iram.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440720, free: 362096, 45 %

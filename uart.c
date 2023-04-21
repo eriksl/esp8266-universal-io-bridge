@@ -147,6 +147,9 @@ iram attr_pure bool uart_full(unsigned int uart)
 		return(true);
 	}
 
+	if(uart > 1)
+		return(false);
+
 	return(queue_full(&uart_send_queue[uart]));
 }
 
@@ -157,6 +160,9 @@ iram void uart_send(unsigned int uart, unsigned int byte)
 		stat_uart.spurious++;
 		return;
 	}
+
+	if(uart > 1)
+		return;
 
 	if(!queue_full(&uart_send_queue[uart]))
 		queue_push(&uart_send_queue[uart], byte);
@@ -170,6 +176,9 @@ iram void uart_flush(unsigned int uart)
 		return;
 	}
 
+	if(uart > 1)
+		return;
+
 	enable_transmit_int(uart, !queue_empty(&uart_send_queue[uart]));
 }
 
@@ -182,6 +191,9 @@ iram void uart_send_string(unsigned int uart, const string_t *string)
 		stat_uart.spurious++;
 		return;
 	}
+
+	if(uart > 1)
+		return;
 
 	for(current = 0, length = string_length(string); (current < length) && !queue_full(&uart_send_queue[uart]); current++)
 		queue_push(&uart_send_queue[uart], string_at(string, current));
@@ -219,6 +231,9 @@ iram void uart_clear_receive_queue(unsigned int uart)
 		return;
 	}
 
+	if(uart > 1)
+		return;
+
 	queue_flush(&uart_receive_queue);
 }
 
@@ -234,6 +249,9 @@ void uart_task_handler_fetch_fifo(unsigned int uart)
 		stat_uart.spurious++;
 		return;
 	}
+
+	if(uart > 1)
+		return;
 
 	// make sure to fetch all data from the fifo, or we'll get a another
 	// interrupt immediately after we enable it
@@ -264,6 +282,9 @@ void uart_task_handler_fill_fifo(unsigned int uart)
 		return;
 	}
 
+	if(uart > 1)
+		return;
+
 	if(autofill_info[uart].enabled)
 	{
 		while(tx_fifo_length(uart) < 127)
@@ -282,6 +303,15 @@ void uart_task_handler_fill_fifo(unsigned int uart)
 
 void uart_baudrate(unsigned int uart, unsigned int baudrate)
 {
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return;
+	}
+
+	if(uart > 1)
+		return;
+
 	if(baudrate == 0)
 		return;
 
@@ -291,6 +321,15 @@ void uart_baudrate(unsigned int uart, unsigned int baudrate)
 
 void uart_data_bits(unsigned int uart, unsigned int data_bits)
 {
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return;
+	}
+
+	if(uart > 1)
+		return;
+
 	if((data_bits > 4) && (data_bits < 9))
 		data_bits -= 5;
 	else
@@ -305,6 +344,15 @@ void uart_data_bits(unsigned int uart, unsigned int data_bits)
 
 void uart_stop_bits(unsigned int uart, unsigned int stop_bits)
 {
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return;
+	}
+
+	if(uart > 1)
+		return;
+
 	switch(stop_bits)
 	{
 		case(2): stop_bits = 0x03; break;
@@ -322,6 +370,15 @@ void uart_parity(unsigned int uart, uart_parity_t parity)
 {
 	unsigned int parity_mask;
 
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return;
+	}
+
+	if(uart > 1)
+		return;
+
 	clear_fifos(uart);
 
 	switch(parity)
@@ -337,6 +394,15 @@ void uart_parity(unsigned int uart, uart_parity_t parity)
 
 void uart_loopback(unsigned int uart, bool enable)
 {
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return;
+	}
+
+	if(uart > 1)
+		return;
+
 	clear_fifos(uart);
 
 	clear_set_peri_reg_mask(UART_CONF0(uart), UART_LOOPBACK,
@@ -345,6 +411,12 @@ void uart_loopback(unsigned int uart, bool enable)
 
 bool uart_invert(unsigned int uart, uart_direction_t dir, bool enable)
 {
+	if(!queues_alive)
+	{
+		stat_uart.spurious++;
+		return(false);
+	}
+
 	if(uart > 1)
 		return(false);
 
@@ -381,22 +453,34 @@ bool uart_invert(unsigned int uart, uart_direction_t dir, bool enable)
 
 void uart_autofill(unsigned int uart, bool enable, unsigned int character)
 {
-	if((uart == 0) || (uart == 1))
+	if(!queues_alive)
 	{
-		autofill_info[uart].enabled = enable;
-		autofill_info[uart].character = character;
-
-		enable_transmit_int(uart, enable);
+		stat_uart.spurious++;
+		return;
 	}
+
+	if(uart > 1)
+		return;
+
+	autofill_info[uart].enabled = enable;
+	autofill_info[uart].character = character;
+
+	enable_transmit_int(uart, enable);
 }
 
 void uart_is_autofill(unsigned int uart, bool *enable, unsigned int *character)
 {
-	if((uart == 0) || (uart == 1))
+	if(!queues_alive)
 	{
-		*enable = autofill_info[uart].enabled;
-		*character = autofill_info[uart].character;
+		stat_uart.spurious++;
+		return;
 	}
+
+	if(uart > 1)
+		return;
+
+	*enable = autofill_info[uart].enabled;
+	*character = autofill_info[uart].character;
 }
 
 void uart_init(void)
