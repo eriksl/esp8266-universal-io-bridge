@@ -776,6 +776,7 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 {
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
+	struct station_config cconf;
 
 	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok))
 	{
@@ -810,6 +811,14 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 			string_append(parameters->dst, "> cannot set config (close)\n");
 			return(app_action_error);
 		}
+
+		wifi_station_disconnect();
+		memset(&cconf, 0, sizeof(cconf));
+		strecpy((char *)cconf.ssid, string_to_cstr(&ssid), sizeof(cconf.ssid));
+		strecpy((char *)cconf.password, string_to_cstr(&passwd), sizeof(cconf.password));
+		cconf.all_channel_scan = 1;
+		wifi_station_set_config(&cconf);
+		wifi_station_connect();
 	}
 
 	string_clear(&ssid);
