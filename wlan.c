@@ -112,12 +112,13 @@ static void wlan_event_handler(System_Event_t *event)
 		case(EVENT_STAMODE_DISCONNECTED):
 		{
 			if(flags.associated)
+			{
 				log("[wlan] deassociate\n");
+				association_state_time = 0;
+				flags.associated = 0;
+			}
 			else
 				log("[wlan] deassociate from unassociated state\n");
-
-			flags.associated = 0;
-			association_state_time = 0;
 
 			[[fallthrough]];
 		}
