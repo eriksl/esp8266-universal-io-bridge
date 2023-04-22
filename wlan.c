@@ -435,6 +435,68 @@ void wlan_multicast_init_groups(void)
 	}
 }
 
+bool wlan_client_configure(string_t *error, const char *ssid, const char *password)
+{
+	struct station_config cconf;
+	const char *eptr = "";
+
+	if(!config_open_write())
+	{
+		static roflash const char e[] = "cannot set config (open)";
+		eptr = e;
+		goto e2;
+	}
+
+	if(!config_set_string("wlan.client.ssid", ssid, -1, -1))
+	{
+		static roflash const char e[] = "cannot set config (write ssid)";
+		eptr = e;
+		goto e1;
+	}
+
+	if(!config_set_string("wlan.client.passwd", password, -1, -1))
+	{
+		static roflash const char e[] = "cannot set config (write passwd)";
+		eptr = e;
+		goto e1;
+	}
+
+	if(!config_close_write())
+	{
+		static roflash const char e[] = "cannot set config (close)";
+		eptr = e;
+		goto e2;
+	}
+
+	wifi_set_opmode(STATION_MODE);
+	wifi_station_disconnect();
+	memset(&cconf, 0, sizeof(cconf));
+	strecpy((char *)cconf.ssid, ssid, sizeof(cconf.ssid));
+	strecpy((char *)cconf.password, password, sizeof(cconf.password));
+	cconf.all_channel_scan = 1;
+	wifi_station_set_config(&cconf);
+	wifi_station_connect();
+
+	return(true);
+
+e1:
+	config_abort_write();
+e2:
+	{
+		string_new(, logstr, 64);
+		string_append(&logstr, "wlan client configure: ");
+		string_append_cstr_flash(&logstr, eptr);
+		string_append(&logstr, "\n");
+
+		if(error)
+			string_append_string(error, &logstr);
+		else
+			log("%s", string_to_cstr(&logstr));
+
+		return(false);
+	}
+}
+
 void stats_wlan(string_t *dst)
 {
 	sdk_mac_addr_t mac_addr;
@@ -776,7 +838,6 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 {
 	string_new(, ssid, 64);
 	string_new(, passwd, 64);
-	struct station_config cconf;
 
 	if((parse_string(1, parameters->src, &ssid, ' ') == parse_ok) && (parse_string(2, parameters->src, &passwd, ' ') == parse_ok))
 	{
@@ -786,39 +847,8 @@ app_action_t application_function_wlan_client_configure(app_params_t *parameters
 			return(app_action_error);
 		}
 
-		if(!config_open_write())
-		{
-			string_append(parameters->dst, "> cannot set config (open)\n");
+		if(!wlan_client_configure(parameters->dst, string_to_cstr(&ssid), string_to_cstr(&passwd)))
 			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (write ssid)\n");
-			return(app_action_error);
-		}
-
-		if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
-		{
-			config_abort_write();
-			string_append(parameters->dst, "> cannot set config (write passwd)\n");
-			return(app_action_error);
-		}
-
-		if(!config_close_write())
-		{
-			string_append(parameters->dst, "> cannot set config (close)\n");
-			return(app_action_error);
-		}
-
-		wifi_station_disconnect();
-		memset(&cconf, 0, sizeof(cconf));
-		strecpy((char *)cconf.ssid, string_to_cstr(&ssid), sizeof(cconf.ssid));
-		strecpy((char *)cconf.password, string_to_cstr(&passwd), sizeof(cconf.password));
-		cconf.all_channel_scan = 1;
-		wifi_station_set_config(&cconf);
-		wifi_station_connect();
 	}
 
 	string_clear(&ssid);
@@ -921,15 +951,6 @@ app_action_t application_function_wlan_mode(app_params_t *parameters)
 		string_append(parameters->dst, "mode unset");
 
 	string_append(parameters->dst, "\n");
-
-	return(app_action_normal);
-}
-
-app_action_t application_function_wlan_reset(app_params_t *parameters)
-{
-	system_restore();
-	system_restart();
-	msleep(100);
 
 	return(app_action_normal);
 }

@@ -437,6 +437,7 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	string_new(, param2, 32);
 	string_new(, ssid, 32);
 	string_new(, passwd, 32);
+	string_new(, error, 64);
 
 	if(parse_string(1, src, &getparam, '?') != parse_ok)
 		goto parameter_error;
@@ -462,45 +463,24 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if((string_length(&ssid) < 1) || (string_length(&passwd) < 8))
 		goto parameter_error;
 
-	if(!config_open_write())
-		goto config_error;
-
-	if(!config_set_string("wlan.client.ssid", string_to_cstr(&ssid), -1, -1))
+	if(!wlan_client_configure(&error, string_to_cstr(&ssid), string_to_cstr(&passwd)))
 	{
-		config_abort_write();
-		goto config_error;
+		string_append(dst, "<p>error: ");
+		string_append_string(dst, &error);
+		string_append(dst, "</p>\n");
+		return(app_action_error);
 	}
-
-	if(!config_set_string("wlan.client.passwd", string_to_cstr(&passwd), -1, -1))
-	{
-		config_abort_write();
-		goto config_error;
-	}
-
-	if(!config_set_int("wlan.mode", config_wlan_mode_client, -1, -1))
-	{
-		config_abort_write();
-		goto config_error;
-	}
-
-	if(!config_close_write())
-		goto config_error;
 
 	string_append_cstr_flash(dst, roflash_html_table_start);
 	string_append(dst,		"<p>SSID and password set.</p>\n");
 	string_append(dst,		"<tr><th>SSID</th><th>password</th></tr>\n");
 	string_format(dst,	"<tr><td>%s</td><td>%s</td></tr>\n", string_to_cstr(&ssid), string_to_cstr(&passwd));
 	string_append_cstr_flash(dst, roflash_html_table_end);
-	string_append(dst,		"<p>Now <a href=\"/reset\">reset</a> to activate WLAN settings.</p>\n");
 
 	return(app_action_http_ok);
 
 parameter_error:
 	string_append(dst, "<h1>Parameter error</h1>\n");
-	return(app_action_http_ok);
-
-config_error:
-	string_append(dst, "<h1>Can't write config</h1>\n");
 	return(app_action_http_ok);
 }
 
