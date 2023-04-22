@@ -17554,3 +17554,35 @@ Fri Apr 21 14:19:18 CEST 2023 f19e1cf util: move msleep to iram.
     iram:    available:  32 k, used:  30017, free:   2751,  8 %
     dram:    available:  78 k, used:  71113, free:   9152, 11 %
     irom:    available: 784 k, used: 440720, free: 362096, 45 %
+Sat Apr 22 13:51:41 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440960, free: 361856, 45 %
+Sat Apr 22 13:54:14 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440864, free: 361952, 45 %
+Sat Apr 22 13:55:58 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440896, free: 361920, 45 %
+Sat Apr 22 13:59:42 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440800, free: 362016, 45 %
+Sat Apr 22 14:06:04 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440880, free: 361936, 45 %
+Sat Apr 22 14:20:53 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 440736, free: 362080, 45 %
+Sat Apr 22 15:06:23 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71113, free:   9152, 11 %
+    irom:    available: 784 k, used: 441056, free: 361760, 45 %
+Sat Apr 22 15:18:55 CEST 2023 fb533b8 fonts: fix flash upload address to be compliant with newer espif versions.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 441008, free: 361808, 45 %

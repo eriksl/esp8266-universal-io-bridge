@@ -7,6 +7,7 @@
 #include "dispatch.h"
 #include "io_gpio.h"
 #include "wlan.h"
+#include "util.h"
 
 typedef struct
 {
@@ -435,7 +436,9 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	string_new(, getparam, 64);
 	string_new(, param1, 32);
 	string_new(, param2, 32);
+	string_new(, ssid_http, 32);
 	string_new(, ssid, 32);
+	string_new(, passwd_http, 32);
 	string_new(, passwd, 32);
 	string_new(, error, 64);
 
@@ -454,11 +457,14 @@ static app_action_t handler_resetwlan(const string_t *src, string_t *dst)
 	if(!string_nmatch_cstr(&param2, "password=", 9))
 		goto parameter_error;
 
-	if(parse_string(1, &param1, &ssid, '=') != parse_ok)
+	if(parse_string(1, &param1, &ssid_http, '=') != parse_ok)
 		goto parameter_error;
 
-	if(parse_string(1, &param2, &passwd, '=') != parse_ok)
+	if(parse_string(1, &param2, &passwd_http, '=') != parse_ok)
 		goto parameter_error;
+
+	string_decode_http(&ssid, &ssid_http);
+	string_decode_http(&passwd, &passwd_http);
 
 	if((string_length(&ssid) < 1) || (string_length(&passwd) < 8))
 		goto parameter_error;

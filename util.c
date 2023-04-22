@@ -1042,6 +1042,68 @@ attr_nonnull parse_error_t parse_float(int index, const string_t *src, double *d
 	return(parse_ok);
 }
 
+attr_nonnull void string_decode_http(string_t *to, const string_t *from)
+{
+	typedef enum
+	{
+		sdh_init,
+		sdh_first,
+		sdh_second,
+	} sdh_state_t;
+
+	sdh_state_t state = sdh_init;
+	int current_index;
+	unsigned char current;
+	unsigned int value = 0;
+
+	for(current_index = 0; current_index < string_length(from); current_index++)
+	{
+		current = string_at(from, current_index);
+
+		switch(state)
+		{
+			case(sdh_init):
+			{
+				if(current == '%')
+				{
+					value = 0;
+					state = sdh_first;
+				}
+				else
+					string_append_char(to, current);
+
+				break;
+			}
+
+			case(sdh_first):
+			case(sdh_second):
+			{
+				if((current >= '0') && (current <= '9'))
+					value |= current - '0';
+				else
+					if((current >= 'a') && (current <= 'f'))
+						value |= current - 'a' + 10;
+					else
+						if((current >= 'A') && (current <= 'F'))
+							value |= current - 'A' + 10;
+
+				if(state == sdh_first)
+				{
+					value <<= 4;
+					state = sdh_second;
+				}
+				else
+				{
+					string_append_byte(to, value);
+					state = sdh_init;
+				}
+
+				break;
+			}
+		}
+	}
+}
+
 // missing from libc
 
 void *_malloc_r(struct _reent *r, size_t sz)

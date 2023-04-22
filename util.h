@@ -453,5 +453,6 @@ attr_nonnull parse_error_t parse_string(int index, const string_t *in, string_t 
 attr_nonnull parse_error_t parse_uint(int index, const string_t *src, unsigned int *dst, int base, char delimiter);
 attr_nonnull parse_error_t parse_int(int index, const string_t *src, int *dst, int base, char delimiter);
 attr_nonnull parse_error_t parse_float(int index, const string_t *src, double *dst, char delimiter);
+attr_nonnull void string_decode_http(string_t *to, const string_t *from);
 
 #endif
