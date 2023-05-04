@@ -2038,6 +2038,8 @@ renc_error1:
 				return(app_action_error);
 			}
 
+			string_clear(parameters->dst);
+
 			if((parse_string(4, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
 				config_abort_write();
@@ -2076,13 +2078,13 @@ renc_error1:
 			pin_config->shared.trigger[1].io.pin = -1;
 			pin_config->shared.trigger[1].action = io_trigger_none;
 
+			string_clear(parameters->dst);
+
 			if((parse_string(7, parameters->src, parameters->dst, ' ') != parse_ok))
 			{
 				string_clear(parameters->dst);
 				goto skip;
 			}
-
-			string_clear(parameters->dst);
 
 			if((trigger_type = string_to_trigger_action(parameters->dst)) == io_trigger_error)
 			{
