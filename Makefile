@@ -131,7 +131,7 @@ CCWARNINGS			:=	-Wall -Wextra -Werror \
 						-Wstringop-overflow=4 -Wunused-const-variable=2 -Walloca \
 						-Warray-bounds=2 -Wswitch-bool -Wsizeof-array-argument \
 						-Wduplicated-branches -Wduplicated-cond -Wlto-type-mismatch -Wnull-dereference \
-						-Wdangling-else \
+						-Wdangling-else -Wdangling-pointer=2 \
 						-Wpacked -Wfloat-equal -Winit-self -Wmissing-include-dirs \
 						-Wmissing-noreturn -Wbool-compare \
 						-Wsuggest-attribute=noreturn -Wsuggest-attribute=format -Wmissing-format-attribute \

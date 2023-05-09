@@ -146,14 +146,14 @@ struct dhcps_lease
 	struct ip_addr end_ip;
 };
 
-_Bool				wifi_get_ip_info(uint8_t if_index, struct ip_info *);
-_Bool				wifi_softap_get_dhcps_lease(struct dhcps_lease *);
-_Bool				wifi_softap_reset_dhcps_lease_time(void);
-_Bool				wifi_softap_set_dhcps_lease(struct dhcps_lease *);
-unsigned long		wifi_softap_get_dhcps_lease_time(void);
-_Bool				wifi_softap_set_dhcps_lease_time(uint32_t);
-_Bool				wifi_softap_set_dhcps_offer_option(uint8_t, void *);
-uint8_t				wifi_get_opmode(void);
+_Bool		wifi_get_ip_info(uint8_t if_index, struct ip_info *);
+_Bool		wifi_softap_get_dhcps_lease(struct dhcps_lease *);
+_Bool		wifi_softap_reset_dhcps_lease_time(void);
+_Bool		wifi_softap_set_dhcps_lease(struct dhcps_lease *);
+uint32_t	wifi_softap_get_dhcps_lease_time(void);
+_Bool		wifi_softap_set_dhcps_lease_time(uint32_t);
+_Bool		wifi_softap_set_dhcps_offer_option(uint8_t, void *);
+uint8_t		wifi_get_opmode(void);
 enum dhcp_status	wifi_softap_dhcps_status(void);
 // } Espressif code
 
@@ -281,7 +281,7 @@ static uint8_t* add_offer_options(uint8_t *optptr)
 {
         struct ip_addr ipadd;
 
-        ipadd.addr = *( (uint32_t *) &server_address);
+        ipadd.addr = *( (u32_t *) &server_address);
 
 #ifdef USE_CLASS_B_NET
         *optptr++ = DHCP_OPTION_SUBNET_MASK;
@@ -567,7 +567,7 @@ static uint8_t parse_options(uint8_t *optptr, int16_t len)
         _Bool is_dhcp_parse_end = 0;
         struct dhcps_state s;
 
-        client.addr = *( (uint32_t *) &client_address);//                  DHCP                IP
+        client.addr = *( (u32_t *) &client_address);//                  DHCP                IP
 
         u8_t *end = optptr + len;
         u16_t type = 0;

@@ -17586,3 +17586,31 @@ Sat Apr 22 15:18:55 CEST 2023 fb533b8 fonts: fix flash upload address to be comp
     iram:    available:  32 k, used:  30017, free:   2751,  8 %
     dram:    available:  78 k, used:  71097, free:   9168, 11 %
     irom:    available: 784 k, used: 441008, free: 361808, 45 %
+Tue May  2 11:24:12 CEST 2023 b1da326 ESP8266_NONOS: update.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 440960, free: 361856, 45 %
+Thu May  4 17:28:57 CEST 2023 b1da326 ESP8266_NONOS: update.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 441024, free: 361792, 45 %
+Thu May  4 17:32:33 CEST 2023 b1da326 ESP8266_NONOS: update.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 440960, free: 361856, 45 %
+Thu May  4 17:33:27 CEST 2023 dc5c076 io.c: fix bug where second trigger action was not accepted.
+    iram:    available:  32 k, used:  30017, free:   2751,  8 %
+    dram:    available:  78 k, used:  71097, free:   9168, 11 %
+    irom:    available: 784 k, used: 440992, free: 361824, 45 %
+Sun May  7 10:05:15 CEST 2023 dc5c076 io.c: fix bug where second trigger action was not accepted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  70953, free:   9312, 11 %
+    irom:    available: 784 k, used: 445968, free: 356848, 44 %
+Tue May  9 18:27:31 CEST 2023 dc5c076 io.c: fix bug where second trigger action was not accepted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  70989, free:   9276, 11 %
+    irom:    available: 784 k, used: 447168, free: 355648, 44 %
+Tue May  9 20:11:08 CEST 2023 9200a32 crosstool-NG: update to gcc 12.2.0
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  70989, free:   9276, 11 %
+    irom:    available: 784 k, used: 447344, free: 355472, 44 %

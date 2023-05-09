@@ -41,6 +41,9 @@ iram void user_spi_flash_dio_to_qio_pre_init(void)
 		int					stack_stack_painted;
 static	volatile uint32_t	*stack_stack_paint_ptr; // this cannot be on the stack
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+
 iram void stack_paint_stack(void)
 {
 	// don't declare stack variables here, they will get overwritten
@@ -54,6 +57,8 @@ iram void stack_paint_stack(void)
 		stack_stack_painted += 4;
 	}
 }
+
+#pragma GCC diagnostic pop
 
 void user_pre_init(void);
 iram void user_pre_init(void)
