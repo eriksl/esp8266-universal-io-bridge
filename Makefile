@@ -452,15 +452,15 @@ ota-rf-defaults:		$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "* rf calibiration"
 						$(Q)$(OTA_FLASH) -n -N -h $(OTA_HOST) -f $(RFCAL_FILE) -s $(RFCAL_SECTOR) -W
 
-%.o:					%.c
+%.o:					%.c $(CC)
 						$(VECHO) "CC $<"
 						$(Q) $(CC) $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
-%.i:					%.c
+%.i:					%.c $(CC)
 						$(VECHO) "CC cpp $<"
 						$(Q) $(CC) -E $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
-%.s:					%.c
+%.s:					%.c $(CC)
 						$(VECHO) "CC as $<"
 						$(Q) $(CC) -S $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
