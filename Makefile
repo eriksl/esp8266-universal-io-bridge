@@ -15,7 +15,8 @@ MAKEFLAGS += --no-builtin-rules
 
 GIT_COMMIT					:= "\"`export LC_ALL=C; git log -n 1 --oneline`\""
 ARCH						:= xtensa-lx106-elf
-THIRDPARTY					:= $(PWD)/third-party
+ROOT						:= $(PWD)
+THIRDPARTY					:= $(ROOT)/third-party
 ESPSDK						:= $(THIRDPARTY)/ESP8266_NONOS_SDK
 ESPSDK_LIB					:= $(ESPSDK)/lib
 ESPTOOL2					:= $(THIRDPARTY)/esptool2
@@ -176,7 +177,7 @@ CFLAGS			+=	-DBOOT_BIG_FLASH=1 -DBOOT_RTC_ENABLED=1 \
 						-DOFFSET_RBOOT_CFG=$(OFFSET_RBOOT_CFG) -DSIZE_RBOOT_CFG=$(SIZE_RBOOT_CFG) \
 						-DFLASH_SIZE_SDK=$(FLASH_SIZE_SDK)
 
-CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(PWD)
+CINC			:= -I$(CTNG_SYSROOT_INCLUDE) -I$(LWIP_SRC)/include/ipv4 -I$(LWIP_SRC)/include -I$(ROOT)
 LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSROOT_LIB) -L$(ESPSDK_LIB) -L. -Wl,--size-opt -Wl,--print-memory-usage -Wl,--gc-sections -Wl,--cref -Wl,-Map=$(LINKMAP) -nostdlib -u call_user_start -Wl,-static
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
@@ -262,7 +263,7 @@ $(CTNG_LX106)/crosstool.config:
 $(CTNG_LX106)/crosstool.config.orig:	$(CTNG_LX106)/crosstool.config
 										$(VECHO) "CROSSTOOL-NG PATCH CONFIG"
 										$(Q) cp $(CTNG_LX106)/crosstool.config $(CTNG_LX106)/crosstool.config.orig
-										$(Q) (cd $(CTNG_LX106); patch -p0 -i ../../../../crosstool-config.patch)
+										$(Q) (cd $(CTNG_LX106); patch -p0 -i $(ROOT)/crosstool-config.patch)
 										$(Q) touch $(CTNG_LX106)/crosstool.config.orig
 
 $(CTNG)/configure:						$(CTNG_LX106)/crosstool.config.orig
