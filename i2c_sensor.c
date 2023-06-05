@@ -5814,10 +5814,12 @@ static i2c_error_t sensor_am2320_detect(i2c_sensor_data_t *data)
 	uint16_t crc1, crc2;
 	uint8_t i2c_buffer[am2320_register_id_length + 4];
 
+	msleep(1);
+
 	// wake the device
 	i2c_send(data->basic.address, 0, 0);
 
-	msleep(1);
+	msleep(2);
 
 	// request ID (but do not check it, it's unreliable)
 	if((error = i2c_send3(data->basic.address, am2320_command_read_register, am2320_register_id, am2320_register_id_length)) != i2c_error_ok)
