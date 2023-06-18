@@ -17618,3 +17618,7 @@ Mon May 29 15:14:34 CEST 2023 d4cd40c Fixes for compilation with GCC 12.2.0.
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71885, free:   8380, 10 %
     irom:    available: 784 k, used: 447344, free: 355472, 44 %
+Mon Jun  5 09:51:45 CEST 2023 f3e2641 uart: increase incoming data queue to be able to capture complete DSMR messages.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447392, free: 355424, 44 %

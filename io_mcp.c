@@ -253,7 +253,7 @@ static io_error_t clear_set_register(string_t *error_message, const io_info_entr
 
 static io_error_t init(const io_info_entry_t *info)
 {
-	static const unsigned int iocon_value = iocon_intpol_low | iocon_int_open_drain | iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
+	static const unsigned int iocon_value = iocon_intpol_high | iocon_int_no_open_drain | iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
 	unsigned int value;
 
 	mcp_data.instance[info->instance].counters = 0;
