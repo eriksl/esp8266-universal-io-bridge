@@ -927,7 +927,10 @@ static bool begin(unsigned int slot, bool logmode)
 	display.logmode = logmode;
 
 	if(!font_select(logmode))
+	{
+		log("display tftspi: no fonts available\n");
 		return(false);
+	}
 
 	if(!font_get_info(&font_info))
 		return(false);
