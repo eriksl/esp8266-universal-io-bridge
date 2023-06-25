@@ -66,7 +66,6 @@ typedef struct
 	unsigned int x_mirror:1;
 	unsigned int y_mirror:1;
 	unsigned int rotate:1;
-	unsigned int buffer_dirty:1;
 } display_t;
 
 assert_size(display_t, 28);
@@ -288,9 +287,9 @@ static attr_result_used bool send_command_data_2_16(string_t *error, unsigned in
 	return(send_command_data(error, true, cmd, 4, bytes));
 }
 
-static attr_result_used bool flush_data(string_t *error)
+static attr_result_used bool write_spi_write_buffer(string_t *error)
 {
-	if(!display.buffer_dirty)
+	if(spi_write_bits_used() == 0)
 		return(true);
 
 	if(pin.dcx.enabled && (io_write_pin(error, pin.dcx.io, pin.dcx.pin, 1) != io_ok))
@@ -305,8 +304,6 @@ static attr_result_used bool flush_data(string_t *error)
 	if(!spi_start(error))
 		return(false);
 
-	display.buffer_dirty = 0;
-
 	return(true);
 }
 
@@ -314,46 +311,44 @@ static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
-		if(!spi_write(8, data))
+		if(spi_write_bits_available() < 8)
 		{
-			if(!flush_data(error))
+			if(!write_spi_write_buffer(error))
 			{
 				if(error)
 					string_append(error, "flush data");
 				return(false);
 			}
+		}
 
-			if(!spi_write(8, data))
-			{
-				if(error)
-					string_append(error, "spi write");
-				return(false);
-			}
+		if(!spi_write(8, data))
+		{
+			if(error)
+				string_append(error, "spi write");
+			return(false);
 		}
 	}
 	else
 	{
 		data |= (1UL << 8);
 
-		if(!spi_write(9, data))
+		if(spi_write_bits_available() < 9)
 		{
-			if(!flush_data(error))
+			if(!write_spi_write_buffer(error))
 			{
 				if(error)
 					string_append(error, "flush data");
 				return(false);
 			}
+		}
 
-			if(!spi_write(9, data))
-			{
-				if(error)
-					string_append(error, "spi write");
-				return(false);
-			}
+		if(!spi_write(9, data))
+		{
+			if(error)
+				string_append(error, "spi write");
+			return(false);
 		}
 	}
-
-	display.buffer_dirty = 1;
 
 	return(true);
 }
@@ -362,46 +357,44 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
-		if(!spi_write(16, data))
+		if(spi_write_bits_available() < 24)
 		{
-			if(!flush_data(error))
+			if(!write_spi_write_buffer(error))
 			{
 				if(error)
 					string_append(error, "flush data");
 				return(false);
 			}
+		}
 
-			if(!spi_write(16, data))
-			{
-				if(error)
-					string_append(error, "spi write");
-				return(false);
-			}
+		if(!spi_write(24, data))
+		{
+			if(error)
+				string_append(error, "spi write");
+			return(false);
 		}
 	}
 	else
 	{
 		data = (((data & 0x0000ff00) << 1) | ((data & 0x000000ff) << 0)) | 0x20100;
 
-		if(!spi_write(18, data))
+		if(spi_write_bits_available() < 27)
 		{
-			if(!flush_data(error))
+			if(!write_spi_write_buffer(error))
 			{
 				if(error)
 					string_append(error, "flush data");
 				return(false);
 			}
+		}
 
-			if(!spi_write(18, data))
-			{
-				if(error)
-					string_append(error, "spi write");
-				return(false);
-			}
+		if(!spi_write(27, data))
+		{
+			if(error)
+				string_append(error, "spi write");
+			return(false);
 		}
 	}
-
-	display.buffer_dirty = 1;
 
 	return(true);
 }
@@ -413,7 +406,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	unsigned int colour[2];
 	unsigned int pixels, bulk_pixel, bulk_stride, write_bits;
 
-	if(!flush_data(&error))
+	if(!write_spi_write_buffer(&error))
 	{
 		log("spitft box: spi error 1: %s\n", string_to_cstr(&error));
 		return(false);
@@ -459,7 +452,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 	for(bulk_stride = 0; bulk_stride < 256; bulk_stride++)
 	{
-		if(!spi_write(write_bits, colour[0]))
+		if(spi_write_bits_available() < (write_bits * 3))
 			break;
 
 		if(!spi_write(write_bits, colour[1]))
@@ -488,14 +481,14 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 		if(!spi_finish(&error))
 		{
-			log("spitft box: spi error 8: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 10: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 	}
 
 	if(!spi_start(&error))
 	{
-		log("spitft box: spi error 9: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 10: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
@@ -503,7 +496,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	{
 		if(!spi_write(write_bits, colour[0]))
 		{
-			log("spitft box: spi error 10: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 12: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 
@@ -549,7 +542,7 @@ static attr_result_used bool text_send(unsigned int code)
 	if(!font_get_info(&font_info))
 		return(false);
 
-	if(!flush_data(&error))
+	if(!write_spi_write_buffer(&error))
 	{
 		log("spi: text_send 1: %s\n", string_to_cstr(&error));
 		return(false);
@@ -648,7 +641,7 @@ static attr_result_used bool text_send(unsigned int code)
 		}
 	}
 
-	if(!flush_data(&error))
+	if(!write_spi_write_buffer(&error))
 	{
 		log("spi: text_send 7: %s\n", string_to_cstr(&error));
 		return(false);
@@ -796,7 +789,6 @@ static bool init(void)
 	display.brightness = 4;
 	display.graphic_mode = 0;
 	display.logmode = 0;
-	display.buffer_dirty = 0;
 	display.enabled = 1;
 
 	if(!spi_configure(&error, spi_mode_0, true, pin.user_cs.io, pin.user_cs.pin))
@@ -1046,7 +1038,7 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 		if(!output_data_8((string_t *)0, string_at(pixels, ix)))
 			return(false);
 
-	if(!flush_data(&error))
+	if(!write_spi_write_buffer(&error))
 	{
 		log("spitft plot: %s\n", string_to_cstr(&error));
 		return(false);

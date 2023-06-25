@@ -57,6 +57,8 @@ extern const char help_description_spi_finish[];
 attr_result_used bool spi_init(string_t *error, unsigned int io);
 attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin);
 attr_result_used bool spi_start(string_t *error);
+attr_result_used unsigned int spi_write_bits_used(void);
+attr_result_used unsigned int spi_write_bits_available(void);
 attr_result_used bool spi_write(unsigned int bits, uint32_t value);
 attr_result_used bool spi_transmit(string_t *error, spi_clock_t clock,
 		unsigned int command_length_bits, unsigned int command, unsigned int address_length_bits, unsigned int address, unsigned int skip_bits, unsigned int receive_bytes);

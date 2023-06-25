@@ -229,6 +229,22 @@ attr_result_used static bool spi_write_16(unsigned int value)
 	return(true);
 }
 
+unsigned int spi_write_bits_available(void)
+{
+	if(!state.inited || !state.configured)
+		return(0);
+
+	return(send_buffer.bits_available - send_buffer.bits);
+}
+
+unsigned int spi_write_bits_used(void)
+{
+	if(!state.inited || !state.configured)
+		return(0);
+
+	return(send_buffer.bits);
+}
+
 attr_result_used bool spi_write(unsigned int bits, uint32_t value)
 {
 	int bit;
