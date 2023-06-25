@@ -597,8 +597,9 @@ usage:
 
 roflash const char help_description_spi_transmit[] = "execute the SPI transaction (send and receive)\n"
 		"usage: spt <clock speed index>\n"
-		"           <command length bits (0-15 bits)> <command value (hex)\n"
-		"           <address length bits (0-31 bits)> <address value (hex)\n"
+		"           <command length bits (0-15 bits)> <command value (hex)>\n"
+		"           <address length bits (0-31 bits)> <address value (hex)>\n"
+		"           <skip bytes\n"
 		"           <receive bytes (0-64)\n";
 
 app_action_t application_function_spi_transmit(app_params_t *parameters)
