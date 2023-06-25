@@ -20,20 +20,31 @@ enum
 
 enum
 {
-	cmd_nop =		0x00,
-	cmd_swreset =	0x01,
-	cmd_sleepout = 	0x11,
-	cmd_noron =		0x13,
-	cmd_invoff =	0x20,
-	cmd_invon =		0x21,
-	cmd_dispon =	0x29,
-	cmd_caset =		0x2a,
-	cmd_raset =		0x2b,
-	cmd_ramwr =		0x2c,
-	cmd_madctl =	0x36,
-	cmd_idmoff =	0x38,
-	cmd_idmon =		0x39,
-	cmd_colmod =	0x3a,
+	cmd_nop =				0x00,
+	cmd_swreset =			0x01,
+	cmd_sleepout = 			0x11,
+	cmd_noron =				0x13,
+	cmd_invoff =			0x20,
+	cmd_invon =				0x21,
+	cmd_dispon =			0x29,
+	cmd_caset =				0x2a,
+	cmd_raset =				0x2b,
+	cmd_ramwr =				0x2c,
+	cmd_madctl =			0x36,
+	cmd_idmoff =			0x38,
+	cmd_idmon =				0x39,
+	cmd_colmod =			0x3a,
+	cmd_write_ctrl_disp =	0x53,
+	cmd_if_mode_ctrl =		0xb0,
+	cmd_frame_rate_ctrl =	0xb1,
+	cmd_disp_inv_ctrl =		0xb4,
+	cmd_disp_func_ctrl =	0xb6,
+	cmd_entry_mode_set =	0xb7,
+	cmd_power_ctrl_1 =		0xc0,
+	cmd_power_ctrl_2 =		0xc1,
+	cmd_power_ctrl_3 =		0xc2,
+	cmd_vcom_ctrl =			0xc5,
+	cmd_set_image_func =	0xe9,
 
 	madctl_my =		(1 << 7),
 	madctl_mx = 	(1 << 6),
@@ -42,7 +53,14 @@ enum
 	madctl_bgr =	(1 << 3),
 	madctl_mh =		(1 << 2),
 
-	colmod_16bpp = 	0x05,
+	colmod_18bpp = 	0b01100110,
+
+	ifmodectrl_modir =	(0 << 7),
+	ifmodectrl_bidir =	(1 << 7),
+
+	dispinvctrl_column	=	0b000,
+	dispinvctrl_1dot	=	0b001,
+	dispinvctrl_2dot	=	0b010,
 };
 
 typedef struct
@@ -66,6 +84,7 @@ typedef struct
 	unsigned int x_mirror:1;
 	unsigned int y_mirror:1;
 	unsigned int rotate:1;
+	unsigned int invert:1;
 } display_t;
 
 assert_size(display_t, 28);
@@ -100,15 +119,15 @@ static text_t text;
 static display_t display;
 static pin_t pin;
 
-static unsigned int rgb_to_16bit_colour(unsigned int r, unsigned int g, unsigned int b)
+static unsigned int rgb_to_18bit_colour(unsigned int r, unsigned int g, unsigned int b)
 {
 	unsigned int colour;
 
-	r = (r & 0b11111000) >> 3;
-	g = (g & 0b11111100) >> 2;
-	b = (b & 0b11111000) >> 3;
+	r = (r & 0b11111100) >> 0;
+	g = (g & 0b11111100) >> 0;
+	b = (b & 0b11111100) >> 0;
 
-	colour = (r << 11) | (g << 5) | (b << 0);
+	colour = (r << 16) | (g << 8) | (b << 0);
 
 	return(colour);
 }
@@ -353,7 +372,7 @@ static attr_result_used bool output_data_8(string_t *error, unsigned int data)
 	return(true);
 }
 
-static attr_result_used bool output_data_16(string_t *error, unsigned int data)
+static attr_result_used bool output_data_24(string_t *error, unsigned int data)
 {
 	if(pin.dcx.enabled)
 	{
@@ -376,7 +395,7 @@ static attr_result_used bool output_data_16(string_t *error, unsigned int data)
 	}
 	else
 	{
-		data = (((data & 0x0000ff00) << 1) | ((data & 0x000000ff) << 0)) | 0x20100;
+		data = (((data & 0x00ff0000) << 2 ) | ((data & 0x0000ff00) << 1) | ((data & 0x000000ff) << 0)) | 0x4020100;
 
 		if(spi_write_bits_available() < 27)
 		{
@@ -403,7 +422,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 {
 	string_new(, error, 64);
 	unsigned int box_colour;
-	unsigned int colour[2];
+	unsigned int colour[3];
 	unsigned int pixels, bulk_pixel, bulk_stride, write_bits;
 
 	if(!write_spi_write_buffer(&error))
@@ -430,11 +449,12 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 		return(false);
 	}
 
-	box_colour = rgb_to_16bit_colour(r, g, b) & 0x0000ffff;
+	box_colour = rgb_to_18bit_colour(r, g, b) & 0x00ffffff;
 	pixels = (to_x - from_x + 1) * (to_y - from_y + 1);
 
-	colour[0] = (box_colour & 0xff00) >> 8;
-	colour[1] = (box_colour & 0x00ff) >> 0;
+	colour[0] = (box_colour & 0x00ff0000) >> 16;
+	colour[1] = (box_colour & 0x0000ff00) >> 8;
+	colour[2] = (box_colour & 0x000000ff) >> 0;
 	write_bits = 8;
 
 	if(!pin.dcx.enabled)
@@ -442,6 +462,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 		write_bits = 9;
 		colour[0] |= (1UL << 8);
 		colour[1] |= (1UL << 8);
+		colour[2] |= (1UL << 8);
 	}
 
 	if(!spi_start(&error))
@@ -455,9 +476,21 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 		if(spi_write_bits_available() < (write_bits * 3))
 			break;
 
-		if(!spi_write(write_bits, colour[1]))
+		if(!spi_write(write_bits, colour[0]))
 		{
 			log("spitft box: spi error 6: spi write\n");
+			return(false);
+		}
+
+		if(!spi_write(write_bits, colour[1]))
+		{
+			log("spitft box: spi error 7: spi write\n");
+			return(false);
+		}
+
+		if(!spi_write(write_bits, colour[2]))
+		{
+			log("spitft box: spi error 8: spi write\n");
 			return(false);
 		}
 	}
@@ -475,7 +508,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	{
 		if(!spi_transmit(&error, display.spispeed, 0, 0, 0, 0, 0, 0))
 		{
-			log("spitft box: spi error 7: %s\n", string_to_cstr(&error));
+			log("spitft box: spi error 9: %s\n", string_to_cstr(&error));
 			return(false);
 		}
 
@@ -502,20 +535,26 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 
 		if(!spi_write(write_bits, colour[1]))
 		{
-			log("spitft box: spi error 11: spi_write\n");
+			log("spitft box: spi error 13: spi_write\n");
+			return(false);
+		}
+
+		if(!spi_write(write_bits, colour[2]))
+		{
+			log("spitft box: spi error 14: spi_write\n");
 			return(false);
 		}
 	}
 
 	if(!spi_transmit(&error, display.spispeed, 0, 0, 0, 0, 0, 0))
 	{
-		log("spitft box: spi error 12: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 15: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
 	if(!spi_finish(&error))
 	{
-		log("spitft box: spi error 13: %s\n", string_to_cstr(&error));
+		log("spitft box: spi error 16: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
@@ -562,8 +601,8 @@ static attr_result_used bool text_send(unsigned int code)
 		max_x = x + font_info.width;
 		max_y = y + font_info.height;
 
-		fg_colour = rgb_to_16bit_colour(white, white, white);
-		bg_colour = rgb_to_16bit_colour(black, black, black);
+		fg_colour = rgb_to_18bit_colour(white, white, white);
+		bg_colour = rgb_to_18bit_colour(black, black, black);
 	}
 	else
 	{
@@ -571,7 +610,7 @@ static attr_result_used bool text_send(unsigned int code)
 		{
 			unsigned int r, g, b;
 
-			fg_colour = rgb_to_16bit_colour(white, white, white);
+			fg_colour = rgb_to_18bit_colour(white, white, white);
 
 			background_colour(text.slot, &r, &g, &b);
 
@@ -582,7 +621,7 @@ static attr_result_used bool text_send(unsigned int code)
 				b >>= (4 - display.brightness);
 			}
 
-			bg_colour = rgb_to_16bit_colour(r, g, b);
+			bg_colour = rgb_to_18bit_colour(r, g, b);
 
 			x += border_1 + pad_1;
 			y += border_1 + pad_1;
@@ -592,8 +631,8 @@ static attr_result_used bool text_send(unsigned int code)
 		}
 		else
 		{
-			fg_colour = rgb_to_16bit_colour(black, black, black);
-			bg_colour = rgb_to_16bit_colour(white, white, white);
+			fg_colour = rgb_to_18bit_colour(black, black, black);
+			bg_colour = rgb_to_18bit_colour(white, white, white);
 
 			x += border_2 + pad_2;
 			y += (2 * border_1) + pad_2;
@@ -633,7 +672,7 @@ static attr_result_used bool text_send(unsigned int code)
 		{
 			colour = font_cell[y][x] ? fg_colour : bg_colour;
 
-			if(!output_data_16(&error, colour))
+			if(!output_data_24(&error, colour))
 			{
 				log("spi: text_send 5: %s\n", string_to_cstr(&error));
 				return(false);
@@ -704,6 +743,7 @@ static bool init(void)
 	unsigned int y_size, y_offset;
 	unsigned int x_mirror, y_mirror;
 	unsigned int rotate;
+	unsigned int invert;
 	unsigned int madctl;
 	unsigned int speed;
 
@@ -730,6 +770,9 @@ static bool init(void)
 	if(!config_get_uint("spitft.rotate", &rotate, -1, -1))
 		goto error;
 
+	if(!config_get_uint("spitft.invert", &invert, -1, -1))
+		invert = 0;
+
 	if(!config_get_uint("spitft.speed", &speed, -1, -1))
 		speed = spi_clock_10M;
 
@@ -740,6 +783,7 @@ static bool init(void)
 	display.x_mirror = x_mirror;
 	display.y_mirror = y_mirror;
 	display.rotate = rotate;
+	display.invert = invert;
 	display.spispeed = speed;
 
 	if(config_get_int("spitft.dcx.io", &dcx_io, -1, -1) &&
@@ -803,7 +847,19 @@ static bool init(void)
 		goto error;
 	}
 
-	msleep(10);
+	msleep(5);
+
+	if(!send_command_data_1_8(&error, cmd_colmod, colmod_18bpp))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
+		goto error;
+	}
+
+	if(!send_command_data_1_8(&error, cmd_if_mode_ctrl, ifmodectrl_modir))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
+		goto error;
+	}
 
 	if(!send_command(&error, cmd_sleepout))
 	{
@@ -811,15 +867,7 @@ static bool init(void)
 		goto error;
 	}
 
-	msleep(10);
-
-	if(!send_command_data_1_8(&error, cmd_colmod, colmod_16bpp))
-	{
-		log("spitft init: %s\n", string_to_cstr(&error));
-		goto error;
-	}
-
-	msleep(10);
+	msleep(5);
 
 	if(!send_command(&error, cmd_noron))
 	{
@@ -827,18 +875,17 @@ static bool init(void)
 		goto error;
 	}
 
-	msleep(10);
+	if(!send_command(&error, display.invert ? cmd_invon : cmd_invoff))
+	{
+		log("spitft init: %s\n", string_to_cstr(&error));
+		goto error;
+	}
 
 	if(!send_command(&error, cmd_dispon))
 	{
 		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
 	}
-
-	msleep(10);
-
-	if(!send_command(&error, cmd_invoff))
-		goto error;
 
 	madctl = madctl_bgr;
 
@@ -851,15 +898,11 @@ static bool init(void)
 	if(display.y_mirror)
 		madctl |= madctl_my;
 
-	msleep(10);
-
 	if(!send_command_data_1_8(&error, cmd_madctl, madctl))
 	{
 		log("spitft init: %s\n", string_to_cstr(&error));
 		goto error;
 	}
-
-	msleep(10);
 
 	if(!clear_screen())
 		return(false);
@@ -997,6 +1040,7 @@ static bool end(void)
 
 static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 {
+	enum { display_depth_bytes = 3 };
 	string_new(, error, 64);
 	int ix;
 
@@ -1009,16 +1053,16 @@ static bool plot(unsigned int pixel_amount, int x, int y, string_t *pixels)
 	if((unsigned int)y >= display.y_size)
 		return(false);
 
-	if((unsigned int)string_length(pixels) < (pixel_amount * 2))
+	if((unsigned int)string_length(pixels) < (pixel_amount * display_depth_bytes))
 		return(false);
 
-	if(!flush_data(&error))
+	if(!write_spi_write_buffer(&error))
 	{
 		log("spitft plot: %s\n", string_to_cstr(&error));
 		return(false);
 	}
 
-	string_setlength(pixels, pixel_amount * 2);
+	string_setlength(pixels, pixel_amount * display_depth_bytes);
 
 	if((x == 0) && (y == 0))
 	{
@@ -1051,6 +1095,7 @@ roflash const char help_description_display_spitft[] =	"> usage: display spitft\
 														"> <x size> <x offset> <x mirror 0|1>\n"
 														"> <y size> <y offset> <y mirror 0|1>\n"
 														"> <rotate 0|1>\n"
+														"> <invert 0|1>\n"
 														"> [<spi interface speed index, -1 = default>]\n"
 														"> [<dcx io> <dcx pin>]\n"
 														"> [<brightness pwm io> <brightness pwm pin>]\n"
@@ -1061,6 +1106,7 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 	unsigned int x_size, x_offset, x_mirror;
 	unsigned int y_size, y_offset, y_mirror;
 	unsigned int rotate;
+	unsigned int invert;
 	int speed;
 	int dcx_io, dcx_pin;
 	int bright_io, bright_pin;
@@ -1089,7 +1135,13 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 			return(app_action_error);
 		}
 
-		if(parse_int(8, parameters->src, &speed, 0, ' ') == parse_ok)
+		if(parse_uint(8, parameters->src, &invert, 0, ' ') != parse_ok)
+		{
+			string_append_cstr_flash(parameters->dst, help_description_display_spitft);
+			return(app_action_error);
+		}
+
+		if(parse_int(9, parameters->src, &speed, 0, ' ') == parse_ok)
 		{
 			if((speed < -1) || (speed >= spi_clock_size))
 			{
@@ -1100,8 +1152,8 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 		else
 			speed = -1;
 
-		if((parse_int(9, parameters->src, &dcx_io, 0, ' ') == parse_ok) &&
-				(parse_int(10, parameters->src, &dcx_pin, 0, ' ') == parse_ok))
+		if((parse_int(10, parameters->src, &dcx_io, 0, ' ') == parse_ok) &&
+				(parse_int(11, parameters->src, &dcx_pin, 0, ' ') == parse_ok))
 		{
 			if((dcx_io < -1) || (dcx_io >= io_id_size) || (dcx_pin < -1) || (dcx_pin >= max_pins_per_io))
 			{
@@ -1115,8 +1167,8 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 			dcx_pin = -1;
 		}
 
-		if((parse_int(11, parameters->src, &bright_io, 0, ' ') == parse_ok) &&
-				(parse_int(12, parameters->src, &bright_pin, 0, ' ') == parse_ok))
+		if((parse_int(12, parameters->src, &bright_io, 0, ' ') == parse_ok) &&
+				(parse_int(13, parameters->src, &bright_pin, 0, ' ') == parse_ok))
 		{
 			if((bright_io < -1) || (bright_io >= io_id_size) || (bright_pin < -1) || (bright_pin >= max_pins_per_io))
 			{
@@ -1130,8 +1182,8 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 			bright_pin = -1;
 		}
 
-		if((parse_int(13, parameters->src, &cs_io, 0, ' ') == parse_ok) &&
-				(parse_int(14, parameters->src, &cs_pin, 0, ' ') == parse_ok))
+		if((parse_int(14, parameters->src, &cs_io, 0, ' ') == parse_ok) &&
+				(parse_int(15, parameters->src, &cs_pin, 0, ' ') == parse_ok))
 		{
 			if((cs_io < -1) || (cs_io >= io_id_size) || (cs_pin < -1) || (cs_pin >= max_pins_per_io))
 			{
@@ -1171,6 +1223,9 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 				goto config_error;
 
 			if(!config_set_uint("spitft.rotate", rotate, -1, -1))
+				goto config_error;
+
+			if(!config_set_uint("spitft.invert", invert, -1, -1))
 				goto config_error;
 
 			if(speed < 0)
@@ -1255,6 +1310,11 @@ app_action_t application_function_display_spitft(app_params_t *parameters)
 		rotate = 0;
 
 	string_format(parameters->dst, "> rotate: %u\n", rotate);
+
+	if(!config_get_uint("spitft.invert", &invert, -1, -1))
+		invert = 0;
+
+	string_format(parameters->dst, "> invert: %u\n", invert);
 
 	if(!config_get_int("spitft.speed", &speed, -1, -1))
 		speed = -1;
@@ -1381,7 +1441,7 @@ static bool info(display_info_t *infostruct)
 	infostruct->cell_height = cell_height;
 	infostruct->width = display.x_size;
 	infostruct->height = display.y_size;
-	infostruct->pixel_mode = display_pixel_mode_16_rgb;
+	infostruct->pixel_mode = display_pixel_mode_24_rgb;
 
 	return(true);
 }

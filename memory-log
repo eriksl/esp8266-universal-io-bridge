@@ -17622,3 +17622,179 @@ Mon Jun  5 09:51:45 CEST 2023 f3e2641 uart: increase incoming data queue to be a
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71885, free:   8380, 10 %
     irom:    available: 784 k, used: 447392, free: 355424, 44 %
+Sun Jun 25 12:31:58 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447472, free: 355344, 44 %
+Sun Jun 25 12:36:14 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447584, free: 355232, 44 %
+Sun Jun 25 12:45:40 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447696, free: 355120, 44 %
+Sun Jun 25 12:49:16 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447792, free: 355024, 44 %
+Sun Jun 25 12:51:55 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447888, free: 354928, 44 %
+Sun Jun 25 12:53:48 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447984, free: 354832, 44 %
+Sun Jun 25 12:58:15 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448080, free: 354736, 44 %
+Sun Jun 25 13:03:14 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448208, free: 354608, 44 %
+Sun Jun 25 13:07:24 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448192, free: 354624, 44 %
+Sun Jun 25 13:20:50 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448320, free: 354496, 44 %
+Sun Jun 25 13:22:39 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448416, free: 354400, 44 %
+Sun Jun 25 13:24:54 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448368, free: 354448, 44 %
+Sun Jun 25 13:26:40 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448240, free: 354576, 44 %
+Sun Jun 25 13:34:19 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448448, free: 354368, 44 %
+Sun Jun 25 13:49:36 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448528, free: 354288, 44 %
+Sun Jun 25 13:51:40 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448624, free: 354192, 44 %
+Sun Jun 25 13:54:29 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448720, free: 354096, 44 %
+Sun Jun 25 13:56:08 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448816, free: 354000, 44 %
+Sun Jun 25 14:00:05 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 448960, free: 353856, 44 %
+Sun Jun 25 14:19:33 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 446848, free: 355968, 44 %
+Sun Jun 25 14:48:54 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 449152, free: 353664, 44 %
+Sun Jun 25 14:54:43 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447616, free: 355200, 44 %
+Sun Jun 25 14:55:19 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447632, free: 355184, 44 %
+Sun Jun 25 15:22:18 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447696, free: 355120, 44 %
+Sun Jun 25 15:23:43 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447728, free: 355088, 44 %
+Sun Jun 25 15:26:01 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447744, free: 355072, 44 %
+Sun Jun 25 15:37:20 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447696, free: 355120, 44 %
+Sun Jun 25 15:40:43 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447792, free: 355024, 44 %
+Sun Jun 25 15:42:48 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447760, free: 355056, 44 %
+Sun Jun 25 15:45:52 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71917, free:   8348, 10 %
+    irom:    available: 784 k, used: 447952, free: 354864, 44 %
+Sun Jun 25 15:46:35 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447760, free: 355056, 44 %
+Sun Jun 25 15:47:35 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447872, free: 354944, 44 %
+Sun Jun 25 15:48:48 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447840, free: 354976, 44 %
+Sun Jun 25 15:55:03 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447760, free: 355056, 44 %
+Sun Jun 25 15:56:32 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447840, free: 354976, 44 %
+Sun Jun 25 15:59:42 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447888, free: 354928, 44 %
+Sun Jun 25 16:01:43 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447856, free: 354960, 44 %
+Sun Jun 25 16:11:03 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447840, free: 354976, 44 %
+Sun Jun 25 16:42:30 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447856, free: 354960, 44 %
+Sun Jun 25 16:45:40 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447920, free: 354896, 44 %
+Sun Jun 25 16:53:45 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447888, free: 354928, 44 %
+Sun Jun 25 17:06:39 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448016, free: 354800, 44 %
+Sun Jun 25 17:09:14 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 447952, free: 354864, 44 %
+Sun Jun 25 17:19:07 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull (no open drain) and non-inverted.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448160, free: 354656, 44 %
