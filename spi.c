@@ -91,7 +91,7 @@ attr_inline void wait_completion(void)
 		stat_spi_wait_cycles++;
 }
 
-attr_result_used bool spi_init(string_t *error, unsigned int io)
+bool spi_init(string_t *error, unsigned int io)
 {
 	state.inited = 0;
 	state.configured = 0;
@@ -111,7 +111,7 @@ attr_result_used bool spi_init(string_t *error, unsigned int io)
 	return(true);
 }
 
-attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin)
+bool spi_configure(string_t *error, spi_mode_t mode, bool cs_hold, int user_cs_io, int user_cs_pin)
 {
 	unsigned int reg_pin_mode;
 	unsigned int reg_spi_config;
@@ -168,7 +168,7 @@ attr_result_used bool spi_configure(string_t *error, spi_mode_t mode, bool cs_ho
 	return(true);
 }
 
-attr_result_used bool spi_start(string_t *error)
+bool spi_start(string_t *error)
 {
 	unsigned int current;
 
@@ -245,7 +245,7 @@ unsigned int spi_write_bits_used(void)
 	return(send_buffer.bits);
 }
 
-attr_result_used bool spi_write(unsigned int bits, uint32_t value)
+bool spi_write(unsigned int bits, uint32_t value)
 {
 	int bit;
 
