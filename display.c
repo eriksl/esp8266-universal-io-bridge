@@ -250,6 +250,35 @@ static void picture_load_worker(void *arg)
 			break;
 		}
 
+		case(display_pixel_mode_24_rgb): // 24 bit RGB 8-8-8 per pixel
+		{
+			current_pixel = picture_load_sector * flash_buffer_size / 3;
+			current_y = current_pixel / width;
+			current_x = current_pixel % width;
+
+			finish = false;
+
+			if((current_pixel + (string_length(buffer_string) / 3)) >= total_pixels)
+			{
+				length = (total_pixels - current_pixel) * 3;
+
+				if(length < 0)
+					length = 0;
+
+				string_setlength(buffer_string, length);
+
+				finish = true;
+			}
+
+			if(!display_plot(string_length(buffer_string) / 3, current_x, current_y, buffer_string))
+				goto error;
+
+			if(finish)
+				goto error;
+
+			break;
+		}
+
 		default: // unknown
 		{
 			log("picture load: pixel mode of %u not implemented\n", pixel_mode);

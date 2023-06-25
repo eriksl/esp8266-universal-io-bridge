@@ -1250,6 +1250,12 @@ static void command_image_send_sector(GenericSocket &command_channel,
 				break;
 			}
 
+			case(24):
+			{
+				pixels = data.length() / 3;
+				break;
+			}
+
 			default:
 			{
 				throw(std::string("unknown display colour depth"));
@@ -1263,9 +1269,9 @@ static void command_image_send_sector(GenericSocket &command_channel,
 	{
 		unsigned int sectors_written, sectors_erased, sectors_skipped;
 		std::string pad;
+		unsigned int pad_length = 4096 - data.length();
 
-		pad.assign(0x00, 4096 - data.length());
-
+		pad.assign(pad_length, 0x00);
 		write_sector(command_channel, current_sector, data + pad, sectors_written, sectors_erased, sectors_skipped, false);
 	}
 }
@@ -1379,6 +1385,32 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 
 						sector_buffer[current_buffer++] = (r1 << 3) | (g1 >> 0);
 						sector_buffer[current_buffer++] = (g2 << 5) | (b1 >> 0);
+
+						break;
+					}
+
+					case(24):
+					{
+						r = colour.redQuantum() >> 8;
+						g = colour.greenQuantum() >> 8;
+						b = colour.blueQuantum() >> 8;
+
+						if((current_buffer + 3) > flash_sector_size)
+						{
+							command_image_send_sector(command_channel, current_sector, std::string((const char *)sector_buffer, current_buffer), start_x, start_y, depth);
+							memset(sector_buffer, 0xff, flash_sector_size);
+
+							if(current_sector >= 0)
+								current_sector++;
+
+							current_buffer = 0;
+							start_x = x;
+							start_y = y;
+						}
+
+						sector_buffer[current_buffer++] = r;
+						sector_buffer[current_buffer++] = g;
+						sector_buffer[current_buffer++] = b;
 
 						break;
 					}

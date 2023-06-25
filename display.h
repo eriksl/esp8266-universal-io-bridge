@@ -22,6 +22,7 @@ typedef enum
 	display_pixel_mode_none = 0,
 	display_pixel_mode_1 = 1,
 	display_pixel_mode_16_rgb = 16,
+	display_pixel_mode_24_rgb = 24,
 } display_pixel_mode_t;
 
 typedef struct
