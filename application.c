@@ -1698,6 +1698,62 @@ static app_action_t application_function_gpio_status_set(app_params_t *parameter
 	return(app_action_normal);
 }
 
+static app_action_t application_function_gpio_pcint_set(app_params_t *parameters)
+{
+	int trigger_io, trigger_pin;
+
+	if((parse_int(1, parameters->src, &trigger_io, 0, ' ') == parse_ok) && (parse_int(2, parameters->src, &trigger_pin, 0, ' ') == parse_ok))
+	{
+		if((trigger_io < -1) || (trigger_io > io_id_size))
+		{
+			string_format(parameters->dst, "pcint trigger io %d/%d invalid\n", trigger_io, trigger_pin);
+			return(app_action_error);
+		}
+
+		if(!config_open_write())
+		{
+			string_append(parameters->dst, "> cannot set config (open)\n");
+			return(app_action_error);
+		}
+
+		if((trigger_io < 0) || (trigger_pin < 0))
+		{
+			if(!config_delete("trigger.pcint.io", false, -1, -1) ||
+					!config_delete("trigger.pcint.pin", false, -1, -1))
+			{
+				config_abort_write();
+				string_append(parameters->dst, "> cannot delete config (default values)\n");
+				return(app_action_error);
+			}
+		}
+		else
+			if(!config_set_int("trigger.pcint.io", trigger_io, -1, -1) ||
+					!config_set_int("trigger.pcint.pin", trigger_pin, -1, -1))
+			{
+				config_abort_write();
+				string_append(parameters->dst, "> cannot set config\n");
+				return(app_action_error);
+			}
+
+		if(!config_close_write())
+		{
+			string_append(parameters->dst, "> cannot set config (close)\n");
+			return(app_action_error);
+		}
+	}
+
+	if(!config_get_int("trigger.pcint.io", &trigger_io, -1, -1))
+		trigger_io = -1;
+
+	if(!config_get_int("trigger.pcint.pin", &trigger_pin, -1, -1))
+		trigger_pin = -1;
+
+	string_format(parameters->dst, "pcint trigger at io %d/%d (-1 is disabled)\n",
+			trigger_io, trigger_pin);
+
+	return(app_action_normal);
+}
+
 static app_action_t application_function_gpio_assoc_set(app_params_t *parameters)
 {
 	int trigger_io, trigger_pin;
@@ -2014,6 +2070,7 @@ roflash static const char help_description_set_flag[] =				"set a flag";
 roflash static const char help_description_unset_flag[] =			"unset a flag";
 roflash static const char help_description_gpio_assoc[] =			"set gpio to trigger on wlan association";
 roflash static const char help_description_gpio_status[] =			"set gpio to trigger on status change";
+roflash static const char help_description_gpio_pcint[] =			"set gpio to trigger on pin change interrupt";
 roflash static const char help_description_i2c_address[] =			"set i2c slave address";
 roflash static const char help_description_i2c_bus[] =				"set i2c mux bus number (0-8)";
 roflash static const char help_description_i2c_read[] =				"read data from i2c slave";
@@ -2197,6 +2254,11 @@ roflash static const application_function_table_t application_function_table[] =
 		"gss", "gpio-status-set",
 		application_function_gpio_status_set,
 		help_description_gpio_status,
+	},
+	{
+		"gps", "gpio-pcint-set",
+		application_function_gpio_pcint_set,
+		help_description_gpio_pcint,
 	},
 	{
 		"i2a", "i2c-address",

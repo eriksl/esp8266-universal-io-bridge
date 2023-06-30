@@ -1703,8 +1703,8 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 		}
 	}
 
-	if((trigger_alert.io >= 0) && (trigger_alert.pin >= 0))
-		io_trigger_pin((string_t *)0, trigger_alert.io, trigger_alert.pin, io_trigger_on);
+	if((pcint_alert.io >= 0) && (pcint_alert.pin >= 0))
+		io_trigger_pin((string_t *)0, pcint_alert.io, pcint_alert.pin, io_trigger_on);
 
 	pin_data->previous = !!(pin_value_mask & (1 << pin));
 }

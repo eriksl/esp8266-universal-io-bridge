@@ -71,6 +71,7 @@ static os_timer_t slow_timer;
 
 trigger_t trigger_alert = { -1, -1 };
 static trigger_t assoc_alert = { -1, -1 };
+trigger_t pcint_alert = { -1, -1 };
 
 unsigned int broadcast_groups;
 
@@ -951,6 +952,13 @@ void dispatch_init2(void)
 	{
 		assoc_alert.io = io;
 		assoc_alert.pin = pin;
+	}
+
+	if(config_get_int("trigger.pcint.io", &io, -1, -1) &&
+			config_get_int("trigger.pcint.pin", &pin, -1, -1))
+	{
+		pcint_alert.io = io;
+		pcint_alert.pin = pin;
 	}
 
 	if(!config_get_uint("cmd.port", &cmd_port, -1, -1))

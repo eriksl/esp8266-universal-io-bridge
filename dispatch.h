@@ -72,6 +72,7 @@ typedef struct attr_packed
 assert_size(trigger_t, 4);
 
 extern trigger_t trigger_alert;
+extern trigger_t pcint_alert;
 
 extern bool uart_bridge_active;
 

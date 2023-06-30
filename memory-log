@@ -17798,3 +17798,19 @@ Sun Jun 25 17:19:07 CEST 2023 511fda3 io_mcp: change interrupts to be push-pull 
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71885, free:   8380, 10 %
     irom:    available: 784 k, used: 448160, free: 354656, 44 %
+Fri Jun 30 20:41:47 CEST 2023 06bf1a3 display_spitft: note when no fonts are loaded.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71885, free:   8380, 10 %
+    irom:    available: 784 k, used: 448128, free: 354688, 44 %
+Fri Jun 30 20:57:11 CEST 2023 06bf1a3 display_spitft: note when no fonts are loaded.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71901, free:   8364, 10 %
+    irom:    available: 784 k, used: 448880, free: 353936, 44 %
+Fri Jun 30 21:01:13 CEST 2023 06bf1a3 display_spitft: note when no fonts are loaded.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71905, free:   8360, 10 %
+    irom:    available: 784 k, used: 448992, free: 353824, 44 %
+Fri Jun 30 21:10:19 CEST 2023 06bf1a3 display_spitft: note when no fonts are loaded.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71905, free:   8360, 10 %
+    irom:    available: 784 k, used: 449008, free: 353808, 44 %
