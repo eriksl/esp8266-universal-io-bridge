@@ -17814,3 +17814,47 @@ Fri Jun 30 21:10:19 CEST 2023 06bf1a3 display_spitft: note when no fonts are loa
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71905, free:   8360, 10 %
     irom:    available: 784 k, used: 449008, free: 353808, 44 %
+Sun Jul  2 10:39:35 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71905, free:   8360, 10 %
+    irom:    available: 784 k, used: 448992, free: 353824, 44 %
+Sun Jul  2 16:09:01 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71905, free:   8360, 10 %
+    irom:    available: 784 k, used: 449040, free: 353776, 44 %
+Mon Jul  3 19:54:11 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449056, free: 353760, 44 %
+Mon Jul  3 20:04:49 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449184, free: 353632, 44 %
+Mon Jul  3 20:05:32 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Mon Jul  3 20:06:57 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449280, free: 353536, 44 %
+Mon Jul  3 20:12:47 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449344, free: 353472, 44 %
+Mon Jul  3 20:14:20 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449360, free: 353456, 44 %
+Mon Jul  3 20:15:19 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449376, free: 353440, 44 %
+Mon Jul  3 20:30:31 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449424, free: 353392, 44 %
+Mon Jul  3 20:33:56 CEST 2023 af81cbb add separate i/o trigger for pcint events
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449520, free: 353296, 44 %

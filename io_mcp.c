@@ -3,6 +3,7 @@
 #include "spi.h"
 #include "dispatch.h"
 #include "util.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -35,7 +36,8 @@ assert_size(mcp_data_instance_t, 4);
 
 typedef struct attr_packed
 {
-	spi_clock_t			speed:8;
+	unsigned int		polling:1;
+	spi_clock_t			speed:7;
 	mcp_data_instance_t	instance[io_mcp_instance_size];
 } mcp_data_t;
 
@@ -253,8 +255,17 @@ static io_error_t clear_set_register(string_t *error_message, const io_info_entr
 
 static io_error_t init(const io_info_entry_t *info)
 {
-	static const unsigned int iocon_value = iocon_intpol_high | iocon_int_no_open_drain | iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
+	static unsigned int iocon_value;
 	unsigned int value;
+
+	if(config_flags_match(flag_mcp_int_push_pull))
+		iocon_value = iocon_intpol_low | iocon_int_no_open_drain;
+	else
+		iocon_value = iocon_int_open_drain;
+
+	mcp_data.polling = config_flags_match(flag_mcp_no_poll) ? 0 : 1;
+
+	iocon_value |= iocon_no_haen | iocon_disslw | iocon_seqop | iocon_int_mirror | iocon_nobank;
 
 	mcp_data.instance[info->instance].counters = 0;
 
@@ -367,13 +378,16 @@ static attr_pure unsigned int pin_max_value(const io_info_entry_t *info, io_data
 	return(value);
 }
 
-static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
+static void pin_change_common_handler(const io_info_entry_t *info, bool interrupt)
 {
 	unsigned int intf[2];
 	unsigned int intcap[2];
 
 	if(!mcp_data.instance[info->instance].counters)
+	{
+		log("mcp[%u]: pin-change-common-handler: no counters\n", info->address);
 		return;
+	}
 
 	if(read_register_4((string_t *)0, info, INTF(0), &intf[0], &intf[1], &intcap[0], &intcap[1]) != io_ok) // INTFA, INTFB, INTCAPA, INTCAPB
 		return;
@@ -381,11 +395,20 @@ static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *
 	if((intf[0] != 0) || (intf[1] != 0))
 		dispatch_post_task(task_prio_low, task_pins_changed_mcp,
 				(intf[1] << 8) | (intf[0] << 0),  (intcap[1] << 8) | (intcap[0] << 0), info->id);
+	else
+		if(interrupt)
+			log("mcp[%u]: pin-change-common-handler called from interrupt with no interrupt pending\n", info->address);
+}
+
+static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
+{
+	if(mcp_data.polling)
+		pin_change_common_handler(info, false);
 }
 
 static void pin_change_handler(int io, io_info_entry_t *info, io_data_entry_t *data)
 {
-	periodic_slow(io, info, data, 0);
+	pin_change_common_handler(info, true);
 }
 
 void io_mcp_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t io)
