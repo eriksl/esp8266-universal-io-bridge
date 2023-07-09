@@ -1373,10 +1373,7 @@ static i2c_error_t si114x_sendcmd(si114x_command_t command, unsigned int *respon
 				break;
 
 			if((local_response & 0b10001000) == 0b10001000)		// overflow, treat as OK
-			{
-				log("si114x: response overflow: %x\n", local_response);
 				break;
-			}
 
 			log("si114x: response invalid command / timeout: %x\n", local_response);
 			log("si114x: attempt2: %u\n", attempt2);

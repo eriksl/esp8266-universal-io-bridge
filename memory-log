@@ -17858,3 +17858,15 @@ Mon Jul  3 20:33:56 CEST 2023 af81cbb add separate i/o trigger for pcint events
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71937, free:   8328, 10 %
     irom:    available: 784 k, used: 449520, free: 353296, 44 %
+Mon Jul  3 20:58:31 CEST 2023 bc03a0a io_mcp: add two configuration flags and fix mcp interrupt issue.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71953, free:   8312, 10 %
+    irom:    available: 784 k, used: 449328, free: 353488, 44 %
+Mon Jul  3 20:58:44 CEST 2023 bc03a0a io_mcp: add two configuration flags and fix mcp interrupt issue.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449312, free: 353504, 44 %
+Sun Jul  9 10:30:49 CEST 2023 bc03a0a io_mcp: add two configuration flags and fix mcp interrupt issue.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449264, free: 353552, 44 %
