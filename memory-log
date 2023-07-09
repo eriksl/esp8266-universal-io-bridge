@@ -17870,3 +17870,19 @@ Sun Jul  9 10:30:49 CEST 2023 bc03a0a io_mcp: add two configuration flags and fi
     iram:    available:  32 k, used:  30012, free:   2756,  8 %
     dram:    available:  78 k, used:  71937, free:   8328, 10 %
     irom:    available: 784 k, used: 449264, free: 353552, 44 %
+Sun Jul  9 11:06:45 CEST 2023 82580ae i2c-sensors: remove si114x debug log message that would clutter.
+    iram:    available:  32 k, used:  30012, free:   2756,  8 %
+    dram:    available:  78 k, used:  71953, free:   8312, 10 %
+    irom:    available: 784 k, used: 449280, free: 353536, 44 %
+Sun Jul  9 13:48:45 CEST 2023 82580ae i2c-sensors: remove si114x debug log message that would clutter.
+    iram:    available:  32 k, used:  29932, free:   2836,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449264, free: 353552, 44 %
+Sun Jul  9 13:49:41 CEST 2023 82580ae i2c-sensors: remove si114x debug log message that would clutter.
+    iram:    available:  32 k, used:  29932, free:   2836,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449232, free: 353584, 44 %
+Sun Jul  9 13:53:15 CEST 2023 348ba7a io_aux: disable pin change and counter functionality from timer module GPIO.
+    iram:    available:  32 k, used:  29932, free:   2836,  8 %
+    dram:    available:  78 k, used:  71921, free:   8344, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %

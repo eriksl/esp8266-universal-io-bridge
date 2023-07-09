@@ -40,7 +40,6 @@ typedef enum
 	task_remote_trigger,
 	task_wlan_reconnect,
 	task_pins_changed_gpio,
-	task_pins_changed_aux,
 	task_pins_changed_mcp,
 	task_pins_changed_pcf,
 	task_invalid,

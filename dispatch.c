@@ -16,7 +16,6 @@
 #include "ota.h"
 #include "font.h"
 #include "wlan.h"
-#include "io_aux.h"
 #include "io_mcp.h"
 #include "io_pcf.h"
 
@@ -507,12 +506,6 @@ drop:
 		case(task_pins_changed_gpio):
 		{
 			io_gpio_pins_changed(parameter_1, parameter_2);
-			break;
-		}
-
-		case(task_pins_changed_aux):
-		{
-			io_aux_pins_changed(parameter_1, parameter_2);
 			break;
 		}
 
