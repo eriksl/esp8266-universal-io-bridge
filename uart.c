@@ -83,7 +83,7 @@ iram static void uart_callback(void *p)
 			uart0->rx_posted_skipped++;
 		else
 		{
-			if(dispatch_post_task(task_prio_medium, task_uart_fetch_fifo, 0, 0, 0))
+			if(dispatch_post_task(task_prio_high, task_uart_fetch_fifo, 0, 0, 0))
 			{
 				uart0->rx_posted++;
 
@@ -102,7 +102,7 @@ iram static void uart_callback(void *p)
 			uart0->tx_posted_skipped++;
 		else
 		{
-			if(dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 0, 0, 0))
+			if(dispatch_post_task(task_prio_high, task_uart_fill_fifo, 0, 0, 0))
 			{
 				uart0->tx_posted++;
 
@@ -121,7 +121,7 @@ iram static void uart_callback(void *p)
 			uart1->tx_posted_skipped++;
 		else
 		{
-			if(dispatch_post_task(task_prio_medium, task_uart_fill_fifo, 1, 0, 0))
+			if(dispatch_post_task(task_prio_high, task_uart_fill_fifo, 1, 0, 0))
 			{
 				uart1->tx_posted++;
 

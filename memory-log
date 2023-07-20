@@ -17886,3 +17886,15 @@ Sun Jul  9 13:53:15 CEST 2023 348ba7a io_aux: disable pin change and counter fun
     iram:    available:  32 k, used:  29932, free:   2836,  8 %
     dram:    available:  78 k, used:  71921, free:   8344, 10 %
     irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Sun Jul  9 14:04:30 CEST 2023 ffe196b io_aux: disable pin change and counter functionality from rtc module GPIO.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71969, free:   8296, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Thu Jul 20 19:08:04 CEST 2023 ffe196b io_aux: disable pin change and counter functionality from rtc module GPIO.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Thu Jul 20 19:10:16 CEST 2023 ffe196b io_aux: disable pin change and counter functionality from rtc module GPIO.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 448944, free: 353872, 44 %

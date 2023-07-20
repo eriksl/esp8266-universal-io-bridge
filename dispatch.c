@@ -36,7 +36,7 @@ enum
 {
 	fast_timer_rate_ms = 10,
 	slow_timer_rate_ms = 100,
-	task_queue_length = 10,
+	task_queue_length = 12,
 	command_input_state_timeout = 10,
 };
 
