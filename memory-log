@@ -17898,3 +17898,47 @@ Thu Jul 20 19:10:16 CEST 2023 ffe196b io_aux: disable pin change and counter fun
     iram:    available:  32 k, used:  29928, free:   2840,  8 %
     dram:    available:  78 k, used:  71937, free:   8328, 10 %
     irom:    available: 784 k, used: 448944, free: 353872, 44 %
+Thu Jul 20 19:18:07 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71953, free:   8312, 10 %
+    irom:    available: 784 k, used: 448928, free: 353888, 44 %
+Thu Jul 20 19:19:14 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71969, free:   8296, 10 %
+    irom:    available: 784 k, used: 448928, free: 353888, 44 %
+Thu Jul 20 19:21:01 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 448704, free: 354112, 44 %
+Thu Jul 20 19:22:04 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71937, free:   8328, 10 %
+    irom:    available: 784 k, used: 448720, free: 354096, 44 %
+Thu Jul 20 19:24:50 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71969, free:   8296, 10 %
+    irom:    available: 784 k, used: 448944, free: 353872, 44 %
+Thu Jul 20 19:26:29 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71969, free:   8296, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Thu Jul 20 20:33:46 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71969, free:   8296, 10 %
+    irom:    available: 784 k, used: 449184, free: 353632, 44 %
+Thu Jul 27 11:12:46 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29956, free:   2812,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 449200, free: 353616, 44 %
+Thu Jul 27 11:13:35 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29956, free:   2812,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449136, free: 353680, 44 %
+Thu Jul 27 11:15:04 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449168, free: 353648, 44 %
+Thu Jul 27 11:24:38 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck sooner or later.
+    iram:    available:  32 k, used:  29928, free:   2840,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449184, free: 353632, 44 %

@@ -521,6 +521,12 @@ drop:
 			break;
 		}
 
+		case(task_display_load_picture_worker):
+		{
+			display_picture_load_worker();
+			break;
+		}
+
 		default:
 		{
 			log("[dispatch] invalid commmand in task\n");

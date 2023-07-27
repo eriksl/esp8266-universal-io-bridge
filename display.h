@@ -56,6 +56,7 @@ assert_size(display_hooks_t, 40);
 extern uint8_t display_buffer[display_buffer_size];
 bool display_get_info(display_info_t *);
 bool display_load_picture_slot(unsigned int slot);
+void display_picture_load_worker(void);
 
 app_action_t application_function_display_brightness(app_params_t *);
 app_action_t application_function_display_dump(app_params_t *);

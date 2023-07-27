@@ -42,6 +42,7 @@ typedef enum
 	task_pins_changed_gpio,
 	task_pins_changed_mcp,
 	task_pins_changed_pcf,
+	task_display_load_picture_worker,
 	task_invalid,
 	task_size = task_invalid,
 } task_id_t;

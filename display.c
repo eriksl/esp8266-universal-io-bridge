@@ -48,9 +48,6 @@ assert_size(picture_load_slot, 1);
 static uint8_t picture_load_sector;
 assert_size(picture_load_sector, 1);
 
-static os_timer_t picture_load_timer;
-assert_size(picture_load_timer, 20);
-
 static unsigned int freeze_timer;
 assert_size(freeze_timer, 4);
 
@@ -137,13 +134,13 @@ bool display_load_picture_slot(unsigned int slot)
 	picture_load_state = pls_run;
 	picture_load_sector = 0;
 	picture_load_slot = slot;
-	os_timer_arm(&picture_load_timer, 10, 0);
+	dispatch_post_task(task_prio_low, task_display_load_picture_worker, 0, 0, 0);
 	freeze(10000);
 
 	return(true);
 }
 
-static void picture_load_worker(void *arg)
+void display_picture_load_worker(void)
 {
 	display_info_t info;
 	string_t *buffer_string;
@@ -289,13 +286,14 @@ static void picture_load_worker(void *arg)
 	picture_load_sector++;
 
 retry:
-	os_timer_arm(&picture_load_timer, 10, 0);
+	dispatch_post_task(task_prio_low, task_display_load_picture_worker, 0, 0, 0);
 	goto no_error;
 error:
 	picture_load_state = pls_idle;
 	freeze(0);
 no_error:
-	flash_buffer_release(fsb_display_picture, "display load picture worker");
+	if(flash_buffer_using_1(fsb_display_picture))
+		flash_buffer_release(fsb_display_picture, "display load picture worker");
 	return;
 }
 
@@ -452,7 +450,10 @@ void display_periodic(void) // gets called 10 times per second
 		(void)0;
 
 	if(picture_load_state != pls_idle)
+	{
+		display_picture_load_worker(); // fallback for missed task posts
 		return;
+	}
 
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
@@ -593,7 +594,6 @@ void display_init(void)
 		goto error;
 	}
 
-	os_timer_setfn(&picture_load_timer, picture_load_worker, (void *)0);
 	return;
 
 error:
