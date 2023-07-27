@@ -1677,7 +1677,10 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 				case(0b0010):
 				case(0b1011):
 				{
-					trigger_action = io_trigger_up;
+					if(pin_config->static_flags & io_flag_static_invert)
+						trigger_action = io_trigger_down;
+					else
+						trigger_action = io_trigger_up;
 					break;
 				}
 
@@ -1686,7 +1689,10 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 				case(0b0111):
 				case(0b1110):
 				{
-					trigger_action = io_trigger_down;
+					if(pin_config->static_flags & io_flag_static_invert)
+						trigger_action = io_trigger_up;
+					else
+						trigger_action = io_trigger_down;
 					break;
 				}
 

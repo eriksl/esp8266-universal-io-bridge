@@ -17998,3 +17998,15 @@ Thu Jul 27 14:44:26 CEST 2023 5d83e47 display: improve picture loading speed (an
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 450400, free: 352416, 43 %
+Thu Jul 27 14:56:36 CEST 2023 f1278d4 io: add functions for dynamically suspend and resume i/o pins (not permanent).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450416, free: 352400, 43 %
+Thu Jul 27 19:49:14 CEST 2023 f1278d4 io: add functions for dynamically suspend and resume i/o pins (not permanent).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450448, free: 352368, 43 %
+Thu Jul 27 19:49:59 CEST 2023 f1278d4 io: add functions for dynamically suspend and resume i/o pins (not permanent).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450480, free: 352336, 43 %
