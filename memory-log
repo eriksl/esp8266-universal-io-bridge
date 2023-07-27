@@ -17942,3 +17942,59 @@ Thu Jul 27 11:24:38 CEST 2023 cad4692 fix for UART and GPIO-INT becoming stuck s
     iram:    available:  32 k, used:  29928, free:   2840,  8 %
     dram:    available:  78 k, used:  71961, free:   8304, 10 %
     irom:    available: 784 k, used: 449184, free: 353632, 44 %
+Thu Jul 27 13:43:21 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449136, free: 353680, 44 %
+Thu Jul 27 13:43:43 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449344, free: 353472, 44 %
+Thu Jul 27 13:43:53 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449408, free: 353408, 44 %
+Thu Jul 27 14:03:08 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29964, free:   2804,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449904, free: 352912, 43 %
+Thu Jul 27 14:03:19 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71961, free:   8304, 10 %
+    irom:    available: 784 k, used: 449408, free: 353408, 44 %
+Thu Jul 27 14:13:34 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450160, free: 352656, 43 %
+Thu Jul 27 14:17:28 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450240, free: 352576, 43 %
+Thu Jul 27 14:21:01 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450304, free: 352512, 43 %
+Thu Jul 27 14:26:57 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450368, free: 352448, 43 %
+Thu Jul 27 14:34:02 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450416, free: 352400, 43 %
+Thu Jul 27 14:38:16 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450432, free: 352384, 43 %
+Thu Jul 27 14:41:36 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450544, free: 352272, 43 %
+Thu Jul 27 14:41:58 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450384, free: 352432, 43 %
+Thu Jul 27 14:44:26 CEST 2023 5d83e47 display: improve picture loading speed (and get rid of another timer).
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450400, free: 352416, 43 %

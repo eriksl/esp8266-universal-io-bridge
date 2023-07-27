@@ -26,18 +26,24 @@ typedef struct
 
 assert_size(io_flag_name_t, 20);
 
-roflash static const io_flag_name_t io_flag_names[] =
+roflash static const io_flag_name_t io_flag_static_names[] =
 {
-	{	io_flag_autostart,		"autostart"		},
-	{	io_flag_repeat,			"repeat"		},
-	{	io_flag_pullup,			"pullup"		},
-	{	io_flag_reset_on_read,	"reset-on-read"	},
-	{	io_flag_extended,		"extended"		},
-	{	io_flag_grb,			"grb"			},
-	{	io_flag_linear,			"linear",		},
-	{	io_flag_fill8,			"fill8",		},
-	{	io_flag_invert,			"invert",		},
-	{	io_flag_none,			""				},
+	{	io_flag_static_autostart,		"autostart"		},
+	{	io_flag_static_repeat,			"repeat"		},
+	{	io_flag_static_pullup,			"pullup"		},
+	{	io_flag_static_reset_on_read,	"reset-on-read"	},
+	{	io_flag_static_extended,		"extended"		},
+	{	io_flag_static_grb,				"grb"			},
+	{	io_flag_static_linear,			"linear"		},
+	{	io_flag_static_fill8,			"fill8"			},
+	{	io_flag_static_invert,			"invert"		},
+	{	io_flag_static_none,			""				},
+};
+
+roflash static const io_flag_name_t io_flag_dynamic_names[] =
+{
+	{	io_flag_dynamic_suspended,		"suspended"		},
+	{	io_flag_dynamic_none,			""				},
 };
 
 io_config_pin_entry_t io_config[io_id_size][max_pins_per_io];
@@ -407,14 +413,14 @@ static bool io_string_to_flags(const string_t *flag, io_config_pin_entry_t *pin_
 {
 	const io_flag_name_t *entry;
 
-	for(entry = io_flag_names; entry->value != io_flag_none; entry++)
+	for(entry = io_flag_static_names; entry->value != io_flag_static_none; entry++)
 	{
 		if(string_match_cstr_flash(flag, entry->name))
 		{
 			if(resetset)
-				pin_config->flags |= entry->value;
+				pin_config->static_flags |= entry->value;
 			else
-				pin_config->flags &= ~entry->value;
+				pin_config->static_flags &= ~entry->value;
 
 			return(true);
 		}
@@ -428,8 +434,9 @@ static void io_flags_to_string(string_t *dst, const io_config_pin_entry_t *pin_c
 	const io_flag_name_t *entry;
 	bool first = true;
 
-	for(entry = io_flag_names; entry->value != io_flag_none; entry++)
-		if(pin_config->flags & entry->value)
+	for(entry = io_flag_dynamic_names; entry->value != io_flag_dynamic_none; entry++)
+	{
+		if(pin_config->dynamic_flags & entry->value)
 		{
 			if(first)
 				first = false;
@@ -438,6 +445,20 @@ static void io_flags_to_string(string_t *dst, const io_config_pin_entry_t *pin_c
 
 			string_append_cstr_flash(dst, entry->name);
 		}
+	}
+
+	for(entry = io_flag_static_names; entry->value != io_flag_static_none; entry++)
+	{
+		if(pin_config->static_flags & entry->value)
+		{
+			if(first)
+				first = false;
+			else
+				string_append_char(dst, ' ');
+
+			string_append_cstr_flash(dst, entry->name);
+		}
+	}
 }
 
 static unsigned int io_pin_max_value_x(const io_info_entry_t *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -489,6 +510,9 @@ static io_error_t io_read_pin_x(string_t *errormsg, const io_info_entry_t *info,
 static io_error_t io_write_pin_x(string_t *errormsg, const io_info_entry_t *info, io_data_pin_entry_t *pin_data, io_config_pin_entry_t *pin_config, int pin, uint32_t value)
 {
 	io_error_t error;
+
+	if(pin_config->dynamic_flags & io_flag_dynamic_suspended)
+		return(io_error);
 
 	switch(pin_config->mode)
 	{
@@ -552,6 +576,9 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 	io_error_t error;
 	unsigned int old_value, trigger;
 	unsigned int value = 0;
+
+	if(pin_config->dynamic_flags & io_flag_dynamic_suspended)
+		return(io_error);
 
 	switch(pin_config->mode)
 	{
@@ -748,7 +775,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 				{
 					old_value = value;
 
-					if(pin_config->flags & io_flag_linear)
+					if(pin_config->static_flags & io_flag_static_linear)
 					{
 						if(value >= pin_config->speed)
 							value -= pin_config->speed;
@@ -763,7 +790,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 
 					if(value <= pin_config->shared.output_pwm.lower_bound)
 					{
-						if((pin_config->flags & io_flag_repeat) && (pin_data->direction == io_dir_down))
+						if((pin_config->static_flags & io_flag_static_repeat) && (pin_data->direction == io_dir_down))
 							pin_data->direction = io_dir_up;
 						else
 						{
@@ -783,7 +810,7 @@ static io_error_t io_trigger_pin_x(string_t *errormsg, const io_info_entry_t *in
 					{
 						old_value = value;
 
-						if(pin_config->flags & io_flag_linear)
+						if(pin_config->static_flags & io_flag_static_linear)
 							value += pin_config->speed;
 						else
 						{
@@ -915,7 +942,7 @@ io_error_t io_read_pin(string_t *error_msg, unsigned int io, unsigned int pin, u
 	if(((error = io_read_pin_x(error_msg, info, pin_data, pin_config, pin, value)) != io_ok) && error_msg)
 		string_append(error_msg, "\n");
 	else
-		if((pin_config->flags & io_flag_reset_on_read) &&
+		if((pin_config->static_flags & io_flag_static_reset_on_read) &&
 				((pin_config->mode == io_pin_counter) || (pin_config->mode == io_pin_rotary_encoder)))
 			error = io_write_pin_x(error_msg, info, pin_data, pin_config, pin, 0);
 
@@ -1092,7 +1119,7 @@ void io_init(void)
 	io_data_entry_t *data;
 	io_config_pin_entry_t *pin_config;
 	io_data_pin_entry_t *pin_data;
-	io_pin_flag_to_int_t flags;
+	io_pin_flags_static_to_int_t flags;
 	unsigned int io, pin;
 	unsigned int mode, llmode;
 	int i2c_sda = -1;
@@ -1150,7 +1177,7 @@ void io_init(void)
 
 			pin_config->mode = mode;
 			pin_config->llmode = llmode;
-			pin_config->flags = flags.io_pin_flags;
+			pin_config->static_flags = flags.io_pin_flags_static;
 
 			switch(mode)
 			{
@@ -1453,7 +1480,7 @@ void io_init(void)
 						case(io_pin_output_digital):
 						case(io_pin_lcd):
 						{
-							if(pin_config->flags & io_flag_autostart)
+							if(pin_config->static_flags & io_flag_static_autostart)
 								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_on);
 							else
 								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_off);
@@ -1465,7 +1492,7 @@ void io_init(void)
 						case(io_pin_output_pwm1):
 						case(io_pin_output_pwm2):
 						{
-							if(pin_config->flags & io_flag_autostart)
+							if(pin_config->static_flags & io_flag_static_autostart)
 								io_trigger_pin_x((string_t *)0, info, pin_data, pin_config, pin, io_trigger_start);
 							else
 							{
@@ -1563,7 +1590,7 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 	{
 		case(io_pin_counter):
 		{
-			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+			if((!(pin_config->static_flags & io_flag_static_invert)) != !!(pin_value_mask & (1 << pin)))
 				pin_data->value++;
 
 			break;
@@ -1575,7 +1602,7 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 			io_data_entry_t *data_entry;
 			io_id_t id;
 
-			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+			if((!(pin_config->static_flags & io_flag_static_invert)) != !!(pin_value_mask & (1 << pin)))
 			{
 				pin_data->value++;
 
@@ -1598,7 +1625,7 @@ void io_pin_changed(unsigned int io, unsigned int pin, uint32_t pin_value_mask)
 
 		case(io_pin_trigger): // FIXME: add remote trigger to normal triggers
 		{
-			if((!(pin_config->flags & io_flag_invert)) != !!(pin_value_mask & (1 << pin)))
+			if((!(pin_config->static_flags & io_flag_static_invert)) != !!(pin_value_mask & (1 << pin)))
 			{
 				pin_data->value++;
 
@@ -1768,7 +1795,7 @@ iram void io_periodic_fast(unsigned int rate_ms)
 								}
 							}
 
-							if(pin_config->flags & io_flag_repeat)
+							if(pin_config->static_flags & io_flag_static_repeat)
 								pin_data->speed = pin_config->speed;
 							else
 							{
@@ -2815,8 +2842,8 @@ static app_action_t application_function_io_clear_set_flag(app_params_t *paramet
 	io_data_pin_entry_t *pin_data;
 	io_config_pin_entry_t *pin_config;
 	unsigned int io, pin;
-	io_pin_flag_t saved_flags;
-	io_pin_flag_to_int_t io_pin_flag_to_int;
+	io_pin_flag_static_t saved_flags;
+	io_pin_flags_static_to_int_t io_pin_flag_to_int;
 
 	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
 	{
@@ -2848,7 +2875,7 @@ static app_action_t application_function_io_clear_set_flag(app_params_t *paramet
 	pin_data = &data->pin[pin];
 	pin_config = &io_config[io][pin];
 
-	saved_flags = pin_config->flags;
+	saved_flags = pin_config->static_flags;
 
 	if((parse_string(3, parameters->src, parameters->dst, ' ') == parse_ok) && !io_string_to_flags(parameters->dst, pin_config, !!value))
 	{
@@ -2857,9 +2884,9 @@ static app_action_t application_function_io_clear_set_flag(app_params_t *paramet
 		return(app_action_error);
 	}
 
-	if((pin_config->flags & io_flag_pullup) && !(info->caps & caps_pullup))
+	if((pin_config->static_flags & io_flag_static_pullup) && !(info->caps & caps_pullup))
 	{
-		pin_config->flags = saved_flags;
+		pin_config->static_flags = saved_flags;
 		string_clear(parameters->dst);
 		string_append(parameters->dst, "io does not support pullup\n");
 		return(app_action_error);
@@ -2867,13 +2894,13 @@ static app_action_t application_function_io_clear_set_flag(app_params_t *paramet
 
 	if(info->init_pin_mode_fn && (info->init_pin_mode_fn(parameters->dst, info, pin_data, pin_config, pin) != io_ok))
 	{
-		pin_config->flags = saved_flags;
+		pin_config->static_flags = saved_flags;
 		string_clear(parameters->dst);
 		string_append(parameters->dst, "cannot enable this flag\n");
 		return(app_action_error);
 	}
 
-	io_pin_flag_to_int.io_pin_flags = pin_config->flags;
+	io_pin_flag_to_int.io_pin_flags_static = pin_config->static_flags;
 	config_open_write();
 	config_set_int("io.%u.%u.flags", io_pin_flag_to_int.intvalue, io, pin);
 	config_close_write();
@@ -2896,6 +2923,91 @@ app_action_t application_function_io_set_flag(app_params_t *parameters)
 app_action_t application_function_io_clear_flag(app_params_t *parameters)
 {
 	return(application_function_io_clear_set_flag(parameters, 0));
+}
+
+app_action_t application_function_io_suspend(app_params_t *parameters)
+{
+	const io_info_entry_t *info;
+	io_config_pin_entry_t *pin_config;
+	unsigned int io, pin;
+
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
+	{
+		string_append(parameters->dst, "io-suspend <io> <pin>\n");
+		return(app_action_error);
+	}
+
+	if(io >= io_id_size)
+	{
+		string_format(parameters->dst, "invalid io %u\n", io);
+		return(app_action_error);
+	}
+
+	info = io_info[io];
+
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
+	{
+		string_append(parameters->dst, "io-suspend <io> <pin>\n");
+		return(app_action_error);
+	}
+
+	if(pin >= info->pins)
+	{
+		string_append(parameters->dst, "invalid pin\n");
+		return(app_action_error);
+	}
+
+	pin_config = &io_config[io][pin];
+
+	io_trigger_pin((string_t *)0, io, pin, io_trigger_stop);
+	io_trigger_pin((string_t *)0, io, pin, io_trigger_off);
+	io_write_pin((string_t *)0, io, pin, 0);
+	pin_config->dynamic_flags |= io_flag_dynamic_suspended;
+
+	string_format(parameters->dst, "i/o %u/%u suspended\n", io, pin);
+
+	return(app_action_normal);
+}
+
+app_action_t application_function_io_resume(app_params_t *parameters)
+{
+	const io_info_entry_t *info;
+	io_config_pin_entry_t *pin_config;
+	unsigned int io, pin;
+
+	if(parse_uint(1, parameters->src, &io, 0, ' ') != parse_ok)
+	{
+		string_append(parameters->dst, "io-suspend <io> <pin>\n");
+		return(app_action_error);
+	}
+
+	if(io >= io_id_size)
+	{
+		string_format(parameters->dst, "invalid io %u\n", io);
+		return(app_action_error);
+	}
+
+	info = io_info[io];
+
+	if(parse_uint(2, parameters->src, &pin, 0, ' ') != parse_ok)
+	{
+		string_append(parameters->dst, "io-suspend <io> <pin>\n");
+		return(app_action_error);
+	}
+
+	if(pin >= info->pins)
+	{
+		string_append(parameters->dst, "invalid pin\n");
+		return(app_action_error);
+	}
+
+	pin_config = &io_config[io][pin];
+
+	pin_config->dynamic_flags &= ~io_flag_dynamic_suspended;
+
+	string_format(parameters->dst, "i/o %u/%u resumed\n", io, pin);
+
+	return(app_action_normal);
 }
 
 /* dump */

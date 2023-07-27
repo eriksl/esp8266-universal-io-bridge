@@ -174,7 +174,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 
 	*value = !!(i2c_data[0] & (1 << pin));
 
-	if(pin_config->flags & io_flag_invert)
+	if(pin_config->static_flags & io_flag_static_invert)
 		*value = !*value;
 
 	return(io_ok);
@@ -184,7 +184,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 {
 	i2c_error_t error;
 
-	if(pin_config->flags & io_flag_invert)
+	if(pin_config->static_flags & io_flag_static_invert)
 		value = !value;
 
 	switch(pin_config->llmode)

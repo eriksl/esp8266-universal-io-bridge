@@ -153,7 +153,7 @@ iram static io_error_t read_pin(string_t *error_message, const struct io_info_en
 				{
 					*value = !!(read_peri_reg(RTC_GPIO_IN_DATA) & 0x01);
 
-					if(pin_config->flags & io_flag_invert)
+					if(pin_config->static_flags & io_flag_static_invert)
 						*value = !*value;
 
 					break;
@@ -223,7 +223,7 @@ iram static io_error_t write_pin(string_t *error_message, const struct io_info_e
 
 				case(io_pin_ll_output_digital):
 				{
-					if(pin_config->flags & io_flag_invert)
+					if(pin_config->static_flags & io_flag_static_invert)
 						value = !value;
 
 					clear_set_peri_reg_mask(RTC_GPIO_OUT, 0x01, value ? 0x01 : 0x00);

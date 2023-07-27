@@ -99,27 +99,35 @@ assert_size(io_pin_mode_t, 4);
 
 typedef enum
 {
-	io_flag_none =			0 << 0,
-	io_flag_autostart =		1 << 0,
-	io_flag_repeat =		1 << 1,
-	io_flag_pullup =		1 << 2,
-	io_flag_reset_on_read =	1 << 3,
-	io_flag_extended =		1 << 4,
-	io_flag_grb =			1 << 5,
-	io_flag_linear =		1 << 6,
-	io_flag_fill8 =			1 << 7,
-	io_flag_invert =		1 << 8,
-} io_pin_flag_t;
+	io_flag_static_none =			0 << 0,
+	io_flag_static_autostart =		1 << 0,
+	io_flag_static_repeat =			1 << 1,
+	io_flag_static_pullup =			1 << 2,
+	io_flag_static_reset_on_read =	1 << 3,
+	io_flag_static_extended =		1 << 4,
+	io_flag_static_grb =			1 << 5,
+	io_flag_static_linear =			1 << 6,
+	io_flag_static_fill8 =			1 << 7,
+	io_flag_static_invert =			1 << 8,
+} io_pin_flag_static_t;
 
-assert_size(io_pin_flag_t, 4);
+assert_size(io_pin_flag_static_t, 4);
 
 typedef union
 {
-	io_pin_flag_t	io_pin_flags;
-	unsigned int	intvalue;
-} io_pin_flag_to_int_t;
+	io_pin_flag_static_t	io_pin_flags_static;
+	unsigned int			intvalue;
+} io_pin_flags_static_to_int_t;
 
-assert_size(io_pin_flag_to_int_t, 4);
+typedef enum
+{
+	io_flag_dynamic_none =		0 << 0,
+	io_flag_dynamic_suspended =	1 << 0,
+} io_pin_flag_dynamic_t;
+
+assert_size(io_pin_flag_dynamic_t, 4);
+
+assert_size(io_pin_flags_static_to_int_t, 4);
 
 typedef enum
 {
@@ -225,28 +233,29 @@ typedef io_data_entry_t io_data_t[io_id_size];
 
 typedef struct attr_packed
 {
-	io_pin_mode_t		mode:5;
-	io_pin_ll_mode_t	llmode:4;
-	io_pin_flag_t 		flags:11;
-	io_direction_t		direction:2;
-	unsigned int		speed:18;
+	io_pin_mode_t			mode:5;
+	io_pin_ll_mode_t		llmode:4;
+	io_pin_flag_static_t 	static_flags:10;
+	io_pin_flag_dynamic_t	dynamic_flags:1;
+	io_direction_t			direction:2;
+	unsigned int			speed:18;
 
 	union
 	{
 		struct attr_packed
 		{
-			unsigned int lower_bound:18;
-			unsigned int upper_bound:18;
+			unsigned int lower_bound:20;
+			unsigned int upper_bound:20;
 		} output_pwm;
 
 		struct attr_packed
 		{
-			io_i2c_t pin_mode:2;
+			io_i2c_t pin_mode;
 		} i2c;
 
 		struct attr_packed
 		{
-			io_lcd_mode_t pin_use:4;
+			io_lcd_mode_t pin_use;
 		} lcd;
 
 		struct attr_packed
@@ -316,5 +325,7 @@ app_action_t application_function_io_trigger(app_params_t *);
 app_action_t application_function_io_set_flag(app_params_t *);
 app_action_t application_function_io_clear_flag(app_params_t *);
 app_action_t application_function_io_set_mask(app_params_t *);
+app_action_t application_function_io_suspend(app_params_t *);
+app_action_t application_function_io_resume(app_params_t *);
 
 #endif

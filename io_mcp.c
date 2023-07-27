@@ -444,7 +444,7 @@ static io_error_t pin_mode(string_t *error_message, const io_info_entry_t *info,
 	bankpin = pin & 0x07;
 	mcp_data.instance[info->instance].counters &= ~(1 << pin);
 
-	if((pin_config->llmode == io_pin_ll_input_digital) && (pin_config->flags & io_flag_invert))
+	if((pin_config->llmode == io_pin_ll_input_digital) && (pin_config->static_flags & io_flag_static_invert))
 	{
 		if(clear_set_register(error_message, info, IPOL(bank), 0, 1 << bankpin) != io_ok) // input polarity inversion = 1
 			return(io_error);
@@ -491,7 +491,7 @@ static io_error_t pin_mode(string_t *error_message, const io_info_entry_t *info,
 
 		case(io_pin_ll_input_digital):
 		{
-			if((pin_config->flags & io_flag_pullup) && (clear_set_register(error_message, info, GPPU(bank), 0, 1 << bankpin) != io_ok))
+			if((pin_config->static_flags & io_flag_static_pullup) && (clear_set_register(error_message, info, GPPU(bank), 0, 1 << bankpin) != io_ok))
 				return(io_error);
 
 			if((pin_config->llmode == io_pin_ll_counter) && (clear_set_register(error_message, info, GPINTEN(bank), 0, 1 << bankpin) != io_ok)) // pc int enable = 1
@@ -599,7 +599,7 @@ static io_error_t read_pin(string_t *error_message, const io_info_entry_t *info,
 
 			*value = !!(tv & (1 << bankpin));
 
-			if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->flags & io_flag_invert))
+			if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->static_flags & io_flag_static_invert))
 				*value = !*value;
 
 			break;
@@ -624,7 +624,7 @@ static io_error_t write_pin(string_t *error_message, const io_info_entry_t *info
 	bank = (pin & 0x08) >> 3;
 	bankpin = pin & 0x07;
 
-	if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->flags & io_flag_invert))
+	if((pin_config->llmode == io_pin_ll_output_digital) && (pin_config->static_flags & io_flag_static_invert))
 		value = !value;
 
 	if(value)

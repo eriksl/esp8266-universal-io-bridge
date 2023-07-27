@@ -2080,6 +2080,8 @@ roflash static const char help_description_i2c_write_read[] =		"write data to i2
 roflash static const char help_description_io_mode[] =				"config i/o pin";
 roflash static const char help_description_io_read[] =				"read from i/o pin";
 roflash static const char help_description_io_trigger[] = 			"trigger i/o pin";
+roflash static const char help_description_io_suspend[] = 			"suspend i/o pin <i/o> <pin>";
+roflash static const char help_description_io_resume[] = 			"resume i/o pin <i/o> <pin>";
 roflash static const char help_description_trigger_remote[] = 		"remote trigger: <index> <ip>";
 roflash static const char help_description_io_write[] =				"write to i/o pin";
 roflash static const char help_description_io_multiple[] =			"write to multiple pins from one I/O";
@@ -2329,6 +2331,16 @@ roflash static const application_function_table_t application_function_table[] =
 		"ir", "io-read",
 		application_function_io_read,
 		help_description_io_read,
+	},
+	{
+		"ios", "io-suspend",
+		application_function_io_suspend,
+		help_description_io_suspend,
+	},
+	{
+		"ior", "io-resume",
+		application_function_io_resume,
+		help_description_io_resume,
 	},
 	{
 		"it", "io-trigger",

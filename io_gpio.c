@@ -870,7 +870,7 @@ static io_error_t init_pin_mode(string_t *error_message, const struct io_info_en
 		case(io_pin_ll_input_digital):
 		case(io_pin_ll_counter):
 		{
-			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_read, pin_config->flags & io_flag_pullup ? io_gpio_enable_pullup : io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
+			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_read, pin_config->static_flags & io_flag_static_pullup ? io_gpio_enable_pullup : io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
 
 			if(pin_config->llmode == io_pin_ll_counter)
 				pin_arm_counter(pin, true);
@@ -881,14 +881,14 @@ static io_error_t init_pin_mode(string_t *error_message, const struct io_info_en
 		case(io_pin_ll_output_digital):
 		{
 			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_write, io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
-			gpio_set(pin, !!(pin_config->flags & io_flag_invert));
+			gpio_set(pin, !!(pin_config->static_flags & io_flag_static_invert));
 			break;
 		}
 
 		case(io_pin_ll_output_pwm1):
 		{
 			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_write, io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
-			gpio_pin_data->pwm.pwm_duty = pin_config->flags & io_flag_invert ? pwm1_period() - 1 : 0;
+			gpio_pin_data->pwm.pwm_duty = pin_config->static_flags & io_flag_static_invert ? pwm1_period() - 1 : 0;
 			gpio_set(pin, false);
 			pwm_go();
 
@@ -899,7 +899,7 @@ static io_error_t init_pin_mode(string_t *error_message, const struct io_info_en
 		{
 			gpio_init_pin(pin, io_gpio_func_gpio, io_gpio_write, io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_pdm);
 			gpio_set(pin, false);
-			gpio_pin_data->pwm.pwm_duty = pin_config->flags & io_flag_invert ? pwm2_period() - 1 : 0;
+			gpio_pin_data->pwm.pwm_duty = pin_config->static_flags & io_flag_static_invert ? pwm2_period() - 1 : 0;
 			pdm_enable(true);
 
 			break;
@@ -926,9 +926,9 @@ static io_error_t init_pin_mode(string_t *error_message, const struct io_info_en
 			}
 
 			direction = gpio_info->uart_pin == io_uart_pin_rx ? uart_dir_rx : uart_dir_tx;
-			enable = !!(pin_config->flags & io_flag_invert);
+			enable = !!(pin_config->static_flags & io_flag_static_invert);
 
-			gpio_init_pin(pin, io_gpio_func_uart, io_gpio_read, (pin_config->flags & io_flag_pullup) ? io_gpio_enable_pullup : io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
+			gpio_init_pin(pin, io_gpio_func_uart, io_gpio_read, (pin_config->static_flags & io_flag_static_pullup) ? io_gpio_enable_pullup : io_gpio_disable_pullup, io_gpio_push_pull, io_gpio_gpio);
 			uart_invert(gpio_info->uart_instance, direction, enable);
 
 			break;
@@ -1008,7 +1008,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 				dutycycle = pwm1_period() - 1;
 				duty = gpio_pin_data->pwm.pwm_duty;
 
-				if(pin_config->flags & io_flag_invert)
+				if(pin_config->static_flags & io_flag_static_invert)
 					duty = dutycycle - duty;
 
 				dutypct = duty * 100 / dutycycle;
@@ -1034,7 +1034,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 				dutycycle = pwm2_period() - 1;
 				duty = gpio_pin_data->pwm.pwm_duty;
 
-				if(pin_config->flags & io_flag_invert)
+				if(pin_config->static_flags & io_flag_static_invert)
 					duty = dutycycle - duty;
 
 				dutypct = duty * 100 / dutycycle;
@@ -1100,7 +1100,7 @@ static io_error_t get_pin_info(string_t *dst, const struct io_info_entry_T *info
 						}
 					}
 
-					string_format(dst, ", inverted: %s", yesno(pin_config->flags & io_flag_invert));
+					string_format(dst, ", inverted: %s", yesno(pin_config->static_flags & io_flag_static_invert));
 				}
 
 				break;
@@ -1145,7 +1145,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 		{
 			*value = gpio_get(pin);
 
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				*value = !*value;
 
 			break;
@@ -1155,7 +1155,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 		{
 			*value = gpio_pin_data->pwm.pwm_duty;
 
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				*value = pwm1_period() - 1 - *value;
 
 			break;
@@ -1165,7 +1165,7 @@ static io_error_t read_pin(string_t *error_message, const struct io_info_entry_T
 		{
 			*value = gpio_pin_data->pwm.pwm_duty;
 
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				*value = pwm2_period() - 1 - *value;
 
 			break;
@@ -1230,7 +1230,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 	{
 		case(io_pin_ll_output_digital):
 		{
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				value = !value;
 
 			gpio_set(pin, value);
@@ -1243,7 +1243,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 			if(value >= pwm1_period())
 				value = pwm1_period() - 1;
 
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				value = pwm1_period() - 1 - value;
 
 			if(gpio_pin_data->pwm.pwm_duty != value)
@@ -1262,7 +1262,7 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 			if(value >= pwm2_period())
 				value = pwm2_period() - 1;
 
-			if(pin_config->flags & io_flag_invert)
+			if(pin_config->static_flags & io_flag_static_invert)
 				value = pwm2_period() - 1 - value;
 
 			gpio_pin_data->pwm.pwm_duty = value;
