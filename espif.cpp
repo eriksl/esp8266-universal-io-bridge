@@ -1345,7 +1345,7 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 							current_buffer -= (current_buffer / 8) * 8;
 						}
 
-						l = ((colour.redQuantum() + colour.greenQuantum() + colour.blueQuantum()) / 3) > (1 << 15);
+						l = ((colour.quantumRed() + colour.quantumGreen() + colour.quantumBlue()) / 3) > (1 << 15);
 
 						if(l)
 							sector_buffer[current_buffer / 8] |=  (1 << (7 - (current_buffer % 8)));
@@ -1361,9 +1361,9 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 					{
 						unsigned int r1, g1, g2, b1;
 
-						r = colour.redQuantum() >> 11;
-						g = colour.greenQuantum() >> 10;
-						b = colour.blueQuantum() >> 11;
+						r = colour.quantumRed() >> 11;
+						g = colour.quantumGreen() >> 10;
+						b = colour.quantumBlue() >> 11;
 
 						if((current_buffer + 2) > flash_sector_size)
 						{
@@ -1391,9 +1391,9 @@ static void command_image(GenericSocket &command_channel, int image_slot, const 
 
 					case(24):
 					{
-						r = colour.redQuantum() >> 8;
-						g = colour.greenQuantum() >> 8;
-						b = colour.blueQuantum() >> 8;
+						r = colour.quantumRed() >> 8;
+						g = colour.quantumGreen() >> 8;
+						b = colour.quantumBlue() >> 8;
 
 						if((current_buffer + 3) > flash_sector_size)
 						{
@@ -1583,7 +1583,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 
 					if(layer == 0)
 					{
-						if((colour.redQuantum() > 16384) && (colour.greenQuantum() > 16384) && (colour.blueQuantum() > 16384))
+						if((colour.quantumRed() > 16384) && (colour.quantumGreen() > 16384) && (colour.quantumBlue() > 16384))
 						{
 							dummy_display[x][y] |= 0x01;
 							byte |= 1 << bit;
@@ -1591,7 +1591,7 @@ static void command_image_epaper(GenericSocket &command_channel, const std::stri
 					}
 					else
 					{
-						if((colour.redQuantum() > 16384) && (colour.greenQuantum() < 16384) && (colour.blueQuantum() < 16384))
+						if((colour.quantumRed() > 16384) && (colour.quantumGreen() < 16384) && (colour.quantumBlue() < 16384))
 						{
 							dummy_display[x][y] |= 0x02;
 							byte |= 1 << bit;
