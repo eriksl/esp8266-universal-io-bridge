@@ -18010,3 +18010,51 @@ Thu Jul 27 19:49:59 CEST 2023 f1278d4 io: add functions for dynamically suspend 
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 450480, free: 352336, 43 %
+Sun Sep  3 09:38:50 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450464, free: 352352, 43 %
+Wed Sep 13 19:47:05 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450496, free: 352320, 43 %
+Wed Sep 13 19:50:59 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450544, free: 352272, 43 %
+Wed Sep 13 19:56:06 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450576, free: 352240, 43 %
+Thu Sep 14 19:35:48 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 450960, free: 351856, 43 %
+Thu Sep 14 20:26:19 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451040, free: 351776, 43 %
+Thu Sep 14 20:28:06 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451104, free: 351712, 43 %
+Thu Sep 14 20:29:16 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451168, free: 351648, 43 %
+Thu Sep 14 20:30:03 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451344, free: 351472, 43 %
+Thu Sep 14 20:59:50 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451360, free: 351456, 43 %
+Thu Sep 14 21:08:18 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451280, free: 351536, 43 %
+Sun Oct  8 14:39:04 CEST 2023 fcbcac8 Makefile: add missing dependencies when building from scratch.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451232, free: 351584, 43 %

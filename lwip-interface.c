@@ -1,4 +1,5 @@
 #include "lwip-interface.h"
+#include "lwip/tcp_impl.h"
 
 #include "attribute.h"
 #include "util.h"
@@ -606,4 +607,66 @@ bool attr_nonnull lwip_if_join_mc(ip_addr_t mc_ip)
 	ip_addr_t _ip_addr_any = { IPADDR_ANY };
 
 	return(igmp_joingroup(&_ip_addr_any, &mc_ip) == ERR_OK);
+}
+
+static void dump_tcp_pcbs(string_t *out, const struct tcp_pcb *p)
+{
+	for(; p != (const struct tcp_pcb *)0; p = p->next)
+	{
+		string_format(out, "> local %lu.%lu.%lu.%lu@%u, ",
+				(p->local_ip.addr & 0x000000ff) >> 0,
+				(p->local_ip.addr & 0x0000ff00) >> 8,
+				(p->local_ip.addr & 0x00ff0000) >> 16,
+				(p->local_ip.addr & 0xff000000) >> 24, p->local_port);
+
+		string_format(out, "remote %lu.%lu.%lu.%lu@%u, ",
+				(p->remote_ip.addr & 0x000000ff) >> 0,
+				(p->remote_ip.addr & 0x0000ff00) >> 8,
+				(p->remote_ip.addr & 0x00ff0000) >> 16,
+				(p->remote_ip.addr & 0xff000000) >> 24, p->remote_port);
+
+		string_format(out, "options: %x, state: %x, tcp_flags: %x\n",
+				p->so_options, p->state, p->flags);
+	}
+}
+
+static void dump_tcp_listen_pcbs(string_t *out, const struct tcp_pcb_listen *p)
+{
+	for(; p != (const struct tcp_pcb_listen *)0; p = p->next)
+	{
+		string_format(out, "> local %lu.%lu.%lu.%lu@%u, ",
+				(p->local_ip.addr & 0x000000ff) >> 0,
+				(p->local_ip.addr & 0x0000ff00) >> 8,
+				(p->local_ip.addr & 0x00ff0000) >> 16,
+				(p->local_ip.addr & 0xff000000) >> 24, p->local_port);
+
+		string_format(out, "remote %lu.%lu.%lu.%lu, ",
+				(p->remote_ip.addr & 0x000000ff) >> 0,
+				(p->remote_ip.addr & 0x0000ff00) >> 8,
+				(p->remote_ip.addr & 0x00ff0000) >> 16,
+				(p->remote_ip.addr & 0xff000000) >> 24);
+
+		string_format(out, "options: %x, state: %x\n",
+				p->so_options, p->state);
+	}
+}
+
+void lwip_netstat_bound(string_t *out)
+{
+	dump_tcp_pcbs(out, tcp_bound_pcbs);
+}
+
+void lwip_netstat_listening(string_t *out)
+{
+	dump_tcp_listen_pcbs(out, tcp_listen_pcbs.listen_pcbs);
+}
+
+void lwip_netstat_active(string_t *out)
+{
+	dump_tcp_pcbs(out, tcp_active_pcbs);
+}
+
+void lwip_netstat_timewait(string_t *out)
+{
+	dump_tcp_pcbs(out, tcp_tw_pcbs);
 }

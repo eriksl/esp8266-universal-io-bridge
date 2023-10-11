@@ -97,4 +97,8 @@ attr_nonnull bool			lwip_if_reboot(lwip_if_socket_t *socket);
 attr_nonnull bool			lwip_if_socket_create(lwip_if_socket_t *socket, const char *name, string_t *receive_buffer, string_t *send_buffer,
 								unsigned int port, bool create_tcp_socket, callback_data_received_fn_t callback_data_received);
 attr_nonnull bool			lwip_if_join_mc(ip_addr_t);
+attr_nonnull void			lwip_netstat_bound(string_t *);
+attr_nonnull void			lwip_netstat_listening(string_t *);
+attr_nonnull void			lwip_netstat_active(string_t *);
+attr_nonnull void			lwip_netstat_timewait(string_t *);
 #endif

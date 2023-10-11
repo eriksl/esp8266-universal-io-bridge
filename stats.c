@@ -8,6 +8,7 @@
 #include "i2c_sensor.h"
 #include "rboot-interface.h"
 #include "sdk.h"
+#include "lwip-interface.h"
 
 stat_flags_t stat_flags;
 stat_uart_t stat_uart;
@@ -450,6 +451,18 @@ void stats_lwip(string_t *dst)
 				stat_lwip_unicast_received, stat_lwip_unicast_dropped,
 				stat_lwip_broadcast_received, stat_lwip_broadcast_dropped, stat_broadcast_group_received,
 				stat_lwip_multicast_received, stat_lwip_multicast_dropped);
+
+	string_append(dst, "\nbound TCP sockets\n\n");
+	lwip_netstat_bound(dst);
+
+	string_append(dst, "\nlistening TCP sockets\n\n");
+	lwip_netstat_listening(dst);
+
+	string_append(dst, "\nactive TCP sockets\n\n");
+	lwip_netstat_active(dst);
+
+	string_append(dst, "\ntimewait TCP sockets\n");
+	lwip_netstat_timewait(dst);
 }
 
 void stats_i2c(string_t *dst)
