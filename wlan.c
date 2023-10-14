@@ -39,6 +39,7 @@ static unsigned int association_state_time;
 static struct attr_packed
 {
 	unsigned int bootstrap_mode:1;
+	unsigned int reconnect_mode:1;
 	unsigned int recovery_mode:1;
 	unsigned int associated:1;
 } flags;
@@ -98,6 +99,7 @@ static void wlan_event_handler(System_Event_t *event)
 			wlan_multicast_init_groups();
 			time_sntp_start();
 
+			flags.reconnect_mode = 0;
 			flags.recovery_mode = 0;
 			flags.associated = 1;
 			association_state_time = 0;
@@ -136,11 +138,15 @@ void wlan_init(void)
 	access_points.selected = 0;
 	access_points.scanning = 0;
 	flags.bootstrap_mode = 1;
+	flags.reconnect_mode = 0;
 	flags.recovery_mode = 0;
 	flags.associated = 0;
 	association_state_time = 0;
 	power_save_enable(config_flags_match(flag_wlan_power_save));
-	wifi_station_ap_number_set(0);
+
+	if(!wifi_station_ap_number_set(1))
+		log("wlan: wifi_station_ap_number_set failed\n");
+
 	wifi_station_set_auto_connect(true);
 	wifi_station_set_reconnect_policy(true);
 	wifi_set_phy_mode(PHY_MODE_11N);
@@ -163,13 +169,22 @@ void wlan_periodic(void)
 	}
 	else
 	{
-		// fallback to config-ap-mode when not connected or no ip within 60 seconds, reset after 5 minutes.
+		// when not associated
+		// - after 15 seconds request explicity for a reconnect
+		// - after 60 seconds to into ap configuration mode
+		// - after  5 minutes do a complete reset
+
+		if(!flags.recovery_mode && !flags.reconnect_mode && (association_state_time > 15))
+		{
+			flags.reconnect_mode = 1;
+			wlan_reconnect();
+		}
 
 		if(!flags.recovery_mode && (association_state_time > 60))
 			dispatch_post_task(task_prio_high, task_wlan_recovery, 0, 0, 0);
-		else
-			if(association_state_time > 300)
-				dispatch_post_task(task_prio_high, task_reset, 0, 0, 0);
+
+		if(association_state_time > 300)
+			dispatch_post_task(task_prio_high, task_reset, 0, 0, 0);
 	}
 }
 
@@ -386,6 +401,7 @@ void wlan_start_recovery(void)
 	uart_loopback(0, false);
 
 	flags.bootstrap_mode = 0;
+	flags.reconnect_mode = 0;
 	flags.recovery_mode = 1;
 	flags.associated = 0;
 	association_state_time = 0;
@@ -526,13 +542,16 @@ void stats_wlan(string_t *dst)
 
 	string_append(dst, "> current wlan state: ");
 
-	if(flags.recovery_mode)
-		string_append(dst, "in recovery mode");
+	if(flags.reconnect_mode)
+		string_append(dst, "in reconnect mode");
 	else
-		if(flags.associated)
-			string_append(dst, "associated");
+		if(flags.recovery_mode)
+			string_append(dst, "in recovery mode");
 		else
-			string_append(dst, "not associated");
+			if(flags.associated)
+				string_append(dst, "associated");
+			else
+				string_append(dst, "not associated");
 
 	if(flags.bootstrap_mode)
 		string_append(dst, ", in bootstrap mode");
