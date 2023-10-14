@@ -134,6 +134,9 @@ static void wlan_event_handler(System_Event_t *event)
 
 void wlan_init(void)
 {
+	unsigned int mode_int;
+	config_wlan_mode_t mode;
+
 	access_points.entries = 0;
 	access_points.selected = 0;
 	access_points.scanning = 0;
@@ -143,6 +146,16 @@ void wlan_init(void)
 	flags.associated = 0;
 	association_state_time = 0;
 	power_save_enable(config_flags_match(flag_wlan_power_save));
+
+	if(config_get_uint("wlan.mode", &mode_int, -1, -1))
+		mode = (config_wlan_mode_t)mode_int;
+	else
+		mode = config_wlan_mode_client;
+
+	if(mode == config_wlan_mode_client)
+		wifi_set_opmode(STATION_MODE);
+	else
+		wifi_set_opmode(SOFTAP_MODE);
 
 	if(!wifi_station_ap_number_set(1))
 		log("wlan: wifi_station_ap_number_set failed\n");
@@ -298,7 +311,7 @@ static bool wlan_associate(string_t *ssid, string_t *password)
 		return(true);
 	}
 
-	if(!wifi_set_opmode_current(STATION_MODE))
+	if(!wifi_set_opmode(STATION_MODE))
 		return(false);
 
 	access_points.entries = 0;
@@ -334,7 +347,7 @@ static bool wlan_access_point(string_t *ssid, string_t *password, unsigned int c
 
 	wifi_station_disconnect();
 
-	if(!wifi_set_opmode_current(SOFTAP_MODE))
+	if(!wifi_set_opmode(SOFTAP_MODE))
 		return(false);
 
 	if(!wifi_softap_set_config_current(&saconf))

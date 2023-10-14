@@ -18078,3 +18078,19 @@ Sat Oct 14 17:32:51 CEST 2023 57247dd lwip: add netstat command.
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 451344, free: 351472, 43 %
+Sat Oct 14 17:47:41 CEST 2023 fe67bcc wlan: additional workarounds for initial association.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451376, free: 351440, 43 %
+Sat Oct 14 18:04:51 CEST 2023 fe67bcc wlan: additional workarounds for initial association.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451424, free: 351392, 43 %
+Sat Oct 14 18:07:56 CEST 2023 fe67bcc wlan: additional workarounds for initial association.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451440, free: 351376, 43 %
+Sat Oct 14 20:30:43 CEST 2023 fe67bcc wlan: additional workarounds for initial association.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451488, free: 351328, 43 %
