@@ -18058,3 +18058,23 @@ Sun Oct  8 14:39:04 CEST 2023 fcbcac8 Makefile: add missing dependencies when bu
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 451232, free: 351584, 43 %
+Sat Oct 14 16:57:21 CEST 2023 57247dd lwip: add netstat command.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451200, free: 351616, 43 %
+Sat Oct 14 17:09:35 CEST 2023 57247dd lwip: add netstat command.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451264, free: 351552, 43 %
+Sat Oct 14 17:22:16 CEST 2023 57247dd lwip: add netstat command.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451296, free: 351520, 43 %
+Sat Oct 14 17:25:01 CEST 2023 57247dd lwip: add netstat command.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451312, free: 351504, 43 %
+Sat Oct 14 17:32:51 CEST 2023 57247dd lwip: add netstat command.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451344, free: 351472, 43 %

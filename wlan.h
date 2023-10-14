@@ -24,6 +24,7 @@ void wlan_periodic(void);
 void wlan_start_recovery(void);
 void wlan_multicast_init_groups(void);
 bool wlan_client_configure(string_t *error, const char *ssid, const char *password);
+bool wlan_associated(void);
 void stats_wlan(string_t *dst);
 
 app_action_t application_function_wlan_scan(app_params_t *parameters);

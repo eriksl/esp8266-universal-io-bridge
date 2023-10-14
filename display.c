@@ -12,6 +12,7 @@
 #include "sys_time.h"
 #include "ota.h"
 #include "dispatch.h"
+#include "wlan.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -433,8 +434,6 @@ void display_periodic(void) // gets called 10 times per second
 	static unsigned int last_update = 0;
 	static unsigned int expire_counter = 0;
 	unsigned int now, active_slots, slot;
-	static bool display_initial_log_active = true;
-	static unsigned int display_initial_log_counter = 0;
 	bool log_to_display;
 	unsigned int unicode;
 
@@ -458,10 +457,7 @@ void display_periodic(void) // gets called 10 times per second
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
 	else
-		if((display_initial_log_active) && (display_initial_log_counter++ < 100))
-			log_to_display = true;
-		else
-			log_to_display = false;
+		log_to_display = !wlan_associated();
 
 	if(log_to_display)
 	{
