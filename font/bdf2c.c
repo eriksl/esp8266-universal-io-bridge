@@ -302,6 +302,8 @@ int main(int argc, char *const argv[])
 		return(-1);
 	}
 
+	unlink(argv[1]);
+
 	if((output = fopen(argv[1], "w")) == (FILE *)0)
 	{
 		perror("output file cannot be opened");
