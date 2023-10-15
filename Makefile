@@ -1,5 +1,7 @@
 IMAGE				?= ota
 ESPTOOL				?= ~/bin/esptool
+HOSTCC				?= gcc
+HOSTCPP				?= g++
 OTA_HOST			?= esp1
 OTA_FLASH			?= espif
 SPI_FLASH_MODE		?= qio
@@ -179,6 +181,7 @@ LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSR
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
+HOSTCPPFLAGS	:= -O3 -Wall -Wextra -Werror -Wframe-larger-than=65536 -Wno-error=ignored-qualifiers
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o \
 						display_eastrising.o display_spitft.o display_ssd1306.o io_pcf.o \
@@ -456,6 +459,10 @@ ota-rf-defaults:		$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 %.s:					%.c $(CC)
 						$(VECHO) "CC as $<"
 						$(Q) $(CC) -S $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
+
+%:						%.cpp
+						$(VECHO) "HOST CPP $<"
+						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) $< -o $@
 
 resetserial:			resetserial.cpp
 
