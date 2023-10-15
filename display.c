@@ -180,7 +180,7 @@ void display_picture_load_worker(void)
 
 	if(spi_flash_read((sector_base + picture_load_sector) * flash_buffer_size, buffer_cstr, flash_buffer_size) != SPI_FLASH_RESULT_OK)
 	{
-		log("display load picture: failed to read sector: 0x%x (0x%x)\n", picture_load_sector, sector_base + picture_load_sector);
+		log("[display] load picture: failed to read sector: 0x%x (0x%x)\n", picture_load_sector, sector_base + picture_load_sector);
 		goto error;
 	}
 
@@ -279,7 +279,7 @@ void display_picture_load_worker(void)
 
 		default: // unknown
 		{
-			log("picture load: pixel mode of %u not implemented\n", pixel_mode);
+			log("[display] picture load: pixel mode of %u not implemented\n", pixel_mode);
 			goto error;
 		}
 	}
@@ -328,7 +328,7 @@ static void display_update(bool dont_advance)
 
 			if(!display_hooks_active->show_time_start_fn(h, m))
 			{
-				log("display update: show time start failed\n");
+				log("[display] update: show time start failed\n");
 				goto error;
 			}
 
@@ -339,7 +339,7 @@ static void display_update(bool dont_advance)
 		{
 			if(!display_hooks_active->show_time_stop_fn())
 			{
-				log("display update: time show stop failed\n");
+				log("[display] update: time show stop failed\n");
 				goto error;
 			}
 
@@ -393,7 +393,7 @@ active_slot_found:
 
 		if(!display_hooks_active->begin_fn(display_current_slot, false))
 		{
-			log("display update: display begin failed\n");
+			log("[display] update: display begin failed\n");
 			goto error;
 		}
 
@@ -401,13 +401,13 @@ active_slot_found:
 
 		if(!display_hooks_active->output_fn(length, unicode))
 		{
-			log("display update: display output (2) failed\n");
+			log("[display] update: display output (2) failed\n");
 			goto error;
 		}
 
 		if(!display_hooks_active->end_fn())
 		{
-			log("display update: display end failed\n");
+			log("[display] update: display end failed\n");
 			goto error;
 		}
 
@@ -415,7 +415,7 @@ active_slot_found:
 	}
 
 	display_current_slot = 0;
-	log("display update: no more attempts left\n");
+	log("[display] update: no more attempts left\n");
 
 done:
 	spent = time_get_us() - start;
@@ -495,7 +495,7 @@ void display_periodic(void) // gets called 10 times per second
 
 				if(!display_hooks_active->output_fn(1, &unicode))
 				{
-					log("display update: display output (3) failed\n");
+					log("[display] update: display output (3) failed\n");
 					goto error;
 				}
 			}
@@ -586,7 +586,7 @@ void display_init(void)
 
 	if(!display_hooks_active->begin_fn(0, true))
 	{
-		log("display init: display begin failed\n");
+		log("[display] init: display begin failed\n");
 		goto error;
 	}
 
