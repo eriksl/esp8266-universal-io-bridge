@@ -467,7 +467,7 @@ void display_periodic(void) // gets called 10 times per second
 
 		if(newline_seen)
 		{
-			skip = (config_flags_match(flag_log_date) ? 6 : 0) + (config_flags_match(flag_log_time) ? 6 : 0);
+			skip = (config_flags_match(flag_log_date) ? 6 : 0) + (config_flags_match(flag_log_time) ? 9 : 0);
 			newline_seen = false;
 		}
 
