@@ -526,11 +526,6 @@ e2:
 	}
 }
 
-bool wlan_associated(void)
-{
-	return(!!flags.associated);
-}
-
 void stats_wlan(string_t *dst)
 {
 	sdk_mac_addr_t mac_addr;

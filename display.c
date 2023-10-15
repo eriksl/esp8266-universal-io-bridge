@@ -103,6 +103,17 @@ static bool freeze(unsigned int timeout_ms)
 	return(true);
 }
 
+static unsigned int slots_used(void)
+{
+	unsigned int ix, count;
+
+	for(ix = 0, count = 0; ix < display_slot_amount; ix++)
+		if(display_slot[ix].content[0])
+			count++;
+
+	return(count);
+}
+
 static bool display_plot(unsigned int pixels_amount, int x, int y, string_t *pixels)
 {
 	if(!display_hooks_active || !display_hooks_active->plot_fn)
@@ -457,7 +468,7 @@ void display_periodic(void) // gets called 10 times per second
 	if(config_flags_match(flag_log_to_display))
 		log_to_display = true;
 	else
-		log_to_display = !wlan_associated();
+		log_to_display = slots_used() == 0;
 
 	if(log_to_display)
 	{
@@ -508,41 +519,36 @@ void display_periodic(void) // gets called 10 times per second
 				break;
 			}
 		}
-
-		return;
 	}
-
-	now = time_get_us() / 1000000;
-
-	if(++expire_counter > 10) // expire and update once a second
+	else
 	{
-		expire_counter = 0;
-		active_slots = 0;
+		now = time_get_us() / 1000000;
 
-		for(slot = 0; slot < display_slot_amount; slot++)
+		if(++expire_counter > 10) // expire and update once a second
 		{
-			if(display_slot[slot].timeout == 1)
-				display_slot[slot].content[0] = '\0';
+			expire_counter = 0;
+			active_slots = 0;
 
-			if(display_slot[slot].timeout > 0)
-				display_slot[slot].timeout--;
+			for(slot = 0; slot < display_slot_amount; slot++)
+			{
+				if(display_slot[slot].timeout == 1)
+					display_slot[slot].content[0] = '\0';
 
-			if(display_slot[slot].content[0])
-				active_slots++;
+				if(display_slot[slot].timeout > 0)
+					display_slot[slot].timeout--;
+
+				if(display_slot[slot].content[0])
+					active_slots++;
+			}
+
+			if((last_update > now) || ((last_update + flip_timeout) < now))
+			{
+				last_update = now;
+				if(freeze_timer == 0)
+					display_update(false);
+			}
 		}
 
-		if(active_slots == 0)
-		{
-			display_slot[0].timeout = 1;
-			strecpy(display_slot[0].content, "boot\n%%%%", display_slot_content_size);
-		}
-
-		if((last_update > now) || ((last_update + flip_timeout) < now))
-		{
-			last_update = now;
-			if(freeze_timer == 0)
-				display_update(false);
-		}
 	}
 
 	return;

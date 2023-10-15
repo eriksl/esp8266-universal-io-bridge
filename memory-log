@@ -18094,3 +18094,59 @@ Sat Oct 14 20:30:43 CEST 2023 fe67bcc wlan: additional workarounds for initial a
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 451488, free: 351328, 43 %
+Sat Oct 14 21:09:40 CEST 2023 8d33881 wlan: more fixes for failing to associated after to reboot occasionally.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451552, free: 351264, 43 %
+Sat Oct 14 21:19:37 CEST 2023 8d33881 wlan: more fixes for failing to associated after to reboot occasionally.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451504, free: 351312, 43 %
+Sat Oct 14 21:20:46 CEST 2023 8d33881 wlan: more fixes for failing to associated after to reboot occasionally.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451440, free: 351376, 43 %
+Sun Oct 15 11:31:33 CEST 2023 0712700 tools: move host side tool <<espif>> to separate tree.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451424, free: 351392, 43 %
+Sun Oct 15 11:50:05 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451472, free: 351344, 43 %
+Sun Oct 15 11:59:49 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451488, free: 351328, 43 %
+Sun Oct 15 12:00:49 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451536, free: 351280, 43 %
+Sun Oct 15 12:03:18 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451568, free: 351248, 43 %
+Sun Oct 15 12:06:43 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451504, free: 351312, 43 %
+Sun Oct 15 12:12:11 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451552, free: 351264, 43 %
+Sun Oct 15 12:13:45 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451504, free: 351312, 43 %
+Sun Oct 15 12:15:17 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451424, free: 351392, 43 %
+Sun Oct 15 12:26:47 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451568, free: 351248, 43 %
+Sun Oct 15 12:28:26 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tags into the fonts.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451520, free: 351296, 43 %
