@@ -1,9 +1,7 @@
 IMAGE				?= ota
 ESPTOOL				?= ~/bin/esptool
-HOSTCC				?= gcc
-HOSTCPP				?= g++
 OTA_HOST			?= esp1
-OTA_FLASH			?= ./espif
+OTA_FLASH			?= espif
 SPI_FLASH_MODE		?= qio
 # using LTO will sometimes yield some extra bytes of IRAM, but it
 # takes longer to compile and the linker map will become useless
@@ -121,7 +119,6 @@ endif
 
 ALL_IMAGE_TARGETS	:= $(FIRMWARE_RBOOT) $(CONFIG_RBOOT_BIN) $(FIRMWARE_IMG)
 ALL_BUILD_TARGET	:= ctng lwip lwip_espressif
-ALL_FLASH_TARGETS	:= espif
 ALL_TOOL_TARGETS	:= resetserial
 ALL_EXTRA_TARGETS	:= free
 
@@ -182,9 +179,6 @@ LDFLAGS			:= -L$(CTNG_SYSROOT_LIB) -L$(LWIP_SYSROOT_LIB) -L$(LWIP_ESPRESSIF_SYSR
 SDKLIBS			:= -lpp -lphy -lnet80211 -lwpa
 LWIPLIBS		:= -l$(LWIP_LIB) -l$(LWIP_ESPRESSIF_LIB)
 STDLIBS			:= -lm -lgcc -lcrypto -lc
-HOSTCPPFLAGS	:= -O3 -Wall -Wextra -Werror -Wframe-larger-than=65536 -Wno-error=ignored-qualifiers \
-					-DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/usr/include/ImageMagick-7 \
-					-lssl -lcrypto -lpthread -lboost_system -lboost_program_options -lboost_regex -lboost_thread -lMagick++-7.Q16HDRI
 
 OBJS			:= application.o config.o display.o display_cfa634.o display_lcd.o display_orbital.o \
 						display_eastrising.o display_spitft.o display_ssd1306.o io_pcf.o \
@@ -216,7 +210,7 @@ HEADERS			:= application.h config.h display.h display_cfa634.h display_lcd.h dis
 .PRECIOUS:		*.cpp *.c *.h $(CTNG)/.config.orig $(CTNG)/scripts/crosstool-NG.sh.orig
 .PHONY:			all flash flash-plain flash-ota clean realclean free always ota showsymbols udprxtest tcprxtest udptxtest tcptxtest test release $(ALL_BUILD_TARGETS)
 
-all:			$(ALL_TOOL_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS)
+all:			$(ALL_TOOL_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS)
 				$(VECHO) "DONE $(IMAGE) TARGETS $(ALL_IMAGE_TARGETS) CONFIG SECTOR $(USER_CONFIG_SECTOR)"
 
 clean:
@@ -228,12 +222,11 @@ clean:
 						$(FIRMWARE_RBOOT) $(FIRMWARE_IMG) \
 						$(LDSCRIPT) \
 						$(CONFIG_RBOOT_ELF) $(CONFIG_RBOOT_BIN) \
-						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) \
-						espif 2> /dev/null
+						$(LIBMAIN_RBB_FILE) $(ZIP) $(LINKMAP) 2> /dev/null
 
 realclean:		clean
 				$(VECHO) "REALCLEAN"
-				-$(Q) rm -f espif.h.gch resetserial 2> /dev/null
+				-$(Q) rm -f resetserial 2> /dev/null
 
 free:			$(ELF_IMAGE)
 				$(VECHO) "MEMORY USAGE"
@@ -408,7 +401,7 @@ flash:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS) $(ALL_
 							$(RFCAL_OFFSET) $(RFCAL_FILE) \
 							$(SYSTEM_CONFIG_OFFSET) $(SYSTEM_CONFIG_FILE)
 
-ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_FLASH_TARGETS) $(ALL_EXTRA_TARGETS)
+ota:					$(ALL_BUILD_TARGETS) $(ALL_IMAGE_TARGETS) $(ALL_EXTRA_TARGETS)
 						$(VECHO) "OTA"
 						$(OTA_FLASH) -h $(OTA_HOST) -f $(FIRMWARE_IMG) -W
 
@@ -464,17 +457,7 @@ ota-rf-defaults:		$(PHYDATA_FILE) $(SYSTEM_CONFIG_FILE) $(RFCAL_FILE)
 						$(VECHO) "CC as $<"
 						$(Q) $(CC) -S $(CCWARNINGS) $(CFLAGS) $(CINC) -c $< -o $@
 
-%:						%.cpp
-						$(VECHO) "HOST CPP $<"
-						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) $< -o $@
-
-%.h.gch:				%.h
-						$(VECHO) "HOST CPP PCH $<"
-						$(Q) $(HOSTCPP) $(HOSTCPPFLAGS) -c -x c++-header $< -o $@
-
-espif:					espif.cpp espif.h.gch
 resetserial:			resetserial.cpp
-
 
 rxtest:
 						$(OTA_FLASH) --read --host $(OTA_HOST) --file test --length 100 --start 2
