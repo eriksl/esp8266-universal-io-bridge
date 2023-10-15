@@ -32,10 +32,10 @@ $(BIN):					$(BDF2C) $(FONTS)
 
 flash:					$(BIN)
 						@if [ `stat --format=%s $(BIN)` -gt 196608 ]; then echo "*** font image too large ***"; exit 1; fi
-						../espif --host $(HOST) --filename $(BIN) --start 0x0c6 --write
-						../espif --host $(HOST) --filename $(BIN) --start 0x1c6 --write
-						../espif --host $(HOST) --filename $(BIN) --start 0x0c6 --verify
-						../espif --host $(HOST) --filename $(BIN) --start 0x1c6 --verify
+						espif --host $(HOST) --filename $(BIN) --start 0x0c6 --write
+						espif --host $(HOST) --filename $(BIN) --start 0x1c6 --write
+						espif --host $(HOST) --filename $(BIN) --start 0x0c6 --verify
+						espif --host $(HOST) --filename $(BIN) --start 0x1c6 --verify
 
 $(BDF2C):				$(BDF2C).c
 						gcc -Wall -Werror -O3 -s $< -o $@
