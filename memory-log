@@ -18150,3 +18150,43 @@ Sun Oct 15 12:28:26 CEST 2023 83a4ec9 fonts: allow for gbdfed to insert it's tag
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71993, free:   8272, 10 %
     irom:    available: 784 k, used: 451520, free: 351296, 43 %
+Sun Oct 15 16:14:42 CEST 2023 1e28afb bdf2c: remove to old output file to ensure it's not partly overwritten.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451440, free: 351376, 43 %
+Tue Oct 17 17:01:25 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451408, free: 351408, 43 %
+Wed Oct 18 14:31:24 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451424, free: 351392, 43 %
+Wed Oct 18 14:32:43 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451440, free: 351376, 43 %
+Wed Oct 18 14:39:08 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451456, free: 351360, 43 %
+Wed Oct 18 14:54:32 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451584, free: 351232, 43 %
+Wed Oct 18 14:55:05 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71993, free:   8272, 10 %
+    irom:    available: 784 k, used: 451600, free: 351216, 43 %
+Wed Oct 18 15:36:07 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  72001, free:   8264, 10 %
+    irom:    available: 784 k, used: 451600, free: 351216, 43 %
+Wed Oct 18 15:36:57 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 451600, free: 351216, 43 %
+Wed Oct 18 16:02:49 CEST 2023 a36bff3 Makefile: add missing stuff for resetserial.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 451776, free: 351040, 43 %

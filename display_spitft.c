@@ -63,12 +63,24 @@ enum
 	dispinvctrl_2dot	=	0b010,
 };
 
-typedef struct
+typedef struct attr_packed
 {
-	unsigned int column;
-	unsigned int row;
-	unsigned int slot;
+	unsigned int r:8;
+	unsigned int g:8;
+	unsigned int b:8;
+} rgb_t;
+
+assert_size(rgb_t, 3);
+
+typedef struct attr_packed
+{
+	unsigned int column:8;
+	unsigned int row:8;
+	unsigned int slot:8;
+	rgb_t colour;
 } text_t;
+
+assert_size(text_t, 6);
 
 typedef struct
 {
@@ -119,13 +131,13 @@ static text_t text;
 static display_t display;
 static pin_t pin;
 
-static unsigned int rgb_to_18bit_colour(unsigned int r, unsigned int g, unsigned int b)
+static unsigned int rgb_to_18bit_colour(unsigned int r, unsigned int g, unsigned int b, unsigned int brightness)
 {
 	unsigned int colour;
 
-	r = (r & 0b11111100) >> 0;
-	g = (g & 0b11111100) >> 0;
-	b = (b & 0b11111100) >> 0;
+	r = (r >> (4 - brightness)) & 0b11111100;
+	g = (g >> (4 - brightness)) & 0b11111100;
+	b = (b >> (4 - brightness)) & 0b11111100;
 
 	colour = (r << 16) | (g << 8) | (b << 0);
 
@@ -141,9 +153,9 @@ static void background_colour(unsigned int slot, unsigned int *r, unsigned int *
 		{	0x00,	0x88,	0x00	},	// green		2
 		{	0x00,	0x00,	0xff	},	// blue			3
 		{	0xff,	0x88,	0x00	},	// orange		4
-		{	0xaa,	0x77,	0x00	},	// brow			5
+		{	0xaa,	0x77,	0x00	},	// brown		5
 		{	0xaa,	0xaa,	0xaa	},	// light grey	6
-		{	0x00,	0x88,	0xff	},	// cyan		7
+		{	0x00,	0x88,	0xff	},	// cyan			7
 	};
 
 	slot = slot % 8;
@@ -424,6 +436,12 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 	unsigned int box_colour;
 	unsigned int colour[3];
 	unsigned int pixels, bulk_pixel, bulk_stride, write_bits;
+	unsigned int brightness;
+
+	if(pin.bright.enabled)
+		brightness = 4;
+	else
+		brightness = display.brightness;
 
 	if(!write_spi_write_buffer(&error))
 	{
@@ -449,7 +467,7 @@ static attr_result_used bool box(unsigned int r, unsigned int g, unsigned int b,
 		return(false);
 	}
 
-	box_colour = rgb_to_18bit_colour(r, g, b) & 0x00ffffff;
+	box_colour = rgb_to_18bit_colour(r, g, b, brightness) & 0x00ffffff;
 	pixels = (to_x - from_x + 1) * (to_y - from_y + 1);
 
 	colour[0] = (box_colour & 0x00ff0000) >> 16;
@@ -566,17 +584,51 @@ static attr_result_used bool clear_screen(void)
 	return(box(0x00, 0x00, 0x00, 0, 0, display.x_size - 1, display.y_size - 1));
 }
 
+enum
+{
+	text_colours = 8,
+};
+
 static attr_result_used bool text_send(unsigned int code)
 {
+	static const roflash unsigned int rgb_map[text_colours][3] =
+	{
+		{	0x00,	0x00,	0x00	},	//	black	0
+		{	0x00,	0x00,	0xff	},	//	blue	1
+		{	0x00,	0x88,	0x00	},	//	green	2
+		{	0x00,	0xaa,	0xaa	},	//	cyan	3
+		{	0xff,	0x00,	0x00	},	//	red		4
+		{	0xff,	0x00,	0xff	},	//	purple	5
+		{	0xff,	0xbb,	0x00	},	//	yellow	6
+		{	0xff,	0xff,	0xff	},	//	white	7
+	};
+
 	font_info_t font_info;
 	font_cell_t font_cell;
 	unsigned int x, y, max_x, max_y;
 	unsigned int colour, fg_colour, bg_colour;
 	string_new(, error, 64);
-	unsigned int black, white;
+	unsigned int index;
+	unsigned int brightness;
 
 	if(code == ' ')
+		goto space;
+
+	if((code >= 0xf800) && (code < 0xf808)) // abuse private use unicode codepoints for colours
+	{
+		index = (code - 0xf800);
+
+		if(index >= text_colours)
+			log("[display spitft] colour out of range\n");
+		else
+		{
+			text.colour.r = rgb_map[index][0];
+			text.colour.g = rgb_map[index][1];
+			text.colour.b = rgb_map[index][2];
+		}
+
 		goto skip;
+	}
 
 	if(!font_get_info(&font_info))
 		return(false);
@@ -587,22 +639,21 @@ static attr_result_used bool text_send(unsigned int code)
 		return(false);
 	}
 
+	if(pin.bright.enabled)
+		brightness = 4;
+	else
+		brightness = display.brightness;
+
 	x = text.column * font_info.width;
 	y = text.row * font_info.height;
-
-	black = 0x00;
-	white = 0xff;
-
-	if(!pin.bright.enabled)
-		white >>= (4 - display.brightness);
 
 	if(display.logmode)
 	{
 		max_x = x + font_info.width;
 		max_y = y + font_info.height;
 
-		fg_colour = rgb_to_18bit_colour(white, white, white);
-		bg_colour = rgb_to_18bit_colour(black, black, black);
+		fg_colour = rgb_to_18bit_colour(0xff, 0xff, 0xff, brightness);
+		bg_colour = rgb_to_18bit_colour(0x00, 0x00, 0x00, brightness);
 	}
 	else
 	{
@@ -610,18 +661,10 @@ static attr_result_used bool text_send(unsigned int code)
 		{
 			unsigned int r, g, b;
 
-			fg_colour = rgb_to_18bit_colour(white, white, white);
+			fg_colour = rgb_to_18bit_colour(0xff, 0xff, 0xff, brightness);
 
 			background_colour(text.slot, &r, &g, &b);
-
-			if(!pin.bright.enabled)
-			{
-				r >>= (4 - display.brightness);
-				g >>= (4 - display.brightness);
-				b >>= (4 - display.brightness);
-			}
-
-			bg_colour = rgb_to_18bit_colour(r, g, b);
+			bg_colour = rgb_to_18bit_colour(r, g, b, brightness);
 
 			x += border_1 + pad_1;
 			y += border_1 + pad_1;
@@ -631,8 +674,8 @@ static attr_result_used bool text_send(unsigned int code)
 		}
 		else
 		{
-			fg_colour = rgb_to_18bit_colour(black, black, black);
-			bg_colour = rgb_to_18bit_colour(white, white, white);
+			fg_colour = rgb_to_18bit_colour(text.colour.r, text.colour.g, text.colour.b, brightness);
+			bg_colour = rgb_to_18bit_colour(0xff, 0xff, 0xff, brightness);
 
 			x += border_2 + pad_2;
 			y += (2 * border_1) + pad_2;
@@ -686,9 +729,10 @@ static attr_result_used bool text_send(unsigned int code)
 		return(false);
 	}
 
-skip:
+space:
 	text.column++;
 
+skip:
 	return(true);
 }
 
@@ -924,6 +968,7 @@ static bool begin(unsigned int slot, bool logmode)
 
 	text.column = text.row = 0;
 	text.slot = slot;
+	text.colour.r = text.colour.g = text.colour.b = 0x00;
 	display.logmode = logmode;
 
 	if(!font_select(logmode))
@@ -1023,6 +1068,8 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 		if(current == '\n')
 		{
+			text.colour.r = text.colour.g = text.colour.b = 0x00;
+
 			if(!text_newline())
 				return(false);
 

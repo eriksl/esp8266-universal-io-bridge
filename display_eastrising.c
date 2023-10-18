@@ -30,11 +30,21 @@ typedef enum
 
 typedef struct attr_packed
 {
+	unsigned int r:8;
+	unsigned int g:8;
+	unsigned int b:8;
+} rgb_t;
+
+assert_size(rgb_t, 3);
+
+typedef struct attr_packed
+{
 	unsigned int column:8;
 	unsigned int row:8;
+	rgb_t colour;
 } text_t;
 
-assert_size(text_t, 2);
+assert_size(text_t, 5);
 
 typedef struct attr_packed
 {
@@ -372,9 +382,9 @@ static void background_colour(unsigned int slot, unsigned int *r, unsigned int *
 		{	0x00,	0x88,	0x00	},	// green		2
 		{	0x00,	0x00,	0xff	},	// blue			3
 		{	0xff,	0x88,	0x00	},	// orange		4
-		{	0xaa,	0x77,	0x00	},	// brow			5
+		{	0xaa,	0x77,	0x00	},	// brown		5
 		{	0xaa,	0xaa,	0xaa	},	// light grey	6
-		{	0x00,	0x88,	0xff	},	// cyan		7
+		{	0x00,	0x88,	0xff	},	// cyan			7
 	};
 
 	slot = slot % 8;
@@ -978,16 +988,51 @@ error:
 	return(success);
 }
 
+enum
+{
+	text_colours = 8,
+};
+
 static attr_result_used bool text_send(unsigned int code)
 {
+	static const roflash unsigned int rgb_map[text_colours][3] =
+	{
+		{	0x00,	0x00,	0x00	},	//	black	0
+		{	0x00,	0x00,	0xff	},	//	blue	1
+		{	0x00,	0x99,	0x00	},	//	green	2
+		{	0x00,	0x88,	0x77	},	//	cyan	3
+		{	0xff,	0x00,	0x00	},	//	red		4
+		{	0xff,	0x00,	0xff	},	//	purple	5
+		{	0xff,	0x88,	0x00	},	//	yellow	6
+		{	0xff,	0xff,	0xff	},	//	white	7
+	};
+
 	font_info_t font_info;
 	font_cell_t font_cell;
 	unsigned int x, y, max_x, max_y;
-	unsigned int x2, y2, byte, bit, colour;
+	unsigned int x2, y2, byte, bit;
+	rgb_t colour;
 	uint8_t data[(32 / 8) * 32];
+	unsigned int index;
 
 	if(code == ' ')
+		goto space;
+
+	if((code >= 0xf800) && (code < 0xf808)) // abuse private use unicode codepoints for colours
+	{
+		index = (code - 0xf800);
+
+		if(index >= text_colours)
+			log("[display eastrising] colour out of range\n");
+		else
+		{
+			text.colour.r = rgb_map[index][0];
+			text.colour.g = rgb_map[index][1];
+			text.colour.b = rgb_map[index][2];
+		}
+
 		goto skip;
+	}
 
 	if(!font_get_info(&font_info))
 		return(false);
@@ -998,16 +1043,12 @@ static attr_result_used bool text_send(unsigned int code)
 	max_x = 0;
 	max_y = 0;
 
-	colour = 0x00;
+	colour.r = colour.g = colour.b = 0xff;
 
-	if(display.logmode)
-		colour = 0xff;
-	else
+	if(!display.logmode)
 	{
 		if(text.row == 0)
 		{
-			colour = 0xff;
-
 			x += border_1 + pad_1;
 			y += border_1 + pad_1;
 
@@ -1016,6 +1057,8 @@ static attr_result_used bool text_send(unsigned int code)
 		}
 		else
 		{
+			colour = text.colour;
+
 			x += border_2 + pad_2;
 			y += (2 * border_1) + pad_2;
 
@@ -1027,7 +1070,7 @@ static attr_result_used bool text_send(unsigned int code)
 	if((max_x >= display.x_size) || (max_y >= display.y_size))
 		goto skip;
 
-	if(!fgcolour_set(colour, colour, colour))
+	if(!fgcolour_set(colour.r, colour.g, colour.b))
 		return(false);
 
 	if(!font_render(code, font_cell))
@@ -1068,9 +1111,10 @@ static attr_result_used bool text_send(unsigned int code)
 	if(!blit(x, y, font_info.width, font_info.height, byte, data))
 		return(false);
 
-skip:
+space:
 	text.column++;
 
+skip:
 	return(true);
 }
 
@@ -1300,6 +1344,8 @@ static bool begin(unsigned int slot, bool logmode)
 		return(false);
 
 	text.column = text.row = 0;
+	text.colour.r = text.colour.g = text.colour.b = 0;
+
 	display.logmode = logmode;
 
 	if(!font_select(logmode))
@@ -1347,7 +1393,7 @@ static bool begin(unsigned int slot, bool logmode)
 		x1 = border_2;
 		y1 = font_info.height + (2 * border_1);
 		x2 = display.x_size - 1 - border_2 - 1;
-		y2 = display.y_size - 1 - border_2 - 1;
+		y2 = display.y_size - 1 - border_2;
 
 		if(!box(0xff, 0xff, 0xff, x1, y1, x2, y2))
 			return(false);
@@ -1396,6 +1442,8 @@ static bool output(unsigned int length, const unsigned int unicode[])
 
 		if(current == '\n')
 		{
+			text.colour.r = text.colour.g = text.colour.b = 0;
+
 			if(!text_newline())
 				return(false);
 		}
