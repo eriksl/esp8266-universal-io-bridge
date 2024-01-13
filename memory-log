@@ -18190,3 +18190,15 @@ Wed Oct 18 16:02:49 CEST 2023 a36bff3 Makefile: add missing stuff for resetseria
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71985, free:   8280, 10 %
     irom:    available: 784 k, used: 451776, free: 351040, 43 %
+Sat Oct 21 11:13:16 CEST 2023 01618bd display: add coloured text using Eastrising and SPI TFT displays.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 451808, free: 351008, 43 %
+Tue Jan  9 16:57:33 CET 2024 01618bd display: add coloured text using Eastrising and SPI TFT displays.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 451856, free: 350960, 43 %
+Tue Jan  9 17:01:23 CET 2024 01618bd display: add coloured text using Eastrising and SPI TFT displays.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 451872, free: 350944, 43 %

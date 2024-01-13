@@ -4,15 +4,32 @@
 
 #include <stdlib.h>
 
-static uint32_t counters[io_pcf_instance_size];
-static uint8_t output_pin_cache[io_pcf_instance_size];
+typedef struct attr_packed
+{
+	uint16_t	counters;
+	uint8_t		pin_output_cache;
+} pcf_data_instance_t;
+
+assert_size(pcf_data_instance_t, 3);
+
+typedef struct attr_packed
+{
+	unsigned int		polling:1;
+	pcf_data_instance_t	instance[io_pcf_instance_size];
+} pcf_data_t;
+
+assert_size(pcf_data_t, (3 * io_pcf_instance_size) + 1);
+
+static pcf_data_t pcf_data;
+
+assert_size(pcf_data, (3 * io_pcf_instance_size) + 1);
 
 static io_error_t init(const struct io_info_entry_T *info)
 {
-	counters[info->instance] = 0;
-	output_pin_cache[info->instance] = 0xff;
+	pcf_data.instance[info->instance].counters = 0;
+	pcf_data.instance[info->instance].pin_output_cache = 0xff;
 
-	if(i2c_send1(info->address, output_pin_cache[info->instance]) != i2c_error_ok)
+	if(i2c_send1(info->address, pcf_data.instance[info->instance].pin_output_cache) != i2c_error_ok)
 		return(io_error);
 
 	return(io_ok);
@@ -25,7 +42,7 @@ static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *
 	uint8_t *previous, *current;
 	uint8_t i2c_data[1];
 
-	if(!counters[info->instance])
+	if(!pcf_data.instance[info->instance].counters)
 		return;
 
 	previous = &previous_data[info->instance];
@@ -34,7 +51,7 @@ static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *
 	if(i2c_receive(info->address, sizeof(i2c_data), i2c_data) != i2c_error_ok)
 		return;
 
-	*current = i2c_data[0] & counters[info->instance];
+	*current = i2c_data[0] & pcf_data.instance[info->instance].counters;
 
 	if(*current != *previous)
 		dispatch_post_task(task_prio_low, task_pins_changed_pcf, *current ^ *previous, *current, info->id);
@@ -102,21 +119,21 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 {
 	i2c_error_t error;
 
-	output_pin_cache[info->instance] &= ~(1 << pin);
-	counters[info->instance] &= ~(1 << pin);
+	pcf_data.instance[info->instance].pin_output_cache &= ~(1 << pin);
+	pcf_data.instance[info->instance].counters &= ~(1 << pin);
 
 	switch(pin_config->llmode)
 	{
 		case(io_pin_ll_counter):
 		{
-			counters[info->instance] |= (1 << pin);
+			pcf_data.instance[info->instance].counters |= (1 << pin);
 			[[fallthrough]];
 		}
 
 		case(io_pin_ll_disabled):
 		case(io_pin_ll_input_digital):
 		{
-			output_pin_cache[info->instance] |= (1 << pin);
+			pcf_data.instance[info->instance].pin_output_cache |= (1 << pin);
 			break;
 		}
 
@@ -134,7 +151,7 @@ static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T
 		}
 	}
 
-	if((error = i2c_send1(info->address, output_pin_cache[info->instance])) != i2c_error_ok)
+	if((error = i2c_send1(info->address, pcf_data.instance[info->instance].pin_output_cache)) != i2c_error_ok)
 	{
 		if(error_message)
 			i2c_error_format_string(error_message, error);
@@ -192,11 +209,11 @@ static io_error_t write_pin(string_t *error_message, const struct io_info_entry_
 		case(io_pin_ll_output_digital):
 		{
 			if(value)
-				output_pin_cache[info->instance] |= (1 << pin);
+				pcf_data.instance[info->instance].pin_output_cache |= (1 << pin);
 			else
-				output_pin_cache[info->instance] &= ~(1 << pin);
+				pcf_data.instance[info->instance].pin_output_cache &= ~(1 << pin);
 			
-			if((error = i2c_send1(info->address, output_pin_cache[info->instance])) != i2c_error_ok)
+			if((error = i2c_send1(info->address, pcf_data.instance[info->instance].pin_output_cache)) != i2c_error_ok)
 			{
 				i2c_error_format_string(error_message, error);
 				return(io_error);
@@ -221,9 +238,9 @@ static io_error_t set_mask(string_t *error_message, const struct io_info_entry_T
 {
 	i2c_error_t error;
 
-	output_pin_cache[info->instance] = pins & 0x000000ff;
+	pcf_data.instance[info->instance].pin_output_cache = pins & 0x000000ff;
 
-	if((error = i2c_send1(info->address, output_pin_cache[info->instance])) != i2c_error_ok)
+	if((error = i2c_send1(info->address, pcf_data.instance[info->instance].pin_output_cache)) != i2c_error_ok)
 	{
 		i2c_error_format_string(error_message, error);
 		return(io_error);
