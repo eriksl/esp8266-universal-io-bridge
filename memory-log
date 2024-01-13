@@ -18202,3 +18202,11 @@ Tue Jan  9 17:01:23 CET 2024 01618bd display: add coloured text using Eastrising
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71985, free:   8280, 10 %
     irom:    available: 784 k, used: 451872, free: 350944, 43 %
+Sat Jan 13 12:51:48 CET 2024 bfd8ed7 io_pcf: sync data structures to io_mcp, no functional changes.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 452080, free: 350736, 43 %
+Sat Jan 13 12:55:31 CET 2024 bfd8ed7 io_pcf: sync data structures to io_mcp, no functional changes.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 452112, free: 350704, 43 %

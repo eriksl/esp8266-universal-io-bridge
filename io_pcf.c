@@ -29,39 +29,12 @@ static io_error_t init(const struct io_info_entry_T *info)
 	pcf_data.instance[info->instance].counters = 0;
 	pcf_data.instance[info->instance].pin_output_cache = 0xff;
 
+	pcf_data.polling = config_flags_match(flag_pcf_no_poll) ? 0 : 1;
+
 	if(i2c_send1(info->address, pcf_data.instance[info->instance].pin_output_cache) != i2c_error_ok)
 		return(io_error);
 
 	return(io_ok);
-}
-
-static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
-{
-	static uint8_t previous_data[io_pcf_instance_size] = { 0xff, 0xff };
-	uint8_t current_data[io_pcf_instance_size];
-	uint8_t *previous, *current;
-	uint8_t i2c_data[1];
-
-	if(!pcf_data.instance[info->instance].counters)
-		return;
-
-	previous = &previous_data[info->instance];
-	current	= &current_data[info->instance];
-
-	if(i2c_receive(info->address, sizeof(i2c_data), i2c_data) != i2c_error_ok)
-		return;
-
-	*current = i2c_data[0] & pcf_data.instance[info->instance].counters;
-
-	if(*current != *previous)
-		dispatch_post_task(task_prio_low, task_pins_changed_pcf, *current ^ *previous, *current, info->id);
-
-	*previous = *current;
-}
-
-static void pin_change_int_handler(int io, const io_info_entry_t *info, io_data_entry_t *data)
-{
-	periodic_slow(io, info, data, 0);
 }
 
 void io_pcf_pins_changed(uint32_t pin_status_mask, uint16_t pin_value_mask, uint8_t io)
@@ -113,6 +86,47 @@ static attr_pure unsigned int max_value(const struct io_info_entry_T *info, io_d
 	}
 
 	return(value);
+}
+
+static void pin_change_common_handler(const io_info_entry_t *info, bool interrupt)
+{
+	static uint8_t previous_data[io_pcf_instance_size] = { 0xff, 0xff };
+	uint8_t current_data[io_pcf_instance_size];
+	uint8_t *previous, *current;
+	uint8_t i2c_data[1];
+
+	if(!pcf_data.instance[info->instance].counters)
+	{
+		log("io_pcf[%u]: pin-change-common-handler: no counters\n", info->address);
+		return;
+	}
+
+	previous = &previous_data[info->instance];
+	current	= &current_data[info->instance];
+
+	if(i2c_receive(info->address, sizeof(i2c_data), i2c_data) != i2c_error_ok)
+		return;
+
+	*current = i2c_data[0] & pcf_data.instance[info->instance].counters;
+
+	if(*current != *previous)
+		dispatch_post_task(task_prio_low, task_pins_changed_pcf, *current ^ *previous, *current, info->id);
+	else
+		if(interrupt)
+			log("io_pcf[%u]: pin-change-common-handler called from interrupt with no interrupt pending\n", info->address);
+
+	*previous = *current;
+}
+
+static void periodic_slow(int io, const io_info_entry_t *info, io_data_entry_t *data, unsigned int rate_ms)
+{
+	if(pcf_data.polling)
+		pin_change_common_handler(info, false);
+}
+
+static void pin_change_handler(int io, io_info_entry_t *info, io_data_entry_t *data)
+{
+	pin_change_common_handler(info, true);
 }
 
 static io_error_t pin_mode(string_t *error_message, const struct io_info_entry_T *info, io_data_pin_entry_t *pin_data, const io_config_pin_entry_t *pin_config, int pin)
@@ -265,7 +279,7 @@ roflash const io_info_entry_t io_info_entry_pcf_3a =
 	max_value,
 	periodic_slow,
 	(void *)0, // periodic_fast
-	pin_change_int_handler,
+	pin_change_handler,
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
@@ -289,7 +303,7 @@ roflash const io_info_entry_t io_info_entry_pcf_26 =
 	max_value,
 	periodic_slow,
 	(void *)0, // periodic_fast
-	pin_change_int_handler,
+	pin_change_handler,
 	pin_mode,
 	(void *)0, // get pin info
 	read_pin,
