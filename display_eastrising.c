@@ -177,6 +177,7 @@ enum
 	reg_vpwr_vsync_polarity_active_high =	0b10000000,
 
 	reg_p1cr_pwm1_enable =					0b10000000,
+	reg_p1cr_pwm1_disable =					0b00000000,
 	reg_p1cr_disable_level_low =			0b00000000,
 	reg_p1cr_disable_level_high =			0b01000000,
 	reg_p1cr_function_pwm1 =				0b00000000,
@@ -1520,18 +1521,37 @@ static bool freeze(bool active)
 
 static bool bright(int brightness)
 {
-	roflash static const unsigned int bright_level[5] = { 0, 5, 20, 110, 255 };
-	roflash static const unsigned int bright_power[5] = { reg_pwrr_display_disable, reg_pwrr_display_enable,
-				reg_pwrr_display_enable, reg_pwrr_display_enable, reg_pwrr_display_enable };
+	roflash static const unsigned int reg_set_p1cr[5] =
+	{
+		reg_p1cr_pwm1_disable,
+		reg_p1cr_pwm1_enable,
+		reg_p1cr_pwm1_enable,
+		reg_p1cr_pwm1_enable,
+		reg_p1cr_pwm1_enable,
+	};
+
+	roflash static const unsigned int ret_set_pwrr[5] =
+	{
+		reg_pwrr_display_disable,
+		reg_pwrr_display_enable,
+		reg_pwrr_display_enable,
+		reg_pwrr_display_enable,
+		reg_pwrr_display_enable
+	};
+
+	roflash static const unsigned int reg_set_p1dcr[5] = { 0, 5, 20, 110, 255 };
 	roflash static const unsigned int bright_low[5] = { 0, 1, 1, 0, 0 };
 
-	if(brightness > 4)
+	if((brightness < 0) || (brightness > 4))
 		return(false);
 
-	if(!write_command_data_1(reg_p1dcr, bright_level[brightness]))
+	if(!write_command_data_1(reg_p1dcr, reg_set_p1dcr[brightness]))
 		return(false);
 
-	if(!write_command_data_1(reg_pwrr, bright_power[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
+	if(!write_command_data_1(reg_p1cr, reg_set_p1cr[brightness] | reg_p1cr_function_pwm1 | reg_p1cr_clock_ratio_2048)) // 114 Hz refresh
+		return(false);
+
+	if(!write_command_data_1(reg_pwrr, ret_set_pwrr[brightness] | reg_pwrr_display_sleep_mode_disable | reg_pwrr_display_reset_complete))
 		return(false);
 
 	display.low_brightness = bright_low[brightness] ? true : false;
