@@ -18210,3 +18210,11 @@ Sat Jan 13 12:55:31 CET 2024 bfd8ed7 io_pcf: sync data structures to io_mcp, no 
     iram:    available:  32 k, used:  29924, free:   2844,  8 %
     dram:    available:  78 k, used:  71985, free:   8280, 10 %
     irom:    available: 784 k, used: 452112, free: 350704, 43 %
+Fri Mar 15 19:13:28 CET 2024 7c99870 io_pcf: implement non-polling (interrupt) mode for counters.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 452144, free: 350672, 43 %
+Sat Mar 23 14:50:39 CET 2024 e92e874 display-eastrising: make display brightness 0 really turn off backlight completely.
+    iram:    available:  32 k, used:  29924, free:   2844,  8 %
+    dram:    available:  78 k, used:  71985, free:   8280, 10 %
+    irom:    available: 784 k, used: 452160, free: 350656, 43 %

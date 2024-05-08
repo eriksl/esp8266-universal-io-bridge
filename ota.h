@@ -1,7 +1,7 @@
 #ifndef __ota_h__
 #define __ota_h__
 
-#ifndef __espif__
+#if !defined(__espif__) && !defined(__esp32__)
 #include "util.h"
 #include "dispatch.h"
 #include "attribute.h"
@@ -71,7 +71,7 @@ assert_field(packet_header_t, spare_1, 24);
 assert_field(packet_header_t, checksum, 28);
 assert_size(packet_header_t, 32);
 
-#ifndef __espif__
+#if !defined(__espif__) && !defined(__esp32__)
 app_action_t application_function_flash_info(app_params_t *);
 app_action_t application_function_flash_write(app_params_t *);
 app_action_t application_function_flash_read(app_params_t *);
